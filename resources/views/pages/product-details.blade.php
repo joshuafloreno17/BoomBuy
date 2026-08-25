@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ $product['name'] }} — GizmoMart</title>
+    <title>{{ $product['name'] }} — BoomBuy</title>
 
     <style>
         * {
@@ -70,6 +70,23 @@
         }
 
         /* =========================
+           SUCCESS MESSAGE
+        ========================= */
+
+        .success-message {
+            width: 86%;
+            max-width: 1200px;
+            margin: 25px auto 0;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 13px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* =========================
            MAIN
         ========================= */
 
@@ -124,7 +141,7 @@
         }
 
         .image-area::after {
-            content: "GIZMOMART";
+            content: "BOOMBUY";
             position: absolute;
             bottom: 20px;
             right: 25px;
@@ -234,34 +251,26 @@
             gap: 12px;
         }
 
-        .cart-btn,
-        .buy-btn {
+        .cart-form {
+            width: 100%;
+        }
+
+        .cart-btn {
+            width: 100%;
             border: none;
             padding: 14px 22px;
             border-radius: 9px;
             cursor: pointer;
             font-size: 13px;
             font-weight: 700;
-            transition: 0.2s;
-        }
-
-        .cart-btn {
             background: #1769e0;
             color: white;
+            transition: 0.2s;
         }
 
         .cart-btn:hover {
             background: #0f55bd;
             transform: translateY(-2px);
-        }
-
-        .buy-btn {
-            background: #eaf2ff;
-            color: #1769e0;
-        }
-
-        .buy-btn:hover {
-            background: #dceaff;
         }
 
         /* =========================
@@ -357,6 +366,10 @@
                 width: 92%;
             }
 
+            .success-message {
+                width: 92%;
+            }
+
             .product-box {
                 padding: 18px;
             }
@@ -372,15 +385,6 @@
             .features,
             .spec-grid {
                 grid-template-columns: 1fr;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .cart-btn,
-            .buy-btn {
-                width: 100%;
             }
 
             footer {
@@ -399,7 +403,7 @@
 <nav class="navbar">
 
     <a href="/" class="logo">
-        Gizmo<span>Mart</span>
+        Boom<span>Buy</span>
     </a>
 
     <div class="nav-links">
@@ -409,11 +413,22 @@
         <a href="/#about">About</a>
     </div>
 
- <a href="{{ route('cart') }}" class="cart">
-    🛒 Cart
-</a>
+    <a href="{{ route('cart') }}" class="cart">
+        🛒 Cart
+    </a>
 
 </nav>
+
+
+<!-- SUCCESS MESSAGE -->
+
+@if(session('success'))
+
+    <div class="success-message">
+        ✅ {{ session('success') }}
+    </div>
+
+@endif
 
 
 <!-- MAIN -->
@@ -451,9 +466,12 @@
             </h1>
 
             <div class="rating">
+
                 <span>★★★★★</span>
+
                 {{ $product['rating'] }} ·
                 {{ $product['reviews'] }} reviews
+
             </div>
 
             <div class="price">
@@ -470,39 +488,72 @@
             <div class="features">
 
                 <div class="feature">
-                    <small>Availability</small>
-                    <strong>✓ In Stock</strong>
+
+                    <small>
+                        Availability
+                    </small>
+
+                    <strong>
+                        ✓ In Stock
+                    </strong>
+
                 </div>
 
-                <div class="feature">
-                    <small>Shipping</small>
-                    <strong>Free Delivery</strong>
-                </div>
 
                 <div class="feature">
-                    <small>Warranty</small>
-                    <strong>1 Year Warranty</strong>
+
+                    <small>
+                        Shipping
+                    </small>
+
+                    <strong>
+                        Free Delivery
+                    </strong>
+
                 </div>
 
+
                 <div class="feature">
-                    <small>Returns</small>
-                    <strong>7-Day Returns</strong>
+
+                    <small>
+                        Warranty
+                    </small>
+
+                    <strong>
+                        1 Year Warranty
+                    </strong>
+
+                </div>
+
+
+                <div class="feature">
+
+                    <small>
+                        Returns
+                    </small>
+
+                    <strong>
+                        7-Day Returns
+                    </strong>
+
                 </div>
 
             </div>
 
 
-            <!-- BUTTONS -->
+            <!-- ADD TO CART -->
 
             <div class="actions">
 
-              <form action="{{ route('cart.add', $product['slug']) }}" method="POST">
+          <form action="{{ route('cart.add', $product['slug']) }}" method="POST">
 
-           <button type="submit" class="cart-btn">
+    @csrf
+
+    <button type="submit" class="cart-btn">
         🛒 Add to Cart
-        </button>
-      </form>
+    </button>
 
+</form>
             </div>
 
         </div>
@@ -548,38 +599,14 @@
 <footer>
 
     <div>
-        © 2026 GizmoMart
+        © 2026 BoomBuy
     </div>
 
     <div>
-        Quality tech. Better everyday.
+        Quality products. Better everyday.
     </div>
 
 </footer>
-
-
-<script>
-
-function addToCart() {
-
-    const button =
-        document.querySelector(".cart-btn");
-
-    button.textContent = "✓ Added to Cart";
-
-    button.style.background = "#16a34a";
-
-    setTimeout(() => {
-
-        button.textContent = "🛒 Add to Cart";
-
-        button.style.background = "#1769e0";
-
-    }, 1200);
-
-}
-
-</script>
 
 </body>
 </html>

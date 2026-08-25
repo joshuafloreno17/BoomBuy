@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin Login — GizmoMart</title>
+    <title>Admin Login — BoomBuy</title>
 
     <style>
         * {
@@ -24,10 +24,6 @@
             text-decoration: none;
         }
 
-        /* =========================
-           PAGE
-        ========================= */
-
         .page {
             min-height: 100vh;
             display: flex;
@@ -45,10 +41,6 @@
             padding: 40px;
             box-shadow: 0 20px 50px rgba(39, 84, 150, 0.12);
         }
-
-        /* =========================
-           HEADER
-        ========================= */
 
         .admin-header {
             text-align: center;
@@ -87,10 +79,6 @@
             line-height: 1.6;
         }
 
-        /* =========================
-           NOTICE
-        ========================= */
-
         .admin-notice {
             background: #f1f6ff;
             border: 1px solid #dceaff;
@@ -102,9 +90,25 @@
             line-height: 1.5;
         }
 
-        /* =========================
-           FORM
-        ========================= */
+        .error-message {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            padding: 12px 14px;
+            border-radius: 9px;
+            margin-bottom: 18px;
+            font-size: 12px;
+        }
+
+        .success-message {
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 12px 14px;
+            border-radius: 9px;
+            margin-bottom: 18px;
+            font-size: 12px;
+        }
 
         .form-group {
             margin-bottom: 18px;
@@ -154,10 +158,6 @@
             transform: translateY(-1px);
         }
 
-        /* =========================
-           BACK
-        ========================= */
-
         .back {
             display: block;
             text-align: center;
@@ -169,10 +169,6 @@
         .back:hover {
             color: #1769e0;
         }
-
-        /* =========================
-           FOOTER
-        ========================= */
 
         .footer {
             text-align: center;
@@ -186,7 +182,6 @@
         }
 
         @media (max-width: 500px) {
-
             .admin-card {
                 padding: 28px 22px;
             }
@@ -212,14 +207,14 @@
                     🛠️
                 </div>
 
-                <small>GizmoMart Management</small>
+                <small>BoomBuy Management</small>
 
                 <h1>
                     Admin Login
                 </h1>
 
                 <p>
-                    Sign in to access the GizmoMart
+                    Sign in to access the BoomBuy
                     administration dashboard.
                 </p>
 
@@ -229,12 +224,35 @@
             <div class="admin-notice">
 
                 🔒 This area is restricted to authorized
-                GizmoMart administrators only.
+                BoomBuy administrators only.
 
             </div>
 
 
-            <form>
+            @if(session('error'))
+
+                <div class="error-message">
+                    ❌ {{ session('error') }}
+                </div>
+
+            @endif
+
+
+            @if(session('success'))
+
+                <div class="success-message">
+                    ✅ {{ session('success') }}
+                </div>
+
+            @endif
+
+
+            <form
+                action="{{ route('admin.login.submit') }}"
+                method="POST"
+            >
+
+                @csrf
 
                 <div class="form-group">
 
@@ -244,7 +262,9 @@
 
                     <input
                         type="email"
+                        name="email"
                         placeholder="Enter admin email"
+                        required
                     >
 
                 </div>
@@ -258,7 +278,9 @@
 
                     <input
                         type="password"
+                        name="password"
                         placeholder="Enter admin password"
+                        required
                     >
 
                 </div>
@@ -283,7 +305,7 @@
 
         <div class="footer">
 
-            © 2026 <strong>GizmoMart</strong> ·
+            © 2026 <strong>BoomBuy</strong> ·
             Admin Portal
 
         </div>

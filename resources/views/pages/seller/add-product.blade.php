@@ -2,11 +2,12 @@
 <html lang="en">
 
 <head>
+
     <meta charset="UTF-8">
 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Add Product — BoomBuy</title>
+    <title>Add Product — BoomBuy Seller</title>
 
     <style>
 
@@ -20,17 +21,21 @@
             font-family: Arial, Helvetica, sans-serif;
             background: #f4f8ff;
             color: #172033;
+            min-height: 100vh;
         }
 
         a {
             text-decoration: none;
-            color: inherit;
         }
 
+        /* NAVBAR */
+
         .navbar {
-            background: white;
+            width: 100%;
+            background: #ffffff;
             border-bottom: 1px solid #e2eaff;
             padding: 18px 7%;
+
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -46,16 +51,17 @@
             color: #172033;
         }
 
-        .admin-label {
-            color: #64748b;
-            font-size: 13px;
-        }
-
         .back {
             color: #1769e0;
             font-size: 13px;
-            font-weight: 600;
+            font-weight: 700;
         }
+
+        .back:hover {
+            color: #0f55bd;
+        }
+
+        /* CONTAINER */
 
         .container {
             width: 86%;
@@ -86,16 +92,7 @@
             margin-top: 8px;
         }
 
-        .success {
-            background: #eaf8ef;
-            color: #15803d;
-            border: 1px solid #bbebca;
-            padding: 13px 16px;
-            border-radius: 9px;
-            margin-bottom: 20px;
-            font-size: 13px;
-            font-weight: 600;
-        }
+        /* ERROR */
 
         .error {
             background: #fff0f0;
@@ -107,11 +104,26 @@
             font-size: 13px;
         }
 
+        /* SUCCESS */
+
+        .success {
+            background: #effdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+            padding: 13px 16px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        /* FORM */
+
         .form-box {
-            background: white;
+            background: #ffffff;
             border: 1px solid #e1e9f6;
             border-radius: 16px;
             padding: 30px;
+            box-shadow: 0 15px 35px rgba(39, 84, 150, 0.08);
         }
 
         .form-group {
@@ -123,6 +135,7 @@
             font-size: 13px;
             font-weight: 700;
             margin-bottom: 8px;
+            color: #334155;
         }
 
         input,
@@ -134,15 +147,20 @@
             padding: 12px 14px;
             border-radius: 8px;
             outline: none;
+
             font-family: Arial, Helvetica, sans-serif;
             font-size: 13px;
+            color: #172033;
+
+            transition: 0.2s;
         }
 
         input:focus,
         select:focus,
         textarea:focus {
             border-color: #1769e0;
-            background: white;
+            background: #ffffff;
+            box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.08);
         }
 
         textarea {
@@ -150,11 +168,7 @@
             resize: vertical;
         }
 
-        .hint {
-            color: #8995a8;
-            font-size: 11px;
-            margin-top: 6px;
-        }
+        /* BUTTONS */
 
         .buttons {
             display: flex;
@@ -162,70 +176,69 @@
             margin-top: 25px;
         }
 
-        .save-btn {
+        .save {
             border: none;
             background: #1769e0;
-            color: white;
+            color: #ffffff;
+
             padding: 13px 22px;
             border-radius: 8px;
+
             font-size: 13px;
             font-weight: 700;
+
             cursor: pointer;
+            transition: 0.2s;
         }
 
-        .save-btn:hover {
+        .save:hover {
             background: #0f55bd;
+            transform: translateY(-1px);
         }
 
-        .cancel-btn {
+        .cancel {
             background: #edf2f9;
             color: #52627a;
+
             padding: 13px 22px;
             border-radius: 8px;
+
             font-size: 13px;
             font-weight: 700;
         }
 
-        .cancel-btn:hover {
-            background: #e1e8f2;
+        .cancel:hover {
+            background: #e2e8f0;
         }
 
-        footer {
-            background: white;
-            border-top: 1px solid #e1e9f6;
-            padding: 30px 7%;
-            display: flex;
-            justify-content: space-between;
-            color: #718096;
-            font-size: 12px;
-        }
-
-        footer strong {
-            color: #1769e0;
-        }
+        /* MOBILE */
 
         @media (max-width: 600px) {
 
+            .navbar {
+                padding: 16px 5%;
+            }
+
             .container {
                 width: 92%;
+                margin-top: 30px;
+            }
+
+            .header h1 {
+                font-size: 28px;
             }
 
             .form-box {
-                padding: 20px;
+                padding: 22px;
             }
 
             .buttons {
                 flex-direction: column;
             }
 
-            .save-btn,
-            .cancel-btn {
-                text-align: center;
-            }
-
-            footer {
-                flex-direction: column;
-                gap: 8px;
+            .save,
+            .cancel {
+                width: 100%;
                 text-align: center;
             }
 
@@ -239,22 +252,22 @@
 <body>
 
 
+<!-- NAVBAR -->
+
 <nav class="navbar">
 
-    <a href="/admin" class="logo">
+    <a href="/" class="logo">
         Boom<span>Buy</span>
     </a>
 
-    <div class="admin-label">
-        Admin Panel
-    </div>
-
-    <a href="{{ route('admin.products') }}" class="back">
-        ← Products
+    <a href="/seller" class="back">
+        ← Seller Dashboard
     </a>
 
 </nav>
 
+
+<!-- MAIN -->
 
 <main class="container">
 
@@ -262,7 +275,7 @@
     <div class="header">
 
         <small>
-            Administration
+            Seller
         </small>
 
         <h1>
@@ -270,11 +283,13 @@
         </h1>
 
         <p>
-            Add a new product to your BoomBuy marketplace.
+            Add a new product to your BoomBuy store.
         </p>
 
     </div>
 
+
+    <!-- ERROR MESSAGE -->
 
     @if(session('error'))
 
@@ -285,34 +300,30 @@
     @endif
 
 
-    @if($errors->any())
+    <!-- SUCCESS MESSAGE -->
 
-        <div class="error">
+    @if(session('success'))
 
-            @foreach($errors->all() as $error)
-
-                <div>
-                    ✕ {{ $error }}
-                </div>
-
-            @endforeach
-
+        <div class="success">
+            ✓ {{ session('success') }}
         </div>
 
     @endif
 
 
+    <!-- FORM -->
+
     <div class="form-box">
 
-        <!-- IMPORTANT: POST FORM -->
-
         <form
-            action="{{ route('admin.products.store') }}"
+            action="/seller/products/store"
             method="POST"
         >
 
             @csrf
 
+
+            <!-- PRODUCT NAME -->
 
             <div class="form-group">
 
@@ -325,12 +336,14 @@
                     id="name"
                     name="name"
                     value="{{ old('name') }}"
-                    placeholder="Example: iPhone 15 Pro"
+                    placeholder="Example: Gaming Phone"
                     required
                 >
 
             </div>
 
+
+            <!-- CATEGORY -->
 
             <div class="form-group">
 
@@ -348,28 +361,38 @@
                         Select Category
                     </option>
 
-                    <option value="smartphone"
-                        {{ old('category') == 'smartphone' ? 'selected' : '' }}>
+                    <option
+                        value="smartphone"
+                        {{ old('category') == 'smartphone' ? 'selected' : '' }}
+                    >
                         Smartphone
                     </option>
 
-                    <option value="laptop"
-                        {{ old('category') == 'laptop' ? 'selected' : '' }}>
+                    <option
+                        value="laptop"
+                        {{ old('category') == 'laptop' ? 'selected' : '' }}
+                    >
                         Laptop
                     </option>
 
-                    <option value="audio"
-                        {{ old('category') == 'audio' ? 'selected' : '' }}>
+                    <option
+                        value="audio"
+                        {{ old('category') == 'audio' ? 'selected' : '' }}
+                    >
                         Audio
                     </option>
 
-                    <option value="wearable"
-                        {{ old('category') == 'wearable' ? 'selected' : '' }}>
+                    <option
+                        value="wearable"
+                        {{ old('category') == 'wearable' ? 'selected' : '' }}
+                    >
                         Wearable
                     </option>
 
-                    <option value="accessories"
-                        {{ old('category') == 'accessories' ? 'selected' : '' }}>
+                    <option
+                        value="accessories"
+                        {{ old('category') == 'accessories' ? 'selected' : '' }}
+                    >
                         Accessories
                     </option>
 
@@ -377,6 +400,8 @@
 
             </div>
 
+
+            <!-- PRICE -->
 
             <div class="form-group">
 
@@ -389,14 +414,16 @@
                     id="price"
                     name="price"
                     value="{{ old('price') }}"
-                    placeholder="Example: 18999"
-                    min="0"
+                    min="1"
                     step="0.01"
+                    placeholder="Example: 15000"
                     required
                 >
 
             </div>
 
+
+            <!-- ICON -->
 
             <div class="form-group">
 
@@ -409,21 +436,19 @@
                     id="icon"
                     name="icon"
                     value="{{ old('icon') }}"
-                    placeholder="Example: 📱"
+                    placeholder="Example: 🎧"
                     required
                 >
-
-                <div class="hint">
-                    You can use an emoji such as 📱 💻 🎧 ⌚ 🎮
-                </div>
 
             </div>
 
 
+            <!-- DESCRIPTION -->
+
             <div class="form-group">
 
                 <label for="description">
-                    Product Description
+                    Description
                 </label>
 
                 <textarea
@@ -436,19 +461,20 @@
             </div>
 
 
+            <!-- BUTTONS -->
+
             <div class="buttons">
 
                 <button
                     type="submit"
-                    class="save-btn"
+                    class="save"
                 >
-                    ✓ Save Product
+                    ✓ Add Product
                 </button>
 
-
                 <a
-                    href="{{ route('admin.products') }}"
-                    class="cancel-btn"
+                    href="/seller"
+                    class="cancel"
                 >
                     Cancel
                 </a>
@@ -462,19 +488,6 @@
 
 
 </main>
-
-
-<footer>
-
-    <div>
-        © 2026 <strong>BoomBuy</strong>
-    </div>
-
-    <div>
-        Product Management
-    </div>
-
-</footer>
 
 
 </body>

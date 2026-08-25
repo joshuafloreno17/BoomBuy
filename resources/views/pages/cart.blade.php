@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Shopping Cart — GizmoMart</title>
+    <title>Shopping Cart — BoomBuy</title>
 
     <style>
         * {
@@ -24,15 +24,13 @@
             color: inherit;
         }
 
-        /* NAVBAR */
-
         .navbar {
-            background: white;
+            background: #fff;
             border-bottom: 1px solid #e2eaff;
             padding: 18px 7%;
             display: flex;
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
         }
 
         .logo {
@@ -62,182 +60,171 @@
             font-size: 14px;
         }
 
-        /* CONTAINER */
-
         .container {
             width: 86%;
-            max-width: 1150px;
-            margin: 50px auto 80px;
+            max-width: 1200px;
+            margin: 45px auto 80px;
         }
 
         .back {
+            display: inline-block;
             color: #3977d5;
             font-size: 13px;
             font-weight: 600;
+            margin-bottom: 20px;
         }
 
-        .header {
-            margin: 25px 0 30px;
+        h1 {
+            font-size: 34px;
+            margin-bottom: 8px;
         }
 
-        .header small {
-            color: #3977d5;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 10px;
-            font-weight: 700;
+        .subtitle {
+            color: #718096;
+            font-size: 14px;
+            margin-bottom: 30px;
         }
 
-        .header h1 {
-            font-size: 40px;
-            margin-top: 8px;
+        .success {
+            background: #ecfdf3;
+            border: 1px solid #bbf7d0;
+            color: #15803d;
+            padding: 13px 16px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 13px;
         }
-
-        /* CART */
 
         .cart-layout {
             display: grid;
-            grid-template-columns: 1fr 340px;
+            grid-template-columns: 1fr 350px;
             gap: 25px;
+            align-items: start;
         }
 
-        .cart-items,
-        .summary {
-            background: white;
+        .cart-box {
+            background: #fff;
             border: 1px solid #e1e9f6;
             border-radius: 18px;
+            overflow: hidden;
         }
 
-        .cart-items {
-            padding: 25px;
+        .cart-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid #e8eef8;
+            font-size: 16px;
+            font-weight: 700;
         }
 
-        .item {
-            display: flex;
+        .cart-item {
+            padding: 22px 24px;
+            display: grid;
+            grid-template-columns: 90px 1fr auto;
+            gap: 18px;
             align-items: center;
-            gap: 20px;
-            padding: 20px 0;
             border-bottom: 1px solid #edf1f7;
         }
 
-        .item:last-child {
+        .cart-item:last-child {
             border-bottom: none;
         }
 
-        .item-image {
+        .product-image {
             width: 90px;
             height: 90px;
-            border-radius: 12px;
+            border-radius: 13px;
+            background: linear-gradient(145deg, #e8f2ff, #d5e8ff);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 42px;
+            font-size: 43px;
         }
 
-        .item-info {
-            flex: 1;
-        }
-
-        .item-category {
-            color: #5790df;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 700;
-            margin-bottom: 7px;
-        }
-
-        .item-name {
+        .product-info h3 {
             font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 7px;
+            margin-bottom: 6px;
         }
 
-        .item-price {
-            color: #1769e0;
-            font-size: 14px;
+        .category {
+            display: inline-block;
+            background: #edf5ff;
+            color: #3977d5;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 9px;
             font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        .unit-price {
+            color: #718096;
+            font-size: 12px;
         }
 
         .quantity {
             display: flex;
             align-items: center;
-            gap: 12px;
-            border: 1px solid #dce7fa;
-            padding: 7px 10px;
-            border-radius: 8px;
+            gap: 10px;
+            margin-top: 12px;
         }
 
-        .quantity button {
+        .quantity form {
+            display: inline;
+        }
+
+        .qty-btn {
+            width: 30px;
+            height: 30px;
+            border: 1px solid #dce7fa;
+            background: #f8faff;
+            color: #1769e0;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .qty-btn:hover {
+            background: #eaf2ff;
+        }
+
+        .qty-number {
+            min-width: 25px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .item-right {
+            text-align: right;
+        }
+
+        .item-total {
+            color: #1769e0;
+            font-size: 17px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .remove-btn {
             border: none;
             background: transparent;
+            color: #ef4444;
             cursor: pointer;
-            font-size: 16px;
-            color: #1769e0;
-            font-weight: bold;
+            font-size: 11px;
+            font-weight: 600;
         }
 
-        .quantity span {
-            font-size: 13px;
-            font-weight: 700;
+        .remove-btn:hover {
+            text-decoration: underline;
         }
 
-        /* SUMMARY */
-
-        .summary {
-            padding: 25px;
-            height: fit-content;
-        }
-
-        .summary h2 {
-            font-size: 20px;
-            margin-bottom: 22px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            color: #718096;
-            font-size: 13px;
-            margin-bottom: 15px;
-        }
-
-        .summary-total {
-            border-top: 1px solid #e5ebf5;
-            padding-top: 18px;
-            margin-top: 18px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 18px;
-            font-weight: 700;
-        }
-
-        .total-price {
-            color: #1769e0;
-        }
-
-        .checkout {
-            width: 100%;
-            margin-top: 25px;
-            border: none;
-            background: #1769e0;
-            color: white;
-            padding: 14px;
-            border-radius: 9px;
-            font-weight: 700;
-            cursor: pointer;
-            font-size: 13px;
-        }
-
-        .checkout:hover {
-            background: #0f55bd;
-        }
-
-        /* EMPTY */
-
-        .empty {
+        .empty-cart {
+            background: #fff;
+            border: 1px solid #e1e9f6;
+            border-radius: 18px;
+            padding: 70px 25px;
             text-align: center;
-            padding: 70px 20px;
         }
 
         .empty-icon {
@@ -245,46 +232,113 @@
             margin-bottom: 15px;
         }
 
-        .empty h2 {
+        .empty-cart h2 {
+            font-size: 22px;
             margin-bottom: 8px;
         }
 
-        .empty p {
+        .empty-cart p {
             color: #718096;
             font-size: 13px;
-            margin-bottom: 20px;
+            margin-bottom: 22px;
         }
 
         .shop-btn {
             display: inline-block;
             background: #1769e0;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
+            color: #fff;
+            padding: 13px 22px;
+            border-radius: 9px;
             font-size: 13px;
             font-weight: 700;
         }
 
-        /* FOOTER */
+        .summary {
+            background: #fff;
+            border: 1px solid #e1e9f6;
+            border-radius: 18px;
+            padding: 25px;
+            position: sticky;
+            top: 20px;
+        }
 
-        footer {
-            background: white;
-            border-top: 1px solid #e1e9f6;
-            padding: 35px 7%;
+        .summary h2 {
+            font-size: 19px;
+            margin-bottom: 22px;
+        }
+
+        .summary-row {
             display: flex;
             justify-content: space-between;
-            color: #718096;
+            margin-bottom: 14px;
+            color: #64748b;
             font-size: 13px;
         }
 
-        footer div:first-child {
+        .summary-row strong {
+            color: #172033;
+        }
+
+        .summary-total {
+            border-top: 1px solid #e5ebf5;
+            margin-top: 18px;
+            padding-top: 18px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-total span {
+            font-size: 14px;
+            font-weight: 700;
+        }
+
+        .summary-total strong {
             color: #1769e0;
+            font-size: 24px;
+        }
+
+        .checkout-btn {
+            width: 100%;
+            border: none;
+            background: #1769e0;
+            color: #fff;
+            padding: 14px;
+            border-radius: 9px;
+            margin-top: 22px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .checkout-btn:hover {
+            background: #0f55bd;
+        }
+
+        .continue {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+            color: #3977d5;
+            font-size: 12px;
             font-weight: 600;
         }
 
-        /* RESPONSIVE */
+        footer {
+            background: #fff;
+            border-top: 1px solid #e1e9f6;
+            padding: 30px 7%;
+            display: flex;
+            justify-content: space-between;
+            color: #718096;
+            font-size: 12px;
+        }
 
-        @media (max-width: 800px) {
+        footer strong {
+            color: #1769e0;
+        }
+
+        @media (max-width: 850px) {
 
             .nav-links {
                 display: none;
@@ -294,32 +348,35 @@
                 grid-template-columns: 1fr;
             }
 
-            .item {
-                flex-wrap: wrap;
+            .summary {
+                position: static;
             }
         }
 
-        @media (max-width: 500px) {
+        @media (max-width: 600px) {
 
             .container {
                 width: 92%;
             }
 
-            .header h1 {
+            .cart-item {
+                grid-template-columns: 70px 1fr;
+            }
+
+            .product-image {
+                width: 70px;
+                height: 70px;
                 font-size: 32px;
             }
 
-            .item {
-                align-items: flex-start;
-            }
-
-            .quantity {
-                margin-left: 110px;
+            .item-right {
+                grid-column: 2;
+                text-align: left;
             }
 
             footer {
                 flex-direction: column;
-                gap: 10px;
+                gap: 8px;
                 text-align: center;
             }
         }
@@ -331,7 +388,7 @@
 <nav class="navbar">
 
     <a href="/" class="logo">
-        Gizmo<span>Mart</span>
+        Boom<span>Buy</span>
     </a>
 
     <div class="nav-links">
@@ -341,7 +398,7 @@
         <a href="/#about">About</a>
     </div>
 
-    <a href="/cart" class="cart-link">
+    <a href="{{ route('cart') }}" class="cart-link">
         🛒 Cart
     </a>
 
@@ -354,115 +411,175 @@
         ← Continue Shopping
     </a>
 
-    <div class="header">
-        <small>GizmoMart</small>
-        <h1>Your Shopping Cart</h1>
-    </div>
+    <h1>Shopping Cart</h1>
+
+    <p class="subtitle">
+        Review your items before checkout.
+    </p>
 
 
-    @if(count($cart) === 0)
+    @if(session('success'))
 
-        <div class="cart-items">
+        <div class="success">
+            ✓ {{ session('success') }}
+        </div>
 
-            <div class="empty">
+    @endif
 
-                <div class="empty-icon">
-                    🛒
-                </div>
 
-                <h2>
-                    Your cart is empty
-                </h2>
+    @if(empty($cart))
 
-                <p>
-                    Looks like you haven't added anything yet.
-                </p>
+        <div class="empty-cart">
 
-                <a href="/products" class="shop-btn">
-                    Start Shopping
-                </a>
-
+            <div class="empty-icon">
+                🛒
             </div>
+
+            <h2>
+                Your cart is empty
+            </h2>
+
+            <p>
+                Looks like you haven't added anything yet.
+            </p>
+
+            <a href="/products" class="shop-btn">
+                🛍️ Start Shopping
+            </a>
 
         </div>
 
     @else
 
-        <div class="cart-layout">
+        @php
 
-            <div class="cart-items">
+            /*
+            |--------------------------------------------------------------------------
+            | Default Products
+            |--------------------------------------------------------------------------
+            */
 
-                @php
-                    $products = [
+            $products = [
 
-                        'nova-x5-pro' => [
-                            'name' => 'Nova X5 Pro',
-                            'category' => 'Smartphone',
-                            'price' => 18999,
-                            'icon' => '📱',
-                            'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)'
-                        ],
+                'nova-x5-pro' => [
+                    'name' => 'Nova X5 Pro',
+                    'category' => 'Smartphone',
+                    'price' => 18999,
+                    'icon' => '📱',
+                ],
 
-                        'airbook-14' => [
-                            'name' => 'AirBook 14',
-                            'category' => 'Laptop',
-                            'price' => 34990,
-                            'icon' => '💻',
-                            'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)'
-                        ],
+                'airbook-14' => [
+                    'name' => 'AirBook 14',
+                    'category' => 'Laptop',
+                    'price' => 34990,
+                    'icon' => '💻',
+                ],
 
-                        'soundcore-pro' => [
-                            'name' => 'SoundCore Pro',
-                            'category' => 'Audio',
-                            'price' => 2799,
-                            'icon' => '🎧',
-                            'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)'
-                        ],
+                'soundcore-pro' => [
+                    'name' => 'SoundCore Pro',
+                    'category' => 'Audio',
+                    'price' => 2799,
+                    'icon' => '🎧',
+                ],
 
-                        'fitwatch-s2' => [
-                            'name' => 'FitWatch S2',
-                            'category' => 'Wearable',
-                            'price' => 3499,
-                            'icon' => '⌚',
-                            'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)'
-                        ],
+                'fitwatch-s2' => [
+                    'name' => 'FitWatch S2',
+                    'category' => 'Wearable',
+                    'price' => 3499,
+                    'icon' => '⌚',
+                ],
 
-                        'gamepad-x' => [
-                            'name' => 'GamePad X',
-                            'category' => 'Accessories',
-                            'price' => 2199,
-                            'icon' => '🎮',
-                            'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)'
-                        ],
+                'gamepad-x' => [
+                    'name' => 'GamePad X',
+                    'category' => 'Accessories',
+                    'price' => 2199,
+                    'icon' => '🎮',
+                ],
 
-                        'mechakeys-75' => [
-                            'name' => 'MechaKeys 75',
-                            'category' => 'Accessories',
-                            'price' => 3299,
-                            'icon' => '⌨️',
-                            'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)'
-                        ],
+                'mechakeys-75' => [
+                    'name' => 'MechaKeys 75',
+                    'category' => 'Accessories',
+                    'price' => 3299,
+                    'icon' => '⌨️',
+                ],
 
-                        'glide-mouse-x' => [
-                            'name' => 'Glide Mouse X',
-                            'category' => 'Accessories',
-                            'price' => 1499,
-                            'icon' => '🖱️',
-                            'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)'
-                        ],
+                'glide-mouse-x' => [
+                    'name' => 'Glide Mouse X',
+                    'category' => 'Accessories',
+                    'price' => 1499,
+                    'icon' => '🖱️',
+                ],
 
-                        'minisound-go' => [
-                            'name' => 'MiniSound Go',
-                            'category' => 'Audio',
-                            'price' => 1899,
-                            'icon' => '🔊',
-                            'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)'
-                        ]
+                'minisound-go' => [
+                    'name' => 'MiniSound Go',
+                    'category' => 'Audio',
+                    'price' => 1899,
+                    'icon' => '🔊',
+                ],
+
+            ];
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Admin Added Products
+            |--------------------------------------------------------------------------
+            */
+
+            $addedProducts = session()->get(
+                'admin_products',
+                []
+            );
+
+
+            foreach ($addedProducts as $added) {
+
+                if (!empty($added['slug'])) {
+
+                    $products[$added['slug']] = [
+
+                        'name' =>
+                            $added['name']
+                            ?? 'Product',
+
+                        'category' =>
+                            $added['category']
+                            ?? 'Other',
+
+                        'price' =>
+                            $added['price']
+                            ?? 0,
+
+                        'icon' =>
+                            $added['icon']
+                            ?? '📦',
 
                     ];
 
-                    $subtotal = 0;
-                @endphp
+                }
+
+            }
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | Calculate Totals
+            |--------------------------------------------------------------------------
+            */
+
+            $subtotal = 0;
+            $totalItems = 0;
+
+        @endphp
+
+
+        <div class="cart-layout">
+
+            <div class="cart-box">
+
+                <div class="cart-header">
+                    Cart Items
+                </div>
 
 
                 @foreach($cart as $slug => $quantity)
@@ -470,49 +587,120 @@
                     @if(isset($products[$slug]))
 
                         @php
+
                             $item = $products[$slug];
-                            $itemTotal = $item['price'] * $quantity;
+
+                            $itemTotal =
+                                $item['price'] * $quantity;
+
                             $subtotal += $itemTotal;
+
+                            $totalItems += $quantity;
+
                         @endphp
 
-                        <div class="item">
 
-                            <div
-                                class="item-image"
-                                style="background: {{ $item['background'] }}"
-                            >
+                        <div class="cart-item">
+
+                            <div class="product-image">
                                 {{ $item['icon'] }}
                             </div>
 
-                            <div class="item-info">
 
-                                <div class="item-category">
+                            <div class="product-info">
+
+                                <span class="category">
                                     {{ $item['category'] }}
-                                </div>
+                                </span>
 
-                                <div class="item-name">
+                                <h3>
                                     {{ $item['name'] }}
+                                </h3>
+
+                                <div class="unit-price">
+                                    ₱{{ number_format($item['price'], 2) }} each
                                 </div>
 
-                                <div class="item-price">
-                                    ₱{{ number_format($item['price']) }}
+
+                                <div class="quantity">
+
+                                    <form
+                                        action="{{ route('cart.update', $slug) }}"
+                                        method="POST"
+                                    >
+
+                                        @csrf
+
+                                        <input
+                                            type="hidden"
+                                            name="action"
+                                            value="decrease"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="qty-btn"
+                                        >
+                                            −
+                                        </button>
+
+                                    </form>
+
+
+                                    <span class="qty-number">
+                                        {{ $quantity }}
+                                    </span>
+
+
+                                    <form
+                                        action="{{ route('cart.update', $slug) }}"
+                                        method="POST"
+                                    >
+
+                                        @csrf
+
+                                        <input
+                                            type="hidden"
+                                            name="action"
+                                            value="increase"
+                                        >
+
+                                        <button
+                                            type="submit"
+                                            class="qty-btn"
+                                        >
+                                            +
+                                        </button>
+
+                                    </form>
+
                                 </div>
 
                             </div>
 
-                            <div class="quantity">
 
-                                <button>
-                                    −
-                                </button>
+                            <div class="item-right">
 
-                                <span>
-                                    {{ $quantity }}
-                                </span>
+                                <div class="item-total">
+                                    ₱{{ number_format($itemTotal, 2) }}
+                                </div>
 
-                                <button>
-                                    +
-                                </button>
+
+                                <form
+                                    action="{{ route('cart.remove', $slug) }}"
+                                    method="POST"
+                                >
+
+                                    @csrf
+
+                                    <button
+                                        type="submit"
+                                        class="remove-btn"
+                                    >
+                                        🗑 Remove
+                                    </button>
+
+                                </form>
 
                             </div>
 
@@ -531,21 +719,45 @@
                     Order Summary
                 </h2>
 
-                <div class="summary-row">
-                    <span>Subtotal</span>
-
-                    <span>
-                        ₱{{ number_format($subtotal) }}
-                    </span>
-                </div>
 
                 <div class="summary-row">
-                    <span>Shipping</span>
 
                     <span>
-                        Free
+                        Items
                     </span>
+
+                    <strong>
+                        {{ $totalItems }}
+                    </strong>
+
                 </div>
+
+
+                <div class="summary-row">
+
+                    <span>
+                        Subtotal
+                    </span>
+
+                    <strong>
+                        ₱{{ number_format($subtotal, 2) }}
+                    </strong>
+
+                </div>
+
+
+                <div class="summary-row">
+
+                    <span>
+                        Shipping
+                    </span>
+
+                    <strong>
+                        FREE
+                    </strong>
+
+                </div>
+
 
                 <div class="summary-total">
 
@@ -553,15 +765,25 @@
                         Total
                     </span>
 
-                    <span class="total-price">
-                        ₱{{ number_format($subtotal) }}
-                    </span>
+                    <strong>
+                        ₱{{ number_format($subtotal, 2) }}
+                    </strong>
 
                 </div>
 
-                <button class="checkout">
-                    Proceed to Checkout
+
+                <button
+                    type="button"
+                    class="checkout-btn"
+                    onclick="alert('Checkout coming next!')"
+                >
+                    💳 Proceed to Checkout
                 </button>
+
+
+                <a href="/products" class="continue">
+                    Continue Shopping
+                </a>
 
             </div>
 
@@ -575,11 +797,11 @@
 <footer>
 
     <div>
-        © 2026 GizmoMart
+        © 2026 <strong>BoomBuy</strong>
     </div>
 
     <div>
-        Quality tech. Better everyday.
+        Quality products. Better everyday.
     </div>
 
 </footer>

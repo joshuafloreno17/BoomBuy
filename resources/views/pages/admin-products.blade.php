@@ -10,7 +10,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Manage Products — GizmoMart</title>
+    <title>Manage Products — BoomBuy</title>
 
     <style>
 
@@ -266,7 +266,6 @@
         }
 
         .empty {
-            display: none;
             text-align: center;
             padding: 50px;
             color: #718096;
@@ -338,7 +337,7 @@
 <nav class="navbar">
 
     <a href="/admin" class="logo">
-        Gizmo<span>Mart</span>
+        Boom<span>Buy</span>
     </a>
 
     <div class="admin-label">
@@ -368,7 +367,7 @@
             </h1>
 
             <p>
-                View and manage all products in GizmoMart.
+                View and manage all products in BoomBuy.
             </p>
 
         </div>
@@ -448,32 +447,21 @@
 
     <div class="table-box">
 
-
         <table>
 
             <thead>
 
                 <tr>
 
-                    <th>
-                        Product
-                    </th>
+                    <th>Product</th>
 
-                    <th>
-                        Category
-                    </th>
+                    <th>Category</th>
 
-                    <th>
-                        Price
-                    </th>
+                    <th>Price</th>
 
-                    <th>
-                        Stock
-                    </th>
+                    <th>Stock</th>
 
-                    <th>
-                        Actions
-                    </th>
+                    <th>Actions</th>
 
                 </tr>
 
@@ -482,96 +470,111 @@
 
             <tbody id="productTable">
 
+                @forelse($products as $product)
 
-                @foreach($products as $product)
+                    <tr>
 
-                <tr>
+                        <td>
 
+                            <div class="product">
 
-                    <td>
-
-                        <div class="product">
-
-                            <div class="product-icon">
-                                {{ $product['icon'] }}
-                            </div>
-
-
-                            <div>
-
-                                <div class="product-name">
-                                    {{ $product['name'] }}
+                                <div class="product-icon">
+                                    {{ $product['icon'] ?? '📦' }}
                                 </div>
 
-                                <div class="product-category">
-                                  {{ $product['slug'] ?? \Illuminate\Support\Str::slug($product['name']) }}
+
+                                <div>
+
+                                    <div class="product-name">
+                                        {{ $product['name'] ?? 'Unnamed Product' }}
+                                    </div>
+
+                                    <div class="product-category">
+
+                                        {{ $product['slug'] ?? \Illuminate\Support\Str::slug($product['name'] ?? 'product') }}
+
+                                    </div>
+
                                 </div>
 
                             </div>
 
-                        </div>
-
-                    </td>
+                        </td>
 
 
-                    <td>
-                        {{ $product['category'] }}
-                    </td>
+                        <td>
+                            {{ $product['category'] ?? 'Other' }}
+                        </td>
 
 
-                    <td class="price">
+                        <td class="price">
 
-                        ₱{{ number_format($product['price']) }}
+                            ₱{{ number_format((float)($product['price'] ?? 0), 2) }}
 
-                    </td>
-
-
-                    <td class="stock">
-                        In Stock
-                    </td>
+                        </td>
 
 
-                    <td>
-
-                        <div class="actions">
-
-                            <button
-                                class="edit"
-                                onclick="editProduct('{{ $product['name'] }}')"
-                            >
-                                Edit
-                            </button>
+                        <td class="stock">
+                            In Stock
+                        </td>
 
 
-                            <button
-                                class="delete"
-                                onclick="deleteProduct(this, '{{ $product['name'] }}')"
-                            >
-                                Delete
-                            </button>
+                        <td>
 
-                        </div>
+                            <div class="actions">
 
-                    </td>
+                                <button
+                                    type="button"
+                                    class="edit"
+                                    onclick="editProduct('{{ addslashes($product['name'] ?? 'Product') }}')"
+                                >
+                                    Edit
+                                </button>
 
 
-                </tr>
+                                <button
+                                    type="button"
+                                    class="delete"
+                                    onclick="deleteProduct(this, '{{ addslashes($product['name'] ?? 'Product') }}')"
+                                >
+                                    Delete
+                                </button>
 
-                @endforeach
+                            </div>
 
+                        </td>
+
+                    </tr>
+
+                @empty
+
+                    <tr>
+
+                        <td colspan="5">
+
+                            <div class="empty">
+
+                                📦
+
+                                <br><br>
+
+                                No products found.
+
+                                <br><br>
+
+                                Click <strong>+ Add Product</strong> to add one.
+
+                            </div>
+
+                        </td>
+
+                    </tr>
+
+                @endforelse
 
             </tbody>
 
         </table>
-
-
-        <div
-            class="empty"
-            id="empty"
-        >
-            No products found.
-        </div>
-
 
     </div>
 
@@ -582,7 +585,7 @@
 <footer>
 
     <div>
-        © 2026 GizmoMart Admin
+        © 2026 BoomBuy Admin
     </div>
 
     <div>
@@ -594,78 +597,54 @@
 
 <script>
 
-
 const search =
     document.getElementById("search");
-
 
 const categoryFilter =
     document.getElementById("categoryFilter");
 
 
-const empty =
-    document.getElementById("empty");
-
-
 function filterProducts() {
 
     const searchValue =
-        search.value
-            .toLowerCase()
-            .trim();
-
+        search.value.toLowerCase().trim();
 
     const category =
         categoryFilter.value;
 
-
     const rows =
-        Array.from(
-            document.querySelectorAll(
-                "#productTable tr"
-            )
+        document.querySelectorAll(
+            "#productTable tr"
         );
-
 
     let visible = 0;
 
-
     rows.forEach(row => {
 
-
         const nameElement =
-            row.querySelector(
-                ".product-name"
-            );
-
+            row.querySelector(".product-name");
 
         const categoryElement =
             row.children[1];
-
 
         if (!nameElement || !categoryElement) {
             return;
         }
 
-
         const name =
             nameElement.textContent
                 .toLowerCase();
-
 
         const rowCategory =
             categoryElement.textContent
                 .trim();
 
-
         const matchesSearch =
             name.includes(searchValue);
-
 
         const matchesCategory =
             category === "all" ||
             rowCategory === category;
-
 
         if (
             matchesSearch &&
@@ -684,12 +663,6 @@ function filterProducts() {
 
     });
 
-
-    empty.style.display =
-        visible === 0
-            ? "block"
-            : "none";
-
 }
 
 
@@ -707,22 +680,11 @@ categoryFilter.addEventListener(
 
 function deleteProduct(button, name) {
 
-    const confirmed =
-        confirm(
-            "Delete " + name + "?"
-        );
-
-
-    if (confirmed) {
-
-        const row =
-            button.closest("tr");
-
-        row.remove();
-
-        filterProducts();
-
-    }
+    alert(
+        "Delete feature for " +
+        name +
+        " will be connected next."
+    );
 
 }
 
@@ -736,7 +698,6 @@ function editProduct(name) {
     );
 
 }
-
 
 </script>
 

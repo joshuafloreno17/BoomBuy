@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>GizmoMart - Categories</title>
+    <title>BoomBuy - Categories</title>
 
     <style>
         * {
@@ -35,7 +35,7 @@
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1300px;
             margin: auto;
             padding: 50px 30px;
         }
@@ -78,7 +78,6 @@
             display: block;
             text-decoration: none;
             color: #111827;
-            cursor: pointer;
         }
 
         .icon {
@@ -94,6 +93,7 @@
         .category p {
             font-size: 14px;
             color: #6b7280;
+            min-height: 40px;
         }
 
         .category button {
@@ -111,9 +111,19 @@
             background: #1d4ed8;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 1000px) {
+            .categories {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 750px) {
             .categories {
                 grid-template-columns: repeat(2, 1fr);
+            }
+
+            .header {
+                padding: 20px 30px;
             }
         }
 
@@ -125,15 +135,20 @@
             .header {
                 padding: 20px 25px;
             }
+
+            .container {
+                padding: 35px 20px;
+            }
         }
     </style>
 </head>
 
 <body>
 
+    <!-- HEADER -->
     <div class="header">
-        <h1>GizmoMart</h1>
-        <p>Your trusted online gadget store</p>
+        <h1>BoomBuy</h1>
+        <p>Your marketplace for everything</p>
     </div>
 
     <div class="container">
@@ -141,119 +156,126 @@
         <!-- PAGE TITLE -->
         <div class="title">
             <h2>Shop by Category</h2>
-            <p>Find the gadgets and technology you need.</p>
+            <p>Explore thousands of products from different categories.</p>
         </div>
 
         <!-- CATEGORIES -->
         <div class="categories">
 
-            <!-- SMARTPHONES -->
-            <div class="category">
-                <div class="icon">📱</div>
-                <h3>Smartphones</h3>
-                <p>Latest smartphones and mobile devices.</p>
-
-                <button onclick="window.location.href='/smartphones'">
-                    View Smartphones
-                </button>
-            </div>
-
-            <!-- LAPTOPS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">💻</div>
-                    <h3>Laptops</h3>
-                    <p>Laptops for school, work, and gaming.</p>
-                </a>
-            </div>
-
-            <!-- MONITORS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🖥️</div>
-                    <h3>Monitors</h3>
-                    <p>High-quality displays for work and entertainment.</p>
-                </a>
-            </div>
-
-            <!-- GAMING -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🎮</div>
-                    <h3>Gaming</h3>
-                    <p>Gaming gadgets and accessories.</p>
-                </a>
-            </div>
-
-            <!-- KEYBOARDS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">⌨️</div>
-                    <h3>Keyboards</h3>
-                    <p>Mechanical and wireless keyboards.</p>
-                </a>
-            </div>
-
-            <!-- MOUSE -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🖱️</div>
-                    <h3>Mouse</h3>
-                    <p>Comfortable and responsive computer mice.</p>
-                </a>
-            </div>
-
-            <!-- AUDIO -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🎧</div>
-                    <h3>Audio</h3>
-                    <p>Headphones, earphones, and speakers.</p>
-                </a>
-            </div>
-
-            <!-- CAMERAS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">📷</div>
-                    <h3>Cameras</h3>
-                    <p>Cameras and photography equipment.</p>
-                </a>
-            </div>
-
-            <!-- CHARGERS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🔌</div>
-                    <h3>Chargers</h3>
-                    <p>Chargers, cables, and power accessories.</p>
-                </a>
-            </div>
-
-            <!-- STORAGE -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">💾</div>
-                    <h3>Storage</h3>
-                    <p>SSD, HDD, memory cards, and USB drives.</p>
-                </a>
-            </div>
-
-            <!-- PRINTERS -->
-            <div class="category">
-                <a href="#" class="category-link">
-                    <div class="icon">🖨️</div>
-                    <h3>Printers</h3>
-                    <p>Printers and printing accessories.</p>
-                </a>
-            </div>
-
-            <!-- ACCESSORIES -->
+            <!-- ELECTRONICS -->
             <div class="category">
                 <a href="#" class="category-link">
                     <div class="icon">📱</div>
-                    <h3>Accessories</h3>
-                    <p>Cases, screen protectors, stands, and more.</p>
+                    <h3>Electronics & Gadgets</h3>
+                    <p>Phones, laptops, cameras, audio and electronic accessories.</p>
+                </a>
+            </div>
+
+            <!-- WOMEN -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">👗</div>
+                    <h3>Women's Apparel</h3>
+                    <p>Dresses, tops, activewear, shoes and fashion accessories.</p>
+                </a>
+            </div>
+
+            <!-- MEN -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">👕</div>
+                    <h3>Men's Apparel</h3>
+                    <p>Shirts, pants, jackets, shoes, accessories and grooming.</p>
+                </a>
+            </div>
+
+            <!-- KIDS -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">🧸</div>
+                    <h3>Kids & Baby</h3>
+                    <p>Baby essentials, toys, clothes, games and nursery products.</p>
+                </a>
+            </div>
+
+            <!-- HOME -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">🏠</div>
+                    <h3>Home & Garden</h3>
+                    <p>Kitchen appliances, furniture, decor and gardening supplies.</p>
+                </a>
+            </div>
+
+            <!-- SPORTS -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">⚽</div>
+                    <h3>Sports & Outdoors</h3>
+                    <p>Fitness equipment, camping gear, bikes and sports apparel.</p>
+                </a>
+            </div>
+
+            <!-- BEAUTY -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">💄</div>
+                    <h3>Health & Beauty</h3>
+                    <p>Skincare, makeup, haircare, grooming and personal care.</p>
+                </a>
+            </div>
+
+            <!-- BOOKS -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">📚</div>
+                    <h3>Books & Media</h3>
+                    <p>Books, magazines, music, movies, games and educational media.</p>
+                </a>
+            </div>
+
+            <!-- FOOD -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">🍔</div>
+                    <h3>Food & Gourmet</h3>
+                    <p>Snacks, beverages, baking supplies, specialty and organic foods.</p>
+                </a>
+            </div>
+
+            <!-- AUTOMOTIVE -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">🚗</div>
+                    <h3>Automotive & Motorcycle</h3>
+                    <p>Vehicle parts, accessories, tools, tires and protective gear.</p>
+                </a>
+            </div>
+
+            <!-- FURNITURE -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">🪑</div>
+                    <h3>Furniture & Office Equipment</h3>
+                    <p>Desks, chairs, cabinets, workstations and office equipment.</p>
+                </a>
+            </div>
+
+            <!-- JEWELRY -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">💎</div>
+                    <h3>Jewelry & Watches</h3>
+                    <p>Necklaces, rings, earrings, bracelets and watches.</p>
+                </a>
+            </div>
+
+            <!-- OFFICE -->
+            <div class="category">
+                <a href="#" class="category-link">
+                    <div class="icon">✏️</div>
+                    <h3>Office & School Supplies</h3>
+                    <p>Notebooks, pens, backpacks, printers and craft materials.</p>
                 </a>
             </div>
 

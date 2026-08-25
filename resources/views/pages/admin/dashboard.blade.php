@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Admin Dashboard — GizmoMart</title>
+    <title>Admin Dashboard — BoomBuy</title>
 
     <style>
         * {
@@ -13,10 +13,15 @@
             box-sizing: border-box;
         }
 
+        html {
+            overflow-x: hidden;
+        }
+
         body {
             font-family: Arial, Helvetica, sans-serif;
             background: #f4f8ff;
             color: #172033;
+            overflow-x: hidden;
         }
 
         a {
@@ -24,25 +29,38 @@
             color: inherit;
         }
 
+        /* =========================
+           LAYOUT
+        ========================= */
+
         .layout {
             display: flex;
             min-height: 100vh;
         }
+
+        /* =========================
+           SIDEBAR
+        ========================= */
 
         .sidebar {
             width: 245px;
             background: #ffffff;
             border-right: 1px solid #e1e9f6;
             padding: 25px 18px;
+
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
+
+            z-index: 1000;
+            overflow-y: auto;
         }
 
         .logo {
             padding: 0 12px;
             margin-bottom: 35px;
+
             font-size: 23px;
             font-weight: 700;
             color: #1769e0;
@@ -54,11 +72,13 @@
 
         .admin-label {
             padding: 0 12px;
+
             color: #94a3b8;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 700;
+
             margin-bottom: 12px;
         }
 
@@ -69,11 +89,15 @@
         }
 
         .menu a {
+            display: block;
+
             padding: 12px;
             border-radius: 9px;
+
             color: #64748b;
             font-size: 13px;
             font-weight: 600;
+
             transition: 0.2s;
         }
 
@@ -88,16 +112,15 @@
         }
 
         .logout {
-            position: absolute;
-            left: 18px;
-            right: 18px;
-            bottom: 25px;
+            margin-top: 35px;
         }
 
         .logout a {
             display: block;
+
             padding: 12px;
             border-radius: 9px;
+
             color: #ef4444;
             font-size: 13px;
             font-weight: 600;
@@ -107,16 +130,29 @@
             background: #fff1f2;
         }
 
+        /* =========================
+           MAIN
+        ========================= */
+
         .main {
             margin-left: 245px;
+
             width: calc(100% - 245px);
+            min-width: 0;
+
             padding: 35px 5%;
         }
+
+        /* =========================
+           TOPBAR
+        ========================= */
 
         .topbar {
             display: flex;
             justify-content: space-between;
             align-items: center;
+
+            gap: 20px;
             margin-bottom: 35px;
         }
 
@@ -124,6 +160,7 @@
             color: #3977d5;
             text-transform: uppercase;
             letter-spacing: 1.5px;
+
             font-size: 10px;
             font-weight: 700;
         }
@@ -137,18 +174,25 @@
             display: flex;
             align-items: center;
             gap: 10px;
+
             background: #ffffff;
             border: 1px solid #e1e9f6;
+
             padding: 9px 13px;
             border-radius: 10px;
+
+            flex-shrink: 0;
         }
 
         .profile-icon {
             width: 35px;
             height: 35px;
+
             background: #eaf2ff;
             color: #1769e0;
+
             border-radius: 50%;
+
             display: flex;
             align-items: center;
             justify-content: center;
@@ -165,9 +209,14 @@
             margin-top: 2px;
         }
 
+        /* =========================
+           STATS
+        ========================= */
+
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
+
             gap: 18px;
             margin-bottom: 25px;
         }
@@ -176,7 +225,9 @@
             background: #ffffff;
             border: 1px solid #e1e9f6;
             border-radius: 15px;
+
             padding: 22px;
+
             transition: 0.2s;
         }
 
@@ -189,6 +240,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+
             margin-bottom: 15px;
         }
 
@@ -200,11 +252,14 @@
         .stat-icon {
             width: 38px;
             height: 38px;
+
             border-radius: 9px;
             background: #edf5ff;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-size: 18px;
         }
 
@@ -219,9 +274,14 @@
             margin-top: 7px;
         }
 
+        /* =========================
+           CONTENT GRID
+        ========================= */
+
         .content-grid {
             display: grid;
             grid-template-columns: 1.5fr 1fr;
+
             gap: 20px;
             margin-bottom: 20px;
         }
@@ -230,13 +290,18 @@
             background: #ffffff;
             border: 1px solid #e1e9f6;
             border-radius: 15px;
+
             padding: 23px;
+
+            min-width: 0;
         }
 
         .panel-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+
+            gap: 15px;
             margin-bottom: 20px;
         }
 
@@ -248,12 +313,21 @@
             color: #1769e0;
             font-size: 11px;
             font-weight: 700;
+
+            white-space: nowrap;
         }
+
+        /* =========================
+           ORDERS
+        ========================= */
 
         .order {
             display: flex;
             justify-content: space-between;
             align-items: center;
+
+            gap: 15px;
+
             padding: 13px 0;
             border-bottom: 1px solid #edf1f7;
         }
@@ -265,17 +339,23 @@
         .order-info {
             display: flex;
             align-items: center;
+
             gap: 12px;
+            min-width: 0;
         }
 
         .order-icon {
             width: 38px;
             height: 38px;
+
             background: #f1f6ff;
             border-radius: 9px;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
+            flex-shrink: 0;
         }
 
         .order-name {
@@ -286,11 +366,13 @@
         .order-id {
             color: #94a3b8;
             font-size: 10px;
+
             margin-top: 4px;
         }
 
         .order-right {
             text-align: right;
+            flex-shrink: 0;
         }
 
         .order-price {
@@ -300,9 +382,12 @@
 
         .status {
             display: inline-block;
+
             margin-top: 4px;
             padding: 4px 7px;
+
             border-radius: 5px;
+
             font-size: 9px;
             font-weight: 700;
         }
@@ -322,10 +407,16 @@
             color: #2563eb;
         }
 
+        /* =========================
+           PRODUCTS
+        ========================= */
+
         .product-row {
             display: flex;
             align-items: center;
+
             gap: 12px;
+
             padding: 13px 0;
             border-bottom: 1px solid #edf1f7;
         }
@@ -337,16 +428,21 @@
         .product-icon {
             width: 42px;
             height: 42px;
+
             border-radius: 9px;
             background: #edf5ff;
+
             display: flex;
             align-items: center;
             justify-content: center;
+
             font-size: 20px;
+            flex-shrink: 0;
         }
 
         .product-info {
             flex: 1;
+            min-width: 0;
         }
 
         .product-name {
@@ -364,11 +460,18 @@
             color: #1769e0;
             font-size: 12px;
             font-weight: 700;
+
+            white-space: nowrap;
         }
+
+        /* =========================
+           QUICK ACTIONS
+        ========================= */
 
         .quick-actions {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
+
             gap: 12px;
         }
 
@@ -376,14 +479,18 @@
             background: #f7faff;
             border: 1px solid #e5edfa;
             border-radius: 10px;
+
             padding: 17px;
+
             text-align: center;
+
             transition: 0.2s;
         }
 
         .quick-action:hover {
             background: #edf5ff;
             border-color: #cfe0fa;
+
             transform: translateY(-2px);
         }
 
@@ -394,10 +501,149 @@
 
         .quick-action span {
             display: block;
+
             color: #334155;
             font-size: 11px;
             font-weight: 700;
         }
+
+        /* =========================
+           ACCOUNTS
+        ========================= */
+
+        .accounts-panel {
+            margin-top: 20px;
+        }
+
+        .accounts-description {
+            color: #718096;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+
+        .manage-button {
+            background: #1769e0;
+            color: white;
+
+            padding: 10px 15px;
+            border-radius: 8px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            white-space: nowrap;
+        }
+
+        .manage-button:hover {
+            background: #1258bd;
+        }
+
+        .account-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .account-stat {
+            background: #f8faff;
+            border: 1px solid #e1e9f6;
+            border-radius: 12px;
+
+            padding: 18px;
+        }
+
+        .account-stat-title {
+            color: #64748b;
+            font-size: 11px;
+
+            margin-bottom: 7px;
+        }
+
+        .account-stat-value {
+            font-size: 25px;
+        }
+
+        /* =========================
+           ACCOUNT TABLE
+        ========================= */
+
+        .account-table-wrapper {
+            width: 100%;
+            overflow-x: auto;
+
+            margin-top: 25px;
+        }
+
+        .account-table {
+            width: 100%;
+            min-width: 600px;
+
+            border-collapse: collapse;
+        }
+
+        .account-table th {
+            text-align: left;
+
+            padding: 12px;
+
+            background: #f8faff;
+            color: #64748b;
+
+            font-size: 11px;
+        }
+
+        .account-table td {
+            padding: 13px 12px;
+
+            border-bottom: 1px solid #edf1f7;
+
+            font-size: 13px;
+        }
+
+        .account-email {
+            color: #64748b;
+        }
+
+        .role-badge {
+            display: inline-block;
+
+            padding: 5px 10px;
+
+            border-radius: 20px;
+
+            font-size: 10px;
+            font-weight: 700;
+        }
+
+        .role-buyer {
+            background: #e8f2ff;
+            color: #1769e0;
+        }
+
+        .role-seller {
+            background: #fff7ed;
+            color: #c2410c;
+        }
+
+        .role-rider {
+            background: #f0fdf4;
+            color: #15803d;
+        }
+
+        .no-accounts {
+            text-align: center;
+
+            padding: 30px;
+
+            color: #94a3b8;
+            font-size: 12px;
+        }
+
+        /* =========================
+           TABLET
+        ========================= */
 
         @media (max-width: 1100px) {
 
@@ -408,23 +654,36 @@
             .content-grid {
                 grid-template-columns: 1fr;
             }
+
+            .account-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
         }
+
+        /* =========================
+           MOBILE SIDEBAR
+        ========================= */
 
         @media (max-width: 750px) {
 
             .sidebar {
                 width: 70px;
+
                 padding: 20px 10px;
+
+                overflow-x: hidden;
             }
 
             .logo {
                 font-size: 0;
                 text-align: center;
+
                 padding: 0;
             }
 
             .logo::before {
-                content: "G";
+                content: "B";
+
                 font-size: 23px;
                 color: #1769e0;
             }
@@ -443,13 +702,14 @@
 
             .main {
                 margin-left: 70px;
+
                 width: calc(100% - 70px);
+
                 padding: 25px 4%;
             }
 
             .topbar {
                 align-items: flex-start;
-                gap: 15px;
             }
 
             .topbar h1 {
@@ -460,7 +720,15 @@
             .profile-role {
                 display: none;
             }
+
+            .account-stats {
+                grid-template-columns: 1fr 1fr;
+            }
         }
+
+        /* =========================
+           SMALL MOBILE
+        ========================= */
 
         @media (max-width: 550px) {
 
@@ -472,8 +740,38 @@
                 grid-template-columns: 1fr;
             }
 
+            .account-stats {
+                grid-template-columns: 1fr;
+            }
+
             .admin-profile {
                 padding: 8px;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .order {
+                align-items: flex-start;
+            }
+
+            .order-right {
+                text-align: right;
+            }
+
+            .panel {
+                padding: 18px;
+            }
+
+            .panel-header {
+                align-items: flex-start;
+            }
+
+            .manage-button {
+                font-size: 10px;
+                padding: 9px 10px;
             }
         }
     </style>
@@ -483,12 +781,14 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
+    <!-- =========================
+         SIDEBAR
+    ========================= -->
 
     <aside class="sidebar">
 
         <div class="logo">
-            Gizmo<span>Mart</span>
+            Boom<span>Buy</span>
         </div>
 
         <div class="admin-label">
@@ -501,18 +801,16 @@
                 📊 <span>Dashboard</span>
             </a>
 
-            <!-- PRODUCTS -->
             <a href="/admin/products">
                 📦 <span>Products</span>
             </a>
 
-            <!-- ORDERS -->
             <a href="/admin/orders">
                 🛒 <span>Orders</span>
             </a>
 
-            <a href="#">
-                👥 <span>Customers</span>
+            <a href="{{ route('admin.accounts') }}">
+                👥 <span>Accounts</span>
             </a>
 
             <a href="#">
@@ -536,16 +834,20 @@
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- =========================
+         MAIN
+    ========================= -->
 
     <main class="main">
+
+        <!-- TOPBAR -->
 
         <div class="topbar">
 
             <div>
 
                 <small>
-                    GizmoMart Administration
+                    BoomBuy Administration
                 </small>
 
                 <h1>
@@ -577,7 +879,9 @@
         </div>
 
 
-        <!-- STATS -->
+        <!-- =========================
+             DASHBOARD STATS
+        ========================= -->
 
         <section class="stats">
 
@@ -683,7 +987,9 @@
         </section>
 
 
-        <!-- CONTENT -->
+        <!-- =========================
+             ORDERS + TOP PRODUCTS
+        ========================= -->
 
         <div class="content-grid">
 
@@ -719,7 +1025,7 @@
                             </div>
 
                             <div class="order-id">
-                                #GM-1001 · Joshua
+                                #BB-1001 · Joshua
                             </div>
 
                         </div>
@@ -756,7 +1062,7 @@
                             </div>
 
                             <div class="order-id">
-                                #GM-1002 · Maria
+                                #BB-1002 · Maria
                             </div>
 
                         </div>
@@ -793,7 +1099,7 @@
                             </div>
 
                             <div class="order-id">
-                                #GM-1003 · Carlo
+                                #BB-1003 · Carlo
                             </div>
 
                         </div>
@@ -830,7 +1136,7 @@
                             </div>
 
                             <div class="order-id">
-                                #GM-1004 · Andrea
+                                #BB-1004 · Andrea
                             </div>
 
                         </div>
@@ -975,7 +1281,9 @@
         </div>
 
 
-        <!-- QUICK ACTIONS -->
+        <!-- =========================
+             QUICK ACTIONS
+        ========================= -->
 
         <section class="panel">
 
@@ -990,7 +1298,6 @@
 
             <div class="quick-actions">
 
-                <!-- ADD PRODUCT -->
                 <a href="/admin/products/add" class="quick-action">
 
                     <div class="quick-action-icon">
@@ -1004,7 +1311,6 @@
                 </a>
 
 
-                <!-- MANAGE PRODUCTS -->
                 <a href="/admin/products" class="quick-action">
 
                     <div class="quick-action-icon">
@@ -1018,7 +1324,6 @@
                 </a>
 
 
-                <!-- VIEW ORDERS -->
                 <a href="/admin/orders" class="quick-action">
 
                     <div class="quick-action-icon">
@@ -1032,6 +1337,190 @@
                 </a>
 
             </div>
+
+        </section>
+
+
+        <!-- =========================
+             REGISTERED ACCOUNTS
+        ========================= -->
+
+        <section class="panel accounts-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        👥 Registered Accounts
+                    </h2>
+
+                    <p class="accounts-description">
+                        Buyer, Seller and Rider accounts
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ route('admin.accounts') }}"
+                    class="manage-button"
+                >
+                    Manage Accounts →
+                </a>
+
+            </div>
+
+
+            <!-- ACCOUNT COUNTS -->
+
+            <div class="account-stats">
+
+                <div class="account-stat">
+
+                    <div class="account-stat-title">
+                        Total Accounts
+                    </div>
+
+                    <strong class="account-stat-value">
+                        {{ $totalUsers }}
+                    </strong>
+
+                </div>
+
+
+                <div class="account-stat">
+
+                    <div class="account-stat-title">
+                        🛒 Buyers
+                    </div>
+
+                    <strong class="account-stat-value">
+                        {{ $buyerCount }}
+                    </strong>
+
+                </div>
+
+
+                <div class="account-stat">
+
+                    <div class="account-stat-title">
+                        🏪 Sellers
+                    </div>
+
+                    <strong class="account-stat-value">
+                        {{ $sellerCount }}
+                    </strong>
+
+                </div>
+
+
+                <div class="account-stat">
+
+                    <div class="account-stat-title">
+                        🛵 Riders
+                    </div>
+
+                    <strong class="account-stat-value">
+                        {{ $riderCount }}
+                    </strong>
+
+                </div>
+
+            </div>
+
+
+            <!-- RECENT ACCOUNTS -->
+
+            @if(count($users) > 0)
+
+                <div class="account-table-wrapper">
+
+                    <table class="account-table">
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    NAME
+                                </th>
+
+                                <th>
+                                    EMAIL
+                                </th>
+
+                                <th>
+                                    ROLE
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach($users as $user)
+
+                                <tr>
+
+                                    <td>
+                                        {{ $user['name'] ?? 'N/A' }}
+                                    </td>
+
+
+                                    <td class="account-email">
+                                        {{ $user['email'] ?? 'N/A' }}
+                                    </td>
+
+
+                                    <td>
+
+                                        @if(($user['role'] ?? '') === 'buyer')
+
+                                            <span class="role-badge role-buyer">
+                                                🛒 Buyer
+                                            </span>
+
+                                        @elseif(($user['role'] ?? '') === 'seller')
+
+                                            <span class="role-badge role-seller">
+                                                🏪 Seller
+                                            </span>
+
+                                        @elseif(($user['role'] ?? '') === 'rider')
+
+                                            <span class="role-badge role-rider">
+                                                🛵 Rider
+                                            </span>
+
+                                        @else
+
+                                            <span class="role-badge">
+                                                {{ ucfirst($user['role'] ?? 'Unknown') }}
+                                            </span>
+
+                                        @endif
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                <div class="no-accounts">
+                    No registered accounts yet.
+                </div>
+
+            @endif
 
         </section>
 

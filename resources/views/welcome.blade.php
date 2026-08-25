@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>GizmoMart — Technology Made Simple</title>
+    <title>BoomBuy — Your Marketplace for Everything</title>
 
     <style>
 
@@ -266,6 +266,17 @@
         .category-card:nth-child(4) .category-icon {
             background: #e9e1ff;
         }
+
+
+        .category-card:nth-child(5) .category-icon { background: #e8f5e9; }
+        .category-card:nth-child(6) .category-icon { background: #fff3cd; }
+        .category-card:nth-child(7) .category-icon { background: #fce7f3; }
+        .category-card:nth-child(8) .category-icon { background: #e0f2fe; }
+        .category-card:nth-child(9) .category-icon { background: #ffedd5; }
+        .category-card:nth-child(10) .category-icon { background: #e5e7eb; }
+        .category-card:nth-child(11) .category-icon { background: #f3e8ff; }
+        .category-card:nth-child(12) .category-icon { background: #fef3c7; }
+        .category-card:nth-child(13) .category-icon { background: #dcfce7; }
 
         .category-icon {
             width: 55px;
@@ -588,7 +599,7 @@
     <nav class="navbar">
 
         <a href="/" class="logo">
-            Gizmo<span>Mart</span>
+            Boom<span>Buy</span>
         </a>
 
         <div class="nav-links">
@@ -636,18 +647,17 @@
         <div class="hero-content">
 
             <div class="small-title">
-                New arrivals
+                Welcome to BoomBuy
             </div>
 
             <h1>
-                Technology<br>
-                made simple.
+                Everything<br>
+                you need.
             </h1>
 
             <p>
-                Discover carefully selected gadgets and
-                everyday tech essentials designed to make
-                your digital life better.
+                Discover products from different categories and trusted sellers,
+                all in one convenient marketplace made for everyday shopping.
             </p>
 
             <a href="/products" class="shop-btn">
@@ -680,13 +690,72 @@
         </div>
 
         <div class="category-grid">
-
-            <!-- SMARTPHONES -->
-            <a href="/smartphones" class="category-card">
-
-                <div class="category-icon">
-                    📱
-                </div>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🛒</div>
+                <h3>Electronics & Gadgets</h3>
+                <p>Phones, laptops, gadgets & accessories</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">👗</div>
+                <h3>Women's Apparel</h3>
+                <p>Fashion, shoes and accessories</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">👕</div>
+                <h3>Men's Apparel</h3>
+                <p>Clothing, shoes and grooming</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🧸</div>
+                <h3>Kids & Baby</h3>
+                <p>Toys, clothes and baby essentials</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🏠</div>
+                <h3>Home & Garden</h3>
+                <p>Furniture, kitchen and home essentials</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">⚽</div>
+                <h3>Sports & Outdoors</h3>
+                <p>Fitness, camping and sports gear</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">💄</div>
+                <h3>Health & Beauty</h3>
+                <p>Skincare, haircare and personal care</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">📚</div>
+                <h3>Books & Media</h3>
+                <p>Books, games, music and movies</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🍔</div>
+                <h3>Food & Gourmet</h3>
+                <p>Snacks, beverages and food products</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🚗</div>
+                <h3>Automotive & Motorcycle</h3>
+                <p>Parts, tools and vehicle accessories</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">🪑</div>
+                <h3>Furniture & Office</h3>
+                <p>Furniture and office equipment</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">💎</div>
+                <h3>Jewelry & Watches</h3>
+                <p>Jewelry, watches and accessories</p>
+            </a>
+            <a href="/categories" class="category-card">
+                <div class="category-icon">✏️</div>
+                <h3>Office & School Supplies</h3>
+                <p>School, office and craft supplies</p>
+            </a>
+        </div>
 
                 <h3>
                     Smartphones
@@ -775,12 +844,103 @@
 
 
         <div class="product-grid">
-
             <div class="product-card">
-
-                <div class="product-image">
-                    📱
+                <div class="product-image">📱</div>
+                <div class="product-info">
+                    <div class="product-category">Electronics</div>
+                    <div class="product-name">Nova X5 Pro</div>
+                    <div class="rating">★ 4.8 · 124 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱18,999</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
                 </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">👟</div>
+                <div class="product-info">
+                    <div class="product-category">Sports & Outdoors</div>
+                    <div class="product-name">Runner Flex Shoes</div>
+                    <div class="rating">★ 4.7 · 86 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱2,499</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">👗</div>
+                <div class="product-info">
+                    <div class="product-category">Women's Apparel</div>
+                    <div class="product-name">Classic Summer Dress</div>
+                    <div class="rating">★ 4.9 · 143 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱899</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">☕</div>
+                <div class="product-info">
+                    <div class="product-category">Home & Garden</div>
+                    <div class="product-name">BrewMate Coffee Maker</div>
+                    <div class="rating">★ 4.6 · 57 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱3,299</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">🎮</div>
+                <div class="product-info">
+                    <div class="product-category">Electronics</div>
+                    <div class="product-name">GamePad X</div>
+                    <div class="rating">★ 4.8 · 61 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱2,199</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">💄</div>
+                <div class="product-info">
+                    <div class="product-category">Health & Beauty</div>
+                    <div class="product-name">GlowCare Skincare Set</div>
+                    <div class="rating">★ 4.7 · 91 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱1,299</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">🎒</div>
+                <div class="product-info">
+                    <div class="product-category">Office & School</div>
+                    <div class="product-name">Urban School Backpack</div>
+                    <div class="rating">★ 4.8 · 112 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱749</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+            <div class="product-card">
+                <div class="product-image">🎧</div>
+                <div class="product-info">
+                    <div class="product-category">Electronics</div>
+                    <div class="product-name">SoundCore Pro</div>
+                    <div class="rating">★ 4.9 · 216 reviews</div>
+                    <div class="product-bottom">
+                        <div class="price">₱2,799</div>
+                        <button class="add-btn" type="button">Add to cart</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
                 <div class="product-info">
 
@@ -935,12 +1095,12 @@
         <div>
 
             <h2>
-                Save up to 20%
+                Big deals. More choices.
             </h2>
 
             <p>
-                Selected gadgets are now on sale.
-                Limited time only.
+                Discover great products from different sellers and categories.
+                Shop more, discover more, and enjoy BoomBuy.
             </p>
 
         </div>
@@ -957,19 +1117,19 @@
     <section class="about" id="about">
 
         <small>
-            About GizmoMart
+            About BoomBuy
         </small>
 
         <h2>
-            Technology made simple.
+            Your Marketplace for Everything.
         </h2>
 
         <p>
-            GizmoMart is an online technology store designed
-            to make finding everyday gadgets easier. From
-            smartphones and laptops to audio devices and
-            wearables, we bring useful technology together
-            in one simple shopping experience.
+            BoomBuy is a multi-vendor online marketplace designed
+            to make shopping easier by bringing
+            electronics, fashion, home essentials, beauty, sports, food, and
+            many more products together
+            in one simple shopping experience for buyers and sellers.
         </p>
 
     </section>
@@ -980,11 +1140,11 @@
     <footer>
 
         <div>
-            © 2026 GizmoMart
+            © 2026 BoomBuy
         </div>
 
         <div>
-            Quality tech. Better everyday.
+            Your Marketplace for Everything.
         </div>
 
     </footer>

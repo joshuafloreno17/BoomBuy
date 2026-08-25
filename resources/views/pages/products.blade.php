@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>GizmoMart — Products</title>
+    <title>BoomBuy — Products</title>
 
     <style>
-
         * {
             margin: 0;
             padding: 0;
@@ -28,10 +27,6 @@
             text-decoration: none;
             color: inherit;
         }
-
-        /* =========================
-           NAVBAR
-        ========================= */
 
         .navbar {
             width: 100%;
@@ -63,10 +58,6 @@
             color: #64748b;
         }
 
-        .nav-links a {
-            transition: 0.2s;
-        }
-
         .nav-links a:hover {
             color: #1769e0;
         }
@@ -83,7 +74,7 @@
         }
 
         .search {
-            width: 190px;
+            width: 220px;
             padding: 10px 14px;
             border-radius: 9px;
             border: 1px solid #dce7fa;
@@ -102,10 +93,6 @@
             font-weight: 700;
             white-space: nowrap;
         }
-
-        /* =========================
-           PAGE HEADER
-        ========================= */
 
         .page-header {
             width: 86%;
@@ -132,10 +119,6 @@
             font-size: 15px;
             line-height: 1.6;
         }
-
-        /* =========================
-           TOOLBAR
-        ========================= */
 
         .filter-bar {
             width: 86%;
@@ -186,10 +169,6 @@
             cursor: pointer;
         }
 
-        /* =========================
-           PRODUCT AREA
-        ========================= */
-
         .products {
             width: 86%;
             margin: 0 auto 80px;
@@ -206,10 +185,6 @@
             grid-template-columns: repeat(4, 1fr);
             gap: 20px;
         }
-
-        /* =========================
-           PRODUCT CARD
-        ========================= */
 
         .product-card {
             background: #ffffff;
@@ -236,7 +211,7 @@
         }
 
         .product-image::after {
-            content: "GIZMOMART";
+            content: "BOOMBUY";
             position: absolute;
             bottom: 13px;
             right: 15px;
@@ -260,6 +235,22 @@
 
         .lavender {
             background: linear-gradient(145deg, #f3edff, #e9ddff);
+        }
+
+        .pink {
+            background: linear-gradient(145deg, #fff0f6, #ffe0ec);
+        }
+
+        .green {
+            background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+        }
+
+        .orange {
+            background: linear-gradient(145deg, #fff7ed, #fed7aa);
+        }
+
+        .yellow {
+            background: linear-gradient(145deg, #fffbeb, #fef3c7);
         }
 
         .product-info {
@@ -327,10 +318,6 @@
             transform: translateY(-1px);
         }
 
-        /* =========================
-           EMPTY RESULT
-        ========================= */
-
         .empty {
             display: none;
             text-align: center;
@@ -348,10 +335,6 @@
             margin-bottom: 8px;
         }
 
-        /* =========================
-           FOOTER
-        ========================= */
-
         footer {
             background: #ffffff;
             border-top: 1px solid #e1e9f6;
@@ -367,19 +350,13 @@
             font-weight: 600;
         }
 
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
         @media (max-width: 1100px) {
-
             .product-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
         }
 
         @media (max-width: 900px) {
-
             .nav-links {
                 display: none;
             }
@@ -390,7 +367,6 @@
         }
 
         @media (max-width: 650px) {
-
             .navbar {
                 padding: 16px 5%;
             }
@@ -414,10 +390,6 @@
                 align-items: stretch;
             }
 
-            .categories {
-                flex-wrap: wrap;
-            }
-
             .sort {
                 width: 100%;
             }
@@ -432,7 +404,6 @@
                 text-align: center;
             }
         }
-
     </style>
 </head>
 
@@ -443,7 +414,7 @@
     <nav class="navbar">
 
         <a href="/" class="logo">
-            Gizmo<span>Mart</span>
+            Boom<span>Buy</span>
         </a>
 
         <div class="nav-links">
@@ -472,7 +443,7 @@
                 type="text"
                 class="search"
                 id="searchInput"
-                placeholder="Search products..."
+                placeholder="Search anything..."
             >
 
             <a href="#" class="cart">
@@ -489,16 +460,16 @@
     <section class="page-header">
 
         <small>
-            GizmoMart Collection
+            BoomBuy Marketplace
         </small>
 
         <h1>
-            Find your next gadget.
+            Shop everything you need.
         </h1>
 
         <p>
-            Browse our collection of technology made for
-            work, study, entertainment and everyday life.
+            Discover products from different categories and sellers,
+            all in one convenient marketplace.
         </p>
 
     </section>
@@ -514,24 +485,44 @@
                 All
             </button>
 
-            <button class="filter" data-category="smartphone">
-                Smartphones
+            <button class="filter" data-category="electronics">
+                Electronics
             </button>
 
-            <button class="filter" data-category="laptop">
-                Laptops
+            <button class="filter" data-category="women">
+                Women's
             </button>
 
-            <button class="filter" data-category="audio">
-                Audio
+            <button class="filter" data-category="men">
+                Men's
             </button>
 
-            <button class="filter" data-category="wearable">
-                Wearables
+            <button class="filter" data-category="kids">
+                Kids & Baby
             </button>
 
-            <button class="filter" data-category="accessories">
-                Accessories
+            <button class="filter" data-category="home">
+                Home
+            </button>
+
+            <button class="filter" data-category="sports">
+                Sports
+            </button>
+
+            <button class="filter" data-category="beauty">
+                Beauty
+            </button>
+
+            <button class="filter" data-category="food">
+                Food
+            </button>
+
+            <button class="filter" data-category="automotive">
+                Automotive
+            </button>
+
+            <button class="filter" data-category="office">
+                Office & School
             </button>
 
         </div>
@@ -550,6 +541,10 @@
                 Price: High to Low
             </option>
 
+            <option value="rating">
+                Rating: Highest
+            </option>
+
         </select>
 
     </div>
@@ -560,7 +555,7 @@
     <section class="products">
 
         <div class="results" id="results">
-            Showing 8 products
+            Showing 13 products
         </div>
 
         <div class="product-grid" id="productGrid">
@@ -569,9 +564,10 @@
             <!-- PRODUCT 1 -->
 
             <div class="product-card"
-                 data-category="smartphone"
+                 data-category="electronics"
                  data-price="18999"
-                   data-url="/product-details/nova-x5-pro">
+                 data-rating="4.8"
+                 data-url="/product-details/nova-x5-pro">
 
                 <div class="product-image blue">
                     📱
@@ -580,7 +576,7 @@
                 <div class="product-info">
 
                     <div class="category">
-                        Smartphone
+                        Electronics & Gadgets
                     </div>
 
                     <div class="product-name">
@@ -616,9 +612,10 @@
             <!-- PRODUCT 2 -->
 
             <div class="product-card"
-                 data-category="laptop"
+                 data-category="electronics"
                  data-price="34990"
-                     data-url="/product-details/airbook-14">
+                 data-rating="4.7"
+                 data-url="/product-details/airbook-14">
 
                 <div class="product-image purple">
                     💻
@@ -627,7 +624,7 @@
                 <div class="product-info">
 
                     <div class="category">
-                        Laptop
+                        Electronics & Gadgets
                     </div>
 
                     <div class="product-name">
@@ -663,9 +660,10 @@
             <!-- PRODUCT 3 -->
 
             <div class="product-card"
-                 data-category="audio"
+                 data-category="electronics"
                  data-price="2799"
-                      data-url="/product-details/soundcore-pro">
+                 data-rating="4.9"
+                 data-url="/product-details/soundcore-pro">
 
                 <div class="product-image cyan">
                     🎧
@@ -674,7 +672,7 @@
                 <div class="product-info">
 
                     <div class="category">
-                        Audio
+                        Electronics & Gadgets
                     </div>
 
                     <div class="product-name">
@@ -710,8 +708,9 @@
             <!-- PRODUCT 4 -->
 
             <div class="product-card"
-                 data-category="wearable"
+                 data-category="electronics"
                  data-price="3499"
+                 data-rating="4.6"
                  data-url="/product-details/fitwatch-s2">
 
                 <div class="product-image lavender">
@@ -721,7 +720,7 @@
                 <div class="product-info">
 
                     <div class="category">
-                        Wearable
+                        Electronics & Gadgets
                     </div>
 
                     <div class="product-name">
@@ -757,37 +756,38 @@
             <!-- PRODUCT 5 -->
 
             <div class="product-card"
-                 data-category="accessories"
-                 data-price="2199"
-                 data-url="/product-details/gamepad-x">
+                 data-category="women"
+                 data-price="899"
+                 data-rating="4.9"
+                 data-url="/product-details/classic-summer-dress">
 
-                <div class="product-image cyan">
-                    🎮
+                <div class="product-image pink">
+                    👗
                 </div>
 
                 <div class="product-info">
 
                     <div class="category">
-                        Accessories
+                        Women's Apparel
                     </div>
 
                     <div class="product-name">
-                        GamePad X
+                        Classic Summer Dress
                     </div>
 
                     <div class="description">
-                        Comfortable wireless controller
-                        for your gaming setup.
+                        Comfortable everyday dress with
+                        a stylish and lightweight design.
                     </div>
 
                     <div class="rating">
-                        <span>★</span> 4.8 · 61 reviews
+                        <span>★</span> 4.9 · 143 reviews
                     </div>
 
                     <div class="bottom">
 
                         <div class="price">
-                            ₱2,199
+                            ₱899
                         </div>
 
                         <button class="add">
@@ -804,31 +804,128 @@
             <!-- PRODUCT 6 -->
 
             <div class="product-card"
-                 data-category="accessories"
-                 data-price="3299"
-                 data-url="/product-details/mechakeys-75">
+                 data-category="men"
+                 data-price="799"
+                 data-rating="4.7"
+                 data-url="/product-details/casual-shirt">
 
                 <div class="product-image blue">
-                    ⌨️
+                    👕
                 </div>
 
                 <div class="product-info">
 
                     <div class="category">
-                        Accessories
+                        Men's Apparel
                     </div>
 
                     <div class="product-name">
-                        MechaKeys 75
+                        Classic Casual Shirt
                     </div>
 
                     <div class="description">
-                        Compact mechanical keyboard built
-                        for productivity and gaming.
+                        Comfortable everyday shirt suitable
+                        for casual and semi-formal outfits.
                     </div>
 
                     <div class="rating">
-                        <span>★</span> 4.7 · 95 reviews
+                        <span>★</span> 4.7 · 82 reviews
+                    </div>
+
+                    <div class="bottom">
+
+                        <div class="price">
+                            ₱799
+                        </div>
+
+                        <button class="add">
+                            Add to cart
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT 7 -->
+
+            <div class="product-card"
+                 data-category="kids"
+                 data-price="1299"
+                 data-rating="4.8"
+                 data-url="/product-details/building-blocks">
+
+                <div class="product-image yellow">
+                    🧸
+                </div>
+
+                <div class="product-info">
+
+                    <div class="category">
+                        Kids & Baby
+                    </div>
+
+                    <div class="product-name">
+                        Creative Building Blocks
+                    </div>
+
+                    <div class="description">
+                        Fun educational building set designed
+                        for creative play and learning.
+                    </div>
+
+                    <div class="rating">
+                        <span>★</span> 4.8 · 76 reviews
+                    </div>
+
+                    <div class="bottom">
+
+                        <div class="price">
+                            ₱1,299
+                        </div>
+
+                        <button class="add">
+                            Add to cart
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT 8 -->
+
+            <div class="product-card"
+                 data-category="home"
+                 data-price="3299"
+                 data-rating="4.6"
+                 data-url="/product-details/brewmate-coffee-maker">
+
+                <div class="product-image orange">
+                    ☕
+                </div>
+
+                <div class="product-info">
+
+                    <div class="category">
+                        Home & Garden
+                    </div>
+
+                    <div class="product-name">
+                        BrewMate Coffee Maker
+                    </div>
+
+                    <div class="description">
+                        Compact coffee maker for convenient
+                        drinks at home or in the office.
+                    </div>
+
+                    <div class="rating">
+                        <span>★</span> 4.6 · 57 reviews
                     </div>
 
                     <div class="bottom">
@@ -848,40 +945,41 @@
             </div>
 
 
-            <!-- PRODUCT 7 -->
+            <!-- PRODUCT 9 -->
 
             <div class="product-card"
-                 data-category="accessories"
-                 data-price="1499"
-                 data-url="/product-details/glide-mouse-x">
+                 data-category="sports"
+                 data-price="2499"
+                 data-rating="4.7"
+                 data-url="/product-details/runner-flex-shoes">
 
-                <div class="product-image purple">
-                    🖱️
+                <div class="product-image green">
+                    👟
                 </div>
 
                 <div class="product-info">
 
                     <div class="category">
-                        Accessories
+                        Sports & Outdoors
                     </div>
 
                     <div class="product-name">
-                        Glide Mouse X
+                        Runner Flex Shoes
                     </div>
 
                     <div class="description">
-                        Lightweight wireless mouse with
-                        a precise sensor.
+                        Lightweight running shoes designed
+                        for workouts and everyday movement.
                     </div>
 
                     <div class="rating">
-                        <span>★</span> 4.6 · 54 reviews
+                        <span>★</span> 4.7 · 86 reviews
                     </div>
 
                     <div class="bottom">
 
                         <div class="price">
-                            ₱1,499
+                            ₱2,499
                         </div>
 
                         <button class="add">
@@ -895,34 +993,131 @@
             </div>
 
 
-            <!-- PRODUCT 8 -->
+            <!-- PRODUCT 10 -->
 
             <div class="product-card"
-                 data-category="audio"
-                 data-price="1899"
-                 data-url="/product-details/minisound-go">
+                 data-category="beauty"
+                 data-price="1299"
+                 data-rating="4.7"
+                 data-url="/product-details/glowcare-set">
 
-                <div class="product-image lavender">
-                    🔊
+                <div class="product-image pink">
+                    💄
                 </div>
 
                 <div class="product-info">
 
                     <div class="category">
-                        Audio
+                        Health & Beauty
                     </div>
 
                     <div class="product-name">
-                        MiniSound Go
+                        GlowCare Skincare Set
                     </div>
 
                     <div class="description">
-                        Portable Bluetooth speaker for
-                        music anywhere.
+                        Everyday skincare essentials for
+                        a simple personal care routine.
                     </div>
 
                     <div class="rating">
-                        <span>★</span> 4.7 · 108 reviews
+                        <span>★</span> 4.7 · 91 reviews
+                    </div>
+
+                    <div class="bottom">
+
+                        <div class="price">
+                            ₱1,299
+                        </div>
+
+                        <button class="add">
+                            Add to cart
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT 11 -->
+
+            <div class="product-card"
+                 data-category="food"
+                 data-price="599"
+                 data-rating="4.8"
+                 data-url="/product-details/premium-coffee">
+
+                <div class="product-image orange">
+                    ☕
+                </div>
+
+                <div class="product-info">
+
+                    <div class="category">
+                        Food & Gourmet
+                    </div>
+
+                    <div class="product-name">
+                        Premium Coffee Beans
+                    </div>
+
+                    <div class="description">
+                        Freshly roasted coffee beans for
+                        your daily cup at home.
+                    </div>
+
+                    <div class="rating">
+                        <span>★</span> 4.8 · 104 reviews
+                    </div>
+
+                    <div class="bottom">
+
+                        <div class="price">
+                            ₱599
+                        </div>
+
+                        <button class="add">
+                            Add to cart
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- PRODUCT 12 -->
+
+            <div class="product-card"
+                 data-category="automotive"
+                 data-price="1899"
+                 data-rating="4.6"
+                 data-url="/product-details/car-care-kit">
+
+                <div class="product-image purple">
+                    🚗
+                </div>
+
+                <div class="product-info">
+
+                    <div class="category">
+                        Automotive & Motorcycle
+                    </div>
+
+                    <div class="product-name">
+                        Car Care Kit
+                    </div>
+
+                    <div class="description">
+                        Useful cleaning and maintenance
+                        essentials for everyday vehicle care.
+                    </div>
+
+                    <div class="rating">
+                        <span>★</span> 4.6 · 63 reviews
                     </div>
 
                     <div class="bottom">
@@ -941,6 +1136,53 @@
 
             </div>
 
+
+            <!-- PRODUCT 13 -->
+
+            <div class="product-card"
+                 data-category="office"
+                 data-price="749"
+                 data-rating="4.8"
+                 data-url="/product-details/urban-backpack">
+
+                <div class="product-image cyan">
+                    🎒
+                </div>
+
+                <div class="product-info">
+
+                    <div class="category">
+                        Office & School Supplies
+                    </div>
+
+                    <div class="product-name">
+                        Urban School Backpack
+                    </div>
+
+                    <div class="description">
+                        Spacious backpack for school,
+                        work and everyday essentials.
+                    </div>
+
+                    <div class="rating">
+                        <span>★</span> 4.8 · 112 reviews
+                    </div>
+
+                    <div class="bottom">
+
+                        <div class="price">
+                            ₱749
+                        </div>
+
+                        <button class="add">
+                            Add to cart
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
 
         </div>
 
@@ -971,17 +1213,15 @@
     <footer>
 
         <div>
-            © 2026 GizmoMart
+            © 2026 BoomBuy
         </div>
 
         <div>
-            Quality tech. Better everyday.
+            Your Marketplace for Everything.
         </div>
 
     </footer>
 
-
-    <!-- JAVASCRIPT -->
 
     <script>
 
@@ -1013,10 +1253,6 @@
         let cart = 0;
 
 
-        /* =========================
-           FILTER + SEARCH + SORT
-        ========================= */
-
         function updateProducts() {
 
             const search =
@@ -1040,13 +1276,19 @@
                             ".category"
                         ).textContent.toLowerCase();
 
+                    const description =
+                        product.querySelector(
+                            ".description"
+                        ).textContent.toLowerCase();
+
                     const matchesCategory =
                         selectedCategory === "all" ||
                         category === selectedCategory;
 
                     const matchesSearch =
                         name.includes(search) ||
-                        categoryText.includes(search);
+                        categoryText.includes(search) ||
+                        description.includes(search);
 
                     return matchesCategory &&
                            matchesSearch;
@@ -1054,8 +1296,7 @@
                 });
 
 
-            const sort =
-                sortSelect.value;
+            const sort = sortSelect.value;
 
 
             if (sort === "low") {
@@ -1080,10 +1321,19 @@
             }
 
 
+            if (sort === "rating") {
+
+                visibleProducts.sort(
+                    (a, b) =>
+                        Number(b.dataset.rating) -
+                        Number(a.dataset.rating)
+                );
+
+            }
+
+
             products.forEach(product => {
-
                 product.style.display = "none";
-
             });
 
 
@@ -1103,21 +1353,13 @@
 
 
             if (visibleProducts.length === 0) {
-
                 empty.style.display = "block";
-
             } else {
-
                 empty.style.display = "none";
-
             }
 
         }
 
-
-        /* =========================
-           CATEGORY FILTER
-        ========================= */
 
         filters.forEach(filter => {
 
@@ -1126,22 +1368,13 @@
                 function() {
 
                     filters.forEach(btn => {
-
-                        btn.classList.remove(
-                            "active"
-                        );
-
+                        btn.classList.remove("active");
                     });
 
-
-                    this.classList.add(
-                        "active"
-                    );
-
+                    this.classList.add("active");
 
                     selectedCategory =
                         this.dataset.category;
-
 
                     updateProducts();
 
@@ -1151,29 +1384,17 @@
         });
 
 
-        /* =========================
-           SEARCH
-        ========================= */
-
         searchInput.addEventListener(
             "input",
             updateProducts
         );
 
 
-        /* =========================
-           SORT
-        ========================= */
-
         sortSelect.addEventListener(
             "change",
             updateProducts
         );
 
-
-        /* =========================
-           ADD TO CART
-        ========================= */
 
         document
             .querySelectorAll(".add")
@@ -1190,18 +1411,14 @@
                         cartCount.textContent =
                             cart;
 
-
                         const original =
                             this.textContent;
-
 
                         this.textContent =
                             "Added ✓";
 
-
                         this.style.background =
                             "#16a34a";
-
 
                         setTimeout(() => {
 
@@ -1218,10 +1435,6 @@
 
             });
 
-
-        /* =========================
-           PRODUCT DETAILS
-        ========================= */
 
         document
             .querySelectorAll(".product-card")
