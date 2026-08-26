@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Buyer Dashboard — BoomBuy</title>
+    <title>BoomBuy — Buyer Home</title>
 
     <style>
 
@@ -26,14 +26,22 @@
             color: inherit;
         }
 
+        /* =========================
+           NAVBAR
+        ========================= */
+
         .navbar {
             background: white;
             border-bottom: 1px solid #e2eaff;
-            padding: 18px 7%;
+            padding: 16px 7%;
 
             display: flex;
             align-items: center;
             justify-content: space-between;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
@@ -46,10 +54,34 @@
             color: #172033;
         }
 
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: 22px;
+            margin-left: auto;
+            margin-right: 25px;
+        }
+
+        .nav-links a {
+            color: #64748b;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 2px;
+            transition: 0.2s;
+        }
+
+        .nav-links a:hover {
+            color: #1769e0;
+        }
+
+        .nav-links .active {
+            color: #1769e0;
+        }
+
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 20px;
+            gap: 15px;
         }
 
         .user-name {
@@ -74,11 +106,23 @@
             font-weight: 700;
         }
 
+        .logout:hover {
+            background: #ffe1e1;
+        }
+
+        /* =========================
+           CONTAINER
+        ========================= */
+
         .container {
             width: 86%;
             max-width: 1200px;
             margin: 45px auto 80px;
         }
+
+        /* =========================
+           WELCOME
+        ========================= */
 
         .welcome {
             background: white;
@@ -107,6 +151,47 @@
             margin-top: 8px;
         }
 
+        /* =========================
+           QUICK ACTIONS
+        ========================= */
+
+        .quick-actions {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 35px;
+        }
+
+        .quick-card {
+            background: white;
+            border: 1px solid #e1e9f6;
+            border-radius: 12px;
+            padding: 18px;
+
+            transition: 0.2s;
+        }
+
+        .quick-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(23, 105, 224, 0.08);
+        }
+
+        .quick-card strong {
+            display: block;
+            color: #172033;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .quick-card span {
+            color: #718096;
+            font-size: 12px;
+        }
+
+        /* =========================
+           SECTION
+        ========================= */
+
         .section-title {
             margin-bottom: 18px;
         }
@@ -120,6 +205,10 @@
             font-size: 13px;
             margin-top: 5px;
         }
+
+        /* =========================
+           PRODUCTS
+        ========================= */
 
         .products {
             display: grid;
@@ -193,6 +282,10 @@
             background: #0f55bd;
         }
 
+        /* =========================
+           EMPTY
+        ========================= */
+
         .empty {
             background: white;
             border: 1px solid #e1e9f6;
@@ -201,6 +294,10 @@
             text-align: center;
             color: #718096;
         }
+
+        /* =========================
+           FOOTER
+        ========================= */
 
         footer {
             background: white;
@@ -218,7 +315,19 @@
             color: #1769e0;
         }
 
-        @media (max-width: 950px) {
+        /* =========================
+           RESPONSIVE
+        ========================= */
+
+        @media (max-width: 1000px) {
+
+            .nav-links {
+                gap: 12px;
+            }
+
+            .user-name {
+                display: none;
+            }
 
             .products {
                 grid-template-columns: repeat(2, 1fr);
@@ -226,22 +335,32 @@
 
         }
 
-        @media (max-width: 600px) {
+        @media (max-width: 700px) {
 
             .navbar {
+                flex-wrap: wrap;
+                gap: 12px;
                 padding: 15px 5%;
             }
 
-            .nav-right {
-                gap: 10px;
+            .nav-links {
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin: 0;
+                gap: 15px;
             }
 
-            .user-name {
-                display: none;
+            .nav-right {
+                margin-left: auto;
             }
 
             .container {
                 width: 92%;
+            }
+
+            .quick-actions {
+                grid-template-columns: 1fr;
             }
 
             .products {
@@ -268,43 +387,94 @@
 <body>
 
 
+<!-- =========================
+     NAVBAR
+========================= -->
+
 <nav class="navbar">
 
-    <a href="/" class="logo">
+
+    <!-- LOGO -->
+
+    <a href="{{ route('buyer.dashboard') }}" class="logo">
         Boom<span>Buy</span>
     </a>
 
 
-    <div class="nav-right">
+    <!-- MAIN NAVIGATION -->
 
-        <span class="user-name">
-            Welcome, {{ $user['name'] ?? 'Buyer' }}
-        </span>
+    <div class="nav-links">
 
-        <a href="{{ route('cart') }}" class="cart">
+        {{-- Buyer Home --}}
+        <a
+            href="{{ route('buyer.dashboard') }}"
+            class="active"
+        >
+            Home
+        </a>
+
+
+        {{-- Shop --}}
+        <a href="{{ route('products') }}">
+            🛍️ Shop
+        </a>
+
+
+        {{-- Buyer Orders --}}
+        <a href="{{ route('buyer.orders') }}">
+            📦 My Orders
+        </a>
+
+
+        {{-- Cart --}}
+        <a href="{{ route('cart') }}">
             🛒 Cart
         </a>
 
+    </div>
+
+
+    <!-- USER / LOGOUT -->
+
+    <div class="nav-right">
+
+        <span class="user-name">
+            {{ $user['name'] ?? 'Buyer' }}
+        </span>
+
+
         <form action="{{ route('logout') }}" method="POST">
+
             @csrf
 
-            <button class="logout" type="submit">
+            <button
+                class="logout"
+                type="submit"
+            >
                 Logout
             </button>
+
         </form>
 
     </div>
 
+
 </nav>
 
+
+<!-- =========================
+     MAIN
+========================= -->
 
 <main class="container">
 
 
+    <!-- WELCOME -->
+
     <section class="welcome">
 
         <small>
-            Buyer Dashboard
+            Welcome to BoomBuy
         </small>
 
         <h1>
@@ -312,11 +482,79 @@
         </h1>
 
         <p>
-            Browse products and find something you like from BoomBuy.
+            Browse products, manage your orders, and shop from BoomBuy.
         </p>
 
     </section>
 
+
+    <!-- =========================
+         QUICK ACTIONS
+    ========================= -->
+
+    <div class="quick-actions">
+
+
+        {{-- CONTINUE SHOPPING → PRODUCTS --}}
+
+        <a
+            href="{{ route('products') }}"
+            class="quick-card"
+        >
+
+            <strong>
+                🛍️ Continue Shopping
+            </strong>
+
+            <span>
+                Browse all available products.
+            </span>
+
+        </a>
+
+
+        {{-- MY ORDERS → BUYER ORDERS --}}
+
+        <a
+            href="{{ route('buyer.orders') }}"
+            class="quick-card"
+        >
+
+            <strong>
+                📦 My Orders
+            </strong>
+
+            <span>
+                View your previous and current orders.
+            </span>
+
+        </a>
+
+
+        {{-- MY CART → CART --}}
+
+        <a
+            href="{{ route('cart') }}"
+            class="quick-card"
+        >
+
+            <strong>
+                🛒 My Cart
+            </strong>
+
+            <span>
+                Review the products you want to purchase.
+            </span>
+
+        </a>
+
+
+    </div>
+
+
+    <!-- =========================
+         PRODUCTS
+    ========================= -->
 
     <div class="section-title">
 
@@ -333,27 +571,35 @@
 
     @if(count($products) > 0)
 
+
         <div class="products">
+
 
             @foreach($products as $product)
 
+
                 <div class="product-card">
+
 
                     <div class="product-icon">
                         {{ $product['icon'] ?? '📦' }}
                     </div>
 
+
                     <div class="category">
                         {{ $product['category'] ?? 'Other' }}
                     </div>
+
 
                     <div class="product-name">
                         {{ $product['name'] }}
                     </div>
 
+
                     <div class="price">
                         ₱{{ number_format($product['price'] ?? 0) }}
                     </div>
+
 
                     <a
                         href="{{ route('product.details', $product['slug']) }}"
@@ -362,13 +608,18 @@
                         View Product
                     </a>
 
+
                 </div>
+
 
             @endforeach
 
+
         </div>
 
+
     @else
+
 
         <div class="empty">
 
@@ -382,11 +633,16 @@
 
         </div>
 
+
     @endif
 
 
 </main>
 
+
+<!-- =========================
+     FOOTER
+========================= -->
 
 <footer>
 
@@ -395,7 +651,7 @@
     </div>
 
     <div>
-        Buyer Dashboard
+        Your Marketplace for Everything
     </div>
 
 </footer>

@@ -772,14 +772,11 @@
                 </div>
 
 
-                <button
-                    type="button"
-                    class="checkout-btn"
-                    onclick="alert('Checkout coming next!')"
-                >
-                    💳 Proceed to Checkout
-                </button>
-
+                <a href="{{ route('checkout') }}">
+    <button type="button" class="checkout-btn">
+        💳 Proceed to Checkout
+    </button>
+</a>
 
                 <a href="/products" class="continue">
                     Continue Shopping

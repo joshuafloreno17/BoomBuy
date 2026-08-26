@@ -413,16 +413,15 @@
 
     <nav class="navbar">
 
-        <a href="/" class="logo">
+        <a href="{{ route('buyer.dashboard') }}" class="logo">
             Boom<span>Buy</span>
         </a>
 
         <div class="nav-links">
 
-            <a href="/">
-                Home
-            </a>
-
+           <a href="{{ route('buyer.dashboard') }}">
+    Home
+</a>
             <a href="/products" class="active">
                 Shop
             </a>
