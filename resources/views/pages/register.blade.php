@@ -1,4 +1,3 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 
@@ -353,9 +352,6 @@
         Boom<span>Buy</span>
     </a>
 
-    <a href="/products" class="back">
-        ← Back to Shop
-    </a>
 
 </nav>
 
@@ -649,4 +645,4 @@
 </body>
 
 </html>
-```
+

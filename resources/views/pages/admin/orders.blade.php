@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Admin Orders - BoomBuy</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f4f7ff;
+            color: #172033;
+        }
+
+        .navbar {
+            background: white;
+            border-bottom: 1px solid #dce4f5;
+            padding: 18px 7%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 26px;
+            font-weight: 800;
+            color: #1264e8;
+        }
+
+        .logo span {
+            color: #172033;
+        }
+
+        .back {
+            text-decoration: none;
+            color: #1264e8;
+            font-weight: 600;
+        }
+
+        .container {
+            width: 86%;
+            max-width: 1200px;
+            margin: 40px auto;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #68758d;
+            margin-bottom: 28px;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            background: #e9f8ef;
+            color: #087a3d;
+        }
+
+        .empty {
+            background: white;
+            border: 1px solid #dce4f5;
+            border-radius: 14px;
+            padding: 50px;
+            text-align: center;
+            color: #68758d;
+        }
+
+        .order-card {
+            background: white;
+            border: 1px solid #dce4f5;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            background: #fff4d6;
+            color: #9a6700;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .info {
+            color: #58657b;
+            line-height: 1.7;
+        }
+
+        .items {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #edf0f6;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #edf0f6;
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        .btn-blue {
+            background: #1264e8;
+            color: white;
+        }
+
+        .btn-green {
+            background: #198754;
+            color: white;
+        }
+
+        .btn-gray {
+            background: #eef2f7;
+            color: #344054;
+        }
+
+        select {
+            padding: 10px 12px;
+            border: 1px solid #ccd5e5;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .details {
+            text-decoration: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            background: #eef4ff;
+            color: #1264e8;
+            font-weight: 700;
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="navbar">
+    <div class="logo">
+        Boom<span>Buy</span>
+    </div>
+
+    <a href="{{ route('admin.dashboard') }}" class="back">
+        ← Admin Dashboard
+    </a>
+</nav>
+
+<div class="container">
+
+    <h1>Orders</h1>
+    <div class="subtitle">
+        Manage all BoomBuy customer orders.
+    </div>
+
+    @if(session('success'))
+        <div class="alert">
+            ✓ {{ session('success') }}
+        </div>
+    @endif
+
+    @if(session('error'))
+        <div class="alert" style="background:#fdecec;color:#b42318;">
+            {{ session('error') }}
+        </div>
+    @endif
+
+
+    @if(empty($orders))
+
+        <div class="empty">
+            <h2>No Orders Yet</h2>
+            <p>There are currently no orders in BoomBuy.</p>
+        </div>
+
+    @else
+
+        @foreach($orders as $order)
+
+            <div class="order-card">
+
+                <div class="order-header">
+
+                    <div>
+                        <div class="order-id">
+                            {{ $order['id'] ?? 'Unknown Order' }}
+                        </div>
+
+                        <div class="info">
+                            {{ $order['date'] ?? '' }}
+                        </div>
+                    </div>
+
+                    <div class="status">
+                        {{ $order['status'] ?? 'Pending' }}
+                    </div>
+
+                </div>
+
+
+                <div class="info">
+
+                    <strong>Buyer:</strong>
+                    {{ $order['buyer_name'] ?? 'Buyer' }}
+
+                    <br>
+
+                    <strong>Email:</strong>
+                    {{ $order['buyer_email'] ?? 'N/A' }}
+
+                    <br>
+
+                    <strong>Phone:</strong>
+                    {{ $order['phone'] ?? 'N/A' }}
+
+                    <br>
+
+                    <strong>Address:</strong>
+                    {{ $order['address'] ?? 'N/A' }}
+
+                    <br>
+
+                    <strong>Payment:</strong>
+                    {{ $order['payment'] ?? 'N/A' }}
+
+                </div>
+
+
+                <div class="items">
+
+                    <strong>Order Items</strong>
+
+                    @foreach(($order['items'] ?? []) as $item)
+
+                        <div class="item">
+
+                            <span>
+                                {{ $item['name'] ?? 'Product' }}
+                                × {{ $item['quantity'] ?? 1 }}
+                            </span>
+
+                            <span>
+                                ₱{{ number_format($item['subtotal'] ?? 0, 2) }}
+                            </span>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+
+                <div class="total">
+
+                    <span>Total</span>
+
+                    <span>
+                        ₱{{ number_format($order['total'] ?? 0, 2) }}
+                    </span>
+
+                </div>
+
+
+                @if(!empty($order['rider_name']))
+
+                    <div class="info" style="margin-top:15px;">
+                        <strong>Rider:</strong>
+                        {{ $order['rider_name'] }}
+                    </div>
+
+                @endif
+
+
+                <div class="actions">
+
+                    <a
+                        href="{{ route('admin.order.details', $order['id']) }}"
+                        class="details"
+                    >
+                        View Details
+                    </a>
+
+
+                    <form
+                        method="POST"
+                        action="{{ route('admin.order.status', $order['id']) }}"
+                    >
+
+                        @csrf
+
+                        <select name="status">
+
+                            <option value="Pending"
+                                {{ ($order['status'] ?? '') === 'Pending' ? 'selected' : '' }}>
+                                Pending
+                            </option>
+
+                            <option value="Processing"
+                                {{ ($order['status'] ?? '') === 'Processing' ? 'selected' : '' }}>
+                                Processing
+                            </option>
+
+                            <option value="Ready for Pickup"
+                                {{ ($order['status'] ?? '') === 'Ready for Pickup' ? 'selected' : '' }}>
+                                Ready for Pickup
+                            </option>
+
+                            <option value="Picked Up"
+                                {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>
+                                Picked Up
+                            </option>
+
+                            <option value="On the Way"
+                                {{ ($order['status'] ?? '') === 'On the Way' ? 'selected' : '' }}>
+                                On the Way
+                            </option>
+
+                            <option value="Delivered"
+                                {{ ($order['status'] ?? '') === 'Delivered' ? 'selected' : '' }}>
+                                Delivered
+                            </option>
+
+                            <option value="Cancelled"
+                                {{ ($order['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>
+                                Cancelled
+                            </option>
+
+                        </select>
+
+                        <button
+                            type="submit"
+                            class="btn btn-blue"
+                        >
+                            Update Status
+                        </button>
+
+                    </form>
+
+                </div>
+
+            </div>
+
+        @endforeach
+
+    @endif
+
+</div>
+
+</body>
+</html>

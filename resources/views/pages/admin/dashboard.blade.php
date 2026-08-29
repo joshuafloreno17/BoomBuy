@@ -797,37 +797,62 @@
 
         <nav class="menu">
 
-            <a href="/admin" class="active">
+            <!-- Dashboard -->
+            <a href="{{ route('admin.dashboard') }}" class="active">
                 📊 <span>Dashboard</span>
             </a>
 
-            <a href="/admin/products">
+            <!-- Products -->
+            <a href="{{ route('admin.products') }}">
                 📦 <span>Products</span>
             </a>
 
-            <a href="/admin/orders">
+            <!-- Orders -->
+            <a href="{{ route('admin.orders') }}">
                 🛒 <span>Orders</span>
             </a>
 
+            <!-- Accounts -->
             <a href="{{ route('admin.accounts') }}">
                 👥 <span>Accounts</span>
             </a>
 
-            <a href="#">
-                📈 <span>Reports</span>
-            </a>
+            <!-- Reports -->
+           <a href="{{ route('admin.reports') }}">
+    📈 <span>Reports</span>
+</a>
 
-            <a href="#">
-                ⚙️ <span>Settings</span>
-            </a>
+            <a href="{{ route('admin.settings') }}">
+    ⚙️ <span>Settings</span>
+</a>
 
         </nav>
 
         <div class="logout">
 
-            <a href="/admin/login">
-                🚪 <span>Logout</span>
-            </a>
+            <!-- Admin Logout -->
+            <form action="{{ route('admin.logout') }}" method="POST">
+                @csrf
+
+                <button
+                    type="submit"
+                    style="
+                        width: 100%;
+                        border: none;
+                        background: transparent;
+                        text-align: left;
+                        padding: 12px;
+                        border-radius: 9px;
+                        color: #ef4444;
+                        font-size: 13px;
+                        font-weight: 600;
+                        cursor: pointer;
+                        font-family: Arial, Helvetica, sans-serif;
+                    "
+                >
+                    🚪 <span>Logout</span>
+                </button>
+            </form>
 
         </div>
 
@@ -1003,7 +1028,10 @@
                         Recent Orders
                     </h2>
 
-                    <a href="/admin/orders" class="view-all">
+                    <a
+                        href="{{ route('admin.orders') }}"
+                        class="view-all"
+                    >
                         View All
                     </a>
 
@@ -1170,7 +1198,10 @@
                         Top Products
                     </h2>
 
-                    <a href="/products" class="view-all">
+                    <a
+                        href="{{ route('products') }}"
+                        class="view-all"
+                    >
                         Shop
                     </a>
 
@@ -1298,7 +1329,11 @@
 
             <div class="quick-actions">
 
-                <a href="/admin/products/add" class="quick-action">
+                <!-- FIXED: admin/products/create -->
+                <a
+                    href="{{ route('admin.products.create') }}"
+                    class="quick-action"
+                >
 
                     <div class="quick-action-icon">
                         ➕
@@ -1311,7 +1346,10 @@
                 </a>
 
 
-                <a href="/admin/products" class="quick-action">
+                <a
+                    href="{{ route('admin.products') }}"
+                    class="quick-action"
+                >
 
                     <div class="quick-action-icon">
                         📦
@@ -1324,7 +1362,10 @@
                 </a>
 
 
-                <a href="/admin/orders" class="quick-action">
+                <a
+                    href="{{ route('admin.orders') }}"
+                    class="quick-action"
+                >
 
                     <div class="quick-action-icon">
                         🛒

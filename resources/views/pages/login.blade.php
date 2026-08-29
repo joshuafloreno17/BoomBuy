@@ -470,10 +470,6 @@
         Boom<span>Buy</span>
     </a>
 
-    <a href="/products" class="back">
-        ← Back to Shop
-    </a>
-
 </nav>
 
 
@@ -583,13 +579,12 @@
                             Password
                         </label>
 
-                        <a
-                            href="#"
-                            class="forgot"
-                            onclick="return false;"
-                        >
-                            Forgot password?
-                        </a>
+                     <a
+    href="{{ route('password.request') }}"
+    class="forgot"
+>
+    Forgot password?
+</a>
 
                     </div>
 

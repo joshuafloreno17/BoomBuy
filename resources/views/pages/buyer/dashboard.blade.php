@@ -9,6 +9,27 @@
 
     <style>
 
+
+.cart-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.cart-number {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    background: #ef4444;
+    color: white;
+    border-radius: 50%;
+    font-size: 11px;
+    font-weight: 700;
+}
+
         * {
             margin: 0;
             padding: 0;
@@ -82,11 +103,6 @@
             display: flex;
             align-items: center;
             gap: 15px;
-        }
-
-        .user-name {
-            color: #64748b;
-            font-size: 13px;
         }
 
         .cart {
@@ -325,9 +341,6 @@
                 gap: 12px;
             }
 
-            .user-name {
-                display: none;
-            }
 
             .products {
                 grid-template-columns: repeat(2, 1fr);
@@ -427,9 +440,17 @@
 
 
         {{-- Cart --}}
-        <a href="{{ route('cart') }}">
-            🛒 Cart
-        </a>
+        @php
+    $cartCount = array_sum(session()->get('cart', []));
+@endphp
+
+<a href="{{ route('cart') }}" class="cart-link">
+    🛒 Cart
+
+    @if($cartCount > 0)
+        <span class="cart-number">{{ $cartCount }}</span>
+    @endif
+</a>
 
     </div>
 
@@ -438,9 +459,6 @@
 
     <div class="nav-right">
 
-        <span class="user-name">
-            {{ $user['name'] ?? 'Buyer' }}
-        </span>
 
 
         <form action="{{ route('logout') }}" method="POST">
@@ -460,6 +478,8 @@
 
 
 </nav>
+
+
 
 
 <!-- =========================
@@ -486,6 +506,8 @@
         </p>
 
     </section>
+
+
 
 
     <!-- =========================

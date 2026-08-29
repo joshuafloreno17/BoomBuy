@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
+
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>BoomBuy — Your Marketplace for Everything</title>
+    <title>BoomBuy — Shop Everything You Love</title>
 
     <style>
 
@@ -20,13 +23,12 @@
 
         body {
             font-family: Arial, Helvetica, sans-serif;
-            background: #f4f8ff;
+            background: #f8fbff;
             color: #172033;
         }
 
         a {
             text-decoration: none;
-            color: inherit;
         }
 
         /* =========================
@@ -34,21 +36,28 @@
         ========================= */
 
         .navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+
             width: 100%;
-            background: #ffffff;
-            border-bottom: 1px solid #e2eaff;
+
+            background: rgba(255, 255, 255, 0.96);
+
+            backdrop-filter: blur(12px);
+
+            border-bottom: 1px solid #e5edf8;
+
             padding: 18px 7%;
+
             display: flex;
             align-items: center;
             justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
         }
 
         .logo {
-            font-size: 23px;
-            font-weight: 700;
+            font-size: 25px;
+            font-weight: 800;
             color: #1769e0;
         }
 
@@ -58,43 +67,50 @@
 
         .nav-links {
             display: flex;
-            gap: 32px;
-            font-size: 14px;
-            color: #64748b;
+            align-items: center;
+            gap: 28px;
         }
 
         .nav-links a {
-            transition: 0.2s;
+            color: #475569;
+            font-size: 13px;
+            font-weight: 600;
         }
 
         .nav-links a:hover {
             color: #1769e0;
         }
 
-        .nav-actions {
+        .nav-buttons {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 10px;
         }
 
-        .search {
-            background: #f5f8ff;
-            border: 1px solid #dce7fa;
-            border-radius: 9px;
-            padding: 10px 14px;
-            width: 190px;
-            outline: none;
-        }
-
-        .search:focus {
-            border-color: #4b8df8;
-            background: white;
-        }
-
-        .cart {
-            font-size: 14px;
-            font-weight: 600;
+        .login-btn {
             color: #1769e0;
+            border: 1px solid #d7e5fb;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .login-btn:hover {
+            background: #f0f6ff;
+        }
+
+        .register-btn {
+            background: #1769e0;
+            color: white;
+            padding: 11px 19px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .register-btn:hover {
+            background: #0f55bd;
         }
 
         /* =========================
@@ -102,76 +118,91 @@
         ========================= */
 
         .hero {
-            width: 86%;
-            margin: 35px auto 0;
-            min-height: 430px;
-            background: linear-gradient(
-                120deg,
-                #dcecff,
-                #edf5ff 55%,
-                #e8e3ff
-            );
-            border-radius: 20px;
-            display: flex;
+            padding: 85px 7% 75px;
+
+            display: grid;
+            grid-template-columns: 1.05fr 0.95fr;
+
+            gap: 60px;
+
             align-items: center;
-            justify-content: space-between;
-            padding: 55px 65px;
-            overflow: hidden;
-            position: relative;
+
+            background:
+                radial-gradient(circle at 80% 20%, #dcecff 0, transparent 35%),
+                linear-gradient(180deg, #ffffff, #f4f8ff);
         }
 
-        .hero::before {
-            content: "";
-            position: absolute;
-            width: 250px;
-            height: 250px;
-            background: #bfdbfe;
-            border-radius: 50%;
-            right: 170px;
-            top: -120px;
-            opacity: 0.45;
-        }
+        .hero-content small {
+            display: inline-block;
 
-        .hero-content {
-            max-width: 530px;
-            position: relative;
-            z-index: 2;
-        }
+            color: #1769e0;
 
-        .small-title {
-            font-size: 12px;
+            background: #eaf3ff;
+
+            padding: 8px 13px;
+
+            border-radius: 30px;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            letter-spacing: 1.5px;
+
             text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #3977d5;
-            font-weight: 700;
+
             margin-bottom: 18px;
         }
 
-        .hero h1 {
-            font-size: 56px;
-            line-height: 1.05;
+        .hero-content h1 {
+            font-size: clamp(42px, 5vw, 68px);
+
+            line-height: 1.02;
+
             letter-spacing: -2px;
+
             margin-bottom: 22px;
-            color: #14213d;
         }
 
-        .hero p {
-            color: #52627a;
+        .hero-content h1 span {
+            color: #1769e0;
+        }
+
+        .hero-content p {
+            max-width: 560px;
+
+            color: #64748b;
+
             font-size: 16px;
-            line-height: 1.7;
-            max-width: 440px;
+
+            line-height: 1.8;
+
             margin-bottom: 30px;
         }
 
+        .hero-actions {
+            display: flex;
+
+            gap: 12px;
+
+            flex-wrap: wrap;
+        }
+
         .shop-btn {
-            display: inline-block;
             background: #1769e0;
+
             color: white;
-            padding: 14px 24px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            box-shadow: 0 8px 20px rgba(23, 105, 224, 0.22);
+
+            padding: 15px 25px;
+
+            border-radius: 9px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+
+            box-shadow: 0 10px 25px rgba(23, 105, 224, 0.20);
+
             transition: 0.2s;
         }
 
@@ -180,123 +211,297 @@
             transform: translateY(-2px);
         }
 
-        .hero-product {
-            width: 330px;
-            height: 330px;
-            border-radius: 50%;
-            background: linear-gradient(
-                145deg,
-                #ffffff,
-                #cfe2ff
-            );
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 135px;
-            margin-right: 45px;
-            box-shadow: 0 20px 45px rgba(48, 91, 160, 0.15);
-            position: relative;
-            z-index: 2;
+        .learn-btn {
+            background: white;
+
+            color: #334155;
+
+            border: 1px solid #dce7f5;
+
+            padding: 15px 25px;
+
+            border-radius: 9px;
+
+            font-size: 13px;
+
+            font-weight: 700;
+        }
+
+        .learn-btn:hover {
+            border-color: #1769e0;
+            color: #1769e0;
         }
 
         /* =========================
-           GENERAL SECTIONS
+           HERO VISUAL
+        ========================= */
+
+        .hero-visual {
+            position: relative;
+
+            min-height: 420px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+        }
+
+        .hero-card {
+            width: 390px;
+
+            max-width: 100%;
+
+            background: white;
+
+            border: 1px solid #dfe9f7;
+
+            border-radius: 28px;
+
+            padding: 30px;
+
+            box-shadow: 0 30px 70px rgba(45, 86, 145, 0.15);
+
+            transform: rotate(2deg);
+        }
+.hero-product {
+    height: 230px;
+
+    border-radius: 20px;
+
+    background:
+        linear-gradient(145deg, #e8f2ff, #cfe4ff);
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    font-size: 105px;
+
+    margin-bottom: 22px;
+}
+
+.hero-product img {
+    width: 180px;
+    height: 180px;
+    object-fit: contain;
+}
+
+        .hero-card h3 {
+            font-size: 20px;
+
+            margin-bottom: 7px;
+        }
+
+        .hero-card p {
+            color: #718096;
+
+            font-size: 12px;
+
+            margin-bottom: 15px;
+        }
+
+        .price {
+            color: #1769e0;
+
+            font-size: 22px;
+
+            font-weight: 800;
+        }
+
+        .floating-card {
+            position: absolute;
+
+            background: white;
+
+            border: 1px solid #e4ebf5;
+
+            border-radius: 14px;
+
+            padding: 15px 18px;
+
+            box-shadow: 0 15px 35px rgba(50, 85, 130, 0.12);
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+        .floating-one {
+            top: 30px;
+            right: 0;
+        }
+
+        .floating-two {
+            bottom: 35px;
+            left: 5px;
+        }
+
+        /* =========================
+           FEATURES
+        ========================= */
+
+        .features {
+            padding: 28px 7%;
+
+            background: white;
+
+            border-top: 1px solid #edf2f8;
+
+            border-bottom: 1px solid #edf2f8;
+
+            display: grid;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 20px;
+        }
+
+        .feature {
+            display: flex;
+
+            align-items: center;
+
+            gap: 14px;
+
+            padding: 10px;
+        }
+
+        .feature-icon {
+            width: 45px;
+            height: 45px;
+
+            border-radius: 12px;
+
+            background: #edf5ff;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            font-size: 21px;
+        }
+
+        .feature h4 {
+            font-size: 13px;
+
+            margin-bottom: 4px;
+        }
+
+        .feature p {
+            color: #718096;
+
+            font-size: 11px;
+        }
+
+        /* =========================
+           SECTIONS
         ========================= */
 
         .section {
-            width: 86%;
-            margin: 75px auto 0;
+            padding: 80px 7%;
         }
 
-        .section-heading {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
+        .section-header {
+            text-align: center;
+
+            margin-bottom: 40px;
         }
 
-        .section-heading h2 {
-            font-size: 25px;
+        .section-header small {
+            color: #1769e0;
+
+            font-size: 10px;
+
+            font-weight: 800;
+
+            text-transform: uppercase;
+
+            letter-spacing: 2px;
         }
 
-        .view-all {
+        .section-header h2 {
+            font-size: 32px;
+
+            margin-top: 8px;
+
+            margin-bottom: 10px;
+        }
+
+        .section-header p {
+            color: #718096;
+
             font-size: 13px;
-            color: #3977d5;
-            font-weight: 600;
         }
 
         /* =========================
            CATEGORIES
         ========================= */
 
-        .category-grid {
+        .categories {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+
+            grid-template-columns: repeat(5, 1fr);
+
             gap: 18px;
         }
 
-        .category-card {
-            display: block;
+        .category {
             background: white;
-            border: 1px solid #e0e9f8;
-            border-radius: 14px;
-            padding: 25px;
+
+            border: 1px solid #e2eaf5;
+
+            border-radius: 16px;
+
+            padding: 25px 15px;
+
+            text-align: center;
+
             transition: 0.25s;
-            cursor: pointer;
         }
 
-        .category-card:hover {
+        .category:hover {
             transform: translateY(-5px);
-            border-color: #a8c8fa;
-            box-shadow: 0 12px 25px rgba(43, 92, 160, 0.09);
+
+            border-color: #bcd5f7;
+
+            box-shadow: 0 15px 30px rgba(39, 84, 150, 0.08);
         }
-
-        .category-card:nth-child(1) .category-icon {
-            background: #dbeafe;
-        }
-
-        .category-card:nth-child(2) .category-icon {
-            background: #e0e7ff;
-        }
-
-        .category-card:nth-child(3) .category-icon {
-            background: #dff7ff;
-        }
-
-        .category-card:nth-child(4) .category-icon {
-            background: #e9e1ff;
-        }
-
-
-        .category-card:nth-child(5) .category-icon { background: #e8f5e9; }
-        .category-card:nth-child(6) .category-icon { background: #fff3cd; }
-        .category-card:nth-child(7) .category-icon { background: #fce7f3; }
-        .category-card:nth-child(8) .category-icon { background: #e0f2fe; }
-        .category-card:nth-child(9) .category-icon { background: #ffedd5; }
-        .category-card:nth-child(10) .category-icon { background: #e5e7eb; }
-        .category-card:nth-child(11) .category-icon { background: #f3e8ff; }
-        .category-card:nth-child(12) .category-icon { background: #fef3c7; }
-        .category-card:nth-child(13) .category-icon { background: #dcfce7; }
 
         .category-icon {
-            width: 55px;
-            height: 55px;
-            border-radius: 12px;
+            width: 65px;
+            height: 65px;
+
+            margin: 0 auto 15px;
+
+            border-radius: 18px;
+
+            background: #edf5ff;
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
-            font-size: 25px;
-            margin-bottom: 22px;
+
+            font-size: 31px;
         }
 
-        .category-card h3 {
-            font-size: 16px;
-            margin-bottom: 7px;
+        .category h3 {
+            font-size: 14px;
+
+            margin-bottom: 5px;
         }
 
-        .category-card p {
-            color: #7b8799;
-            font-size: 13px;
+        .category p {
+            color: #94a3b8;
+
+            font-size: 11px;
         }
 
         /* =========================
@@ -304,182 +509,145 @@
         ========================= */
 
         .products {
-            margin-top: 75px;
-        }
-
-        .product-grid {
             display: grid;
+
             grid-template-columns: repeat(4, 1fr);
+
             gap: 20px;
         }
 
-        .product-card {
+        .product {
             background: white;
-            border-radius: 14px;
+
+            border: 1px solid #e2eaf5;
+
+            border-radius: 16px;
+
             overflow: hidden;
-            border: 1px solid #e1e9f6;
+
             transition: 0.25s;
         }
 
-        .product-card:hover {
+        .product:hover {
             transform: translateY(-5px);
-            box-shadow: 0 15px 30px rgba(39, 84, 150, 0.10);
-        }
 
-        .product-card:nth-child(1) .product-image {
-            background: #e3efff;
-        }
-
-        .product-card:nth-child(2) .product-image {
-            background: #e8eaff;
-        }
-
-        .product-card:nth-child(3) .product-image {
-            background: #e1f7ff;
-        }
-
-        .product-card:nth-child(4) .product-image {
-            background: #eee7ff;
+            box-shadow: 0 18px 35px rgba(39, 84, 150, 0.10);
         }
 
         .product-image {
-            height: 235px;
+            height: 190px;
+
+            background: linear-gradient(145deg, #e8f2ff, #d5e8ff);
+
             display: flex;
+
             align-items: center;
+
             justify-content: center;
-            font-size: 90px;
+
+            font-size: 70px;
         }
 
         .product-info {
             padding: 18px;
         }
 
-        .product-category {
-            color: #5790df;
-            font-size: 11px;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-            font-weight: 600;
+        .product-info small {
+            color: #64748b;
+
+            font-size: 10px;
         }
 
-        .product-name {
+        .product-info h3 {
             font-size: 15px;
-            font-weight: 600;
-            margin-bottom: 10px;
-        }
 
-        .rating {
-            color: #718096;
-            font-size: 12px;
-            margin-bottom: 14px;
+            margin: 7px 0;
         }
 
         .product-bottom {
             display: flex;
-            align-items: center;
+
             justify-content: space-between;
+
+            align-items: center;
         }
 
-        .price {
-            font-weight: 700;
-            font-size: 16px;
+        .product-price {
             color: #1769e0;
+
+            font-size: 16px;
+
+            font-weight: 800;
         }
 
-        .add-btn {
-            background: #1769e0;
-            color: white;
-            border: none;
-            padding: 9px 12px;
-            border-radius: 7px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
+        .view-btn {
+            color: #1769e0;
 
-        .add-btn:hover {
-            background: #0f55bd;
+            font-size: 11px;
+
+            font-weight: 700;
         }
 
         /* =========================
-           PROMO
+           CTA
         ========================= */
 
-        .promo {
-            width: 86%;
-            margin: 80px auto;
-            background: linear-gradient(
-                120deg,
-                #1559c7,
-                #3b82f6,
-                #6366f1
-            );
+        .cta {
+            margin: 20px 7% 80px;
+
+            padding: 55px;
+
+            border-radius: 24px;
+
+            background:
+                radial-gradient(circle at 90% 20%, #5b9cff 0, transparent 35%),
+                linear-gradient(135deg, #1769e0, #0d55ba);
+
             color: white;
-            border-radius: 18px;
-            padding: 45px 55px;
+
             display: flex;
+
             align-items: center;
+
             justify-content: space-between;
-            box-shadow: 0 15px 35px rgba(37, 99, 235, 0.18);
+
+            gap: 30px;
         }
 
-        .promo h2 {
-            font-size: 30px;
+        .cta h2 {
+            font-size: 32px;
+
             margin-bottom: 10px;
         }
 
-        .promo p {
-            color: #dbeafe;
-            font-size: 14px;
-        }
-
-        .promo-btn {
-            background: white;
-            color: #1769e0;
-            padding: 13px 22px;
-            border-radius: 8px;
+        .cta p {
             font-size: 13px;
-            font-weight: 700;
-            transition: 0.2s;
+
+            line-height: 1.6;
+
+            opacity: 0.85;
+
+            max-width: 600px;
         }
 
-        .promo-btn:hover {
-            background: #eff6ff;
-            transform: translateY(-2px);
-        }
+        .cta-btn {
+            flex-shrink: 0;
 
-        /* =========================
-           ABOUT
-        ========================= */
-
-        .about {
-            width: 86%;
-            margin: 75px auto;
             background: white;
-            border: 1px solid #e1e9f6;
-            border-radius: 18px;
-            padding: 45px 55px;
-            text-align: center;
+
+            color: #1769e0;
+
+            padding: 14px 23px;
+
+            border-radius: 9px;
+
+            font-size: 12px;
+
+            font-weight: 800;
         }
 
-        .about small {
-            color: #3977d5;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-weight: 700;
-            font-size: 11px;
-        }
-
-        .about h2 {
-            font-size: 30px;
-            margin: 12px 0;
-        }
-
-        .about p {
-            max-width: 700px;
-            margin: auto;
-            color: #718096;
-            line-height: 1.7;
-            font-size: 14px;
+        .cta-btn:hover {
+            background: #f0f6ff;
         }
 
         /* =========================
@@ -487,667 +655,818 @@
         ========================= */
 
         footer {
-            background: white;
-            border-top: 1px solid #e1e9f6;
-            padding: 35px 7%;
-            display: flex;
-            justify-content: space-between;
-            color: #718096;
-            font-size: 13px;
+            background: #111827;
+
+            color: white;
+
+            padding: 55px 7% 25px;
         }
 
-        footer div:first-child {
-            color: #1769e0;
-            font-weight: 600;
+        .footer-grid {
+            display: grid;
+
+            grid-template-columns: 1.5fr 1fr 1fr 1fr;
+
+            gap: 40px;
+
+            padding-bottom: 40px;
+
+            border-bottom: 1px solid #263244;
+        }
+
+        .footer-brand .logo {
+            display: inline-block;
+
+            margin-bottom: 15px;
+        }
+
+        .footer-brand p {
+            color: #94a3b8;
+
+            font-size: 12px;
+
+            line-height: 1.7;
+
+            max-width: 300px;
+        }
+
+        footer h4 {
+            font-size: 12px;
+
+            margin-bottom: 15px;
+        }
+
+        footer ul {
+            list-style: none;
+        }
+
+        footer li {
+            margin-bottom: 9px;
+        }
+
+        footer li a {
+            color: #94a3b8;
+
+            font-size: 11px;
+        }
+
+        footer li a:hover {
+            color: white;
+        }
+
+        .copyright {
+            padding-top: 22px;
+
+            color: #64748b;
+
+            font-size: 10px;
+
+            text-align: center;
         }
 
         /* =========================
            RESPONSIVE
         ========================= */
 
-        @media (max-width: 1000px) {
+        @media (max-width: 900px) {
 
             .nav-links {
                 display: none;
             }
 
             .hero {
-                padding: 45px;
-            }
+                grid-template-columns: 1fr;
 
-            .hero-product {
-                width: 250px;
-                height: 250px;
-                font-size: 100px;
-                margin-right: 0;
-            }
-
-            .category-grid,
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 650px) {
-
-            .navbar {
-                padding: 16px 5%;
-            }
-
-            .search {
-                display: none;
-            }
-
-            .hero {
-                width: 92%;
-                padding: 40px 25px;
-                flex-direction: column;
                 text-align: center;
             }
 
-            .hero h1 {
-                font-size: 40px;
-            }
-
-            .hero p {
+            .hero-content p {
                 margin-left: auto;
                 margin-right: auto;
             }
 
-            .hero-product {
-                width: 190px;
-                height: 190px;
-                font-size: 75px;
-                margin-top: 30px;
+            .hero-actions {
+                justify-content: center;
             }
 
-            .section {
-                width: 92%;
+            .categories {
+                grid-template-columns: repeat(3, 1fr);
             }
 
-            .category-grid,
-            .product-grid {
+            .products {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .features {
                 grid-template-columns: 1fr;
             }
 
-            .promo,
-            .about {
-                width: 92%;
-                padding: 35px 25px;
-            }
-
-            .promo {
+            .cta {
                 flex-direction: column;
-                gap: 25px;
+
                 text-align: center;
             }
 
-            footer {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
+            .footer-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
         }
 
+        @media (max-width: 600px) {
+
+            .navbar {
+                padding: 15px 5%;
+            }
+
+            .login-btn {
+                display: none;
+            }
+
+            .hero {
+                padding: 60px 5%;
+            }
+
+            .hero-content h1 {
+                font-size: 42px;
+            }
+
+            .section {
+                padding: 60px 5%;
+            }
+
+            .categories {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .products {
+                grid-template-columns: 1fr;
+            }
+
+            .cta {
+                margin-left: 5%;
+                margin-right: 5%;
+
+                padding: 35px 25px;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+            }
+
+        }
+
     </style>
+
 </head>
 
 <body>
 
-    <!-- NAVBAR -->
 
-    <nav class="navbar">
+<!-- =========================
+     NAVBAR
+========================= -->
 
-        <a href="/" class="logo">
-            Boom<span>Buy</span>
+<nav class="navbar">
+
+    <a href="/" class="logo">
+        Boom<span>Buy</span>
+    </a>
+
+
+    <div class="nav-links">
+
+        <a href="/">
+            Home
         </a>
 
-        <div class="nav-links">
+        <a href="#categories">
+            Categories
+        </a>
 
-            <a href="/">
-                Home
+        <a href="#featured">
+            Featured
+        </a>
+
+        <!-- LOGIN REQUIRED -->
+        <a href="{{ route('login') }}">
+            Shop
+        </a>
+
+    </div>
+
+
+    <div class="nav-buttons">
+
+        <a href="{{ route('login') }}" class="login-btn">
+            Login
+        </a>
+
+        <a href="{{ route('register') }}" class="register-btn">
+            Register
+        </a>
+
+    </div>
+
+</nav>
+
+
+<!-- =========================
+     HERO
+========================= -->
+
+<section class="hero">
+
+    <div class="hero-content">
+
+        <small>
+            Your Everyday Marketplace
+        </small>
+
+        <h1>
+            Shop More.<br>
+            <span>Live Better.</span>
+        </h1>
+
+        <p>
+            Discover amazing products from trusted sellers
+            all in one place. From gadgets and fashion to
+            everyday essentials, BoomBuy makes online shopping
+            simple, convenient, and exciting.
+        </p>
+
+
+        <div class="hero-actions">
+
+            <!-- LOGIN REQUIRED -->
+            <a href="{{ route('login') }}" class="shop-btn">
+                Start Shopping →
             </a>
 
-            <a href="/products">
-                Shop
-            </a>
-
-            <!-- CATEGORIES -->
-            <a href="/categories">
-                Categories
-            </a>
-
-            <a href="#about">
-                About
+            <a href="{{ route('register') }}" class="learn-btn">
+                Create Account
             </a>
 
         </div>
 
-        <div class="nav-actions">
+    </div>
 
-            <input
-                type="text"
-                class="search"
-                placeholder="Search products..."
-            >
 
-            <a href="#" class="cart">
-                🛒 Cart (0)
-            </a>
+    <div class="hero-visual">
 
+        <div class="floating-card floating-one">
+            ⭐ 4.9 Customer Rating
         </div>
 
-    </nav>
 
+        <div class="hero-card">
 
-    <!-- HERO -->
-
-    <section class="hero">
-
-        <div class="hero-content">
-
-            <div class="small-title">
-                Welcome to BoomBuy
-            </div>
-
-            <h1>
-                Everything<br>
-                you need.
-            </h1>
+            <div class="hero-product">
+    <img src="{{ asset('images/boombuy-logo.png') }}" alt="BoomBuy Logo">
+</div>
+            <h3>
+                BOOMBUY
+            </h3>
 
             <p>
-                Discover products from different categories and trusted sellers,
-                all in one convenient marketplace made for everyday shopping.
+                Featured product · Free delivery
             </p>
 
-            <a href="/products" class="shop-btn">
-                Explore products →
-            </a>
-
-        </div>
-
-        <div class="hero-product">
-            🎧
-        </div>
-
-    </section>
-
-
-    <!-- CATEGORIES -->
-
-    <section class="section" id="categories">
-
-        <div class="section-heading">
-
-            <h2>
-                Shop by category
-            </h2>
-
-            <a href="/categories" class="view-all">
-                View all →
-            </a>
-
-        </div>
-
-        <div class="category-grid">
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🛒</div>
-                <h3>Electronics & Gadgets</h3>
-                <p>Phones, laptops, gadgets & accessories</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">👗</div>
-                <h3>Women's Apparel</h3>
-                <p>Fashion, shoes and accessories</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">👕</div>
-                <h3>Men's Apparel</h3>
-                <p>Clothing, shoes and grooming</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🧸</div>
-                <h3>Kids & Baby</h3>
-                <p>Toys, clothes and baby essentials</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🏠</div>
-                <h3>Home & Garden</h3>
-                <p>Furniture, kitchen and home essentials</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">⚽</div>
-                <h3>Sports & Outdoors</h3>
-                <p>Fitness, camping and sports gear</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">💄</div>
-                <h3>Health & Beauty</h3>
-                <p>Skincare, haircare and personal care</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">📚</div>
-                <h3>Books & Media</h3>
-                <p>Books, games, music and movies</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🍔</div>
-                <h3>Food & Gourmet</h3>
-                <p>Snacks, beverages and food products</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🚗</div>
-                <h3>Automotive & Motorcycle</h3>
-                <p>Parts, tools and vehicle accessories</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">🪑</div>
-                <h3>Furniture & Office</h3>
-                <p>Furniture and office equipment</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">💎</div>
-                <h3>Jewelry & Watches</h3>
-                <p>Jewelry, watches and accessories</p>
-            </a>
-            <a href="/categories" class="category-card">
-                <div class="category-icon">✏️</div>
-                <h3>Office & School Supplies</h3>
-                <p>School, office and craft supplies</p>
-            </a>
-        </div>
-
-                <h3>
-                    Smartphones
-                </h3>
-
-                <p>
-                    Phones for every lifestyle
-                </p>
-
-            </a>
-
-
-            <!-- LAPTOPS -->
-            <a href="#" class="category-card">
-
-                <div class="category-icon">
-                    💻
-                </div>
-
-                <h3>
-                    Laptops
-                </h3>
-
-                <p>
-                    Work, study and entertainment
-                </p>
-
-            </a>
-
-
-            <!-- AUDIO -->
-            <a href="#" class="category-card">
-
-                <div class="category-icon">
-                    🎧
-                </div>
-
-                <h3>
-                    Audio
-                </h3>
-
-                <p>
-                    Headphones and speakers
-                </p>
-
-            </a>
-
-
-            <!-- WEARABLES -->
-            <a href="#" class="category-card">
-
-                <div class="category-icon">
-                    ⌚
-                </div>
-
-                <h3>
-                    Wearables
-                </h3>
-
-                <p>
-                    Smart devices on the go
-                </p>
-
-            </a>
-
-        </div>
-
-    </section>
-
-
-    <!-- PRODUCTS -->
-
-    <section class="section products">
-
-        <div class="section-heading">
-
-            <h2>
-                Popular right now
-            </h2>
-
-            <a href="/products" class="view-all">
-                See all products →
-            </a>
-
-        </div>
-
-
-        <div class="product-grid">
-            <div class="product-card">
-                <div class="product-image">📱</div>
-                <div class="product-info">
-                    <div class="product-category">Electronics</div>
-                    <div class="product-name">Nova X5 Pro</div>
-                    <div class="rating">★ 4.8 · 124 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱18,999</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">👟</div>
-                <div class="product-info">
-                    <div class="product-category">Sports & Outdoors</div>
-                    <div class="product-name">Runner Flex Shoes</div>
-                    <div class="rating">★ 4.7 · 86 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱2,499</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">👗</div>
-                <div class="product-info">
-                    <div class="product-category">Women's Apparel</div>
-                    <div class="product-name">Classic Summer Dress</div>
-                    <div class="rating">★ 4.9 · 143 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱899</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">☕</div>
-                <div class="product-info">
-                    <div class="product-category">Home & Garden</div>
-                    <div class="product-name">BrewMate Coffee Maker</div>
-                    <div class="rating">★ 4.6 · 57 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱3,299</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">🎮</div>
-                <div class="product-info">
-                    <div class="product-category">Electronics</div>
-                    <div class="product-name">GamePad X</div>
-                    <div class="rating">★ 4.8 · 61 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱2,199</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">💄</div>
-                <div class="product-info">
-                    <div class="product-category">Health & Beauty</div>
-                    <div class="product-name">GlowCare Skincare Set</div>
-                    <div class="rating">★ 4.7 · 91 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱1,299</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">🎒</div>
-                <div class="product-info">
-                    <div class="product-category">Office & School</div>
-                    <div class="product-name">Urban School Backpack</div>
-                    <div class="rating">★ 4.8 · 112 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱749</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-            <div class="product-card">
-                <div class="product-image">🎧</div>
-                <div class="product-info">
-                    <div class="product-category">Electronics</div>
-                    <div class="product-name">SoundCore Pro</div>
-                    <div class="rating">★ 4.9 · 216 reviews</div>
-                    <div class="product-bottom">
-                        <div class="price">₱2,799</div>
-                        <button class="add-btn" type="button">Add to cart</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-                <div class="product-info">
-
-                    <div class="product-category">
-                        Smartphone
-                    </div>
-
-                    <div class="product-name">
-                        Nova X5 Pro
-                    </div>
-
-                    <div class="rating">
-                        ★ 4.8 · 124 reviews
-                    </div>
-
-                    <div class="product-bottom">
-
-                        <div class="price">
-                            ₱18,999
-                        </div>
-
-                        <button class="add-btn">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-                    💻
-                </div>
-
-                <div class="product-info">
-
-                    <div class="product-category">
-                        Laptop
-                    </div>
-
-                    <div class="product-name">
-                        AirBook 14
-                    </div>
-
-                    <div class="rating">
-                        ★ 4.7 · 89 reviews
-                    </div>
-
-                    <div class="product-bottom">
-
-                        <div class="price">
-                            ₱34,990
-                        </div>
-
-                        <button class="add-btn">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-                    🎧
-                </div>
-
-                <div class="product-info">
-
-                    <div class="product-category">
-                        Audio
-                    </div>
-
-                    <div class="product-name">
-                        SoundCore Pro
-                    </div>
-
-                    <div class="rating">
-                        ★ 4.9 · 216 reviews
-                    </div>
-
-                    <div class="product-bottom">
-
-                        <div class="price">
-                            ₱2,799
-                        </div>
-
-                        <button class="add-btn">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="product-card">
-
-                <div class="product-image">
-                    ⌚
-                </div>
-
-                <div class="product-info">
-
-                    <div class="product-category">
-                        Wearable
-                    </div>
-
-                    <div class="product-name">
-                        FitWatch S2
-                    </div>
-
-                    <div class="rating">
-                        ★ 4.6 · 73 reviews
-                    </div>
-
-                    <div class="product-bottom">
-
-                        <div class="price">
-                            ₱3,499
-                        </div>
-
-                        <button class="add-btn">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-
+            <div class="price">
+                ₱18,999
             </div>
 
         </div>
 
-    </section>
+
+        <div class="floating-card floating-two">
+            🚚 Fast & Reliable Delivery
+        </div>
+
+    </div>
+
+</section>
 
 
-    <!-- PROMO -->
+<!-- =========================
+     FEATURES
+========================= -->
 
-    <section class="promo">
+<section class="features">
+
+    <div class="feature">
+
+        <div class="feature-icon">
+            🚚
+        </div>
 
         <div>
 
-            <h2>
-                Big deals. More choices.
-            </h2>
+            <h4>
+                Fast Delivery
+            </h4>
 
             <p>
-                Discover great products from different sellers and categories.
-                Shop more, discover more, and enjoy BoomBuy.
+                Get your orders delivered quickly.
             </p>
 
         </div>
 
-        <a href="/products" class="promo-btn">
-            Shop sale →
-        </a>
-
-    </section>
+    </div>
 
 
-    <!-- ABOUT -->
+    <div class="feature">
 
-    <section class="about" id="about">
+        <div class="feature-icon">
+            🔒
+        </div>
+
+        <div>
+
+            <h4>
+                Secure Shopping
+            </h4>
+
+            <p>
+                Your shopping experience stays protected.
+            </p>
+
+        </div>
+
+    </div>
+
+
+    <div class="feature">
+
+        <div class="feature-icon">
+            🛍️
+        </div>
+
+        <div>
+
+            <h4>
+                Multiple Sellers
+            </h4>
+
+            <p>
+                Explore products from different sellers.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     CATEGORIES
+========================= -->
+
+<section class="section" id="categories">
+
+    <div class="section-header">
 
         <small>
-            About BoomBuy
+            Explore
         </small>
 
         <h2>
-            Your Marketplace for Everything.
+            Shop by Category
         </h2>
 
         <p>
-            BoomBuy is a multi-vendor online marketplace designed
-            to make shopping easier by bringing
-            electronics, fashion, home essentials, beauty, sports, food, and
-            many more products together
-            in one simple shopping experience for buyers and sellers.
+            Find what you need faster.
         </p>
 
-    </section>
+    </div>
 
 
-    <!-- FOOTER -->
+    <div class="categories">
 
-    <footer>
 
-        <div>
-            © 2026 BoomBuy
+        <!-- LOGIN REQUIRED -->
+
+        <a href="{{ route('login') }}" class="category">
+
+            <div class="category-icon">
+                📱
+            </div>
+
+            <h3>
+                Electronics
+            </h3>
+
+            <p>
+                Gadgets & devices
+            </p>
+
+        </a>
+
+
+        <a href="{{ route('login') }}" class="category">
+
+            <div class="category-icon">
+                👕
+            </div>
+
+            <h3>
+                Fashion
+            </h3>
+
+            <p>
+                Style & clothing
+            </p>
+
+        </a>
+
+
+        <a href="{{ route('login') }}" class="category">
+
+            <div class="category-icon">
+                🏠
+            </div>
+
+            <h3>
+                Home
+            </h3>
+
+            <p>
+                Home essentials
+            </p>
+
+        </a>
+
+
+        <a href="{{ route('login') }}" class="category">
+
+            <div class="category-icon">
+                💄
+            </div>
+
+            <h3>
+                Beauty
+            </h3>
+
+            <p>
+                Beauty & care
+            </p>
+
+        </a>
+
+
+        <a href="{{ route('login') }}" class="category">
+
+            <div class="category-icon">
+                🎮
+            </div>
+
+            <h3>
+                Gaming
+            </h3>
+
+            <p>
+                Gaming gear
+            </p>
+
+        </a>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     FEATURED PRODUCTS
+========================= -->
+
+<section class="section" id="featured">
+
+    <div class="section-header">
+
+        <small>
+            Popular Now
+        </small>
+
+        <h2>
+            Featured Products
+        </h2>
+
+        <p>
+            Some of the products shoppers love.
+        </p>
+
+    </div>
+
+
+    <div class="products">
+
+
+        <!-- PRODUCT 1 -->
+
+        <div class="product">
+
+            <div class="product-image">
+                📱
+            </div>
+
+            <div class="product-info">
+
+                <small>
+                    Smartphone
+                </small>
+
+                <h3>
+                    Nova X5 Pro
+                </h3>
+
+                <div class="product-bottom">
+
+                    <span class="product-price">
+                        ₱18,999
+                    </span>
+
+                    <!-- LOGIN REQUIRED -->
+                    <a href="{{ route('login') }}" class="view-btn">
+                        View →
+                    </a>
+
+                </div>
+
+            </div>
+
         </div>
 
-        <div>
-            Your Marketplace for Everything.
+
+        <!-- PRODUCT 2 -->
+
+        <div class="product">
+
+            <div class="product-image">
+                💻
+            </div>
+
+            <div class="product-info">
+
+                <small>
+                    Laptop
+                </small>
+
+                <h3>
+                    AirBook 14
+                </h3>
+
+                <div class="product-bottom">
+
+                    <span class="product-price">
+                        ₱34,990
+                    </span>
+
+                    <!-- LOGIN REQUIRED -->
+                    <a href="{{ route('login') }}" class="view-btn">
+                        View →
+                    </a>
+
+                </div>
+
+            </div>
+
         </div>
 
-    </footer>
+
+        <!-- PRODUCT 3 -->
+
+        <div class="product">
+
+            <div class="product-image">
+                🎧
+            </div>
+
+            <div class="product-info">
+
+                <small>
+                    Audio
+                </small>
+
+                <h3>
+                    SoundCore Pro
+                </h3>
+
+                <div class="product-bottom">
+
+                    <span class="product-price">
+                        ₱2,799
+                    </span>
+
+                    <!-- LOGIN REQUIRED -->
+                    <a href="{{ route('login') }}" class="view-btn">
+                        View →
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- PRODUCT 4 -->
+
+        <div class="product">
+
+            <div class="product-image">
+                ⌚
+            </div>
+
+            <div class="product-info">
+
+                <small>
+                    Wearable
+                </small>
+
+                <h3>
+                    FitWatch S2
+                </h3>
+
+                <div class="product-bottom">
+
+                    <span class="product-price">
+                        ₱3,499
+                    </span>
+
+                    <!-- LOGIN REQUIRED -->
+                    <a href="{{ route('login') }}" class="view-btn">
+                        View →
+                    </a>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- =========================
+     CALL TO ACTION
+========================= -->
+
+<section class="cta">
+
+    <div>
+
+        <h2>
+            Ready to start shopping?
+        </h2>
+
+        <p>
+            Join BoomBuy today and discover products,
+            sellers, and deals made for everyday life.
+        </p>
+
+    </div>
+
+
+    <a href="{{ route('register') }}" class="cta-btn">
+        Join BoomBuy →
+    </a>
+
+</section>
+
+
+<!-- =========================
+     FOOTER
+========================= -->
+
+<footer>
+
+    <div class="footer-grid">
+
+
+        <div class="footer-brand">
+
+            <a href="/" class="logo">
+                Boom<span>Buy</span>
+            </a>
+
+            <p>
+                Your everyday online marketplace for
+                products, sellers, and convenient shopping.
+            </p>
+
+        </div>
+
+
+        <div>
+
+            <h4>
+                Marketplace
+            </h4>
+
+            <ul>
+
+                <!-- LOGIN REQUIRED -->
+
+                <li>
+                    <a href="{{ route('login') }}">
+                        Shop Products
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#categories">
+                        Categories
+                    </a>
+                </li>
+
+                <li>
+                    <a href="#featured">
+                        Featured
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <div>
+
+            <h4>
+                Account
+            </h4>
+
+            <ul>
+
+                <li>
+                    <a href="{{ route('login') }}">
+                        Login
+                    </a>
+                </li>
+
+                <li>
+                    <a href="{{ route('register') }}">
+                        Register
+                    </a>
+                </li>
+
+                <!-- LOGIN REQUIRED -->
+
+                <li>
+                    <a href="{{ route('login') }}">
+                        Cart
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+
+        <div>
+
+            <h4>
+                BoomBuy
+            </h4>
+
+            <ul>
+
+                <li>
+                    <a href="/">
+                        About Us
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/">
+                        Contact
+                    </a>
+                </li>
+
+                <li>
+                    <a href="/">
+                        Help Center
+                    </a>
+                </li>
+
+            </ul>
+
+        </div>
+
+    </div>
+
+
+    <div class="copyright">
+
+        © 2026 BoomBuy · Shop smarter. Live better.
+
+    </div>
+
+</footer>
+
 
 </body>
+
 </html>
