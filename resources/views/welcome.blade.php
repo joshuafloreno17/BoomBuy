@@ -248,6 +248,8 @@
             align-items: center;
 
             justify-content: center;
+
+            padding: 30px 45px;
         }
 
         .hero-card {
@@ -261,16 +263,38 @@
 
             border-radius: 28px;
 
-            padding: 30px;
+            padding: 34px;
 
             box-shadow: 0 30px 70px rgba(45, 86, 145, 0.15);
 
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            text-align: center;
+
+            margin: 0 auto;
+
             transform: rotate(2deg);
+
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .hero-card:hover {
+            transform: rotate(2deg) scale(1.04);
+
+            box-shadow: 0 35px 80px rgba(45, 86, 145, 0.20);
         }
 .hero-product {
-    height: 230px;
+    width: 100%;
+
+    height: 260px;
 
     border-radius: 20px;
+
+    overflow: hidden;
 
     background:
         linear-gradient(145deg, #ffede8, #ffdacf);
@@ -281,65 +305,43 @@
 
     justify-content: center;
 
-    font-size: 105px;
-
-    margin-bottom: 22px;
+    margin-bottom: 24px;
 }
 
 .hero-product img {
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
         .hero-card h3 {
-            font-size: 20px;
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
 
-            margin-bottom: 7px;
-        }
-
-        .hero-card p {
-            color: #977970;
-
-            font-size: 12px;
-
-            margin-bottom: 15px;
-        }
-
-        .price {
-            color: #e8420f;
-
-            font-size: 22px;
+            font-size: 34px;
 
             font-weight: 800;
+
+            letter-spacing: -0.5px;
+
+            color: #172033;
         }
 
-        .floating-card {
-            position: absolute;
-
-            background: white;
-
-            border: 1px solid #f6e8e3;
-
-            border-radius: 14px;
-
-            padding: 15px 18px;
-
-            box-shadow: 0 15px 35px rgba(50, 85, 130, 0.12);
-
-            font-size: 12px;
-
-            font-weight: 700;
+        .hero-card h3 span {
+            color: #e8420f;
         }
 
-        .floating-one {
-            top: 30px;
-            right: 0;
-        }
+        .hero-card .hero-tagline {
+            margin-top: 8px;
 
-        .floating-two {
-            bottom: 35px;
-            left: 5px;
+            font-size: 13px;
+
+            font-weight: 600;
+
+            color: #8d6c62;
+
+            letter-spacing: 0.3px;
+
+            text-align: center;
         }
 
         /* =========================
@@ -940,33 +942,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <div class="hero-visual">
 
-        <div class="floating-card floating-one">
-            ⭐ 4.9 Customer Rating
-        </div>
-
-
         <div class="hero-card">
 
             <div class="hero-product">
     <img src="{{ asset('images/boombuy-logo.png') }}" alt="BoomBuy Logo">
 </div>
             <h3>
-                BOOMBUY
+                Boom<span>Buy</span>
             </h3>
 
-            <p>
-                Featured product · Free delivery
+            <p class="hero-tagline">
+                Buy Smart. Shop Easy. BoomBuy.
             </p>
 
-            <div class="price">
-                ₱18,999
-            </div>
-
-        </div>
-
-
-        <div class="floating-card floating-two">
-            🚚 Fast & Reliable Delivery
         </div>
 
     </div>
@@ -983,7 +971,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     <div class="feature">
 
         <div class="feature-icon">
-            🚚
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="14" height="11"/><path d="M15 10h4l3 3v4h-7z"/><circle cx="5.5" cy="19.5" r="1.8"/><circle cx="17.5" cy="19.5" r="1.8"/></svg>
         </div>
 
         <div>
@@ -1004,7 +992,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     <div class="feature">
 
         <div class="feature-icon">
-            🔒
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="10" width="18" height="11" rx="2"/><path d="M7 10V7a5 5 0 0 1 10 0v3"/></svg>
         </div>
 
         <div>
@@ -1025,7 +1013,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     <div class="feature">
 
         <div class="feature-icon">
-            🛍️
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
         </div>
 
         <div>
@@ -1076,7 +1064,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <a href="{{ route('login') }}" class="category">
 
             <div class="category-icon">
-                📱
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             </div>
 
             <h3>
@@ -1093,7 +1081,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <a href="{{ route('login') }}" class="category">
 
             <div class="category-icon">
-                👕
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4l-4 2-4-2-5 3 2 4 3-1v10h14V10l3 1 2-4z"/></svg>
             </div>
 
             <h3>
@@ -1110,7 +1098,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <a href="{{ route('login') }}" class="category">
 
             <div class="category-icon">
-                🏠
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><rect x="10" y="14" width="4" height="6"/></svg>
             </div>
 
             <h3>
@@ -1127,7 +1115,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <a href="{{ route('login') }}" class="category">
 
             <div class="category-icon">
-                💄
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2h6l1 4H8z"/><path d="M6 6h12l1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2z"/></svg>
             </div>
 
             <h3>
@@ -1144,7 +1132,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <a href="{{ route('login') }}" class="category">
 
             <div class="category-icon">
-                🎮
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="12" rx="6"/><line x1="7" y1="13" x2="7" y2="13"/><line x1="7" y1="10" x2="7" y2="16"/><line x1="4" y1="13" x2="10" y2="13"/><circle cx="16" cy="11" r="1"/><circle cx="18" cy="14" r="1"/></svg>
             </div>
 
             <h3>
@@ -1193,7 +1181,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <div class="product">
 
             <div class="product-image">
-                📱
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="2" width="10" height="20" rx="2"/><line x1="11" y1="18" x2="13" y2="18"/></svg>
             </div>
 
             <div class="product-info">
@@ -1229,7 +1217,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <div class="product">
 
             <div class="product-image">
-                💻
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="1"/><path d="M1 20h22l-2-4H3z"/></svg>
             </div>
 
             <div class="product-info">
@@ -1265,7 +1253,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <div class="product">
 
             <div class="product-image">
-                🎧
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 14v-2a9 9 0 0 1 18 0v2"/><rect x="1" y="14" width="6" height="8" rx="2"/><rect x="17" y="14" width="6" height="8" rx="2"/></svg>
             </div>
 
             <div class="product-info">
@@ -1301,7 +1289,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <div class="product">
 
             <div class="product-image">
-                ⌚
+                <svg width="46" height="46" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="8" width="10" height="8" rx="2"/><path d="M9 8V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3M9 16v3a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-3"/></svg>
             </div>
 
             <div class="product-info">
