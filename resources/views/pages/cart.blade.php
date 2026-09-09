@@ -9,6 +9,8 @@
 <title>Shopping Cart — BoomBuy</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
     * {
         margin: 0;
         padding: 0;
@@ -16,8 +18,8 @@
     }
 
     body {
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f4f8ff;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        background: #fff7f4;
         color: #172033;
     }
 
@@ -28,7 +30,7 @@
 
     .navbar {
         background: #fff;
-        border-bottom: 1px solid #e2eaff;
+        border-bottom: 1px solid #ffe9e2;
         padding: 18px 7%;
         display: flex;
         align-items: center;
@@ -38,7 +40,7 @@
     .logo {
         font-size: 23px;
         font-weight: 700;
-        color: #1769e0;
+        color: #e8420f;
     }
 
     .logo span {
@@ -49,15 +51,15 @@
         display: flex;
         gap: 30px;
         font-size: 14px;
-        color: #64748b;
+        color: #8d6c62;
     }
 
     .nav-links a:hover {
-        color: #1769e0;
+        color: #e8420f;
     }
 
     .cart-link {
-        color: #1769e0;
+        color: #e8420f;
         font-weight: 700;
         font-size: 14px;
     }
@@ -85,7 +87,7 @@
 
     .back {
         display: inline-block;
-        color: #3977d5;
+        color: #db5a33;
         font-size: 13px;
         font-weight: 600;
         margin-bottom: 20px;
@@ -97,7 +99,7 @@
     }
 
     .subtitle {
-        color: #718096;
+        color: #977970;
         font-size: 14px;
         margin-bottom: 30px;
     }
@@ -121,14 +123,14 @@
 
     .cart-box {
         background: #fff;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         border-radius: 18px;
         overflow: hidden;
     }
 
     .cart-header {
         padding: 20px 24px;
-        border-bottom: 1px solid #e8eef8;
+        border-bottom: 1px solid #f9ebe7;
         font-size: 16px;
         font-weight: 700;
     }
@@ -139,7 +141,7 @@
         grid-template-columns: 90px 1fr auto;
         gap: 18px;
         align-items: center;
-        border-bottom: 1px solid #edf1f7;
+        border-bottom: 1px solid #f7efed;
     }
 
     .cart-item:last-child {
@@ -150,7 +152,7 @@
         width: 90px;
         height: 90px;
         border-radius: 13px;
-        background: linear-gradient(145deg, #e8f2ff, #d5e8ff);
+        background: linear-gradient(145deg, #ffede8, #ffdfd5);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -164,8 +166,8 @@
 
     .category {
         display: inline-block;
-        background: #edf5ff;
-        color: #3977d5;
+        background: #fff1ed;
+        color: #db5a33;
         padding: 5px 8px;
         border-radius: 6px;
         font-size: 9px;
@@ -175,7 +177,7 @@
     }
 
     .unit-price {
-        color: #718096;
+        color: #977970;
         font-size: 12px;
     }
 
@@ -189,16 +191,16 @@
     .qty-btn {
         width: 30px;
         height: 30px;
-        border: 1px solid #dce7fa;
-        background: #f8faff;
-        color: #1769e0;
+        border: 1px solid #fbe2db;
+        background: #fffaf8;
+        color: #e8420f;
         border-radius: 7px;
         cursor: pointer;
         font-weight: 700;
     }
 
     .qty-btn:hover {
-        background: #eaf2ff;
+        background: #ffefea;
     }
 
     .qty-number {
@@ -213,7 +215,7 @@
     }
 
     .item-total {
-        color: #1769e0;
+        color: #e8420f;
         font-size: 17px;
         font-weight: 700;
         margin-bottom: 10px;
@@ -234,7 +236,7 @@
 
     .empty-cart {
         background: #fff;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         border-radius: 18px;
         padding: 70px 25px;
         text-align: center;
@@ -251,14 +253,14 @@
     }
 
     .empty-cart p {
-        color: #718096;
+        color: #977970;
         font-size: 13px;
         margin-bottom: 22px;
     }
 
     .shop-btn {
         display: inline-block;
-        background: #1769e0;
+        background: #e8420f;
         color: #fff;
         padding: 13px 22px;
         border-radius: 9px;
@@ -268,7 +270,7 @@
 
     .summary {
         background: #fff;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         border-radius: 18px;
         padding: 25px;
         position: sticky;
@@ -284,7 +286,7 @@
         display: flex;
         justify-content: space-between;
         margin-bottom: 14px;
-        color: #64748b;
+        color: #8d6c62;
         font-size: 13px;
     }
 
@@ -293,7 +295,7 @@
     }
 
     .summary-total {
-        border-top: 1px solid #e5ebf5;
+        border-top: 1px solid #f6e8e4;
         margin-top: 18px;
         padding-top: 18px;
         display: flex;
@@ -307,7 +309,7 @@
     }
 
     .summary-total strong {
-        color: #1769e0;
+        color: #e8420f;
         font-size: 24px;
     }
 
@@ -315,7 +317,7 @@
         display: block;
         width: 100%;
         border: none;
-        background: #1769e0;
+        background: #e8420f;
         color: #fff;
         padding: 14px;
         border-radius: 9px;
@@ -327,30 +329,30 @@
     }
 
     .checkout-btn:hover {
-        background: #0f55bd;
+        background: #c43408;
     }
 
     .continue {
         display: block;
         text-align: center;
         margin-top: 15px;
-        color: #3977d5;
+        color: #db5a33;
         font-size: 12px;
         font-weight: 600;
     }
 
     footer {
         background: #fff;
-        border-top: 1px solid #e1e9f6;
+        border-top: 1px solid #f7e5e0;
         padding: 30px 7%;
         display: flex;
         justify-content: space-between;
-        color: #718096;
+        color: #977970;
         font-size: 12px;
     }
 
     footer strong {
-        color: #1769e0;
+        color: #e8420f;
     }
 
     @media (max-width: 850px) {
@@ -393,6 +395,31 @@
             text-align: center;
         }
     }
+
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
 </style>
 
 
@@ -566,6 +593,29 @@
 
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | DATABASE PRODUCTS
+    |--------------------------------------------------------------------------
+    */
+
+    $databaseProducts = \App\Models\Product::all();
+
+    foreach ($databaseProducts as $product) {
+
+        $slug = \Illuminate\Support\Str::slug($product->name);
+
+        $products[$slug] = [
+            'name' => $product->name,
+            'category' => $product->category ?? 'Other',
+            'price' => (float) $product->price,
+            'icon' => $product->image ?? '📦',
+            'seller_id' => $product->seller_id ?? null,
+            'seller_name' => 'BoomBuy Seller',
+            'stock' => (int) ($product->stock ?? 0),
+        ];
+    }
 
     $subtotal = 0;
     $totalItems = 0;

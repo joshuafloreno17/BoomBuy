@@ -9,6 +9,8 @@
     <title>Forgot Password — BoomBuy</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 
         * {
             margin: 0;
@@ -17,8 +19,8 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f8ff;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fff7f4;
             color: #172033;
             min-height: 100vh;
         }
@@ -30,14 +32,14 @@
         .navbar {
             width: 100%;
             background: #ffffff;
-            border-bottom: 1px solid #e2eaff;
+            border-bottom: 1px solid #ffe9e2;
             padding: 18px 7%;
         }
 
         .logo {
             font-size: 23px;
             font-weight: 700;
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .logo span {
@@ -60,7 +62,7 @@
 
             background: #ffffff;
 
-            border: 1px solid #e1e9f6;
+            border: 1px solid #f7e5e0;
             border-radius: 20px;
 
             padding: 40px;
@@ -78,7 +80,7 @@
 
             border-radius: 16px;
 
-            background: #e8f2ff;
+            background: #ffede8;
 
             display: flex;
             align-items: center;
@@ -93,7 +95,7 @@
         }
 
         .header small {
-            color: #3977d5;
+            color: #db5a33;
 
             text-transform: uppercase;
             letter-spacing: 2px;
@@ -109,7 +111,7 @@
         }
 
         .header p {
-            color: #718096;
+            color: #977970;
             font-size: 13px;
             line-height: 1.6;
         }
@@ -140,7 +142,7 @@
         label {
             display: block;
 
-            color: #334155;
+            color: #563a32;
 
             font-size: 12px;
             font-weight: 700;
@@ -153,11 +155,11 @@
 
             padding: 13px 14px;
 
-            border: 1px solid #dce7fa;
+            border: 1px solid #fbe2db;
 
             border-radius: 9px;
 
-            background: #f8faff;
+            background: #fffaf8;
 
             outline: none;
 
@@ -165,7 +167,7 @@
         }
 
         input:focus {
-            border-color: #4b8df8;
+            border-color: #ff7044;
             background: #ffffff;
 
             box-shadow:
@@ -178,7 +180,7 @@
 
             border: none;
 
-            background: #1769e0;
+            background: #e8420f;
             color: white;
 
             padding: 14px;
@@ -194,7 +196,7 @@
         }
 
         button:hover {
-            background: #0f55bd;
+            background: #c43408;
             transform: translateY(-1px);
         }
 
@@ -207,21 +209,46 @@
         }
 
         .back a {
-            color: #1769e0;
+            color: #e8420f;
             font-weight: 700;
         }
 
         .footer {
             text-align: center;
 
-            color: #94a3b8;
+            color: #b99c93;
 
             font-size: 11px;
 
             margin-top: 25px;
         }
 
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 
 </head>
 

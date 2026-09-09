@@ -7,6 +7,8 @@
     <title>Add Product — GizmoMart</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -14,14 +16,14 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f5f7fb;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fbf6f5;
             color: #1f2937;
         }
 
        .navbar {
     height: 70px;
-    background: #2563eb;
+    background: #f34f1d;
     color: white;
     display: flex;
     align-items: center;
@@ -36,20 +38,20 @@
         }
 
         .logo span {
-            color: #3b82f6;
+            color: #fd6334;
         }
 
         .back-btn {
             text-decoration: none;
             color: white;
-            background: #374151;
+            background: #523d36;
             padding: 10px 18px;
             border-radius: 8px;
             transition: 0.2s;
         }
 
         .back-btn:hover {
-            background: #4b5563;
+            background: #64504a;
         }
 
         .container {
@@ -68,7 +70,7 @@
         }
 
         .page-title p {
-            color: #6b7280;
+            color: #816f6a;
         }
 
         .form-card {
@@ -93,7 +95,7 @@
         textarea {
             width: 100%;
             padding: 13px 15px;
-            border: 1px solid #d1d5db;
+            border: 1px solid #dbd3d1;
             border-radius: 8px;
             font-size: 15px;
             outline: none;
@@ -104,7 +106,7 @@
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: #3b82f6;
+            border-color: #fd6334;
             box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
         }
 
@@ -123,7 +125,7 @@
             margin-top: 12px;
             width: 150px;
             height: 150px;
-            border: 2px dashed #d1d5db;
+            border: 2px dashed #dbd3d1;
             border-radius: 12px;
             display: none;
             align-items: center;
@@ -155,21 +157,21 @@
         }
 
         .cancel-btn {
-            background: #e5e7eb;
-            color: #374151;
+            background: #ebe6e5;
+            color: #523d36;
         }
 
         .cancel-btn:hover {
-            background: #d1d5db;
+            background: #dbd3d1;
         }
 
         .save-btn {
-            background: #2563eb;
+            background: #f34f1d;
             color: white;
         }
 
         .save-btn:hover {
-            background: #1d4ed8;
+            background: #df4516;
         }
 
         .success {
@@ -220,7 +222,32 @@
                 text-align: center;
             }
         }
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 </head>
 
 <body>

@@ -10,6 +10,8 @@
     <title>BoomBuy — Shop Everything You Love</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 
         * {
             margin: 0;
@@ -22,8 +24,8 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f8fbff;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fffaf8;
             color: #172033;
         }
 
@@ -46,7 +48,7 @@
 
             backdrop-filter: blur(12px);
 
-            border-bottom: 1px solid #e5edf8;
+            border-bottom: 1px solid #f9e9e4;
 
             padding: 18px 7%;
 
@@ -58,7 +60,7 @@
         .logo {
             font-size: 25px;
             font-weight: 800;
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .logo span {
@@ -72,13 +74,13 @@
         }
 
         .nav-links a {
-            color: #475569;
+            color: #6a4e46;
             font-size: 13px;
             font-weight: 600;
         }
 
         .nav-links a:hover {
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .nav-buttons {
@@ -88,8 +90,8 @@
         }
 
         .login-btn {
-            color: #1769e0;
-            border: 1px solid #d7e5fb;
+            color: #e8420f;
+            border: 1px solid #fcdfd6;
             padding: 10px 18px;
             border-radius: 8px;
             font-size: 12px;
@@ -97,11 +99,11 @@
         }
 
         .login-btn:hover {
-            background: #f0f6ff;
+            background: #fff3f0;
         }
 
         .register-btn {
-            background: #1769e0;
+            background: #e8420f;
             color: white;
             padding: 11px 19px;
             border-radius: 8px;
@@ -110,7 +112,7 @@
         }
 
         .register-btn:hover {
-            background: #0f55bd;
+            background: #c43408;
         }
 
         /* =========================
@@ -128,16 +130,16 @@
             align-items: center;
 
             background:
-                radial-gradient(circle at 80% 20%, #dcecff 0, transparent 35%),
-                linear-gradient(180deg, #ffffff, #f4f8ff);
+                radial-gradient(circle at 80% 20%, #ffe4dc 0, transparent 35%),
+                linear-gradient(180deg, #ffffff, #fff7f4);
         }
 
         .hero-content small {
             display: inline-block;
 
-            color: #1769e0;
+            color: #e8420f;
 
-            background: #eaf3ff;
+            background: #ffefea;
 
             padding: 8px 13px;
 
@@ -165,13 +167,13 @@
         }
 
         .hero-content h1 span {
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .hero-content p {
             max-width: 560px;
 
-            color: #64748b;
+            color: #8d6c62;
 
             font-size: 16px;
 
@@ -189,7 +191,7 @@
         }
 
         .shop-btn {
-            background: #1769e0;
+            background: #e8420f;
 
             color: white;
 
@@ -207,16 +209,16 @@
         }
 
         .shop-btn:hover {
-            background: #0f55bd;
+            background: #c43408;
             transform: translateY(-2px);
         }
 
         .learn-btn {
             background: white;
 
-            color: #334155;
+            color: #563a32;
 
-            border: 1px solid #dce7f5;
+            border: 1px solid #f6e1db;
 
             padding: 15px 25px;
 
@@ -228,8 +230,8 @@
         }
 
         .learn-btn:hover {
-            border-color: #1769e0;
-            color: #1769e0;
+            border-color: #e8420f;
+            color: #e8420f;
         }
 
         /* =========================
@@ -255,7 +257,7 @@
 
             background: white;
 
-            border: 1px solid #dfe9f7;
+            border: 1px solid #f8e4de;
 
             border-radius: 28px;
 
@@ -271,7 +273,7 @@
     border-radius: 20px;
 
     background:
-        linear-gradient(145deg, #e8f2ff, #cfe4ff);
+        linear-gradient(145deg, #ffede8, #ffdacf);
 
     display: flex;
 
@@ -297,7 +299,7 @@
         }
 
         .hero-card p {
-            color: #718096;
+            color: #977970;
 
             font-size: 12px;
 
@@ -305,7 +307,7 @@
         }
 
         .price {
-            color: #1769e0;
+            color: #e8420f;
 
             font-size: 22px;
 
@@ -317,7 +319,7 @@
 
             background: white;
 
-            border: 1px solid #e4ebf5;
+            border: 1px solid #f6e8e3;
 
             border-radius: 14px;
 
@@ -349,9 +351,9 @@
 
             background: white;
 
-            border-top: 1px solid #edf2f8;
+            border-top: 1px solid #f8efed;
 
-            border-bottom: 1px solid #edf2f8;
+            border-bottom: 1px solid #f8efed;
 
             display: grid;
 
@@ -376,7 +378,7 @@
 
             border-radius: 12px;
 
-            background: #edf5ff;
+            background: #fff1ed;
 
             display: flex;
 
@@ -394,7 +396,7 @@
         }
 
         .feature p {
-            color: #718096;
+            color: #977970;
 
             font-size: 11px;
         }
@@ -414,7 +416,7 @@
         }
 
         .section-header small {
-            color: #1769e0;
+            color: #e8420f;
 
             font-size: 10px;
 
@@ -434,7 +436,7 @@
         }
 
         .section-header p {
-            color: #718096;
+            color: #977970;
 
             font-size: 13px;
         }
@@ -454,7 +456,7 @@
         .category {
             background: white;
 
-            border: 1px solid #e2eaf5;
+            border: 1px solid #f6e6e1;
 
             border-radius: 16px;
 
@@ -468,7 +470,7 @@
         .category:hover {
             transform: translateY(-5px);
 
-            border-color: #bcd5f7;
+            border-color: #f9c9ba;
 
             box-shadow: 0 15px 30px rgba(39, 84, 150, 0.08);
         }
@@ -481,7 +483,7 @@
 
             border-radius: 18px;
 
-            background: #edf5ff;
+            background: #fff1ed;
 
             display: flex;
 
@@ -499,7 +501,7 @@
         }
 
         .category p {
-            color: #94a3b8;
+            color: #b99c93;
 
             font-size: 11px;
         }
@@ -519,7 +521,7 @@
         .product {
             background: white;
 
-            border: 1px solid #e2eaf5;
+            border: 1px solid #f6e6e1;
 
             border-radius: 16px;
 
@@ -537,7 +539,7 @@
         .product-image {
             height: 190px;
 
-            background: linear-gradient(145deg, #e8f2ff, #d5e8ff);
+            background: linear-gradient(145deg, #ffede8, #ffdfd5);
 
             display: flex;
 
@@ -553,7 +555,7 @@
         }
 
         .product-info small {
-            color: #64748b;
+            color: #8d6c62;
 
             font-size: 10px;
         }
@@ -573,7 +575,7 @@
         }
 
         .product-price {
-            color: #1769e0;
+            color: #e8420f;
 
             font-size: 16px;
 
@@ -581,7 +583,7 @@
         }
 
         .view-btn {
-            color: #1769e0;
+            color: #e8420f;
 
             font-size: 11px;
 
@@ -600,8 +602,8 @@
             border-radius: 24px;
 
             background:
-                radial-gradient(circle at 90% 20%, #5b9cff 0, transparent 35%),
-                linear-gradient(135deg, #1769e0, #0d55ba);
+                radial-gradient(circle at 90% 20%, #ff815b 0, transparent 35%),
+                linear-gradient(135deg, #e8420f, #c13206);
 
             color: white;
 
@@ -635,7 +637,7 @@
 
             background: white;
 
-            color: #1769e0;
+            color: #e8420f;
 
             padding: 14px 23px;
 
@@ -647,7 +649,7 @@
         }
 
         .cta-btn:hover {
-            background: #f0f6ff;
+            background: #fff3f0;
         }
 
         /* =========================
@@ -681,7 +683,7 @@
         }
 
         .footer-brand p {
-            color: #94a3b8;
+            color: #b99c93;
 
             font-size: 12px;
 
@@ -705,7 +707,7 @@
         }
 
         footer li a {
-            color: #94a3b8;
+            color: #b99c93;
 
             font-size: 11px;
         }
@@ -717,7 +719,7 @@
         .copyright {
             padding-top: 22px;
 
-            color: #64748b;
+            color: #8d6c62;
 
             font-size: 10px;
 
@@ -815,7 +817,32 @@
 
         }
 
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 
 </head>
 

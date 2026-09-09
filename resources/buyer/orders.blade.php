@@ -708,15 +708,15 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                                 </div>
 
-<div class="item-price">
 
-    ₱{{ number_format(
-        (float)($item['price'] ?? 0) *
-        (int)($item['quantity'] ?? 1),
-        2
-    ) }}
+                                <div class="item-price">
 
-</div>
+                                    ₱{{ number_format(
+                                        (float)($item['subtotal'] ?? 0),
+                                        2
+                                    ) }}
+
+                                </div>
 
                             </div>
 

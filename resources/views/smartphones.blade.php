@@ -7,6 +7,8 @@
     <title>GizmoMart - Smartphones</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -15,7 +17,7 @@
 
         body {
             font-family: Arial, sans-serif;
-            background: #f5f7fb;
+            background: #fbf6f5;
         }
 
         .header {
@@ -38,7 +40,7 @@
             display: inline-block;
             margin-bottom: 25px;
             text-decoration: none;
-            color: #2563eb;
+            color: #f34f1d;
             font-weight: bold;
         }
 
@@ -70,7 +72,7 @@
         }
 
         .price {
-            color: #2563eb;
+            color: #f34f1d;
             font-size: 20px;
             font-weight: bold;
             margin-bottom: 15px;
@@ -78,7 +80,7 @@
 
         .btn {
             display: inline-block;
-            background: #2563eb;
+            background: #f34f1d;
             color: white;
             padding: 10px 18px;
             border-radius: 8px;
@@ -90,7 +92,32 @@
                 grid-template-columns: 1fr;
             }
         }
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 </head>
 
 <body>

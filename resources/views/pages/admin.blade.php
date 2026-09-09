@@ -9,6 +9,8 @@
 <title>Admin Dashboard — GizmoMart</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 
     * {
         margin: 0;
@@ -17,8 +19,8 @@
     }
 
     body {
-        font-family: Arial, Helvetica, sans-serif;
-        background: #f4f8ff;
+        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        background: #fff7f4;
         color: #172033;
     }
 
@@ -38,7 +40,7 @@
         width: 235px;
         height: 100vh;
         background: #ffffff;
-        border-right: 1px solid #e1e9f6;
+        border-right: 1px solid #f7e5e0;
         padding: 28px 18px;
         z-index: 1000;
     }
@@ -46,7 +48,7 @@
     .logo {
         font-size: 23px;
         font-weight: 700;
-        color: #1769e0;
+        color: #e8420f;
         padding: 0 12px;
         margin-bottom: 40px;
     }
@@ -56,7 +58,7 @@
     }
 
     .admin-label {
-        color: #94a3b8;
+        color: #b99c93;
         font-size: 10px;
         font-weight: 700;
         text-transform: uppercase;
@@ -75,18 +77,18 @@
         display: block;
         padding: 12px;
         border-radius: 8px;
-        color: #64748b;
+        color: #8d6c62;
         font-size: 13px;
         transition: 0.2s;
     }
 
     .menu a:hover {
-        background: #f1f6ff;
-        color: #1769e0;
+        background: #fff4f1;
+        color: #e8420f;
     }
 
     .menu a.active {
-        background: #1769e0;
+        background: #e8420f;
         color: white;
         font-weight: 600;
     }
@@ -102,7 +104,7 @@
         display: block;
         padding: 12px;
         border-radius: 8px;
-        color: #64748b;
+        color: #8d6c62;
         font-size: 13px;
     }
 
@@ -132,7 +134,7 @@
     }
 
     .topbar small {
-        color: #3977d5;
+        color: #db5a33;
         text-transform: uppercase;
         letter-spacing: 1.5px;
         font-size: 10px;
@@ -146,10 +148,10 @@
 
     .admin-profile {
         background: white;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         padding: 10px 15px;
         border-radius: 10px;
-        color: #52627a;
+        color: #7c5a50;
         font-size: 13px;
     }
 
@@ -166,7 +168,7 @@
 
     .stat-card {
         background: white;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         border-radius: 14px;
         padding: 22px;
         transition: 0.2s;
@@ -184,15 +186,15 @@
     }
 
     .stat-title {
-        color: #718096;
+        color: #977970;
         font-size: 12px;
     }
 
     .stat-icon {
         width: 35px;
         height: 35px;
-        background: #edf5ff;
-        color: #1769e0;
+        background: #fff1ed;
+        color: #e8420f;
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -224,7 +226,7 @@
 
     .panel {
         background: white;
-        border: 1px solid #e1e9f6;
+        border: 1px solid #f7e5e0;
         border-radius: 15px;
         padding: 23px;
     }
@@ -241,7 +243,7 @@
     }
 
     .view-all {
-        color: #1769e0;
+        color: #e8420f;
         font-size: 12px;
         font-weight: 600;
     }
@@ -257,17 +259,17 @@
 
     th {
         text-align: left;
-        color: #94a3b8;
+        color: #b99c93;
         font-size: 10px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
         padding: 12px 8px;
-        border-bottom: 1px solid #edf1f7;
+        border-bottom: 1px solid #f7efed;
     }
 
     td {
         padding: 14px 8px;
-        border-bottom: 1px solid #f0f3f8;
+        border-bottom: 1px solid #f8f2f0;
         font-size: 12px;
     }
 
@@ -276,7 +278,7 @@
     }
 
     .order-id {
-        color: #94a3b8;
+        color: #b99c93;
     }
 
     .status {
@@ -294,12 +296,12 @@
 
     .pending {
         background: #fff7e6;
-        color: #d97706;
+        color: #d9a106;
     }
 
     .processing {
-        background: #edf5ff;
-        color: #1769e0;
+        background: #fff1ed;
+        color: #e8420f;
     }
 
     /* =========================
@@ -316,24 +318,24 @@
         align-items: center;
         gap: 12px;
         padding: 13px;
-        border: 1px solid #e5edfa;
-        background: #f8fbff;
+        border: 1px solid #fbe9e4;
+        background: #fffaf8;
         border-radius: 9px;
         transition: 0.2s;
         cursor: pointer;
     }
 
     .action:hover {
-        border-color: #c9dcf8;
-        background: #f1f6ff;
+        border-color: #fad3c7;
+        background: #fff4f1;
         transform: translateX(3px);
     }
 
     .action-icon {
         width: 35px;
         height: 35px;
-        background: #eaf2ff;
-        color: #1769e0;
+        background: #ffefea;
+        color: #e8420f;
         border-radius: 8px;
         display: flex;
         align-items: center;
@@ -348,7 +350,7 @@
     }
 
     .action small {
-        color: #8995a8;
+        color: #a99088;
         font-size: 10px;
     }
 
@@ -359,9 +361,9 @@
     footer {
         margin-top: 30px;
         padding: 20px 0;
-        color: #94a3b8;
+        color: #b99c93;
         font-size: 11px;
-        border-top: 1px solid #e1e9f6;
+        border-top: 1px solid #f7e5e0;
         display: flex;
         justify-content: space-between;
     }
@@ -460,6 +462,31 @@
 
     }
 
+
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
 </style>
 ```
 

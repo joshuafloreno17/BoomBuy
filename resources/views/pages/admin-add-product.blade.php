@@ -9,6 +9,8 @@
     <title>Add Product — BoomBuy</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
 
         * {
             margin: 0;
@@ -17,8 +19,8 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f8ff;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fff7f4;
             color: #172033;
         }
 
@@ -29,7 +31,7 @@
 
         .navbar {
             background: white;
-            border-bottom: 1px solid #e2eaff;
+            border-bottom: 1px solid #ffe9e2;
             padding: 18px 7%;
             display: flex;
             align-items: center;
@@ -39,7 +41,7 @@
         .logo {
             font-size: 23px;
             font-weight: 700;
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .logo span {
@@ -47,12 +49,12 @@
         }
 
         .admin-label {
-            color: #64748b;
+            color: #8d6c62;
             font-size: 13px;
         }
 
         .back {
-            color: #1769e0;
+            color: #e8420f;
             font-size: 13px;
             font-weight: 600;
         }
@@ -68,7 +70,7 @@
         }
 
         .header small {
-            color: #3977d5;
+            color: #db5a33;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 11px;
@@ -81,7 +83,7 @@
         }
 
         .header p {
-            color: #718096;
+            color: #977970;
             font-size: 14px;
             margin-top: 8px;
         }
@@ -109,7 +111,7 @@
 
         .form-box {
             background: white;
-            border: 1px solid #e1e9f6;
+            border: 1px solid #f7e5e0;
             border-radius: 16px;
             padding: 30px;
         }
@@ -129,19 +131,19 @@
         select,
         textarea {
             width: 100%;
-            border: 1px solid #dce7fa;
-            background: #f8faff;
+            border: 1px solid #fbe2db;
+            background: #fffaf8;
             padding: 12px 14px;
             border-radius: 8px;
             outline: none;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
             font-size: 13px;
         }
 
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: #1769e0;
+            border-color: #e8420f;
             background: white;
         }
 
@@ -151,7 +153,7 @@
         }
 
         .hint {
-            color: #8995a8;
+            color: #a99088;
             font-size: 11px;
             margin-top: 6px;
         }
@@ -164,7 +166,7 @@
 
         .save-btn {
             border: none;
-            background: #1769e0;
+            background: #e8420f;
             color: white;
             padding: 13px 22px;
             border-radius: 8px;
@@ -174,12 +176,12 @@
         }
 
         .save-btn:hover {
-            background: #0f55bd;
+            background: #c43408;
         }
 
         .cancel-btn {
-            background: #edf2f9;
-            color: #52627a;
+            background: #f9f0ed;
+            color: #7c5a50;
             padding: 13px 22px;
             border-radius: 8px;
             font-size: 13px;
@@ -187,21 +189,21 @@
         }
 
         .cancel-btn:hover {
-            background: #e1e8f2;
+            background: #f3e5e0;
         }
 
         footer {
             background: white;
-            border-top: 1px solid #e1e9f6;
+            border-top: 1px solid #f7e5e0;
             padding: 30px 7%;
             display: flex;
             justify-content: space-between;
-            color: #718096;
+            color: #977970;
             font-size: 12px;
         }
 
         footer strong {
-            color: #1769e0;
+            color: #e8420f;
         }
 
         @media (max-width: 600px) {
@@ -231,7 +233,32 @@
 
         }
 
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 
 </head>
 

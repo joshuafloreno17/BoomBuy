@@ -1,25 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>{{ $product['name'] }} — BoomBuy</title>
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>
+        BoomBuy — {{ $product['name'] }}
+    </title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
-        }
-
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f8ff;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fff7f4;
             color: #172033;
         }
 
@@ -28,24 +35,27 @@
             color: inherit;
         }
 
-        /* =========================
-           NAVBAR
-        ========================= */
+        /* NAVBAR */
 
         .navbar {
-            width: 100%;
-            background: #ffffff;
-            border-bottom: 1px solid #e2eaff;
-            padding: 18px 7%;
+            background: white;
+            border-bottom: 1px solid #ffe9e2;
+
+            padding: 16px 7%;
+
             display: flex;
             align-items: center;
             justify-content: space-between;
+
+            position: sticky;
+            top: 0;
+            z-index: 100;
         }
 
         .logo {
             font-size: 23px;
             font-weight: 700;
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .logo span {
@@ -54,346 +64,400 @@
 
         .nav-links {
             display: flex;
-            gap: 32px;
-            font-size: 14px;
-            color: #64748b;
+            align-items: center;
+            gap: 22px;
+            margin-left: auto;
+            margin-right: 25px;
+        }
+
+        .nav-links a {
+            color: #8d6c62;
+            font-size: 13px;
+            font-weight: 700;
         }
 
         .nav-links a:hover {
-            color: #1769e0;
+            color: #e8420f;
         }
 
-        .cart {
-            color: #1769e0;
-            font-size: 14px;
+        .cart-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #e8420f !important;
+        }
+
+        .cart-number {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            min-width: 20px;
+            height: 20px;
+
+            padding: 0 5px;
+
+            background: #ef4444;
+            color: white;
+
+            border-radius: 50%;
+
+            font-size: 11px;
             font-weight: 700;
         }
 
-        /* =========================
-           SUCCESS MESSAGE
-        ========================= */
-
-        .success-message {
-            width: 86%;
-            max-width: 1200px;
-            margin: 25px auto 0;
-            background: #f0fdf4;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-            padding: 13px 16px;
-            border-radius: 10px;
-            font-size: 13px;
-            font-weight: 600;
+        .nav-right {
+            display: flex;
+            align-items: center;
         }
 
-        /* =========================
-           MAIN
-        ========================= */
+        .logout {
+            border: none;
+            background: #fff0f0;
+            color: #dc2626;
+
+            padding: 8px 12px;
+            border-radius: 7px;
+
+            cursor: pointer;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .logout:hover {
+            background: #ffe1e1;
+        }
+
+        /* CONTAINER */
 
         .container {
             width: 86%;
-            max-width: 1200px;
+            max-width: 1100px;
+
             margin: 45px auto 80px;
         }
 
-        .back {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            color: #3977d5;
+        /* BACK */
+
+        .back-link {
+            display: inline-block;
+
+            color: #db5a33;
+
             font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 25px;
+            font-weight: 700;
+
+            margin-bottom: 20px;
         }
 
-        .back:hover {
-            color: #1769e0;
+        .back-link:hover {
+            color: #e8420f;
         }
 
-        /* =========================
-           PRODUCT
-        ========================= */
+        /* PRODUCT */
 
-        .product-box {
-            background: #ffffff;
-            border: 1px solid #e1e9f6;
-            border-radius: 20px;
+        .product-detail {
+            background: white;
+
+            border: 1px solid #f7e5e0;
+            border-radius: 18px;
+
             padding: 35px;
+
             display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 55px;
-            box-shadow: 0 15px 40px rgba(39, 84, 150, 0.08);
+            grid-template-columns: 45% 55%;
+
+            gap: 40px;
         }
 
-        /* =========================
-           IMAGE
-        ========================= */
+        /* PRODUCT VISUAL */
 
-        .image-area {
-            min-height: 500px;
+        .product-visual {
+            min-height: 420px;
+
             border-radius: 16px;
-            background: {{ $product['background'] }};
+
+            background:
+                {{ $product['background'] ?? 'linear-gradient(145deg, #ffede8, #ffdfd5)' }};
+
             display: flex;
             align-items: center;
             justify-content: center;
-            position: relative;
-            overflow: hidden;
+
+            font-size: 130px;
         }
 
-        .image-area::after {
-            content: "BOOMBUY";
-            position: absolute;
-            bottom: 20px;
-            right: 25px;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 2px;
-            color: rgba(23, 105, 224, 0.25);
-        }
-
-        .product-icon {
-            font-size: 150px;
-            filter: drop-shadow(0 20px 20px rgba(0,0,0,0.08));
-        }
-
-        /* =========================
-           DETAILS
-        ========================= */
-
-        .details {
-            padding: 20px 10px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-        }
+        /* INFO */
 
         .category {
-            display: inline-block;
-            width: fit-content;
-            color: #3977d5;
-            background: #edf5ff;
-            padding: 7px 12px;
-            border-radius: 7px;
+            color: #db5a33;
+
+            font-size: 11px;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            font-size: 10px;
+
             font-weight: 700;
-            margin-bottom: 18px;
+
+            letter-spacing: 1.5px;
+
+            margin-bottom: 8px;
         }
 
-        .details h1 {
-            font-size: 42px;
-            letter-spacing: -1.5px;
+        .product-name {
+            font-size: 34px;
+            line-height: 1.2;
+
             margin-bottom: 12px;
         }
 
         .rating {
-            color: #718096;
+            color: #f5b70b;
+
             font-size: 13px;
-            margin-bottom: 20px;
-        }
-
-        .rating span {
-            color: #f59e0b;
-            font-size: 17px;
-        }
-
-        .price {
-            color: #1769e0;
-            font-size: 32px;
             font-weight: 700;
-            margin-bottom: 20px;
+
+            margin-bottom: 18px;
         }
 
         .description {
-            color: #718096;
+            color: #8d6c62;
+
             font-size: 14px;
-            line-height: 1.8;
+            line-height: 1.7;
+
+            margin-bottom: 22px;
+        }
+
+        .price {
+            color: #e8420f;
+
+            font-size: 30px;
+            font-weight: 700;
+
             margin-bottom: 25px;
         }
 
-        /* =========================
-           FEATURES
-        ========================= */
+        /* QUANTITY */
 
-        .features {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 28px;
-        }
-
-        .feature {
-            background: #f6f9ff;
-            border: 1px solid #e5edfa;
-            border-radius: 9px;
-            padding: 12px;
-        }
-
-        .feature small {
+        .quantity-label {
             display: block;
-            color: #8995a8;
-            font-size: 10px;
-            margin-bottom: 5px;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            margin-bottom: 8px;
         }
 
-        .feature strong {
-            font-size: 12px;
-            color: #253047;
+        .quantity-box {
+            display: inline-flex;
+
+            align-items: center;
+
+            border: 1px solid #f1ddd7;
+
+            border-radius: 8px;
+
+            overflow: hidden;
+
+            margin-bottom: 22px;
         }
 
-        /* =========================
-           BUTTONS
-        ========================= */
+        .quantity-btn {
+            width: 38px;
+            height: 38px;
 
-        .actions {
+            border: none;
+
+            background: #fff7f4;
+
+            font-size: 18px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            color: #e8420f;
+        }
+
+        .quantity-btn:hover {
+            background: #ffefea;
+        }
+
+        .quantity-input {
+            width: 48px;
+            height: 38px;
+
+            border: none;
+
+            text-align: center;
+
+            font-size: 14px;
+            font-weight: 700;
+
+            outline: none;
+        }
+
+        /* BUTTONS */
+
+        .buttons {
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
 
-        .cart-form {
-            width: 100%;
+        .btn {
+            flex: 1;
+
+            min-height: 46px;
+
+            border-radius: 8px;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            cursor: pointer;
+
+            border: none;
         }
 
         .cart-btn {
-            width: 100%;
-            border: none;
-            padding: 14px 22px;
-            border-radius: 9px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-            background: #1769e0;
-            color: white;
-            transition: 0.2s;
+            background: #ffefea;
+            color: #e8420f;
+
+            border: 1px solid #ffdacf;
         }
 
         .cart-btn:hover {
-            background: #0f55bd;
-            transform: translateY(-2px);
+            background: #ffe4dc;
         }
 
-        /* =========================
-           SPECIFICATIONS
-        ========================= */
-
-        .spec-section {
-            background: white;
-            border: 1px solid #e1e9f6;
-            border-radius: 20px;
-            margin-top: 25px;
-            padding: 30px;
+        .buy-btn {
+            background: #e8420f;
+            color: white;
         }
 
-        .spec-section h2 {
-            font-size: 22px;
-            margin-bottom: 20px;
+        .buy-btn:hover {
+            background: #c43408;
+        }
+
+        /* SPECS */
+
+        .specs {
+            margin-top: 35px;
+        }
+
+        .specs h2 {
+            font-size: 21px;
+
+            margin-bottom: 15px;
         }
 
         .spec-grid {
             display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
+
+            grid-template-columns: repeat(2, 1fr);
+
+            gap: 10px;
         }
 
         .spec {
-            padding: 18px;
-            background: #f7faff;
-            border-radius: 10px;
-            border: 1px solid #e8eef8;
-        }
+            background: #fffaf8;
 
-        .spec span {
-            display: block;
-            color: #8995a8;
-            font-size: 11px;
-            margin-bottom: 6px;
+            border: 1px solid #f8e7e2;
+
+            border-radius: 9px;
+
+            padding: 13px 15px;
         }
 
         .spec strong {
+            display: block;
+
+            font-size: 11px;
+
+            color: #977970;
+
+            margin-bottom: 4px;
+        }
+
+        .spec span {
             font-size: 13px;
+
+            font-weight: 700;
         }
 
-        /* =========================
-           FOOTER
-        ========================= */
+        /* MOBILE */
 
-        footer {
-            background: #ffffff;
-            border-top: 1px solid #e1e9f6;
-            padding: 35px 7%;
-            display: flex;
-            justify-content: space-between;
-            color: #718096;
-            font-size: 13px;
-        }
+        @media (max-width: 800px) {
 
-        footer div:first-child {
-            color: #1769e0;
-            font-weight: 600;
-        }
-
-        /* =========================
-           RESPONSIVE
-        ========================= */
-
-        @media (max-width: 850px) {
+            .navbar {
+                flex-wrap: wrap;
+                gap: 12px;
+            }
 
             .nav-links {
-                display: none;
+                order: 3;
+
+                width: 100%;
+
+                justify-content: center;
+
+                margin: 0;
+
+                gap: 15px;
             }
 
-            .product-box {
+            .product-detail {
                 grid-template-columns: 1fr;
+
+                padding: 22px;
             }
 
-            .image-area {
-                min-height: 350px;
-            }
-
-            .details h1 {
-                font-size: 34px;
-            }
-
-            .spec-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
-
-        @media (max-width: 550px) {
-
-            .container {
-                width: 92%;
-            }
-
-            .success-message {
-                width: 92%;
-            }
-
-            .product-box {
-                padding: 18px;
-            }
-
-            .image-area {
+            .product-visual {
                 min-height: 280px;
+
+                font-size: 90px;
             }
 
-            .product-icon {
-                font-size: 100px;
+            .product-name {
+                font-size: 28px;
             }
 
-            .features,
+            .buttons {
+                flex-direction: column;
+            }
+
             .spec-grid {
                 grid-template-columns: 1fr;
             }
 
-            footer {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
         }
-    </style>
+
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
+
 </head>
 
 <body>
@@ -402,211 +466,333 @@
 
 <nav class="navbar">
 
-    <a href="/" class="logo">
+    <a
+        href="{{ route('buyer.dashboard') }}"
+        class="logo"
+    >
         Boom<span>Buy</span>
     </a>
 
     <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/products">Shop</a>
-        <a href="/categories">Categories</a>
-        <a href="/#about">About</a>
+
+        <a href="{{ route('buyer.dashboard') }}">
+            Home
+        </a>
+
+        <a href="{{ route('products') }}">
+            🛍️ Shop
+        </a>
+
+        <a href="{{ route('buyer.orders') }}">
+            📦 My Orders
+        </a>
+
+        @php
+            $cartCount = array_sum(
+                session()->get('cart', [])
+            );
+        @endphp
+
+        <a
+            href="{{ route('cart') }}"
+            class="cart-link"
+        >
+
+            🛒 Cart
+
+            @if($cartCount > 0)
+
+                <span class="cart-number">
+                    {{ $cartCount }}
+                </span>
+
+            @endif
+
+        </a>
+
     </div>
 
-    <a href="{{ route('cart') }}" class="cart">
-        🛒 Cart
-    </a>
+    <div class="nav-right">
+
+        <form
+            action="{{ route('logout') }}"
+            method="POST"
+        >
+
+            @csrf
+
+            <button
+                type="submit"
+                class="logout"
+            >
+                Logout
+            </button>
+
+        </form>
+
+    </div>
 
 </nav>
 
 
-<!-- SUCCESS MESSAGE -->
-
-@if(session('success'))
-
-    <div class="success-message">
-        ✅ {{ session('success') }}
-    </div>
-
-@endif
-
-
 <!-- MAIN -->
 
-<div class="container">
+<main class="container">
 
-    <a href="/products" class="back">
-        ← Back to Products
+    <a
+        href="{{ route('products') }}"
+        class="back-link"
+    >
+        ← Back to Shop
     </a>
 
 
-    <div class="product-box">
+    <section class="product-detail">
 
-        <!-- PRODUCT IMAGE -->
 
-        <div class="image-area">
+        <!-- PRODUCT IMAGE / ICON -->
 
-            <div class="product-icon">
-                {{ $product['icon'] }}
-            </div>
+        <div class="product-visual">
+
+            {{ $product['icon'] ?? '📦' }}
 
         </div>
 
 
-        <!-- PRODUCT DETAILS -->
+        <!-- PRODUCT INFORMATION -->
 
-        <div class="details">
+        <div class="product-info">
 
             <div class="category">
-                {{ $product['category'] }}
+
+                {{ $product['category'] ?? 'Other' }}
+
             </div>
 
-            <h1>
+
+            <h1 class="product-name">
+
                 {{ $product['name'] }}
+
             </h1>
+
 
             <div class="rating">
 
-                <span>★★★★★</span>
+                ⭐ {{ $product['rating'] ?? '5.0' }}
 
-                {{ $product['rating'] }} ·
-                {{ $product['reviews'] }} reviews
+                <span style="color:#977970;">
+                    ({{ $product['reviews'] ?? 0 }} reviews)
+                </span>
 
             </div>
 
-            <div class="price">
-                ₱{{ number_format($product['price']) }}
-            </div>
 
             <p class="description">
-                {{ $product['description'] }}
+
+                {{ $product['description'] ?? 'No product description available.' }}
+
             </p>
 
 
-            <!-- FEATURES -->
+            <div class="price">
 
-            <div class="features">
-
-                <div class="feature">
-
-                    <small>
-                        Availability
-                    </small>
-
-                    <strong>
-                        ✓ In Stock
-                    </strong>
-
-                </div>
-
-
-                <div class="feature">
-
-                    <small>
-                        Shipping
-                    </small>
-
-                    <strong>
-                        Free Delivery
-                    </strong>
-
-                </div>
-
-
-                <div class="feature">
-
-                    <small>
-                        Warranty
-                    </small>
-
-                    <strong>
-                        1 Year Warranty
-                    </strong>
-
-                </div>
-
-
-                <div class="feature">
-
-                    <small>
-                        Returns
-                    </small>
-
-                    <strong>
-                        7-Day Returns
-                    </strong>
-
-                </div>
+                ₱{{ number_format($product['price'] ?? 0) }}
 
             </div>
 
 
-            <!-- ADD TO CART -->
+            <!-- QUANTITY -->
 
-            <div class="actions">
+            <label class="quantity-label">
 
-          <form action="{{ route('cart.add', $product['slug']) }}" method="POST">
+                Quantity
 
-    @csrf
+            </label>
 
-    <button type="submit" class="cart-btn">
-        🛒 Add to Cart
-    </button>
+            <div class="quantity-box">
 
-</form>
+                <button
+                    type="button"
+                    class="quantity-btn"
+                    onclick="decreaseQuantity()"
+                >
+                    −
+                </button>
+
+                <input
+                    type="number"
+                    id="quantity"
+                    value="1"
+                    min="1"
+                    class="quantity-input"
+                >
+
+                <button
+                    type="button"
+                    class="quantity-btn"
+                    onclick="increaseQuantity()"
+                >
+                    +
+                </button>
+
+            </div>
+
+
+            <!-- ACTION BUTTONS -->
+
+            <div class="buttons">
+
+
+                <!-- ADD TO CART -->
+
+                <form
+                    action="{{ route('cart.add', $product['slug']) }}"
+                    method="POST"
+                    style="flex:1;"
+                >
+
+                    @csrf
+
+                    <button
+                        type="submit"
+                        class="btn cart-btn"
+                        style="width:100%;"
+                    >
+                        🛒 Add to Cart
+                    </button>
+
+                </form>
+
+
+                <!-- BUY NOW -->
+
+                <form
+                    action="{{ route('buy.now', $product['slug']) }}"
+                    method="POST"
+                    style="flex:1;"
+                    id="buyNowForm"
+                >
+
+                    @csrf
+
+                    <input
+                        type="hidden"
+                        name="quantity"
+                        id="buyNowQuantity"
+                        value="1"
+                    >
+
+                    <button
+                        type="submit"
+                        class="btn buy-btn"
+                        style="width:100%;"
+                    >
+                        ⚡ Buy Now
+                    </button>
+
+                </form>
+
+
             </div>
 
         </div>
 
-    </div>
+    </section>
 
 
     <!-- SPECIFICATIONS -->
 
-    <div class="spec-section">
+    @if(!empty($product['specs']))
 
-        <h2>
-            Product Specifications
-        </h2>
+        <section class="specs">
 
-        <div class="spec-grid">
+            <h2>
+                Product Specifications
+            </h2>
 
-            @foreach($product['specs'] as $key => $value)
+            <div class="spec-grid">
 
-                <div class="spec">
+                @foreach($product['specs'] as $key => $value)
 
-                    <span>
-                        {{ $key }}
-                    </span>
+                    <div class="spec">
 
-                    <strong>
-                        {{ $value }}
-                    </strong>
+                        <strong>
+                            {{ $key }}
+                        </strong>
 
-                </div>
+                        <span>
+                            {{ $value }}
+                        </span>
 
-            @endforeach
+                    </div>
 
-        </div>
+                @endforeach
 
-    </div>
+            </div>
 
-</div>
+        </section>
+
+    @endif
+
+</main>
 
 
-<!-- FOOTER -->
+<script>
 
-<footer>
+    function increaseQuantity() {
 
-    <div>
-        © 2026 BoomBuy
-    </div>
+        const input =
+            document.getElementById('quantity');
 
-    <div>
-        Quality products. Better everyday.
-    </div>
+        input.value =
+            parseInt(input.value || 1) + 1;
 
-</footer>
+        updateBuyNowQuantity();
+    }
+
+
+    function decreaseQuantity() {
+
+        const input =
+            document.getElementById('quantity');
+
+        let value =
+            parseInt(input.value || 1);
+
+        if (value > 1) {
+
+            value--;
+
+        }
+
+        input.value = value;
+
+        updateBuyNowQuantity();
+    }
+
+
+    function updateBuyNowQuantity() {
+
+        const quantity =
+            document.getElementById('quantity').value;
+
+        document.getElementById(
+            'buyNowQuantity'
+        ).value = quantity;
+
+    }
+
+
+    document
+        .getElementById('quantity')
+        .addEventListener(
+            'input',
+            updateBuyNowQuantity
+        );
+
+</script>
 
 </body>
+
 </html>

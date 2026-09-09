@@ -10,23 +10,6 @@
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-.orders-btn {
-    background: #fff2ee;
-    color: #e8420f;
-    padding: 11px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #ffd9cd;
-    transition: 0.2s;
-}
-
-.orders-btn:hover {
-    background: #ffe4dc;
-    transform: translateY(-1px);
-}
-
-
         * {
             margin: 0;
             padding: 0;
@@ -653,19 +636,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <!-- PRODUCTS HEADER -->
 
- <div class="top">
-    <h2>
-        My Products
-    </h2>
+    <div class="top">
 
-    <div style="display:flex; gap:10px; align-items:center;">
-
-        <a
-            href="{{ route('seller.orders') }}"
-            class="orders-btn"
-        >
-            📦 Manage Orders
-        </a>
+        <h2>
+            My Products
+        </h2>
 
         <a
             href="{{ route('seller.products.create') }}"
@@ -675,7 +650,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         </a>
 
     </div>
-</div>
 
 
     <!-- PRODUCTS -->

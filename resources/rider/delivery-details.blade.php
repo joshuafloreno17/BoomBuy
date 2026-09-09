@@ -675,41 +675,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     (string) $delivery['rider_id'] === (string) ($user['id'] ?? '')
 )
 
-    @if($currentStatus === 'Picked Up')
-
-        <div class="card update-box">
-
-            <h3>
-                🛵 Start Delivery
-            </h3>
-
-            <p style="color:#816f6a; margin-bottom:15px;">
-                The order has been picked up. Start delivery when you are on the way to the buyer.
-            </p>
-
-            <form
-                method="POST"
-                action="{{ route('rider.delivery.status', $delivery['id']) }}"
-            >
-                @csrf
-
-                <input
-                    type="hidden"
-                    name="status"
-                    value="Out for Delivery"
-                >
-
-                <button
-                    type="submit"
-                    class="btn update-btn"
-                >
-                    🛵 Out for Delivery
-                </button>
-            </form>
-
-        </div>
-
-    @elseif($currentStatus === 'Out for Delivery')
+    @if($currentStatus !== 'Delivered')
 
         <div class="card update-box">
 
@@ -717,28 +683,44 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 🔄 Update Delivery Status
             </h3>
 
-            <p style="color:#816f6a; margin-bottom:15px;">
-                You are currently on the way to the buyer.
-            </p>
-
             <form
                 method="POST"
                 action="{{ route('rider.delivery.status', $delivery['id']) }}"
             >
+
                 @csrf
 
-                <input
-                    type="hidden"
-                    name="status"
-                    value="Delivered"
-                >
+                <select name="status" required>
+
+                    <option value="">
+                        Select new status
+                    </option>
+
+                    @if($currentStatus === 'Picked Up')
+
+                        <option value="On the Way">
+                            On the Way
+                        </option>
+
+                    @endif
+
+                    @if($currentStatus === 'On the Way')
+
+                        <option value="Delivered">
+                            Delivered
+                        </option>
+
+                    @endif
+
+                </select>
 
                 <button
                     type="submit"
                     class="btn update-btn"
                 >
-                    ✅ Mark as Delivered
+                    🔄 Update Status
                 </button>
+
             </form>
 
         </div>

@@ -1,16 +1,14 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Rider Dashboard — BoomBuy</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -94,6 +92,7 @@
             background: #b91c1c;
         }
 
+
         /* MAIN */
 
         .main {
@@ -128,6 +127,7 @@
             color: #111827;
         }
 
+
         /* CARDS */
 
         .cards {
@@ -160,6 +160,7 @@
             margin-top: 5px;
         }
 
+
         /* CONTENT */
 
         .content-grid {
@@ -179,6 +180,7 @@
             margin-bottom: 20px;
             font-size: 20px;
         }
+
 
         /* PANEL HEADER */
 
@@ -203,6 +205,7 @@
         .view-all:hover {
             color: #eaaf0c;
         }
+
 
         /* DELIVERY */
 
@@ -232,6 +235,7 @@
             font-size: 15px;
         }
 
+
         /* STATUS */
 
         .status {
@@ -247,6 +251,11 @@
             color: #059669;
         }
 
+        .status-picked {
+            background: #fff3ef;
+            color: #f34f1d;
+        }
+
         .status-way {
             background: #fffaed;
             color: #eaaf0c;
@@ -256,6 +265,7 @@
             background: #f0fdf4;
             color: #16a34a;
         }
+
 
         /* DELIVERY INFO */
 
@@ -268,6 +278,7 @@
         .delivery-info strong {
             color: #523d36;
         }
+
 
         /* BUTTONS */
 
@@ -310,6 +321,7 @@
             background: #15803d;
         }
 
+
         /* AVAILABLE BOX */
 
         .available-label {
@@ -321,6 +333,7 @@
             font-size: 13px;
             margin-bottom: 15px;
         }
+
 
         /* EMPTY */
 
@@ -346,6 +359,7 @@
             font-size: 13px;
         }
 
+
         /* QUICK ACTIONS */
 
         .quick-action {
@@ -363,6 +377,7 @@
             background: #fffaed;
             color: #eaaf0c;
         }
+
 
         /* RIDER TIP */
 
@@ -386,6 +401,7 @@
             color: #7c6012;
             line-height: 1.6;
         }
+
 
         /* RESPONSIVE */
 
@@ -424,85 +440,37 @@
 
         }
 
-        /* BOOMBUY DESIGN */
-
-        h1,
-        h2,
-        h3,
-        .logo,
-        .hero-title,
-        .hero h1,
-        .section-title,
-        .page-title,
-        .product-title,
-        .price,
-        .cta,
-        .cta-title,
-        .brand,
-        .checkout-title,
-        .card-title,
-        .modal-title,
-        .auth-title,
-        .form-title,
-        .empty-title,
-        .step-title,
-        .order-title,
-        .stat-title,
-        .stat-value,
-        .banner-title {
-
-            font-family: 'Baloo 2',
-                'Plus Jakarta Sans',
-                sans-serif;
-
-            letter-spacing: -0.01em;
-        }
-
-        button,
-        .btn,
-        [class*="btn-"],
-        .add-to-cart,
-        .buy-now,
-        .checkout-btn,
-        .register-btn,
-        .login-btn,
-        .submit-btn,
-        .primary-btn {
-
-            border-radius: 12px !important;
-
-            transition:
-                transform 0.15s ease,
-                box-shadow 0.15s ease,
-                background 0.15s ease;
-        }
-
-        button:hover,
-        .btn:hover,
-        [class*="btn-"]:hover,
-        .add-to-cart:hover,
-        .buy-now:hover,
-        .primary-btn:hover {
-
-            transform: translateY(-1px);
-        }
-
-        .card,
-        [class*="-card"],
-        .product-card {
-            border-radius: 16px !important;
-        }
-
-        ::selection {
-            background: #ffd7c2;
-            color: #7c1a00;
-        }
-
-    </style>
-
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 </head>
 
+
 <body>
+
 
 <!-- SIDEBAR -->
 
@@ -512,9 +480,11 @@
         Boom<span>Buy</span>
     </div>
 
+
     <div class="menu-title">
         Rider Menu
     </div>
+
 
     <div class="menu">
 
@@ -525,9 +495,11 @@
             🏠 Dashboard
         </a>
 
+
         <a href="{{ route('rider.deliveries') }}">
             🚚 My Deliveries
         </a>
+
 
         <a href="{{ route('rider.profile') }}">
             👤 My Profile
@@ -535,9 +507,11 @@
 
     </div>
 
+
     <div class="menu-title">
         Account
     </div>
+
 
     <div class="menu">
 
@@ -546,6 +520,7 @@
         </a>
 
     </div>
+
 
     <div class="logout">
 
@@ -567,9 +542,11 @@
 </aside>
 
 
+
 <!-- MAIN -->
 
 <main class="main">
+
 
     <!-- TOPBAR -->
 
@@ -588,6 +565,7 @@
 
         </div>
 
+
         <div class="profile">
 
             🚴
@@ -601,11 +579,82 @@
     </div>
 
 
+
+   @php
+
+    $totalDeliveries = 0;
+    $availableOrders = 0;
+    $inTransit = 0;
+    $delivered = 0;
+
+    foreach (($deliveries ?? []) as $delivery) {
+
+        $status = $delivery['status'] ?? 'Pending';
+        $riderId = $delivery['rider_id'] ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | AVAILABLE ORDERS
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            $status === 'Ready for Pickup' &&
+            empty($riderId)
+        ) {
+            $availableOrders++;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | IN TRANSIT
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !empty($riderId) &&
+            (
+                $status === 'Picked Up' ||
+                $status === 'On the Way'
+            )
+        ) {
+            $inTransit++;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | DELIVERED
+        |--------------------------------------------------------------------------
+        */
+
+        if ($status === 'Delivered') {
+            $delivered++;
+        }
+
+
+        /*
+        |--------------------------------------------------------------------------
+        | TOTAL
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            !empty($riderId) ||
+            $status === 'Ready for Pickup'
+        ) {
+            $totalDeliveries++;
+        }
+
+    }
+
+@endphp
+
     <!-- STAT CARDS -->
 
     <section class="cards">
 
-        <!-- TOTAL DELIVERIES -->
 
         <div class="card">
 
@@ -618,13 +667,12 @@
             </div>
 
             <div class="card-number">
-                {{ count($availableOrders ?? []) + count($myDeliveries ?? []) }}
+                {{ $totalDeliveries }}
             </div>
 
         </div>
 
 
-        <!-- AVAILABLE ORDERS -->
 
         <div class="card">
 
@@ -637,13 +685,12 @@
             </div>
 
             <div class="card-number">
-                {{ count($availableOrders ?? []) }}
+                {{ $availableOrders }}
             </div>
 
         </div>
 
 
-        <!-- IN TRANSIT -->
 
         <div class="card">
 
@@ -656,13 +703,12 @@
             </div>
 
             <div class="card-number">
-                {{ count($inTransit ?? []) }}
+                {{ $inTransit }}
             </div>
 
         </div>
 
 
-        <!-- DELIVERED -->
 
         <div class="card">
 
@@ -675,12 +721,13 @@
             </div>
 
             <div class="card-number">
-                {{ count($delivered ?? []) }}
+                {{ $delivered }}
             </div>
 
         </div>
 
     </section>
+
 
 
     <!-- CONTENT -->
@@ -691,6 +738,7 @@
         <!-- AVAILABLE ORDERS -->
 
         <div class="panel">
+
 
             <div class="panel-header">
 
@@ -708,16 +756,46 @@
             </div>
 
 
-            @if(count($availableOrders ?? []) > 0)
+
+            @php
+
+                $availableDeliveries = [];
+
+
+                foreach (($deliveries ?? []) as $delivery) {
+
+                    if (
+                        ($delivery['status'] ?? '') ===
+                        'Ready for Pickup'
+                        &&
+                        empty($delivery['rider_id'])
+                    ) {
+
+                        $availableDeliveries[] =
+                            $delivery;
+
+                    }
+
+                }
+
+            @endphp
+
+
+
+            @if(count($availableDeliveries) > 0)
+
 
                 @foreach(
-                    array_slice($availableOrders, 0, 5)
+                    array_slice($availableDeliveries, 0, 5)
                     as $delivery
                 )
 
+
                     <div class="delivery">
 
+
                         <div class="delivery-header">
+
 
                             <div class="delivery-id">
 
@@ -725,6 +803,7 @@
                                 Order #{{ $delivery['id'] ?? 'N/A' }}
 
                             </div>
+
 
                             <div class="status status-available">
 
@@ -735,24 +814,23 @@
                         </div>
 
 
+
                         <div class="available-label">
 
                             🚚 This order is available for pickup.
-
                             Claim it if you want to deliver this order.
 
                         </div>
 
 
+
                         <div class="delivery-info">
+
 
                             <div>
 
                                 👤
-
-                                <strong>
-                                    Customer:
-                                </strong>
+                                <strong>Customer:</strong>
 
                                 {{ $delivery['buyer_name'] ?? 'Customer' }}
 
@@ -762,10 +840,7 @@
                             <div>
 
                                 📍
-
-                                <strong>
-                                    Address:
-                                </strong>
+                                <strong>Address:</strong>
 
                                 {{ $delivery['address'] ?? 'No address provided' }}
 
@@ -775,10 +850,7 @@
                             <div>
 
                                 📞
-
-                                <strong>
-                                    Phone:
-                                </strong>
+                                <strong>Phone:</strong>
 
                                 {{ $delivery['phone'] ?? 'No phone provided' }}
 
@@ -788,10 +860,7 @@
                             <div>
 
                                 💰
-
-                                <strong>
-                                    Total:
-                                </strong>
+                                <strong>Total:</strong>
 
                                 ₱{{ number_format($delivery['total'] ?? 0, 2) }}
 
@@ -801,10 +870,7 @@
                             <div>
 
                                 💳
-
-                                <strong>
-                                    Payment:
-                                </strong>
+                                <strong>Payment:</strong>
 
                                 {{ $delivery['payment'] ?? 'N/A' }}
 
@@ -814,16 +880,14 @@
                             <div>
 
                                 🛒
-
-                                <strong>
-                                    Items:
-                                </strong>
+                                <strong>Items:</strong>
 
                                 {{ count($delivery['items'] ?? []) }}
 
                             </div>
 
                         </div>
+
 
 
                         <div class="delivery-actions">
@@ -845,12 +909,11 @@
                                     type="submit"
                                     class="claim-btn"
                                 >
-
                                     🚚 Claim Delivery
-
                                 </button>
 
                             </form>
+
 
 
                             <!-- DETAILS -->
@@ -862,18 +925,19 @@
                                 ) }}"
                                 class="view-btn"
                             >
-
                                 👁 View Details
-
                             </a>
 
                         </div>
 
                     </div>
 
+
                 @endforeach
 
+
             @else
+
 
                 <div class="empty">
 
@@ -881,28 +945,31 @@
                         📦
                     </div>
 
+
                     <div class="empty-title">
                         No Available Orders
                     </div>
 
-                    <div class="empty-text">
 
+                    <div class="empty-text">
                         Orders marked
                         <strong>"Ready for Pickup"</strong>
                         will appear here.
-
                     </div>
 
                 </div>
+
 
             @endif
 
         </div>
 
 
+
         <!-- QUICK ACTIONS -->
 
         <div class="panel">
+
 
             <h2>
                 Quick Actions
@@ -913,9 +980,7 @@
                 href="{{ route('rider.deliveries') }}"
                 class="quick-action"
             >
-
                 🚚 View Available Deliveries
-
             </a>
 
 
@@ -923,9 +988,7 @@
                 href="{{ route('rider.profile') }}"
                 class="quick-action"
             >
-
                 👤 View Profile
-
             </a>
 
 
@@ -933,10 +996,9 @@
                 href="{{ url('/') }}"
                 class="quick-action"
             >
-
                 🛍️ Visit BoomBuy
-
             </a>
+
 
 
             <div class="rider-tip">
@@ -944,6 +1006,7 @@
                 <div class="rider-tip-title">
                     💡 Rider Tip
                 </div>
+
 
                 <div class="rider-tip-text">
 
@@ -957,12 +1020,15 @@
 
             </div>
 
+
         </div>
+
 
     </section>
 
+
 </main>
 
-</body>
 
+</body>
 </html>

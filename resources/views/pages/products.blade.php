@@ -8,6 +8,8 @@
     <title>BoomBuy - Products</title>
 
     <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
         * {
             margin: 0;
             padding: 0;
@@ -19,8 +21,8 @@
         }
 
         body {
-            font-family: Arial, Helvetica, sans-serif;
-            background: #f4f8ff;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            background: #fff7f4;
             color: #172033;
         }
 
@@ -36,7 +38,7 @@
         .navbar {
             width: 100%;
             background: #ffffff;
-            border-bottom: 1px solid #e2eaff;
+            border-bottom: 1px solid #ffe9e2;
             padding: 18px 7%;
             display: flex;
             align-items: center;
@@ -49,7 +51,7 @@
         .logo {
             font-size: 23px;
             font-weight: 700;
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .logo span {
@@ -60,15 +62,15 @@
             display: flex;
             gap: 32px;
             font-size: 14px;
-            color: #64748b;
+            color: #8d6c62;
         }
 
         .nav-links a:hover {
-            color: #1769e0;
+            color: #e8420f;
         }
 
         .nav-links a.active {
-            color: #1769e0;
+            color: #e8420f;
             font-weight: 600;
         }
 
@@ -82,18 +84,18 @@
             width: 220px;
             padding: 10px 14px;
             border-radius: 9px;
-            border: 1px solid #dce7fa;
-            background: #f5f8ff;
+            border: 1px solid #fbe2db;
+            background: #fff7f5;
             outline: none;
         }
 
         .search:focus {
-            border-color: #4b8df8;
+            border-color: #ff7044;
             background: #ffffff;
         }
 
         .cart {
-            color: #1769e0;
+            color: #e8420f;
             font-size: 14px;
             font-weight: 700;
             white-space: nowrap;
@@ -107,7 +109,7 @@
             height: 20px;
             padding: 0 6px;
             margin-left: 5px;
-            background: #1769e0;
+            background: #e8420f;
             color: #ffffff;
             border-radius: 20px;
             font-size: 11px;
@@ -123,7 +125,7 @@
         }
 
         .page-header small {
-            color: #3977d5;
+            color: #db5a33;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 11px;
@@ -138,7 +140,7 @@
         }
 
         .page-header p {
-            color: #718096;
+            color: #977970;
             font-size: 15px;
             line-height: 1.6;
         }
@@ -151,7 +153,7 @@
             width: 86%;
             margin: 0 auto 35px;
             background: #ffffff;
-            border: 1px solid #e0e9f8;
+            border: 1px solid #f9e5df;
             border-radius: 14px;
             padding: 15px 18px;
             display: flex;
@@ -168,8 +170,8 @@
 
         .filter {
             border: none;
-            background: #f1f6ff;
-            color: #3977d5;
+            background: #fff4f1;
+            color: #db5a33;
             padding: 9px 15px;
             border-radius: 8px;
             cursor: pointer;
@@ -178,19 +180,19 @@
         }
 
         .filter:hover {
-            background: #dceaff;
+            background: #ffe4dc;
         }
 
         .filter.active {
-            background: #1769e0;
+            background: #e8420f;
             color: #ffffff;
         }
 
         .sort {
-            border: 1px solid #dce7fa;
+            border: 1px solid #fbe2db;
             padding: 9px 12px;
             border-radius: 8px;
-            color: #52627a;
+            color: #7c5a50;
             background: #ffffff;
             outline: none;
             cursor: pointer;
@@ -206,7 +208,7 @@
         }
 
         .results {
-            color: #718096;
+            color: #977970;
             font-size: 13px;
             margin-bottom: 18px;
         }
@@ -219,7 +221,7 @@
 
         .product-card {
             background: #ffffff;
-            border: 1px solid #e1e9f6;
+            border: 1px solid #f7e5e0;
             border-radius: 15px;
             overflow: hidden;
             transition: 0.25s;
@@ -228,7 +230,7 @@
         .product-card:hover {
             transform: translateY(-6px);
             box-shadow: 0 18px 35px rgba(39, 84, 150, 0.12);
-            border-color: #c9dcf8;
+            border-color: #fad3c7;
         }
 
         .product-image {
@@ -252,7 +254,7 @@
         }
 
         .blue {
-            background: linear-gradient(145deg, #e8f2ff, #d5e8ff);
+            background: linear-gradient(145deg, #ffede8, #ffdfd5);
         }
 
         .purple {
@@ -260,7 +262,7 @@
         }
 
         .cyan {
-            background: linear-gradient(145deg, #e7fbff, #d5f4ff);
+            background: linear-gradient(145deg, #e7fbff, #ffdfd5);
         }
 
         .lavender {
@@ -276,7 +278,7 @@
         }
 
         .orange {
-            background: linear-gradient(145deg, #fff7ed, #fed7aa);
+            background: linear-gradient(145deg, #fffaed, #fee8aa);
         }
 
         .yellow {
@@ -288,7 +290,7 @@
         }
 
         .category {
-            color: #5790df;
+            color: #e47452;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -303,20 +305,20 @@
         }
 
         .description {
-            color: #7b8799;
+            color: #9a817a;
             font-size: 12px;
             line-height: 1.5;
             margin-bottom: 12px;
         }
 
         .rating {
-            color: #718096;
+            color: #977970;
             font-size: 12px;
             margin-bottom: 16px;
         }
 
         .rating span {
-            color: #f59e0b;
+            color: #f5b70b;
         }
 
         .bottom {
@@ -326,13 +328,13 @@
         }
 
         .price {
-            color: #1769e0;
+            color: #e8420f;
             font-size: 17px;
             font-weight: 700;
         }
 
         .add {
-            background: #1769e0;
+            background: #e8420f;
             color: white;
             border: none;
             padding: 9px 12px;
@@ -344,7 +346,7 @@
         }
 
         .add:hover {
-            background: #0f55bd;
+            background: #c43408;
         }
 
         .add:disabled {
@@ -360,7 +362,7 @@
             display: none;
             text-align: center;
             padding: 60px 20px;
-            color: #718096;
+            color: #977970;
         }
 
         .empty-icon {
@@ -382,7 +384,7 @@
             margin: 20px auto 80px;
             padding: 60px;
             background: #ffffff;
-            border: 1px solid #e1e9f6;
+            border: 1px solid #f7e5e0;
             border-radius: 18px;
             text-align: center;
             scroll-margin-top: 100px;
@@ -394,7 +396,7 @@
         }
 
         .about-content small {
-            color: #1769e0;
+            color: #e8420f;
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 2px;
@@ -406,7 +408,7 @@
         }
 
         .about-content p {
-            color: #718096;
+            color: #977970;
             font-size: 15px;
             line-height: 1.7;
             margin-bottom: 12px;
@@ -418,16 +420,16 @@
 
         footer {
             background: #ffffff;
-            border-top: 1px solid #e1e9f6;
+            border-top: 1px solid #f7e5e0;
             padding: 35px 7%;
             display: flex;
             justify-content: space-between;
-            color: #718096;
+            color: #977970;
             font-size: 13px;
         }
 
         footer div:first-child {
-            color: #1769e0;
+            color: #e8420f;
             font-weight: 600;
         }
 
@@ -494,7 +496,32 @@
                 text-align: center;
             }
         }
-    </style>
+    
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+</style>
 </head>
 
 <body>
@@ -666,568 +693,147 @@
     <section class="products">
 
         <div class="results" id="results">
-            Showing 13 products
+            Showing {{ count($products) }} products
         </div>
 
         <div class="product-grid" id="productGrid">
 
-            <div class="product-card"
-                 data-category="electronics"
-                 data-price="18999"
-                 data-rating="4.8"
-                 data-url="/product-details/nova-x5-pro">
+            @php
+                $backgrounds = [
+                    'blue',
+                    'purple',
+                    'cyan',
+                    'lavender',
+                    'pink',
+                    'green',
+                    'orange',
+                    'yellow',
+                ];
+            @endphp
 
-                <div class="product-image blue">📱</div>
+            @foreach($products as $index => $product)
 
-                <div class="product-info">
+                @php
+                    $name = $product['name'] ?? 'Unnamed Product';
+                    $slug = $product['slug'] ?? \Illuminate\Support\Str::slug($name);
+                    $price = (float) ($product['price'] ?? 0);
+                    $description = $product['description'] ?? 'No description available.';
+                    $image = $product['image'] ?? '📦';
+                    $stock = (int) ($product['stock'] ?? 0);
 
-                    <div class="category">
-                        Electronics & Gadgets
+                    $rawCategory = strtolower($product['category'] ?? 'other');
+
+                    if (
+                        str_contains($rawCategory, 'smartphone') ||
+                        str_contains($rawCategory, 'laptop') ||
+                        str_contains($rawCategory, 'audio') ||
+                        str_contains($rawCategory, 'wearable') ||
+                        str_contains($rawCategory, 'electronic')
+                    ) {
+                        $filterCategory = 'electronics';
+                        $displayCategory = 'Electronics & Gadgets';
+
+                    } elseif (str_contains($rawCategory, 'women')) {
+                        $filterCategory = 'women';
+                        $displayCategory = "Women's Apparel";
+
+                    } elseif (str_contains($rawCategory, 'men')) {
+                        $filterCategory = 'men';
+                        $displayCategory = "Men's Apparel";
+
+                    } elseif (str_contains($rawCategory, 'kid')) {
+                        $filterCategory = 'kids';
+                        $displayCategory = 'Kids & Baby';
+
+                    } elseif (str_contains($rawCategory, 'home')) {
+                        $filterCategory = 'home';
+                        $displayCategory = 'Home & Garden';
+
+                    } elseif (str_contains($rawCategory, 'sport')) {
+                        $filterCategory = 'sports';
+                        $displayCategory = 'Sports & Outdoors';
+
+                    } elseif (str_contains($rawCategory, 'beauty')) {
+                        $filterCategory = 'beauty';
+                        $displayCategory = 'Health & Beauty';
+
+                    } elseif (str_contains($rawCategory, 'food')) {
+                        $filterCategory = 'food';
+                        $displayCategory = 'Food & Gourmet';
+
+                    } elseif (str_contains($rawCategory, 'auto')) {
+                        $filterCategory = 'automotive';
+                        $displayCategory = 'Automotive & Motorcycle';
+
+                    } elseif (str_contains($rawCategory, 'office')) {
+                        $filterCategory = 'office';
+                        $displayCategory = 'Office & School Supplies';
+
+                    } else {
+                        $filterCategory = 'electronics';
+                        $displayCategory = ucfirst($rawCategory);
+                    }
+
+                    $background = $backgrounds[$index % count($backgrounds)];
+                @endphp
+
+                <div
+                    class="product-card"
+                    data-category="{{ $filterCategory }}"
+                    data-price="{{ $price }}"
+                    data-rating="0"
+                    data-url="/product-details/{{ $slug }}"
+                >
+
+                    <div class="product-image {{ $background }}">
+                        {{ $image }}
                     </div>
 
-                    <div class="product-name">
-                        Nova X5 Pro
-                    </div>
+                    <div class="product-info">
 
-                    <div class="description">
-                        Powerful smartphone with a vibrant display
-                        and long-lasting battery.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.8 · 124 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱18,999
+                        <div class="category">
+                            {{ $displayCategory }}
                         </div>
 
-                        <button class="add">
-                            Add to cart
-                        </button>
+                        <div class="product-name">
+                            {{ $name }}
+                        </div>
+
+                        <div class="description">
+                            {{ $description }}
+                        </div>
+
+                        <div class="rating">
+                            <span>★</span> 0.0 · 0 reviews
+                        </div>
+
+                        <div class="bottom">
+
+                            <div class="price">
+                                ₱{{ number_format($price, 2) }}
+                            </div>
+
+                            <button
+                                class="add"
+                                @if($stock <= 0)
+                                    disabled
+                                    title="Out of stock"
+                                @endif
+                            >
+                                @if($stock > 0)
+                                    Add to cart
+                                @else
+                                    Out of stock
+                                @endif
+                            </button>
+
+                        </div>
 
                     </div>
 
                 </div>
-            </div>
 
-
-            <div class="product-card"
-                 data-category="electronics"
-                 data-price="34990"
-                 data-rating="4.7"
-                 data-url="/product-details/airbook-14">
-
-                <div class="product-image purple">💻</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Electronics & Gadgets
-                    </div>
-
-                    <div class="product-name">
-                        AirBook 14
-                    </div>
-
-                    <div class="description">
-                        Lightweight laptop designed for work,
-                        school and everyday use.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.7 · 89 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱34,990
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="electronics"
-                 data-price="2799"
-                 data-rating="4.9"
-                 data-url="/product-details/soundcore-pro">
-
-                <div class="product-image cyan">🎧</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Electronics & Gadgets
-                    </div>
-
-                    <div class="product-name">
-                        SoundCore Pro
-                    </div>
-
-                    <div class="description">
-                        Wireless headphones with clear sound
-                        and comfortable design.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.9 · 216 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱2,799
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="electronics"
-                 data-price="3499"
-                 data-rating="4.6"
-                 data-url="/product-details/fitwatch-s2">
-
-                <div class="product-image lavender">⌚</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Electronics & Gadgets
-                    </div>
-
-                    <div class="product-name">
-                        FitWatch S2
-                    </div>
-
-                    <div class="description">
-                        Smart wearable with fitness tracking
-                        and everyday features.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.6 · 73 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱3,499
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="women"
-                 data-price="899"
-                 data-rating="4.9"
-                 data-url="/product-details/classic-summer-dress">
-
-                <div class="product-image pink">👗</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Women's Apparel
-                    </div>
-
-                    <div class="product-name">
-                        Classic Summer Dress
-                    </div>
-
-                    <div class="description">
-                        Comfortable everyday dress with
-                        a stylish and lightweight design.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.9 · 143 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱899
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="men"
-                 data-price="799"
-                 data-rating="4.7"
-                 data-url="/product-details/casual-shirt">
-
-                <div class="product-image blue">👕</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Men's Apparel
-                    </div>
-
-                    <div class="product-name">
-                        Classic Casual Shirt
-                    </div>
-
-                    <div class="description">
-                        Comfortable everyday shirt suitable
-                        for casual and semi-formal outfits.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.7 · 82 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱799
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="kids"
-                 data-price="1299"
-                 data-rating="4.8"
-                 data-url="/product-details/building-blocks">
-
-                <div class="product-image yellow">🧱</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Kids & Baby
-                    </div>
-
-                    <div class="product-name">
-                        Creative Building Blocks
-                    </div>
-
-                    <div class="description">
-                        Fun educational building set designed
-                        for creative play and learning.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.8 · 76 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱1,299
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="home"
-                 data-price="3299"
-                 data-rating="4.6"
-                 data-url="/product-details/brewmate-coffee-maker">
-
-                <div class="product-image orange">☕</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Home & Garden
-                    </div>
-
-                    <div class="product-name">
-                        BrewMate Coffee Maker
-                    </div>
-
-                    <div class="description">
-                        Compact coffee maker for convenient
-                        drinks at home or in the office.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.6 · 57 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱3,299
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="sports"
-                 data-price="2499"
-                 data-rating="4.7"
-                 data-url="/product-details/runner-flex-shoes">
-
-                <div class="product-image green">👟</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Sports & Outdoors
-                    </div>
-
-                    <div class="product-name">
-                        Runner Flex Shoes
-                    </div>
-
-                    <div class="description">
-                        Lightweight running shoes designed
-                        for workouts and everyday movement.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.7 · 86 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱2,499
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="beauty"
-                 data-price="1299"
-                 data-rating="4.7"
-                 data-url="/product-details/glowcare-set">
-
-                <div class="product-image pink">💄</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Health & Beauty
-                    </div>
-
-                    <div class="product-name">
-                        GlowCare Skincare Set
-                    </div>
-
-                    <div class="description">
-                        Everyday skincare essentials for
-                        a simple personal care routine.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.7 · 91 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱1,299
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="food"
-                 data-price="599"
-                 data-rating="4.8"
-                 data-url="/product-details/premium-coffee">
-
-                <div class="product-image orange">☕</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Food & Gourmet
-                    </div>
-
-                    <div class="product-name">
-                        Premium Coffee Beans
-                    </div>
-
-                    <div class="description">
-                        Freshly roasted coffee beans for
-                        your daily cup at home.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.8 · 104 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱599
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="automotive"
-                 data-price="1899"
-                 data-rating="4.6"
-                 data-url="/product-details/car-care-kit">
-
-                <div class="product-image purple">🚗</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Automotive & Motorcycle
-                    </div>
-
-                    <div class="product-name">
-                        Car Care Kit
-                    </div>
-
-                    <div class="description">
-                        Useful cleaning and maintenance
-                        essentials for everyday vehicle care.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.6 · 63 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱1,899
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
-
-
-            <div class="product-card"
-                 data-category="office"
-                 data-price="749"
-                 data-rating="4.8"
-                 data-url="/product-details/urban-backpack">
-
-                <div class="product-image cyan">🎒</div>
-
-                <div class="product-info">
-
-                    <div class="category">
-                        Office & School Supplies
-                    </div>
-
-                    <div class="product-name">
-                        Urban School Backpack
-                    </div>
-
-                    <div class="description">
-                        Spacious backpack for school,
-                        work and everyday essentials.
-                    </div>
-
-                    <div class="rating">
-                        <span>★</span> 4.8 · 112 reviews
-                    </div>
-
-                    <div class="bottom">
-
-                        <div class="price">
-                            ₱749
-                        </div>
-
-                        <button class="add">
-                            Add to cart
-                        </button>
-
-                    </div>
-
-                </div>
-            </div>
+            @endforeach
 
         </div>
 
@@ -1599,7 +1205,7 @@
                             originalText;
 
                         button.style.background =
-                            "#1769e0";
+                            "#e8420f";
 
                         button.disabled =
                             false;
@@ -1627,7 +1233,7 @@
                             originalText;
 
                         button.style.background =
-                            "#1769e0";
+                            "#e8420f";
 
                         button.disabled =
                             false;
