@@ -994,7 +994,7 @@ $databaseProducts = Product::latest()
         $query->where('category', $category);
     })
     ->get();
-    
+
 
     $products = $databaseProducts->map(function ($product) {
 
@@ -3670,3 +3670,276 @@ Route::delete('/seller/products/{id}', function ($id) {
 Route::get('/categories', function () {
     return redirect()->route('products');
 })->name('categories');
+
+
+Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
+    $user = requireUserRole('buyer');
+    if (!is_array($user)) return $user;
+
+    $order = DB::table('orders')
+        ->where('id', $orderId)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    if ($order->status !== 'Delivered') {
+        return back()->with('error', 'Only delivered orders can be returned or refunded.');
+    }
+
+    $orderItemId = (int) request('order_item_id');
+    $requestType = trim(request('request_type'));
+    $reason = trim(request('reason'));
+    $message = trim(request('message'));
+
+    if (!in_array($requestType, ['Return', 'Refund'])) {
+        return back()->with('error', 'Invalid request type.');
+    }
+
+    if (empty($reason)) {
+        return back()->with('error', 'Please select a reason.');
+    }
+
+    $item = DB::table('order_items')
+        ->where('id', $orderItemId)
+        ->where('order_id', $orderId)
+        ->first();
+
+    if (!$item) {
+        return back()->with('error', 'Order item not found.');
+    }
+
+    $existingRequest = DB::table('return_refund_requests')
+        ->where('order_id', $orderId)
+        ->where('order_item_id', $orderItemId)
+        ->whereIn('status', [
+            'pending',
+            'approved',
+            'returned',
+            'refund_processing'
+        ])
+        ->exists();
+
+    if ($existingRequest) {
+        return back()->with('error', 'A return/refund request already exists for this item.');
+    }
+
+    $refundAmount = (float) $item->price * (int) $item->quantity;
+
+    DB::table('return_refund_requests')->insert([
+        'order_id' => $orderId,
+        'order_item_id' => $orderItemId,
+        'buyer_id' => $user['id'],
+        'seller_id' => $item->seller_id,
+        'request_type' => $requestType,
+        'reason' => $reason,
+        'message' => $message ?: null,
+        'evidence' => null,
+        'status' => 'pending',
+        'refund_amount' => $refundAmount,
+        'seller_note' => null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with(
+        'success',
+        'Your ' . strtolower($requestType) . ' request has been submitted successfully.'
+    );
+})->name('buyer.return-refund.store');
+
+
+// =====================================================
+// SELLER - RETURN / REFUND REQUESTS
+// =====================================================
+
+Route::post('/seller/return-refund/{id}/approve', function ($id) {
+    $user = requireUserRole('seller');
+    if (!is_array($user)) return $user;
+
+    $requestData = DB::table('return_refund_requests')
+        ->join('order_items', 'return_refund_requests.order_item_id', '=', 'order_items.id')
+        ->where('return_refund_requests.id', $id)
+        ->where('return_refund_requests.seller_id', $user['id'])
+        ->select(
+            'return_refund_requests.*',
+            'order_items.product_name',
+            'order_items.quantity'
+        )
+        ->first();
+
+    if (!$requestData) {
+        return back()->with('error', 'Return/Refund request not found.');
+    }
+
+    if ($requestData->status !== 'pending') {
+        return back()->with('error', 'This request has already been processed.');
+    }
+
+    DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->update([
+            'status' => 'approved',
+            'seller_note' => 'Request approved by seller.',
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Return/Refund request for ' . $requestData->product_name . ' has been approved.'
+    );
+})->name('seller.return-refund.approve');
+
+
+Route::post('/seller/return-refund/{id}/reject', function ($id) {
+    $user = requireUserRole('seller');
+    if (!is_array($user)) return $user;
+
+    $requestData = DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$requestData) {
+        return back()->with('error', 'Return/Refund request not found.');
+    }
+
+    if ($requestData->status !== 'pending') {
+        return back()->with('error', 'This request has already been processed.');
+    }
+
+    DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->update([
+            'status' => 'rejected',
+            'seller_note' => 'Request rejected by seller.',
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Return/Refund request has been rejected.'
+    );
+})->name('seller.return-refund.reject');
+
+
+// =====================================================
+// SELLER RETURN / REFUND — MARK AS RETURNED
+// =====================================================
+
+Route::post('/seller/return-refund/{id}/returned', function ($id) {
+    $user = requireUserRole('seller');
+    if (!is_array($user)) return $user;
+
+    $requestData = DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$requestData) {
+        return back()->with('error', 'Return/Refund request not found.');
+    }
+
+    if ($requestData->status !== 'approved') {
+        return back()->with('error', 'Only approved requests can be marked as returned.');
+    }
+
+    if ($requestData->request_type !== 'Return') {
+        return back()->with('error', 'This request is not a return request.');
+    }
+
+    DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->update([
+            'status' => 'returned',
+            'seller_note' => 'Item has been marked as returned by the seller.',
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Return request has been marked as returned.'
+    );
+})->name('seller.return-refund.returned');
+
+
+// =====================================================
+// SELLER REFUND — START REFUND
+// =====================================================
+
+Route::post('/seller/return-refund/{id}/refund-processing', function ($id) {
+    $user = requireUserRole('seller');
+    if (!is_array($user)) return $user;
+
+    $requestData = DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$requestData) {
+        return back()->with('error', 'Return/Refund request not found.');
+    }
+
+    if ($requestData->status !== 'approved') {
+        return back()->with('error', 'Only approved refund requests can be processed.');
+    }
+
+    if ($requestData->request_type !== 'Refund') {
+        return back()->with('error', 'This request is not a refund request.');
+    }
+
+    DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->update([
+            'status' => 'refund_processing',
+            'seller_note' => 'Refund is currently being processed.',
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Refund is now being processed.'
+    );
+})->name('seller.return-refund.processing');
+
+
+// =====================================================
+// SELLER REFUND — COMPLETE REFUND
+// =====================================================
+
+Route::post('/seller/return-refund/{id}/complete', function ($id) {
+    $user = requireUserRole('seller');
+    if (!is_array($user)) return $user;
+
+    $requestData = DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$requestData) {
+        return back()->with('error', 'Return/Refund request not found.');
+    }
+
+    if ($requestData->status !== 'refund_processing') {
+        return back()->with('error', 'Only refunds that are being processed can be completed.');
+    }
+
+    if ($requestData->request_type !== 'Refund') {
+        return back()->with('error', 'This request is not a refund request.');
+    }
+
+    DB::table('return_refund_requests')
+        ->where('id', $id)
+        ->update([
+            'status' => 'completed',
+            'seller_note' => 'Refund has been completed by the seller.',
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Refund has been marked as completed.'
+    );
+})->name('seller.return-refund.complete');
