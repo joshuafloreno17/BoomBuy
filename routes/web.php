@@ -987,7 +987,14 @@ Route::get('/products', function () {
     |--------------------------------------------------------------------------
     */
 
-    $databaseProducts = Product::latest()->get();
+   $category = request('category');
+
+$databaseProducts = Product::latest()
+    ->when($category, function ($query) use ($category) {
+        $query->where('category', $category);
+    })
+    ->get();
+    
 
     $products = $databaseProducts->map(function ($product) {
 
@@ -1054,11 +1061,11 @@ Route::post('/admin/products/store', function () {
         return redirect()->route('admin.login');
     }
 
-    $name = trim(request('name'));
-    $category = trim(request('category'));
-    $price = (float) request('price');
-    $icon = trim(request('icon'));
-    $description = trim(request('description'));
+   $name = trim(request('name'));
+$category = trim(request('category'));
+$price = (float) request('price');
+$image = request()->file('image');
+$description = trim(request('description'));
 
     if (
         empty($name) ||
@@ -1588,23 +1595,15 @@ Route::post('/seller/products/store', function () {
     $name = trim(request('name'));
     $category = trim(request('category'));
     $price = (float) request('price');
-    $icon = trim(request('icon'));
     $description = trim(request('description'));
 
-    /*
-    |--------------------------------------------------------------------------
-    | VALIDATION
-    |--------------------------------------------------------------------------
-    */
-
+    // Validate basic fields
     if (
         empty($name) ||
         empty($category) ||
         $price <= 0 ||
-        empty($icon) ||
         empty($description)
     ) {
-
         return back()
             ->withInput()
             ->with(
@@ -1613,39 +1612,74 @@ Route::post('/seller/products/store', function () {
             );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY NAME
-    |--------------------------------------------------------------------------
-    */
+    // Validate image
+    if (!request()->hasFile('image')) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please upload a product image.'
+            );
+    }
 
+    $image = request()->file('image');
+
+    if (!$image->isValid()) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'The uploaded image is invalid.'
+            );
+    }
+
+    $extension = strtolower(
+        $image->getClientOriginalExtension()
+    );
+
+    if (!in_array($extension, [
+        'jpg',
+        'jpeg',
+        'png',
+        'webp'
+    ])) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Product image must be JPG, JPEG, PNG, or WEBP.'
+            );
+    }
+
+    if ($image->getSize() > 5 * 1024 * 1024) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Product image must not be larger than 5MB.'
+            );
+    }
+
+    // Category names
     $categoryNames = [
-
         'smartphone' => 'Smartphone',
         'laptop' => 'Laptop',
         'audio' => 'Audio',
         'wearable' => 'Wearable',
         'accessories' => 'Accessories',
-
     ];
 
     $categoryName =
         $categoryNames[strtolower($category)]
         ?? ucfirst($category);
 
-    /*
-    |--------------------------------------------------------------------------
-    | CHECK DUPLICATE PRODUCT
-    |--------------------------------------------------------------------------
-    */
-
+    // Prevent duplicate product names
     $existingProduct = Product::where(
         'name',
         $name
     )->first();
 
     if ($existingProduct) {
-
         return back()
             ->withInput()
             ->with(
@@ -1654,35 +1688,22 @@ Route::post('/seller/products/store', function () {
             );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | SAVE PRODUCT TO DATABASE
-    |--------------------------------------------------------------------------
-    */
+    // Save uploaded image
+    $imagePath = $image->store(
+        'products',
+        'public'
+    );
 
+    // Create product
     Product::create([
-
         'seller_id' => $user['id'],
-
         'name' => $name,
-
         'category' => $categoryName,
-
         'price' => $price,
-
         'stock' => 0,
-
         'description' => $description,
-
-        'image' => $icon,
-
+        'image' => $imagePath,
     ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | SUCCESS
-    |--------------------------------------------------------------------------
-    */
 
     return redirect()
         ->route('seller.dashboard')
@@ -1693,11 +1714,6 @@ Route::post('/seller/products/store', function () {
 
 })->name('seller.products.store');
 
-/*
-|--------------------------------------------------------------------------
-| SELLER ORDERS
-|--------------------------------------------------------------------------
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -3456,6 +3472,7 @@ Route::put('/seller/products/{id}', function ($id) {
         abort(404);
     }
 
+    // Make sure this product belongs to the logged-in seller
     if ((string) $product->seller_id !== (string) ($user['id'] ?? '')) {
         abort(403);
     }
@@ -3463,15 +3480,19 @@ Route::put('/seller/products/{id}', function ($id) {
     $name = trim(request('name'));
     $category = trim(request('category'));
     $price = (float) request('price');
-    $icon = trim(request('icon'));
     $stock = (int) request('stock');
     $description = trim(request('description'));
+
+    /*
+    |--------------------------------------------------------------------------
+    | Validate fields
+    |--------------------------------------------------------------------------
+    */
 
     if (
         empty($name) ||
         empty($category) ||
         $price <= 0 ||
-        empty($icon) ||
         $stock < 0 ||
         empty($description)
     ) {
@@ -3482,6 +3503,12 @@ Route::put('/seller/products/{id}', function ($id) {
                 'Please complete all product fields.'
             );
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Category
+    |--------------------------------------------------------------------------
+    */
 
     $categoryNames = [
         'smartphone' => 'Smartphone',
@@ -3494,6 +3521,12 @@ Route::put('/seller/products/{id}', function ($id) {
     $categoryName =
         $categoryNames[strtolower($category)]
         ?? ucfirst($category);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prevent duplicate names
+    |--------------------------------------------------------------------------
+    */
 
     $existingProduct = Product::where('name', $name)
         ->where('id', '!=', $product->id)
@@ -3508,11 +3541,77 @@ Route::put('/seller/products/{id}', function ($id) {
             );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | Keep existing image
+    |--------------------------------------------------------------------------
+    */
+
+    $imagePath = $product->image;
+
+    /*
+    |--------------------------------------------------------------------------
+    | New image uploaded?
+    |--------------------------------------------------------------------------
+    */
+
+    if (request()->hasFile('image')) {
+
+        $image = request()->file('image');
+
+        if (!$image->isValid()) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'The uploaded image is invalid.'
+                );
+        }
+
+        $extension = strtolower(
+            $image->getClientOriginalExtension()
+        );
+
+        if (!in_array($extension, [
+            'jpg',
+            'jpeg',
+            'png',
+            'webp'
+        ])) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Product image must be JPG, JPEG, PNG, or WEBP.'
+                );
+        }
+
+        if ($image->getSize() > 5 * 1024 * 1024) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'Product image must not be larger than 5MB.'
+                );
+        }
+
+        $imagePath = $image->store(
+            'products',
+            'public'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Update product
+    |--------------------------------------------------------------------------
+    */
+
     $product->update([
         'name' => $name,
         'category' => $categoryName,
         'price' => $price,
-        'image' => $icon,
+        'image' => $imagePath,
         'stock' => $stock,
         'description' => $description,
     ]);

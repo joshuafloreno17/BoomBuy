@@ -684,41 +684,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                         @foreach($order['items'] ?? [] as $item)
 
-                            <div class="item">
+                           <div class="item">
+    <div>
+        <div class="item-name">
+            {{ $item['product_name'] ?? 'Product' }}
+        </div>
 
-                                <div>
+        <div class="item-info">
+            Quantity: {{ $item['quantity'] ?? 1 }}
+        </div>
+    </div>
 
-                                    <div class="item-name">
-                                        {{ $item['name'] ?? 'Product' }}
-                                    </div>
-
-                                    <div class="item-info">
-
-                                        Quantity:
-                                        {{ $item['quantity'] ?? 1 }}
-
-                                        @if(!empty($item['seller_name']))
-
-                                            • Seller:
-                                            {{ $item['seller_name'] }}
-
-                                        @endif
-
-                                    </div>
-
-                                </div>
-
-<div class="item-price">
-
-    ₱{{ number_format(
-        (float)($item['price'] ?? 0) *
-        (int)($item['quantity'] ?? 1),
-        2
-    ) }}
-
+    <div class="item-price">
+        ₱{{ number_format(
+            (float)($item['price'] ?? 0) *
+            (int)($item['quantity'] ?? 1),
+            2
+        ) }}
+    </div>
 </div>
-
-                            </div>
 
                         @endforeach
 

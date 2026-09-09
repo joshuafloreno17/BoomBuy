@@ -342,11 +342,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <div class="form-box">
 
-        <form
-            action="/seller/products/store"
-            method="POST"
-        >
-
+      <form
+    action="/seller/products/store"
+    method="POST"
+    enctype="multipart/form-data"
+>
             @csrf
 
 
@@ -450,25 +450,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
-            <!-- ICON -->
+           <!-- PRODUCT IMAGE -->
 
-            <div class="form-group">
+<div class="form-group">
+    <label for="image">
+        Product Image
+    </label>
 
-                <label for="icon">
-                    Product Icon
-                </label>
+    <input
+        type="file"
+        id="image"
+        name="image"
+        accept="image/jpeg,image/png,image/jpg,image/webp"
+        required
+    >
 
-                <input
-                    type="text"
-                    id="icon"
-                    name="icon"
-                    value="{{ old('icon') }}"
-                    placeholder="Example: 🎧"
-                    required
-                >
-
-            </div>
-
+    <small style="display:block; margin-top:8px; color:#816f6a;">
+        Upload a clear product photo. JPG, PNG, or WEBP only.
+    </small>
+</div>
 
             <!-- DESCRIPTION -->
 
