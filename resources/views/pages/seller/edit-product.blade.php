@@ -359,10 +359,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         {{-- UPDATE PRODUCT FORM --}}
 
-        <form
-            action="{{ route('seller.products.update', ['id' => $product->id]) }}"
-            method="POST"
-        >
+     <form
+    action="{{ route('seller.products.update', ['id' => $product->id]) }}"
+    method="POST"
+    enctype="multipart/form-data"
+>
 
             @csrf
 
@@ -483,47 +484,73 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
             </div>
 
+{{-- PRODUCT IMAGE + STOCK --}}
 
-            {{-- ICON + STOCK --}}
+<div class="row">
 
-            <div class="row">
+    <div class="form-group">
 
-                <div class="form-group">
+        <label for="image">
+            Product Image
+        </label>
 
-                    <label for="icon">
-                        Product Icon
-                    </label>
-
-                    <input
-                        type="text"
-                        id="icon"
-                        name="icon"
-                        value="{{ old('icon', $product->image ?? '📦') }}"
-                        placeholder="Example: 💻"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="stock">
-                        Stock
-                    </label>
-
-                    <input
-                        type="number"
-                        id="stock"
-                        name="stock"
-                        min="0"
-                        value="{{ old('stock', $product->stock ?? 0) }}"
-                        required
-                    >
-
-                </div>
-
+        {{-- Show current image if it is an uploaded file --}}
+        @if(!empty($product->image) && !str_starts_with($product->image, '📦'))
+            <div style="margin-bottom: 12px;">
+                <img
+                    src="{{ asset('storage/' . $product->image) }}"
+                    alt="{{ $product->name }}"
+                    style="
+                        width: 110px;
+                        height: 110px;
+                        object-fit: contain;
+                        border: 1px solid #f1ded8;
+                        border-radius: 10px;
+                        padding: 8px;
+                        background: white;
+                    "
+                >
             </div>
+        @endif
+
+        <input
+            type="file"
+            id="image"
+            name="image"
+            accept="image/jpeg,image/png,image/jpg,image/webp"
+        >
+
+        <small style="
+            display:block;
+            margin-top:8px;
+            color:#816f6a;
+        ">
+            Leave empty to keep the current image.
+            JPG, PNG, or WEBP only. Max 5MB.
+        </small>
+
+    </div>
+
+
+    <div class="form-group">
+
+        <label for="stock">
+            Stock
+        </label>
+
+        <input
+            type="number"
+            id="stock"
+            name="stock"
+            min="0"
+            value="{{ old('stock', $product->stock ?? 0) }}"
+            required
+        >
+
+    </div>
+
+</div>
+
 
 
             {{-- DESCRIPTION --}}

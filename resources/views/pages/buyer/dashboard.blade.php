@@ -630,9 +630,32 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <div class="product-card">
 
 
-                    <div class="product-icon">
-                        {{ $product['icon'] ?? '📦' }}
-                    </div>
+                  <div class="product-icon">
+
+    @if(
+        !empty($product['image']) &&
+        !str_starts_with($product['image'], '📦') &&
+        !str_starts_with($product['image'], '📱')
+    )
+
+        <img
+            src="{{ asset('storage/' . $product['image']) }}"
+            alt="{{ $product['name'] }}"
+            style="
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border-radius: 10px;
+            "
+        >
+
+    @else
+
+        {{ $product['icon'] ?? '📦' }}
+
+    @endif
+
+</div>
 
 
                     <div class="category">

@@ -482,6 +482,18 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+.product-icon {
+    width: 52px;
+    height: 52px;
+    background: #ffefea;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 25px;
+    flex-shrink: 0;
+}
 </style>
 </head>
 
@@ -727,8 +739,23 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 <div class="product-info">
 
                                     <div class="product-icon">
-                                        {{ $product->image ?? '📦'}}
-                                    </div>
+
+    @if(!empty($product->image) && !str_contains($product->image, '📦') && !str_contains($product->image, '📱'))
+        <img
+            src="{{ asset('storage/' . $product->image) }}"
+            alt="{{ $product->name }}"
+            style="
+                width: 100%;
+                height: 100%;
+                object-fit: contain;
+                border-radius: 10px;
+            "
+        >
+    @else
+        📦
+    @endif
+
+</div>
 
                                     <div>
 
