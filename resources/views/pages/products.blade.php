@@ -1,13 +1,10 @@
 ﻿<!DOCTYPE html>
-
 <html lang="en">
 
 <head>
 
     <meta charset="UTF-8">
-
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>BoomBuy - Products</title>
@@ -15,6 +12,12 @@
     <style>
 
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        .add.added {
+    background: #16a34a;
+    pointer-events: none;
+}
+
 
         * {
             margin: 0;
@@ -175,6 +178,7 @@
             background: #ffffff;
             outline: none;
             cursor: pointer;
+            font-family: inherit;
         }
 
         /* =========================
@@ -204,6 +208,7 @@
             border-radius: 15px;
             overflow: hidden;
             transition: 0.25s;
+            cursor: default;
         }
 
         .product-card:hover {
@@ -212,26 +217,17 @@
             border-color: #fad3c7;
         }
 
+        /* =========================
+           PRODUCT IMAGE
+        ========================= */
+
         .product-image {
             height: 220px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 82px;
             position: relative;
-        }
-
-        .product-real-image {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-            padding: 18px;
-            display: block;
-        }
-
-        .product-emoji {
-            font-size: 82px;
-            line-height: 1;
+            overflow: hidden;
         }
 
         .product-image::after {
@@ -243,6 +239,14 @@
             font-weight: 700;
             letter-spacing: 1px;
             color: rgba(23, 105, 224, 0.25);
+            pointer-events: none;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
         .blue {
@@ -277,8 +281,21 @@
             background: linear-gradient(145deg, #fffbeb, #fef3c7);
         }
 
+        /* =========================
+           PRODUCT INFO
+        ========================= */
+
         .product-info {
             padding: 19px;
+        }
+
+        .category {
+            color: #e47452;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            font-weight: 700;
         }
 
         .product-name {
@@ -308,6 +325,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 10px;
         }
 
         .price {
@@ -326,6 +344,7 @@
             font-size: 12px;
             font-weight: 600;
             transition: 0.2s;
+            white-space: nowrap;
         }
 
         .add:hover {
@@ -417,6 +436,74 @@
         }
 
         /* =========================
+           BOOMBUY DESIGN SYSTEM
+        ========================= */
+
+        h1,
+        h2,
+        h3,
+        .logo,
+        .hero-title,
+        .hero h1,
+        .section-title,
+        .page-title,
+        .product-title,
+        .price,
+        .cta,
+        .cta-title,
+        .brand,
+        .checkout-title,
+        .card-title,
+        .modal-title,
+        .auth-title,
+        .form-title,
+        .empty-title,
+        .step-title,
+        .order-title,
+        .stat-title,
+        .stat-value,
+        .banner-title {
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        button,
+        .btn,
+        [class*="btn-"],
+        .add-to-cart,
+        .buy-now,
+        .checkout-btn,
+        .register-btn,
+        .login-btn,
+        .submit-btn,
+        .primary-btn {
+            border-radius: 12px !important;
+            transition: transform 0.15s ease,
+                        box-shadow 0.15s ease,
+                        background 0.15s ease;
+        }
+
+        button:hover,
+        .btn:hover,
+        [class*="btn-"]:hover,
+        .add-to-cart:hover,
+        .buy-now:hover,
+        .primary-btn:hover {
+            transform: translateY(-1px);
+        }
+
+        .card,
+        [class*="-card"],
+        .product-card {
+            border-radius: 16px !important;
+        }
+
+        ::selection {
+            background: #ffd7c2;
+            color: #7c1a00;
+        }
+
+        /* =========================
            RESPONSIVE
         ========================= */
 
@@ -485,70 +572,6 @@
 
         }
 
-        /* ===== BoomBuy Vibrant Design System Overrides ===== */
-
-        h1,
-        h2,
-        h3,
-        .logo,
-        .hero-title,
-        .hero h1,
-        .section-title,
-        .page-title,
-        .product-title,
-        .price,
-        .cta,
-        .cta-title,
-        .brand,
-        .checkout-title,
-        .card-title,
-        .modal-title,
-        .auth-title,
-        .form-title,
-        .empty-title,
-        .step-title,
-        .order-title,
-        .stat-title,
-        .stat-value,
-        .banner-title {
-            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-            letter-spacing: -0.01em;
-        }
-
-        button,
-        .btn,
-        [class*="btn-"],
-        .add-to-cart,
-        .buy-now,
-        .checkout-btn,
-        .register-btn,
-        .login-btn,
-        .submit-btn,
-        .primary-btn {
-            border-radius: 12px !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-        }
-
-        button:hover,
-        .btn:hover,
-        [class*="btn-"]:hover,
-        .add-to-cart:hover,
-        .buy-now:hover,
-        .primary-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .card,
-        [class*="-card"],
-        .product-card {
-            border-radius: 16px !important;
-        }
-
-        ::selection {
-            background: #ffd7c2;
-            color: #7c1a00;
-        }
-
     </style>
 
 </head>
@@ -565,21 +588,19 @@
             Boom<span>Buy</span>
         </a>
 
-        <div class="nav-links">
+       <div class="nav-links">
+    <a href="{{ route('buyer.dashboard') }}">
+        Home
+    </a>
 
-            <a href="{{ route('buyer.dashboard') }}">
-                Home
-            </a>
+    <a href="{{ route('products') }}" class="active">
+        Shop
+    </a>
 
-            <a href="{{ route('products') }}" class="active">
-                Shop
-            </a>
-
-            <a href="#about">
-                About
-            </a>
-
-        </div>
+    <a href="#about">
+        About
+    </a>
+</div>
 
         <div class="nav-right">
 
@@ -629,14 +650,16 @@
 
     <section class="page-header">
 
-        <small>BoomBuy Marketplace</small>
+        <small>
+            BoomBuy Marketplace
+        </small>
 
         <h1>
             Shop everything you need.
         </h1>
 
         <p>
-            Discover products from different sellers,
+            Discover products from different categories and sellers,
             all in one convenient marketplace.
         </p>
 
@@ -644,7 +667,7 @@
 
 
     <!-- =========================
-         SORT
+         SORT BAR
     ========================= -->
 
     <div class="filter-bar">
@@ -699,6 +722,7 @@
 
             @endphp
 
+
             @foreach($products as $index => $product)
 
                 @php
@@ -725,6 +749,169 @@
                     $stock =
                         (int) ($product['stock'] ?? 0);
 
+                    $rawCategory =
+                        strtolower(
+                            $product['category']
+                            ?? 'other'
+                        );
+
+
+                    if (
+                        str_contains(
+                            $rawCategory,
+                            'smartphone'
+                        ) ||
+                        str_contains(
+                            $rawCategory,
+                            'laptop'
+                        ) ||
+                        str_contains(
+                            $rawCategory,
+                            'audio'
+                        ) ||
+                        str_contains(
+                            $rawCategory,
+                            'wearable'
+                        ) ||
+                        str_contains(
+                            $rawCategory,
+                            'electronic'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'electronics';
+
+                        $displayCategory =
+                            'Electronics & Gadgets';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'women'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'women';
+
+                        $displayCategory =
+                            "Women's Apparel";
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'men'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'men';
+
+                        $displayCategory =
+                            "Men's Apparel";
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'kid'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'kids';
+
+                        $displayCategory =
+                            'Kids & Baby';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'home'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'home';
+
+                        $displayCategory =
+                            'Home & Garden';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'sport'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'sports';
+
+                        $displayCategory =
+                            'Sports & Outdoors';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'beauty'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'beauty';
+
+                        $displayCategory =
+                            'Health & Beauty';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'food'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'food';
+
+                        $displayCategory =
+                            'Food & Gourmet';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'auto'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'automotive';
+
+                        $displayCategory =
+                            'Automotive & Motorcycle';
+
+                    } elseif (
+                        str_contains(
+                            $rawCategory,
+                            'office'
+                        )
+                    ) {
+
+                        $filterCategory =
+                            'office';
+
+                        $displayCategory =
+                            'Office & School Supplies';
+
+                    } else {
+
+                        $filterCategory =
+                            'electronics';
+
+                        $displayCategory =
+                            ucfirst($rawCategory);
+
+                    }
+
                     $background =
                         $backgrounds[
                             $index % count($backgrounds)
@@ -734,38 +921,58 @@
 
 
                 <div
-                    class="product-card"
-                    data-price="{{ $price }}"
-                    data-rating="0"
-                    data-url="/product-details/{{ $slug }}"
-                >
+    class="product-card"
+    data-category="{{ $filterCategory }}"
+    data-price="{{ $price }}"
+    data-rating="{{ (float) ($product['rating'] ?? 0) }}"
+    data-url="/product-details/{{ $slug }}"
+    data-product-id="{{ $product['id'] ?? '' }}"
+>
+
+
+                    <!-- PRODUCT IMAGE -->
 
                     <div class="product-image {{ $background }}">
 
                         @if(
-                            !empty($image) &&
-                            !str_contains($image, '📦') &&
-                            !str_contains($image, '📱')
+                            $image &&
+                            $image !== '📦'
                         )
 
                             <img
-                                src="{{ asset('storage/' . $image) }}"
+                                src="{{ str_starts_with($image, 'http')
+                                    ? $image
+                                    : asset('storage/' . ltrim($image, '/')) }}"
                                 alt="{{ $name }}"
-                                class="product-real-image"
                             >
 
                         @else
 
-                            <span class="product-emoji">
-                                {{ $image }}
-                            </span>
+                            <div
+                                style="
+                                    width: 100%;
+                                    height: 100%;
+                                    display: flex;
+                                    align-items: center;
+                                    justify-content: center;
+                                    font-size: 82px;
+                                "
+                            >
+                                📦
+                            </div>
 
                         @endif
 
                     </div>
 
 
+                    <!-- PRODUCT INFO -->
+
                     <div class="product-info">
+
+                        <div class="category">
+                            {{ $displayCategory }}
+                        </div>
 
                         <div class="product-name">
                             {{ $name }}
@@ -774,11 +981,13 @@
                         <div class="description">
                             {{ $description }}
                         </div>
-
-                        <div class="rating">
-                            <span>★</span>
-                            0.0 · 0 reviews
-                        </div>
+<div class="rating">
+    <span>★</span>
+    {{ number_format((float) ($product['rating'] ?? 0), 1) }}
+    ·
+    {{ (int) ($product['reviews'] ?? 0) }}
+    {{ (int) ($product['reviews'] ?? 0) === 1 ? 'review' : 'reviews' }}
+</div>
 
                         <div class="bottom">
 
@@ -786,27 +995,31 @@
                                 ₱{{ number_format($price, 2) }}
                             </div>
 
-                            <button
-                                class="add"
+                    @if($stock > 0)
+    <form
+        action="{{ route('cart.add', $product['id']) }}"
+        method="POST"
+        class="add-to-cart-form"
+    >
+        @csrf
 
-                                @if($stock <= 0)
-                                    disabled
-                                    title="Out of stock"
-                                @endif
-                            >
-
-                                @if($stock > 0)
-
-                                    Add to cart
-
-                                @else
-
-                                    Out of stock
-
-                                @endif
-
-                            </button>
-
+        <button
+            type="submit"
+            class="add"
+        >
+            Add to cart
+        </button>
+    </form>
+@else
+    <button
+        type="button"
+        class="add"
+        disabled
+        title="Out of stock"
+    >
+        Out of stock
+    </button>
+@endif
                         </div>
 
                     </div>
@@ -843,7 +1056,10 @@
          ABOUT SECTION
     ========================= -->
 
-    <section id="about" class="about-section">
+    <section
+        id="about"
+        class="about-section"
+    >
 
         <div class="about-content">
 
@@ -857,7 +1073,7 @@
 
             <p>
                 BoomBuy is an online marketplace where buyers can
-                discover products from different sellers
+                discover products from different categories and sellers
                 in one convenient platform.
             </p>
 
@@ -897,20 +1113,30 @@
 
         const products =
             Array.from(
-                document.querySelectorAll(".product-card")
+                document.querySelectorAll(
+                    ".product-card"
+                )
             );
 
         const searchInput =
-            document.getElementById("searchInput");
+            document.getElementById(
+                "searchInput"
+            );
 
         const sortSelect =
-            document.getElementById("sortSelect");
+            document.getElementById(
+                "sortSelect"
+            );
 
         const results =
-            document.getElementById("results");
+            document.getElementById(
+                "results"
+            );
 
         const empty =
-            document.getElementById("empty");
+            document.getElementById(
+                "empty"
+            );
 
 
         /* =========================
@@ -930,23 +1156,36 @@
 
                     const name =
                         product
-                            .querySelector(".product-name")
+                            .querySelector(
+                                ".product-name"
+                            )
                             .textContent
                             .toLowerCase();
+
+
+                    const categoryText =
+                        product
+                            .querySelector(
+                                ".category"
+                            )
+                            .textContent
+                            .toLowerCase();
+
 
                     const description =
                         product
-                            .querySelector(".description")
+                            .querySelector(
+                                ".description"
+                            )
                             .textContent
                             .toLowerCase();
 
 
-                    const matchesSearch =
+                    return (
                         name.includes(search) ||
-                        description.includes(search);
-
-
-                    return matchesSearch;
+                        categoryText.includes(search) ||
+                        description.includes(search)
+                    );
 
                 });
 
@@ -963,8 +1202,12 @@
 
                 visibleProducts.sort(
                     (a, b) =>
-                        Number(a.dataset.price) -
-                        Number(b.dataset.price)
+                        Number(
+                            a.dataset.price
+                        ) -
+                        Number(
+                            b.dataset.price
+                        )
                 );
 
             }
@@ -974,8 +1217,12 @@
 
                 visibleProducts.sort(
                     (a, b) =>
-                        Number(b.dataset.price) -
-                        Number(a.dataset.price)
+                        Number(
+                            b.dataset.price
+                        ) -
+                        Number(
+                            a.dataset.price
+                        )
                 );
 
             }
@@ -985,15 +1232,19 @@
 
                 visibleProducts.sort(
                     (a, b) =>
-                        Number(b.dataset.rating) -
-                        Number(a.dataset.rating)
+                        Number(
+                            b.dataset.rating
+                        ) -
+                        Number(
+                            a.dataset.rating
+                        )
                 );
 
             }
 
 
             /* =========================
-               HIDE ALL
+               HIDE ALL PRODUCTS
             ========================= */
 
             products.forEach(product => {
@@ -1014,7 +1265,9 @@
                     "block";
 
                 document
-                    .getElementById("productGrid")
+                    .getElementById(
+                        "productGrid"
+                    )
                     .appendChild(product);
 
             });
@@ -1065,194 +1318,109 @@
 
 
         /* =========================
-           ADD TO CART
-        ========================= */
+   ADD TO CART
+========================= */
 
-        document
-            .querySelectorAll(".add")
-            .forEach(button => {
+document
+    .querySelectorAll(".add-to-cart-form")
+    .forEach(form => {
 
-                button.addEventListener(
-                    "click",
-                    async function(event) {
+        form.addEventListener("submit", async function(event) {
 
-                        event.preventDefault();
-                        event.stopPropagation();
+            event.preventDefault();
 
+            const button = form.querySelector(".add");
 
-                        const button =
-                            this;
+            if (!button) {
+                return;
+            }
 
-                        const card =
-                            button.closest(
-                                ".product-card"
-                            );
+            const originalText = button.textContent;
 
+            button.disabled = true;
+            button.textContent = "Adding...";
 
-                        if (!card) {
-                            return;
-                        }
+            try {
 
+                const response = await fetch(
+                    form.action,
+                    {
+                        method: "POST",
+                        headers: {
+                            "X-CSRF-TOKEN":
+                                document
+                                    .querySelector(
+                                        'meta[name="csrf-token"]'
+                                    )
+                                    .getAttribute("content"),
 
-                        const url =
-                            card.dataset.url;
-
-
-                        const slug =
-                            url
-                                .split("/")
-                                .pop();
-
-
-                        const csrfElement =
-                            document.querySelector(
-                                'meta[name="csrf-token"]'
-                            );
-
-
-                        if (!csrfElement) {
-
-                            alert(
-                                "CSRF token is missing."
-                            );
-
-                            return;
-
-                        }
-
-
-                        const csrf =
-                            csrfElement.getAttribute(
-                                "content"
-                            );
-
-
-                        const originalText =
-                            button.textContent;
-
-
-                        button.disabled =
-                            true;
-
-                        button.textContent =
-                            "Adding...";
-
-
-                        try {
-
-                            const response =
-                                await fetch(
-                                    `/cart/add/${slug}`,
-                                    {
-                                        method: "POST",
-
-                                        headers: {
-                                            "X-CSRF-TOKEN":
-                                                csrf,
-
-                                            "Accept":
-                                                "application/json",
-
-                                            "X-Requested-With":
-                                                "XMLHttpRequest"
-                                        }
-                                    }
-                                );
-
-
-                            if (!response.ok) {
-
-                                throw new Error(
-                                    `HTTP Error: ${response.status}`
-                                );
-
-                            }
-
-
-                            /* SUCCESS */
-
-                            button.textContent =
-                                "Added ✓";
-
-                            button.style.background =
-                                "#16a34a";
-
-
-                            /* UPDATE CART BADGE */
-
-                            const cartBadge =
-                                document.querySelector(
-                                    ".cart-badge"
-                                );
-
-
-                            if (cartBadge) {
-
-                                let currentCount =
-                                    parseInt(
-                                        cartBadge.textContent
-                                    ) || 0;
-
-
-                                cartBadge.textContent =
-                                    currentCount + 1;
-
-
-                                cartBadge.style.display =
-                                    "inline-flex";
-
-                            }
-
-
-                            setTimeout(() => {
-
-                                button.textContent =
-                                    originalText;
-
-                                button.style.background =
-                                    "#e8420f";
-
-                                button.disabled =
-                                    false;
-
-                            }, 1000);
-
-
-                        } catch (error) {
-
-                            console.error(
-                                "Add to cart error:",
-                                error
-                            );
-
-
-                            button.textContent =
-                                "Error";
-
-                            button.style.background =
-                                "#dc2626";
-
-
-                            setTimeout(() => {
-
-                                button.textContent =
-                                    originalText;
-
-                                button.style.background =
-                                    "#e8420f";
-
-                                button.disabled =
-                                    false;
-
-                            }, 1500);
-
-                        }
-
+                            "Accept": "application/json",
+                            "X-Requested-With": "XMLHttpRequest"
+                        },
+                        body: new FormData(form)
                     }
-
                 );
 
-            });
+                if (!response.ok) {
+                    throw new Error("Failed to add product.");
+                }
+
+                button.textContent = "✓ Added!";
+                button.classList.add("added");
+
+                /* UPDATE CART BADGE */
+
+                const cartBadge =
+                    document.getElementById("cartCount");
+
+                if (cartBadge) {
+
+                    let currentCount =
+                        parseInt(
+                            cartBadge.textContent
+                        ) || 0;
+
+                    currentCount++;
+
+                    cartBadge.textContent =
+                        currentCount;
+
+                    cartBadge.style.display =
+                        "inline-flex";
+                }
+
+                /* RETURN BUTTON TO NORMAL */
+
+                setTimeout(() => {
+
+                    button.textContent =
+                        originalText;
+
+                    button.classList.remove("added");
+
+                    button.disabled = false;
+
+                }, 1500);
+
+            } catch (error) {
+
+                console.error(error);
+
+                button.textContent =
+                    "Try again";
+
+                button.disabled = false;
+
+                setTimeout(() => {
+
+                    button.textContent =
+                        originalText;
+
+                }, 1500);
+            }
+        });
+    });
+
 
 
         /* =========================

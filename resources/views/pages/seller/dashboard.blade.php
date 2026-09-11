@@ -10,23 +10,6 @@
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-.orders-btn {
-    background: #fff2ee;
-    color: #e8420f;
-    padding: 11px 16px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    border: 1px solid #ffd9cd;
-    transition: 0.2s;
-}
-
-.orders-btn:hover {
-    background: #ffe4dc;
-    transform: translateY(-1px);
-}
-
-
         * {
             margin: 0;
             padding: 0;
@@ -78,7 +61,7 @@
 
         .logout {
             border: none;
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             padding: 8px 12px;
             border-radius: 7px;
@@ -141,7 +124,7 @@
         }
 
         .alert-error {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             padding: 13px 16px;
             border-radius: 9px;
@@ -282,6 +265,8 @@
             height: 52px;
             background: #ffefea;
             border-radius: 10px;
+            overflow: hidden;
+            flex-shrink: 0;
 
             display: flex;
             align-items: center;
@@ -356,7 +341,7 @@
         }
 
         .delete-btn {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
         }
 
@@ -483,41 +468,98 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     color: #7c1a00;
 }
 
-.product-icon {
-    width: 52px;
-    height: 52px;
-    background: #ffefea;
-    border-radius: 10px;
+/* ===== Sidebar layout ===== */
+.layout { display: flex; }
+.sidebar {
+    width: 230px;
+    background: #ffffff;
+    border-right: 1px solid #ffe9e2;
+    padding: 25px 18px;
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 25px;
-    flex-shrink: 0;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 1000;
+    overflow-y: auto;
+}
+.sidebar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b99c93;
+    margin-top: 22px;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+.sidebar .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+.sidebar .menu a {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    color: #8d6c62;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
+    background: #fff4f1;
+    color: #e8420f;
+}
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #ffe9e2;
+}
+.main-content {
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    min-width: 0;
+}
+@media (max-width: 900px) {
+    .sidebar { width: 72px; padding: 20px 8px; }
+    .sidebar .label-text, .sidebar-label { display: none; }
+    .sidebar .menu a { text-align: center; }
+    .main-content { margin-left: 72px; width: calc(100% - 72px); }
 }
 </style>
 </head>
 
 <body>
 
-<!-- NAVBAR -->
+<div class="layout">
 
-<nav class="navbar">
+<!-- SIDEBAR -->
+<aside class="sidebar">
 
     <a href="/" class="logo">
         Boom<span>Buy</span>
     </a>
 
-    <div class="nav-right">
+    <div class="sidebar-label">Seller Panel</div>
 
-        <span class="user">
+    <nav class="menu">
+        <a href="{{ route('seller.dashboard') }}" class="active">📊 <span class="label-text">Dashboard</span></a>
+        <a href="{{ route('seller.products.create') }}">➕ <span class="label-text">Add Product</span></a>
+        <a href="{{ route('seller.orders') }}">🛒 <span class="label-text">Orders</span></a>
+    </nav>
+
+    <div class="sidebar-footer">
+
+        <div class="user" style="padding:0 4px; margin-bottom:8px;">
             Seller: {{ $user['name'] ?? 'Seller' }}
-        </span>
+        </div>
 
         <form action="{{ route('logout') }}" method="POST">
 
             @csrf
 
-            <button type="submit" class="logout">
+            <button type="submit" class="logout" style="width:100%;">
                 Logout
             </button>
 
@@ -525,12 +567,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     </div>
 
-</nav>
+</aside>
 
 
 <!-- MAIN -->
 
-<main class="container">
+<main class="main-content">
+
+<div class="container">
 
     <!-- WELCOME -->
 
@@ -665,19 +709,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <!-- PRODUCTS HEADER -->
 
- <div class="top">
-    <h2>
-        My Products
-    </h2>
+    <div class="top">
 
-    <div style="display:flex; gap:10px; align-items:center;">
-
-        <a
-            href="{{ route('seller.orders') }}"
-            class="orders-btn"
-        >
-            📦 Manage Orders
-        </a>
+        <h2>
+            My Products
+        </h2>
 
         <a
             href="{{ route('seller.products.create') }}"
@@ -687,7 +723,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         </a>
 
     </div>
-</div>
 
 
     <!-- PRODUCTS -->
@@ -739,23 +774,16 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 <div class="product-info">
 
                                     <div class="product-icon">
-
-    @if(!empty($product->image) && !str_contains($product->image, '📦') && !str_contains($product->image, '📱'))
-        <img
-            src="{{ asset('storage/' . $product->image) }}"
-            alt="{{ $product->name }}"
-            style="
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                border-radius: 10px;
-            "
-        >
-    @else
-        📦
-    @endif
-
-</div>
+                                        @php
+                                            $pImg = $product->image ?? null;
+                                            $pIsImg = is_string($pImg) && (str_contains($pImg, '.jpg') || str_contains($pImg, '.jpeg') || str_contains($pImg, '.png') || str_contains($pImg, '.webp') || str_contains($pImg, '/'));
+                                        @endphp
+                                        @if($pIsImg)
+                                            <img src="{{ str_starts_with($pImg, 'http') ? $pImg : asset('storage/' . ltrim($pImg, '/')) }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                        @else
+                                            {{ $pImg ?? '📦' }}
+                                        @endif
+                                    </div>
 
                                     <div>
 
@@ -877,7 +905,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     @endif
 
+</div>
+
 </main>
+
+</div><!-- /.layout -->
 
 
 <!-- FOOTER -->

@@ -100,7 +100,7 @@
         }
 
         .error {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             border: 1px solid #ffd0d0;
             padding: 13px 16px;

@@ -530,7 +530,35 @@
 
                 height: auto;
 
-                padding-bottom: 80px;
+                display: flex;
+                flex-direction: column;
+                padding: 14px 16px;
+            }
+
+            .logo {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                margin-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .menu a {
+                white-space: nowrap;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                font-size: 13px;
+                padding: 10px 14px;
             }
 
             .main {
@@ -538,7 +566,8 @@
             }
 
             .logout {
-                position: absolute;
+                position: static;
+                margin-top: 10px;
             }
 
             .deliveries {

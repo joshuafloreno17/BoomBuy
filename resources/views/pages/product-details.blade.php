@@ -113,7 +113,7 @@
 
         .logout {
             border: none;
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
 
             padding: 8px 12px;
@@ -177,6 +177,7 @@
             min-height: 420px;
 
             border-radius: 16px;
+            overflow: hidden;
 
             background:
                 {{ $product['background'] ?? 'linear-gradient(145deg, #ffede8, #ffdfd5)' }};
@@ -552,11 +553,44 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         <!-- PRODUCT IMAGE / ICON -->
 
-        <div class="product-visual">
+  {{-- PRODUCT IMAGE --}}
+<div class="product-visual">
 
-            {{ $product['icon'] ?? '📦' }}
+    @php
+        $productImage = $product['image'] ?? null;
+    @endphp
 
+    @if($productImage)
+
+        <img
+            src="{{ str_starts_with($productImage, 'http')
+                ? $productImage
+                : asset('storage/' . ltrim($productImage, '/')) }}"
+            alt="{{ $product['name'] ?? 'Product' }}"
+            style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+                display: block;
+            "
+        >
+
+    @else
+
+        <div style="
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 120px;
+        ">
+            📦
         </div>
+
+    @endif
+
+</div>
 
 
         <!-- PRODUCT INFORMATION -->
@@ -647,7 +681,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <!-- ADD TO CART -->
 
                 <form
-                    action="{{ route('cart.add', $product['slug']) }}"
+                    action="{{ route('cart.add', $product->id) }}"
                     method="POST"
                     style="flex:1;"
                 >
@@ -668,7 +702,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <!-- BUY NOW -->
 
                 <form
-                    action="{{ route('buy.now', $product['slug']) }}"
+                    action="{{ route('buy.now', $product->id) }}"
                     method="POST"
                     style="flex:1;"
                     id="buyNowForm"

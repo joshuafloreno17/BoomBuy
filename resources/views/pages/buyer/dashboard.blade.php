@@ -115,7 +115,7 @@
 
         .logout {
             border: none;
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             padding: 8px 12px;
             border-radius: 7px;
@@ -251,6 +251,7 @@
             height: 130px;
             border-radius: 10px;
             background: #ffefea;
+            overflow: hidden;
 
             display: flex;
             align-items: center;
@@ -419,6 +420,78 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+/* ===== Sidebar layout ===== */
+.layout { display: flex; }
+.sidebar {
+    width: 230px;
+    background: #ffffff;
+    border-right: 1px solid #ffe9e2;
+    padding: 25px 18px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0; top: 0; bottom: 0;
+    z-index: 1000;
+    overflow-y: auto;
+}
+.sidebar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b99c93;
+    margin-top: 22px;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+.sidebar .menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+.sidebar .menu a {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    color: #8d6c62;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+.sidebar .menu a:hover,
+.sidebar .menu a.active {
+    background: #fff4f1;
+    color: #e8420f;
+}
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #ffe9e2;
+}
+.sidebar-footer .back {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    color: #8d6c62;
+    font-size: 13px;
+    font-weight: 600;
+}
+.sidebar-footer .back:hover {
+    background: #fff4f1;
+    color: #e8420f;
+}
+.main-content {
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    min-width: 0;
+}
+@media (max-width: 900px) {
+    .sidebar { width: 72px; padding: 20px 8px; }
+    .sidebar .label-text, .sidebar-label { display: none; }
+    .sidebar .menu a { text-align: center; }
+    .main-content { margin-left: 72px; width: calc(100% - 72px); }
+}
 </style>
 
 </head>
@@ -507,13 +580,38 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 </nav>
 
 
+<div class="layout">
+
+<aside class="sidebar">
+
+    <div class="sidebar-label">My Account</div>
+
+    <nav class="menu">
+        <a href="{{ route('buyer.dashboard') }}" class="active">🏠 <span class="label-text">Overview</span></a>
+        <a href="{{ route('buyer.orders') }}">📦 <span class="label-text">My Orders</span></a>
+        <a href="{{ route('products') }}">🛍️ <span class="label-text">Shop</span></a>
+        <a href="{{ route('cart') }}">🛒 <span class="label-text">Cart</span></a>
+    </nav>
+
+    <div class="sidebar-footer">
+        <form action="{{ route('logout') }}" method="POST">
+            @csrf
+            <button type="submit" class="logout" style="width:100%;">
+                Logout
+            </button>
+        </form>
+    </div>
+
+</aside>
 
 
 <!-- =========================
      MAIN
 ========================= -->
 
-<main class="container">
+<main class="main-content">
+
+<div class="container">
 
 
     <!-- WELCOME -->
@@ -630,32 +728,17 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <div class="product-card">
 
 
-                  <div class="product-icon">
-
-    @if(
-        !empty($product['image']) &&
-        !str_starts_with($product['image'], '📦') &&
-        !str_starts_with($product['image'], '📱')
-    )
-
-        <img
-            src="{{ asset('storage/' . $product['image']) }}"
-            alt="{{ $product['name'] }}"
-            style="
-                width: 100%;
-                height: 100%;
-                object-fit: contain;
-                border-radius: 10px;
-            "
-        >
-
-    @else
-
-        {{ $product['icon'] ?? '📦' }}
-
-    @endif
-
-</div>
+                    <div class="product-icon">
+                        @php
+                            $pIcon = $product['icon'] ?? '📦';
+                            $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
+                        @endphp
+                        @if($pIsImg)
+                            <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                        @else
+                            {{ $pIcon }}
+                        @endif
+                    </div>
 
 
                     <div class="category">
@@ -709,7 +792,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @endif
 
 
+</div>
+
 </main>
+
+</div><!-- /.layout -->
 
 
 <!-- =========================

@@ -154,6 +154,8 @@
             height: 48px;
             border-radius: 10px;
             background: #fff2ee;
+            overflow: hidden;
+            flex-shrink: 0;
 
             display: flex;
             align-items: center;
@@ -480,7 +482,15 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                                 <div class="product-icon">
 
-                                    {{ $product['icon'] ?? '📦' }}
+                                    @php
+                                        $pIcon = $product['icon'] ?? '📦';
+                                        $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
+                                    @endphp
+                                    @if($pIsImg)
+                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                    @else
+                                        {{ $pIcon }}
+                                    @endif
 
                                 </div>
 

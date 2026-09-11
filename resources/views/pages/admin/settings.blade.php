@@ -91,6 +91,12 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+@media (max-width: 640px) {
+    .container { width: 92%; margin: 24px auto; }
+    .header h1 { font-size: 24px; }
+    .card { padding: 18px; }
+}
 </style>
 </head>
 

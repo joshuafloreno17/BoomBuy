@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Add Product — BoomBuy Seller</title>
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -30,22 +26,34 @@
             text-decoration: none;
         }
 
-        /* NAVBAR */
+        /* =========================
+           SIDEBAR
+        ========================= */
 
-        .navbar {
-            width: 100%;
-            background: #ffffff;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
-
+        .layout {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 230px;
+            background: #ffffff;
+            border-right: 1px solid #ffe9e2;
+            padding: 25px 18px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
         }
 
         .logo {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 23px;
-            font-weight: 700;
+            font-weight: 800;
             color: #e8420f;
         }
 
@@ -53,17 +61,68 @@
             color: #172033;
         }
 
-        .back {
-            color: #e8420f;
-            font-size: 13px;
+        .sidebar-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #b99c93;
+            margin-top: 22px;
+            margin-bottom: 4px;
             font-weight: 700;
         }
 
-        .back:hover {
-            color: #c43408;
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
         }
 
-        /* CONTAINER */
+        .menu a {
+            display: block;
+            padding: 12px;
+            border-radius: 10px;
+            color: #8d6c62;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .menu a:hover,
+        .menu a.active {
+            background: #fff4f1;
+            color: #e8420f;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #ffe9e2;
+        }
+
+        .sidebar-footer a {
+            display: block;
+            padding: 12px;
+            border-radius: 10px;
+            color: #8d6c62;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer a:hover {
+            background: #fff4f1;
+            color: #e8420f;
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main-content {
+            margin-left: 230px;
+            width: calc(100% - 230px);
+            min-width: 0;
+        }
 
         .container {
             width: 86%;
@@ -84,8 +143,11 @@
         }
 
         .header h1 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 36px;
+            font-weight: 800;
             margin-top: 8px;
+            letter-spacing: -0.01em;
         }
 
         .header p {
@@ -94,10 +156,12 @@
             margin-top: 8px;
         }
 
-        /* ERROR */
+        /* =========================
+           ALERTS
+        ========================= */
 
         .error {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             border: 1px solid #ffd0d0;
             padding: 13px 16px;
@@ -105,8 +169,6 @@
             margin-bottom: 20px;
             font-size: 13px;
         }
-
-        /* SUCCESS */
 
         .success {
             background: #effdf4;
@@ -118,7 +180,9 @@
             font-size: 13px;
         }
 
-        /* FORM */
+        /* =========================
+           FORM
+        ========================= */
 
         .form-box {
             background: #ffffff;
@@ -149,11 +213,9 @@
             padding: 12px 14px;
             border-radius: 8px;
             outline: none;
-
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
             font-size: 13px;
             color: #172033;
-
             transition: 0.2s;
         }
 
@@ -162,7 +224,7 @@
         textarea:focus {
             border-color: #e8420f;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.08);
+            box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.08);
         }
 
         textarea {
@@ -170,7 +232,71 @@
             resize: vertical;
         }
 
-        /* BUTTONS */
+        /* =========================
+           IMAGE UPLOAD
+        ========================= */
+
+        .image-upload {
+            border: 1.5px dashed #f3cfc4;
+            background: #fffaf8;
+            border-radius: 12px;
+            padding: 22px;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        .image-upload:hover {
+            border-color: #e8420f;
+            background: #fff7f4;
+        }
+
+        .image-upload-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .image-upload-title {
+            font-size: 13px;
+            font-weight: 700;
+            color: #563a32;
+            margin-bottom: 5px;
+        }
+
+        .image-upload-text {
+            font-size: 11px;
+            color: #a0847b;
+            margin-bottom: 14px;
+        }
+
+        .file-input {
+            background: #ffffff;
+            cursor: pointer;
+            padding: 10px;
+        }
+
+        .image-preview {
+            display: none;
+            margin-top: 18px;
+        }
+
+        .image-preview img {
+            width: 160px;
+            height: 160px;
+            object-fit: cover;
+            border-radius: 14px;
+            border: 1px solid #f3ddd6;
+            box-shadow: 0 8px 20px rgba(39, 84, 150, 0.08);
+        }
+
+        .preview-label {
+            margin-top: 8px;
+            font-size: 11px;
+            color: #8d6c62;
+        }
+
+        /* =========================
+           BUTTONS
+        ========================= */
 
         .buttons {
             display: flex;
@@ -182,13 +308,10 @@
             border: none;
             background: #e8420f;
             color: #ffffff;
-
             padding: 13px 22px;
-            border-radius: 8px;
-
+            border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
-
             cursor: pointer;
             transition: 0.2s;
         }
@@ -201,10 +324,8 @@
         .cancel {
             background: #f9f0ed;
             color: #7c5a50;
-
             padding: 13px 22px;
-            border-radius: 8px;
-
+            border-radius: 12px;
             font-size: 13px;
             font-weight: 700;
         }
@@ -213,13 +334,33 @@
             background: #f1e5e1;
         }
 
-        /* MOBILE */
+        /* =========================
+           MOBILE
+        ========================= */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 72px;
+                padding: 20px 8px;
+            }
+
+            .sidebar .label-text,
+            .sidebar-label {
+                display: none;
+            }
+
+            .menu a {
+                text-align: center;
+            }
+
+            .main-content {
+                margin-left: 72px;
+                width: calc(100% - 72px);
+            }
+        }
 
         @media (max-width: 600px) {
-
-            .navbar {
-                padding: 16px 5%;
-            }
 
             .container {
                 width: 92%;
@@ -244,279 +385,371 @@
                 text-align: center;
             }
 
+            .image-preview img {
+                width: 130px;
+                height: 130px;
+            }
         }
-
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
-
+    </style>
 </head>
-
 
 <body>
 
+<div class="layout">
 
-<!-- NAVBAR -->
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-<nav class="navbar">
+        <a href="/" class="logo">
+            Boom<span>Buy</span>
+        </a>
 
-    <a href="/" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <a href="/seller" class="back">
-        ← Seller Dashboard
-    </a>
-
-</nav>
-
-
-<!-- MAIN -->
-
-<main class="container">
-
-
-    <div class="header">
-
-        <small>
-            Seller
-        </small>
-
-        <h1>
-            Add Product
-        </h1>
-
-        <p>
-            Add a new product to your BoomBuy store.
-        </p>
-
-    </div>
-
-
-    <!-- ERROR MESSAGE -->
-
-    @if(session('error'))
-
-        <div class="error">
-            ✕ {{ session('error') }}
+        <div class="sidebar-label">
+            Seller Panel
         </div>
 
-    @endif
+        <nav class="menu">
 
+            <a href="{{ route('seller.dashboard') }}">
+                📊 <span class="label-text">Dashboard</span>
+            </a>
 
-    <!-- SUCCESS MESSAGE -->
+            <a href="{{ route('seller.products.create') }}" class="active">
+                ➕ <span class="label-text">Add Product</span>
+            </a>
 
-    @if(session('success'))
+            <a href="{{ route('seller.orders') }}">
+                🛒 <span class="label-text">Orders</span>
+            </a>
 
-        <div class="success">
-            ✓ {{ session('success') }}
+        </nav>
+
+        <div class="sidebar-footer">
+            <a href="{{ route('seller.dashboard') }}">
+                ← <span class="label-text">Back to Dashboard</span>
+            </a>
         </div>
 
-    @endif
+    </aside>
 
 
-    <!-- FORM -->
+    <!-- MAIN -->
+    <main class="main-content">
 
-    <div class="form-box">
+        <div class="container">
 
-      <form
-    action="/seller/products/store"
-    method="POST"
-    enctype="multipart/form-data"
->
-            @csrf
+            <!-- HEADER -->
+            <div class="header">
 
+                <small>Seller</small>
 
-            <!-- PRODUCT NAME -->
+                <h1>
+                    Add Product
+                </h1>
 
-            <div class="form-group">
-
-                <label for="name">
-                    Product Name
-                </label>
-
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value="{{ old('name') }}"
-                    placeholder="Example: Gaming Phone"
-                    required
-                >
+                <p>
+                    Add a new product to your BoomBuy store.
+                </p>
 
             </div>
 
 
-            <!-- CATEGORY -->
+            <!-- ERROR -->
+            @if(session('error'))
 
-            <div class="form-group">
+                <div class="error">
+                    ✕ {{ session('error') }}
+                </div>
 
-                <label for="category">
-                    Category
-                </label>
+            @endif
 
-                <select
-                    id="category"
-                    name="category"
-                    required
+
+            <!-- SUCCESS -->
+            @if(session('success'))
+
+                <div class="success">
+                    ✓ {{ session('success') }}
+                </div>
+
+            @endif
+
+
+            <!-- FORM -->
+            <div class="form-box">
+
+                <form
+                    action="{{ route('seller.products.store') }}"
+                    method="POST"
+                    enctype="multipart/form-data"
                 >
 
-                    <option value="">
-                        Select Category
-                    </option>
+                    @csrf
 
-                    <option
-                        value="smartphone"
-                        {{ old('category') == 'smartphone' ? 'selected' : '' }}
-                    >
-                        Smartphone
-                    </option>
 
-                    <option
-                        value="laptop"
-                        {{ old('category') == 'laptop' ? 'selected' : '' }}
-                    >
-                        Laptop
-                    </option>
+                    <!-- PRODUCT NAME -->
+                    <div class="form-group">
 
-                    <option
-                        value="audio"
-                        {{ old('category') == 'audio' ? 'selected' : '' }}
-                    >
-                        Audio
-                    </option>
+                        <label for="name">
+                            Product Name
+                        </label>
 
-                    <option
-                        value="wearable"
-                        {{ old('category') == 'wearable' ? 'selected' : '' }}
-                    >
-                        Wearable
-                    </option>
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value="{{ old('name') }}"
+                            placeholder="Example: Gaming Phone"
+                            required
+                        >
 
-                    <option
-                        value="accessories"
-                        {{ old('category') == 'accessories' ? 'selected' : '' }}
-                    >
-                        Accessories
-                    </option>
+                    </div>
 
-                </select>
+
+                    <!-- CATEGORY -->
+                    <div class="form-group">
+
+                        <label for="category">
+                            Category
+                        </label>
+
+                        <select
+                            id="category"
+                            name="category"
+                            required
+                        >
+
+                            <option value="">
+                                Select Category
+                            </option>
+
+                            <option
+                                value="smartphone"
+                                {{ old('category') == 'smartphone' ? 'selected' : '' }}
+                            >
+                                Smartphone
+                            </option>
+
+                            <option
+                                value="laptop"
+                                {{ old('category') == 'laptop' ? 'selected' : '' }}
+                            >
+                                Laptop
+                            </option>
+
+                            <option
+                                value="audio"
+                                {{ old('category') == 'audio' ? 'selected' : '' }}
+                            >
+                                Audio
+                            </option>
+
+                            <option
+                                value="wearable"
+                                {{ old('category') == 'wearable' ? 'selected' : '' }}
+                            >
+                                Wearable
+                            </option>
+
+                            <option
+                                value="accessories"
+                                {{ old('category') == 'accessories' ? 'selected' : '' }}
+                            >
+                                Accessories
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <!-- PRICE -->
+                    <div class="form-group">
+
+                        <label for="price">
+                            Price
+                        </label>
+
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            value="{{ old('price') }}"
+                            min="1"
+                            step="0.01"
+                            placeholder="Example: 15000"
+                            required
+                        >
+
+                    </div>
+
+
+                    <!-- PRODUCT IMAGE -->
+                    <div class="form-group">
+
+                        <label for="image">
+                            Product Image
+                        </label>
+
+                        <div class="image-upload">
+
+                            <div class="image-upload-icon">
+                                📷
+                            </div>
+
+                            <div class="image-upload-title">
+                                Upload your product image
+                            </div>
+
+                            <div class="image-upload-text">
+                                JPG, JPEG, PNG, or WEBP • Maximum 5MB
+                            </div>
+
+                            <input
+                                type="file"
+                                id="image"
+                                name="image"
+                                class="file-input"
+                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
+                                required
+                            >
+
+                            <div
+                                id="image-preview"
+                                class="image-preview"
+                            >
+
+                                <img
+                                    id="preview-image"
+                                    src=""
+                                    alt="Product Preview"
+                                >
+
+                                <div class="preview-label">
+                                    Image Preview
+                                </div>
+
+                            </div>
+
+                        </div>
+
+                    </div>
+
+
+                    <!-- DESCRIPTION -->
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Enter product description..."
+                            required
+                        >{{ old('description') }}</textarea>
+
+                    </div>
+
+
+                    <!-- BUTTONS -->
+                    <div class="buttons">
+
+                        <button
+                            type="submit"
+                            class="save"
+                        >
+                            ✓ Add Product
+                        </button>
+
+                        <a
+                            href="{{ route('seller.dashboard') }}"
+                            class="cancel"
+                        >
+                            Cancel
+                        </a>
+
+                    </div>
+
+                </form>
 
             </div>
 
+        </div>
 
-            <!-- PRICE -->
+    </main>
 
-            <div class="form-group">
-
-                <label for="price">
-                    Price
-                </label>
-
-                <input
-                    type="number"
-                    id="price"
-                    name="price"
-                    value="{{ old('price') }}"
-                    min="1"
-                    step="0.01"
-                    placeholder="Example: 15000"
-                    required
-                >
-
-            </div>
-
-
-           <!-- PRODUCT IMAGE -->
-
-<div class="form-group">
-    <label for="image">
-        Product Image
-    </label>
-
-    <input
-        type="file"
-        id="image"
-        name="image"
-        accept="image/jpeg,image/png,image/jpg,image/webp"
-        required
-    >
-
-    <small style="display:block; margin-top:8px; color:#816f6a;">
-        Upload a clear product photo. JPG, PNG, or WEBP only.
-    </small>
 </div>
 
-            <!-- DESCRIPTION -->
 
-            <div class="form-group">
+<!-- IMAGE PREVIEW SCRIPT -->
+<script>
 
-                <label for="description">
-                    Description
-                </label>
+    const imageInput = document.getElementById('image');
+    const previewBox = document.getElementById('image-preview');
+    const previewImage = document.getElementById('preview-image');
 
-                <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Enter product description..."
-                    required
-                >{{ old('description') }}</textarea>
+    imageInput.addEventListener('change', function () {
 
-            </div>
+        const file = this.files[0];
 
+        if (!file) {
 
-            <!-- BUTTONS -->
+            previewBox.style.display = 'none';
+            previewImage.src = '';
 
-            <div class="buttons">
+            return;
+        }
 
-                <button
-                    type="submit"
-                    class="save"
-                >
-                    ✓ Add Product
-                </button>
+        const allowedTypes = [
+            'image/jpeg',
+            'image/png',
+            'image/webp'
+        ];
 
-                <a
-                    href="/seller"
-                    class="cancel"
-                >
-                    Cancel
-                </a>
+        if (!allowedTypes.includes(file.type)) {
 
-            </div>
+            alert(
+                'Please select a JPG, JPEG, PNG, or WEBP image.'
+            );
 
+            this.value = '';
 
-        </form>
+            previewBox.style.display = 'none';
+            previewImage.src = '';
 
-    </div>
+            return;
+        }
 
+        if (file.size > 5 * 1024 * 1024) {
 
-</main>
+            alert(
+                'Product image must not be larger than 5MB.'
+            );
 
+            this.value = '';
+
+            previewBox.style.display = 'none';
+            previewImage.src = '';
+
+            return;
+        }
+
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+
+            previewImage.src = event.target.result;
+
+            previewBox.style.display = 'block';
+
+        };
+
+        reader.readAsDataURL(file);
+
+    });
+
+</script>
 
 </body>
-
 </html>

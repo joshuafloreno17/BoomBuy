@@ -757,23 +757,58 @@ Route::get('/buyer/orders', function () {
 
         $order = (array) $order;
 
-        // Kunin ang items ng order
+        /*
+        |--------------------------------------------------------------------------
+        | GET ORDER ITEMS
+        |--------------------------------------------------------------------------
+        */
+
         $items = DB::table('order_items')
             ->where('order_id', $order['id'])
             ->get();
 
-        // Gawing arrays din ang items
+        /*
+        |--------------------------------------------------------------------------
+        | FORMAT ORDER ITEMS
+        |--------------------------------------------------------------------------
+        */
+
         $order['items'] = $items->map(function ($item) {
-            return (array) $item;
+
+            $item = (array) $item;
+
+            // Compute item subtotal
+            $item['subtotal'] =
+                (float) $item['price'] *
+                (int) $item['quantity'];
+
+            return $item;
+
         })->toArray();
 
-        // Compatibility fields para sa existing Blade
-        $order['total'] = (float) $order['total_amount'];
-        $order['date'] = $order['created_at'];
-        $order['buyer_name'] = $order['shipping_name'];
-        $order['address'] = $order['shipping_address'];
-        $order['phone'] = $order['shipping_phone'];
-        $order['payment'] = $order['payment_method'];
+        /*
+        |--------------------------------------------------------------------------
+        | COMPATIBILITY FIELDS FOR EXISTING BLADE
+        |--------------------------------------------------------------------------
+        */
+
+        $order['total'] =
+            (float) $order['total_amount'];
+
+        $order['date'] =
+            $order['created_at'];
+
+        $order['buyer_name'] =
+            $order['shipping_name'];
+
+        $order['address'] =
+            $order['shipping_address'];
+
+        $order['phone'] =
+            $order['shipping_phone'];
+
+        $order['payment'] =
+            $order['payment_method'];
 
         return $order;
 
@@ -781,10 +816,220 @@ Route::get('/buyer/orders', function () {
 
     return view(
         'pages.buyer.orders',
-        compact('user', 'orders')
+        compact(
+            'user',
+            'orders'
+        )
     );
 
 })->name('buyer.orders');
+
+
+Route::post('/buyer/orders/{id}/received', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Hanapin ang order at siguraduhing sa buyer talaga ito
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    // Puwede lang i-confirm kapag Delivered na
+    if ($order->status !== 'Delivered') {
+        return back()->with(
+            'error',
+            'You can only confirm an order after it has been delivered.'
+        );
+    }
+
+    // Huwag nang ulitin kung na-confirm na
+    if (!empty($order->buyer_received_at)) {
+        return back()->with(
+            'error',
+            'This order has already been marked as received.'
+        );
+    }
+
+    // Mark as received by buyer
+    DB::table('orders')
+        ->where('id', $id)
+        ->update([
+            'buyer_received_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back()->with(
+        'success',
+        'Order received successfully!'
+    );
+
+})->name('buyer.order.received');
+
+
+Route::post('/buyer/orders/{id}/rate', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Hanapin ang order at siguraduhing sa buyer talaga ito
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    // Puwede lang mag-rate kapag Delivered na
+    if ($order->status !== 'Delivered') {
+        return back()->with(
+            'error',
+            'You can only rate an order after it has been delivered.'
+        );
+    }
+
+    // Puwede lang mag-rate kapag na-confirm nang received
+    if (empty($order->buyer_received_at)) {
+        return back()->with(
+            'error',
+            'Please confirm that you received the order first.'
+        );
+    }
+
+    $productId = (int) request('product_id');
+    $rating = (int) request('rating');
+    $review = trim((string) request('review'));
+
+    // Validate rating
+    if ($rating < 1 || $rating > 5) {
+        return back()->with(
+            'error',
+            'Please select a rating from 1 to 5 stars.'
+        );
+    }
+
+    // Siguraduhing kasama talaga sa order ang product
+    $orderItem = DB::table('order_items')
+        ->where('order_id', $order->id)
+        ->where('product_id', $productId)
+        ->first();
+
+    if (!$orderItem) {
+        return back()->with(
+            'error',
+            'This product is not part of your order.'
+        );
+    }
+
+    // Huwag payagan ang duplicate rating
+    $existingReview = DB::table('product_reviews')
+        ->where('buyer_id', $user['id'])
+        ->where('order_id', $order->id)
+        ->where('product_id', $productId)
+        ->exists();
+
+    if ($existingReview) {
+        return back()->with(
+            'error',
+            'You have already rated this product.'
+        );
+    }
+
+    // Save rating
+    DB::table('product_reviews')->insert([
+        'buyer_id' => $user['id'],
+        'order_id' => $order->id,
+        'product_id' => $productId,
+        'rating' => $rating,
+        'review' => $review !== '' ? $review : null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with(
+        'success',
+        'Thank you! Your product rating has been submitted.'
+    );
+
+})->name('buyer.order.rate');
+
+
+Route::post('/buyer/orders/{orderId}/review/{productId}', function ($orderId, $productId) {
+    $user = requireUserRole('buyer');
+    if (!is_array($user)) return $user;
+
+    $order = DB::table('orders')
+        ->where('id', $orderId)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    if ($order->status !== 'Delivered' || empty($order->buyer_received_at)) {
+        return back()->with('error', 'You can only review products after receiving the order.');
+    }
+
+    $item = DB::table('order_items')
+        ->where('order_id', $orderId)
+        ->where('product_id', $productId)
+        ->first();
+
+    if (!$item) {
+        return back()->with('error', 'Product not found in this order.');
+    }
+
+    $rating = (int) request('rating');
+    $review = trim((string) request('review'));
+
+    if ($rating < 1 || $rating > 5) {
+        return back()->with('error', 'Please select a rating from 1 to 5 stars.');
+    }
+
+    $existing = DB::table('product_reviews')
+        ->where('buyer_id', $user['id'])
+        ->where('order_id', $orderId)
+        ->where('product_id', $productId)
+        ->first();
+
+    if ($existing) {
+        DB::table('product_reviews')
+            ->where('id', $existing->id)
+            ->update([
+                'rating' => $rating,
+                'review' => $review !== '' ? $review : null,
+                'updated_at' => now(),
+            ]);
+
+        return back()->with('success', 'Your review has been updated!');
+    }
+
+    DB::table('product_reviews')->insert([
+        'buyer_id' => $user['id'],
+        'order_id' => $orderId,
+        'product_id' => $productId,
+        'rating' => $rating,
+        'review' => $review !== '' ? $review : null,
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    return back()->with('success', 'Thank you! Your product review has been submitted.');
+})->name('buyer.product.review');
 
 
 /*
@@ -839,9 +1084,45 @@ Route::get('/admin', function () {
         return redirect()->route('admin.login');
     }
 
-    // ACCOUNTS
+    /*
+    |--------------------------------------------------------------------------
+    | ACCOUNTS - DATABASE
+    |--------------------------------------------------------------------------
+    */
 
-    $users = session()->get('users', []);
+    $users = DB::table('users')
+        ->select(
+            'id',
+            'name',
+            'email',
+            'role',
+            'created_at'
+        )
+        ->whereIn('role', [
+            'buyer',
+            'seller',
+            'rider'
+        ])
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($user) {
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
+            ];
+
+        })
+        ->toArray();
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACCOUNT COUNTS
+    |--------------------------------------------------------------------------
+    */
 
     $totalUsers = count($users);
 
@@ -858,50 +1139,149 @@ Route::get('/admin', function () {
     }));
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | ORDERS - DATABASE
+    |--------------------------------------------------------------------------
+    */
+
+    $dbOrders = DB::table('orders')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $totalOrders = $dbOrders->count();
+
+    $pendingCount = DB::table('orders')
+        ->where('status', 'Pending')
+        ->count();
+
+    $processingCount = DB::table('orders')
+        ->where('status', 'Processing')
+        ->count();
+
+    $deliveredCount = DB::table('orders')
+        ->where('status', 'Delivered')
+        ->count();
+
+    $cancelledCount = DB::table('orders')
+        ->where('status', 'Cancelled')
+        ->count();
 
 
-    // ORDERS
+    /*
+    |--------------------------------------------------------------------------
+    | TOTAL SALES
+    |--------------------------------------------------------------------------
+    */
 
-    $orders = session()->get('orders', []);
-
-    $totalOrders = count($orders);
-
-    $pendingCount = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Pending';
-    }));
-
-    $processingCount = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Processing';
-    }));
-
-    $deliveredCount = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Delivered';
-    }));
-
-    $cancelledCount = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Cancelled';
-    }));
+    $totalSales = DB::table('orders')
+        ->where('status', 'Delivered')
+        ->sum('total_amount');
 
 
-    // PRODUCTS
+    /*
+    |--------------------------------------------------------------------------
+    | PRODUCTS
+    |--------------------------------------------------------------------------
+    |
+    | Seller products are stored in the database.
+    | Admin products are still stored in session.
+    |
+    */
 
-$products = array_merge(
-    session()->get('seller_products', []),
-    session()->get('admin_products', []),
-    defaultProducts()
-);
+    $sellerProducts = Product::latest()
+        ->get()
+        ->map(function ($product) {
+
+            return [
+                'id' => $product->id,
+                'slug' => Str::slug($product->name),
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'description' => $product->description,
+                'image' => $product->image,
+                'seller_id' => $product->seller_id,
+            ];
+
+        })
+        ->toArray();
+
+    $adminProducts = session()->get(
+        'admin_products',
+        []
+    );
+
+    $products = array_merge(
+        $sellerProducts,
+        $adminProducts
+    );
 
     $totalProducts = count($products);
 
 
-    // SALES
+    /*
+    |--------------------------------------------------------------------------
+    | RECENT ORDERS
+    |--------------------------------------------------------------------------
+    */
 
-    $totalSales = 0;
+    $orders = $dbOrders
+        ->take(5)
+        ->map(function ($order) {
 
-    foreach ($orders as $order) {
-        $totalSales += (float) ($order['total'] ?? 0);
-    }
+            $order = (array) $order;
 
+            $items = DB::table('order_items')
+                ->where('order_id', $order['id'])
+                ->get();
+
+            $order['items'] = $items
+                ->map(function ($item) {
+
+                    $item = (array) $item;
+
+                    $item['subtotal'] =
+                        (float) ($item['price'] ?? 0) *
+                        (int) ($item['quantity'] ?? 1);
+
+                    return $item;
+
+                })
+                ->toArray();
+
+            $order['total'] =
+                (float) ($order['total_amount'] ?? 0);
+
+            $order['buyer_name'] =
+                $order['shipping_name']
+                ?? 'Unknown Buyer';
+
+            return $order;
+
+        })
+        ->toArray();
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER PRODUCTS FOR DASHBOARD
+    |--------------------------------------------------------------------------
+    */
+
+    $sellerProductsForDashboard = array_slice(
+        $sellerProducts,
+        0,
+        5
+    );
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN ADMIN DASHBOARD
+    |--------------------------------------------------------------------------
+    */
 
     return view(
         'pages.admin.dashboard',
@@ -909,6 +1289,7 @@ $products = array_merge(
             'users',
             'orders',
             'products',
+            'sellerProductsForDashboard',
 
             'totalUsers',
 
@@ -930,7 +1311,6 @@ $products = array_merge(
 
 })->name('admin.dashboard');
 
-
 /*
 |--------------------------------------------------------------------------
 | ADMIN LOGOUT
@@ -948,29 +1328,6 @@ Route::post('/admin/logout', function () {
 })->name('admin.logout');
 
 
-/*
-|--------------------------------------------------------------------------
-| ADMIN PRODUCTS
-|--------------------------------------------------------------------------
-*/
-
-Route::get('/admin/products', function () {
-
-    if (!session()->get('admin_logged_in')) {
-        return redirect()->route('admin.login');
-    }
-
-    $products = array_merge(
-        defaultProducts(),
-        session()->get('admin_products', [])
-    );
-
-    return view(
-        'pages.admin-products',
-        compact('products')
-    );
-
-})->name('admin.products');
 
 
 /*
@@ -980,61 +1337,50 @@ Route::get('/admin/products', function () {
 */
 
 Route::get('/products', function () {
+    $category = request('category');
 
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCTS FROM DATABASE ONLY
-    |--------------------------------------------------------------------------
-    */
-
-   $category = request('category');
-
-$databaseProducts = Product::latest()
-    ->when($category, function ($query) use ($category) {
-        $query->where('category', $category);
-    })
-    ->get();
-
+    $databaseProducts = Product::latest()
+        ->when($category, function ($query) use ($category) {
+            return $query->where('category', $category);
+        })
+        ->get();
 
     $products = $databaseProducts->map(function ($product) {
-
         $slug = Str::slug($product->name);
 
+        // Get product rating summary
+        $reviewStats = DB::table('product_reviews')
+            ->where('product_id', $product->id)
+            ->selectRaw('AVG(rating) as average_rating, COUNT(*) as review_count')
+            ->first();
+
+        $averageRating = $reviewStats && $reviewStats->average_rating
+            ? round((float) $reviewStats->average_rating, 1)
+            : 0;
+
+        $reviewCount = $reviewStats
+            ? (int) $reviewStats->review_count
+            : 0;
+
         return [
-
             'id' => $product->id,
-
             'slug' => $slug,
-
             'name' => $product->name,
-
             'category' => $product->category,
-
             'price' => (float) $product->price,
-
             'stock' => (int) $product->stock,
-
             'description' => $product->description,
-
             'image' => $product->image,
-
             'icon' => $product->image ?? '📦',
-
             'seller_id' => $product->seller_id,
 
-            'rating' => '5.0',
-
-            'reviews' => 0,
-
+            // Actual reviews
+            'rating' => $averageRating,
+            'reviews' => $reviewCount,
         ];
-
     })->toArray();
 
-    return view(
-        'pages.products',
-        compact('products')
-    );
-
+    return view('pages.products', compact('products'));
 })->name('products');
 
 
@@ -1170,7 +1516,34 @@ Route::get('/admin/accounts', function () {
         return redirect()->route('admin.login');
     }
 
-    $users = session()->get('users', []);
+    // GET ALL REGISTERED ACCOUNTS FROM DATABASE
+    $users = DB::table('users')
+        ->select(
+            'id',
+            'name',
+            'email',
+            'role',
+            'created_at'
+        )
+        ->whereIn('role', [
+            'buyer',
+            'seller',
+            'rider'
+        ])
+        ->orderByDesc('created_at')
+        ->get()
+        ->map(function ($user) {
+
+            return [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'role' => $user->role,
+                'created_at' => $user->created_at,
+            ];
+
+        })
+        ->toArray();
 
     return view(
         'pages.admin.accounts',
@@ -1271,7 +1644,97 @@ Route::get('/admin/orders', function () {
         return redirect()->route('admin.login');
     }
 
-    $orders = session()->get('orders', []);
+    /*
+    |--------------------------------------------------------------------------
+    | GET ALL ORDERS FROM DATABASE
+    |--------------------------------------------------------------------------
+    */
+
+    $dbOrders = DB::table('orders')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $orders = $dbOrders->map(function ($order) {
+
+        $order = (array) $order;
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET ORDER ITEMS
+        |--------------------------------------------------------------------------
+        */
+
+        $items = DB::table('order_items')
+            ->where('order_id', $order['id'])
+            ->get();
+
+        $order['items'] = $items->map(function ($item) {
+
+            $item = (array) $item;
+
+            $item['subtotal'] =
+                (float) ($item['price'] ?? 0) *
+                (int) ($item['quantity'] ?? 1);
+
+            return $item;
+
+        })->toArray();
+
+        /*
+        |--------------------------------------------------------------------------
+        | ADMIN DISPLAY FIELDS
+        |--------------------------------------------------------------------------
+        */
+
+        $order['total'] =
+            (float) ($order['total_amount'] ?? 0);
+
+        $order['date'] =
+            $order['created_at'] ?? null;
+
+        $order['buyer_name'] =
+            $order['shipping_name'] ?? 'Unknown Buyer';
+
+        $order['address'] =
+            $order['shipping_address'] ?? '';
+
+        $order['phone'] =
+            $order['shipping_phone'] ?? '';
+
+        $order['payment'] =
+            $order['payment_method'] ?? '';
+
+        /*
+        |--------------------------------------------------------------------------
+        | BUYER RECEIVED STATUS
+        |--------------------------------------------------------------------------
+        */
+
+        $order['buyer_received_at'] =
+            $order['buyer_received_at'] ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET RIDER NAME
+        |--------------------------------------------------------------------------
+        */
+
+        $order['rider_name'] = null;
+
+        if (!empty($order['rider_id'])) {
+
+            $rider = DB::table('users')
+                ->where('id', $order['rider_id'])
+                ->first();
+
+            if ($rider) {
+                $order['rider_name'] = $rider->name;
+            }
+        }
+
+        return $order;
+
+    })->toArray();
 
     return view(
         'pages.admin.orders',
@@ -1280,29 +1743,82 @@ Route::get('/admin/orders', function () {
 
 })->name('admin.orders');
 
-
 Route::get('/admin/order/{id}', function ($id) {
 
     if (!session()->get('admin_logged_in')) {
         return redirect()->route('admin.login');
     }
 
-    $orders = session()->get('orders', []);
-
-    $order = null;
-
-    foreach ($orders as $item) {
-
-        if (($item['id'] ?? '') === $id) {
-
-            $order = $item;
-
-            break;
-        }
-    }
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->first();
 
     if (!$order) {
         abort(404);
+    }
+
+    $order = (array) $order;
+
+    /*
+    |--------------------------------------------------------------------------
+    | ORDER ITEMS
+    |--------------------------------------------------------------------------
+    */
+
+    $items = DB::table('order_items')
+        ->where('order_id', $order['id'])
+        ->get();
+
+    $order['items'] = $items->map(function ($item) {
+
+        $item = (array) $item;
+
+        $item['subtotal'] =
+            (float) ($item['price'] ?? 0) *
+            (int) ($item['quantity'] ?? 1);
+
+        return $item;
+
+    })->toArray();
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN DISPLAY FIELDS
+    |--------------------------------------------------------------------------
+    */
+
+    $order['total'] =
+        (float) ($order['total_amount'] ?? 0);
+
+    $order['buyer_name'] =
+        $order['shipping_name'] ?? 'Unknown Buyer';
+
+    $order['address'] =
+        $order['shipping_address'] ?? '';
+
+    $order['phone'] =
+        $order['shipping_phone'] ?? '';
+
+    $order['payment'] =
+        $order['payment_method'] ?? '';
+
+    /*
+    |--------------------------------------------------------------------------
+    | RIDER
+    |--------------------------------------------------------------------------
+    */
+
+    $order['rider_name'] = null;
+
+    if (!empty($order['rider_id'])) {
+
+        $rider = DB::table('users')
+            ->where('id', $order['rider_id'])
+            ->first();
+
+        if ($rider) {
+            $order['rider_name'] = $rider->name;
+        }
     }
 
     return view(
@@ -1311,13 +1827,6 @@ Route::get('/admin/order/{id}', function ($id) {
     );
 
 })->name('admin.order.details');
-
-
-/*
-|--------------------------------------------------------------------------
-| ADMIN UPDATE ORDER STATUS
-|--------------------------------------------------------------------------
-*/
 
 Route::post('/admin/order/{id}/status', function ($id) {
 
@@ -1333,6 +1842,7 @@ Route::post('/admin/order/{id}/status', function ($id) {
         'Ready for Pickup',
         'Picked Up',
         'On the Way',
+        'Out for Delivery',
         'Delivered',
         'Cancelled',
     ];
@@ -1345,23 +1855,17 @@ Route::post('/admin/order/{id}/status', function ($id) {
         );
     }
 
-    $orders = session()->get('orders', []);
+    /*
+    |--------------------------------------------------------------------------
+    | UPDATE ACTUAL DATABASE ORDER
+    |--------------------------------------------------------------------------
+    */
 
-    $found = false;
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->first();
 
-    foreach ($orders as $index => $order) {
-
-        if (($order['id'] ?? '') === $id) {
-
-            $orders[$index]['status'] = $status;
-
-            $found = true;
-
-            break;
-        }
-    }
-
-    if (!$found) {
+    if (!$order) {
 
         return back()->with(
             'error',
@@ -1369,10 +1873,32 @@ Route::post('/admin/order/{id}/status', function ($id) {
         );
     }
 
-    session()->put(
-        'orders',
-        $orders
-    );
+    DB::table('orders')
+        ->where('id', $id)
+        ->update([
+            'status' => $status,
+            'updated_at' => now(),
+        ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | KEEP SESSION ORDERS SYNCED IF THEY EXIST
+    |--------------------------------------------------------------------------
+    */
+
+    $orders = session()->get('orders', []);
+
+    foreach ($orders as $index => $orderData) {
+
+        if ((string) ($orderData['id'] ?? '') === (string) $id) {
+
+            $orders[$index]['status'] = $status;
+
+            break;
+        }
+    }
+
+    session()->put('orders', $orders);
 
     return back()->with(
         'success',
@@ -1380,6 +1906,7 @@ Route::post('/admin/order/{id}/status', function ($id) {
     );
 
 })->name('admin.order.status');
+
 
 
 /*
@@ -1748,6 +2275,7 @@ Route::get('/seller/orders', function () {
             'orders.buyer_id',
             'orders.total_amount',
             'orders.status',
+            'orders.buyer_received_at',
             'orders.shipping_name',
             'orders.shipping_phone',
             'orders.shipping_address',
@@ -1798,7 +2326,7 @@ Route::get('/seller/order/{id}', function ($id) {
         return $user;
     }
 
-    // Kunin ang order mula sa database
+    // Kunin ang order
     $order = DB::table('orders')
         ->where('id', $id)
         ->first();
@@ -1807,32 +2335,75 @@ Route::get('/seller/order/{id}', function ($id) {
         abort(404);
     }
 
-    // Kunin lang ang items na pagmamay-ari ng seller
+    // Kunin lang ang products na pagmamay-ari ng logged-in seller
     $sellerItems = DB::table('order_items')
         ->where('order_id', $order->id)
         ->where('seller_id', $user['id'])
         ->get();
 
+    // Kung walang product ng seller sa order, bawal makita
     if ($sellerItems->isEmpty()) {
         abort(404);
     }
 
-    // Gawing array para compatible sa existing Blade
+    /*
+    |--------------------------------------------------------------------------
+    | CONVERT ORDER TO ARRAY
+    |--------------------------------------------------------------------------
+    */
+
     $order = (array) $order;
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMPATIBILITY FIELDS FOR SELLER ORDER DETAILS BLADE
+    |--------------------------------------------------------------------------
+    */
+
+    $order['buyer_name'] =
+        $order['shipping_name'] ?? 'Buyer';
+
+    $order['date'] =
+        $order['created_at'] ?? 'N/A';
+
+    $order['phone'] =
+        $order['shipping_phone'] ?? 'N/A';
+
+    $order['payment'] =
+        $order['payment_method'] ?? 'N/A';
+
+    $order['address'] =
+        $order['shipping_address'] ?? 'N/A';
+
+    /*
+    |--------------------------------------------------------------------------
+    | ORDER ITEMS
+    |--------------------------------------------------------------------------
+    */
 
     $order['items'] = $sellerItems->map(function ($item) {
 
         $item = (array) $item;
 
-        // Compatibility field
+        // Existing Blade expects "name"
+        $item['name'] =
+            $item['product_name'] ?? 'Product';
+
+        // Compute subtotal
         $item['subtotal'] =
-            (float) $item['price'] * (int) $item['quantity'];
+            (float) ($item['price'] ?? 0) *
+            (int) ($item['quantity'] ?? 0);
 
         return $item;
 
     })->toArray();
 
-    // Seller's portion ng order
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER TOTAL
+    |--------------------------------------------------------------------------
+    */
+
     $order['seller_total'] = array_sum(
         array_column($order['items'], 'subtotal')
     );
@@ -2472,49 +3043,32 @@ Route::get('/', function () {
 |--------------------------------------------------------------------------
 */
 
-Route::get('/product-details/{slug}', function ($slug) {
+/*
+|--------------------------------------------------------------------------
+| PRODUCT DETAILS
+|--------------------------------------------------------------------------
+*/
 
-    $products = [];
+Route::get('/product-details/{id}', function ($id) {
 
-    // Default products
-    foreach (defaultProducts() as $product) {
+    // First: try product ID
+    $product = Product::find($id);
 
-        $products[$product['slug']] =
-            $product;
+    // If not an ID, try product name as slug
+    if (!$product) {
+
+        $slug = Str::slug($id);
+
+        $products = Product::all();
+
+        $product = $products->first(function ($item) use ($slug) {
+            return Str::slug($item->name) === $slug;
+        });
     }
 
-    // Admin products
-    foreach (
-        session()->get('admin_products', [])
-        as $product
-    ) {
-
-        if (!empty($product['slug'])) {
-
-            $products[$product['slug']] =
-                $product;
-        }
-    }
-
-    // Seller products
-    foreach (
-        session()->get('seller_products', [])
-        as $product
-    ) {
-
-        if (!empty($product['slug'])) {
-
-            $products[$product['slug']] =
-                $product;
-        }
-    }
-
-    if (!isset($products[$slug])) {
+    if (!$product) {
         abort(404);
     }
-
-    $product =
-        $products[$slug];
 
     return view(
         'pages.product-details',
@@ -2523,14 +3077,13 @@ Route::get('/product-details/{slug}', function ($slug) {
 
 })->name('product.details');
 
-
 /*
 |--------------------------------------------------------------------------
 | BUY NOW
 |--------------------------------------------------------------------------
 */
 
-Route::post('/buy-now/{slug}', function ($slug) {
+Route::post('/buy-now/{id}', function ($id) {
 
     $user = requireUserRole('buyer');
 
@@ -2538,28 +3091,10 @@ Route::post('/buy-now/{slug}', function ($slug) {
         return $user;
     }
 
-    $products = [];
+    // Find the actual product from the database
+    $product = Product::find($id);
 
-    // Default products
-    foreach (defaultProducts() as $product) {
-        $products[$product['slug']] = $product;
-    }
-
-    // Admin products
-    foreach (session()->get('admin_products', []) as $product) {
-        if (!empty($product['slug'])) {
-            $products[$product['slug']] = $product;
-        }
-    }
-
-    // Seller products
-    foreach (session()->get('seller_products', []) as $product) {
-        if (!empty($product['slug'])) {
-            $products[$product['slug']] = $product;
-        }
-    }
-
-    if (!isset($products[$slug])) {
+    if (!$product) {
         return back()->with('error', 'Product not found.');
     }
 
@@ -2569,6 +3104,11 @@ Route::post('/buy-now/{slug}', function ($slug) {
         $quantity = 1;
     }
 
+    // Check available stock
+    if ($quantity > $product->stock) {
+        return back()->with('error', 'Not enough stock available.');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | SAVE BUY NOW PRODUCT
@@ -2576,7 +3116,7 @@ Route::post('/buy-now/{slug}', function ($slug) {
     */
 
     session()->put('buy_now', [
-        $slug => $quantity
+        $product->id => $quantity
     ]);
 
     return redirect()
@@ -2592,89 +3132,23 @@ Route::post('/buy-now/{slug}', function ($slug) {
 
 
 // Add to cart
-Route::post('/cart/add/{slug}', function ($slug) {
+Route::post('/cart/add/{id}', function ($id) {
 
-    /*
-    |--------------------------------------------------------------------------
-    | FIND PRODUCT
-    |--------------------------------------------------------------------------
-    */
+    $user = requireUserRole('buyer');
 
-    $product = null;
-
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    foreach (defaultProducts() as $item) {
-
-        if (($item['slug'] ?? '') === $slug) {
-
-            $product = $item;
-
-            break;
-        }
+    if (!is_array($user)) {
+        return $user;
     }
 
     /*
     |--------------------------------------------------------------------------
-    | DATABASE PRODUCTS
+    | FIND PRODUCT FROM DATABASE
     |--------------------------------------------------------------------------
     */
 
-    if (!$product) {
-
-        $databaseProducts = Product::all();
-
-        foreach ($databaseProducts as $item) {
-
-            if (
-                Str::slug($item->name) === $slug
-            ) {
-
-                $product = [
-
-                    'slug' =>
-                        Str::slug($item->name),
-
-                    'name' =>
-                        $item->name,
-
-                    'price' =>
-                        $item->price,
-
-                    'category' =>
-                        $item->category,
-
-                    'description' =>
-                        $item->description,
-
-                    'image' =>
-                        $item->image,
-
-                    'stock' =>
-                        $item->stock,
-
-                    'seller_id' =>
-                        $item->seller_id,
-
-                ];
-
-                break;
-            }
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | PRODUCT NOT FOUND
-    |--------------------------------------------------------------------------
-    */
+    $product = Product::find($id);
 
     if (!$product) {
-
         return back()->with(
             'error',
             'Product not found.'
@@ -2687,25 +3161,9 @@ Route::post('/cart/add/{slug}', function ($slug) {
     |--------------------------------------------------------------------------
     */
 
-    $cart = session()->get('cart', []);
+    $stock = (int) $product->stock;
 
-    $currentQuantity =
-        (int) ($cart[$slug] ?? 0);
-
-    $stock =
-        (int) ($product['stock'] ?? 0);
-
-    /*
-    |--------------------------------------------------------------------------
-    | PREVENT ADDING OUT-OF-STOCK PRODUCT
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $stock <= 0 &&
-        isset($product['seller_id'])
-    ) {
-
+    if ($stock <= 0) {
         return back()->with(
             'error',
             'This product is currently out of stock.'
@@ -2714,15 +3172,21 @@ Route::post('/cart/add/{slug}', function ($slug) {
 
     /*
     |--------------------------------------------------------------------------
+    | GET CURRENT CART
+    |--------------------------------------------------------------------------
+    */
+
+    $cart = session()->get('cart', []);
+
+    $currentQuantity = (int) ($cart[$product->id] ?? 0);
+
+    /*
+    |--------------------------------------------------------------------------
     | PREVENT EXCEEDING STOCK
     |--------------------------------------------------------------------------
     */
 
-    if (
-        isset($product['seller_id']) &&
-        $currentQuantity >= $stock
-    ) {
-
+    if ($currentQuantity >= $stock) {
         return back()->with(
             'error',
             'You cannot add more than the available stock.'
@@ -2731,12 +3195,11 @@ Route::post('/cart/add/{slug}', function ($slug) {
 
     /*
     |--------------------------------------------------------------------------
-    | ADD TO CART
+    | ADD PRODUCT TO CART
     |--------------------------------------------------------------------------
     */
 
-    $cart[$slug] =
-        $currentQuantity + 1;
+    $cart[$product->id] = $currentQuantity + 1;
 
     /*
     |--------------------------------------------------------------------------
@@ -2744,25 +3207,20 @@ Route::post('/cart/add/{slug}', function ($slug) {
     |--------------------------------------------------------------------------
     */
 
-    session()->put(
-        'cart',
-        $cart
-    );
+    session()->put('cart', $cart);
 
     /*
     |--------------------------------------------------------------------------
-    | RETURN TO BUYER
+    | RETURN TO BUYER DASHBOARD
     |--------------------------------------------------------------------------
     */
 
-    return redirect('/buyer')
-        ->with(
-            'success',
-            'Product added to cart!'
-        );
+   return back()->with(
+    'success',
+    '✓ Added to cart!'
+);
 
 })->name('cart.add');
-
 
 // Update cart
 Route::post('/cart/update/{slug}', function ($slug) {
@@ -2882,88 +3340,18 @@ Route::get('/checkout', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | GET PRODUCTS FROM DATABASE
+    | GET PRODUCTS USING DATABASE IDs
     |--------------------------------------------------------------------------
     */
 
-    $products = [];
+    $productIds = array_map(
+        'intval',
+        array_keys($cart)
+    );
 
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    foreach (defaultProducts() as $product) {
-
-        if (!empty($product['slug'])) {
-
-            $products[$product['slug']] = $product;
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ADMIN SESSION PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    foreach (session()->get('admin_products', []) as $product) {
-
-        if (!empty($product['slug'])) {
-
-            $products[$product['slug']] = $product;
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELLER SESSION PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    foreach (session()->get('seller_products', []) as $product) {
-
-        if (!empty($product['slug'])) {
-
-            $products[$product['slug']] = $product;
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATABASE PRODUCTS
-    |--------------------------------------------------------------------------
-    */
-
-    $databaseProducts = Product::latest()->get();
-
-    foreach ($databaseProducts as $product) {
-
-        $slug = Str::slug($product->name);
-
-        $products[$slug] = [
-
-            'slug' => $slug,
-
-            'name' => $product->name,
-
-            'category' => $product->category,
-
-            'price' => (float) $product->price,
-
-            'stock' => (int) $product->stock,
-
-            'description' => $product->description,
-
-            'image' => $product->image,
-
-            'icon' => $product->image ?? '📦',
-
-            'seller_id' => $product->seller_id,
-
-        ];
-    }
+    $products = Product::whereIn('id', $productIds)
+        ->get()
+        ->keyBy('id');
 
     /*
     |--------------------------------------------------------------------------
@@ -2971,9 +3359,9 @@ Route::get('/checkout', function () {
     |--------------------------------------------------------------------------
     */
 
-    foreach ($cart as $slug => $quantity) {
+    foreach ($cart as $productId => $quantity) {
 
-        if (!isset($products[$slug])) {
+        if (!$products->has((int) $productId)) {
 
             return redirect()
                 ->route('cart')
@@ -3000,7 +3388,6 @@ Route::get('/checkout', function () {
     );
 
 })->name('checkout');
-
 
 
 
@@ -3035,13 +3422,11 @@ Route::post('/checkout/place-order', function () {
     if (!empty($buyNow)) {
 
         $cart = $buyNow;
-
         $isBuyNow = true;
 
     } else {
 
         $cart = session()->get('cart', []);
-
         $isBuyNow = false;
 
         if (empty($cart)) {
@@ -3062,9 +3447,7 @@ Route::post('/checkout/place-order', function () {
     */
 
     $address = trim(request('address'));
-
     $phone = trim(request('phone'));
-
     $payment = trim(request('payment'));
 
     if (
@@ -3083,15 +3466,14 @@ Route::post('/checkout/place-order', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | BUILD ORDER ITEMS FROM DATABASE
+    | BUILD ORDER ITEMS USING PRODUCT IDs
     |--------------------------------------------------------------------------
     */
 
     $orderItems = [];
-
     $total = 0;
 
-    foreach ($cart as $slug => $quantity) {
+    foreach ($cart as $productId => $quantity) {
 
         $quantity = (int) $quantity;
 
@@ -3101,37 +3483,20 @@ Route::post('/checkout/place-order', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | FIND PRODUCT
+        | FIND PRODUCT BY DATABASE ID
         |--------------------------------------------------------------------------
         */
 
-        $product = Product::where(
-            'name',
-            $slug
-        )->first();
-
-        /*
-        |--------------------------------------------------------------------------
-        | IF CART USES PRODUCT SLUG
-        |--------------------------------------------------------------------------
-        */
+        $product = Product::find((int) $productId);
 
         if (!$product) {
 
-            $product = Product::whereRaw(
-                "lower(replace(name, ' ', '-')) = ?",
-                [strtolower($slug)]
-            )->first();
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SKIP INVALID PRODUCT
-        |--------------------------------------------------------------------------
-        */
-
-        if (!$product) {
-            continue;
+            return redirect()
+                ->route('cart')
+                ->with(
+                    'error',
+                    'One of the products could not be found.'
+                );
         }
 
         /*
@@ -3140,7 +3505,7 @@ Route::post('/checkout/place-order', function () {
         |--------------------------------------------------------------------------
         */
 
-        if ($product->stock < $quantity) {
+        if ((int) $product->stock < $quantity) {
 
             return back()
                 ->withInput()
@@ -3217,8 +3582,9 @@ Route::post('/checkout/place-order', function () {
         'total_amount' =>
             $total,
 
+        // Seller workflow starts here
         'status' =>
-            'pending',
+            'Pending',
 
         'shipping_name' =>
             $user['name'] ?? 'Buyer',
@@ -3242,7 +3608,7 @@ Route::post('/checkout/place-order', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CREATE ORDER ITEMS
+    | CREATE ORDER ITEMS + REDUCE STOCK
     |--------------------------------------------------------------------------
     */
 

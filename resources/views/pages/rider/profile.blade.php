@@ -254,10 +254,30 @@
             font-size: 14px;
             font-weight: 700;
             transition: .2s;
+            text-align: center;
+            margin-bottom: 10px;
         }
 
         .upload-label:hover {
             background: #eaaf0c;
+        }
+
+        .upload-submit-btn {
+            display: block;
+            width: 100%;
+            background: #e8420f;
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 9px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 700;
+            transition: .2s;
+        }
+
+        .upload-submit-btn:hover {
+            background: #c13206;
         }
 
         .upload-input {
@@ -378,11 +398,40 @@
                 position: relative;
                 width: 100%;
                 height: auto;
-                padding-bottom: 85px;
+                display: flex;
+                flex-direction: column;
+                padding: 14px 16px;
+            }
+
+            .logo {
+                font-size: 20px;
+                margin-bottom: 10px;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                margin-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .menu a {
+                white-space: nowrap;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                font-size: 13px;
+                padding: 10px 14px;
             }
 
             .logout {
-                bottom: 20px;
+                position: static;
+                margin-top: 10px;
             }
 
             .main {
@@ -582,12 +631,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     <input
         type="file"
         name="profile_photo"
+        id="profile_photo"
+        class="upload-input"
         accept="image/png,image/jpeg,image/webp"
         required
+        onchange="document.getElementById('file-chosen-label').textContent = this.files[0] ? this.files[0].name : '📷 Choose Photo';"
     >
 
-    <button type="submit">
-        📷 Upload Photo
+    <label for="profile_photo" class="upload-label" id="file-chosen-label">
+        📷 Choose Photo
+    </label>
+
+    <button type="submit" class="upload-submit-btn">
+        ✓ Upload Photo
     </button>
 </form>
 

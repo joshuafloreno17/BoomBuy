@@ -1,13 +1,14 @@
+
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Reports — BoomBuy</title>
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -45,12 +46,10 @@
             background: #ffffff;
             border-right: 1px solid #f7e5e0;
             padding: 25px 18px;
-
             position: fixed;
             left: 0;
             top: 0;
             bottom: 0;
-
             z-index: 1000;
             overflow-y: auto;
         }
@@ -58,7 +57,6 @@
         .logo {
             padding: 0 12px;
             margin-bottom: 35px;
-
             font-size: 23px;
             font-weight: 700;
             color: #e8420f;
@@ -70,13 +68,11 @@
 
         .admin-label {
             padding: 0 12px;
-
             color: #b99c93;
             font-size: 10px;
             text-transform: uppercase;
             letter-spacing: 1.5px;
             font-weight: 700;
-
             margin-bottom: 12px;
         }
 
@@ -88,14 +84,11 @@
 
         .menu a {
             display: block;
-
             padding: 12px;
             border-radius: 9px;
-
             color: #8d6c62;
             font-size: 13px;
             font-weight: 600;
-
             transition: 0.2s;
         }
 
@@ -115,10 +108,8 @@
 
         .logout a {
             display: block;
-
             padding: 12px;
             border-radius: 9px;
-
             color: #ef4444;
             font-size: 13px;
             font-weight: 600;
@@ -134,10 +125,8 @@
 
         .main {
             margin-left: 245px;
-
             width: calc(100% - 245px);
             min-width: 0;
-
             padding: 35px 5%;
         }
 
@@ -149,7 +138,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -158,7 +146,6 @@
             color: #db5a33;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-
             font-size: 10px;
             font-weight: 700;
         }
@@ -172,25 +159,19 @@
             display: flex;
             align-items: center;
             gap: 10px;
-
             background: #ffffff;
             border: 1px solid #f7e5e0;
-
             padding: 9px 13px;
             border-radius: 10px;
-
             flex-shrink: 0;
         }
 
         .profile-icon {
             width: 35px;
             height: 35px;
-
             background: #ffefea;
             color: #e8420f;
-
             border-radius: 50%;
-
             display: flex;
             align-items: center;
             justify-content: center;
@@ -214,7 +195,6 @@
         .stats {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-
             gap: 18px;
             margin-bottom: 25px;
         }
@@ -223,9 +203,7 @@
             background: #ffffff;
             border: 1px solid #f7e5e0;
             border-radius: 15px;
-
             padding: 22px;
-
             transition: 0.2s;
         }
 
@@ -238,7 +216,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             margin-bottom: 15px;
         }
 
@@ -250,14 +227,11 @@
         .stat-icon {
             width: 38px;
             height: 38px;
-
             border-radius: 9px;
             background: #fff1ed;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             font-size: 18px;
         }
 
@@ -280,9 +254,7 @@
             background: #ffffff;
             border: 1px solid #f7e5e0;
             border-radius: 15px;
-
             padding: 23px;
-
             margin-bottom: 20px;
         }
 
@@ -290,7 +262,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -306,7 +277,7 @@
         }
 
         /* =========================
-           SALES TABLE
+           TABLE
         ========================= */
 
         .table-wrapper {
@@ -317,27 +288,21 @@
         table {
             width: 100%;
             min-width: 650px;
-
             border-collapse: collapse;
         }
 
         th {
             text-align: left;
-
             padding: 13px;
-
             background: #fffaf8;
             color: #8d6c62;
-
             font-size: 10px;
             letter-spacing: .5px;
         }
 
         td {
             padding: 14px 13px;
-
             border-bottom: 1px solid #f7efed;
-
             font-size: 12px;
         }
 
@@ -352,11 +317,8 @@
 
         .status {
             display: inline-block;
-
             padding: 5px 8px;
-
             border-radius: 5px;
-
             font-size: 9px;
             font-weight: 700;
         }
@@ -376,6 +338,17 @@
             color: #eaaf0c;
         }
 
+        .cancelled {
+            background: #fff1f2;
+            color: #dc2626;
+        }
+
+        .empty-row {
+            text-align: center;
+            padding: 35px 15px !important;
+            color: #b99c93;
+        }
+
         /* =========================
            REPORT GRID
         ========================= */
@@ -383,7 +356,6 @@
         .report-grid {
             display: grid;
             grid-template-columns: 1.5fr 1fr;
-
             gap: 20px;
         }
 
@@ -393,41 +365,29 @@
 
         .sales-chart {
             height: 260px;
-
             display: flex;
             align-items: flex-end;
             justify-content: space-around;
-
             gap: 14px;
-
             padding: 20px 10px 0;
-
             border-bottom: 1px solid #f7e5e0;
         }
 
         .bar-item {
             flex: 1;
-
             height: 100%;
-
             display: flex;
             flex-direction: column;
-
             justify-content: flex-end;
             align-items: center;
-
             gap: 8px;
         }
 
         .bar {
             width: 45px;
-
             background: #e8420f;
-
             border-radius: 7px 7px 0 0;
-
-            min-height: 20px;
-
+            min-height: 4px;
             transition: .2s;
         }
 
@@ -445,13 +405,22 @@
             color: #8d6c62;
         }
 
+        .chart-empty {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #b99c93;
+            font-size: 12px;
+        }
+
         /* =========================
            CATEGORY REPORT
         ========================= */
 
         .category {
             padding: 14px 0;
-
             border-bottom: 1px solid #f7efed;
         }
 
@@ -462,7 +431,6 @@
         .category-top {
             display: flex;
             justify-content: space-between;
-
             margin-bottom: 7px;
         }
 
@@ -480,42 +448,59 @@
         .progress {
             width: 100%;
             height: 7px;
-
             background: #f9f0ed;
-
             border-radius: 20px;
-
             overflow: hidden;
         }
 
         .progress-bar {
             height: 100%;
-
             background: #e8420f;
-
             border-radius: 20px;
         }
 
+        .empty-message {
+            color: #b99c93;
+            font-size: 12px;
+            padding: 20px 0;
+            text-align: center;
+        }
+
         /* =========================
-           EXPORT BUTTON
+           PRODUCT PERFORMANCE
         ========================= */
 
-        .export-button {
-            display: inline-block;
-
-            background: #e8420f;
-            color: #ffffff;
-
-            padding: 10px 15px;
-
-            border-radius: 8px;
-
-            font-size: 11px;
+        .product-name {
             font-weight: 700;
         }
 
-        .export-button:hover {
-            background: #c4360b;
+        .seller-label {
+            color: #977970;
+            font-size: 10px;
+            margin-top: 3px;
+        }
+
+        .performance-stars {
+            letter-spacing: 1px;
+        }
+
+        /* =========================
+           DESIGN OVERRIDES
+        ========================= */
+
+        h1,
+        h2,
+        h3,
+        .logo,
+        .stat-title,
+        .stat-value {
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        ::selection {
+            background: #ffd7c2;
+            color: #7c1a00;
         }
 
         /* =========================
@@ -523,7 +508,6 @@
         ========================= */
 
         @media (max-width: 1100px) {
-
             .stats {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -534,7 +518,6 @@
         }
 
         @media (max-width: 750px) {
-
             .sidebar {
                 width: 70px;
                 padding: 20px 10px;
@@ -566,9 +549,7 @@
 
             .main {
                 margin-left: 70px;
-
                 width: calc(100% - 70px);
-
                 padding: 25px 4%;
             }
 
@@ -579,7 +560,6 @@
         }
 
         @media (max-width: 550px) {
-
             .stats {
                 grid-template-columns: 1fr;
             }
@@ -597,40 +577,175 @@
                 width: 30px;
             }
         }
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
+    </style>
 </head>
 
 <body>
 
+@php
+    /*
+    |--------------------------------------------------------------------------
+    | REAL DATABASE REPORT DATA
+    |--------------------------------------------------------------------------
+    | Seller products come from the actual products table.
+    | Orders and order items come from the actual database.
+    */
+
+    $sellerProducts = \App\Models\Product::query()
+        ->whereNotNull('seller_id')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $allOrders = \Illuminate\Support\Facades\DB::table('orders')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $totalOrders = $allOrders->count();
+
+    $completedOrders = $allOrders
+        ->where('status', 'Delivered')
+        ->count();
+
+    $totalRevenue = $allOrders
+        ->where('status', 'Delivered')
+        ->sum(function ($order) {
+            return (float) ($order->total_amount ?? 0);
+        });
+
+    $averageOrder = $completedOrders > 0
+        ? $totalRevenue / $completedOrders
+        : 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER PRODUCT PERFORMANCE
+    |--------------------------------------------------------------------------
+    */
+
+    $productPerformance = $sellerProducts->map(function ($product) {
+
+        $unitsSold = \Illuminate\Support\Facades\DB::table('order_items')
+            ->where('product_id', $product->id)
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.status', 'Delivered')
+            ->sum('order_items.quantity');
+
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'category' => $product->category,
+            'price' => (float) $product->price,
+            'units_sold' => (int) $unitsSold,
+            'seller_id' => $product->seller_id,
+        ];
+    });
+
+    /*
+    |--------------------------------------------------------------------------
+    | CATEGORY PERFORMANCE
+    |--------------------------------------------------------------------------
+    */
+
+    $categorySales = [];
+
+    foreach ($productPerformance as $product) {
+        $category = $product['category'] ?: 'Other';
+
+        if (!isset($categorySales[$category])) {
+            $categorySales[$category] = 0;
+        }
+
+        $categorySales[$category] += $product['units_sold'];
+    }
+
+    arsort($categorySales);
+
+    $totalCategoryUnits = array_sum($categorySales);
+
+    /*
+    |--------------------------------------------------------------------------
+    | MONTHLY SALES
+    |--------------------------------------------------------------------------
+    */
+
+    $monthlySales = [];
+
+    for ($month = 1; $month <= 7; $month++) {
+        $monthlySales[$month] = 0;
+    }
+
+    foreach ($allOrders as $order) {
+        if (($order->status ?? '') !== 'Delivered') {
+            continue;
+        }
+
+        if (empty($order->created_at)) {
+            continue;
+        }
+
+        $month = (int) date('n', strtotime($order->created_at));
+
+        if ($month >= 1 && $month <= 7) {
+            $monthlySales[$month] += (float) ($order->total_amount ?? 0);
+        }
+    }
+
+    $maxMonthlySales = max($monthlySales ?: [0]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | RECENT ORDERS
+    |--------------------------------------------------------------------------
+    */
+
+    $recentOrders = $allOrders->take(5);
+
+    /*
+    |--------------------------------------------------------------------------
+    | HELPER FOR ORDER ITEM NAMES
+    |--------------------------------------------------------------------------
+    */
+
+    $getOrderProductNames = function ($orderId) {
+    return \Illuminate\Support\Facades\DB::table('order_items')
+        ->join('products', 'products.id', '=', 'order_items.product_id')
+        ->where('order_items.order_id', $orderId)
+        ->pluck('products.name')
+        ->toArray();
+};
+    /*
+    |--------------------------------------------------------------------------
+    | CATEGORY ICONS
+    |--------------------------------------------------------------------------
+    */
+
+    $categoryIcons = [
+        'Smartphone' => '📱',
+        'Smartphones' => '📱',
+        'Laptop' => '💻',
+        'Laptops' => '💻',
+        'Audio' => '🎧',
+        'Wearable' => '⌚',
+        'Wearables' => '⌚',
+        'Accessories' => '🎮',
+        'Gaming' => '🎮',
+        'Women’s' => '👗',
+        "Women's" => '👗',
+        'Men’s' => '👕',
+        "Men's" => '👕',
+        'Kids & Baby' => '🧸',
+        'Home' => '🏠',
+        'Sports' => '⚽',
+        'Beauty' => '💄',
+        'Food' => '🍔',
+        'Automotive' => '🚗',
+        'Office & School' => '📚',
+    ];
+@endphp
+
 <div class="layout">
 
     <!-- SIDEBAR -->
-
     <aside class="sidebar">
 
         <div class="logo">
@@ -645,14 +760,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
             <a href="{{ route('admin.dashboard') }}">
                 📊 <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('admin.products') }}">
-                📦 <span>Products</span>
-            </a>
-
-            <a href="{{ route('admin.orders') }}">
-                🛒 <span>Orders</span>
             </a>
 
             <a href="{{ route('admin.accounts') }}">
@@ -670,26 +777,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         </nav>
 
         <div class="logout">
-
             <a href="{{ route('admin.login') }}">
                 🚪 <span>Logout</span>
             </a>
-
         </div>
 
     </aside>
 
 
     <!-- MAIN -->
-
     <main class="main">
 
         <!-- TOPBAR -->
-
         <div class="topbar">
 
             <div>
-
                 <small>
                     BoomBuy Administration
                 </small>
@@ -697,7 +799,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <h1>
                     Reports
                 </h1>
-
             </div>
 
             <div class="admin-profile">
@@ -707,7 +808,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 <div>
-
                     <div class="profile-name">
                         Administrator
                     </div>
@@ -715,7 +815,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <div class="profile-role">
                         Store Manager
                     </div>
-
                 </div>
 
             </div>
@@ -724,9 +823,9 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
         <!-- SUMMARY -->
-
         <section class="stats">
 
+            <!-- TOTAL REVENUE -->
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -742,16 +841,17 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 <div class="stat-value">
-                    ₱45,890
+                    ₱{{ number_format($totalRevenue, 2) }}
                 </div>
 
                 <div class="stat-sub">
-                    Revenue from completed orders
+                    Revenue from delivered orders
                 </div>
 
             </div>
 
 
+            <!-- TOTAL ORDERS -->
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -767,16 +867,17 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 <div class="stat-value">
-                    24
+                    {{ number_format($totalOrders) }}
                 </div>
 
                 <div class="stat-sub">
-                    Orders recorded
+                    Orders recorded in the system
                 </div>
 
             </div>
 
 
+            <!-- COMPLETED -->
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -792,7 +893,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 <div class="stat-value">
-                    16
+                    {{ number_format($completedOrders) }}
                 </div>
 
                 <div class="stat-sub">
@@ -802,6 +903,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
+            <!-- AVERAGE -->
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -817,11 +919,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 <div class="stat-value">
-                    ₱1,912
+                    ₱{{ number_format($averageOrder, 2) }}
                 </div>
 
                 <div class="stat-sub">
-                    Average order value
+                    Average delivered order value
                 </div>
 
             </div>
@@ -830,11 +932,9 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
         <!-- SALES + CATEGORY -->
-
         <div class="report-grid">
 
             <!-- SALES OVERVIEW -->
-
             <section class="panel">
 
                 <div class="panel-header">
@@ -846,7 +946,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         </h2>
 
                         <p class="panel-description">
-                            Monthly sales performance
+                            Actual monthly sales performance
                         </p>
 
                     </div>
@@ -854,119 +954,67 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
 
-                <div class="sales-chart">
+                @if($totalOrders > 0)
 
-                    <div class="bar-item">
+                    <div class="sales-chart">
 
-                        <div class="bar-value">
-                            ₱4.2K
-                        </div>
+                        @php
+                            $months = [
+                                1 => 'Jan',
+                                2 => 'Feb',
+                                3 => 'Mar',
+                                4 => 'Apr',
+                                5 => 'May',
+                                6 => 'Jun',
+                                7 => 'Jul',
+                            ];
+                        @endphp
 
-                        <div class="bar" style="height: 35%;"></div>
+                        @foreach($months as $monthNumber => $monthName)
 
-                        <div class="bar-label">
-                            Jan
-                        </div>
+                            @php
+                                $value = $monthlySales[$monthNumber] ?? 0;
 
-                    </div>
+                                $height = $maxMonthlySales > 0
+                                    ? ($value / $maxMonthlySales) * 100
+                                    : 0;
+                            @endphp
 
+                            <div class="bar-item">
 
-                    <div class="bar-item">
+                                <div class="bar-value">
+                                    ₱{{ number_format($value, 0) }}
+                                </div>
 
-                        <div class="bar-value">
-                            ₱5.8K
-                        </div>
+                                <div
+                                    class="bar"
+                                    style="height: {{ max($height, $value > 0 ? 4 : 1) }}%;"
+                                ></div>
 
-                        <div class="bar" style="height: 48%;"></div>
+                                <div class="bar-label">
+                                    {{ $monthName }}
+                                </div>
 
-                        <div class="bar-label">
-                            Feb
-                        </div>
+                            </div>
 
-                    </div>
-
-
-                    <div class="bar-item">
-
-                        <div class="bar-value">
-                            ₱6.5K
-                        </div>
-
-                        <div class="bar" style="height: 54%;"></div>
-
-                        <div class="bar-label">
-                            Mar
-                        </div>
-
-                    </div>
-
-
-                    <div class="bar-item">
-
-                        <div class="bar-value">
-                            ₱7.1K
-                        </div>
-
-                        <div class="bar" style="height: 60%;"></div>
-
-                        <div class="bar-label">
-                            Apr
-                        </div>
+                        @endforeach
 
                     </div>
 
+                @else
 
-                    <div class="bar-item">
-
-                        <div class="bar-value">
-                            ₱8.3K
+                    <div class="sales-chart">
+                        <div class="chart-empty">
+                            No sales data available yet.
                         </div>
-
-                        <div class="bar" style="height: 70%;"></div>
-
-                        <div class="bar-label">
-                            May
-                        </div>
-
                     </div>
 
-
-                    <div class="bar-item">
-
-                        <div class="bar-value">
-                            ₱6.9K
-                        </div>
-
-                        <div class="bar" style="height: 58%;"></div>
-
-                        <div class="bar-label">
-                            Jun
-                        </div>
-
-                    </div>
-
-
-                    <div class="bar-item">
-
-                        <div class="bar-value">
-                            ₱7.1K
-                        </div>
-
-                        <div class="bar" style="height: 60%;"></div>
-
-                        <div class="bar-label">
-                            Jul
-                        </div>
-
-                    </div>
-
-                </div>
+                @endif
 
             </section>
 
 
             <!-- CATEGORY SALES -->
-
             <section class="panel">
 
                 <div class="panel-header">
@@ -978,7 +1026,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         </h2>
 
                         <p class="panel-description">
-                            Product category performance
+                            Based on actual seller product sales
                         </p>
 
                     </div>
@@ -986,124 +1034,52 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
 
-                <div class="category">
+                @if(count($categorySales) > 0)
 
-                    <div class="category-top">
+                    @foreach($categorySales as $category => $units)
 
-                        <span class="category-name">
-                            📱 Smartphones
-                        </span>
+                        @php
+                            $percentage = $totalCategoryUnits > 0
+                                ? round(($units / $totalCategoryUnits) * 100)
+                                : 0;
 
-                        <span class="category-value">
-                            38%
-                        </span>
+                            $icon = $categoryIcons[$category] ?? '📦';
+                        @endphp
 
+                        <div class="category">
+
+                            <div class="category-top">
+
+                                <span class="category-name">
+                                    {{ $icon }} {{ $category }}
+                                </span>
+
+                                <span class="category-value">
+                                    {{ $percentage }}%
+                                </span>
+
+                            </div>
+
+                            <div class="progress">
+
+                                <div
+                                    class="progress-bar"
+                                    style="width: {{ $percentage }}%;"
+                                ></div>
+
+                            </div>
+
+                        </div>
+
+                    @endforeach
+
+                @else
+
+                    <div class="empty-message">
+                        No seller product sales available yet.
                     </div>
 
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            style="width: 38%;"
-                        ></div>
-                    </div>
-
-                </div>
-
-
-                <div class="category">
-
-                    <div class="category-top">
-
-                        <span class="category-name">
-                            💻 Laptops
-                        </span>
-
-                        <span class="category-value">
-                            27%
-                        </span>
-
-                    </div>
-
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            style="width: 27%;"
-                        ></div>
-                    </div>
-
-                </div>
-
-
-                <div class="category">
-
-                    <div class="category-top">
-
-                        <span class="category-name">
-                            🎧 Audio
-                        </span>
-
-                        <span class="category-value">
-                            18%
-                        </span>
-
-                    </div>
-
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            style="width: 18%;"
-                        ></div>
-                    </div>
-
-                </div>
-
-
-                <div class="category">
-
-                    <div class="category-top">
-
-                        <span class="category-name">
-                            ⌚ Wearables
-                        </span>
-
-                        <span class="category-value">
-                            11%
-                        </span>
-
-                    </div>
-
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            style="width: 11%;"
-                        ></div>
-                    </div>
-
-                </div>
-
-
-                <div class="category">
-
-                    <div class="category-top">
-
-                        <span class="category-name">
-                            🎮 Gaming
-                        </span>
-
-                        <span class="category-value">
-                            6%
-                        </span>
-
-                    </div>
-
-                    <div class="progress">
-                        <div
-                            class="progress-bar"
-                            style="width: 6%;"
-                        ></div>
-                    </div>
-
-                </div>
+                @endif
 
             </section>
 
@@ -1111,7 +1087,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
         <!-- ORDER REPORT -->
-
         <section class="panel">
 
             <div class="panel-header">
@@ -1123,14 +1098,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     </h2>
 
                     <p class="panel-description">
-                        Recent order and sales activity
+                        Recent order and sales activity from the database
                     </p>
 
                 </div>
-
-                <a href="{{ route('admin.orders') }}" class="export-button">
-                    View Orders →
-                </a>
 
             </div>
 
@@ -1170,112 +1141,76 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <tbody>
 
-                        <tr>
+                        @forelse($recentOrders as $order)
 
-                            <td>
-                                #BB-1001
-                            </td>
+                            @php
+                                $productNames = $getOrderProductNames($order->id);
 
-                            <td>
-                                Joshua
-                            </td>
+                                $status = $order->status ?? 'Pending';
 
-                            <td>
-                                Nova X5 Pro
-                            </td>
+                                $statusClass = match ($status) {
+                                    'Delivered' => 'completed',
+                                    'Processing',
+                                    'Ready for Pickup',
+                                    'Picked Up',
+                                    'Out for Delivery',
+                                    'On the Way' => 'processing',
+                                    'Cancelled' => 'cancelled',
+                                    default => 'pending',
+                                };
+                            @endphp
 
-                            <td class="amount">
-                                ₱18,999
-                            </td>
+                            <tr>
 
-                            <td>
-                                <span class="status completed">
-                                    Completed
-                                </span>
-                            </td>
+                                <td>
+                                    #BB-{{ $order->id }}
+                                </td>
 
-                        </tr>
+                                <td>
+                                    {{ $order->shipping_name ?? 'Unknown Buyer' }}
+                                </td>
 
+                                <td>
 
-                        <tr>
+                                    @if(count($productNames) > 0)
 
-                            <td>
-                                #BB-1002
-                            </td>
+                                        {{ implode(', ', $productNames) }}
 
-                            <td>
-                                Maria
-                            </td>
+                                    @else
 
-                            <td>
-                                AirBook 14
-                            </td>
+                                        No product information
 
-                            <td class="amount">
-                                ₱34,990
-                            </td>
+                                    @endif
 
-                            <td>
-                                <span class="status processing">
-                                    Processing
-                                </span>
-                            </td>
+                                </td>
 
-                        </tr>
+                                <td class="amount">
 
+                                    ₱{{ number_format((float) ($order->total_amount ?? 0), 2) }}
 
-                        <tr>
+                                </td>
 
-                            <td>
-                                #BB-1003
-                            </td>
+                                <td>
 
-                            <td>
-                                Carlo
-                            </td>
+                                    <span class="status {{ $statusClass }}">
+                                        {{ $status }}
+                                    </span>
 
-                            <td>
-                                SoundCore Pro
-                            </td>
+                                </td>
 
-                            <td class="amount">
-                                ₱2,799
-                            </td>
+                            </tr>
 
-                            <td>
-                                <span class="status pending">
-                                    Pending
-                                </span>
-                            </td>
+                        @empty
 
-                        </tr>
+                            <tr>
 
+                                <td colspan="5" class="empty-row">
+                                    No orders have been recorded yet.
+                                </td>
 
-                        <tr>
+                            </tr>
 
-                            <td>
-                                #BB-1004
-                            </td>
-
-                            <td>
-                                Andrea
-                            </td>
-
-                            <td>
-                                FitWatch S2
-                            </td>
-
-                            <td class="amount">
-                                ₱3,499
-                            </td>
-
-                            <td>
-                                <span class="status completed">
-                                    Completed
-                                </span>
-                            </td>
-
-                        </tr>
+                        @endforelse
 
                     </tbody>
 
@@ -1287,7 +1222,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
         <!-- PRODUCT PERFORMANCE -->
-
         <section class="panel">
 
             <div class="panel-header">
@@ -1299,14 +1233,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     </h2>
 
                     <p class="panel-description">
-                        Best-selling products
+                        Actual products added by sellers
                     </p>
 
                 </div>
-
-                <a href="{{ route('admin.products') }}" class="export-button">
-                    Manage Products →
-                </a>
 
             </div>
 
@@ -1346,104 +1276,81 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <tbody>
 
-                        <tr>
+                        @forelse($productPerformance as $product)
 
-                            <td>
-                                📱 Nova X5 Pro
-                            </td>
+                            @php
+                                $icon = $categoryIcons[$product['category']] ?? '📦';
 
-                            <td>
-                                Smartphone
-                            </td>
+                                if ($product['units_sold'] >= 20) {
+                                    $stars = '⭐⭐⭐⭐⭐';
+                                } elseif ($product['units_sold'] >= 10) {
+                                    $stars = '⭐⭐⭐⭐';
+                                } elseif ($product['units_sold'] >= 5) {
+                                    $stars = '⭐⭐⭐';
+                                } elseif ($product['units_sold'] > 0) {
+                                    $stars = '⭐⭐';
+                                } else {
+                                    $stars = '—';
+                                }
 
-                            <td>
-                                42
-                            </td>
+                                $sellerName = null;
 
-                            <td class="amount">
-                                ₱18,999
-                            </td>
+                                if (!empty($product['seller_id'])) {
+                                    $seller = \Illuminate\Support\Facades\DB::table('users')
+                                        ->where('id', $product['seller_id'])
+                                        ->first();
 
-                            <td>
-                                ⭐⭐⭐⭐⭐
-                            </td>
+                                    if ($seller) {
+                                        $sellerName = $seller->name;
+                                    }
+                                }
+                            @endphp
 
-                        </tr>
+                            <tr>
 
+                                <td>
 
-                        <tr>
+                                    <div class="product-name">
+                                        {{ $icon }} {{ $product['name'] }}
+                                    </div>
 
-                            <td>
-                                🎧 SoundCore Pro
-                            </td>
+                                    @if($sellerName)
+                                        <div class="seller-label">
+                                            Seller: {{ $sellerName }}
+                                        </div>
+                                    @endif
 
-                            <td>
-                                Audio
-                            </td>
+                                </td>
 
-                            <td>
-                                36
-                            </td>
+                                <td>
+                                    {{ $product['category'] ?: 'Other' }}
+                                </td>
 
-                            <td class="amount">
-                                ₱2,799
-                            </td>
+                                <td>
+                                    {{ number_format($product['units_sold']) }}
+                                </td>
 
-                            <td>
-                                ⭐⭐⭐⭐⭐
-                            </td>
+                                <td class="amount">
+                                    ₱{{ number_format($product['price'], 2) }}
+                                </td>
 
-                        </tr>
+                                <td class="performance-stars">
+                                    {{ $stars }}
+                                </td>
 
+                            </tr>
 
-                        <tr>
+                        @empty
 
-                            <td>
-                                ⌚ FitWatch S2
-                            </td>
+                            <tr>
 
-                            <td>
-                                Wearable
-                            </td>
+                                <td colspan="5" class="empty-row">
+                                    No seller products have been added yet.
+                                </td>
 
-                            <td>
-                                29
-                            </td>
+                            </tr>
 
-                            <td class="amount">
-                                ₱3,499
-                            </td>
-
-                            <td>
-                                ⭐⭐⭐⭐
-                            </td>
-
-                        </tr>
-
-
-                        <tr>
-
-                            <td>
-                                🎮 GamePad X
-                            </td>
-
-                            <td>
-                                Gaming
-                            </td>
-
-                            <td>
-                                24
-                            </td>
-
-                            <td class="amount">
-                                ₱2,199
-                            </td>
-
-                            <td>
-                                ⭐⭐⭐⭐
-                            </td>
-
-                        </tr>
+                        @endforelse
 
                     </tbody>
 

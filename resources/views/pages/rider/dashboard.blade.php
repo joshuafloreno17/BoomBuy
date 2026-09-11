@@ -1,15 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Rider Dashboard — BoomBuy</title>
 
     <style>
-
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
@@ -24,7 +20,9 @@
             color: #222;
         }
 
-        /* SIDEBAR */
+        /* =========================
+           SIDEBAR
+        ========================= */
 
         .sidebar {
             position: fixed;
@@ -94,7 +92,9 @@
             background: #b91c1c;
         }
 
-        /* MAIN */
+        /* =========================
+           MAIN
+        ========================= */
 
         .main {
             margin-left: 250px;
@@ -128,7 +128,30 @@
             color: #111827;
         }
 
-        /* CARDS */
+        /* =========================
+           ALERTS
+        ========================= */
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .error {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* =========================
+           CARDS
+        ========================= */
 
         .cards {
             display: grid;
@@ -160,7 +183,9 @@
             margin-top: 5px;
         }
 
-        /* CONTENT */
+        /* =========================
+           CONTENT
+        ========================= */
 
         .content-grid {
             display: grid;
@@ -179,8 +204,6 @@
             margin-bottom: 20px;
             font-size: 20px;
         }
-
-        /* PANEL HEADER */
 
         .panel-header {
             display: flex;
@@ -204,7 +227,9 @@
             color: #eaaf0c;
         }
 
-        /* DELIVERY */
+        /* =========================
+           DELIVERY
+        ========================= */
 
         .delivery {
             border: 1px solid #ebe6e5;
@@ -232,7 +257,9 @@
             font-size: 15px;
         }
 
-        /* STATUS */
+        /* =========================
+           STATUS
+        ========================= */
 
         .status {
             padding: 6px 10px;
@@ -247,6 +274,11 @@
             color: #059669;
         }
 
+        .status-picked {
+            background: #fff3ef;
+            color: #f34f1d;
+        }
+
         .status-way {
             background: #fffaed;
             color: #eaaf0c;
@@ -257,7 +289,9 @@
             color: #16a34a;
         }
 
-        /* DELIVERY INFO */
+        /* =========================
+           DELIVERY INFO
+        ========================= */
 
         .delivery-info {
             color: #816f6a;
@@ -269,7 +303,9 @@
             color: #523d36;
         }
 
-        /* BUTTONS */
+        /* =========================
+           BUTTONS
+        ========================= */
 
         .delivery-actions {
             display: flex;
@@ -310,7 +346,23 @@
             background: #15803d;
         }
 
-        /* AVAILABLE BOX */
+        .status-btn {
+            padding: 9px 14px;
+            background: #111827;
+            color: white;
+            text-decoration: none;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .status-btn:hover {
+            background: #374151;
+        }
+
+        /* =========================
+           AVAILABLE BOX
+        ========================= */
 
         .available-label {
             background: #f0fdf4;
@@ -322,7 +374,33 @@
             margin-bottom: 15px;
         }
 
-        /* EMPTY */
+        /* =========================
+           ACTIVE DELIVERY BOX
+        ========================= */
+
+        .active-label {
+            background: #fff7ed;
+            border: 1px solid #fed7aa;
+            color: #c2410c;
+            padding: 12px 14px;
+            border-radius: 9px;
+            font-size: 13px;
+            margin-bottom: 15px;
+        }
+
+        /* =========================
+           SECTION DIVIDER
+        ========================= */
+
+        .section-divider {
+            margin: 28px 0 20px;
+            padding-top: 20px;
+            border-top: 1px solid #ebe6e5;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
 
         .empty {
             text-align: center;
@@ -346,7 +424,9 @@
             font-size: 13px;
         }
 
-        /* QUICK ACTIONS */
+        /* =========================
+           QUICK ACTIONS
+        ========================= */
 
         .quick-action {
             display: block;
@@ -364,7 +444,9 @@
             color: #eaaf0c;
         }
 
-        /* RIDER TIP */
+        /* =========================
+           RIDER TIP
+        ========================= */
 
         .rider-tip {
             margin-top: 20px;
@@ -387,10 +469,11 @@
             line-height: 1.6;
         }
 
-        /* RESPONSIVE */
+        /* =========================
+           RESPONSIVE
+        ========================= */
 
         @media (max-width: 1000px) {
-
             .cards {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -398,17 +481,52 @@
             .content-grid {
                 grid-template-columns: 1fr;
             }
-
         }
 
         @media (max-width: 700px) {
-
             .sidebar {
-                width: 210px;
+                position: relative;
+                width: 100%;
+                height: auto;
+                display: flex;
+                flex-direction: column;
+                padding: 14px 16px;
+            }
+
+            .logo {
+                font-size: 20px;
+                margin-bottom: 10px;
+                padding-left: 2px;
+            }
+
+            .menu-title {
+                display: none;
+            }
+
+            .menu {
+                display: flex;
+                flex-direction: row;
+                overflow-x: auto;
+                gap: 8px;
+                margin-bottom: 4px;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .menu a {
+                white-space: nowrap;
+                margin-bottom: 0;
+                flex-shrink: 0;
+                font-size: 13px;
+                padding: 10px 14px;
+            }
+
+            .logout {
+                position: static;
+                margin-top: 10px;
             }
 
             .main {
-                margin-left: 210px;
+                margin-left: 0;
                 padding: 20px;
             }
 
@@ -421,10 +539,11 @@
                 gap: 15px;
                 flex-direction: column;
             }
-
         }
 
-        /* BOOMBUY DESIGN */
+        /* =========================
+           BOOMBUY DESIGN SYSTEM
+        ========================= */
 
         h1,
         h2,
@@ -450,11 +569,7 @@
         .stat-title,
         .stat-value,
         .banner-title {
-
-            font-family: 'Baloo 2',
-                'Plus Jakarta Sans',
-                sans-serif;
-
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
             letter-spacing: -0.01em;
         }
 
@@ -468,9 +583,7 @@
         .login-btn,
         .submit-btn,
         .primary-btn {
-
             border-radius: 12px !important;
-
             transition:
                 transform 0.15s ease,
                 box-shadow 0.15s ease,
@@ -483,7 +596,6 @@
         .add-to-cart:hover,
         .buy-now:hover,
         .primary-btn:hover {
-
             transform: translateY(-1px);
         }
 
@@ -497,14 +609,14 @@
             background: #ffd7c2;
             color: #7c1a00;
         }
-
     </style>
-
 </head>
 
 <body>
 
-<!-- SIDEBAR -->
+<!-- =========================
+     SIDEBAR
+========================= -->
 
 <aside class="sidebar">
 
@@ -553,7 +665,6 @@
             method="POST"
             action="{{ route('logout') }}"
         >
-
             @csrf
 
             <button type="submit">
@@ -567,7 +678,9 @@
 </aside>
 
 
-<!-- MAIN -->
+<!-- =========================
+     MAIN
+========================= -->
 
 <main class="main">
 
@@ -589,23 +702,101 @@
         </div>
 
         <div class="profile">
-
             🚴
-
             <strong>
                 {{ $user['name'] ?? 'Rider' }}
             </strong>
-
         </div>
 
     </div>
 
 
-    <!-- STAT CARDS -->
+    <!-- =========================
+         ALERTS
+    ========================= -->
+
+    @if(session('success'))
+
+        <div class="alert success">
+            ✅ {{ session('success') }}
+        </div>
+
+    @endif
+
+    @if(session('error'))
+
+        <div class="alert error">
+            ❌ {{ session('error') }}
+        </div>
+
+    @endif
+
+
+    <!-- =========================
+         PREPARE DELIVERY DATA
+    ========================= -->
+
+    @php
+
+    /*
+    |--------------------------------------------------------------------------
+    | DASHBOARD DATA
+    |--------------------------------------------------------------------------
+    | These variables come directly from rider.dashboard route:
+    | $availableOrders
+    | $myDeliveries
+    | $inTransit
+    | $delivered
+    | $totalCount
+    |--------------------------------------------------------------------------
+    */
+
+    $availableDeliveries = $availableOrders ?? [];
+    $myDeliveriesList = $myDeliveries ?? [];
+
+    /*
+    |--------------------------------------------------------------------------
+    | COUNTS
+    |--------------------------------------------------------------------------
+    */
+
+    $availableCount = count($availableDeliveries);
+
+    $totalDeliveries = count($myDeliveriesList);
+
+    $inTransitCount = count($inTransit ?? []);
+
+    $deliveredCount = count($delivered ?? []);
+
+    /*
+    |--------------------------------------------------------------------------
+    | MY ACTIVE DELIVERIES
+    |--------------------------------------------------------------------------
+    | Anything assigned to this rider that is not Delivered.
+    |--------------------------------------------------------------------------
+    */
+
+    $myActiveDeliveries = array_values(
+        array_filter(
+            $myDeliveriesList,
+            function ($delivery) {
+
+                $status = $delivery['status'] ?? '';
+
+                return $status !== 'Delivered';
+
+            }
+        )
+    );
+
+@endphp
+
+
+    <!-- =========================
+         STAT CARDS
+    ========================= -->
 
     <section class="cards">
-
-        <!-- TOTAL DELIVERIES -->
 
         <div class="card">
 
@@ -618,13 +809,11 @@
             </div>
 
             <div class="card-number">
-                {{ count($availableOrders ?? []) + count($myDeliveries ?? []) }}
+                {{ $totalDeliveries }}
             </div>
 
         </div>
 
-
-        <!-- AVAILABLE ORDERS -->
 
         <div class="card">
 
@@ -637,13 +826,11 @@
             </div>
 
             <div class="card-number">
-                {{ count($availableOrders ?? []) }}
+                {{ $inTransitCount }}
             </div>
 
         </div>
 
-
-        <!-- IN TRANSIT -->
 
         <div class="card">
 
@@ -662,8 +849,6 @@
         </div>
 
 
-        <!-- DELIVERED -->
-
         <div class="card">
 
             <div class="card-icon">
@@ -675,7 +860,7 @@
             </div>
 
             <div class="card-number">
-                {{ count($delivered ?? []) }}
+                {{ $deliveredCount }}
             </div>
 
         </div>
@@ -683,14 +868,20 @@
     </section>
 
 
-    <!-- CONTENT -->
+    <!-- =========================
+         CONTENT
+    ========================= -->
 
     <section class="content-grid">
 
 
-        <!-- AVAILABLE ORDERS -->
+        <!-- =========================
+             LEFT PANEL
+        ========================= -->
 
         <div class="panel">
+
+            <!-- AVAILABLE ORDERS -->
 
             <div class="panel-header">
 
@@ -708,10 +899,14 @@
             </div>
 
 
-            @if(count($availableOrders ?? []) > 0)
+            @if(count($availableDeliveries) > 0)
 
                 @foreach(
-                    array_slice($availableOrders, 0, 5)
+                    array_slice(
+                        $availableDeliveries,
+                        0,
+                        5
+                    )
                     as $delivery
                 )
 
@@ -720,114 +915,65 @@
                         <div class="delivery-header">
 
                             <div class="delivery-id">
-
                                 📦
                                 Order #{{ $delivery['id'] ?? 'N/A' }}
-
                             </div>
 
                             <div class="status status-available">
-
                                 🟢 Ready for Pickup
-
                             </div>
 
                         </div>
 
 
                         <div class="available-label">
-
                             🚚 This order is available for pickup.
-
                             Claim it if you want to deliver this order.
-
                         </div>
 
 
                         <div class="delivery-info">
 
                             <div>
-
                                 👤
-
-                                <strong>
-                                    Customer:
-                                </strong>
-
+                                <strong>Customer:</strong>
                                 {{ $delivery['buyer_name'] ?? 'Customer' }}
-
                             </div>
 
-
                             <div>
-
                                 📍
-
-                                <strong>
-                                    Address:
-                                </strong>
-
+                                <strong>Address:</strong>
                                 {{ $delivery['address'] ?? 'No address provided' }}
-
                             </div>
 
-
                             <div>
-
                                 📞
-
-                                <strong>
-                                    Phone:
-                                </strong>
-
+                                <strong>Phone:</strong>
                                 {{ $delivery['phone'] ?? 'No phone provided' }}
-
                             </div>
 
-
                             <div>
-
                                 💰
-
-                                <strong>
-                                    Total:
-                                </strong>
-
+                                <strong>Total:</strong>
                                 ₱{{ number_format($delivery['total'] ?? 0, 2) }}
-
                             </div>
 
-
                             <div>
-
                                 💳
-
-                                <strong>
-                                    Payment:
-                                </strong>
-
+                                <strong>Payment:</strong>
                                 {{ $delivery['payment'] ?? 'N/A' }}
-
                             </div>
 
-
                             <div>
-
                                 🛒
-
-                                <strong>
-                                    Items:
-                                </strong>
-
+                                <strong>Items:</strong>
                                 {{ count($delivery['items'] ?? []) }}
-
                             </div>
 
                         </div>
 
 
                         <div class="delivery-actions">
-
 
                             <!-- CLAIM -->
 
@@ -845,9 +991,7 @@
                                     type="submit"
                                     class="claim-btn"
                                 >
-
                                     🚚 Claim Delivery
-
                                 </button>
 
                             </form>
@@ -862,9 +1006,7 @@
                                 ) }}"
                                 class="view-btn"
                             >
-
                                 👁 View Details
-
                             </a>
 
                         </div>
@@ -886,21 +1028,189 @@
                     </div>
 
                     <div class="empty-text">
-
                         Orders marked
                         <strong>"Ready for Pickup"</strong>
                         will appear here.
-
                     </div>
 
                 </div>
 
             @endif
 
+
+            <!-- =========================
+                 MY ACTIVE DELIVERIES
+            ========================= -->
+
+            <div class="section-divider">
+
+                <div class="panel-header">
+
+                    <h2>
+                        🚚 My Active Deliveries
+                    </h2>
+
+                    <a
+                        href="{{ route('rider.deliveries') }}"
+                        class="view-all"
+                    >
+                        View All →
+                    </a>
+
+                </div>
+
+
+                @if(count($myActiveDeliveries) > 0)
+
+                    @foreach(
+                        array_slice(
+                            $myActiveDeliveries,
+                            0,
+                            5
+                        )
+                        as $delivery
+                    )
+
+                        @php
+
+                            $status =
+                                $delivery['status']
+                                ?? 'Picked Up';
+
+                            $statusClass =
+                                $status === 'On the Way'
+                                ? 'status-way'
+                                : 'status-picked';
+
+                        @endphp
+
+
+                        <div class="delivery">
+
+                            <div class="delivery-header">
+
+                                <div class="delivery-id">
+                                    📦
+                                    Order #{{ $delivery['id'] ?? 'N/A' }}
+                                </div>
+
+                                <div class="status {{ $statusClass }}">
+                                    {{ $status }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="active-label">
+
+                                🚚 This order is assigned to you.
+
+                                @if($status === 'Picked Up')
+                                    Continue the delivery process.
+                                @else
+                                    This order is currently on the way.
+                                @endif
+
+                            </div>
+
+
+                            <div class="delivery-info">
+
+                                <div>
+                                    👤
+                                    <strong>Customer:</strong>
+                                    {{ $delivery['buyer_name'] ?? 'Customer' }}
+                                </div>
+
+                                <div>
+                                    📍
+                                    <strong>Address:</strong>
+                                    {{ $delivery['address'] ?? 'No address provided' }}
+                                </div>
+
+                                <div>
+                                    📞
+                                    <strong>Phone:</strong>
+                                    {{ $delivery['phone'] ?? 'No phone provided' }}
+                                </div>
+
+                                <div>
+                                    💰
+                                    <strong>Total:</strong>
+                                    ₱{{ number_format($delivery['total'] ?? 0, 2) }}
+                                </div>
+
+                                <div>
+                                    💳
+                                    <strong>Payment:</strong>
+                                    {{ $delivery['payment'] ?? 'N/A' }}
+                                </div>
+
+                                <div>
+                                    🛒
+                                    <strong>Items:</strong>
+                                    {{ count($delivery['items'] ?? []) }}
+                                </div>
+
+                            </div>
+
+
+                            <div class="delivery-actions">
+
+                                <a
+                                    href="{{ route(
+                                        'rider.delivery.details',
+                                        $delivery['id']
+                                    ) }}"
+                                    class="view-btn"
+                                >
+                                    👁 View Details
+                                </a>
+
+                                <a
+                                    href="{{ route(
+                                        'rider.delivery.details',
+                                        $delivery['id']
+                                    ) }}"
+                                    class="status-btn"
+                                >
+                                    🔄 Update Status
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    @endforeach
+
+                @else
+
+                    <div class="empty">
+
+                        <div class="empty-icon">
+                            🚚
+                        </div>
+
+                        <div class="empty-title">
+                            No Active Deliveries
+                        </div>
+
+                        <div class="empty-text">
+                            Orders you claim will appear here.
+                        </div>
+
+                    </div>
+
+                @endif
+
+            </div>
+
         </div>
 
 
-        <!-- QUICK ACTIONS -->
+        <!-- =========================
+             QUICK ACTIONS
+        ========================= -->
 
         <div class="panel">
 
@@ -913,9 +1223,7 @@
                 href="{{ route('rider.deliveries') }}"
                 class="quick-action"
             >
-
                 🚚 View Available Deliveries
-
             </a>
 
 
@@ -923,9 +1231,7 @@
                 href="{{ route('rider.profile') }}"
                 class="quick-action"
             >
-
                 👤 View Profile
-
             </a>
 
 
@@ -933,9 +1239,7 @@
                 href="{{ url('/') }}"
                 class="quick-action"
             >
-
                 🛍️ Visit BoomBuy
-
             </a>
 
 
@@ -964,5 +1268,4 @@
 </main>
 
 </body>
-
 </html>

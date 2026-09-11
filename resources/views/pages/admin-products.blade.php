@@ -122,7 +122,7 @@
         }
 
         .error {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
             border: 1px solid #ffd0d0;
             padding: 13px 16px;
@@ -212,6 +212,8 @@
             align-items: center;
             justify-content: center;
             font-size: 23px;
+            overflow: hidden;
+            flex-shrink: 0;
         }
 
         .product-name {
@@ -255,7 +257,7 @@
         }
 
         .delete {
-            background: #fff0f0;
+            background: #fff3f0;
             color: #dc2626;
         }
 
@@ -506,7 +508,15 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                             <div class="product">
 
                                 <div class="product-icon">
-                                    {{ $product['icon'] ?? '📦' }}
+                                    @php
+                                        $pIcon = $product['icon'] ?? '📦';
+                                        $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
+                                    @endphp
+                                    @if($pIsImg)
+                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                    @else
+                                        {{ $pIcon }}
+                                    @endif
                                 </div>
 
 

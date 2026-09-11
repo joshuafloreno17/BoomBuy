@@ -9,6 +9,28 @@
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+.received-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background: #e9f8ef;
+    color: #087a3d;
+
+    border: 1px solid #ccefd9;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
         * {
             box-sizing: border-box;
         }
@@ -205,6 +227,16 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+@media (max-width: 640px) {
+    .navbar { padding: 14px 5%; }
+    .container { width: 92%; margin: 24px auto; }
+    .order-header { flex-wrap: wrap; gap: 8px; }
+    .order-card { padding: 16px; }
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions .btn, .actions select, .actions .details { width: 100%; text-align: center; }
+    h1 { font-size: 22px; }
+}
 </style>
 </head>
 
@@ -265,9 +297,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         </div>
                     </div>
 
-                    <div class="status">
-                        {{ $order['status'] ?? 'Pending' }}
-                    </div>
+                <div>
+
+    <div class="status">
+        {{ $order['status'] ?? 'Pending' }}
+    </div>
+
+    @if(!empty($order['buyer_received_at']))
+
+        <div class="received-badge">
+            ✓ Received by Buyer
+        </div>
+
+    @endif
+
+</div>
 
                 </div>
 

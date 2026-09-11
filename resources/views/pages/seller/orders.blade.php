@@ -1,14 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Seller Orders — BoomBuy</title>
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+        .received-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background: #eafaf0;
+    color: #24733e;
+
+    border: 1px solid #ccefd9;
+
+    font-size: 10px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
 
         * {
             margin: 0;
@@ -17,145 +41,546 @@
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
-            background: #fbf7f6;
-            color: #1f2937;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #fff8f5;
+            color: #2d2523;
         }
 
-        .navbar {
-            background: white;
-            padding: 18px 6%;
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .layout {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #ebe6e5;
+            min-height: 100vh;
         }
 
-        .brand {
+        /* =========================
+           SIDEBAR
+        ========================= */
+
+        .sidebar {
+            width: 240px;
+            background: #ffffff;
+            border-right: 1px solid #f3e4df;
+
+            padding: 28px 18px;
+
+            display: flex;
+            flex-direction: column;
+
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+
+            z-index: 1000;
+        }
+
+        .logo {
+            text-decoration: none;
             font-family: 'Baloo 2', sans-serif;
-            font-size: 26px;
+            font-size: 30px;
             font-weight: 800;
-            color: #111827;
-            text-decoration: none;
+            color: #25201f;
+
+            padding: 0 10px;
+            margin-bottom: 5px;
         }
 
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 18px;
+        .logo span {
+            color: #f45b2a;
         }
 
-        .seller-name {
-            font-weight: 600;
-        }
+        .sidebar-label {
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
 
-        .logout button {
-            border: none;
-            background: #ef4444;
-            color: white;
-            padding: 9px 15px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: 600;
-        }
+            color: #b9a39c;
 
-        .container {
-            width: 90%;
-            max-width: 1100px;
-            margin: 40px auto;
-        }
-
-        .back {
-            display: inline-block;
-            margin-bottom: 20px;
-            color: #f34f1d;
-            text-decoration: none;
-            font-weight: 700;
-        }
-
-        h1,
-        h2,
-        h3 {
-            font-family: 'Baloo 2', sans-serif;
-        }
-
-        h1 {
-            font-size: 34px;
+            padding: 0 10px;
+            margin-top: 25px;
             margin-bottom: 8px;
         }
 
-        .subtitle {
-            color: #816f6a;
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .menu a {
+            text-decoration: none;
+
+            display: flex;
+            align-items: center;
+            gap: 12px;
+
+            padding: 13px 14px;
+
+            border-radius: 13px;
+
+            color: #816f69;
+
+            font-size: 13px;
+            font-weight: 700;
+
+            transition: 0.2s ease;
+        }
+
+        .menu a:hover {
+            background: #fff4ef;
+            color: #ef571f;
+            transform: translateX(2px);
+        }
+
+        .menu a.active {
+            background: #fff0e9;
+            color: #ef571f;
+        }
+
+        .menu-icon {
+            width: 24px;
+            text-align: center;
+            font-size: 17px;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+
+            padding-top: 18px;
+
+            border-top: 1px solid #f3e4df;
+        }
+
+        .seller-info {
+            padding: 0 10px;
+            margin-bottom: 12px;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            color: #816f69;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .logout {
+            width: 100%;
+
+            border: none;
+
+            background: #fff0ed;
+            color: #e4472a;
+
+            padding: 12px;
+
+            border-radius: 12px;
+
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+        .logout:hover {
+            background: #ffe1d9;
+            transform: translateY(-1px);
+        }
+
+        /* =========================
+           MAIN
+        ========================= */
+
+        .main-content {
+            margin-left: 240px;
+            width: calc(100% - 240px);
+            min-height: 100vh;
+        }
+
+        .container {
+            width: min(1100px, 92%);
+            margin: 0 auto;
+
+            padding: 42px 0 60px;
+        }
+
+        /* =========================
+           PAGE HEADER
+        ========================= */
+
+        .page-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+
+            gap: 20px;
+
             margin-bottom: 30px;
         }
 
-        .success {
-            background: #dcfce7;
-            color: #166534;
-            padding: 14px 18px;
+        .page-heading small {
+            display: block;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            color: #f45b2a;
+
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+
+            margin-bottom: 5px;
+        }
+
+        h1 {
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 38px;
+            line-height: 1;
+
+            font-weight: 800;
+
+            color: #2a2220;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+
+            color: #927c75;
+
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .back-btn {
+            text-decoration: none;
+
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+
+            background: #ffffff;
+
+            color: #e95220;
+
+            border: 1px solid #f4ded6;
+
+            padding: 11px 16px;
+
             border-radius: 12px;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            transition: 0.2s ease;
+        }
+
+        .back-btn:hover {
+            background: #fff4ef;
+            transform: translateY(-1px);
+        }
+
+        /* =========================
+           ALERTS
+        ========================= */
+
+        .alert {
+            padding: 14px 17px;
+
+            border-radius: 13px;
+
             margin-bottom: 20px;
-            font-weight: 600;
+
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .success {
+            background: #eafaf0;
+            border: 1px solid #ccefd9;
+            color: #24733e;
         }
 
         .error {
-            background: #fee2e2;
-            color: #991b1b;
-            padding: 14px 18px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-weight: 600;
+            background: #fff0f0;
+            border: 1px solid #f4cece;
+            color: #a43636;
         }
+
+        /* =========================
+           ORDER SUMMARY
+        ========================= */
+
+        .summary-grid {
+            display: grid;
+
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 15px;
+
+            margin-bottom: 25px;
+        }
+
+        .summary-card {
+            background: #ffffff;
+
+            border: 1px solid #f3e5e0;
+
+            border-radius: 17px;
+
+            padding: 19px 20px;
+
+            box-shadow: 0 5px 20px rgba(104, 70, 60, 0.05);
+        }
+
+        .summary-label {
+            font-size: 11px;
+            font-weight: 800;
+
+            color: #9c8982;
+
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+        }
+
+        .summary-value {
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 28px;
+            font-weight: 800;
+
+            color: #2d2523;
+
+            margin-top: 3px;
+        }
+
+        .summary-card.orange .summary-value {
+            color: #f05a28;
+        }
+
+        .summary-card.green .summary-value {
+            color: #24965a;
+        }
+
+        /* =========================
+           EMPTY
+        ========================= */
 
         .empty {
-            background: white;
-            padding: 50px;
-            border-radius: 16px;
+            background: #ffffff;
+
+            border: 1px solid #f3e5e0;
+
+            border-radius: 20px;
+
+            padding: 65px 30px;
+
             text-align: center;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, .06);
+
+            box-shadow: 0 5px 25px rgba(104, 70, 60, 0.05);
         }
 
-        .order-card {
-            background: white;
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 18px rgba(0, 0, 0, .06);
+        .empty-icon {
+            width: 65px;
+            height: 65px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin: 0 auto 15px;
+
+            border-radius: 18px;
+
+            background: #fff1eb;
+
+            font-size: 27px;
         }
+
+        .empty h2 {
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 26px;
+            font-weight: 800;
+
+            color: #2d2523;
+        }
+
+        .empty p {
+            margin-top: 7px;
+
+            color: #927c75;
+
+            font-size: 13px;
+        }
+
+        /* =========================
+           ORDER CARD
+        ========================= */
+
+        .order-card {
+            background: #ffffff;
+
+            border: 1px solid #f2e4df;
+
+            border-radius: 20px;
+
+            margin-bottom: 18px;
+
+            overflow: hidden;
+
+            box-shadow: 0 6px 24px rgba(104, 70, 60, 0.055);
+
+            transition: 0.2s ease;
+        }
+
+        .order-card:hover {
+            transform: translateY(-2px);
+
+            box-shadow: 0 10px 28px rgba(104, 70, 60, 0.08);
+        }
+
+        /* =========================
+           ORDER HEADER
+        ========================= */
 
         .order-header {
             display: flex;
+
             justify-content: space-between;
             align-items: center;
+
             gap: 20px;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 1px solid #ebe6e5;
+
+            padding: 20px 22px;
+
+            background: #fffaf8;
+
+            border-bottom: 1px solid #f4e7e2;
         }
 
         .order-id {
-            font-size: 20px;
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 21px;
             font-weight: 800;
+
+            color: #2d2523;
         }
 
         .date {
-            color: #816f6a;
-            font-size: 14px;
-            margin-top: 5px;
+            margin-top: 2px;
+
+            color: #9a8780;
+
+            font-size: 11px;
+            font-weight: 600;
         }
 
+        /* =========================
+           STATUS
+        ========================= */
+
         .status {
-            padding: 8px 14px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 700;
-            background: #fef3c7;
-            color: #926f0e;
+            display: inline-flex;
+            align-items: center;
+
+            gap: 7px;
+
+            padding: 8px 13px;
+
+            border-radius: 999px;
+
+            background: #fff3cd;
+            color: #9a7210;
+
+            font-size: 11px;
+            font-weight: 800;
+
+            white-space: nowrap;
+        }
+
+        .status::before {
+            content: "";
+
+            width: 7px;
+            height: 7px;
+
+            border-radius: 50%;
+
+            background: currentColor;
+        }
+
+        /* =========================
+           CUSTOMER
+        ========================= */
+
+        .customer {
+            margin: 18px 22px 0;
+
+            padding: 14px 16px;
+
+            background: #fff8f5;
+
+            border: 1px solid #f4e6e1;
+
+            border-radius: 13px;
+        }
+
+        .customer-title {
+            font-size: 10px;
+            font-weight: 800;
+
+            color: #a18d86;
+
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+
+            margin-bottom: 3px;
+        }
+
+        .customer-name {
+            font-size: 14px;
+            font-weight: 800;
+
+            color: #3a2f2b;
+        }
+
+        .customer-phone {
+            margin-top: 4px;
+
+            color: #927e76;
+
+            font-size: 12px;
+        }
+
+        /* =========================
+           ITEMS
+        ========================= */
+
+        .items {
+            padding: 8px 22px 0;
         }
 
         .item {
-            padding: 14px 0;
-            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+
+            padding: 17px 0;
+
+            border-bottom: 1px solid #f2ece9;
         }
 
         .item:last-child {
@@ -163,715 +588,510 @@
         }
 
         .item-name {
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
+
+            color: #342a27;
+
             margin-bottom: 5px;
         }
 
         .item-info {
-            color: #816f6a;
-            font-size: 14px;
+            color: #95827b;
+
+            font-size: 11px;
+            font-weight: 600;
         }
 
         .subtotal {
-            margin-top: 6px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
+
+            color: #3c302c;
+
+            white-space: nowrap;
         }
+
+        /* =========================
+           FOOTER
+        ========================= */
 
         .order-footer {
             display: flex;
+
             justify-content: space-between;
             align-items: center;
-            margin-top: 20px;
-            padding-top: 18px;
-            border-top: 1px solid #ebe6e5;
+
+            gap: 20px;
+
+            margin-top: 5px;
+
+            padding: 18px 22px 21px;
+
+            border-top: 1px solid #f1e8e4;
         }
 
         .total-label {
-            font-size: 13px;
-            color: #816f6a;
+            color: #a08b83;
+
+            font-size: 10px;
+            font-weight: 800;
+
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .total {
-            font-size: 20px;
+            margin-top: 2px;
+
+            font-family: 'Baloo 2', sans-serif;
+
+            color: #f05a28;
+
+            font-size: 25px;
             font-weight: 800;
-            margin-top: 3px;
         }
 
         .view-btn {
-            background: #111827;
-            color: white;
             text-decoration: none;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
             padding: 11px 18px;
-            border-radius: 10px;
-            font-weight: 700;
-            display: inline-block;
-        }
 
-        .customer {
-            margin-top: 18px;
-            padding: 14px;
-            background: #fbf9f9;
-            border-radius: 10px;
-        }
+            background: #f45b2a;
+            color: #ffffff;
 
-        .customer-title {
-            font-size: 13px;
-            color: #816f6a;
-            margin-bottom: 5px;
-        }
+            border-radius: 12px;
 
-        .customer-name {
-            font-weight: 700;
-        }
-
-        /* =========================================
-           RETURN / REFUND
-           ========================================= */
-
-        .return-section {
-            margin-top: 22px;
-            border-top: 1px solid #ebe6e5;
-            padding-top: 20px;
-        }
-
-        .return-title {
-            font-size: 20px;
-            margin-bottom: 14px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .return-card {
-            background: #fff7f2;
-            border: 1px solid #ffd9c7;
-            border-radius: 14px;
-            padding: 18px;
-            margin-top: 12px;
-        }
-
-        .return-card.pending {
-            border-left: 5px solid #f59e0b;
-        }
-
-        .return-card.approved {
-            border-left: 5px solid #22c55e;
-            background: #f0fdf4;
-        }
-
-        .return-card.rejected {
-            border-left: 5px solid #ef4444;
-            background: #fef2f2;
-        }
-
-        .return-card.returned {
-            border-left: 5px solid #3b82f6;
-            background: #eff6ff;
-        }
-
-        .return-card.refund_processing {
-            border-left: 5px solid #8b5cf6;
-            background: #f5f3ff;
-        }
-
-        .return-card.completed {
-            border-left: 5px solid #16a34a;
-            background: #f0fdf4;
-        }
-
-        .return-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 12px;
-        }
-
-        .request-type {
-            font-size: 16px;
-            font-weight: 800;
-        }
-
-        .request-status {
-            padding: 6px 12px;
-            border-radius: 20px;
             font-size: 12px;
             font-weight: 800;
-            text-transform: uppercase;
+
+            transition: 0.2s ease;
+
+            box-shadow: 0 5px 12px rgba(244, 91, 42, 0.16);
         }
 
-        .request-status.pending {
-            background: #fef3c7;
-            color: #92400e;
+        .view-btn:hover {
+            background: #e94e20;
+
+            transform: translateY(-1px);
+
+            box-shadow: 0 7px 15px rgba(244, 91, 42, 0.22);
         }
 
-        .request-status.approved {
-            background: #dcfce7;
-            color: #166534;
-        }
+        /* =========================
+           RESPONSIVE
+        ========================= */
 
-        .request-status.rejected {
-            background: #fee2e2;
-            color: #991b1b;
-        }
+        @media (max-width: 900px) {
 
-        .request-status.returned {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-        .request-status.refund_processing {
-            background: #ede9fe;
-            color: #6d28d9;
-        }
-
-        .request-status.completed {
-            background: #dcfce7;
-            color: #166534;
-        }
-
-        .return-info {
-            font-size: 14px;
-            line-height: 1.7;
-            color: #4b5563;
-        }
-
-        .return-info strong {
-            color: #1f2937;
-        }
-
-        .seller-note {
-            margin-top: 10px;
-            padding: 10px 12px;
-            background: white;
-            border-radius: 9px;
-            font-size: 13px;
-        }
-
-        .return-actions {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 16px;
-        }
-
-        .approve-btn,
-        .reject-btn,
-        .returned-btn,
-        .refund-btn,
-        .complete-btn {
-            border: none;
-            padding: 10px 16px;
-            border-radius: 10px;
-            color: white;
-            font-weight: 700;
-            cursor: pointer;
-        }
-
-        .approve-btn {
-            background: #16a34a;
-        }
-
-        .reject-btn {
-            background: #ef4444;
-        }
-
-        .returned-btn {
-            background: #2563eb;
-        }
-
-        .refund-btn {
-            background: #7c3aed;
-        }
-
-        .complete-btn {
-            background: #059669;
-        }
-
-        .status-description {
-            margin-top: 10px;
-            font-size: 13px;
-            color: #6b7280;
-        }
-
-        @media (max-width: 700px) {
-
-            .navbar {
-                padding: 16px 4%;
+            .sidebar {
+                width: 75px;
+                padding: 24px 8px;
             }
 
-            .nav-right {
-                gap: 10px;
+            .logo {
+                font-size: 21px;
+                text-align: center;
+                padding: 0;
             }
 
-            .seller-name {
-                font-size: 13px;
+            .logo span {
+                display: none;
+            }
+
+            .sidebar-label,
+            .label-text,
+            .seller-info {
+                display: none;
+            }
+
+            .menu a {
+                justify-content: center;
+                padding: 13px 8px;
+            }
+
+            .menu-icon {
+                width: auto;
+            }
+
+            .main-content {
+                margin-left: 75px;
+                width: calc(100% - 75px);
             }
 
             .container {
-                width: 94%;
-                margin-top: 25px;
+                width: 92%;
             }
+        }
 
-            .order-header,
-            .order-footer,
-            .return-top {
+        @media (max-width: 650px) {
+
+            .page-top {
                 flex-direction: column;
                 align-items: flex-start;
             }
 
-            .return-actions {
-                width: 100%;
+            h1 {
+                font-size: 32px;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .order-header,
+            .order-footer {
                 flex-direction: column;
+                align-items: flex-start;
             }
 
-            .approve-btn,
-            .reject-btn,
-            .returned-btn,
-            .refund-btn,
-            .complete-btn {
-                width: 100%;
+            .item {
+                align-items: flex-start;
+                flex-direction: column;
+                gap: 6px;
             }
-        }
 
-        button {
-            transition: transform .15s ease, box-shadow .15s ease;
-        }
-
-        button:hover,
-        .view-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        ::selection {
-            background: #ffd7c2;
-            color: #7c1a00;
+            .subtotal {
+                align-self: flex-end;
+            }
         }
     </style>
 </head>
 
 <body>
 
-<nav class="navbar">
+<div class="layout">
 
-    <a href="{{ route('home') }}" class="brand">
-        BoomBuy
-    </a>
+    {{-- =========================
+         SIDEBAR
+    ========================== --}}
 
-    <div class="nav-right">
+    <aside class="sidebar">
 
-        <span class="seller-name">
-            Seller: {{ $user['name'] ?? 'Seller' }}
-        </span>
+        <a href="/" class="logo">
+            Boom<span>Buy</span>
+        </a>
 
-        <form action="{{ route('logout') }}" method="POST" class="logout">
-            @csrf
-
-            <button type="submit">
-                Logout
-            </button>
-        </form>
-
-    </div>
-
-</nav>
-
-
-<div class="container">
-
-    <a href="{{ route('seller.dashboard') }}" class="back">
-        ← Back to Seller Dashboard
-    </a>
-
-    <h1>Seller Orders</h1>
-
-    <p class="subtitle">
-        View and manage orders containing your products.
-    </p>
-
-
-    {{-- SUCCESS MESSAGE --}}
-
-    @if(session('success'))
-        <div class="success">
-            ✓ {{ session('success') }}
+        <div class="sidebar-label">
+            Seller Panel
         </div>
-    @endif
 
+        <nav class="menu">
 
-    {{-- ERROR MESSAGE --}}
+            <a href="{{ route('seller.dashboard') }}">
+                <span class="menu-icon">📊</span>
+                <span class="label-text">Dashboard</span>
+            </a>
 
-    @if(session('error'))
-        <div class="error">
-            {{ session('error') }}
+            <a href="{{ route('seller.products.create') }}">
+                <span class="menu-icon">➕</span>
+                <span class="label-text">Add Product</span>
+            </a>
+
+            <a href="{{ route('seller.orders') }}" class="active">
+                <span class="menu-icon">🛒</span>
+                <span class="label-text">Orders</span>
+            </a>
+
+        </nav>
+
+        <div class="sidebar-footer">
+
+            <div class="seller-info">
+                Seller: {{ $user['name'] ?? 'Seller' }}
+            </div>
+
+            <form action="{{ route('logout') }}" method="POST">
+                @csrf
+
+                <button type="submit" class="logout">
+                    Logout
+                </button>
+            </form>
+
         </div>
-    @endif
+
+    </aside>
 
 
-    {{-- =====================================================
-         GET SELLER RETURN / REFUND REQUESTS
-         ===================================================== --}}
+    {{-- =========================
+         MAIN CONTENT
+    ========================== --}}
 
-    @php
+    <main class="main-content">
 
-        $sellerReturnRequests = DB::table('return_refund_requests')
-            ->where('seller_id', $user['id'] ?? 0)
-            ->orderByDesc('created_at')
-            ->get();
+        <div class="container">
 
-    @endphp
+            {{-- PAGE HEADER --}}
+
+            <div class="page-top">
+
+                <div class="page-heading">
+
+                    <small>Seller Panel</small>
+
+                    <h1>Orders</h1>
+
+                    <p class="subtitle">
+                        View and manage orders containing your products.
+                    </p>
+
+                </div>
+
+                <a
+                    href="{{ route('seller.dashboard') }}"
+                    class="back-btn"
+                >
+                    ← Back to Dashboard
+                </a>
+
+            </div>
 
 
-    {{-- =====================================================
-         RETURN / REFUND REQUESTS
-         ===================================================== --}}
+            {{-- ALERTS --}}
 
-    @if($sellerReturnRequests->count() > 0)
+            @if(session('success'))
 
-        <div class="return-section">
+                <div class="alert success">
+                    ✓ {{ session('success') }}
+                </div>
 
-            <h2 class="return-title">
-                ↩️ Return / Refund Requests
-            </h2>
+            @endif
 
-            @foreach($sellerReturnRequests as $request)
+
+            @if(session('error'))
+
+                <div class="alert error">
+                    {{ session('error') }}
+                </div>
+
+            @endif
+
+
+            {{-- SUMMARY --}}
+
+            @if(!$orders->isEmpty())
 
                 @php
-                    $requestedItem = DB::table('order_items')
-                        ->where('id', $request->order_item_id)
-                        ->first();
+                    $totalOrders = $orders->count();
+
+                    $pendingOrders = $orders->filter(function ($order) {
+                        return in_array(
+                            strtolower($order->status),
+                            ['pending', 'processing']
+                        );
+                    })->count();
+
+                    $totalSales = $orders->sum(function ($order) {
+                        return (float) $order->seller_total;
+                    });
                 @endphp
 
+                <div class="summary-grid">
 
-                <div class="return-card {{ $request->status }}">
-
-                    <div class="return-top">
-
-                        <div class="request-type">
-
-                            @if($request->request_type === 'Return')
-                                📦 Return Request
-                            @else
-                                💰 Refund Request
-                            @endif
-
+                    <div class="summary-card">
+                        <div class="summary-label">
+                            Total Orders
                         </div>
 
-                        <div class="request-status {{ $request->status }}">
-                            {{ $request->status }}
+                        <div class="summary-value">
+                            {{ $totalOrders }}
                         </div>
-
                     </div>
 
-
-                    <div class="return-info">
-
-                        <div>
-                            <strong>Order:</strong>
-                            #{{ $request->order_id }}
+                    <div class="summary-card orange">
+                        <div class="summary-label">
+                            Pending Orders
                         </div>
 
-                        <div>
-                            <strong>Product:</strong>
-                            {{ $requestedItem->product_name ?? 'Product' }}
+                        <div class="summary-value">
+                            {{ $pendingOrders }}
                         </div>
-
-                        <div>
-                            <strong>Quantity:</strong>
-                            {{ $requestedItem->quantity ?? 1 }}
-                        </div>
-
-                        <div>
-                            <strong>Reason:</strong>
-                            {{ $request->reason }}
-                        </div>
-
-                        @if(!empty($request->message))
-
-                            <div>
-                                <strong>Buyer Message:</strong>
-                                {{ $request->message }}
-                            </div>
-
-                        @endif
-
-                        <div>
-                            <strong>Amount:</strong>
-                            ₱{{ number_format((float) $request->refund_amount, 2) }}
-                        </div>
-
-                        <div>
-                            <strong>Requested:</strong>
-                            {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y • h:i A') }}
-                        </div>
-
                     </div>
 
-
-                    {{-- =================================================
-                         SELLER ACTIONS
-                         ================================================= --}}
-
-                    @if($request->status === 'pending')
-
-                        <div class="return-actions">
-
-                            <form
-                                method="POST"
-                                action="{{ route('seller.return-refund.approve', $request->id) }}"
-                                onsubmit="return confirm('Approve this return/refund request?');"
-                            >
-
-                                @csrf
-
-                                <button type="submit" class="approve-btn">
-                                    ✓ Approve Request
-                                </button>
-
-                            </form>
-
-
-                            <form
-                                method="POST"
-                                action="{{ route('seller.return-refund.reject', $request->id) }}"
-                                onsubmit="return confirm('Reject this return/refund request?');"
-                            >
-
-                                @csrf
-
-                                <button type="submit" class="reject-btn">
-                                    ✕ Reject Request
-                                </button>
-
-                            </form>
-
+                    <div class="summary-card green">
+                        <div class="summary-label">
+                            Your Sales
                         </div>
 
-
-                    @elseif($request->status === 'approved')
-
-                        @if($request->request_type === 'Return')
-
-                            <div class="status-description">
-                                The return request has been approved. Wait for the item to be returned.
-                            </div>
-
-                            <div class="return-actions">
-
-                                <form
-                                    method="POST"
-                                    action="{{ route('seller.return-refund.returned', $request->id) }}"
-                                    onsubmit="return confirm('Mark this item as returned?');"
-                                >
-
-                                    @csrf
-
-                                    <button type="submit" class="returned-btn">
-                                        📦 Mark as Returned
-                                    </button>
-
-                                </form>
-
-                            </div>
-
-                        @elseif($request->request_type === 'Refund')
-
-                            <div class="status-description">
-                                The refund request has been approved and is ready for processing.
-                            </div>
-
-                            <div class="return-actions">
-
-                                <form
-                                    method="POST"
-                                    action="{{ route('seller.return-refund.processing', $request->id) }}"
-                                    onsubmit="return confirm('Start processing this refund?');"
-                                >
-
-                                    @csrf
-
-                                    <button type="submit" class="refund-btn">
-                                        💸 Start Refund
-                                    </button>
-
-                                </form>
-
-                            </div>
-
-                        @endif
-
-
-                    @elseif($request->status === 'refund_processing')
-
-                        <div class="status-description">
-                            The refund is currently being processed.
+                        <div class="summary-value">
+                            ₱{{ number_format($totalSales, 2) }}
                         </div>
-
-                        <div class="return-actions">
-
-                            <form
-                                method="POST"
-                                action="{{ route('seller.return-refund.complete', $request->id) }}"
-                                onsubmit="return confirm('Mark this refund as completed?');"
-                            >
-
-                                @csrf
-
-                                <button type="submit" class="complete-btn">
-                                    ✅ Complete Refund
-                                </button>
-
-                            </form>
-
-                        </div>
-
-
-                    @elseif($request->status === 'returned')
-
-                        <div class="seller-note">
-                            📦 This item has been marked as returned.
-                        </div>
-
-
-                    @elseif($request->status === 'completed')
-
-                        <div class="seller-note">
-                            ✅ This refund has been completed.
-                        </div>
-
-
-                    @elseif($request->status === 'rejected')
-
-                        <div class="seller-note">
-                            ✕ This request has been rejected.
-                        </div>
-
-                    @endif
-
-
-                    {{-- SELLER NOTE --}}
-
-                    @if(!empty($request->seller_note))
-
-                        <div class="seller-note">
-                            <strong>Seller Note:</strong>
-                            {{ $request->seller_note }}
-                        </div>
-
-                    @endif
+                    </div>
 
                 </div>
 
-            @endforeach
+            @endif
 
+
+            {{-- =========================
+                 NO ORDERS
+            ========================== --}}
+
+            @if($orders->isEmpty())
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        🛒
+                    </div>
+
+                    <h2>No Orders Yet</h2>
+
+                    <p>
+                        Orders containing your products will appear here.
+                    </p>
+
+                </div>
+
+            @else
+
+
+                {{-- =========================
+                     ORDER LIST
+                ========================== --}}
+
+                @foreach($orders as $order)
+
+                    <div class="order-card">
+
+                        {{-- ORDER HEADER --}}
+
+                        <div class="order-header">
+
+                            <div>
+
+                                <div class="order-id">
+                                    Order #{{ $order->id }}
+                                </div>
+
+                                <div class="date">
+                                    {{ \Carbon\Carbon::parse($order->created_at)->format('M d, Y • h:i A') }}
+                                </div>
+
+                            </div>
+
+              <div>
+
+    <div class="status">
+        {{ ucwords(str_replace('_', ' ', $order->status)) }}
+    </div>
+
+    @if(!empty($order->buyer_received_at))
+
+        <div class="received-badge">
+            ✓ Received by Buyer
         </div>
 
     @endif
 
+</div>
 
-    {{-- =====================================================
-         ORDERS
-         ===================================================== --}}
-
-    @if($orders->isEmpty())
-
-        <div class="empty">
-
-            <h2>No Orders Yet</h2>
-
-            <p style="margin-top: 10px; color: #816f6a;">
-                Orders containing your products will appear here.
-            </p>
-
-        </div>
-
-    @else
-
-        @foreach($orders as $order)
-
-            <div class="order-card">
-
-
-                {{-- ORDER HEADER --}}
-
-                <div class="order-header">
-
-                    <div>
-
-                        <div class="order-id">
-                            Order #{{ $order->id }}
                         </div>
 
-                        <div class="date">
-                            {{ \Carbon\Carbon::parse($order->created_at)->format('M d, Y • h:i A') }}
-                        </div>
 
-                    </div>
+                        {{-- CUSTOMER --}}
 
+                        @if($order->shipping_name)
 
-                    <div class="status">
-                        {{ $order->status }}
-                    </div>
+                            <div class="customer">
 
-                </div>
+                                <div class="customer-title">
+                                    Customer
+                                </div>
 
+                                <div class="customer-name">
+                                    {{ $order->shipping_name }}
+                                </div>
 
-                {{-- CUSTOMER --}}
+                                @if($order->shipping_phone)
 
-                @if($order->shipping_name)
+                                    <div class="customer-phone">
+                                        📞 {{ $order->shipping_phone }}
+                                    </div>
 
-                    <div class="customer">
+                                @endif
 
-                        <div class="customer-title">
-                            Customer
-                        </div>
-
-                        <div class="customer-name">
-                            {{ $order->shipping_name }}
-                        </div>
-
-                        @if($order->shipping_phone)
-
-                            <div style="margin-top: 4px; color: #816f6a;">
-                                📞 {{ $order->shipping_phone }}
                             </div>
 
                         @endif
 
-                    </div>
 
-                @endif
+                        {{-- PRODUCTS --}}
 
+                        <div class="items">
 
-                {{-- SELLER PRODUCTS --}}
+                            @foreach($order->items as $item)
 
-                @foreach($order->items as $item)
+                                @php
+                                    $subtotal =
+                                        (float) $item->price *
+                                        (int) $item->quantity;
+                                @endphp
 
-                    @php
-                        $subtotal = (float) $item->price * (int) $item->quantity;
-                    @endphp
+                                <div class="item">
 
-                    <div class="item">
+                                    <div>
 
-                        <div class="item-name">
-                            {{ $item->product_name }}
+                                        <div class="item-name">
+                                            {{ $item->product_name }}
+                                        </div>
+
+                                        <div class="item-info">
+
+                                            Quantity:
+                                            {{ $item->quantity }}
+
+                                            • ₱{{ number_format((float) $item->price, 2) }}
+                                            each
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="subtotal">
+
+                                        ₱{{ number_format($subtotal, 2) }}
+
+                                    </div>
+
+                                </div>
+
+                            @endforeach
+
                         </div>
 
-                        <div class="item-info">
 
-                            Quantity:
-                            {{ $item->quantity }}
+                        {{-- ORDER FOOTER --}}
 
-                            • ₱{{ number_format((float) $item->price, 2) }}
+                        <div class="order-footer">
 
-                            each
+                            <div>
 
-                        </div>
+                                <div class="total-label">
+                                    Your Sales
+                                </div>
 
-                        <div class="subtotal">
+                                <div class="total">
+                                    ₱{{ number_format((float) $order->seller_total, 2) }}
+                                </div>
 
-                            Subtotal:
-                            ₱{{ number_format($subtotal, 2) }}
+                            </div>
+
+                           @if(empty($order->buyer_received_at))
+
+    <a
+        href="{{ route('seller.order.details', ['id' => $order->id]) }}"
+        class="view-btn"
+    >
+        View Order →
+    </a>
+
+@endif
 
                         </div>
 
@@ -879,276 +1099,11 @@
 
                 @endforeach
 
+            @endif
 
-                {{-- FOOTER --}}
+        </div>
 
-                <div class="order-footer">
-
-                    <div>
-
-                        <div class="total-label">
-                            Your Sales
-                        </div>
-
-                        <div class="total">
-                            ₱{{ number_format((float) $order->seller_total, 2) }}
-                        </div>
-
-                    </div>
-
-
-                    <a
-                        href="{{ route('seller.order.details', ['id' => $order->id]) }}"
-                        class="view-btn"
-                    >
-                        View Order
-                    </a>
-
-                </div>
-
-
-                {{-- =================================================
-                     RETURN / REFUND FOR THIS ORDER
-                     ================================================= --}}
-
-                @php
-
-                    $orderReturnRequests = $sellerReturnRequests
-                        ->where('order_id', $order->id);
-
-                @endphp
-
-
-                @if($orderReturnRequests->count() > 0)
-
-                    <div class="return-section">
-
-                        <h3 class="return-title">
-                            ↩️ Return / Refund for this Order
-                        </h3>
-
-
-                        @foreach($orderReturnRequests as $orderReturnRequest)
-
-                            <div class="return-card {{ $orderReturnRequest->status }}">
-
-                                <div class="return-top">
-
-                                    <div class="request-type">
-
-                                        @if($orderReturnRequest->request_type === 'Return')
-                                            📦 Return
-                                        @else
-                                            💰 Refund
-                                        @endif
-
-                                    </div>
-
-                                    <div class="request-status {{ $orderReturnRequest->status }}">
-                                        {{ $orderReturnRequest->status }}
-                                    </div>
-
-                                </div>
-
-
-                                <div class="return-info">
-
-                                    <div>
-                                        <strong>Reason:</strong>
-                                        {{ $orderReturnRequest->reason }}
-                                    </div>
-
-                                    @if(!empty($orderReturnRequest->message))
-
-                                        <div>
-                                            <strong>Buyer Message:</strong>
-                                            {{ $orderReturnRequest->message }}
-                                        </div>
-
-                                    @endif
-
-                                    <div>
-                                        <strong>Refund Amount:</strong>
-                                        ₱{{ number_format((float) $orderReturnRequest->refund_amount, 2) }}
-                                    </div>
-
-                                </div>
-
-
-                                {{-- PENDING --}}
-
-                                @if($orderReturnRequest->status === 'pending')
-
-                                    <div class="return-actions">
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route('seller.return-refund.approve', $orderReturnRequest->id) }}"
-                                            onsubmit="return confirm('Approve this request?');"
-                                        >
-
-                                            @csrf
-
-                                            <button
-                                                type="submit"
-                                                class="approve-btn"
-                                            >
-                                                ✓ Approve
-                                            </button>
-
-                                        </form>
-
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route('seller.return-refund.reject', $orderReturnRequest->id) }}"
-                                            onsubmit="return confirm('Reject this request?');"
-                                        >
-
-                                            @csrf
-
-                                            <button
-                                                type="submit"
-                                                class="reject-btn"
-                                            >
-                                                ✕ Reject
-                                            </button>
-
-                                        </form>
-
-                                    </div>
-
-
-                                {{-- APPROVED --}}
-
-                                @elseif($orderReturnRequest->status === 'approved')
-
-                                    @if($orderReturnRequest->request_type === 'Return')
-
-                                        <div class="return-actions">
-
-                                            <form
-                                                method="POST"
-                                                action="{{ route('seller.return-refund.returned', $orderReturnRequest->id) }}"
-                                                onsubmit="return confirm('Mark this item as returned?');"
-                                            >
-
-                                                @csrf
-
-                                                <button
-                                                    type="submit"
-                                                    class="returned-btn"
-                                                >
-                                                    📦 Mark as Returned
-                                                </button>
-
-                                            </form>
-
-                                        </div>
-
-                                    @elseif($orderReturnRequest->request_type === 'Refund')
-
-                                        <div class="return-actions">
-
-                                            <form
-                                                method="POST"
-                                                action="{{ route('seller.return-refund.processing', $orderReturnRequest->id) }}"
-                                                onsubmit="return confirm('Start processing this refund?');"
-                                            >
-
-                                                @csrf
-
-                                                <button
-                                                    type="submit"
-                                                    class="refund-btn"
-                                                >
-                                                    💸 Start Refund
-                                                </button>
-
-                                            </form>
-
-                                        </div>
-
-                                    @endif
-
-
-                                {{-- REFUND PROCESSING --}}
-
-                                @elseif($orderReturnRequest->status === 'refund_processing')
-
-                                    <div class="return-actions">
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route('seller.return-refund.complete', $orderReturnRequest->id) }}"
-                                            onsubmit="return confirm('Mark this refund as completed?');"
-                                        >
-
-                                            @csrf
-
-                                            <button
-                                                type="submit"
-                                                class="complete-btn"
-                                            >
-                                                ✅ Complete Refund
-                                            </button>
-
-                                        </form>
-
-                                    </div>
-
-
-                                {{-- RETURNED --}}
-
-                                @elseif($orderReturnRequest->status === 'returned')
-
-                                    <div class="seller-note">
-                                        📦 This item has been marked as returned.
-                                    </div>
-
-
-                                {{-- COMPLETED --}}
-
-                                @elseif($orderReturnRequest->status === 'completed')
-
-                                    <div class="seller-note">
-                                        ✅ This refund has been completed.
-                                    </div>
-
-
-                                {{-- REJECTED --}}
-
-                                @elseif($orderReturnRequest->status === 'rejected')
-
-                                    <div class="seller-note">
-                                        ✕ This request has been rejected.
-                                    </div>
-
-                                @endif
-
-
-                                @if(!empty($orderReturnRequest->seller_note))
-
-                                    <div class="seller-note">
-                                        <strong>Seller Note:</strong>
-                                        {{ $orderReturnRequest->seller_note }}
-                                    </div>
-
-                                @endif
-
-                            </div>
-
-                        @endforeach
-
-                    </div>
-
-                @endif
-
-            </div>
-
-        @endforeach
-
-    @endif
+    </main>
 
 </div>
 

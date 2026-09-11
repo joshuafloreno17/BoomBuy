@@ -328,7 +328,40 @@
             position: relative;
             width: 100%;
             height: auto;
-            min-height: 500px;
+            display: flex;
+            flex-direction: column;
+            padding: 14px 16px;
+        }
+
+        .logo {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .menu-title {
+            display: none;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: row;
+            overflow-x: auto;
+            gap: 8px;
+            margin-bottom: 4px;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .menu a {
+            white-space: nowrap;
+            margin-bottom: 0;
+            flex-shrink: 0;
+            font-size: 13px;
+            padding: 10px 14px;
+        }
+
+        .logout {
+            position: static;
+            margin-top: 10px;
         }
 
         .main {
@@ -598,13 +631,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
 <!-- ORDER ITEMS -->
-
 <div class="card">
 
     <div class="items-title">
         🛒 Order Items
     </div>
-
 
     @if(
         !empty($delivery['items']) &&
@@ -612,6 +643,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     )
 
         @foreach($delivery['items'] as $item)
+
+            @php
+
+                $itemPrice = (float) ($item['price'] ?? 0);
+
+                $itemQuantity = (int) ($item['quantity'] ?? 1);
+
+                /*
+                |--------------------------------------------------------------------------
+                | COMPUTE ITEM SUBTOTAL
+                |--------------------------------------------------------------------------
+                | Instead of relying on $item['subtotal'],
+                | calculate it from price × quantity.
+                |--------------------------------------------------------------------------
+                */
+
+                $itemSubtotal = $itemPrice * $itemQuantity;
+
+            @endphp
 
             <div class="item">
 
@@ -623,20 +673,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <div class="item-details">
 
-                        ₱{{ number_format($item['price'] ?? 0, 2) }}
+                        ₱{{ number_format($itemPrice, 2) }}
 
                         ×
 
-                        {{ $item['quantity'] ?? 1 }}
+                        {{ $itemQuantity }}
 
                     </div>
 
                 </div>
 
-
                 <strong>
 
-                    ₱{{ number_format($item['subtotal'] ?? 0, 2) }}
+                    ₱{{ number_format($itemSubtotal, 2) }}
 
                 </strong>
 
@@ -669,47 +718,12 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
 <!-- UPDATE STATUS -->
-
 @if(
     !empty($delivery['rider_id']) &&
     (string) $delivery['rider_id'] === (string) ($user['id'] ?? '')
 )
 
-    @if($currentStatus === 'Picked Up')
-
-        <div class="card update-box">
-
-            <h3>
-                🛵 Start Delivery
-            </h3>
-
-            <p style="color:#816f6a; margin-bottom:15px;">
-                The order has been picked up. Start delivery when you are on the way to the buyer.
-            </p>
-
-            <form
-                method="POST"
-                action="{{ route('rider.delivery.status', $delivery['id']) }}"
-            >
-                @csrf
-
-                <input
-                    type="hidden"
-                    name="status"
-                    value="Out for Delivery"
-                >
-
-                <button
-                    type="submit"
-                    class="btn update-btn"
-                >
-                    🛵 Out for Delivery
-                </button>
-            </form>
-
-        </div>
-
-    @elseif($currentStatus === 'Out for Delivery')
+    @if($currentStatus !== 'Delivered')
 
         <div class="card update-box">
 
@@ -717,28 +731,44 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 🔄 Update Delivery Status
             </h3>
 
-            <p style="color:#816f6a; margin-bottom:15px;">
-                You are currently on the way to the buyer.
-            </p>
-
             <form
                 method="POST"
                 action="{{ route('rider.delivery.status', $delivery['id']) }}"
             >
+
                 @csrf
 
-                <input
-                    type="hidden"
-                    name="status"
-                    value="Delivered"
-                >
+                <select name="status" required>
+
+                    <option value="">
+                        Select new status
+                    </option>
+
+                    @if($currentStatus === 'Picked Up')
+
+                        <option value="Out for Delivery">
+                            Out for Delivery
+                        </option>
+
+                    @endif
+
+                    @if($currentStatus === 'Out for Delivery')
+
+                        <option value="Delivered">
+                            Delivered
+                        </option>
+
+                    @endif
+
+                </select>
 
                 <button
                     type="submit"
                     class="btn update-btn"
                 >
-                    ✅ Mark as Delivered
+                    🔄 Update Status
                 </button>
+
             </form>
 
         </div>
