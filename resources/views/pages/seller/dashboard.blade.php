@@ -555,7 +555,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             Seller: {{ $user['name'] ?? 'Seller' }}
         </div>
 
-        <form action="{{ route('logout') }}" method="POST">
+       <form action="{{ route('logout') }}" method="POST" onsubmit="return confirm('Are you sure you want to log out?');">
 
             @csrf
 

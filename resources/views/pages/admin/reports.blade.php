@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -576,6 +575,18 @@
             .bar {
                 width: 30px;
             }
+
+            .sales-chart {
+                gap: 5px;
+            }
+
+            .bar-value {
+                font-size: 7px;
+            }
+
+            .bar-label {
+                font-size: 8px;
+            }
         }
     </style>
 </head>
@@ -583,12 +594,11 @@
 <body>
 
 @php
+
     /*
     |--------------------------------------------------------------------------
     | REAL DATABASE REPORT DATA
     |--------------------------------------------------------------------------
-    | Seller products come from the actual products table.
-    | Orders and order items come from the actual database.
     */
 
     $sellerProducts = \App\Models\Product::query()
@@ -600,20 +610,56 @@
         ->orderByDesc('created_at')
         ->get();
 
+    /*
+    |--------------------------------------------------------------------------
+    | TOTAL ORDERS
+    |--------------------------------------------------------------------------
+    */
+
     $totalOrders = $allOrders->count();
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMPLETED ORDERS
+    |--------------------------------------------------------------------------
+    */
 
     $completedOrders = $allOrders
         ->where('status', 'Delivered')
         ->count();
 
+    /*
+    |--------------------------------------------------------------------------
+    | TOTAL REVENUE
+    |--------------------------------------------------------------------------
+    |
+    | Successful orders are counted immediately.
+    | Cancelled orders are excluded.
+    |
+    */
+
     $totalRevenue = $allOrders
-        ->where('status', 'Delivered')
+        ->filter(function ($order) {
+            return ($order->status ?? '') !== 'Cancelled';
+        })
         ->sum(function ($order) {
             return (float) ($order->total_amount ?? 0);
         });
 
-    $averageOrder = $completedOrders > 0
-        ? $totalRevenue / $completedOrders
+    /*
+    |--------------------------------------------------------------------------
+    | AVERAGE ORDER
+    |--------------------------------------------------------------------------
+    */
+
+    $successfulOrderCount = $allOrders
+        ->filter(function ($order) {
+            return ($order->status ?? '') !== 'Cancelled';
+        })
+        ->count();
+
+    $averageOrder = $successfulOrderCount > 0
+        ? $totalRevenue / $successfulOrderCount
         : 0;
 
     /*
@@ -626,8 +672,13 @@
 
         $unitsSold = \Illuminate\Support\Facades\DB::table('order_items')
             ->where('product_id', $product->id)
-            ->join('orders', 'orders.id', '=', 'order_items.order_id')
-            ->where('orders.status', 'Delivered')
+            ->join(
+                'orders',
+                'orders.id',
+                '=',
+                'order_items.order_id'
+            )
+            ->where('orders.status', '!=', 'Cancelled')
             ->sum('order_items.quantity');
 
         return [
@@ -649,6 +700,7 @@
     $categorySales = [];
 
     foreach ($productPerformance as $product) {
+
         $category = $product['category'] ?: 'Other';
 
         if (!isset($categorySales[$category])) {
@@ -666,16 +718,21 @@
     |--------------------------------------------------------------------------
     | MONTHLY SALES
     |--------------------------------------------------------------------------
+    |
+    | Successful orders are counted immediately.
+    | Cancelled orders are excluded.
+    |
     */
 
     $monthlySales = [];
 
-    for ($month = 1; $month <= 7; $month++) {
+    for ($month = 1; $month <= 12; $month++) {
         $monthlySales[$month] = 0;
     }
 
     foreach ($allOrders as $order) {
-        if (($order->status ?? '') !== 'Delivered') {
+
+        if (($order->status ?? '') === 'Cancelled') {
             continue;
         }
 
@@ -683,12 +740,25 @@
             continue;
         }
 
-        $month = (int) date('n', strtotime($order->created_at));
+        $month = (int) date(
+            'n',
+            strtotime($order->created_at)
+        );
 
-        if ($month >= 1 && $month <= 7) {
-            $monthlySales[$month] += (float) ($order->total_amount ?? 0);
+        if ($month >= 1 && $month <= 12) {
+
+            $monthlySales[$month] += (float) (
+                $order->total_amount ?? 0
+            );
         }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | IMPORTANT
+    |--------------------------------------------------------------------------
+    | Used by the Sales Overview bar height.
+    */
 
     $maxMonthlySales = max($monthlySales ?: [0]);
 
@@ -707,12 +777,19 @@
     */
 
     $getOrderProductNames = function ($orderId) {
-    return \Illuminate\Support\Facades\DB::table('order_items')
-        ->join('products', 'products.id', '=', 'order_items.product_id')
-        ->where('order_items.order_id', $orderId)
-        ->pluck('products.name')
-        ->toArray();
-};
+
+        return \Illuminate\Support\Facades\DB::table('order_items')
+            ->join(
+                'products',
+                'products.id',
+                '=',
+                'order_items.product_id'
+            )
+            ->where('order_items.order_id', $orderId)
+            ->pluck('products.name')
+            ->toArray();
+    };
+
     /*
     |--------------------------------------------------------------------------
     | CATEGORY ICONS
@@ -720,32 +797,48 @@
     */
 
     $categoryIcons = [
+
         'Smartphone' => '📱',
         'Smartphones' => '📱',
+
         'Laptop' => '💻',
         'Laptops' => '💻',
+
         'Audio' => '🎧',
+
         'Wearable' => '⌚',
         'Wearables' => '⌚',
+
         'Accessories' => '🎮',
         'Gaming' => '🎮',
+
         'Women’s' => '👗',
         "Women's" => '👗',
+
         'Men’s' => '👕',
         "Men's" => '👕',
+
         'Kids & Baby' => '🧸',
+
         'Home' => '🏠',
+
         'Sports' => '⚽',
+
         'Beauty' => '💄',
+
         'Food' => '🍔',
+
         'Automotive' => '🚗',
+
         'Office & School' => '📚',
     ];
+
 @endphp
 
 <div class="layout">
 
     <!-- SIDEBAR -->
+
     <aside class="sidebar">
 
         <div class="logo">
@@ -777,21 +870,29 @@
         </nav>
 
         <div class="logout">
-            <a href="{{ route('admin.login') }}">
+
+            <a
+                href="{{ route('admin.login') }}"
+                onclick="return confirm('Are you sure you want to log out?');"
+            >
                 🚪 <span>Logout</span>
             </a>
+
         </div>
 
     </aside>
 
 
     <!-- MAIN -->
+
     <main class="main">
 
         <!-- TOPBAR -->
+
         <div class="topbar">
 
             <div>
+
                 <small>
                     BoomBuy Administration
                 </small>
@@ -799,6 +900,7 @@
                 <h1>
                     Reports
                 </h1>
+
             </div>
 
             <div class="admin-profile">
@@ -808,6 +910,7 @@
                 </div>
 
                 <div>
+
                     <div class="profile-name">
                         Administrator
                     </div>
@@ -815,6 +918,7 @@
                     <div class="profile-role">
                         Store Manager
                     </div>
+
                 </div>
 
             </div>
@@ -823,9 +927,11 @@
 
 
         <!-- SUMMARY -->
+
         <section class="stats">
 
             <!-- TOTAL REVENUE -->
+
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -845,13 +951,14 @@
                 </div>
 
                 <div class="stat-sub">
-                    Revenue from delivered orders
+                    Revenue from successful orders
                 </div>
 
             </div>
 
 
             <!-- TOTAL ORDERS -->
+
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -878,6 +985,7 @@
 
 
             <!-- COMPLETED -->
+
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -904,6 +1012,7 @@
 
 
             <!-- AVERAGE -->
+
             <div class="stat-card">
 
                 <div class="stat-top">
@@ -923,7 +1032,7 @@
                 </div>
 
                 <div class="stat-sub">
-                    Average delivered order value
+                    Average successful order value
                 </div>
 
             </div>
@@ -932,9 +1041,11 @@
 
 
         <!-- SALES + CATEGORY -->
+
         <div class="report-grid">
 
             <!-- SALES OVERVIEW -->
+
             <section class="panel">
 
                 <div class="panel-header">
@@ -954,12 +1065,14 @@
                 </div>
 
 
-                @if($totalOrders > 0)
+                @if($successfulOrderCount > 0)
 
                     <div class="sales-chart">
 
                         @php
+
                             $months = [
+
                                 1 => 'Jan',
                                 2 => 'Feb',
                                 3 => 'Mar',
@@ -967,18 +1080,29 @@
                                 5 => 'May',
                                 6 => 'Jun',
                                 7 => 'Jul',
+                                8 => 'Aug',
+                                9 => 'Sep',
+                                10 => 'Oct',
+                                11 => 'Nov',
+                                12 => 'Dec',
+
                             ];
+
                         @endphp
+
 
                         @foreach($months as $monthNumber => $monthName)
 
                             @php
+
                                 $value = $monthlySales[$monthNumber] ?? 0;
 
                                 $height = $maxMonthlySales > 0
                                     ? ($value / $maxMonthlySales) * 100
                                     : 0;
+
                             @endphp
+
 
                             <div class="bar-item">
 
@@ -1004,9 +1128,11 @@
                 @else
 
                     <div class="sales-chart">
+
                         <div class="chart-empty">
                             No sales data available yet.
                         </div>
+
                     </div>
 
                 @endif
@@ -1015,6 +1141,7 @@
 
 
             <!-- CATEGORY SALES -->
+
             <section class="panel">
 
                 <div class="panel-header">
@@ -1039,12 +1166,17 @@
                     @foreach($categorySales as $category => $units)
 
                         @php
+
                             $percentage = $totalCategoryUnits > 0
-                                ? round(($units / $totalCategoryUnits) * 100)
+                                ? round(
+                                    ($units / $totalCategoryUnits) * 100
+                                )
                                 : 0;
 
                             $icon = $categoryIcons[$category] ?? '📦';
+
                         @endphp
+
 
                         <div class="category">
 
@@ -1087,6 +1219,7 @@
 
 
         <!-- ORDER REPORT -->
+
         <section class="panel">
 
             <div class="panel-header">
@@ -1144,21 +1277,35 @@
                         @forelse($recentOrders as $order)
 
                             @php
-                                $productNames = $getOrderProductNames($order->id);
 
-                                $status = $order->status ?? 'Pending';
+                                $productNames =
+                                    $getOrderProductNames($order->id);
+
+                                $status =
+                                    $order->status ?? 'Pending';
 
                                 $statusClass = match ($status) {
-                                    'Delivered' => 'completed',
+
+                                    'Delivered' =>
+                                        'completed',
+
                                     'Processing',
                                     'Ready for Pickup',
                                     'Picked Up',
                                     'Out for Delivery',
-                                    'On the Way' => 'processing',
-                                    'Cancelled' => 'cancelled',
-                                    default => 'pending',
+                                    'On the Way' =>
+                                        'processing',
+
+                                    'Cancelled' =>
+                                        'cancelled',
+
+                                    default =>
+                                        'pending',
+
                                 };
+
                             @endphp
+
 
                             <tr>
 
@@ -1186,7 +1333,10 @@
 
                                 <td class="amount">
 
-                                    ₱{{ number_format((float) ($order->total_amount ?? 0), 2) }}
+                                    ₱{{ number_format(
+                                        (float) ($order->total_amount ?? 0),
+                                        2
+                                    ) }}
 
                                 </td>
 
@@ -1204,7 +1354,10 @@
 
                             <tr>
 
-                                <td colspan="5" class="empty-row">
+                                <td
+                                    colspan="5"
+                                    class="empty-row"
+                                >
                                     No orders have been recorded yet.
                                 </td>
 
@@ -1222,6 +1375,7 @@
 
 
         <!-- PRODUCT PERFORMANCE -->
+
         <section class="panel">
 
             <div class="panel-header">
@@ -1279,45 +1433,78 @@
                         @forelse($productPerformance as $product)
 
                             @php
-                                $icon = $categoryIcons[$product['category']] ?? '📦';
+
+                                $icon =
+                                    $categoryIcons[
+                                        $product['category']
+                                    ] ?? '📦';
+
 
                                 if ($product['units_sold'] >= 20) {
-                                    $stars = '⭐⭐⭐⭐⭐';
+
+                                    $stars =
+                                        '⭐⭐⭐⭐⭐';
+
                                 } elseif ($product['units_sold'] >= 10) {
-                                    $stars = '⭐⭐⭐⭐';
+
+                                    $stars =
+                                        '⭐⭐⭐⭐';
+
                                 } elseif ($product['units_sold'] >= 5) {
-                                    $stars = '⭐⭐⭐';
+
+                                    $stars =
+                                        '⭐⭐⭐';
+
                                 } elseif ($product['units_sold'] > 0) {
-                                    $stars = '⭐⭐';
+
+                                    $stars =
+                                        '⭐⭐';
+
                                 } else {
+
                                     $stars = '—';
+
                                 }
+
 
                                 $sellerName = null;
 
+
                                 if (!empty($product['seller_id'])) {
-                                    $seller = \Illuminate\Support\Facades\DB::table('users')
-                                        ->where('id', $product['seller_id'])
-                                        ->first();
+
+                                    $seller =
+                                        \Illuminate\Support\Facades\DB::table('users')
+                                            ->where(
+                                                'id',
+                                                $product['seller_id']
+                                            )
+                                            ->first();
 
                                     if ($seller) {
                                         $sellerName = $seller->name;
                                     }
+
                                 }
+
                             @endphp
+
 
                             <tr>
 
                                 <td>
 
                                     <div class="product-name">
-                                        {{ $icon }} {{ $product['name'] }}
+                                        {{ $icon }}
+                                        {{ $product['name'] }}
                                     </div>
 
                                     @if($sellerName)
+
                                         <div class="seller-label">
-                                            Seller: {{ $sellerName }}
+                                            Seller:
+                                            {{ $sellerName }}
                                         </div>
+
                                     @endif
 
                                 </td>
@@ -1327,11 +1514,16 @@
                                 </td>
 
                                 <td>
-                                    {{ number_format($product['units_sold']) }}
+                                    {{ number_format(
+                                        $product['units_sold']
+                                    ) }}
                                 </td>
 
                                 <td class="amount">
-                                    ₱{{ number_format($product['price'], 2) }}
+                                    ₱{{ number_format(
+                                        $product['price'],
+                                        2
+                                    ) }}
                                 </td>
 
                                 <td class="performance-stars">
@@ -1344,7 +1536,10 @@
 
                             <tr>
 
-                                <td colspan="5" class="empty-row">
+                                <td
+                                    colspan="5"
+                                    class="empty-row"
+                                >
                                     No seller products have been added yet.
                                 </td>
 

@@ -23,7 +23,6 @@ function requireUserRole($role)
     return $user;
 }
 
-// Check logged-in user role
 Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request) {
 
     $user = requireUserRole('rider');
@@ -38,18 +37,25 @@ Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request)
 
     $file = $request->file('profile_photo');
 
-    $filename = 'rider_' . ($user['id'] ?? 'profile') . '_' . time() . '.' . $file->getClientOriginalExtension();
+    $filename = 'rider_' . $user['id'] . '_' . time() . '.' . $file->getClientOriginalExtension();
 
+    // Save the actual image
     $file->storeAs(
         'profile-photos',
         $filename,
         'public'
     );
 
-    // Save photo filename to logged-in user
-    $user['profile_photo'] = $filename;
+    // Save filename permanently in database
+    DB::table('users')
+        ->where('id', $user['id'])
+        ->update([
+            'profile_photo' => $filename,
+            'updated_at' => now(),
+        ]);
 
-    // Update session user
+    // Also update current login session
+    $user['profile_photo'] = $filename;
     session()->put('user', $user);
 
     return redirect()
@@ -57,6 +63,8 @@ Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request)
         ->with('success', 'Profile picture updated successfully.');
 
 })->name('rider.profile.photo');
+
+
 
 // Default BoomBuy products
 function defaultProducts()
@@ -227,6 +235,100 @@ function defaultProducts()
 }
 
 
+Route::get('/login', function () { return view('pages.login'); })->name('login');
+
+
+Route::post('/login', function () {
+
+    $email = strtolower(trim(request('email')));
+    $password = request('password');
+    $role = strtolower(trim(request('role')));
+
+    if (
+        empty($email) ||
+        empty($password) ||
+        empty($role)
+    ) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please enter your email, password, and select your role.'
+            );
+    }
+
+    $allowedRoles = [
+        'buyer',
+        'seller',
+        'rider'
+    ];
+
+    if (!in_array($role, $allowedRoles)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Invalid account role.');
+    }
+
+    $user = DB::table('users')
+        ->where('email', $email)
+        ->first();
+
+    if (!$user) {
+        return back()
+            ->withInput()
+            ->with('error', 'Invalid email or password.');
+    }
+
+    if (($user->role ?? '') !== $role) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'The selected role does not match this account.'
+            );
+    }
+
+    if (!Hash::check($password, $user->password)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Invalid email or password.');
+    }
+
+session()->put('user', [
+    'id' => $user->id,
+    'name' => $user->name,
+    'email' => $user->email,
+    'role' => $user->role,
+    'profile_photo' => $user->profile_photo,
+]);
+
+    switch ($user->role) {
+
+        case 'seller':
+            return redirect()
+                ->route('seller.dashboard')
+                ->with('success', 'Welcome to BoomBuy Seller!');
+
+        case 'rider':
+            return redirect()
+                ->route('rider.dashboard')
+                ->with('success', 'Welcome to BoomBuy Rider!');
+
+        case 'buyer':
+            return redirect()
+                ->route('buyer.dashboard')
+                ->with('success', 'Welcome to BoomBuy!');
+
+        default:
+            session()->forget('user');
+
+            return redirect('/login')
+                ->with('error', 'Invalid account role.');
+    }
+
+})->name('login.submit');
+
+
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATION
@@ -274,195 +376,25 @@ Route::post('/register', function () {
 
     // CHECK EXISTING EMAIL
     if (User::where('email', $email)->exists()) {
-
         return back()
             ->withInput()
             ->with('error', 'Email is already registered.');
     }
 
     // CREATE USER IN DATABASE
-    $user = User::create([
+    User::create([
         'name' => $name,
         'email' => $email,
         'password' => Hash::make($password),
         'role' => $role,
     ]);
 
-    // SAVE LOGIN SESSION
-    session([
-        'user' => [
-            'id' => $user->id,
-            'name' => $user->name,
-            'email' => $user->email,
-            'role' => $user->role,
-        ]
-    ]);
-
-    // REDIRECT BASED ON ROLE
-    if ($role === 'seller') {
-
-        return redirect()
-            ->route('seller.dashboard')
-            ->with('success', 'Welcome to BoomBuy Seller!');
-
-    }
-
-    if ($role === 'rider') {
-
-        return redirect()
-            ->route('rider.dashboard')
-            ->with('success', 'Welcome to BoomBuy Rider!');
-
-    }
-
+    // RETURN TO LOGIN PAGE
     return redirect()
-        ->route('buyer.dashboard')
-        ->with('success', 'Welcome to BoomBuy!');
+        ->route('login')
+        ->with('success', 'Account created successfully! You can now log in.');
 
 })->name('register.submit');
-
-
-// Login page
-Route::get('/login', function () {
-    return view('pages.login');
-})->name('login');
-
-
-// Login
-Route::post('/login', function () {
-
-    $email = strtolower(trim(request('email')));
-    $password = request('password');
-    $role = strtolower(trim(request('role')));
-
-    if (
-        empty($email) ||
-        empty($password) ||
-        empty($role)
-    ) {
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'Please enter your email, password, and select your role.'
-            );
-    }
-
-    $allowedRoles = [
-        'buyer',
-        'seller',
-        'rider'
-    ];
-
-    if (!in_array($role, $allowedRoles)) {
-        return back()
-            ->withInput()
-            ->with('error', 'Invalid account role.');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | FIND ACCOUNT IN DATABASE
-    |--------------------------------------------------------------------------
-    */
-
-    $user = DB::table('users')
-        ->where('email', $email)
-        ->first();
-
-    if (!$user) {
-        return back()
-            ->withInput()
-            ->with('error', 'Invalid email or password.');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHECK ROLE
-    |--------------------------------------------------------------------------
-    */
-
-    if (($user->role ?? '') !== $role) {
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'The selected role does not match this account.'
-            );
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | CHECK PASSWORD
-    |--------------------------------------------------------------------------
-    */
-
-    if (!Hash::check($password, $user->password)) {
-        return back()
-            ->withInput()
-            ->with('error', 'Invalid email or password.');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SAVE LOGGED-IN USER TO SESSION
-    |--------------------------------------------------------------------------
-    */
-
-    session()->put('user', [
-        'id' => $user->id,
-        'name' => $user->name,
-        'email' => $user->email,
-        'role' => $user->role,
-    ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | REDIRECT BASED ON ROLE
-    |--------------------------------------------------------------------------
-    */
-
-    switch ($user->role) {
-
-        case 'seller':
-
-            return redirect()
-                ->route('seller.dashboard')
-                ->with(
-                    'success',
-                    'Welcome to BoomBuy Seller!'
-                );
-
-        case 'rider':
-
-            return redirect()
-                ->route('rider.dashboard')
-                ->with(
-                    'success',
-                    'Welcome to BoomBuy Rider!'
-                );
-
-        case 'buyer':
-
-            return redirect()
-                ->route('buyer.dashboard')
-                ->with(
-                    'success',
-                    'Welcome to BoomBuy!'
-                );
-
-        default:
-
-            session()->forget('user');
-
-            return redirect('/login')
-                ->with(
-                    'error',
-                    'Invalid account role.'
-                );
-    }
-
-})->name('login.submit');
 
 
 // ==========================================================
@@ -739,76 +671,99 @@ Route::get('/buyer', function () {
 */
 
 Route::get('/buyer/orders', function () {
-
     $user = requireUserRole('buyer');
 
     if (!is_array($user)) {
         return $user;
     }
 
-    // Kunin ang orders ng buyer mula sa database
     $orders = DB::table('orders')
         ->where('buyer_id', $user['id'])
         ->orderByDesc('created_at')
         ->get();
 
-    // Gawing arrays para compatible sa existing Blade
     $orders = $orders->map(function ($order) {
 
         $order = (array) $order;
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET ORDER ITEMS
-        |--------------------------------------------------------------------------
-        */
-
+        // Get order items
         $items = DB::table('order_items')
             ->where('order_id', $order['id'])
             ->get();
-
-        /*
-        |--------------------------------------------------------------------------
-        | FORMAT ORDER ITEMS
-        |--------------------------------------------------------------------------
-        */
 
         $order['items'] = $items->map(function ($item) {
 
             $item = (array) $item;
 
-            // Compute item subtotal
             $item['subtotal'] =
-                (float) $item['price'] *
-                (int) $item['quantity'];
+                (float) ($item['price'] ?? 0) *
+                (int) ($item['quantity'] ?? 1);
+
+            // Get seller name if seller_id exists
+            if (!empty($item['seller_id'])) {
+
+                $seller = DB::table('users')
+                    ->where('id', $item['seller_id'])
+                    ->first();
+
+                $item['seller_name'] =
+                    $seller->name ?? null;
+            } else {
+                $item['seller_name'] = null;
+            }
 
             return $item;
 
         })->toArray();
 
+        // Basic order information
+        $order['total'] =
+            (float) ($order['total_amount'] ?? 0);
+
+        $order['date'] =
+            $order['created_at'] ?? null;
+
+        $order['buyer_name'] =
+            $order['shipping_name'] ?? 'Unknown Buyer';
+
+        $order['address'] =
+            $order['shipping_address'] ?? '';
+
+        $order['phone'] =
+            $order['shipping_phone'] ?? '';
+
+        $order['payment'] =
+            $order['payment_method'] ?? '';
+
         /*
         |--------------------------------------------------------------------------
-        | COMPATIBILITY FIELDS FOR EXISTING BLADE
+        | RIDER INFORMATION
         |--------------------------------------------------------------------------
         */
 
-        $order['total'] =
-            (float) $order['total_amount'];
+        $order['rider_name'] = null;
+        $order['rider_email'] = null;
+        $order['rider_profile_photo'] = null;
 
-        $order['date'] =
-            $order['created_at'];
+        if (!empty($order['rider_id'])) {
 
-        $order['buyer_name'] =
-            $order['shipping_name'];
+            $rider = DB::table('users')
+                ->where('id', $order['rider_id'])
+                ->where('role', 'rider')
+                ->first();
 
-        $order['address'] =
-            $order['shipping_address'];
+            if ($rider) {
 
-        $order['phone'] =
-            $order['shipping_phone'];
+                $order['rider_name'] =
+                    $rider->name ?? 'BoomBuy Rider';
 
-        $order['payment'] =
-            $order['payment_method'];
+                $order['rider_email'] =
+                    $rider->email ?? '';
+
+                $order['rider_profile_photo'] =
+                    $rider->profile_photo ?? null;
+            }
+        }
 
         return $order;
 
@@ -816,13 +771,12 @@ Route::get('/buyer/orders', function () {
 
     return view(
         'pages.buyer.orders',
-        compact(
-            'user',
-            'orders'
-        )
+        compact('user', 'orders')
     );
 
 })->name('buyer.orders');
+
+
 
 
 Route::post('/buyer/orders/{id}/received', function ($id) {
@@ -1337,50 +1291,235 @@ Route::post('/admin/logout', function () {
 */
 
 Route::get('/products', function () {
+
     $category = request('category');
 
+    /*
+    |--------------------------------------------------------------------------
+    | BOOMBUY CATEGORY MAP
+    |--------------------------------------------------------------------------
+    */
+
+    $categoryMap = [
+
+        'electronics' => [
+            'Electronics',
+            'Smartphone',
+            'Laptop',
+            'Audio',
+            'Wearable',
+            'Accessories',
+            'electronics',
+            'smartphone',
+            'laptop',
+            'audio',
+            'wearable',
+            'accessories',
+        ],
+
+        'womens-fashion' => [
+            "Women's Fashion",
+            'Women',
+            "Women's",
+            'womens-fashion',
+            'women',
+        ],
+
+        'mens-fashion' => [
+            "Men's Fashion",
+            'Men',
+            "Men's",
+            'mens-fashion',
+            'men',
+        ],
+
+        'kids-baby' => [
+            'Kids & Baby',
+            'Kids',
+            'Baby',
+            'kids-baby',
+            'kids',
+            'baby',
+        ],
+
+        'home-living' => [
+            'Home & Living',
+            'Home',
+            'home-living',
+            'home',
+        ],
+
+        'sports-outdoors' => [
+            'Sports & Outdoors',
+            'Sports',
+            'sports-outdoors',
+            'sports',
+        ],
+
+        'beauty-personal-care' => [
+            'Beauty & Personal Care',
+            'Beauty',
+            'beauty-personal-care',
+            'beauty',
+        ],
+
+        'food-beverages' => [
+            'Food & Beverages',
+            'Food',
+            'food-beverages',
+            'food',
+        ],
+
+        'automotive' => [
+            'Automotive',
+            'automotive',
+        ],
+
+        'office-school' => [
+            'Office & School',
+            'Office',
+            'School',
+            'office-school',
+            'office',
+            'school',
+        ],
+
+        'pet-supplies' => [
+            'Pet Supplies',
+            'Pets',
+            'Pet',
+            'pet-supplies',
+            'pet',
+        ],
+
+        'toys-games-hobbies' => [
+            'Toys, Games & Hobbies',
+            'Toys',
+            'Games',
+            'Hobbies',
+            'toys-games-hobbies',
+            'toys',
+        ],
+
+        'jewelry-accessories' => [
+            'Jewelry & Accessories',
+            'Jewelry',
+            'Accessories',
+            'jewelry-accessories',
+            'jewelry',
+            'accessories',
+        ],
+
+        'shoes' => [
+            'Shoes',
+            'shoes',
+        ],
+
+        'tools-home-improvement' => [
+            'Tools & Home Improvement',
+            'Tools',
+            'Home Improvement',
+            'tools-home-improvement',
+            'tools',
+        ],
+
+        'garden-outdoor' => [
+            'Garden & Outdoor',
+            'Garden',
+            'Outdoor',
+            'garden-outdoor',
+            'garden',
+        ],
+
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET PRODUCTS
+    |--------------------------------------------------------------------------
+    */
+
     $databaseProducts = Product::latest()
-        ->when($category, function ($query) use ($category) {
-            return $query->where('category', $category);
-        })
+        ->when(
+            $category && isset($categoryMap[$category]),
+            function ($query) use ($category, $categoryMap) {
+
+                $query->whereIn(
+                    'category',
+                    $categoryMap[$category]
+                );
+
+            }
+        )
         ->get();
 
-    $products = $databaseProducts->map(function ($product) {
-        $slug = Str::slug($product->name);
 
-        // Get product rating summary
-        $reviewStats = DB::table('product_reviews')
+    /*
+    |--------------------------------------------------------------------------
+    | FORMAT PRODUCTS + REAL REVIEWS
+    |--------------------------------------------------------------------------
+    */
+
+    $products = $databaseProducts->map(function ($product) {
+
+        // Get actual reviews for this product
+        $reviewData = DB::table('product_reviews')
             ->where('product_id', $product->id)
-            ->selectRaw('AVG(rating) as average_rating, COUNT(*) as review_count')
+            ->selectRaw('COUNT(*) as review_count, AVG(rating) as average_rating')
             ->first();
 
-        $averageRating = $reviewStats && $reviewStats->average_rating
-            ? round((float) $reviewStats->average_rating, 1)
+        $reviewCount = (int) ($reviewData->review_count ?? 0);
+
+        $averageRating = $reviewCount > 0
+            ? round((float) $reviewData->average_rating, 1)
             : 0;
 
-        $reviewCount = $reviewStats
-            ? (int) $reviewStats->review_count
-            : 0;
 
         return [
+
             'id' => $product->id,
-            'slug' => $slug,
+
+            'slug' => Str::slug($product->name),
+
             'name' => $product->name,
+
             'category' => $product->category,
+
             'price' => (float) $product->price,
+
             'stock' => (int) $product->stock,
+
             'description' => $product->description,
+
             'image' => $product->image,
+
             'icon' => $product->image ?? '📦',
+
             'seller_id' => $product->seller_id,
 
-            // Actual reviews
+            // REAL rating from product_reviews
             'rating' => $averageRating,
+
+            // REAL review count from product_reviews
             'reviews' => $reviewCount,
+
         ];
+
     })->toArray();
 
-    return view('pages.products', compact('products'));
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN SHOP PAGE
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'pages.products',
+        compact('products')
+    );
+
 })->name('products');
 
 
@@ -1562,6 +1701,33 @@ Route::get('/admin/settings', function () {
     return view('pages.admin.settings');
 
 })->name('admin.settings');
+
+
+Route::delete('/admin/accounts/{id}', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $user = DB::table('users')
+        ->where('id', $id)
+        ->whereIn('role', ['buyer', 'seller', 'rider'])
+        ->first();
+
+    if (!$user) {
+        return back()->with('error', 'Account not found.');
+    }
+
+    DB::table('users')
+        ->where('id', $id)
+        ->delete();
+
+    return back()->with(
+        'success',
+        $user->name . ' account has been deleted successfully.'
+    );
+
+})->name('admin.accounts.delete');
 
 
 /*
@@ -2129,6 +2295,7 @@ Route::post('/seller/products/store', function () {
         empty($name) ||
         empty($category) ||
         $price <= 0 ||
+        $stock <= 0 ||
         empty($description)
     ) {
         return back()
@@ -2136,6 +2303,52 @@ Route::post('/seller/products/store', function () {
             ->with(
                 'error',
                 'Please complete all product fields.'
+            );
+    }
+
+    // Validate category
+    $categoryNames = [
+        'electronics' => 'Electronics',
+        'womens-fashion' => "Women's Fashion",
+        'mens-fashion' => "Men's Fashion",
+        'kids-baby' => 'Kids & Baby',
+        'home-living' => 'Home & Living',
+        'sports-outdoors' => 'Sports & Outdoors',
+        'beauty-personal-care' => 'Beauty & Personal Care',
+        'food-beverages' => 'Food & Beverages',
+        'automotive' => 'Automotive',
+        'office-school' => 'Office & School',
+        'pet-supplies' => 'Pet Supplies',
+        'toys-games-hobbies' => 'Toys, Games & Hobbies',
+        'jewelry-accessories' => 'Jewelry & Accessories',
+        'shoes' => 'Shoes',
+        'tools-home-improvement' => 'Tools & Home Improvement',
+        'garden-outdoor' => 'Garden & Outdoor',
+    ];
+
+    if (!array_key_exists(strtolower($category), $categoryNames)) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please select a valid product category.'
+            );
+    }
+
+    $categoryName = $categoryNames[strtolower($category)];
+
+    // Prevent duplicate product names
+    $existingProduct = Product::where(
+        'name',
+        $name
+    )->first();
+
+    if ($existingProduct) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'A product with this name already exists.'
             );
     }
 
@@ -2187,34 +2400,6 @@ Route::post('/seller/products/store', function () {
             );
     }
 
-    // Category names
-    $categoryNames = [
-        'smartphone' => 'Smartphone',
-        'laptop' => 'Laptop',
-        'audio' => 'Audio',
-        'wearable' => 'Wearable',
-        'accessories' => 'Accessories',
-    ];
-
-    $categoryName =
-        $categoryNames[strtolower($category)]
-        ?? ucfirst($category);
-
-    // Prevent duplicate product names
-    $existingProduct = Product::where(
-        'name',
-        $name
-    )->first();
-
-    if ($existingProduct) {
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'A product with this name already exists.'
-            );
-    }
-
     // Save uploaded image
     $imagePath = $image->store(
         'products',
@@ -2227,7 +2412,7 @@ Route::post('/seller/products/store', function () {
         'name' => $name,
         'category' => $categoryName,
         'price' => $price,
-        'stock' => 0,
+        'stock' => $stock,
         'description' => $description,
         'image' => $imagePath,
     ]);
@@ -3222,6 +3407,58 @@ Route::post('/cart/add/{id}', function ($id) {
 
 })->name('cart.add');
 
+// Buy Now
+Route::post('/buy-now/{id}', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Find product
+    $product = Product::find($id);
+
+    if (!$product) {
+        return back()->with(
+            'error',
+            'Product not found.'
+        );
+    }
+
+    // Check stock
+    $stock = (int) $product->stock;
+
+    if ($stock <= 0) {
+        return back()->with(
+            'error',
+            'This product is currently out of stock.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BUY NOW = 1 QUANTITY
+    |--------------------------------------------------------------------------
+    */
+
+    session()->put('buy_now', [
+        $product->id => 1
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | DIRECTLY GO TO CHECKOUT
+    |--------------------------------------------------------------------------
+    */
+
+    return redirect()
+        ->route('checkout');
+
+})->name('buy.now');
+
+
+
 // Update cart
 Route::post('/cart/update/{slug}', function ($slug) {
 
@@ -3872,25 +4109,104 @@ Route::put('/seller/products/{id}', function ($id) {
 
     /*
     |--------------------------------------------------------------------------
-    | Category
+    | BoomBuy Category System
     |--------------------------------------------------------------------------
     */
 
     $categoryNames = [
-        'smartphone' => 'Smartphone',
-        'laptop' => 'Laptop',
-        'audio' => 'Audio',
-        'wearable' => 'Wearable',
-        'accessories' => 'Accessories',
-    ];
 
-    $categoryName =
-        $categoryNames[strtolower($category)]
-        ?? ucfirst($category);
+        'electronics' => 'Electronics',
+
+        'womens-fashion' => "Women's Fashion",
+
+        'mens-fashion' => "Men's Fashion",
+
+        'kids-baby' => 'Kids & Baby',
+
+        'home-living' => 'Home & Living',
+
+        'sports-outdoors' => 'Sports & Outdoors',
+
+        'beauty-personal-care' => 'Beauty & Personal Care',
+
+        'food-beverages' => 'Food & Beverages',
+
+        'automotive' => 'Automotive',
+
+        'office-school' => 'Office & School',
+
+        'pet-supplies' => 'Pet Supplies',
+
+        'toys-games-hobbies' => 'Toys, Games & Hobbies',
+
+        'jewelry-accessories' => 'Jewelry & Accessories',
+
+        'shoes' => 'Shoes',
+
+        'tools-home-improvement' => 'Tools & Home Improvement',
+
+        'garden-outdoor' => 'Garden & Outdoor',
+
+    ];
 
     /*
     |--------------------------------------------------------------------------
-    | Prevent duplicate names
+    | Old Category Compatibility
+    |--------------------------------------------------------------------------
+    |
+    | Existing products that still use the old categories
+    | will automatically be converted when edited.
+    |
+    */
+
+    $oldCategoryAliases = [
+
+        'Smartphone' => 'electronics',
+        'smartphone' => 'electronics',
+
+        'Laptop' => 'electronics',
+        'laptop' => 'electronics',
+
+        'Audio' => 'electronics',
+        'audio' => 'electronics',
+
+        'Wearable' => 'electronics',
+        'wearable' => 'electronics',
+
+        'Accessories' => 'jewelry-accessories',
+        'accessories' => 'jewelry-accessories',
+
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Convert submitted category
+    |--------------------------------------------------------------------------
+    */
+
+    if (isset($categoryNames[$category])) {
+
+        $categoryName = $categoryNames[$category];
+
+    } elseif (isset($oldCategoryAliases[$category])) {
+
+        $categoryName = $categoryNames[
+            $oldCategoryAliases[$category]
+        ];
+
+    } else {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please select a valid BoomBuy category.'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prevent duplicate product names
     |--------------------------------------------------------------------------
     */
 
@@ -3899,6 +4215,7 @@ Route::put('/seller/products/{id}', function ($id) {
         ->first();
 
     if ($existingProduct) {
+
         return back()
             ->withInput()
             ->with(
@@ -3926,6 +4243,7 @@ Route::put('/seller/products/{id}', function ($id) {
         $image = request()->file('image');
 
         if (!$image->isValid()) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3944,6 +4262,7 @@ Route::put('/seller/products/{id}', function ($id) {
             'png',
             'webp'
         ])) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3953,6 +4272,7 @@ Route::put('/seller/products/{id}', function ($id) {
         }
 
         if ($image->getSize() > 5 * 1024 * 1024) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3974,13 +4294,26 @@ Route::put('/seller/products/{id}', function ($id) {
     */
 
     $product->update([
+
         'name' => $name,
+
         'category' => $categoryName,
+
         'price' => $price,
+
         'image' => $imagePath,
+
         'stock' => $stock,
+
         'description' => $description,
+
     ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Success
+    |--------------------------------------------------------------------------
+    */
 
     return redirect()
         ->route('seller.dashboard')
@@ -3990,6 +4323,8 @@ Route::put('/seller/products/{id}', function ($id) {
         );
 
 })->name('seller.products.update');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -4033,8 +4368,9 @@ Route::delete('/seller/products/{id}', function ($id) {
 })->name('seller.products.delete');
 
 
+
 Route::get('/categories', function () {
-    return redirect()->route('products');
+    return view('pages.categories');
 })->name('categories');
 
 
