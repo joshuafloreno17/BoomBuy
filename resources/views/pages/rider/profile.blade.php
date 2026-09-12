@@ -726,44 +726,27 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
-            @php
+          @php
+    $riderId = $user['id'] ?? null;
 
-                $orders = session()->get('orders', []);
+    $myDeliveries = DB::table('orders')
+        ->where('rider_id', $riderId)
+        ->get();
 
-                $riderId = $user['id'] ?? null;
+    $totalDeliveries = $myDeliveries->count();
 
-                $myDeliveries = array_filter(
-                    $orders,
-                    function ($order) use ($riderId) {
-                        return ($order['rider_id'] ?? null) === $riderId;
-                    }
-                );
+    $deliveredCount = $myDeliveries
+        ->where('status', 'Delivered')
+        ->count();
 
-                $totalDeliveries = count($myDeliveries);
-
-                $deliveredCount = count(
-                    array_filter(
-                        $myDeliveries,
-                        function ($order) {
-                            return ($order['status'] ?? '') === 'Delivered';
-                        }
-                    )
-                );
-
-                $activeCount = count(
-                    array_filter(
-                        $myDeliveries,
-                        function ($order) {
-                            return in_array(
-                                ($order['status'] ?? ''),
-                                ['Picked Up', 'On the Way']
-                            );
-                        }
-                    )
-                );
-
-            @endphp
-
+    $activeCount = $myDeliveries
+        ->whereIn('status', [
+            'Picked Up',
+            'On the Way',
+            'Out for Delivery'
+        ])
+        ->count();
+@endphp
 
             <div class="card statistics">
 
