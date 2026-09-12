@@ -21,5 +21,10 @@ class DatabaseSeeder extends Seeder
             'name' => 'Test User',
             'email' => 'test@example.com',
         ]);
+
+        // --- Dagdag na seeder para sa products (may kasamang category text field) ---
+        $this->call([
+            ProductSeeder::class,
+        ]);
     }
 }
