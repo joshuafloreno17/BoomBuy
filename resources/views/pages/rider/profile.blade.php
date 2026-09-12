@@ -528,13 +528,12 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <div class="logout">
 
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-
-            <button type="submit">
-                🚪 Logout
-            </button>
-        </form>
+       <form method="POST" action="{{ route('logout') }}" onsubmit="return confirm('Are you sure you want to log out?');">
+    @csrf
+    <button type="submit">
+        🚪 Logout
+    </button>
+</form>
 
     </div>
 

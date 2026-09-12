@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -13,8 +12,7 @@
     <title>Manage Accounts — BoomBuy</title>
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -38,15 +36,15 @@
             background: #ffffff;
             border-bottom: 1px solid #ffe9e2;
             padding: 18px 7%;
-
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .logo {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 23px;
-            font-weight: 700;
+            font-weight: 800;
             color: #e8420f;
         }
 
@@ -90,6 +88,7 @@
         }
 
         .page-header h1 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 30px;
             margin-top: 7px;
             margin-bottom: 8px;
@@ -106,10 +105,20 @@
             background: #f0fdf4;
             border: 1px solid #bbf7d0;
             color: #15803d;
-
             padding: 12px 15px;
             border-radius: 9px;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
 
+        /* ERROR */
+
+        .error-box {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            padding: 12px 15px;
+            border-radius: 9px;
             font-size: 12px;
             margin-bottom: 20px;
         }
@@ -138,6 +147,7 @@
         }
 
         .stat-card strong {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 25px;
         }
 
@@ -154,13 +164,13 @@
         .table-header {
             padding: 20px 22px;
             border-bottom: 1px solid #f7efed;
-
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
 
         .table-header h2 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 17px;
         }
 
@@ -177,7 +187,7 @@
         table {
             width: 100%;
             border-collapse: collapse;
-            min-width: 650px;
+            min-width: 800px;
         }
 
         th {
@@ -185,18 +195,15 @@
             color: #8d6c62;
             font-size: 11px;
             text-align: left;
-
             padding: 14px 20px;
-
             border-bottom: 1px solid #f6e8e4;
         }
 
         td {
             padding: 17px 20px;
-
             font-size: 13px;
-
             border-bottom: 1px solid #f7efed;
+            vertical-align: middle;
         }
 
         tr:last-child td {
@@ -218,15 +225,12 @@
         .avatar {
             width: 38px;
             height: 38px;
-
+            min-width: 38px;
             border-radius: 50%;
-
             background: #ffede8;
-
             display: flex;
             align-items: center;
             justify-content: center;
-
             font-size: 18px;
         }
 
@@ -244,11 +248,8 @@
 
         .role {
             display: inline-block;
-
             padding: 6px 11px;
-
             border-radius: 20px;
-
             font-size: 10px;
             font-weight: 700;
         }
@@ -268,6 +269,33 @@
             color: #15803d;
         }
 
+        /* DELETE */
+
+        .delete-form {
+            margin: 0;
+        }
+
+        .delete-btn {
+            border: 1px solid #fecdd3;
+            background: #fff1f2;
+            color: #be123c;
+            padding: 8px 12px;
+            border-radius: 9px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            white-space: nowrap;
+        }
+
+        .delete-btn:hover {
+            background: #be123c;
+            color: #ffffff;
+            border-color: #be123c;
+            transform: translateY(-1px);
+            box-shadow: 0 5px 12px rgba(190, 18, 60, 0.15);
+        }
+
         /* EMPTY */
 
         .empty {
@@ -281,6 +309,7 @@
         }
 
         .empty h3 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 17px;
             margin-bottom: 7px;
         }
@@ -310,7 +339,6 @@
             .container {
                 width: 92%;
             }
-
         }
 
         @media (max-width: 500px) {
@@ -330,383 +358,438 @@
             .page-header h1 {
                 font-size: 25px;
             }
-
         }
 
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
+        /* BoomBuy Design System */
 
+        h1,
+        h2,
+        h3,
+        .logo,
+        .stat-card strong {
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        button {
+            border-radius: 12px;
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                background 0.15s ease;
+        }
+
+        ::selection {
+            background: #ffd7c2;
+            color: #7c1a00;
+        }
+    </style>
 </head>
 
 <body>
 
+    <!-- NAVBAR -->
 
-<!-- NAVBAR -->
-
-<nav class="navbar">
-
-    <a href="{{ route('admin.dashboard') }}" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <div class="nav-right">
+    <nav class="navbar">
 
         <a
             href="{{ route('admin.dashboard') }}"
-            class="back"
+            class="logo"
         >
-            ← Admin Dashboard
+            Boom<span>Buy</span>
         </a>
 
-    </div>
+        <div class="nav-right">
 
-</nav>
-
-
-<!-- MAIN -->
-
-<div class="container">
-
-
-    <!-- HEADER -->
-
-    <div class="page-header">
-
-        <small>Admin Panel</small>
-
-        <h1>Manage Accounts</h1>
-
-        <p>
-            View all registered Buyer, Seller, and Rider accounts.
-        </p>
-
-    </div>
-
-
-    <!-- SUCCESS -->
-
-    @if(session('success'))
-
-        <div class="success-box">
-
-            {{ session('success') }}
+            <a
+                href="{{ route('admin.dashboard') }}"
+                class="back"
+            >
+                ← Admin Dashboard
+            </a>
 
         </div>
 
-    @endif
+    </nav>
 
 
-    <!-- COUNT -->
+    <!-- MAIN -->
 
-    @php
+    <div class="container">
 
-        $buyerCount = 0;
-        $sellerCount = 0;
-        $riderCount = 0;
+        <!-- HEADER -->
 
-        foreach ($users as $user) {
+        <div class="page-header">
 
-            if (($user['role'] ?? '') === 'buyer') {
-                $buyerCount++;
-            }
+            <small>Admin Panel</small>
 
-            if (($user['role'] ?? '') === 'seller') {
-                $sellerCount++;
-            }
+            <h1>
+                Manage Accounts
+            </h1>
 
-            if (($user['role'] ?? '') === 'rider') {
-                $riderCount++;
-            }
-
-        }
-
-    @endphp
-
-
-    <!-- STATS -->
-
-    <div class="stats">
-
-        <div class="stat-card">
-
-            <span>Total Accounts</span>
-
-            <strong>
-                {{ count($users) }}
-            </strong>
+            <p>
+                View and manage all registered Buyer, Seller, and Rider accounts.
+            </p>
 
         </div>
 
 
-        <div class="stat-card">
+        <!-- SUCCESS -->
 
-            <span>Buyer Accounts</span>
+        @if(session('success'))
 
-            <strong>
-                {{ $buyerCount }}
-            </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-            <span>Seller Accounts</span>
-
-            <strong>
-                {{ $sellerCount }}
-            </strong>
-
-        </div>
-
-
-        <div class="stat-card">
-
-            <span>Rider Accounts</span>
-
-            <strong>
-                {{ $riderCount }}
-            </strong>
-
-        </div>
-
-    </div>
-
-
-    <!-- TABLE -->
-
-    <div class="table-card">
-
-
-        <div class="table-header">
-
-            <h2>Registered Accounts</h2>
-
-            <span>
-                {{ count($users) }} account(s)
-            </span>
-
-        </div>
-
-
-        @if(count($users) > 0)
-
-            <div class="table-wrapper">
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>
-                                ACCOUNT
-                            </th>
-
-                            <th>
-                                EMAIL
-                            </th>
-
-                            <th>
-                                ROLE
-                            </th>
-
-                            <th>
-                                ACCOUNT ID
-                            </th>
-
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        @foreach($users as $user)
-
-                            @php
-
-                                $role =
-                                    strtolower(
-                                        $user['role'] ?? ''
-                                    );
-
-                            @endphp
-
-
-                            <tr>
-
-                                <!-- ACCOUNT -->
-
-                                <td>
-
-                                    <div class="user-info">
-
-                                        <div class="avatar">
-
-                                            @if($role === 'buyer')
-                                                🛒
-                                            @elseif($role === 'seller')
-                                                🏪
-                                            @elseif($role === 'rider')
-                                                🛵
-                                            @else
-                                                👤
-                                            @endif
-
-                                        </div>
-
-
-                                        <div>
-
-                                            <div class="user-name">
-
-                                                {{ $user['name'] ?? 'Unknown User' }}
-
-                                            </div>
-
-                                            <div class="user-id">
-
-                                                Registered Account
-
-                                            </div>
-
-                                        </div>
-
-                                    </div>
-
-                                </td>
-
-
-                                <!-- EMAIL -->
-
-                                <td>
-
-                                    {{ $user['email'] ?? 'N/A' }}
-
-                                </td>
-
-
-                                <!-- ROLE -->
-
-                                <td>
-
-                                    @if($role === 'buyer')
-
-                                        <span class="role buyer">
-                                            🛒 Buyer
-                                        </span>
-
-                                    @elseif($role === 'seller')
-
-                                        <span class="role seller">
-                                            🏪 Seller
-                                        </span>
-
-                                    @elseif($role === 'rider')
-
-                                        <span class="role rider">
-                                            🛵 Rider
-                                        </span>
-
-                                    @else
-
-                                        <span class="role">
-                                            Unknown
-                                        </span>
-
-                                    @endif
-
-                                </td>
-
-
-                                <!-- ID -->
-
-                                <td>
-
-                                    <span
-                                        style="
-                                            color:#8d6c62;
-                                            font-size:11px;
-                                        "
-                                    >
-
-                                        {{ $user['id'] ?? 'N/A' }}
-
-                                    </span>
-
-                                </td>
-
-                            </tr>
-
-                        @endforeach
-
-                    </tbody>
-
-                </table>
-
+            <div class="success-box">
+                ✅ {{ session('success') }}
             </div>
-
-        @else
-
-
-            <!-- EMPTY -->
-
-            <div class="empty">
-
-                <div class="empty-icon">
-                    👥
-                </div>
-
-                <h3>
-                    No Registered Accounts
-                </h3>
-
-                <p>
-                    Buyer, Seller, and Rider accounts
-                    will appear here after registration.
-                </p>
-
-            </div>
-
 
         @endif
 
+
+        <!-- ERROR -->
+
+        @if(session('error'))
+
+            <div class="error-box">
+                ❌ {{ session('error') }}
+            </div>
+
+        @endif
+
+
+        <!-- COUNT -->
+
+        @php
+
+            $buyerCount = 0;
+            $sellerCount = 0;
+            $riderCount = 0;
+
+            foreach ($users as $user) {
+
+                if (($user['role'] ?? '') === 'buyer') {
+                    $buyerCount++;
+                }
+
+                if (($user['role'] ?? '') === 'seller') {
+                    $sellerCount++;
+                }
+
+                if (($user['role'] ?? '') === 'rider') {
+                    $riderCount++;
+                }
+
+            }
+
+        @endphp
+
+
+        <!-- STATS -->
+
+        <div class="stats">
+
+            <div class="stat-card">
+
+                <span>
+                    Total Accounts
+                </span>
+
+                <strong>
+                    {{ count($users) }}
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    Buyer Accounts
+                </span>
+
+                <strong>
+                    {{ $buyerCount }}
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    Seller Accounts
+                </span>
+
+                <strong>
+                    {{ $sellerCount }}
+                </strong>
+
+            </div>
+
+
+            <div class="stat-card">
+
+                <span>
+                    Rider Accounts
+                </span>
+
+                <strong>
+                    {{ $riderCount }}
+                </strong>
+
+            </div>
+
+        </div>
+
+
+        <!-- TABLE -->
+
+        <div class="table-card">
+
+            <div class="table-header">
+
+                <h2>
+                    Registered Accounts
+                </h2>
+
+                <span>
+                    {{ count($users) }} account(s)
+                </span>
+
+            </div>
+
+
+            @if(count($users) > 0)
+
+                <div class="table-wrapper">
+
+                    <table>
+
+                        <thead>
+
+                            <tr>
+
+                                <th>
+                                    ACCOUNT
+                                </th>
+
+                                <th>
+                                    EMAIL
+                                </th>
+
+                                <th>
+                                    ROLE
+                                </th>
+
+                                <th>
+                                    ACCOUNT ID
+                                </th>
+
+                                <th>
+                                    ACTION
+                                </th>
+
+                            </tr>
+
+                        </thead>
+
+
+                        <tbody>
+
+                            @foreach($users as $user)
+
+                                @php
+
+                                    $role = strtolower(
+                                        $user['role'] ?? ''
+                                    );
+
+                                @endphp
+
+
+                                <tr>
+
+                                    <!-- ACCOUNT -->
+
+                                    <td>
+
+                                        <div class="user-info">
+
+                                            <div class="avatar">
+
+                                                @if($role === 'buyer')
+                                                    🛒
+                                                @elseif($role === 'seller')
+                                                    🏪
+                                                @elseif($role === 'rider')
+                                                    🛵
+                                                @else
+                                                    👤
+                                                @endif
+
+                                            </div>
+
+
+                                            <div>
+
+                                                <div class="user-name">
+
+                                                    {{ $user['name'] ?? 'Unknown User' }}
+
+                                                </div>
+
+                                                <div class="user-id">
+                                                    Registered Account
+                                                </div>
+
+                                            </div>
+
+                                        </div>
+
+                                    </td>
+
+
+                                    <!-- EMAIL -->
+
+                                    <td>
+
+                                        {{ $user['email'] ?? 'N/A' }}
+
+                                    </td>
+
+
+                                    <!-- ROLE -->
+
+                                    <td>
+
+                                        @if($role === 'buyer')
+
+                                            <span class="role buyer">
+                                                🛒 Buyer
+                                            </span>
+
+                                        @elseif($role === 'seller')
+
+                                            <span class="role seller">
+                                                🏪 Seller
+                                            </span>
+
+                                        @elseif($role === 'rider')
+
+                                            <span class="role rider">
+                                                🛵 Rider
+                                            </span>
+
+                                        @else
+
+                                            <span class="role">
+                                                Unknown
+                                            </span>
+
+                                        @endif
+
+                                    </td>
+
+
+                                    <!-- ID -->
+
+                                    <td>
+
+                                        <span
+                                            style="
+                                                color:#8d6c62;
+                                                font-size:11px;
+                                            "
+                                        >
+                                            {{ $user['id'] ?? 'N/A' }}
+                                        </span>
+
+                                    </td>
+
+
+                                    <!-- DELETE -->
+
+                                    <td>
+
+                                        <form
+                                            method="POST"
+                                            action="{{ route('admin.accounts.delete', ['id' => $user['id']]) }}"
+                                            class="delete-form"
+                                            onsubmit="return confirmDelete('{{ addslashes($user['name'] ?? 'this account') }}');"
+                                        >
+
+                                            @csrf
+
+                                            @method('DELETE')
+
+                                            <button
+                                                type="submit"
+                                                class="delete-btn"
+                                            >
+                                                🗑️ Delete
+                                            </button>
+
+                                        </form>
+
+                                    </td>
+
+                                </tr>
+
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+
+            @else
+
+                <!-- EMPTY -->
+
+                <div class="empty">
+
+                    <div class="empty-icon">
+                        👥
+                    </div>
+
+                    <h3>
+                        No Registered Accounts
+                    </h3>
+
+                    <p>
+                        Buyer, Seller, and Rider accounts
+                        will appear here after registration.
+                    </p>
+
+                </div>
+
+            @endif
+
+        </div>
+
+
+        <div class="footer">
+            © 2026 BoomBuy · Admin Account Management
+        </div>
+
     </div>
 
 
-    <div class="footer">
+    <script>
 
-        © 2026 BoomBuy · Admin Account Management
+        function confirmDelete(name) {
 
-    </div>
+            return confirm(
+                '⚠️ Delete Account\n\n' +
+                'Are you sure you want to delete "' +
+                name +
+                '"?\n\n' +
+                'This account will be permanently removed and will no longer be able to log in.'
+            );
 
+        }
 
-</div>
+    </script>
 
 </body>
 

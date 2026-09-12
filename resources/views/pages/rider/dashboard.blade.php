@@ -661,17 +661,15 @@
 
     <div class="logout">
 
-        <form
-            method="POST"
-            action="{{ route('logout') }}"
-        >
-            @csrf
-
-            <button type="submit">
-                🚪 Logout
-            </button>
-
-        </form>
+<form method="POST" action="{{ route('logout') }}">
+    @csrf
+    <button
+        type="submit"
+        onclick="return confirm('Are you sure you want to log out?');"
+    >
+        🚪 Logout
+    </button>
+</form>
 
     </div>
 

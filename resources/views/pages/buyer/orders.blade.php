@@ -459,6 +459,100 @@
         font-size: 11px;
     }
 
+
+    /* =========================
+   RIDER PROFILE
+========================= */
+
+.rider-profile {
+    background: linear-gradient(135deg, #fff7f3, #ffffff);
+    border: 1px solid #f1dfd8;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+}
+
+.rider-profile-photo {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.10);
+}
+
+.rider-profile-placeholder {
+    width: 72px;
+    height: 72px;
+    min-width: 72px;
+    border-radius: 50%;
+    background: #fff0eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    border: 3px solid #ffffff;
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+}
+
+.rider-profile-info {
+    min-width: 0;
+}
+
+.rider-profile-label {
+    font-size: 11px;
+    color: #a17f74;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 3px;
+}
+
+.rider-profile-name {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: #523d36;
+    line-height: 1.1;
+}
+
+.rider-profile-email {
+    color: #816f6a;
+    font-size: 12px;
+    margin-top: 4px;
+    word-break: break-word;
+}
+
+.rider-profile-status {
+    margin-left: auto;
+    background: #eafaf0;
+    color: #24733e;
+    border: 1px solid #ccefd9;
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+
+@media (max-width: 600px) {
+    .rider-profile {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .rider-profile-status {
+        margin-left: 0;
+        width: 100%;
+        text-align: center;
+    }
+}
+
+
     /* =========================
        ORDER INFO
     ========================= */
@@ -1413,13 +1507,85 @@
                                 class="tracking-panel"
                             >
 
-                                <div class="tracking-title">
-                                    📍 Order Tracking
-                                </div>
+                            <div class="tracking-title">
+    📍 Order Tracking
+</div>
 
-                                <!-- MAP -->
+{{-- RIDER PROFILE --}}
+@if(!empty($order['rider_name']))
 
-                                <div class="map-container">
+    <div class="rider-profile">
+
+        @if(!empty($order['rider_profile_photo']))
+
+            <img
+                src="{{ asset('storage/profile-photos/' . $order['rider_profile_photo']) }}"
+                alt="{{ $order['rider_name'] }}"
+                class="rider-profile-photo"
+            >
+
+        @else
+
+            <div class="rider-profile-placeholder">
+                🏍️
+            </div>
+
+        @endif
+
+        <div class="rider-profile-info">
+
+            <div class="rider-profile-label">
+                Delivery Rider
+            </div>
+
+            <div class="rider-profile-name">
+                {{ $order['rider_name'] }}
+            </div>
+
+            @if(!empty($order['rider_email']))
+                <div class="rider-profile-email">
+                    {{ $order['rider_email'] }}
+                </div>
+            @endif
+
+        </div>
+
+        <div class="rider-profile-status">
+            🚴 Assigned Rider
+        </div>
+
+    </div>
+
+@else
+
+    <div class="rider-profile">
+
+        <div class="rider-profile-placeholder">
+            🏍️
+        </div>
+
+        <div class="rider-profile-info">
+
+            <div class="rider-profile-label">
+                Delivery Rider
+            </div>
+
+            <div class="rider-profile-name">
+                Rider not assigned yet
+            </div>
+
+            <div class="rider-profile-email">
+                Your rider information will appear here once assigned.
+            </div>
+
+        </div>
+
+    </div>
+
+@endif
+
+{{-- MAP --}}
+<div class="map-container">
 
                                     <div
                                         id="map-{{ $trackingId }}"

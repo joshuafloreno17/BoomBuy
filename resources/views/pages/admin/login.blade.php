@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,7 @@
     <title>Admin Login — BoomBuy</title>
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -70,6 +71,7 @@
         }
 
         .admin-header h1 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 29px;
             margin-top: 9px;
             margin-bottom: 9px;
@@ -124,6 +126,10 @@
             margin-bottom: 8px;
         }
 
+        .input-wrapper {
+            position: relative;
+        }
+
         .form-group input {
             width: 100%;
             padding: 13px 14px;
@@ -136,10 +142,55 @@
             transition: 0.2s;
         }
 
+        .input-wrapper input[type="password"] {
+            padding-right: 78px;
+        }
+
+        .input-wrapper input[type="text"] {
+            padding-right: 78px;
+        }
+
         .form-group input:focus {
             border-color: #ff7044;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.08);
+            box-shadow: 0 0 0 3px rgba(255, 112, 68, 0.08);
+        }
+
+        .show-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: none;
+            background: transparent;
+            color: #e8420f;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            padding: 5px 4px;
+        }
+
+        .show-password:hover {
+            color: #c43408;
+        }
+
+        .forgot-row {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: -7px;
+            margin-bottom: 20px;
+        }
+
+        .forgot-password {
+            color: #e8420f;
+            font-size: 11px;
+            font-weight: 700;
+            transition: 0.2s;
+        }
+
+        .forgot-password:hover {
+            color: #c43408;
+            text-decoration: underline;
         }
 
         .login-btn {
@@ -158,6 +209,7 @@
         .login-btn:hover {
             background: #c43408;
             transform: translateY(-1px);
+            box-shadow: 0 8px 18px rgba(232, 66, 15, 0.18);
         }
 
         .back {
@@ -183,6 +235,97 @@
             color: #e8420f;
         }
 
+        /* =========================
+           MODAL
+        ========================= */
+
+        .modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(23, 32, 51, 0.45);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-card {
+            width: 100%;
+            max-width: 480px;
+            max-height: 85vh;
+            background: #ffffff;
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 25px 70px rgba(0, 0, 0, 0.18);
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 22px;
+            border-bottom: 1px solid #f5e5df;
+        }
+
+        .modal-header h2 {
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 21px;
+            color: #172033;
+        }
+
+        .close-modal {
+            width: 32px;
+            height: 32px;
+            border: none;
+            border-radius: 50%;
+            background: #fff1ed;
+            color: #e8420f;
+            font-size: 18px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 22px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .modal-body h3 {
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 16px;
+            margin-bottom: 7px;
+            color: #563a32;
+        }
+
+        .modal-body p {
+            color: #6f5b55;
+            font-size: 12px;
+            line-height: 1.7;
+            margin-bottom: 18px;
+        }
+
+        .modal-footer {
+            padding: 16px 22px;
+            border-top: 1px solid #f5e5df;
+            text-align: right;
+        }
+
+        .modal-ok {
+            border: none;
+            background: #e8420f;
+            color: white;
+            padding: 10px 18px;
+            border-radius: 9px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
         @media (max-width: 500px) {
             .admin-card {
                 padding: 28px 22px;
@@ -192,32 +335,29 @@
                 font-size: 25px;
             }
         }
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
+
+        /* ===== BoomBuy Design System ===== */
+
+        h1,
+        h2,
+        h3,
+        .logo {
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -0.01em;
+        }
+
+        button {
+            border-radius: 12px;
+            transition: transform 0.15s ease,
+                        box-shadow 0.15s ease,
+                        background 0.15s ease;
+        }
+
+        ::selection {
+            background: #ffd7c2;
+            color: #7c1a00;
+        }
+    </style>
 </head>
 
 <body>
@@ -227,6 +367,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     <div>
 
         <div class="admin-card">
+
+            <!-- HEADER -->
 
             <div class="admin-header">
 
@@ -248,6 +390,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
+            <!-- NOTICE -->
+
             <div class="admin-notice">
 
                 🔒 This area is restricted to authorized
@@ -256,23 +400,33 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
+            <!-- ERROR -->
+
             @if(session('error'))
 
                 <div class="error-message">
+
                     ❌ {{ session('error') }}
+
                 </div>
 
             @endif
 
+
+            <!-- SUCCESS -->
 
             @if(session('success'))
 
                 <div class="success-message">
+
                     ✅ {{ session('success') }}
+
                 </div>
 
             @endif
 
+
+            <!-- LOGIN FORM -->
 
             <form
                 action="{{ route('admin.login.submit') }}"
@@ -280,6 +434,9 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             >
 
                 @csrf
+
+
+                <!-- EMAIL -->
 
                 <div class="form-group">
 
@@ -290,6 +447,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <input
                         type="email"
                         name="email"
+                        value="{{ old('email') }}"
                         placeholder="Enter admin email"
                         required
                     >
@@ -297,21 +455,54 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
 
+                <!-- PASSWORD -->
+
                 <div class="form-group">
 
                     <label>
                         Password
                     </label>
 
-                    <input
-                        type="password"
-                        name="password"
-                        placeholder="Enter admin password"
-                        required
-                    >
+                    <div class="input-wrapper">
+
+                        <input
+                            id="adminPassword"
+                            type="password"
+                            name="password"
+                            placeholder="Enter admin password"
+                            required
+                        >
+
+                        <button
+                            type="button"
+                            class="show-password"
+                            onclick="toggleAdminPassword()"
+                            id="passwordToggle"
+                        >
+                            Show
+                        </button>
+
+                    </div>
 
                 </div>
 
+
+                <!-- FORGOT PASSWORD -->
+
+                <div class="forgot-row">
+
+                    <a
+                        href="#"
+                        class="forgot-password"
+                        onclick="openForgotPassword(event)"
+                    >
+                        Forgot Password?
+                    </a>
+
+                </div>
+
+
+                <!-- LOGIN BUTTON -->
 
                 <button
                     type="submit"
@@ -323,12 +514,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </form>
 
 
-            <a href="/login" class="back">
+            <!-- BACK -->
+
+            <a
+                href="/login"
+                class="back"
+            >
                 ← Back to Customer Login
             </a>
 
         </div>
 
+
+        <!-- FOOTER -->
 
         <div class="footer">
 
@@ -341,5 +539,166 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 </div>
 
+
+<!-- =========================
+     FORGOT PASSWORD MODAL
+========================= -->
+
+<div
+    id="forgotPasswordModal"
+    class="modal"
+    onclick="closeForgotPasswordOutside(event)"
+>
+
+    <div class="modal-card">
+
+        <div class="modal-header">
+
+            <h2>
+                🔐 Forgot Password?
+            </h2>
+
+            <button
+                type="button"
+                class="close-modal"
+                onclick="closeForgotPassword()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="modal-body">
+
+            <h3>
+                Admin Password Recovery
+            </h3>
+
+            <p>
+                If you forgot your BoomBuy administrator
+                password, please contact the system
+                administrator or project owner to reset
+                your account credentials.
+            </p>
+
+            <h3>
+                Security Notice
+            </h3>
+
+            <p>
+                For security purposes, administrator
+                passwords cannot be reset directly from
+                this login page.
+            </p>
+
+            <h3>
+                Need Help?
+            </h3>
+
+            <p>
+                Make sure you are using the correct admin
+                email and password before contacting the
+                system administrator.
+            </p>
+
+        </div>
+
+
+        <div class="modal-footer">
+
+            <button
+                type="button"
+                class="modal-ok"
+                onclick="closeForgotPassword()"
+            >
+                Got it
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+    function toggleAdminPassword() {
+
+        const passwordInput =
+            document.getElementById('adminPassword');
+
+        const toggleButton =
+            document.getElementById('passwordToggle');
+
+        if (passwordInput.type === 'password') {
+
+            passwordInput.type = 'text';
+
+            toggleButton.textContent = 'Hide';
+
+        } else {
+
+            passwordInput.type = 'password';
+
+            toggleButton.textContent = 'Show';
+
+        }
+
+    }
+
+
+    function openForgotPassword(event) {
+
+        event.preventDefault();
+
+        document
+            .getElementById('forgotPasswordModal')
+            .classList.add('show');
+
+        document.body.style.overflow = 'hidden';
+
+    }
+
+
+    function closeForgotPassword() {
+
+        document
+            .getElementById('forgotPasswordModal')
+            .classList.remove('show');
+
+        document.body.style.overflow = '';
+
+    }
+
+
+    function closeForgotPasswordOutside(event) {
+
+        if (
+            event.target ===
+            document.getElementById('forgotPasswordModal')
+        ) {
+
+            closeForgotPassword();
+
+        }
+
+    }
+
+
+    document.addEventListener('keydown', function(event) {
+
+        if (event.key === 'Escape') {
+
+            closeForgotPassword();
+
+        }
+
+    });
+
+</script>
+
 </body>
+
 </html>
