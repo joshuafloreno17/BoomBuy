@@ -504,6 +504,30 @@
 
                     </div>
 
+                    <!-- QUANTITY / STOCK -->
+<div class="form-group">
+    <label for="stock">Quantity / Stock</label>
+
+    <input
+        type="number"
+        id="stock"
+        name="stock"
+        value="{{ old('stock', 1) }}"
+        min="1"
+        step="1"
+        placeholder="Example: 50"
+        required
+    >
+
+    <div style="
+        margin-top: 7px;
+        color: #a0847b;
+        font-size: 11px;
+    ">
+        Enter the number of units available for sale.
+    </div>
+</div>
+
 
                     <!-- CATEGORY -->
 <div class="form-group">
@@ -721,6 +745,34 @@
     </main>
 
 </div>
+
+
+<!-- QUANTITY / STOCK -->
+<div class="form-group">
+    <label for="stock">
+        Quantity / Stock
+    </label>
+
+    <input
+        type="number"
+        id="stock"
+        name="stock"
+        value="{{ old('stock', 1) }}"
+        min="1"
+        step="1"
+        placeholder="Example: 50"
+        required
+    >
+
+    <div style="
+        margin-top: 7px;
+        color: #a0847b;
+        font-size: 11px;
+    ">
+        Enter the number of units available for sale.
+    </div>
+</div>
+
 
 
 <!-- IMAGE PREVIEW SCRIPT -->

@@ -2295,6 +2295,7 @@ Route::post('/seller/products/store', function () {
         empty($name) ||
         empty($category) ||
         $price <= 0 ||
+        $stock <= 0 ||
         empty($description)
     ) {
         return back()
@@ -2411,7 +2412,7 @@ Route::post('/seller/products/store', function () {
         'name' => $name,
         'category' => $categoryName,
         'price' => $price,
-        'stock' => 0,
+        'stock' => $stock,
         'description' => $description,
         'image' => $imagePath,
     ]);
