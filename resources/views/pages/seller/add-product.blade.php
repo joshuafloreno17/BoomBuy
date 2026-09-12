@@ -506,60 +506,101 @@
 
 
                     <!-- CATEGORY -->
-                    <div class="form-group">
+<div class="form-group">
+    <label for="category">
+        Category
+    </label>
 
-                        <label for="category">
-                            Category
-                        </label>
+    <select
+        id="category"
+        name="category"
+        required
+    >
+        <option value="">
+            Select Category
+        </option>
 
-                        <select
-                            id="category"
-                            name="category"
-                            required
-                        >
+        <option value="electronics"
+            {{ old('category') == 'electronics' ? 'selected' : '' }}>
+            📱 Electronics
+        </option>
 
-                            <option value="">
-                                Select Category
-                            </option>
+        <option value="womens-fashion"
+            {{ old('category') == 'womens-fashion' ? 'selected' : '' }}>
+            👗 Women's Fashion
+        </option>
 
-                            <option
-                                value="smartphone"
-                                {{ old('category') == 'smartphone' ? 'selected' : '' }}
-                            >
-                                Smartphone
-                            </option>
+        <option value="mens-fashion"
+            {{ old('category') == 'mens-fashion' ? 'selected' : '' }}>
+            👕 Men's Fashion
+        </option>
 
-                            <option
-                                value="laptop"
-                                {{ old('category') == 'laptop' ? 'selected' : '' }}
-                            >
-                                Laptop
-                            </option>
+        <option value="kids-baby"
+            {{ old('category') == 'kids-baby' ? 'selected' : '' }}>
+            👶 Kids & Baby
+        </option>
 
-                            <option
-                                value="audio"
-                                {{ old('category') == 'audio' ? 'selected' : '' }}
-                            >
-                                Audio
-                            </option>
+        <option value="home-living"
+            {{ old('category') == 'home-living' ? 'selected' : '' }}>
+            🏠 Home & Living
+        </option>
 
-                            <option
-                                value="wearable"
-                                {{ old('category') == 'wearable' ? 'selected' : '' }}
-                            >
-                                Wearable
-                            </option>
+        <option value="sports-outdoors"
+            {{ old('category') == 'sports-outdoors' ? 'selected' : '' }}>
+            ⚽ Sports & Outdoors
+        </option>
 
-                            <option
-                                value="accessories"
-                                {{ old('category') == 'accessories' ? 'selected' : '' }}
-                            >
-                                Accessories
-                            </option>
+        <option value="beauty-personal-care"
+            {{ old('category') == 'beauty-personal-care' ? 'selected' : '' }}>
+            💄 Beauty & Personal Care
+        </option>
 
-                        </select>
+        <option value="food-beverages"
+            {{ old('category') == 'food-beverages' ? 'selected' : '' }}>
+            🍔 Food & Beverages
+        </option>
 
-                    </div>
+        <option value="automotive"
+            {{ old('category') == 'automotive' ? 'selected' : '' }}>
+            🚗 Automotive
+        </option>
+
+        <option value="office-school"
+            {{ old('category') == 'office-school' ? 'selected' : '' }}>
+            📚 Office & School
+        </option>
+
+        <option value="pet-supplies"
+            {{ old('category') == 'pet-supplies' ? 'selected' : '' }}>
+            🐶 Pet Supplies
+        </option>
+
+        <option value="toys-games-hobbies"
+            {{ old('category') == 'toys-games-hobbies' ? 'selected' : '' }}>
+            🎮 Toys, Games & Hobbies
+        </option>
+
+        <option value="jewelry-accessories"
+            {{ old('category') == 'jewelry-accessories' ? 'selected' : '' }}>
+            💍 Jewelry & Accessories
+        </option>
+
+        <option value="shoes"
+            {{ old('category') == 'shoes' ? 'selected' : '' }}>
+            👟 Shoes
+        </option>
+
+        <option value="tools-home-improvement"
+            {{ old('category') == 'tools-home-improvement' ? 'selected' : '' }}>
+            🧰 Tools & Home Improvement
+        </option>
+
+        <option value="garden-outdoor"
+            {{ old('category') == 'garden-outdoor' ? 'selected' : '' }}>
+            🌱 Garden & Outdoor
+        </option>
+    </select>
+</div>
 
 
                     <!-- PRICE -->

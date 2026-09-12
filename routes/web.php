@@ -1291,50 +1291,235 @@ Route::post('/admin/logout', function () {
 */
 
 Route::get('/products', function () {
+
     $category = request('category');
 
+    /*
+    |--------------------------------------------------------------------------
+    | BOOMBUY CATEGORY MAP
+    |--------------------------------------------------------------------------
+    */
+
+    $categoryMap = [
+
+        'electronics' => [
+            'Electronics',
+            'Smartphone',
+            'Laptop',
+            'Audio',
+            'Wearable',
+            'Accessories',
+            'electronics',
+            'smartphone',
+            'laptop',
+            'audio',
+            'wearable',
+            'accessories',
+        ],
+
+        'womens-fashion' => [
+            "Women's Fashion",
+            'Women',
+            "Women's",
+            'womens-fashion',
+            'women',
+        ],
+
+        'mens-fashion' => [
+            "Men's Fashion",
+            'Men',
+            "Men's",
+            'mens-fashion',
+            'men',
+        ],
+
+        'kids-baby' => [
+            'Kids & Baby',
+            'Kids',
+            'Baby',
+            'kids-baby',
+            'kids',
+            'baby',
+        ],
+
+        'home-living' => [
+            'Home & Living',
+            'Home',
+            'home-living',
+            'home',
+        ],
+
+        'sports-outdoors' => [
+            'Sports & Outdoors',
+            'Sports',
+            'sports-outdoors',
+            'sports',
+        ],
+
+        'beauty-personal-care' => [
+            'Beauty & Personal Care',
+            'Beauty',
+            'beauty-personal-care',
+            'beauty',
+        ],
+
+        'food-beverages' => [
+            'Food & Beverages',
+            'Food',
+            'food-beverages',
+            'food',
+        ],
+
+        'automotive' => [
+            'Automotive',
+            'automotive',
+        ],
+
+        'office-school' => [
+            'Office & School',
+            'Office',
+            'School',
+            'office-school',
+            'office',
+            'school',
+        ],
+
+        'pet-supplies' => [
+            'Pet Supplies',
+            'Pets',
+            'Pet',
+            'pet-supplies',
+            'pet',
+        ],
+
+        'toys-games-hobbies' => [
+            'Toys, Games & Hobbies',
+            'Toys',
+            'Games',
+            'Hobbies',
+            'toys-games-hobbies',
+            'toys',
+        ],
+
+        'jewelry-accessories' => [
+            'Jewelry & Accessories',
+            'Jewelry',
+            'Accessories',
+            'jewelry-accessories',
+            'jewelry',
+            'accessories',
+        ],
+
+        'shoes' => [
+            'Shoes',
+            'shoes',
+        ],
+
+        'tools-home-improvement' => [
+            'Tools & Home Improvement',
+            'Tools',
+            'Home Improvement',
+            'tools-home-improvement',
+            'tools',
+        ],
+
+        'garden-outdoor' => [
+            'Garden & Outdoor',
+            'Garden',
+            'Outdoor',
+            'garden-outdoor',
+            'garden',
+        ],
+
+    ];
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | GET PRODUCTS
+    |--------------------------------------------------------------------------
+    */
+
     $databaseProducts = Product::latest()
-        ->when($category, function ($query) use ($category) {
-            return $query->where('category', $category);
-        })
+        ->when(
+            $category && isset($categoryMap[$category]),
+            function ($query) use ($category, $categoryMap) {
+
+                $query->whereIn(
+                    'category',
+                    $categoryMap[$category]
+                );
+
+            }
+        )
         ->get();
 
-    $products = $databaseProducts->map(function ($product) {
-        $slug = Str::slug($product->name);
 
-        // Get product rating summary
-        $reviewStats = DB::table('product_reviews')
+    /*
+    |--------------------------------------------------------------------------
+    | FORMAT PRODUCTS + REAL REVIEWS
+    |--------------------------------------------------------------------------
+    */
+
+    $products = $databaseProducts->map(function ($product) {
+
+        // Get actual reviews for this product
+        $reviewData = DB::table('product_reviews')
             ->where('product_id', $product->id)
-            ->selectRaw('AVG(rating) as average_rating, COUNT(*) as review_count')
+            ->selectRaw('COUNT(*) as review_count, AVG(rating) as average_rating')
             ->first();
 
-        $averageRating = $reviewStats && $reviewStats->average_rating
-            ? round((float) $reviewStats->average_rating, 1)
+        $reviewCount = (int) ($reviewData->review_count ?? 0);
+
+        $averageRating = $reviewCount > 0
+            ? round((float) $reviewData->average_rating, 1)
             : 0;
 
-        $reviewCount = $reviewStats
-            ? (int) $reviewStats->review_count
-            : 0;
 
         return [
+
             'id' => $product->id,
-            'slug' => $slug,
+
+            'slug' => Str::slug($product->name),
+
             'name' => $product->name,
+
             'category' => $product->category,
+
             'price' => (float) $product->price,
+
             'stock' => (int) $product->stock,
+
             'description' => $product->description,
+
             'image' => $product->image,
+
             'icon' => $product->image ?? '📦',
+
             'seller_id' => $product->seller_id,
 
-            // Actual reviews
+            // REAL rating from product_reviews
             'rating' => $averageRating,
+
+            // REAL review count from product_reviews
             'reviews' => $reviewCount,
+
         ];
+
     })->toArray();
 
-    return view('pages.products', compact('products'));
+
+    /*
+    |--------------------------------------------------------------------------
+    | RETURN SHOP PAGE
+    |--------------------------------------------------------------------------
+    */
+
+    return view(
+        'pages.products',
+        compact('products')
+    );
+
 })->name('products');
 
 
@@ -2120,6 +2305,52 @@ Route::post('/seller/products/store', function () {
             );
     }
 
+    // Validate category
+    $categoryNames = [
+        'electronics' => 'Electronics',
+        'womens-fashion' => "Women's Fashion",
+        'mens-fashion' => "Men's Fashion",
+        'kids-baby' => 'Kids & Baby',
+        'home-living' => 'Home & Living',
+        'sports-outdoors' => 'Sports & Outdoors',
+        'beauty-personal-care' => 'Beauty & Personal Care',
+        'food-beverages' => 'Food & Beverages',
+        'automotive' => 'Automotive',
+        'office-school' => 'Office & School',
+        'pet-supplies' => 'Pet Supplies',
+        'toys-games-hobbies' => 'Toys, Games & Hobbies',
+        'jewelry-accessories' => 'Jewelry & Accessories',
+        'shoes' => 'Shoes',
+        'tools-home-improvement' => 'Tools & Home Improvement',
+        'garden-outdoor' => 'Garden & Outdoor',
+    ];
+
+    if (!array_key_exists(strtolower($category), $categoryNames)) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please select a valid product category.'
+            );
+    }
+
+    $categoryName = $categoryNames[strtolower($category)];
+
+    // Prevent duplicate product names
+    $existingProduct = Product::where(
+        'name',
+        $name
+    )->first();
+
+    if ($existingProduct) {
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'A product with this name already exists.'
+            );
+    }
+
     // Validate image
     if (!request()->hasFile('image')) {
         return back()
@@ -2165,34 +2396,6 @@ Route::post('/seller/products/store', function () {
             ->with(
                 'error',
                 'Product image must not be larger than 5MB.'
-            );
-    }
-
-    // Category names
-    $categoryNames = [
-        'smartphone' => 'Smartphone',
-        'laptop' => 'Laptop',
-        'audio' => 'Audio',
-        'wearable' => 'Wearable',
-        'accessories' => 'Accessories',
-    ];
-
-    $categoryName =
-        $categoryNames[strtolower($category)]
-        ?? ucfirst($category);
-
-    // Prevent duplicate product names
-    $existingProduct = Product::where(
-        'name',
-        $name
-    )->first();
-
-    if ($existingProduct) {
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'A product with this name already exists.'
             );
     }
 
@@ -3203,6 +3406,58 @@ Route::post('/cart/add/{id}', function ($id) {
 
 })->name('cart.add');
 
+// Buy Now
+Route::post('/buy-now/{id}', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Find product
+    $product = Product::find($id);
+
+    if (!$product) {
+        return back()->with(
+            'error',
+            'Product not found.'
+        );
+    }
+
+    // Check stock
+    $stock = (int) $product->stock;
+
+    if ($stock <= 0) {
+        return back()->with(
+            'error',
+            'This product is currently out of stock.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BUY NOW = 1 QUANTITY
+    |--------------------------------------------------------------------------
+    */
+
+    session()->put('buy_now', [
+        $product->id => 1
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | DIRECTLY GO TO CHECKOUT
+    |--------------------------------------------------------------------------
+    */
+
+    return redirect()
+        ->route('checkout');
+
+})->name('buy.now');
+
+
+
 // Update cart
 Route::post('/cart/update/{slug}', function ($slug) {
 
@@ -3853,25 +4108,104 @@ Route::put('/seller/products/{id}', function ($id) {
 
     /*
     |--------------------------------------------------------------------------
-    | Category
+    | BoomBuy Category System
     |--------------------------------------------------------------------------
     */
 
     $categoryNames = [
-        'smartphone' => 'Smartphone',
-        'laptop' => 'Laptop',
-        'audio' => 'Audio',
-        'wearable' => 'Wearable',
-        'accessories' => 'Accessories',
-    ];
 
-    $categoryName =
-        $categoryNames[strtolower($category)]
-        ?? ucfirst($category);
+        'electronics' => 'Electronics',
+
+        'womens-fashion' => "Women's Fashion",
+
+        'mens-fashion' => "Men's Fashion",
+
+        'kids-baby' => 'Kids & Baby',
+
+        'home-living' => 'Home & Living',
+
+        'sports-outdoors' => 'Sports & Outdoors',
+
+        'beauty-personal-care' => 'Beauty & Personal Care',
+
+        'food-beverages' => 'Food & Beverages',
+
+        'automotive' => 'Automotive',
+
+        'office-school' => 'Office & School',
+
+        'pet-supplies' => 'Pet Supplies',
+
+        'toys-games-hobbies' => 'Toys, Games & Hobbies',
+
+        'jewelry-accessories' => 'Jewelry & Accessories',
+
+        'shoes' => 'Shoes',
+
+        'tools-home-improvement' => 'Tools & Home Improvement',
+
+        'garden-outdoor' => 'Garden & Outdoor',
+
+    ];
 
     /*
     |--------------------------------------------------------------------------
-    | Prevent duplicate names
+    | Old Category Compatibility
+    |--------------------------------------------------------------------------
+    |
+    | Existing products that still use the old categories
+    | will automatically be converted when edited.
+    |
+    */
+
+    $oldCategoryAliases = [
+
+        'Smartphone' => 'electronics',
+        'smartphone' => 'electronics',
+
+        'Laptop' => 'electronics',
+        'laptop' => 'electronics',
+
+        'Audio' => 'electronics',
+        'audio' => 'electronics',
+
+        'Wearable' => 'electronics',
+        'wearable' => 'electronics',
+
+        'Accessories' => 'jewelry-accessories',
+        'accessories' => 'jewelry-accessories',
+
+    ];
+
+    /*
+    |--------------------------------------------------------------------------
+    | Convert submitted category
+    |--------------------------------------------------------------------------
+    */
+
+    if (isset($categoryNames[$category])) {
+
+        $categoryName = $categoryNames[$category];
+
+    } elseif (isset($oldCategoryAliases[$category])) {
+
+        $categoryName = $categoryNames[
+            $oldCategoryAliases[$category]
+        ];
+
+    } else {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please select a valid BoomBuy category.'
+            );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Prevent duplicate product names
     |--------------------------------------------------------------------------
     */
 
@@ -3880,6 +4214,7 @@ Route::put('/seller/products/{id}', function ($id) {
         ->first();
 
     if ($existingProduct) {
+
         return back()
             ->withInput()
             ->with(
@@ -3907,6 +4242,7 @@ Route::put('/seller/products/{id}', function ($id) {
         $image = request()->file('image');
 
         if (!$image->isValid()) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3925,6 +4261,7 @@ Route::put('/seller/products/{id}', function ($id) {
             'png',
             'webp'
         ])) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3934,6 +4271,7 @@ Route::put('/seller/products/{id}', function ($id) {
         }
 
         if ($image->getSize() > 5 * 1024 * 1024) {
+
             return back()
                 ->withInput()
                 ->with(
@@ -3955,13 +4293,26 @@ Route::put('/seller/products/{id}', function ($id) {
     */
 
     $product->update([
+
         'name' => $name,
+
         'category' => $categoryName,
+
         'price' => $price,
+
         'image' => $imagePath,
+
         'stock' => $stock,
+
         'description' => $description,
+
     ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Success
+    |--------------------------------------------------------------------------
+    */
 
     return redirect()
         ->route('seller.dashboard')
@@ -3971,6 +4322,8 @@ Route::put('/seller/products/{id}', function ($id) {
         );
 
 })->name('seller.products.update');
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -4014,8 +4367,9 @@ Route::delete('/seller/products/{id}', function ($id) {
 })->name('seller.products.delete');
 
 
+
 Route::get('/categories', function () {
-    return redirect()->route('products');
+    return view('pages.categories');
 })->name('categories');
 
 

@@ -1,17 +1,14 @@
 <!DOCTYPE html>
-
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>Edit Product — BoomBuy</title>
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -30,18 +27,31 @@
             color: inherit;
         }
 
-        .navbar {
-            background: white;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
+        .layout {
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+        }
+
+        /* ===== SIDEBAR ===== */
+
+        .sidebar {
+            width: 230px;
+            background: #ffffff;
+            border-right: 1px solid #ffe9e2;
+            padding: 25px 18px;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            z-index: 1000;
+            overflow-y: auto;
         }
 
         .logo {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 23px;
-            font-weight: 700;
+            font-weight: 800;
             color: #e8420f;
         }
 
@@ -49,10 +59,64 @@
             color: #172033;
         }
 
-        .back {
-            color: #e8420f;
-            font-size: 13px;
+        .sidebar-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #b99c93;
+            margin-top: 22px;
+            margin-bottom: 4px;
             font-weight: 700;
+        }
+
+        .sidebar .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 8px;
+        }
+
+        .sidebar .menu a {
+            display: block;
+            padding: 12px;
+            border-radius: 10px;
+            color: #8d6c62;
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .sidebar .menu a:hover {
+            background: #fff4f1;
+            color: #e8420f;
+        }
+
+        .sidebar-footer {
+            margin-top: auto;
+            padding-top: 16px;
+            border-top: 1px solid #ffe9e2;
+        }
+
+        .sidebar-footer .back {
+            display: block;
+            padding: 12px;
+            border-radius: 10px;
+            color: #8d6c62;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .sidebar-footer .back:hover {
+            background: #fff4f1;
+            color: #e8420f;
+        }
+
+        /* ===== MAIN ===== */
+
+        .main-content {
+            margin-left: 230px;
+            width: calc(100% - 230px);
+            min-width: 0;
         }
 
         .container {
@@ -81,8 +145,10 @@
         }
 
         .header h1 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 30px;
             margin-top: 8px;
+            letter-spacing: -0.01em;
         }
 
         .header p {
@@ -90,6 +156,24 @@
             font-size: 13px;
             margin-top: 7px;
         }
+
+        /* ===== CURRENT PRODUCT ===== */
+
+        .current-product {
+            background: #fffaf8;
+            border: 1px solid #f7e5e0;
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 25px;
+            color: #8d6c62;
+            font-size: 12px;
+        }
+
+        .current-product strong {
+            color: #172033;
+        }
+
+        /* ===== FORM ===== */
 
         .form-group {
             margin-bottom: 20px;
@@ -120,7 +204,7 @@
         select:focus,
         textarea:focus {
             border-color: #e8420f;
-            box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.08);
+            box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.08);
         }
 
         textarea {
@@ -134,19 +218,17 @@
             gap: 18px;
         }
 
-        .current-product {
-            background: #fffaf8;
-            border: 1px solid #f7e5e0;
-            border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 25px;
-            color: #8d6c62;
-            font-size: 12px;
+        /* ===== CATEGORY ===== */
+
+        select {
+            cursor: pointer;
         }
 
-        .current-product strong {
-            color: #172033;
+        select option {
+            padding: 8px;
         }
+
+        /* ===== BUTTONS ===== */
 
         .actions {
             display: flex;
@@ -159,10 +241,11 @@
         .save-btn {
             border: none;
             padding: 11px 17px;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 12px;
             font-weight: 700;
             cursor: pointer;
+            transition: 0.2s;
         }
 
         .cancel-btn {
@@ -172,6 +255,7 @@
 
         .cancel-btn:hover {
             background: #f1e5e1;
+            transform: translateY(-1px);
         }
 
         .save-btn {
@@ -181,7 +265,10 @@
 
         .save-btn:hover {
             background: #c43408;
+            transform: translateY(-1px);
         }
+
+        /* ===== ERROR ===== */
 
         .error {
             background: #fff3f0;
@@ -192,7 +279,10 @@
             font-size: 12px;
         }
 
+        /* ===== FOOTER ===== */
+
         footer {
+            margin-left: 230px;
             background: white;
             border-top: 1px solid #f7e5e0;
             padding: 30px 7%;
@@ -206,14 +296,49 @@
             color: #e8420f;
         }
 
+        /* ===== RESPONSIVE ===== */
+
+        @media (max-width: 900px) {
+
+            .sidebar {
+                width: 72px;
+                padding: 20px 8px;
+            }
+
+            .sidebar .label-text,
+            .sidebar-label {
+                display: none;
+            }
+
+            .sidebar .menu a {
+                text-align: center;
+            }
+
+            .sidebar-footer .back {
+                text-align: center;
+                font-size: 0;
+            }
+
+            .sidebar-footer .back::before {
+                content: "←";
+                font-size: 18px;
+            }
+
+            .main-content {
+                margin-left: 72px;
+                width: calc(100% - 72px);
+            }
+
+            footer {
+                margin-left: 72px;
+            }
+        }
+
         @media (max-width: 600px) {
 
             .container {
                 width: 92%;
-            }
-
-            .navbar {
-                padding: 15px 4%;
+                margin-top: 25px;
             }
 
             .card {
@@ -244,423 +369,460 @@
                 gap: 8px;
                 text-align: center;
             }
-
         }
-
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-
-/* ===== Sidebar layout ===== */
-.layout { display: flex; }
-.sidebar {
-    width: 230px;
-    background: #ffffff;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0; top: 0; bottom: 0;
-    z-index: 1000;
-    overflow-y: auto;
-}
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
-}
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-.sidebar .menu a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
-.sidebar .menu a:hover,
-.sidebar .menu a.active {
-    background: #fff4f1;
-    color: #e8420f;
-}
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #ffe9e2;
-}
-.sidebar-footer .back {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-}
-.sidebar-footer .back:hover {
-    background: #fff4f1;
-    color: #e8420f;
-}
-.main-content {
-    margin-left: 230px;
-    width: calc(100% - 230px);
-    min-width: 0;
-}
-@media (max-width: 900px) {
-    .sidebar { width: 72px; padding: 20px 8px; }
-    .sidebar .label-text, .sidebar-label { display: none; }
-    .sidebar .menu a { text-align: center; }
-    .main-content { margin-left: 72px; width: calc(100% - 72px); }
-}
-</style>
-
+    </style>
 </head>
 
 <body>
 
 <div class="layout">
 
-<aside class="sidebar">
+    {{-- SIDEBAR --}}
+    <aside class="sidebar">
 
-    <a href="/" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <div class="sidebar-label">Seller Panel</div>
-
-    <nav class="menu">
-        <a href="{{ route('seller.dashboard') }}">📊 <span class="label-text">Dashboard</span></a>
-        <a href="{{ route('seller.products.create') }}">➕ <span class="label-text">Add Product</span></a>
-        <a href="{{ route('seller.orders') }}">🛒 <span class="label-text">Orders</span></a>
-    </nav>
-
-    <div class="sidebar-footer">
-        <a href="{{ route('seller.dashboard') }}" class="back">
-            ← Back to Dashboard
+        <a href="/" class="logo">
+            Boom<span>Buy</span>
         </a>
-    </div>
 
-</aside>
+        <div class="sidebar-label">
+            Seller Panel
+        </div>
 
-<main class="main-content">
+        <nav class="menu">
 
-<div class="container">
+            <a href="{{ route('seller.dashboard') }}">
+                📊 <span class="label-text">Dashboard</span>
+            </a>
 
-    <div class="card">
+            <a href="{{ route('seller.products.create') }}">
+                ➕ <span class="label-text">Add Product</span>
+            </a>
 
-        <div class="header">
+            <a href="{{ route('seller.orders') }}">
+                🛒 <span class="label-text">Orders</span>
+            </a>
 
-            <small>
-                Seller Dashboard
-            </small>
+        </nav>
 
-            <h1>
-                Edit Product
-            </h1>
+        <div class="sidebar-footer">
 
-            <p>
-                Update your product information below.
-            </p>
+            <a href="{{ route('seller.dashboard') }}" class="back">
+                ← Back to Dashboard
+            </a>
 
         </div>
 
+    </aside>
 
-        {{-- ERROR MESSAGE --}}
 
-        @if($errors->any())
+    {{-- MAIN CONTENT --}}
+    <main class="main-content">
 
-            <div class="error">
+        <div class="container">
 
-                @foreach($errors->all() as $error)
+            <div class="card">
 
-                    <div>• {{ $error }}</div>
+                <div class="header">
 
-                @endforeach
+                    <small>
+                        Seller Dashboard
+                    </small>
+
+                    <h1>
+                        Edit Product
+                    </h1>
+
+                    <p>
+                        Update your product information below.
+                    </p>
+
+                </div>
+
+
+                {{-- ERROR MESSAGE --}}
+                @if($errors->any())
+
+                    <div class="error">
+
+                        @foreach($errors->all() as $error)
+
+                            <div>
+                                • {{ $error }}
+                            </div>
+
+                        @endforeach
+
+                    </div>
+
+                @endif
+
+
+                {{-- SESSION ERROR --}}
+                @if(session('error'))
+
+                    <div class="error">
+                        {{ session('error') }}
+                    </div>
+
+                @endif
+
+
+                {{-- CURRENT PRODUCT --}}
+                <div class="current-product">
+
+                    Editing product:
+
+                    <strong>
+                        {{ $product->name ?? 'Unnamed Product' }}
+                    </strong>
+
+                    —
+
+                    {{ \Illuminate\Support\Str::slug($product->name) }}
+
+                </div>
+
+
+                {{-- UPDATE PRODUCT FORM --}}
+                <form
+                    action="{{ route('seller.products.update', ['id' => $product->id]) }}"
+                    method="POST"
+                >
+
+                    @csrf
+
+                    @method('PUT')
+
+
+                    {{-- PRODUCT NAME --}}
+                    <div class="form-group">
+
+                        <label for="name">
+                            Product Name
+                        </label>
+
+                        <input
+                            type="text"
+                            id="name"
+                            name="name"
+                            value="{{ old('name', $product->name ?? '') }}"
+                            required
+                        >
+
+                    </div>
+
+
+                    {{-- CATEGORY + PRICE --}}
+                    <div class="row">
+
+                        <div class="form-group">
+
+                            <label for="category">
+                                Category
+                            </label>
+
+                            @php
+
+                                $currentCategory = old(
+                                    'category',
+                                    $product->category ?? ''
+                                );
+
+                                /*
+                                Convert old categories into the
+                                new BoomBuy category system.
+                                */
+
+                                $categoryAliases = [
+
+                                    'Smartphone' => 'electronics',
+                                    'Laptop' => 'electronics',
+                                    'Audio' => 'electronics',
+                                    'Wearable' => 'electronics',
+
+                                    'Accessories' => 'jewelry-accessories',
+
+                                    'Electronics' => 'electronics',
+                                    "Women's Fashion" => 'womens-fashion',
+                                    "Men's Fashion" => 'mens-fashion',
+                                    'Kids & Baby' => 'kids-baby',
+                                    'Home & Living' => 'home-living',
+                                    'Sports & Outdoors' => 'sports-outdoors',
+                                    'Beauty & Personal Care' => 'beauty-personal-care',
+                                    'Food & Beverages' => 'food-beverages',
+                                    'Automotive' => 'automotive',
+                                    'Office & School' => 'office-school',
+                                    'Pet Supplies' => 'pet-supplies',
+                                    'Toys, Games & Hobbies' => 'toys-games-hobbies',
+                                    'Jewelry & Accessories' => 'jewelry-accessories',
+                                    'Shoes' => 'shoes',
+                                    'Tools & Home Improvement' => 'tools-home-improvement',
+                                    'Garden & Outdoor' => 'garden-outdoor',
+
+                                ];
+
+                                $selectedCategory =
+                                    $categoryAliases[$currentCategory]
+                                    ?? $currentCategory;
+
+                            @endphp
+
+
+                            <select
+                                id="category"
+                                name="category"
+                                required
+                            >
+
+                                <option value="">
+                                    Select Category
+                                </option>
+
+
+                                <option
+                                    value="electronics"
+                                    {{ $selectedCategory === 'electronics' ? 'selected' : '' }}
+                                >
+                                    📱 Electronics
+                                </option>
+
+
+                                <option
+                                    value="womens-fashion"
+                                    {{ $selectedCategory === 'womens-fashion' ? 'selected' : '' }}
+                                >
+                                    👗 Women's Fashion
+                                </option>
+
+
+                                <option
+                                    value="mens-fashion"
+                                    {{ $selectedCategory === 'mens-fashion' ? 'selected' : '' }}
+                                >
+                                    👕 Men's Fashion
+                                </option>
+
+
+                                <option
+                                    value="kids-baby"
+                                    {{ $selectedCategory === 'kids-baby' ? 'selected' : '' }}
+                                >
+                                    👶 Kids & Baby
+                                </option>
+
+
+                                <option
+                                    value="home-living"
+                                    {{ $selectedCategory === 'home-living' ? 'selected' : '' }}
+                                >
+                                    🏠 Home & Living
+                                </option>
+
+
+                                <option
+                                    value="sports-outdoors"
+                                    {{ $selectedCategory === 'sports-outdoors' ? 'selected' : '' }}
+                                >
+                                    ⚽ Sports & Outdoors
+                                </option>
+
+
+                                <option
+                                    value="beauty-personal-care"
+                                    {{ $selectedCategory === 'beauty-personal-care' ? 'selected' : '' }}
+                                >
+                                    💄 Beauty & Personal Care
+                                </option>
+
+
+                                <option
+                                    value="food-beverages"
+                                    {{ $selectedCategory === 'food-beverages' ? 'selected' : '' }}
+                                >
+                                    🍔 Food & Beverages
+                                </option>
+
+
+                                <option
+                                    value="automotive"
+                                    {{ $selectedCategory === 'automotive' ? 'selected' : '' }}
+                                >
+                                    🚗 Automotive
+                                </option>
+
+
+                                <option
+                                    value="office-school"
+                                    {{ $selectedCategory === 'office-school' ? 'selected' : '' }}
+                                >
+                                    📚 Office & School
+                                </option>
+
+
+                                <option
+                                    value="pet-supplies"
+                                    {{ $selectedCategory === 'pet-supplies' ? 'selected' : '' }}
+                                >
+                                    🐶 Pet Supplies
+                                </option>
+
+
+                                <option
+                                    value="toys-games-hobbies"
+                                    {{ $selectedCategory === 'toys-games-hobbies' ? 'selected' : '' }}
+                                >
+                                    🎮 Toys, Games & Hobbies
+                                </option>
+
+
+                                <option
+                                    value="jewelry-accessories"
+                                    {{ $selectedCategory === 'jewelry-accessories' ? 'selected' : '' }}
+                                >
+                                    💍 Jewelry & Accessories
+                                </option>
+
+
+                                <option
+                                    value="shoes"
+                                    {{ $selectedCategory === 'shoes' ? 'selected' : '' }}
+                                >
+                                    👟 Shoes
+                                </option>
+
+
+                                <option
+                                    value="tools-home-improvement"
+                                    {{ $selectedCategory === 'tools-home-improvement' ? 'selected' : '' }}
+                                >
+                                    🧰 Tools & Home Improvement
+                                </option>
+
+
+                                <option
+                                    value="garden-outdoor"
+                                    {{ $selectedCategory === 'garden-outdoor' ? 'selected' : '' }}
+                                >
+                                    🌱 Garden & Outdoor
+                                </option>
+
+                            </select>
+
+                        </div>
+
+
+                        {{-- PRICE --}}
+                        <div class="form-group">
+
+                            <label for="price">
+                                Price
+                            </label>
+
+                            <input
+                                type="number"
+                                id="price"
+                                name="price"
+                                step="0.01"
+                                min="0"
+                                value="{{ old('price', $product->price ?? '') }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    {{-- ICON + STOCK --}}
+                    <div class="row">
+
+                        <div class="form-group">
+
+                            <label for="icon">
+                                Product Icon
+                            </label>
+
+                            <input
+                                type="text"
+                                id="icon"
+                                name="icon"
+                                value="{{ old('icon', $product->image ?? '📦') }}"
+                                placeholder="Example: 💻"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="stock">
+                                Stock
+                            </label>
+
+                            <input
+                                type="number"
+                                id="stock"
+                                name="stock"
+                                min="0"
+                                value="{{ old('stock', $product->stock ?? 0) }}"
+                                required
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                    {{-- DESCRIPTION --}}
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Enter product description..."
+                            required
+                        >{{ old('description', $product->description ?? '') }}</textarea>
+
+                    </div>
+
+
+                    {{-- ACTIONS --}}
+                    <div class="actions">
+
+                        <a
+                            href="{{ route('seller.dashboard') }}"
+                            class="cancel-btn"
+                        >
+                            Cancel
+                        </a>
+
+
+                        <button
+                            type="submit"
+                            class="save-btn"
+                        >
+                            ✓ Save Changes
+                        </button>
+
+                    </div>
+
+                </form>
 
             </div>
-
-        @endif
-
-
-        {{-- SESSION ERROR --}}
-
-        @if(session('error'))
-
-            <div class="error">
-                {{ session('error') }}
-            </div>
-
-        @endif
-
-
-        {{-- CURRENT PRODUCT --}}
-
-        <div class="current-product">
-
-            Editing product:
-
-            <strong>
-                {{ $product->name ?? 'Unnamed Product' }}
-            </strong>
-
-            —
-
-            {{ \Illuminate\Support\Str::slug($product->name) }}
 
         </div>
 
-
-        {{-- UPDATE PRODUCT FORM --}}
-
-        <form
-            action="{{ route('seller.products.update', ['id' => $product->id]) }}"
-            method="POST"
-        >
-
-            @csrf
-
-            @method('PUT')
-
-
-            {{-- PRODUCT NAME --}}
-
-            <div class="form-group">
-
-                <label for="name">
-                    Product Name
-                </label>
-
-                <input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value="{{ old('name', $product->name ?? '') }}"
-                    required
-                >
-
-            </div>
-
-
-            {{-- CATEGORY + PRICE --}}
-
-            <div class="row">
-
-                <div class="form-group">
-
-                    <label for="category">
-                        Category
-                    </label>
-
-                    @php
-
-                        $currentCategory = old(
-                            'category',
-                            $product->category ?? ''
-                        );
-
-                    @endphp
-
-
-                    <select
-                        id="category"
-                        name="category"
-                        required
-                    >
-
-                        <option value="">
-                            Select Category
-                        </option>
-
-
-                        <option
-                            value="Smartphone"
-                            {{ $currentCategory === 'Smartphone' ? 'selected' : '' }}
-                        >
-                            Smartphone
-                        </option>
-
-
-                        <option
-                            value="Laptop"
-                            {{ $currentCategory === 'Laptop' ? 'selected' : '' }}
-                        >
-                            Laptop
-                        </option>
-
-
-                        <option
-                            value="Audio"
-                            {{ $currentCategory === 'Audio' ? 'selected' : '' }}
-                        >
-                            Audio
-                        </option>
-
-
-                        <option
-                            value="Wearable"
-                            {{ $currentCategory === 'Wearable' ? 'selected' : '' }}
-                        >
-                            Wearable
-                        </option>
-
-
-                        <option
-                            value="Accessories"
-                            {{ $currentCategory === 'Accessories' ? 'selected' : '' }}
-                        >
-                            Accessories
-                        </option>
-
-                    </select>
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="price">
-                        Price
-                    </label>
-
-                    <input
-                        type="number"
-                        id="price"
-                        name="price"
-                        step="0.01"
-                        min="0"
-                        value="{{ old('price', $product->price ?? '') }}"
-                        required
-                    >
-
-                </div>
-
-            </div>
-
-
-            {{-- ICON + STOCK --}}
-
-            <div class="row">
-
-                <div class="form-group">
-
-                    <label for="icon">
-                        Product Icon
-                    </label>
-
-                    <input
-                        type="text"
-                        id="icon"
-                        name="icon"
-                        value="{{ old('icon', $product->image ?? '📦') }}"
-                        placeholder="Example: 💻"
-                        required
-                    >
-
-                </div>
-
-
-                <div class="form-group">
-
-                    <label for="stock">
-                        Stock
-                    </label>
-
-                    <input
-                        type="number"
-                        id="stock"
-                        name="stock"
-                        min="0"
-                        value="{{ old('stock', $product->stock ?? 0) }}"
-                        required
-                    >
-
-                </div>
-
-            </div>
-
-
-            {{-- DESCRIPTION --}}
-
-            <div class="form-group">
-
-                <label for="description">
-                    Description
-                </label>
-
-                <textarea
-                    id="description"
-                    name="description"
-                    placeholder="Enter product description..."
-                    required
-                >{{ old('description', $product->description ?? '') }}</textarea>
-
-            </div>
-
-
-            {{-- ACTIONS --}}
-
-            <div class="actions">
-
-                <a
-                    href="{{ route('seller.dashboard') }}"
-                    class="cancel-btn"
-                >
-                    Cancel
-                </a>
-
-
-                <button
-                    type="submit"
-                    class="save-btn"
-                >
-                    ✓ Save Changes
-                </button>
-
-            </div>
-
-        </form>
-
-    </div>
+    </main>
 
 </div>
 
-</main>
 
-</div><!-- /.layout -->
-
-
+{{-- FOOTER --}}
 <footer>
 
     <div>
