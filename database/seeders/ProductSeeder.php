@@ -9,8 +9,8 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // seller_id: palitan ng actual ID ng seller sa users table mo
-        $sellerId = 1;
+        // Seller ID ni Jairo Banaag sa users table
+        $sellerId = 12;
 
         $productsByCategory = [
             'Electronics' => [
