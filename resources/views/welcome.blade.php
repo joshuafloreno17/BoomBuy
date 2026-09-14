@@ -1130,7 +1130,7 @@
             <!-- 1 -->
 
             <a
-                href="{{ route('products') }}?category=electronics"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1152,7 +1152,7 @@
             <!-- 2 -->
 
             <a
-                href="{{ route('products') }}?category=womens-fashion"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1174,7 +1174,7 @@
             <!-- 3 -->
 
             <a
-                href="{{ route('products') }}?category=mens-fashion"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1196,7 +1196,7 @@
             <!-- 4 -->
 
             <a
-                href="{{ route('products') }}?category=kids-baby"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1218,7 +1218,7 @@
             <!-- 5 -->
 
             <a
-                href="{{ route('products') }}?category=home-living"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1240,7 +1240,7 @@
             <!-- 6 -->
 
             <a
-                href="{{ route('products') }}?category=sports-outdoors"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1262,7 +1262,7 @@
             <!-- 7 -->
 
             <a
-                href="{{ route('products') }}?category=beauty-personal-care"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1284,7 +1284,7 @@
             <!-- 8 -->
 
             <a
-                href="{{ route('products') }}?category=food-beverages"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1306,7 +1306,7 @@
             <!-- 9 -->
 
             <a
-                href="{{ route('products') }}?category=automotive"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1328,7 +1328,7 @@
             <!-- 10 -->
 
             <a
-                href="{{ route('products') }}?category=office-school"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1350,7 +1350,7 @@
             <!-- 11 -->
 
             <a
-                href="{{ route('products') }}?category=pet-supplies"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1372,7 +1372,7 @@
             <!-- 12 -->
 
             <a
-                href="{{ route('products') }}?category=toys-games-hobbies"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1394,7 +1394,7 @@
             <!-- 13 -->
 
             <a
-                href="{{ route('products') }}?category=jewelry-accessories"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1416,7 +1416,7 @@
             <!-- 14 -->
 
             <a
-                href="{{ route('products') }}?category=shoes"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1438,7 +1438,7 @@
             <!-- 15 -->
 
             <a
-                href="{{ route('products') }}?category=tools-home-improvement"
+                href="{{ route('login') }}"
                 class="category"
             >
 
@@ -1460,7 +1460,7 @@
             <!-- 16 -->
 
             <a
-                href="{{ route('products') }}?category=garden-outdoor"
+                href="{{ route('login') }}"
                 class="category"
             >
 

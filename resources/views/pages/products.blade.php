@@ -1,75 +1,13 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>BoomBuy - Products</title>
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-
-        .product-actions {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    width: 100%;
-}
-
-.product-actions form {
-    margin: 0;
-}
-
-.product-actions .add-to-cart-form {
-    flex: 1;
-}
-
-.product-actions .buy-now-form {
-    flex: 1;
-}
-
-.product-actions button {
-    width: 100%;
-    min-height: 38px;
-}
-
-.buy-now {
-    background: #2563eb;
-    color: #ffffff;
-    border: 1px solid #2563eb;
-    padding: 9px 12px;
-    border-radius: 7px;
-    cursor: pointer;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    white-space: nowrap;
-    transition: 0.2s ease;
-}
-
-.buy-now:hover {
-    background: #1d4ed8;
-    border-color: #1d4ed8;
-}
-
-.buy-now:active {
-    transform: translateY(1px);
-}
-
-@media (max-width: 600px) {
-    .product-actions {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .product-actions .add-to-cart-form,
-    .product-actions .buy-now-form {
-        width: 100%;
-    }
-}
 
         * {
             margin: 0;
@@ -92,34 +30,13 @@
             color: inherit;
         }
 
-        /* =========================
-           BOOMBUY DESIGN SYSTEM
-        ========================= */
-
         h1,
         h2,
         h3,
         .logo,
-        .hero-title,
-        .hero h1,
-        .section-title,
         .page-title,
-        .product-title,
-        .price,
-        .cta,
-        .cta-title,
-        .brand,
-        .checkout-title,
-        .card-title,
-        .modal-title,
-        .auth-title,
-        .form-title,
-        .empty-title,
-        .step-title,
-        .order-title,
-        .stat-title,
-        .stat-value,
-        .banner-title {
+        .product-name,
+        .price {
             font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
             letter-spacing: -0.01em;
         }
@@ -162,14 +79,64 @@
         }
 
         /* =========================
-           NAVBAR
+           PRODUCT ACTIONS
+        ========================= */
+
+        .product-actions {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            width: 100%;
+        }
+
+        .product-actions form {
+            margin: 0;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .product-actions button {
+            width: 100%;
+            min-height: 38px;
+            min-width: 0;
+            padding: 9px 8px;
+            white-space: nowrap;
+        }
+
+        .buy-now {
+            background: #2563eb;
+            color: #ffffff;
+            border: 1px solid #2563eb;
+            padding: 9px 12px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            white-space: nowrap;
+            transition: 0.2s ease;
+        }
+
+        .buy-now:hover {
+            background: #1d4ed8;
+            border-color: #1d4ed8;
+        }
+
+        .buy-now:active {
+            transform: translateY(1px);
+        }
+
+        /* =========================
+           NAVBAR — SAME AS BUYER DASHBOARD
         ========================= */
 
         .navbar {
             width: 100%;
+            max-width: 100%;
+            height: 72px;
             background: #ffffff;
             border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
+            padding: 16px 7%;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -179,8 +146,9 @@
         }
 
         .logo {
+            flex-shrink: 0;
             font-size: 23px;
-            font-weight: 700;
+            font-weight: 800;
             color: #e8420f;
         }
 
@@ -190,24 +158,36 @@
 
         .nav-links {
             display: flex;
-            gap: 32px;
-            font-size: 14px;
+            align-items: center;
+            gap: 22px;
+            margin-left: auto;
+            margin-right: 25px;
+            min-width: 0;
+        }
+
+        .nav-links a {
             color: #8d6c62;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 8px 2px;
+            white-space: nowrap;
+            transition: 0.2s ease;
         }
 
-        .nav-links a:hover {
-            color: #e8420f;
-        }
-
+        .nav-links a:hover,
         .nav-links a.active {
             color: #e8420f;
-            font-weight: 600;
         }
 
         .nav-right {
             display: flex;
             align-items: center;
-            gap: 18px;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-right form {
+            margin: 0;
         }
 
         .search {
@@ -217,7 +197,13 @@
             border: 1px solid #fbe2db;
             background: #fff7f5;
             outline: none;
-            font-family: inherit;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            color: #172033;
+        }
+
+        .search::placeholder {
+            color: #a78b84;
         }
 
         .search:focus {
@@ -225,25 +211,51 @@
             background: #ffffff;
         }
 
-        .cart {
-            color: #e8420f;
-            font-size: 14px;
+        .cart-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            color: #8d6c62;
+            font-size: 13px;
             font-weight: 700;
             white-space: nowrap;
+            transition: 0.2s ease;
         }
 
-        .cart-badge {
+        .cart-link:hover {
+            color: #e8420f;
+        }
+
+        .cart-number {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             min-width: 20px;
             height: 20px;
-            padding: 0 6px;
-            margin-left: 5px;
-            background: #e8420f;
+            padding: 0 5px;
+            background: #ef4444;
             color: #ffffff;
-            border-radius: 20px;
+            border-radius: 50%;
             font-size: 11px;
+            font-weight: 700;
+        }
+
+        .logout {
+            border: none;
+            background: #fff3f0;
+            color: #dc2626;
+            padding: 8px 12px;
+            border-radius: 8px !important;
+            cursor: pointer;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: 0.2s ease;
+        }
+
+        .logout:hover {
+            background: #ffe1e1;
         }
 
         /* =========================
@@ -528,36 +540,16 @@
             color: #f5b70b;
         }
 
-.bottom {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    gap: 10px;
-}
+        .bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
 
-.bottom .price {
-    width: 100%;
-}
-
-.product-actions {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    width: 100%;
-}
-
-.product-actions form {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-}
-
-.product-actions button {
-    width: 100%;
-    min-width: 0;
-    padding: 9px 8px;
-    white-space: nowrap;
-}
+        .bottom .price {
+            width: 100%;
+        }
 
         .price {
             color: #e8420f;
@@ -676,6 +668,19 @@
         ========================= */
 
         @media (max-width: 1100px) {
+            .nav-links {
+                gap: 15px;
+                margin-right: 15px;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .search {
+                width: 180px;
+            }
+
             .product-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -685,9 +690,38 @@
             }
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 700px) {
+            .navbar {
+                height: auto;
+                min-height: 72px;
+                padding: 15px 20px;
+                gap: 12px;
+                flex-wrap: wrap;
+            }
+
+            .logo {
+                font-size: 21px;
+            }
+
+            .nav-right {
+                margin-left: auto;
+            }
+
             .nav-links {
-                display: none;
+                order: 3;
+                width: 100%;
+                justify-content: center;
+                margin: 0;
+                gap: 15px;
+                flex-wrap: wrap;
+            }
+
+            .nav-links a {
+                font-size: 12px;
+            }
+
+            .search {
+                width: 180px;
             }
 
             .product-grid {
@@ -700,14 +734,6 @@
         }
 
         @media (max-width: 650px) {
-            .navbar {
-                padding: 16px 5%;
-            }
-
-            .search {
-                display: none;
-            }
-
             .page-header,
             .products,
             .filter-bar,
@@ -728,14 +754,6 @@
                 width: 100%;
             }
 
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
-
             .about-section {
                 padding: 40px 25px;
             }
@@ -749,6 +767,44 @@
                 flex-direction: column;
                 gap: 10px;
                 text-align: center;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .product-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .product-actions form {
+                width: 100%;
+            }
+
+            .product-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .category-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 450px) {
+            .nav-links {
+                gap: 10px;
+            }
+
+            .nav-links a {
+                font-size: 11px;
+            }
+
+            .search {
+                display: none;
+            }
+
+            .logout {
+                padding: 7px 9px;
+                font-size: 11px;
             }
         }
     </style>
@@ -773,11 +829,11 @@
             </a>
 
             <a href="{{ route('products') }}" class="active">
-                Shop
+                🛍️ Shop
             </a>
 
-            <a href="#about">
-                About
+            <a href="{{ route('buyer.orders') }}">
+                📦 My Orders
             </a>
 
         </div>
@@ -791,38 +847,48 @@
                 placeholder="Search anything..."
             >
 
-            <a href="{{ route('cart') }}" class="cart">
+            @php
+                $cartCount = array_sum(session()->get('cart', []));
+            @endphp
+
+            <a href="{{ route('cart') }}" class="cart-link">
 
                 🛒 Cart
 
-                @php
-                    $cartCount = array_sum(session('cart', []));
-                @endphp
-
                 @if($cartCount > 0)
-
-                    <span class="cart-badge" id="cartCount">
+                    <span class="cart-number" id="cartCount">
                         {{ $cartCount }}
                     </span>
-
                 @else
-
                     <span
-                        class="cart-badge"
+                        class="cart-number"
                         id="cartCount"
-                        style="display:none;"
+                        style="display: none;"
                     >
                         0
                     </span>
-
                 @endif
 
             </a>
 
+            <form
+                action="{{ route('logout') }}"
+                method="POST"
+                onsubmit="return confirm('Are you sure you want to log out?');"
+            >
+                @csrf
+
+                <button
+                    type="submit"
+                    class="logout"
+                >
+                    Logout
+                </button>
+            </form>
+
         </div>
 
     </nav>
-
 
     <!-- =========================
          PAGE HEADER
@@ -845,7 +911,6 @@
 
     </section>
 
-
     <!-- =========================
          CATEGORIES
     ========================= -->
@@ -855,7 +920,6 @@
         <div class="category-heading">
 
             <div>
-
                 <small>
                     SHOP BY CATEGORY
                 </small>
@@ -863,172 +927,119 @@
                 <h2>
                     Find what you need faster.
                 </h2>
-
             </div>
 
             @if(request('category'))
-
                 <a
                     href="{{ route('products') }}"
                     class="all-products"
                 >
                     View All Products
                 </a>
-
             @endif
 
         </div>
 
-
         <div class="category-grid">
 
-            <a
-                href="{{ route('products', ['category' => 'electronics']) }}"
-                class="category-card {{ request('category') === 'electronics' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'electronics']) }}"
+               class="category-card {{ request('category') === 'electronics' ? 'active' : '' }}">
                 <span>📱</span>
                 <strong>Electronics</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'womens-fashion']) }}"
-                class="category-card {{ request('category') === 'womens-fashion' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'womens-fashion']) }}"
+               class="category-card {{ request('category') === 'womens-fashion' ? 'active' : '' }}">
                 <span>👗</span>
                 <strong>Women's Fashion</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'mens-fashion']) }}"
-                class="category-card {{ request('category') === 'mens-fashion' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'mens-fashion']) }}"
+               class="category-card {{ request('category') === 'mens-fashion' ? 'active' : '' }}">
                 <span>👕</span>
                 <strong>Men's Fashion</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'kids-baby']) }}"
-                class="category-card {{ request('category') === 'kids-baby' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'kids-baby']) }}"
+               class="category-card {{ request('category') === 'kids-baby' ? 'active' : '' }}">
                 <span>👶</span>
                 <strong>Kids & Baby</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'home-living']) }}"
-                class="category-card {{ request('category') === 'home-living' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'home-living']) }}"
+               class="category-card {{ request('category') === 'home-living' ? 'active' : '' }}">
                 <span>🏠</span>
                 <strong>Home & Living</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'sports-outdoors']) }}"
-                class="category-card {{ request('category') === 'sports-outdoors' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'sports-outdoors']) }}"
+               class="category-card {{ request('category') === 'sports-outdoors' ? 'active' : '' }}">
                 <span>⚽</span>
                 <strong>Sports & Outdoors</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'beauty-personal-care']) }}"
-                class="category-card {{ request('category') === 'beauty-personal-care' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'beauty-personal-care']) }}"
+               class="category-card {{ request('category') === 'beauty-personal-care' ? 'active' : '' }}">
                 <span>💄</span>
                 <strong>Beauty & Personal Care</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'food-beverages']) }}"
-                class="category-card {{ request('category') === 'food-beverages' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'food-beverages']) }}"
+               class="category-card {{ request('category') === 'food-beverages' ? 'active' : '' }}">
                 <span>🍔</span>
                 <strong>Food & Beverages</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'automotive']) }}"
-                class="category-card {{ request('category') === 'automotive' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'automotive']) }}"
+               class="category-card {{ request('category') === 'automotive' ? 'active' : '' }}">
                 <span>🚗</span>
                 <strong>Automotive</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'office-school']) }}"
-                class="category-card {{ request('category') === 'office-school' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'office-school']) }}"
+               class="category-card {{ request('category') === 'office-school' ? 'active' : '' }}">
                 <span>📚</span>
                 <strong>Office & School</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'pet-supplies']) }}"
-                class="category-card {{ request('category') === 'pet-supplies' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'pet-supplies']) }}"
+               class="category-card {{ request('category') === 'pet-supplies' ? 'active' : '' }}">
                 <span>🐶</span>
                 <strong>Pet Supplies</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'toys-games-hobbies']) }}"
-                class="category-card {{ request('category') === 'toys-games-hobbies' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'toys-games-hobbies']) }}"
+               class="category-card {{ request('category') === 'toys-games-hobbies' ? 'active' : '' }}">
                 <span>🎮</span>
                 <strong>Toys, Games & Hobbies</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'jewelry-accessories']) }}"
-                class="category-card {{ request('category') === 'jewelry-accessories' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'jewelry-accessories']) }}"
+               class="category-card {{ request('category') === 'jewelry-accessories' ? 'active' : '' }}">
                 <span>💍</span>
                 <strong>Jewelry & Accessories</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'shoes']) }}"
-                class="category-card {{ request('category') === 'shoes' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'shoes']) }}"
+               class="category-card {{ request('category') === 'shoes' ? 'active' : '' }}">
                 <span>👟</span>
                 <strong>Shoes</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'tools-home-improvement']) }}"
-                class="category-card {{ request('category') === 'tools-home-improvement' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'tools-home-improvement']) }}"
+               class="category-card {{ request('category') === 'tools-home-improvement' ? 'active' : '' }}">
                 <span>🧰</span>
                 <strong>Tools & Home Improvement</strong>
             </a>
 
-
-            <a
-                href="{{ route('products', ['category' => 'garden-outdoor']) }}"
-                class="category-card {{ request('category') === 'garden-outdoor' ? 'active' : '' }}"
-            >
+            <a href="{{ route('products', ['category' => 'garden-outdoor']) }}"
+               class="category-card {{ request('category') === 'garden-outdoor' ? 'active' : '' }}">
                 <span>🌱</span>
                 <strong>Garden & Outdoor</strong>
             </a>
 
         </div>
-
     </section>
-
 
     <!-- =========================
          SORT BAR
@@ -1037,27 +1048,13 @@
     <div class="filter-bar">
 
         <select class="sort" id="sortSelect">
-
-            <option value="default">
-                Sort by
-            </option>
-
-            <option value="low">
-                Price: Low to High
-            </option>
-
-            <option value="high">
-                Price: High to Low
-            </option>
-
-            <option value="rating">
-                Rating: Highest
-            </option>
-
+            <option value="default">Sort by</option>
+            <option value="low">Price: Low to High</option>
+            <option value="high">Price: High to Low</option>
+            <option value="rating">Rating: Highest</option>
         </select>
 
     </div>
-
 
     <!-- =========================
          PRODUCTS
@@ -1069,11 +1066,9 @@
             Showing {{ count($products) }} products
         </div>
 
-
         <div class="product-grid" id="productGrid">
 
             @php
-
                 $backgrounds = [
                     'blue',
                     'purple',
@@ -1085,77 +1080,57 @@
                     'yellow',
                 ];
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | CANONICAL BOOMBUY CATEGORIES
-                |--------------------------------------------------------------------------
-                */
-
                 $categoryMap = [
-
                     'electronics' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
-
                     'electronics & gadgets' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
-
                     'smartphone' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
-
                     'laptop' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
-
                     'audio' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
-
                     'wearable' => [
                         'slug' => 'electronics',
                         'name' => 'Electronics',
                     ],
 
-
                     "women's fashion" => [
                         'slug' => 'womens-fashion',
                         'name' => "Women's Fashion",
                     ],
-
                     "women's apparel" => [
                         'slug' => 'womens-fashion',
                         'name' => "Women's Fashion",
                     ],
-
                     'womens fashion' => [
                         'slug' => 'womens-fashion',
                         'name' => "Women's Fashion",
                     ],
 
-
                     "men's fashion" => [
                         'slug' => 'mens-fashion',
                         'name' => "Men's Fashion",
                     ],
-
                     "men's apparel" => [
                         'slug' => 'mens-fashion',
                         'name' => "Men's Fashion",
                     ],
-
                     'mens fashion' => [
                         'slug' => 'mens-fashion',
                         'name' => "Men's Fashion",
                     ],
-
 
                     'kids & baby' => [
                         'slug' => 'kids-baby',
@@ -1166,112 +1141,91 @@
                         'slug' => 'home-living',
                         'name' => 'Home & Living',
                     ],
-
                     'home & garden' => [
                         'slug' => 'home-living',
                         'name' => 'Home & Living',
                     ],
-
 
                     'sports & outdoors' => [
                         'slug' => 'sports-outdoors',
                         'name' => 'Sports & Outdoors',
                     ],
 
-
                     'beauty & personal care' => [
                         'slug' => 'beauty-personal-care',
                         'name' => 'Beauty & Personal Care',
                     ],
-
                     'health & beauty' => [
                         'slug' => 'beauty-personal-care',
                         'name' => 'Beauty & Personal Care',
                     ],
 
-
                     'food & beverages' => [
                         'slug' => 'food-beverages',
                         'name' => 'Food & Beverages',
                     ],
-
                     'food & gourmet' => [
                         'slug' => 'food-beverages',
                         'name' => 'Food & Beverages',
                     ],
 
-
                     'automotive' => [
                         'slug' => 'automotive',
                         'name' => 'Automotive',
                     ],
-
                     'automotive & motorcycle' => [
                         'slug' => 'automotive',
                         'name' => 'Automotive',
                     ],
 
-
                     'office & school' => [
                         'slug' => 'office-school',
                         'name' => 'Office & School',
                     ],
-
                     'office & school supplies' => [
                         'slug' => 'office-school',
                         'name' => 'Office & School',
                     ],
-
 
                     'pet supplies' => [
                         'slug' => 'pet-supplies',
                         'name' => 'Pet Supplies',
                     ],
 
-
                     'toys, games & hobbies' => [
                         'slug' => 'toys-games-hobbies',
                         'name' => 'Toys, Games & Hobbies',
                     ],
 
-
                     'jewelry & accessories' => [
                         'slug' => 'jewelry-accessories',
                         'name' => 'Jewelry & Accessories',
                     ],
-
                     'accessories' => [
                         'slug' => 'jewelry-accessories',
                         'name' => 'Jewelry & Accessories',
                     ],
-
 
                     'shoes' => [
                         'slug' => 'shoes',
                         'name' => 'Shoes',
                     ],
 
-
                     'tools & home improvement' => [
                         'slug' => 'tools-home-improvement',
                         'name' => 'Tools & Home Improvement',
                     ],
 
-
                     'garden & outdoor' => [
                         'slug' => 'garden-outdoor',
                         'name' => 'Garden & Outdoor',
                     ],
-
                 ];
-
             @endphp
-
 
             @foreach($products as $index => $product)
 
                 @php
-
                     $name = $product['name'] ?? 'Unnamed Product';
 
                     $slug = $product['slug']
@@ -1290,25 +1244,11 @@
                     $stock =
                         (int) ($product['stock'] ?? 0);
 
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | NORMALIZE CATEGORY
-                    |--------------------------------------------------------------------------
-                    */
-
                     $rawCategory = trim(
                         strtolower(
                             $product['category'] ?? ''
                         )
                     );
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | If database already contains canonical slug
-                    |--------------------------------------------------------------------------
-                    */
 
                     if (isset($categoryMap[$rawCategory])) {
 
@@ -1341,73 +1281,40 @@
                     ) {
 
                         $canonicalNames = [
-
                             'electronics' => 'Electronics',
-
                             'womens-fashion' => "Women's Fashion",
-
                             'mens-fashion' => "Men's Fashion",
-
                             'kids-baby' => 'Kids & Baby',
-
                             'home-living' => 'Home & Living',
-
                             'sports-outdoors' => 'Sports & Outdoors',
-
                             'beauty-personal-care' => 'Beauty & Personal Care',
-
                             'food-beverages' => 'Food & Beverages',
-
                             'automotive' => 'Automotive',
-
                             'office-school' => 'Office & School',
-
                             'pet-supplies' => 'Pet Supplies',
-
                             'toys-games-hobbies' => 'Toys, Games & Hobbies',
-
                             'jewelry-accessories' => 'Jewelry & Accessories',
-
                             'shoes' => 'Shoes',
-
                             'tools-home-improvement' => 'Tools & Home Improvement',
-
                             'garden-outdoor' => 'Garden & Outdoor',
-
                         ];
 
-
                         $normalizedCategory = [
-
                             'slug' => $rawCategory,
-
                             'name' => $canonicalNames[$rawCategory],
-
                         ];
 
                     } else {
 
-                        /*
-                        |--------------------------------------------------------------------------
-                        | IMPORTANT:
-                        | Unknown categories are NOT automatically Electronics anymore.
-                        |--------------------------------------------------------------------------
-                        */
-
                         $normalizedCategory = [
-
                             'slug' => \Illuminate\Support\Str::slug(
                                 $rawCategory ?: 'other'
                             ),
-
                             'name' => $rawCategory
                                 ? ucwords($rawCategory)
                                 : 'Other',
-
                         ];
-
                     }
-
 
                     $filterCategory =
                         $normalizedCategory['slug'];
@@ -1415,14 +1322,11 @@
                     $displayCategory =
                         $normalizedCategory['name'];
 
-
                     $background =
                         $backgrounds[
                             $index % count($backgrounds)
                         ];
-
                 @endphp
-
 
                 <div
                     class="product-card"
@@ -1465,7 +1369,6 @@
 
                     </div>
 
-
                     <!-- PRODUCT INFO -->
 
                     <div class="product-info">
@@ -1483,7 +1386,6 @@
                         </div>
 
                         <div class="rating">
-
                             <span>★</span>
 
                             {{ number_format(
@@ -1500,68 +1402,68 @@
                                     ? 'review'
                                     : 'reviews'
                             }}
-
                         </div>
 
+                        <div class="bottom">
 
-<div class="bottom">
-    <div class="price">
-        ₱{{ number_format($price, 2) }}
-    </div>
+                            <div class="price">
+                                ₱{{ number_format($price, 2) }}
+                            </div>
 
-    @if($stock > 0)
+                            @if($stock > 0)
 
-        <div class="product-actions">
+                                <div class="product-actions">
 
-            {{-- ADD TO CART --}}
-            <form
-                action="{{ route('cart.add', $product['id']) }}"
-                method="POST"
-                class="add-to-cart-form"
-            >
-                @csrf
+                                    <!-- ADD TO CART -->
 
-                <button
-                    type="submit"
-                    class="add"
-                >
-                    Add to cart
-                </button>
-            </form>
+                                    <form
+                                        action="{{ route('cart.add', $product['id']) }}"
+                                        method="POST"
+                                        class="add-to-cart-form"
+                                    >
+                                        @csrf
 
-            {{-- BUY NOW --}}
-            <form
-                action="{{ route('buy.now', $product['id']) }}"
-                method="POST"
-                class="buy-now-form"
-            >
-                @csrf
+                                        <button
+                                            type="submit"
+                                            class="add"
+                                        >
+                                            Add to cart
+                                        </button>
+                                    </form>
 
-                <button
-                    type="submit"
-                    class="buy-now"
-                >
-                    Buy Now
-                </button>
-            </form>
+                                    <!-- BUY NOW -->
 
-        </div>
+                                    <form
+                                        action="{{ route('buy.now', $product['id']) }}"
+                                        method="POST"
+                                        class="buy-now-form"
+                                    >
+                                        @csrf
 
-    @else
+                                        <button
+                                            type="submit"
+                                            class="buy-now"
+                                        >
+                                            Buy Now
+                                        </button>
+                                    </form>
 
-        <button
-            type="button"
-            class="add"
-            disabled
-            title="Out of stock"
-        >
-            Out of stock
-        </button>
+                                </div>
 
-    @endif
-</div>
+                            @else
 
-                        
+                                <button
+                                    type="button"
+                                    class="add"
+                                    disabled
+                                    title="Out of stock"
+                                >
+                                    Out of stock
+                                </button>
+
+                            @endif
+
+                        </div>
 
                     </div>
 
@@ -1570,7 +1472,6 @@
             @endforeach
 
         </div>
-
 
         <!-- EMPTY RESULT -->
 
@@ -1591,7 +1492,6 @@
         </div>
 
     </section>
-
 
     <!-- =========================
          ABOUT SECTION
@@ -1628,7 +1528,6 @@
 
     </section>
 
-
     <!-- =========================
          FOOTER
     ========================= -->
@@ -1645,7 +1544,6 @@
 
     </footer>
 
-
     <!-- =========================
          JAVASCRIPT
     ========================= -->
@@ -1659,52 +1557,33 @@
                 )
             );
 
-
         const searchInput =
             document.getElementById(
                 "searchInput"
             );
-
 
         const sortSelect =
             document.getElementById(
                 "sortSelect"
             );
 
-
         const results =
             document.getElementById(
                 "results"
             );
-
 
         const empty =
             document.getElementById(
                 "empty"
             );
 
-
         const productGrid =
             document.getElementById(
                 "productGrid"
             );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CURRENT CATEGORY
-        |--------------------------------------------------------------------------
-        */
-
         const currentCategory =
             @json(request('category'));
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEARCH + CATEGORY + SORT
-        |--------------------------------------------------------------------------
-        */
 
         function updateProducts() {
 
@@ -1713,15 +1592,8 @@
                     .toLowerCase()
                     .trim();
 
-
             let visibleProducts =
                 products.filter(product => {
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | CATEGORY FILTER
-                    |--------------------------------------------------------------------------
-                    */
 
                     const productCategory =
                         (
@@ -1729,24 +1601,15 @@
                             || ""
                         ).toLowerCase();
 
-
                     const matchesCategory =
                         !currentCategory
                         ||
                         productCategory ===
                             currentCategory.toLowerCase();
 
-
                     if (!matchesCategory) {
                         return false;
                     }
-
-
-                    /*
-                    |--------------------------------------------------------------------------
-                    | SEARCH
-                    |--------------------------------------------------------------------------
-                    */
 
                     const name =
                         product
@@ -1756,7 +1619,6 @@
                             .textContent
                             .toLowerCase();
 
-
                     const categoryText =
                         product
                             .querySelector(
@@ -1764,7 +1626,6 @@
                             )
                             .textContent
                             .toLowerCase();
-
 
                     const description =
                         product
@@ -1774,25 +1635,15 @@
                             .textContent
                             .toLowerCase();
 
-
                     return (
                         name.includes(search) ||
                         categoryText.includes(search) ||
                         description.includes(search)
                     );
-
                 });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | SORT
-            |--------------------------------------------------------------------------
-            */
 
             const sort =
                 sortSelect.value;
-
 
             if (sort === "low") {
 
@@ -1801,9 +1652,7 @@
                         Number(a.dataset.price) -
                         Number(b.dataset.price)
                 );
-
             }
-
 
             if (sort === "high") {
 
@@ -1812,9 +1661,7 @@
                         Number(b.dataset.price) -
                         Number(a.dataset.price)
                 );
-
             }
-
 
             if (sort === "rating") {
 
@@ -1823,47 +1670,20 @@
                         Number(b.dataset.rating) -
                         Number(a.dataset.rating)
                 );
-
             }
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | HIDE ALL
-            |--------------------------------------------------------------------------
-            */
-
             products.forEach(product => {
-
-                product.style.display =
-                    "none";
-
+                product.style.display = "none";
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | SHOW MATCHING PRODUCTS
-            |--------------------------------------------------------------------------
-            */
 
             visibleProducts.forEach(product => {
 
-                product.style.display =
-                    "block";
+                product.style.display = "block";
 
                 productGrid.appendChild(
                     product
                 );
-
             });
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESULT COUNT
-            |--------------------------------------------------------------------------
-            */
 
             results.textContent =
                 `Showing ${visibleProducts.length} product${
@@ -1872,50 +1692,21 @@
                         : ""
                 }`;
 
-
-            /*
-            |--------------------------------------------------------------------------
-            | EMPTY STATE
-            |--------------------------------------------------------------------------
-            */
-
             empty.style.display =
                 visibleProducts.length === 0
                     ? "block"
                     : "none";
-
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEARCH
-        |--------------------------------------------------------------------------
-        */
 
         searchInput.addEventListener(
             "input",
             updateProducts
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SORT
-        |--------------------------------------------------------------------------
-        */
-
         sortSelect.addEventListener(
             "change",
             updateProducts
         );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ADD TO CART
-        |--------------------------------------------------------------------------
-        */
 
         document
             .querySelectorAll(
@@ -1929,28 +1720,20 @@
 
                         event.preventDefault();
 
-
                         const button =
                             form.querySelector(
                                 ".add"
                             );
 
-
                         if (!button) {
                             return;
                         }
 
-
                         const originalText =
                             button.textContent;
 
-
-                        button.disabled =
-                            true;
-
-                        button.textContent =
-                            "Adding...";
-
+                        button.disabled = true;
+                        button.textContent = "Adding...";
 
                         try {
 
@@ -1961,7 +1744,6 @@
                                         method: "POST",
 
                                         headers: {
-
                                             "X-CSRF-TOKEN":
                                                 document
                                                     .querySelector(
@@ -1976,7 +1758,6 @@
 
                                             "X-Requested-With":
                                                 "XMLHttpRequest"
-
                                         },
 
                                         body:
@@ -1986,34 +1767,23 @@
                                     }
                                 );
 
-
                             if (!response.ok) {
                                 throw new Error(
                                     "Failed to add product."
                                 );
                             }
 
-
                             button.textContent =
                                 "✓ Added!";
-
 
                             button.classList.add(
                                 "added"
                             );
 
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | UPDATE CART BADGE
-                            |--------------------------------------------------------------------------
-                            */
-
                             const cartBadge =
                                 document.getElementById(
                                     "cartCount"
                                 );
-
 
                             if (cartBadge) {
 
@@ -2022,25 +1792,14 @@
                                         cartBadge.textContent
                                     ) || 0;
 
-
                                 currentCount++;
-
 
                                 cartBadge.textContent =
                                     currentCount;
 
-
                                 cartBadge.style.display =
                                     "inline-flex";
-
                             }
-
-
-                            /*
-                            |--------------------------------------------------------------------------
-                            | RETURN BUTTON
-                            |--------------------------------------------------------------------------
-                            */
 
                             setTimeout(() => {
 
@@ -2056,21 +1815,17 @@
 
                             }, 1500);
 
-
                         } catch (error) {
 
                             console.error(
                                 error
                             );
 
-
                             button.textContent =
                                 "Try again";
 
-
                             button.disabled =
                                 false;
-
 
                             setTimeout(() => {
 
@@ -2078,25 +1833,14 @@
                                     originalText;
 
                             }, 1500);
-
                         }
-
                     }
                 );
-
             });
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | INITIAL LOAD
-        |--------------------------------------------------------------------------
-        */
 
         updateProducts();
 
     </script>
 
 </body>
-
 </html>

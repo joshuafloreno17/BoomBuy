@@ -335,64 +335,46 @@ session()->put('user', [
 |--------------------------------------------------------------------------
 */
 
-// Register page
+/// Register - Role Selection
+// ==========================================================
+// REGISTER PAGE
+// ==========================================================
+
 Route::get('/register', function () {
     return view('pages.register');
 })->name('register');
 
 
-// Register
+// ==========================================================
+// REGISTER - ROLE SELECTION
+// ==========================================================
+
 Route::post('/register', function () {
 
-    $name = trim(request('name'));
-    $email = strtolower(trim(request('email')));
-    $password = request('password');
     $role = strtolower(trim(request('role')));
 
-    // VALIDATION
-    if (
-        empty($name) ||
-        empty($email) ||
-        empty($password) ||
-        empty($role)
-    ) {
+    if (empty($role)) {
         return back()
             ->withInput()
-            ->with('error', 'Please complete all fields.');
+            ->with('error', 'Please select an account type.');
     }
 
-    // ALLOWED ROLES
-    $allowedRoles = [
-        'buyer',
-        'seller',
-        'rider'
-    ];
+    switch ($role) {
 
-    if (!in_array($role, $allowedRoles)) {
-        return back()
-            ->withInput()
-            ->with('error', 'Invalid account role.');
+        case 'buyer':
+            return redirect()->route('buyer.register');
+
+        case 'seller':
+            return redirect()->route('seller.register');
+
+        case 'rider':
+            return redirect()->route('rider.apply');
+
+        default:
+            return back()
+                ->withInput()
+                ->with('error', 'Invalid account role.');
     }
-
-    // CHECK EXISTING EMAIL
-    if (User::where('email', $email)->exists()) {
-        return back()
-            ->withInput()
-            ->with('error', 'Email is already registered.');
-    }
-
-    // CREATE USER IN DATABASE
-    User::create([
-        'name' => $name,
-        'email' => $email,
-        'password' => Hash::make($password),
-        'role' => $role,
-    ]);
-
-    // RETURN TO LOGIN PAGE
-    return redirect()
-        ->route('login')
-        ->with('success', 'Account created successfully! You can now log in.');
 
 })->name('register.submit');
 
@@ -3211,10 +3193,6 @@ Route::get('/', function () {
         return redirect()->route('seller.dashboard');
     }
 
-    // Logged-in Rider
-    if ($user && ($user['role'] ?? '') === 'rider') {
-        return redirect()->route('rider.dashboard');
-    }
 
     // Guest → Landing Page
     return view('welcome');
@@ -3222,11 +3200,6 @@ Route::get('/', function () {
 })->name('home');
 
 
-/*
-|--------------------------------------------------------------------------
-| PRODUCT DETAILS
-|--------------------------------------------------------------------------
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -4645,3 +4618,231 @@ Route::post('/seller/return-refund/{id}/complete', function ($id) {
         'Refund has been marked as completed.'
     );
 })->name('seller.return-refund.complete');
+
+// =========================
+// RIDER APPLICATION
+// =========================
+
+Route::get('/rider/apply', function () {
+    $application = null;
+
+    return view('pages.rider.apply', compact('application'));
+})->name('rider.apply');
+
+use Illuminate\Support\Facades\Storage;
+
+// =========================
+// RIDER APPLICATION SUBMIT
+// =========================
+
+Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
+
+    $validated = $request->validate([
+        'full_name' => ['required', 'string', 'max:255'],
+        'phone' => ['required', 'string', 'max:30'],
+        'address' => ['required', 'string', 'max:1000'],
+
+        'vehicle_type' => [
+            'required',
+            'in:Motorcycle,Car,Van'
+        ],
+
+        'vehicle_model' => ['required', 'string', 'max:255'],
+        'plate_number' => ['required', 'string', 'max:50'],
+
+        'email' => [
+            'required',
+            'email',
+            'max:255',
+            'unique:users,email'
+        ],
+
+        'password' => [
+            'required',
+            'string',
+            'min:8',
+            'confirmed'
+        ],
+
+        'national_id' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120'
+        ],
+
+        'drivers_license' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120'
+        ],
+
+        'profile_selfie' => [
+            'required',
+            'image',
+            'mimes:jpg,jpeg,png,webp',
+            'max:5120'
+        ],
+
+        'proof_of_address' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120'
+        ],
+
+        'or_cr' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120'
+        ],
+    ]);
+
+    $userId = DB::transaction(function () use ($request, $validated) {
+
+        // CREATE RIDER ACCOUNT
+        $user = \App\Models\User::create([
+            'name' => $validated['full_name'],
+            'email' => $validated['email'],
+            'password' => \Illuminate\Support\Facades\Hash::make(
+                $validated['password']
+            ),
+            'role' => 'rider',
+        ]);
+
+        // FILE STORAGE
+        $folder = 'rider-applications/' . $user->id;
+
+        $nationalIdPath = $request
+            ->file('national_id')
+            ->store($folder, 'local');
+
+        $driversLicensePath = $request
+            ->file('drivers_license')
+            ->store($folder, 'local');
+
+        $selfiePath = $request
+            ->file('profile_selfie')
+            ->store($folder, 'local');
+
+        $proofOfAddressPath = $request
+            ->file('proof_of_address')
+            ->store($folder, 'local');
+
+        $orCrPath = $request
+            ->file('or_cr')
+            ->store($folder, 'local');
+
+        // CREATE RIDER APPLICATION
+        DB::table('rider_applications')->insert([
+            'user_id' => $user->id,
+
+            'full_name' => $validated['full_name'],
+            'phone' => $validated['phone'],
+            'address' => $validated['address'],
+
+            'vehicle_type' => $validated['vehicle_type'],
+            'vehicle_model' => $validated['vehicle_model'],
+            'plate_number' => $validated['plate_number'],
+
+            'national_id' => $nationalIdPath,
+            'drivers_license' => $driversLicensePath,
+            'profile_selfie' => $selfiePath,
+            'proof_of_address' => $proofOfAddressPath,
+            'or_cr' => $orCrPath,
+
+            'status' => 'Pending Verification',
+
+            'admin_remarks' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $user->id;
+    });
+
+    return redirect()
+        ->route('login')
+        ->with(
+            'success',
+            'Rider application submitted successfully! Your account is pending Admin verification.'
+        );
+
+})->name('rider.apply.submit');
+
+// Buyer Registration Page
+Route::get('/buyer/register', function () {
+    return view('pages.buyer.register');
+})->name('buyer.register');
+
+
+// Buyer Registration Submit
+Route::post('/buyer/register', function () {
+
+    $name = trim(request('name'));
+    $email = strtolower(trim(request('email')));
+    $password = request('password');
+    $passwordConfirmation = request('password_confirmation');
+    $phone = trim(request('phone'));
+    $address = trim(request('address'));
+
+    // VALIDATION
+    if (
+        empty($name) ||
+        empty($email) ||
+        empty($password) ||
+        empty($passwordConfirmation) ||
+        empty($phone) ||
+        empty($address)
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please enter a valid email address.');
+    }
+
+    if (strlen($password) < 8) {
+        return back()
+            ->withInput()
+            ->with('error', 'Password must be at least 8 characters.');
+    }
+
+    if ($password !== $passwordConfirmation) {
+        return back()
+            ->withInput()
+            ->with('error', 'Passwords do not match.');
+    }
+
+    // CHECK EXISTING EMAIL
+    if (User::where('email', $email)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'Email is already registered.');
+    }
+
+    // CREATE BUYER ACCOUNT
+    User::create([
+        'name' => $name,
+        'email' => $email,
+        'password' => Hash::make($password),
+        'role' => 'buyer',
+    ]);
+
+    return redirect()
+        ->route('login')
+        ->with(
+            'success',
+            'Buyer account created successfully! You can now log in.'
+        );
+
+})->name('buyer.register.submit');  

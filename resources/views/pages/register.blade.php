@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Create Account — BoomBuy</title>
 
     <style>
@@ -90,6 +91,7 @@
         }
 
         .register-header h1 {
+            font-family: 'Baloo 2', sans-serif;
             font-size: 30px;
             margin-top: 8px;
             margin-bottom: 8px;
@@ -130,7 +132,7 @@
         .form-group select:focus {
             border-color: #ff7044;
             background: #ffffff;
-            box-shadow: 0 0 0 3px rgba(23, 105, 224, 0.08);
+            box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.08);
         }
 
         .role-description {
@@ -141,6 +143,7 @@
         }
 
         /* TERMS */
+
         .terms {
             display: flex;
             align-items: flex-start;
@@ -175,6 +178,7 @@
         }
 
         /* REGISTER BUTTON */
+
         .register-btn {
             width: 100%;
             border: none;
@@ -241,6 +245,7 @@
         }
 
         /* PASSWORD */
+
         .password-wrapper {
             position: relative;
         }
@@ -268,6 +273,7 @@
         }
 
         /* TERMS MODAL */
+
         .terms-modal {
             display: none;
             position: fixed;
@@ -316,6 +322,7 @@
         }
 
         .terms-header h2 {
+            font-family: 'Baloo 2', sans-serif;
             color: #172033;
             font-size: 23px;
         }
@@ -375,6 +382,7 @@
         }
 
         .terms-section h3 {
+            font-family: 'Baloo 2', sans-serif;
             color: #e8420f;
             font-size: 14px;
             margin-bottom: 6px;
@@ -431,19 +439,20 @@
         }
 
         /* BOOMBUY DESIGN */
+
         h1,
         h2,
         h3,
-        .logo,
-        .register-header h1,
-        .terms-header h2,
-        .terms-section h3 {
+        .logo {
             font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
             letter-spacing: -0.01em;
         }
 
         button {
-            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                background 0.15s ease;
         }
 
         ::selection {
@@ -452,6 +461,7 @@
         }
 
         @media (max-width: 500px) {
+
             .register-card {
                 padding: 28px 22px;
             }
@@ -516,6 +526,7 @@
                 </div>
 
                 {{-- ERROR MESSAGE --}}
+
                 @if(session('error'))
                     <div class="error-message">
                         {{ session('error') }}
@@ -523,6 +534,7 @@
                 @endif
 
                 {{-- SUCCESS MESSAGE --}}
+
                 @if(session('success'))
                     <div class="success-message">
                         {{ session('success') }}
@@ -530,6 +542,7 @@
                 @endif
 
                 {{-- VALIDATION ERRORS --}}
+
                 @if($errors->any())
                     <div class="error-message">
                         @foreach($errors->all() as $error)
@@ -541,6 +554,7 @@
                 @endif
 
                 {{-- REGISTER FORM --}}
+
                 <form
                     method="POST"
                     action="{{ route('register.submit') }}"
@@ -550,6 +564,7 @@
                     @csrf
 
                     {{-- NAME --}}
+
                     <div class="form-group">
 
                         <label for="name">
@@ -569,6 +584,7 @@
                     </div>
 
                     {{-- EMAIL --}}
+
                     <div class="form-group">
 
                         <label for="email">
@@ -588,6 +604,7 @@
                     </div>
 
                     {{-- ROLE --}}
+
                     <div class="form-group">
 
                         <label for="role">
@@ -598,6 +615,7 @@
                             id="role"
                             name="role"
                             required
+                            onchange="handleRoleChange(this)"
                         >
 
                             <option value="">
@@ -635,6 +653,7 @@
                     </div>
 
                     {{-- PASSWORD --}}
+
                     <div class="form-group">
 
                         <label for="password">
@@ -665,6 +684,7 @@
                     </div>
 
                     {{-- CONFIRM PASSWORD --}}
+
                     <div class="form-group">
 
                         <label for="password_confirmation">
@@ -695,6 +715,7 @@
                     </div>
 
                     {{-- TERMS --}}
+
                     <div class="terms">
 
                         <input
@@ -706,19 +727,24 @@
                         >
 
                         <label for="terms">
+
                             I agree to the BoomBuy
+
                             <a
                                 href="#"
                                 onclick="openTerms(event)"
                             >
                                 Terms and Conditions
                             </a>
+
                             and Privacy Policy.
+
                         </label>
 
                     </div>
 
                     {{-- BUTTON --}}
+
                     <button
                         type="submit"
                         class="register-btn"
@@ -730,11 +756,13 @@
                 </form>
 
                 <div class="login-text">
+
                     Already have an account?
 
                     <a href="{{ route('login') }}">
                         Login here
                     </a>
+
                 </div>
 
             </div>
@@ -764,6 +792,7 @@
             <div class="terms-header">
 
                 <div>
+
                     <h2>
                         BoomBuy Terms & Conditions
                     </h2>
@@ -771,6 +800,7 @@
                     <p>
                         Please read these terms before creating your account.
                     </p>
+
                 </div>
 
                 <button
@@ -814,6 +844,7 @@
                     </p>
 
                     <ul>
+
                         <li>
                             <strong>Buyer</strong> — may browse products,
                             add items to cart, place orders, and manage purchases.
@@ -828,6 +859,7 @@
                             <strong>Rider</strong> — may manage assigned
                             deliveries and update delivery status.
                         </li>
+
                     </ul>
 
                 </div>
@@ -919,6 +951,7 @@
                     </h3>
 
                     <ul>
+
                         <li>
                             Creating accounts using false information.
                         </li>
@@ -938,6 +971,7 @@
                         <li>
                             Using BoomBuy for fraudulent or unauthorized activities.
                         </li>
+
                     </ul>
 
                 </div>
@@ -1027,6 +1061,21 @@
 
 
         /* =========================
+           RIDER APPLICATION REDIRECT
+        ========================= */
+
+        function handleRoleChange(select) {
+
+            if (select.value === 'rider') {
+
+                window.location.href = "{{ route('rider.apply') }}";
+
+            }
+
+        }
+
+
+        /* =========================
            TERMS MODAL
         ========================= */
 
@@ -1034,7 +1083,9 @@
 
             event.preventDefault();
 
-            document.getElementById('termsModal').classList.add('show');
+            document
+                .getElementById('termsModal')
+                .classList.add('show');
 
             document.body.style.overflow = 'hidden';
         }
@@ -1042,7 +1093,9 @@
 
         function closeTerms() {
 
-            document.getElementById('termsModal').classList.remove('show');
+            document
+                .getElementById('termsModal')
+                .classList.remove('show');
 
             document.body.style.overflow = '';
         }
@@ -1050,17 +1103,22 @@
 
         function closeTermsOutside(event) {
 
-            if (event.target === document.getElementById('termsModal')) {
+            if (
+                event.target ===
+                document.getElementById('termsModal')
+            ) {
 
                 closeTerms();
 
             }
+
         }
 
 
         function agreeToTerms() {
 
-            const checkbox = document.getElementById('terms');
+            const checkbox =
+                document.getElementById('terms');
 
             checkbox.checked = true;
 
@@ -1074,8 +1132,12 @@
            REGISTER BUTTON STATE
         ========================= */
 
-        const termsCheckbox = document.getElementById('terms');
-        const registerButton = document.getElementById('registerBtn');
+        const termsCheckbox =
+            document.getElementById('terms');
+
+        const registerButton =
+            document.getElementById('registerBtn');
+
 
         function updateRegisterButton() {
 
@@ -1088,6 +1150,7 @@
                 registerButton.disabled = true;
 
             }
+
         }
 
 
@@ -1097,7 +1160,6 @@
         );
 
 
-        /* Initial state */
         updateRegisterButton();
 
 
@@ -1105,15 +1167,18 @@
            ESC KEY CLOSE MODAL
         ========================= */
 
-        document.addEventListener('keydown', function(event) {
+        document.addEventListener(
+            'keydown',
+            function(event) {
 
-            if (event.key === 'Escape') {
+                if (event.key === 'Escape') {
 
-                closeTerms();
+                    closeTerms();
+
+                }
 
             }
-
-        });
+        );
 
     </script>
 
