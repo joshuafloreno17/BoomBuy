@@ -8,6 +8,8 @@
 
     <title>Add Product — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -306,7 +308,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @if(session('error'))
 
         <div class="error">
-            ✕ {{ session('error') }}
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            {{ session('error') }}
         </div>
 
     @endif
@@ -319,7 +322,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             @foreach($errors->all() as $error)
 
                 <div>
-                    ✕ {{ $error }}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    {{ $error }}
                 </div>
 
             @endforeach
@@ -469,7 +473,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     type="submit"
                     class="save-btn"
                 >
-                    ✓ Save Product
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                    Save Product
                 </button>
 
 
@@ -503,6 +508,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 </footer>
 
+
+    @include('partials.pwa-register')
 
 </body>
 

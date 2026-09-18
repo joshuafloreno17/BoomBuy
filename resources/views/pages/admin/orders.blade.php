@@ -6,6 +6,8 @@
 
     <title>Admin Orders - BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -261,7 +263,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     @if(session('success'))
         <div class="alert">
-            ✓ {{ session('success') }}
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
+            {{ session('success') }}
         </div>
     @endif
 
@@ -306,7 +309,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @if(!empty($order['buyer_received_at']))
 
         <div class="received-badge">
-            ✓ Received by Buyer
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
+            Received by Buyer
         </div>
 
     @endif
@@ -463,6 +467,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @endif
 
 </div>
+
+    @include('partials.pwa-register')
 
 </body>
 </html>

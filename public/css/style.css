@@ -1,0 +1,112 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0d1b2a;
+}
+
+.choose-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.choose-header {
+    text-align: center;
+    margin-bottom: 40px;
+    color: #fff;
+}
+
+.choose-logo {
+    font-size: 24px;
+    font-weight: 800;
+    color: #fff;
+    text-decoration: none;
+    display: inline-block;
+    margin-bottom: 24px;
+}
+
+.choose-logo span {
+    color: #ff7a00;
+}
+
+.choose-header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+}
+
+.choose-header p {
+    color: #aab4c0;
+    font-size: 15px;
+}
+
+.choose-grid {
+    display: flex;
+    gap: 24px;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1000px;
+}
+
+.choose-card {
+    background: #16263b;
+    border: 1px solid #22334a;
+    border-radius: 16px;
+    padding: 32px 24px;
+    width: 260px;
+    text-align: center;
+    text-decoration: none;
+    color: #fff;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.choose-card:hover {
+    transform: translateY(-6px);
+    border-color: #ff7a00;
+}
+
+.choose-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.choose-card h2 {
+    font-size: 20px;
+    margin-bottom: 8px;
+}
+
+.choose-card p {
+    font-size: 13px;
+    color: #aab4c0;
+    margin-bottom: 20px;
+    min-height: 36px;
+}
+
+.choose-btn {
+    display: inline-block;
+    background: #ff7a00;
+    color: #fff;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 8px;
+}
+
+.choose-footer {
+    margin-top: 32px;
+    color: #aab4c0;
+    font-size: 14px;
+}
+
+.choose-footer a {
+    color: #ff7a00;
+    text-decoration: none;
+    font-weight: 600;
+}

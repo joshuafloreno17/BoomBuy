@@ -7,6 +7,21 @@
 
     <title>BoomBuy — Shop Everything You Love</title>
 
+    <meta name="description" content="Discover amazing products from trusted sellers all in one place. From gadgets and fashion to everyday essentials, BoomBuy makes online shopping simple, convenient, and exciting.">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="BoomBuy — Shop Everything You Love">
+    <meta property="og:description" content="Discover amazing products from trusted sellers all in one place. From gadgets and fashion to everyday essentials, BoomBuy makes online shopping simple, convenient, and exciting.">
+    <meta property="og:image" content="{{ asset('images/boombuy-logo.png') }}">
+    <meta property="og:url" content="{{ url('/') }}">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="BoomBuy — Shop Everything You Love">
+    <meta name="twitter:description" content="Discover amazing products from trusted sellers all in one place. From gadgets and fashion to everyday essentials, BoomBuy makes online shopping simple, convenient, and exciting.">
+    <meta name="twitter:image" content="{{ asset('images/boombuy-logo.png') }}">
+
+    @include('partials.pwa-head')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -141,6 +156,177 @@
         }
 
         /* =========================
+           NAV SEARCH
+        ========================= */
+
+        .nav-search {
+            display: flex;
+            align-items: center;
+
+            background: #fff6f3;
+            border: 1px solid #f4ded6;
+            border-radius: 12px;
+
+            padding: 0 4px 0 14px;
+
+            width: 220px;
+        }
+
+        .nav-search input {
+            flex: 1;
+            min-width: 0;
+
+            border: none;
+            background: transparent;
+            outline: none;
+
+            padding: 9px 0;
+
+            font-family: inherit;
+            font-size: 12px;
+            color: #33241f;
+        }
+
+        .nav-search input::placeholder {
+            color: #b99c93;
+        }
+
+        .nav-search button {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        /* =========================
+           MOBILE MENU TOGGLE
+        ========================= */
+
+        .menu-toggle {
+            display: none;
+
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+
+            width: 36px;
+            height: 36px;
+
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+        }
+
+        .menu-toggle span {
+            display: block;
+            height: 2px;
+            width: 100%;
+
+            background: #33241f;
+            border-radius: 2px;
+
+            transition: 0.25s ease;
+        }
+
+        .menu-toggle.is-open span:nth-child(1) {
+            transform: translateY(7px) rotate(45deg);
+        }
+
+        .menu-toggle.is-open span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.is-open span:nth-child(3) {
+            transform: translateY(-7px) rotate(-45deg);
+        }
+
+        .mobile-menu {
+            display: none;
+
+            flex-direction: column;
+
+            background: white;
+            border-bottom: 1px solid #f9e9e4;
+
+            padding: 0 7%;
+
+            position: sticky;
+            top: 65px;
+            z-index: 999;
+
+            max-height: 0;
+            overflow: hidden;
+
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .mobile-menu.is-open {
+            max-height: 420px;
+            padding: 10px 7% 20px;
+        }
+
+        .mobile-menu a {
+            color: #33241f;
+            font-size: 14px;
+            font-weight: 700;
+
+            padding: 12px 0;
+
+            border-bottom: 1px solid #f8efed;
+        }
+
+        .mobile-search {
+            display: flex;
+            align-items: center;
+
+            background: #fff6f3;
+            border: 1px solid #f4ded6;
+            border-radius: 12px;
+
+            padding: 0 4px 0 14px;
+            margin: 14px 0;
+        }
+
+        .mobile-search input {
+            flex: 1;
+            min-width: 0;
+
+            border: none;
+            background: transparent;
+            outline: none;
+
+            padding: 11px 0;
+
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .mobile-search button {
+            border: none;
+            background: transparent;
+            cursor: pointer;
+
+            padding: 8px;
+            font-size: 15px;
+        }
+
+        .mobile-menu-buttons {
+            display: flex;
+            gap: 10px;
+
+            margin-top: 4px;
+        }
+
+        .mobile-menu-buttons a {
+            flex: 1;
+            text-align: center;
+            border-bottom: none;
+        }
+
+        /* =========================
            HERO
         ========================= */
 
@@ -267,9 +453,17 @@
             justify-content: center;
         }
 
-        .hero-card {
+        .hero-card-stack {
+            position: relative;
+
             width: 390px;
             max-width: 100%;
+            height: 385px;
+        }
+
+        .stack-card {
+            position: absolute;
+            inset: 0;
 
             background: white;
 
@@ -278,15 +472,51 @@
 
             padding: 28px;
 
-            box-shadow: 0 25px 65px rgba(77, 45, 35, 0.12);
+            display: flex;
+            flex-direction: column;
 
-            transform: rotate(1.5deg);
-
-            transition: 0.3s ease;
+            transition:
+                transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+                opacity 0.55s ease,
+                box-shadow 0.55s ease;
         }
 
-        .hero-card:hover {
-            transform: rotate(0deg) translateY(-4px);
+        .stack-card.is-front {
+            transform: scale(1) translateY(0) rotate(0deg);
+            opacity: 1;
+
+            z-index: 2;
+
+            box-shadow: 0 25px 65px rgba(77, 45, 35, 0.12);
+        }
+
+        .stack-card.is-back {
+            transform: scale(0.93) translateY(16px) rotate(-1.5deg);
+            opacity: 0.5;
+
+            z-index: 1;
+
+            box-shadow: 0 15px 35px rgba(77, 45, 35, 0.08);
+
+            pointer-events: none;
+        }
+
+        /* =========================
+           HERO STORY (AUTO CATEGORY SLIDESHOW)
+        ========================= */
+
+        .story-icon {
+            font-size: 84px;
+            line-height: 1;
+        }
+
+        .story-image {
+            display: none;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
         }
 
         .hero-product {
@@ -306,19 +536,12 @@
             overflow: hidden;
         }
 
-        .hero-product img {
-            width: 180px;
-            height: 180px;
-
-            object-fit: contain;
-        }
-
-        .hero-card h3 {
+        .stack-card h3 {
             font-size: 21px;
             margin-bottom: 5px;
         }
 
-        .hero-card p {
+        .stack-card p {
             color: #977970;
             font-size: 12px;
             margin-bottom: 14px;
@@ -328,34 +551,6 @@
             color: #e8420f;
             font-size: 23px;
             font-weight: 800;
-        }
-
-        .floating-card {
-            position: absolute;
-
-            background: white;
-
-            border: 1px solid #f2e0da;
-            border-radius: 14px;
-
-            padding: 14px 17px;
-
-            box-shadow: 0 13px 30px rgba(65, 45, 35, 0.10);
-
-            font-size: 11px;
-            font-weight: 800;
-
-            z-index: 2;
-        }
-
-        .floating-one {
-            top: 25px;
-            right: 0;
-        }
-
-        .floating-two {
-            bottom: 30px;
-            left: 5px;
         }
 
         /* =========================
@@ -397,8 +592,18 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
 
             font-size: 21px;
+        }
+
+        .feature-icon img {
+            display: none;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
         }
 
         .feature h4 {
@@ -497,6 +702,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
 
             font-size: 27px;
 
@@ -506,6 +712,15 @@
         .category:hover .category-icon {
             background: #ffe4dc;
             transform: scale(1.04);
+        }
+
+        .category-icon img {
+            display: none;
+
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
         }
 
         .category h3 {
@@ -566,6 +781,15 @@
             justify-content: center;
 
             font-size: 67px;
+
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+
+            object-fit: cover;
         }
 
         .product-info {
@@ -767,6 +991,18 @@
                 display: none;
             }
 
+            .nav-search {
+                display: none;
+            }
+
+            .menu-toggle {
+                display: flex;
+            }
+
+            .mobile-menu {
+                display: flex;
+            }
+
             .hero {
                 grid-template-columns: 1fr;
                 text-align: center;
@@ -829,31 +1065,17 @@
                 font-size: 14px;
             }
 
-            .hero-card {
+            .hero-card-stack {
                 width: 330px;
+                height: 320px;
+            }
+
+            .stack-card {
                 padding: 21px;
             }
 
             .hero-product {
                 height: 190px;
-            }
-
-            .hero-product img {
-                width: 145px;
-                height: 145px;
-            }
-
-            .floating-card {
-                font-size: 9px;
-                padding: 11px 12px;
-            }
-
-            .floating-one {
-                right: -4px;
-            }
-
-            .floating-two {
-                left: -4px;
             }
 
             .section {
@@ -941,6 +1163,18 @@
 
         </div>
 
+        <form class="nav-search" action="{{ route('products') }}" method="GET">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search products..."
+                aria-label="Search products"
+            >
+            <button type="submit" aria-label="Search">
+                🔍
+            </button>
+        </form>
+
         <div class="nav-buttons">
 
             <a href="{{ route('login') }}" class="login-btn">
@@ -953,7 +1187,63 @@
 
         </div>
 
+        <button
+            class="menu-toggle"
+            id="menuToggle"
+            aria-label="Toggle menu"
+            aria-expanded="false"
+            aria-controls="mobileMenu"
+        >
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
     </nav>
+
+    <div class="mobile-menu" id="mobileMenu">
+
+        <a href="/">
+            Home
+        </a>
+
+        <a href="#categories">
+            Categories
+        </a>
+
+        <a href="#featured">
+            Featured
+        </a>
+
+        <a href="{{ route('login') }}">
+            Shop
+        </a>
+
+        <form class="mobile-search" action="{{ route('products') }}" method="GET">
+            <input
+                type="text"
+                name="search"
+                placeholder="Search products..."
+                aria-label="Search products"
+            >
+            <button type="submit" aria-label="Search">
+                🔍
+            </button>
+        </form>
+
+        <div class="mobile-menu-buttons">
+
+            <a href="{{ route('login') }}" class="login-btn">
+                Login
+            </a>
+
+            <a href="{{ route('register') }}" class="register-btn">
+                Register
+            </a>
+
+        </div>
+
+    </div>
 
 
     <!-- =========================
@@ -997,33 +1287,54 @@
 
         <div class="hero-visual">
 
-            <div class="floating-card floating-one">
-                ⭐ 4.9 Customer Rating
-            </div>
+            <div class="hero-card-stack">
 
-            <div class="hero-card">
+                <div class="stack-card is-front" id="storyCardA">
 
-                <div class="hero-product">
+                    <div class="hero-product">
+                        <img
+                            class="story-image"
+                            src="{{ asset('images/categories/electronics.jpg') }}"
+                            alt="Electronics"
+                            onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='';"
+                        >
+                        <span class="story-icon">📱</span>
+                    </div>
 
-                    <img
-                        src="{{ asset('images/boombuy-logo.png') }}"
-                        alt="BoomBuy Logo"
-                    >
+                    <h3 class="story-title">
+                        Electronics
+                    </h3>
+
+                    <p class="story-subtitle">
+                        Gadgets & devices
+                    </p>
 
                 </div>
 
-                <h3>
-                    BOOMBUY
-                </h3>
+                <div class="stack-card is-back" id="storyCardB">
 
-                <p>
-                    Featured product · Free delivery
-                </p>
+                    <div class="hero-product">
+                        <img
+                            class="story-image"
+                            src="{{ asset('images/categories/womens-fashion.jpg') }}"
+                            alt="Women's Fashion"
+                            onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                            onerror="this.style.display='none'; this.nextElementSibling.style.display='';"
+                        >
+                        <span class="story-icon">👗</span>
+                    </div>
 
-            </div>
+                    <h3 class="story-title">
+                        Women's Fashion
+                    </h3>
 
-            <div class="floating-card floating-two">
-                🚚 Fast & Reliable Delivery
+                    <p class="story-subtitle">
+                        Style & clothing
+                    </p>
+
+                </div>
+
             </div>
 
         </div>
@@ -1040,7 +1351,13 @@
         <div class="feature">
 
             <div class="feature-icon">
-                🚚
+                <img
+                    src="{{ asset('images/features/fast-delivery.jpg') }}"
+                    alt="Fast Delivery"
+                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                    onerror="this.style.display='none';"
+                >
+                <span>🚚</span>
             </div>
 
             <div>
@@ -1061,7 +1378,13 @@
         <div class="feature">
 
             <div class="feature-icon">
-                🔒
+                <img
+                    src="{{ asset('images/features/secure-shopping.jpg') }}"
+                    alt="Secure Shopping"
+                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                    onerror="this.style.display='none';"
+                >
+                <span>🔒</span>
             </div>
 
             <div>
@@ -1082,7 +1405,13 @@
         <div class="feature">
 
             <div class="feature-icon">
-                🛍️
+                <img
+                    src="{{ asset('images/features/multiple-sellers.jpg') }}"
+                    alt="Multiple Sellers"
+                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                    onerror="this.style.display='none';"
+                >
+                <span>🛍️</span>
             </div>
 
             <div>
@@ -1135,7 +1464,13 @@
             >
 
                 <div class="category-icon">
-                    📱
+                    <img
+                        src="{{ asset('images/categories/electronics.jpg') }}"
+                        alt="Electronics"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>📱</span>
                 </div>
 
                 <h3>
@@ -1157,7 +1492,13 @@
             >
 
                 <div class="category-icon">
-                    👗
+                    <img
+                        src="{{ asset('images/categories/womens-fashion.jpg') }}"
+                        alt="Women's Fashion"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>👗</span>
                 </div>
 
                 <h3>
@@ -1179,7 +1520,13 @@
             >
 
                 <div class="category-icon">
-                    👕
+                    <img
+                        src="{{ asset('images/categories/mens-fashion.jpg') }}"
+                        alt="Men's Fashion"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>👕</span>
                 </div>
 
                 <h3>
@@ -1201,7 +1548,13 @@
             >
 
                 <div class="category-icon">
-                    👶
+                    <img
+                        src="{{ asset('images/categories/kids-baby.jpg') }}"
+                        alt="Kids & Baby"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>👶</span>
                 </div>
 
                 <h3>
@@ -1223,7 +1576,13 @@
             >
 
                 <div class="category-icon">
-                    🏠
+                    <img
+                        src="{{ asset('images/categories/home-living.jpg') }}"
+                        alt="Home & Living"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🏠</span>
                 </div>
 
                 <h3>
@@ -1245,7 +1604,13 @@
             >
 
                 <div class="category-icon">
-                    ⚽
+                    <img
+                        src="{{ asset('images/categories/sports-outdoors.jpg') }}"
+                        alt="Sports & Outdoors"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>⚽</span>
                 </div>
 
                 <h3>
@@ -1267,7 +1632,13 @@
             >
 
                 <div class="category-icon">
-                    💄
+                    <img
+                        src="{{ asset('images/categories/beauty-personal-care.jpg') }}"
+                        alt="Beauty & Personal Care"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>💄</span>
                 </div>
 
                 <h3>
@@ -1289,7 +1660,13 @@
             >
 
                 <div class="category-icon">
-                    🍔
+                    <img
+                        src="{{ asset('images/categories/food-beverages.jpg') }}"
+                        alt="Food & Beverages"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🍔</span>
                 </div>
 
                 <h3>
@@ -1311,7 +1688,13 @@
             >
 
                 <div class="category-icon">
-                    🚗
+                    <img
+                        src="{{ asset('images/categories/automotive.jpg') }}"
+                        alt="Automotive"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🚗</span>
                 </div>
 
                 <h3>
@@ -1333,7 +1716,13 @@
             >
 
                 <div class="category-icon">
-                    📚
+                    <img
+                        src="{{ asset('images/categories/office-school.jpg') }}"
+                        alt="Office & School"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>📚</span>
                 </div>
 
                 <h3>
@@ -1355,7 +1744,13 @@
             >
 
                 <div class="category-icon">
-                    🐶
+                    <img
+                        src="{{ asset('images/categories/pet-supplies.jpg') }}"
+                        alt="Pet Supplies"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🐶</span>
                 </div>
 
                 <h3>
@@ -1377,7 +1772,13 @@
             >
 
                 <div class="category-icon">
-                    🎮
+                    <img
+                        src="{{ asset('images/categories/toys-games-hobbies.jpg') }}"
+                        alt="Toys, Games & Hobbies"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🎮</span>
                 </div>
 
                 <h3>
@@ -1399,7 +1800,13 @@
             >
 
                 <div class="category-icon">
-                    💍
+                    <img
+                        src="{{ asset('images/categories/jewelry-accessories.jpg') }}"
+                        alt="Jewelry & Accessories"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>💍</span>
                 </div>
 
                 <h3>
@@ -1421,7 +1828,13 @@
             >
 
                 <div class="category-icon">
-                    👟
+                    <img
+                        src="{{ asset('images/categories/shoes.jpg') }}"
+                        alt="Shoes"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>👟</span>
                 </div>
 
                 <h3>
@@ -1443,7 +1856,13 @@
             >
 
                 <div class="category-icon">
-                    🧰
+                    <img
+                        src="{{ asset('images/categories/tools-home-improvement.jpg') }}"
+                        alt="Tools & Home Improvement"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🧰</span>
                 </div>
 
                 <h3>
@@ -1465,7 +1884,13 @@
             >
 
                 <div class="category-icon">
-                    🌱
+                    <img
+                        src="{{ asset('images/categories/garden-outdoor.jpg') }}"
+                        alt="Garden & Outdoor"
+                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                        onerror="this.style.display='none';"
+                    >
+                    <span>🌱</span>
                 </div>
 
                 <h3>
@@ -1508,156 +1933,59 @@
 
         <div class="products">
 
-            <!-- PRODUCT 1 -->
+            @forelse ($featuredProducts ?? [] as $product)
 
-            <div class="product">
+                <div class="product">
 
-                <div class="product-image">
-                    📱
-                </div>
+                    <div class="product-image">
+                        @if ($product->image)
+                            <img
+                                src="{{ str_starts_with($product->image, 'http') ? $product->image : asset('storage/' . ltrim($product->image, '/')) }}"
+                                alt="{{ $product->name }}"
+                                style="display:none;"
+                                onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                                onerror="this.style.display='none';"
+                            >
+                        @endif
+                        <span>📦</span>
+                    </div>
 
-                <div class="product-info">
+                    <div class="product-info">
 
-                    <small>
-                        Smartphone
-                    </small>
+                        <small>
+                            {{ $product->category }}
+                        </small>
 
-                    <h3>
-                        Nova X5 Pro
-                    </h3>
+                        <h3>
+                            {{ $product->name }}
+                        </h3>
 
-                    <div class="product-bottom">
+                        <div class="product-bottom">
 
-                        <span class="product-price">
-                            ₱18,999
-                        </span>
+                            <span class="product-price">
+                                ₱{{ number_format($product->price, 2) }}
+                            </span>
 
-                        <a
-                            href="{{ route('login') }}"
-                            class="view-btn"
-                        >
-                            View →
-                        </a>
+                            <a
+                                href="{{ route('product.details', $product->id) }}"
+                                class="view-btn"
+                            >
+                                View →
+                            </a>
+
+                        </div>
 
                     </div>
 
                 </div>
 
-            </div>
+            @empty
 
+                <p style="grid-column: 1 / -1; text-align: center; color: #977970; font-size: 13px;">
+                    No products yet — check back soon!
+                </p>
 
-            <!-- PRODUCT 2 -->
-
-            <div class="product">
-
-                <div class="product-image">
-                    💻
-                </div>
-
-                <div class="product-info">
-
-                    <small>
-                        Laptop
-                    </small>
-
-                    <h3>
-                        AirBook 14
-                    </h3>
-
-                    <div class="product-bottom">
-
-                        <span class="product-price">
-                            ₱34,990
-                        </span>
-
-                        <a
-                            href="{{ route('login') }}"
-                            class="view-btn"
-                        >
-                            View →
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PRODUCT 3 -->
-
-            <div class="product">
-
-                <div class="product-image">
-                    🎧
-                </div>
-
-                <div class="product-info">
-
-                    <small>
-                        Audio
-                    </small>
-
-                    <h3>
-                        SoundCore Pro
-                    </h3>
-
-                    <div class="product-bottom">
-
-                        <span class="product-price">
-                            ₱2,799
-                        </span>
-
-                        <a
-                            href="{{ route('login') }}"
-                            class="view-btn"
-                        >
-                            View →
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <!-- PRODUCT 4 -->
-
-            <div class="product">
-
-                <div class="product-image">
-                    ⌚
-                </div>
-
-                <div class="product-info">
-
-                    <small>
-                        Wearable
-                    </small>
-
-                    <h3>
-                        FitWatch S2
-                    </h3>
-
-                    <div class="product-bottom">
-
-                        <span class="product-price">
-                            ₱3,499
-                        </span>
-
-                        <a
-                            href="{{ route('login') }}"
-                            class="view-btn"
-                        >
-                            View →
-                        </a>
-
-                    </div>
-
-                </div>
-
-            </div>
+            @endforelse
 
         </div>
 
@@ -1815,6 +2143,120 @@
         </div>
 
     </footer>
+
+
+    <!-- =========================
+         MOBILE MENU SCRIPT
+    ========================= -->
+
+    <script>
+        (function () {
+            var toggle = document.getElementById('menuToggle');
+            var menu = document.getElementById('mobileMenu');
+
+            if (!toggle || !menu) {
+                return;
+            }
+
+            toggle.addEventListener('click', function () {
+                var isOpen = menu.classList.toggle('is-open');
+
+                toggle.classList.toggle('is-open', isOpen);
+                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+            });
+
+            menu.querySelectorAll('a').forEach(function (link) {
+                link.addEventListener('click', function () {
+                    menu.classList.remove('is-open');
+                    toggle.classList.remove('is-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                });
+            });
+        })();
+    </script>
+
+
+    <!-- =========================
+         HERO STORY SCRIPT
+    ========================= -->
+
+    <script>
+        (function () {
+            // Drop matching image files into public/images/categories/
+            // (e.g. electronics.jpg) — they'll be picked up automatically.
+            // No image yet? It falls back to the emoji icon.
+            var IMAGE_BASE = "{{ asset('images/categories') }}";
+
+            var stories = [
+                { slug: 'electronics', icon: '📱', title: 'Electronics', subtitle: 'Gadgets & devices' },
+                { slug: 'womens-fashion', icon: '👗', title: "Women's Fashion", subtitle: 'Style & clothing' },
+                { slug: 'mens-fashion', icon: '👕', title: "Men's Fashion", subtitle: 'Everyday style' },
+                { slug: 'kids-baby', icon: '👶', title: 'Kids & Baby', subtitle: 'For little ones' },
+                { slug: 'home-living', icon: '🏠', title: 'Home & Living', subtitle: 'Home essentials' },
+                { slug: 'sports-outdoors', icon: '⚽', title: 'Sports & Outdoors', subtitle: 'Active lifestyle' },
+                { slug: 'beauty-personal-care', icon: '💄', title: 'Beauty & Personal Care', subtitle: 'Beauty & care' },
+                { slug: 'food-beverages', icon: '🍔', title: 'Food & Beverages', subtitle: 'Food & drinks' },
+                { slug: 'automotive', icon: '🚗', title: 'Automotive', subtitle: 'Auto essentials' },
+                { slug: 'office-school', icon: '📚', title: 'Office & School', subtitle: 'Study & work' },
+                { slug: 'pet-supplies', icon: '🐶', title: 'Pet Supplies', subtitle: 'For your pets' },
+                { slug: 'toys-games-hobbies', icon: '🎮', title: 'Toys, Games & Hobbies', subtitle: 'Fun & entertainment' },
+                { slug: 'jewelry-accessories', icon: '💍', title: 'Jewelry & Accessories', subtitle: 'Everyday accessories' },
+                { slug: 'shoes', icon: '👟', title: 'Shoes', subtitle: 'Step in style' },
+                { slug: 'tools-home-improvement', icon: '🧰', title: 'Tools & Home Improvement', subtitle: 'Build & improve' },
+                { slug: 'garden-outdoor', icon: '🌱', title: 'Garden & Outdoor', subtitle: 'Outdoor essentials' }
+            ];
+
+            var DURATION = 3500;
+
+            var cardA = document.getElementById('storyCardA');
+            var cardB = document.getElementById('storyCardB');
+
+            if (!cardA || !cardB) {
+                return;
+            }
+
+            function fillCard(card, s) {
+                var image = card.querySelector('.story-image');
+                var icon = card.querySelector('.story-icon');
+                var title = card.querySelector('.story-title');
+                var subtitle = card.querySelector('.story-subtitle');
+
+                icon.textContent = s.icon;
+                icon.style.display = '';
+                image.style.display = 'none';
+                image.alt = s.title;
+                image.src = IMAGE_BASE + '/' + s.slug + '.jpg';
+
+                title.textContent = s.title;
+                subtitle.textContent = s.subtitle;
+            }
+
+            // cardA starts in front showing stories[0], cardB waits behind
+            // it already holding stories[1] — matches the markup above.
+            var current = 0;
+            var frontIsA = true;
+
+            setInterval(function () {
+                current = (current + 1) % stories.length;
+
+                var newFront = frontIsA ? cardB : cardA;
+                var newBack = frontIsA ? cardA : cardB;
+
+                newFront.classList.remove('is-back');
+                newFront.classList.add('is-front');
+                newBack.classList.remove('is-front');
+                newBack.classList.add('is-back');
+
+                // preload the card that just moved to the back with the
+                // category that will need to be ready two swaps from now
+                fillCard(newBack, stories[(current + 1) % stories.length]);
+
+                frontIsA = !frontIsA;
+            }, DURATION);
+        })();
+    </script>
+
+    @include('partials.pwa-register')
 
 </body>
 

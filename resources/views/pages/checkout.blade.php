@@ -12,6 +12,8 @@
 
     <title>Checkout — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -26,33 +28,6 @@
             font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
             background: #fff7f4;
             color: #172033;
-        }
-
-        .navbar {
-            background: #ffffff;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
-
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 23px;
-            font-weight: 700;
-            color: #e8420f;
-            text-decoration: none;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .back {
-            color: #8d6c62;
-            text-decoration: none;
-            font-size: 13px;
         }
 
         .container {
@@ -181,6 +156,19 @@
             white-space: nowrap;
         }
 
+        .subtotal-row {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+
+            font-size: 13px;
+            color: #8d6c62;
+        }
+
+        .subtotal-row strong {
+            color: #172033;
+        }
+
         .total-row {
             display: flex;
             justify-content: space-between;
@@ -267,20 +255,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <body>
 
-<nav class="navbar">
-
-    <a href="/" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <a
-        href="{{ route('cart') }}"
-        class="back"
-    >
-        ← Back to Cart
-    </a>
-
-</nav>
+@include('partials.buyer-navbar', ['activeNav' => 'cart'])
 
 
 <div class="container">
@@ -487,7 +462,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                         $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
                                     @endphp
                                     @if($pIsImg)
-                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
+                                        <span>📦</span>
                                     @else
                                         {{ $pIcon }}
                                     @endif
@@ -528,6 +504,16 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 @endforeach
 
 
+                <div class="subtotal-row">
+                    <span>Subtotal</span>
+                    <strong>₱{{ number_format($total, 2) }}</strong>
+                </div>
+
+                <div class="subtotal-row">
+                    <span>Shipping</span>
+                    <strong>FREE</strong>
+                </div>
+
                 <div class="total-row">
 
                     <span class="total-label">
@@ -567,6 +553,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </form>
 
 </div>
+
+    @include('partials.pwa-register')
 
 </body>
 

@@ -1,0 +1,25 @@
+{
+    "name": "BoomBuy — Shop Everything You Love",
+    "short_name": "BoomBuy",
+    "description": "Your everyday online marketplace for products, sellers, and convenient shopping.",
+    "start_url": "/",
+    "scope": "/",
+    "display": "standalone",
+    "background_color": "#fffaf8",
+    "theme_color": "#e8420f",
+    "orientation": "portrait-primary",
+    "icons": [
+        {
+            "src": "/images/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "any"
+        },
+        {
+            "src": "/images/icon.svg",
+            "sizes": "any",
+            "type": "image/svg+xml",
+            "purpose": "maskable"
+        }
+    ]
+}

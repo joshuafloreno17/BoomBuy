@@ -8,6 +8,8 @@
 
     <title>Create New Password — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -192,7 +194,54 @@
             background: #c43408;
         }
 
-    
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 42px;
+        }
+
+        .password-toggle {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            border: none;
+            background: transparent;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a4e46;
+
+            cursor: pointer;
+            padding: 5px;
+
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+
+        .password-toggle:hover {
+            opacity: 1;
+        }
+
+        input.input-error {
+            border-color: #dc2626 !important;
+            background: #fef2f2 !important;
+        }
+
+        .field-error-msg {
+            display: none;
+
+            color: #dc2626;
+            font-size: 11px;
+
+            margin-top: 6px;
+        }
+
+
 /* ===== BoomBuy Vibrant Design System Overrides ===== */
 h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
 .product-title, .price, .cta, .cta-title, .brand, .checkout-title,
@@ -289,12 +338,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     New Password
                 </label>
 
-                <input
-                    type="password"
-                    name="password"
-                    placeholder="Enter new password"
-                    required
-                >
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter new password"
+                        required
+                    >
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-target="password"
+                        aria-label="Show password"
+                    ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                </div>
 
             </div>
 
@@ -305,12 +363,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     Confirm New Password
                 </label>
 
-                <input
-                    type="password"
-                    name="password_confirmation"
-                    placeholder="Confirm new password"
-                    required
-                >
+                <div class="password-wrapper">
+                    <input
+                        type="password"
+                        id="password_confirmation"
+                        name="password_confirmation"
+                        placeholder="Confirm new password"
+                        required
+                    >
+                    <button
+                        type="button"
+                        class="password-toggle"
+                        data-target="password_confirmation"
+                        aria-label="Show password"
+                    ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
+                </div>
+
+                <span class="field-error-msg" id="password-match-msg">
+                    Passwords do not match.
+                </span>
 
             </div>
 
@@ -326,6 +397,52 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </div>
 
 </div>
+
+    <script>
+        (function () {
+            var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+            var EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+            document.querySelectorAll('.password-toggle').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var input = document.getElementById(btn.dataset.target);
+                    if (!input) return;
+
+                    var show = input.type === 'password';
+                    input.type = show ? 'text' : 'password';
+                    btn.innerHTML = show ? EYE_ICON : EYE_OFF_ICON;
+                    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+                });
+            });
+
+            var pwd = document.getElementById('password');
+            var confirmPwd = document.getElementById('password_confirmation');
+            var msg = document.getElementById('password-match-msg');
+
+            if (pwd && confirmPwd) {
+                function checkMatch() {
+                    if (confirmPwd.value === '') {
+                        confirmPwd.classList.remove('input-error');
+                        if (msg) msg.style.display = 'none';
+                        return;
+                    }
+
+                    if (confirmPwd.value !== pwd.value) {
+                        confirmPwd.classList.add('input-error');
+                        if (msg) msg.style.display = 'block';
+                    } else {
+                        confirmPwd.classList.remove('input-error');
+                        if (msg) msg.style.display = 'none';
+                    }
+                }
+
+                pwd.addEventListener('input', checkMatch);
+                confirmPwd.addEventListener('input', checkMatch);
+            }
+        })();
+    </script>
+
+    @include('partials.pwa-register')
 
 </body>
 

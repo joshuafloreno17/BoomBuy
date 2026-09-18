@@ -7,6 +7,8 @@
 
     <title>Seller Dashboard — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -779,7 +781,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                             $pIsImg = is_string($pImg) && (str_contains($pImg, '.jpg') || str_contains($pImg, '.jpeg') || str_contains($pImg, '.png') || str_contains($pImg, '.webp') || str_contains($pImg, '/'));
                                         @endphp
                                         @if($pIsImg)
-                                            <img src="{{ str_starts_with($pImg, 'http') ? $pImg : asset('storage/' . ltrim($pImg, '/')) }}" alt="{{ $product->name }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                            <img src="{{ str_starts_with($pImg, 'http') ? $pImg : asset('storage/' . ltrim($pImg, '/')) }}" alt="{{ $product->name }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
+                                            <span>📦</span>
                                         @else
                                             {{ $pImg ?? '📦' }}
                                         @endif
@@ -925,6 +928,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </div>
 
 </footer>
+
+    @include('partials.pwa-register')
 
 </body>
 </html>

@@ -12,6 +12,8 @@
 
     <title>Manage Products — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -513,7 +515,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                         $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
                                     @endphp
                                     @if($pIsImg)
-                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
+                                        <span>📦</span>
                                     @else
                                         {{ $pIcon }}
                                     @endif
@@ -738,6 +741,8 @@ function editProduct(name) {
 
 </script>
 
+
+    @include('partials.pwa-register')
 
 </body>
 

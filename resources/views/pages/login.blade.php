@@ -7,6 +7,8 @@
 
     <title>Login — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -188,7 +190,7 @@
         }
 
         .password-input-wrapper input {
-            padding-right: 62px;
+            padding-right: 42px;
         }
 
         .show-password-btn {
@@ -198,16 +200,35 @@
             transform: translateY(-50%);
             border: none;
             background: transparent;
-            color: #e8420f;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 11px;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a4e46;
             cursor: pointer;
             padding: 5px;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
         }
 
         .show-password-btn:hover {
-            color: #c43408;
+            opacity: 1;
+        }
+
+        .remember-row {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+
+            margin-top: 12px;
+
+            font-size: 12px;
+            color: #563a32;
+            cursor: pointer;
+        }
+
+        .remember-row input {
+            width: auto;
+            accent-color: #e8420f;
         }
 
         /* ROLE */
@@ -701,6 +722,7 @@
                             value="{{ old('email') }}"
                             placeholder="Enter your email"
                             autocomplete="email"
+                            autofocus
                             required
                         >
 
@@ -742,11 +764,15 @@
                                 type="button"
                                 class="show-password-btn"
                                 onclick="togglePassword('login-password', this)"
-                            >
-                                Show
-                            </button>
+                                aria-label="Show password"
+                            ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
 
                         </div>
+
+                        <label class="remember-row">
+                            <input type="checkbox" name="remember">
+                            <span>Remember me for 30 days</span>
+                        </label>
 
                     </div>
 
@@ -1324,6 +1350,9 @@
            PASSWORD SHOW / HIDE
         ========================= */
 
+        const EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
         function togglePassword(inputId, button) {
 
             const input = document.getElementById(inputId);
@@ -1331,12 +1360,14 @@
             if (input.type === 'password') {
 
                 input.type = 'text';
-                button.textContent = 'Hide';
+                button.innerHTML = EYE_ICON;
+                button.setAttribute('aria-label', 'Hide password');
 
             } else {
 
                 input.type = 'password';
-                button.textContent = 'Show';
+                button.innerHTML = EYE_OFF_ICON;
+                button.setAttribute('aria-label', 'Show password');
 
             }
 
@@ -1445,6 +1476,8 @@
         });
 
     </script>
+
+    @include('partials.pwa-register')
 
 </body>
 

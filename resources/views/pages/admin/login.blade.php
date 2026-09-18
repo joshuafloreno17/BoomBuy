@@ -7,6 +7,8 @@
 
     <title>Admin Login — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -143,11 +145,11 @@
         }
 
         .input-wrapper input[type="password"] {
-            padding-right: 78px;
+            padding-right: 42px;
         }
 
         .input-wrapper input[type="text"] {
-            padding-right: 78px;
+            padding-right: 42px;
         }
 
         .form-group input:focus {
@@ -163,15 +165,18 @@
             transform: translateY(-50%);
             border: none;
             background: transparent;
-            color: #e8420f;
-            font-size: 11px;
-            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a4e46;
             cursor: pointer;
-            padding: 5px 4px;
+            padding: 5px;
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
         }
 
         .show-password:hover {
-            color: #c43408;
+            opacity: 1;
         }
 
         .forgot-row {
@@ -373,7 +378,7 @@
             <div class="admin-header">
 
                 <div class="admin-icon">
-                    🛠️
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 </div>
 
                 <small>BoomBuy Management</small>
@@ -394,7 +399,8 @@
 
             <div class="admin-notice">
 
-                🔒 This area is restricted to authorized
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                This area is restricted to authorized
                 BoomBuy administrators only.
 
             </div>
@@ -406,7 +412,8 @@
 
                 <div class="error-message">
 
-                    ❌ {{ session('error') }}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                    {{ session('error') }}
 
                 </div>
 
@@ -419,7 +426,8 @@
 
                 <div class="success-message">
 
-                    ✅ {{ session('success') }}
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg>
+                    {{ session('success') }}
 
                 </div>
 
@@ -478,9 +486,8 @@
                             class="show-password"
                             onclick="toggleAdminPassword()"
                             id="passwordToggle"
-                        >
-                            Show
-                        </button>
+                            aria-label="Show password"
+                        ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
 
                     </div>
 
@@ -508,7 +515,8 @@
                     type="submit"
                     class="login-btn"
                 >
-                    🔐 Login to Dashboard
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Login to Dashboard
                 </button>
 
             </form>
@@ -555,7 +563,8 @@
         <div class="modal-header">
 
             <h2>
-                🔐 Forgot Password?
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Forgot Password?
             </h2>
 
             <button
@@ -632,17 +641,22 @@
         const toggleButton =
             document.getElementById('passwordToggle');
 
+        const EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        const EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
         if (passwordInput.type === 'password') {
 
             passwordInput.type = 'text';
 
-            toggleButton.textContent = 'Hide';
+            toggleButton.innerHTML = EYE_ICON;
+            toggleButton.setAttribute('aria-label', 'Hide password');
 
         } else {
 
             passwordInput.type = 'password';
 
-            toggleButton.textContent = 'Show';
+            toggleButton.innerHTML = EYE_OFF_ICON;
+            toggleButton.setAttribute('aria-label', 'Show password');
 
         }
 
@@ -698,6 +712,8 @@
     });
 
 </script>
+
+    @include('partials.pwa-register')
 
 </body>
 

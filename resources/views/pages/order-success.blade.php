@@ -7,6 +7,8 @@
 
     <title>Order Successful — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -348,6 +350,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </div>
 
 </div>
+
+    @include('partials.pwa-register')
 
 </body>
 

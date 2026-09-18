@@ -14,6 +14,8 @@
         BoomBuy — {{ $product['name'] }}
     </title>
 
+    @include('partials.pwa-head')
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -33,100 +35,6 @@
         a {
             text-decoration: none;
             color: inherit;
-        }
-
-        /* NAVBAR */
-
-        .navbar {
-            background: white;
-            border-bottom: 1px solid #ffe9e2;
-
-            padding: 16px 7%;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            font-size: 23px;
-            font-weight: 700;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            margin-left: auto;
-            margin-right: 25px;
-        }
-
-        .nav-links a {
-            color: #8d6c62;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .nav-links a:hover {
-            color: #e8420f;
-        }
-
-        .cart-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            color: #e8420f !important;
-        }
-
-        .cart-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-
-            min-width: 20px;
-            height: 20px;
-
-            padding: 0 5px;
-
-            background: #ef4444;
-            color: white;
-
-            border-radius: 50%;
-
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-        }
-
-        .logout {
-            border: none;
-            background: #fff3f0;
-            color: #dc2626;
-
-            padding: 8px 12px;
-            border-radius: 7px;
-
-            cursor: pointer;
-
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .logout:hover {
-            background: #ffe1e1;
         }
 
         /* CONTAINER */
@@ -301,7 +209,43 @@
 
         .buttons {
             display: flex;
+            align-items: stretch;
             gap: 10px;
+        }
+
+        .wishlist-btn {
+            flex: 0 0 46px;
+
+            width: 46px;
+
+            border: 1px solid #f3ddd6;
+            background: white;
+            border-radius: 8px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0;
+
+            cursor: pointer;
+
+            transition: 0.2s ease;
+        }
+
+        .wishlist-btn svg {
+            width: 19px;
+            height: 19px;
+        }
+
+        .wishlist-btn:hover {
+            border-color: #f1c7ba;
+            background: #fff6f3;
+        }
+
+        .wishlist-btn.active {
+            border-color: #f4b3a3;
+            background: #fff1ed;
         }
 
         .btn {
@@ -369,6 +313,159 @@
             padding: 13px 15px;
         }
 
+        /* REVIEWS */
+
+        .reviews-section {
+            margin-top: 35px;
+        }
+
+        .reviews-section h2 {
+            font-size: 21px;
+            margin-bottom: 15px;
+        }
+
+        .no-reviews {
+            background: #fffaf8;
+            border: 1px dashed #f0ddd6;
+            border-radius: 12px;
+
+            padding: 26px;
+
+            text-align: center;
+
+            color: #977970;
+            font-size: 13px;
+        }
+
+        .review-card {
+            background: #fffaf8;
+            border: 1px solid #f8e7e2;
+            border-radius: 12px;
+
+            padding: 16px 18px;
+
+            margin-bottom: 12px;
+        }
+
+        .review-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .review-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+
+            margin-bottom: 6px;
+        }
+
+        .review-name {
+            font-weight: 700;
+            font-size: 13px;
+            color: #33241f;
+        }
+
+        .review-stars {
+            color: #e8420f;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        .review-date {
+            color: #b99c93;
+            font-size: 11px;
+            margin-bottom: 6px;
+        }
+
+        .review-text {
+            color: #563a32;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* RELATED PRODUCTS */
+
+        .related-section {
+            margin-top: 40px;
+        }
+
+        .related-section h2 {
+            font-size: 21px;
+            margin-bottom: 15px;
+        }
+
+        .related-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .related-card {
+            background: white;
+            border: 1px solid #f7e5e0;
+            border-radius: 14px;
+
+            overflow: hidden;
+
+            transition: 0.2s ease;
+        }
+
+        .related-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 28px rgba(72, 45, 35, 0.09);
+            border-color: #f1c7ba;
+        }
+
+        .related-image {
+            height: 130px;
+
+            background: linear-gradient(145deg, #ffede8, #ffdfd5);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 46px;
+
+            overflow: hidden;
+        }
+
+        .related-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .related-info {
+            padding: 12px 14px;
+        }
+
+        .related-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #2e211d;
+
+            margin-bottom: 6px;
+
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .related-price {
+            color: #e8420f;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        @media (max-width: 900px) {
+            .related-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
         .spec strong {
             display: block;
 
@@ -388,23 +485,6 @@
         /* MOBILE */
 
         @media (max-width: 800px) {
-
-            .navbar {
-                flex-wrap: wrap;
-                gap: 12px;
-            }
-
-            .nav-links {
-                order: 3;
-
-                width: 100%;
-
-                justify-content: center;
-
-                margin: 0;
-
-                gap: 15px;
-            }
 
             .product-detail {
                 grid-template-columns: 1fr;
@@ -463,77 +543,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <body>
 
-<!-- NAVBAR -->
-
-<nav class="navbar">
-
-    <a
-        href="{{ route('buyer.dashboard') }}"
-        class="logo"
-    >
-        Boom<span>Buy</span>
-    </a>
-
-    <div class="nav-links">
-
-        <a href="{{ route('buyer.dashboard') }}">
-            Home
-        </a>
-
-        <a href="{{ route('products') }}">
-            🛍️ Shop
-        </a>
-
-        <a href="{{ route('buyer.orders') }}">
-            📦 My Orders
-        </a>
-
-        @php
-            $cartCount = array_sum(
-                session()->get('cart', [])
-            );
-        @endphp
-
-        <a
-            href="{{ route('cart') }}"
-            class="cart-link"
-        >
-
-            🛒 Cart
-
-            @if($cartCount > 0)
-
-                <span class="cart-number">
-                    {{ $cartCount }}
-                </span>
-
-            @endif
-
-        </a>
-
-    </div>
-
-    <div class="nav-right">
-
-        <form
-            action="{{ route('logout') }}"
-            method="POST"
-        >
-
-            @csrf
-
-            <button
-                type="submit"
-                class="logout"
-            >
-                Logout
-            </button>
-
-        </form>
-
-    </div>
-
-</nav>
+@include('partials.buyer-navbar', ['activeNav' => 'shop'])
 
 
 <!-- MAIN -->
@@ -571,11 +581,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 width: 100%;
                 height: 100%;
                 object-fit: cover;
-                display: block;
+                display: none;
             "
+            onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+            onerror="this.style.display='none';"
         >
 
-    @else
+    @endif
 
         <div style="
             width: 100%;
@@ -587,8 +599,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         ">
             📦
         </div>
-
-    @endif
 
 </div>
 
@@ -613,11 +623,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
             <div class="rating">
 
-                ⭐ {{ $product['rating'] ?? '5.0' }}
+                @if($reviewCount > 0)
 
-                <span style="color:#977970;">
-                    ({{ $product['reviews'] ?? 0 }} reviews)
-                </span>
+                    ⭐ {{ $averageRating }}
+
+                    <span style="color:#977970;">
+                        ({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})
+                    </span>
+
+                @else
+
+                    <span style="color:#977970;">
+                        No reviews yet
+                    </span>
+
+                @endif
 
             </div>
 
@@ -676,6 +696,30 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             <!-- ACTION BUTTONS -->
 
             <div class="buttons">
+
+                <!-- WISHLIST -->
+
+                <form
+                    action="{{ route('wishlist.toggle', $product->id) }}"
+                    method="POST"
+                    id="wishlistForm"
+                >
+                    @csrf
+
+                    <button
+                        type="submit"
+                        class="wishlist-btn {{ $isWishlisted ? 'active' : '' }}"
+                        id="wishlistBtn"
+                        aria-label="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}"
+                    >
+                        @if($isWishlisted)
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        @else
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                        @endif
+                    </button>
+
+                </form>
 
 
                 <!-- ADD TO CART -->
@@ -769,6 +813,96 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     @endif
 
+
+    <!-- REVIEWS -->
+
+    <section class="reviews-section">
+
+        <h2>
+            Customer Reviews
+            @if($reviewCount > 0)
+                ({{ $reviewCount }})
+            @endif
+        </h2>
+
+        @if($reviewCount > 0)
+
+            @foreach($reviews as $review)
+
+                <div class="review-card">
+
+                    <div class="review-top">
+                        <span class="review-name">{{ $review->buyer_name }}</span>
+                        <span class="review-stars">{{ str_repeat('⭐', (int) $review->rating) }}</span>
+                    </div>
+
+                    <div class="review-date">
+                        {{ \Illuminate\Support\Carbon::parse($review->created_at)->format('F d, Y') }}
+                    </div>
+
+                    @if(!empty($review->review))
+                        <p class="review-text">{{ $review->review }}</p>
+                    @endif
+
+                </div>
+
+            @endforeach
+
+        @else
+
+            <div class="no-reviews">
+                No reviews yet — be the first to review this product after your purchase!
+            </div>
+
+        @endif
+
+    </section>
+
+
+    <!-- RELATED PRODUCTS -->
+
+    @if($relatedProducts->count() > 0)
+
+        <section class="related-section">
+
+            <h2>
+                You Might Also Like
+            </h2>
+
+            <div class="related-grid">
+
+                @foreach($relatedProducts as $related)
+
+                    <a href="{{ route('product.details', $related->id) }}" class="related-card">
+
+                        <div class="related-image">
+                            @if($related->image)
+                                <img
+                                    src="{{ str_starts_with($related->image, 'http') ? $related->image : asset('storage/' . ltrim($related->image, '/')) }}"
+                                    alt="{{ $related->name }}"
+                                    style="display:none;"
+                                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                                    onerror="this.style.display='none';"
+                                >
+                            @endif
+                            <span>📦</span>
+                        </div>
+
+                        <div class="related-info">
+                            <div class="related-name">{{ $related->name }}</div>
+                            <div class="related-price">₱{{ number_format($related->price, 2) }}</div>
+                        </div>
+
+                    </a>
+
+                @endforeach
+
+            </div>
+
+        </section>
+
+    @endif
+
 </main>
 
 
@@ -825,7 +959,48 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             updateBuyNowQuantity
         );
 
+    (function () {
+        var form = document.getElementById('wishlistForm');
+        var btn = document.getElementById('wishlistBtn');
+
+        if (!form || !btn) return;
+
+        var HEART_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        var HEART_OUTLINE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: new FormData(form)
+            })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('not ok');
+                    return res.json();
+                })
+                .then(function (data) {
+                    btn.classList.toggle('active', data.in_wishlist);
+                    btn.innerHTML = data.in_wishlist ? HEART_FILLED : HEART_OUTLINE;
+                    btn.setAttribute(
+                        'aria-label',
+                        data.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist'
+                    );
+                })
+                .catch(function () {
+                    // Likely a guest (redirected to login) — fall back to a normal submit
+                    form.submit();
+                });
+        });
+    })();
+
 </script>
+
+    @include('partials.pwa-register')
 
 </body>
 

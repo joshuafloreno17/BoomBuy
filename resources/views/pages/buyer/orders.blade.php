@@ -15,6 +15,8 @@
     href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 >
 
+    @include('partials.pwa-head')
+
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -50,139 +52,11 @@
     }
 
     /* =========================
-       NAVBAR
+       MAIN CONTENT (unified navbar, no sidebar)
     ========================= */
-
-    .navbar {
-        background: #ffffff;
-        padding: 18px 7%;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #ebe6e5;
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-    }
-
-    .logo {
-        font-size: 26px;
-        font-weight: 800;
-        color: #f34f1d;
-        text-decoration: none;
-    }
-
-    .nav-links {
-        display: flex;
-        align-items: center;
-        gap: 25px;
-    }
-
-    .nav-links a {
-        text-decoration: none;
-        color: #523d36;
-        font-weight: 600;
-    }
-
-    .nav-links a:hover {
-        color: #f34f1d;
-    }
-
-    .user {
-        background: #fff3ef;
-        color: #f34f1d;
-        padding: 9px 15px;
-        border-radius: 20px;
-        font-weight: 600;
-    }
-
-    /* =========================
-       SIDEBAR
-    ========================= */
-
-    .layout {
-        display: flex;
-    }
-
-    .sidebar {
-        width: 230px;
-        background: #ffffff;
-        border-right: 1px solid #ffe9e2;
-        padding: 25px 18px;
-        display: flex;
-        flex-direction: column;
-        position: fixed;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 1000;
-        overflow-y: auto;
-    }
-
-    .sidebar-label {
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #b99c93;
-        margin-top: 22px;
-        margin-bottom: 4px;
-        font-weight: 700;
-    }
-
-    .sidebar .menu {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-        margin-top: 8px;
-    }
-
-    .sidebar .menu a {
-        display: block;
-        padding: 12px;
-        border-radius: 10px;
-        color: #8d6c62;
-        font-size: 13px;
-        font-weight: 600;
-        text-decoration: none;
-        transition: 0.2s;
-    }
-
-    .sidebar .menu a:hover,
-    .sidebar .menu a.active {
-        background: #fff4f1;
-        color: #e8420f;
-    }
-
-    .sidebar-footer {
-        margin-top: auto;
-        padding-top: 16px;
-        border-top: 1px solid #ffe9e2;
-    }
-
-    .sidebar-footer form {
-        margin: 0;
-    }
-
-    .sidebar-footer button {
-        border: none;
-        background: transparent;
-        padding: 12px;
-        border-radius: 10px;
-        color: #8d6c62;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        text-align: left;
-    }
-
-    .sidebar-footer button:hover {
-        background: #fff4f1;
-        color: #e8420f;
-    }
 
     .main-content {
-        margin-left: 230px;
-        width: calc(100% - 230px);
+        width: 100%;
         min-width: 0;
     }
 
@@ -850,42 +724,7 @@
        MOBILE
     ========================= */
 
-    @media (max-width: 900px) {
-
-        .sidebar {
-            width: 72px;
-            padding: 20px 8px;
-        }
-
-        .sidebar .label-text,
-        .sidebar-label {
-            display: none;
-        }
-
-        .sidebar .menu a {
-            text-align: center;
-        }
-
-        .sidebar-footer button {
-            text-align: center;
-        }
-
-        .main-content {
-            margin-left: 72px;
-            width: calc(100% - 72px);
-        }
-    }
-
     @media (max-width: 768px) {
-
-        .navbar {
-            padding: 15px 5%;
-        }
-
-        .nav-links {
-            gap: 12px;
-            font-size: 13px;
-        }
 
         .container {
             width: 92%;
@@ -932,107 +771,9 @@
 <body>
 
 
-<!-- =========================
-     NAVBAR
-========================= -->
+@include('partials.buyer-navbar', ['activeNav' => 'orders'])
 
-<nav class="navbar">
-
-    <a
-        href="{{ route('buyer.dashboard') }}"
-        class="logo"
-    >
-        BoomBuy
-    </a>
-
-    <div class="nav-links">
-
-        <a href="{{ route('buyer.dashboard') }}">
-            Home
-        </a>
-
-        <a href="{{ route('cart') }}">
-            🛒 Cart
-        </a>
-
-        <a href="{{ route('buyer.orders') }}">
-            📦 My Orders
-        </a>
-
-        <span class="user">
-            {{ $user['name'] ?? 'Buyer' }}
-        </span>
-
-    </div>
-
-</nav>
-
-<div class="layout">
-
-    <!-- =========================
-         SIDEBAR
-    ========================= -->
-
-    <aside class="sidebar">
-
-        <div class="sidebar-label">
-            My Account
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('buyer.dashboard') }}">
-                🏠
-                <span class="label-text">Overview</span>
-            </a>
-
-            <a
-                href="{{ route('buyer.orders') }}"
-                class="active"
-            >
-                📦
-                <span class="label-text">My Orders</span>
-            </a>
-
-            <a href="{{ route('products') }}">
-                🛍️
-                <span class="label-text">Shop</span>
-            </a>
-
-            <a href="{{ route('cart') }}">
-                🛒
-                <span class="label-text">Cart</span>
-            </a>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <form
-                action="{{ route('logout') }}"
-                method="POST"
-            >
-                @csrf
-
-                <button
-                    type="submit"
-                    style="width:100%;"
-                >
-                    🚪
-                    <span class="label-text">Logout</span>
-                </button>
-
-            </form>
-
-        </div>
-
-    </aside>
-
-    <!-- =========================
-         MAIN
-    ========================= -->
-
-    <main class="main-content">
+<main class="main-content">
 
         <div class="container">
 
@@ -1898,8 +1639,6 @@
 
     </main>
 
-</div>
-
 <!-- Leaflet JS -->
 
 <script
@@ -2165,6 +1904,8 @@
 
 </script>
 
+
+    @include('partials.pwa-register')
 
 </body>
 

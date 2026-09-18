@@ -6,6 +6,8 @@
 
     <title>BoomBuy — Rider Application</title>
 
+    @include('partials.pwa-head')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -258,6 +260,55 @@
             box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.07);
         }
 
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper input {
+            padding-right: 42px;
+        }
+
+        .show-password-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+
+            border: none;
+            background: transparent;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6a4e46;
+
+            cursor: pointer;
+            padding: 5px;
+
+            opacity: 0.7;
+            transition: opacity 0.15s ease;
+        }
+
+        .show-password-btn:hover {
+            opacity: 1;
+        }
+
+        input.input-error,
+        select.input-error,
+        textarea.input-error {
+            border-color: #dc2626 !important;
+            background: #fef2f2 !important;
+        }
+
+        .field-error-msg {
+            display: none;
+
+            color: #dc2626;
+            font-size: 10px;
+
+            margin-top: 6px;
+        }
+
         .file-box {
             border: 1px dashed #e5c8bf;
             background: #fffaf8;
@@ -277,6 +328,49 @@
             font-size: 10px;
             line-height: 1.5;
             margin-top: 7px;
+        }
+
+        .field-hint {
+            display: block;
+
+            color: #a0847b;
+            font-size: 10px;
+            line-height: 1.5;
+
+            margin-top: 7px;
+        }
+
+        .file-name {
+            display: block;
+
+            font-size: 10px;
+            font-weight: 800;
+            color: #15803d;
+
+            margin-top: 6px;
+        }
+
+        .terms-check {
+            grid-column: 1 / -1;
+
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+
+            font-size: 12px;
+            color: #4e3831;
+            line-height: 1.5;
+        }
+
+        .terms-check input[type="checkbox"] {
+            margin-top: 3px;
+            width: auto;
+            accent-color: #e8420f;
+        }
+
+        .terms-check a {
+            color: #e8420f;
+            font-weight: 700;
         }
 
         .requirements-note {
@@ -416,12 +510,12 @@
 
     <nav class="navbar">
 
-        <a href="{{ route('rider.dashboard') }}" class="logo">
+        <a href="{{ route('home') }}" class="logo">
             Boom<span>Buy</span>
         </a>
 
-        <a href="{{ route('rider.dashboard') }}" class="back-btn">
-            ← Back to Dashboard
+        <a href="{{ route('register') }}" class="back-btn">
+            ← Back
         </a>
 
     </nav>
@@ -742,12 +836,15 @@
                                 id="national_id"
                                 name="national_id"
                                 accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                onchange="showFileName(this, 'national_id-name')"
                                 required
                             >
 
                             <div class="file-help">
                                 Upload a clear photo or PDF of your National ID.
                             </div>
+
+                            <span class="file-name" id="national_id-name"></span>
 
                         </div>
 
@@ -769,12 +866,15 @@
                                 id="drivers_license"
                                 name="drivers_license"
                                 accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                onchange="showFileName(this, 'drivers_license-name')"
                                 required
                             >
 
                             <div class="file-help">
                                 Upload a clear copy of your valid Driver's License.
                             </div>
+
+                            <span class="file-name" id="drivers_license-name"></span>
 
                         </div>
 
@@ -796,12 +896,15 @@
                                 id="profile_selfie"
                                 name="profile_selfie"
                                 accept=".jpg,.jpeg,.png,.webp"
+                                onchange="showFileName(this, 'profile_selfie-name')"
                                 required
                             >
 
                             <div class="file-help">
                                 Upload a clear recent selfie for verification.
                             </div>
+
+                            <span class="file-name" id="profile_selfie-name"></span>
 
                         </div>
 
@@ -823,12 +926,15 @@
                                 id="proof_of_address"
                                 name="proof_of_address"
                                 accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                onchange="showFileName(this, 'proof_of_address-name')"
                                 required
                             >
 
                             <div class="file-help">
                                 Example: utility bill or other valid proof of address.
                             </div>
+
+                            <span class="file-name" id="proof_of_address-name"></span>
 
                         </div>
 
@@ -850,6 +956,7 @@
                                 id="or_cr"
                                 name="or_cr"
                                 accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                onchange="showFileName(this, 'or_cr-name')"
                                 required
                             >
 
@@ -857,6 +964,8 @@
                                 Upload a clear copy of the vehicle's Official Receipt
                                 and Certificate of Registration.
                             </div>
+
+                            <span class="file-name" id="or_cr-name"></span>
 
                         </div>
 
@@ -896,6 +1005,7 @@
             name="password"
             placeholder="Create a password"
             autocomplete="new-password"
+            minlength="8"
             required
         >
 
@@ -903,10 +1013,10 @@
             type="button"
             class="show-password-btn"
             onclick="togglePassword('password', this)"
-        >
-            Show
-        </button>
+            aria-label="Show password"
+        ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
     </div>
+    <span class="field-hint">At least 8 characters.</span>
 </div>
 
 {{-- CONFIRM PASSWORD --}}
@@ -929,10 +1039,13 @@
             type="button"
             class="show-password-btn"
             onclick="togglePassword('password_confirmation', this)"
-        >
-            Show
-        </button>
+            aria-label="Show password"
+        ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
     </div>
+
+    <span class="field-error-msg" id="password-match-msg">
+        Passwords do not match.
+    </span>
 </div>
 
 
@@ -948,6 +1061,16 @@
                     belong to you. Your application will be reviewed by
                     BoomBuy Admin.
                 </div>
+
+                <label class="terms-check">
+                    <input type="checkbox" name="terms" required>
+                    <span>
+                        I agree to the
+                        <a href="#" onclick="openTerms(event)">Terms &amp; Conditions</a>
+                        and
+                        <a href="#" onclick="openPrivacy(event)">Privacy Policy</a>.
+                    </span>
+                </label>
 
                 <button
                     type="submit"
@@ -967,5 +1090,87 @@
         © 2026 BoomBuy · Rider Verification
     </footer>
 
+    @include('partials.terms-modal')
+
+    <script>
+        function showFileName(input, targetId) {
+            var target = document.getElementById(targetId);
+            if (!target) return;
+
+            target.textContent = input.files && input.files[0]
+                ? '✓ ' + input.files[0].name
+                : '';
+        }
+
+        var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        var EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+
+        function togglePassword(inputId, button) {
+            var input = document.getElementById(inputId);
+            if (!input) return;
+
+            if (input.type === 'password') {
+                input.type = 'text';
+                button.innerHTML = EYE_ICON;
+                button.setAttribute('aria-label', 'Hide password');
+            } else {
+                input.type = 'password';
+                button.innerHTML = EYE_OFF_ICON;
+                button.setAttribute('aria-label', 'Show password');
+            }
+        }
+
+        (function () {
+            var pwd = document.getElementById('password');
+            var confirmPwd = document.getElementById('password_confirmation');
+            var msg = document.getElementById('password-match-msg');
+
+            if (pwd && confirmPwd) {
+                function checkMatch() {
+                    if (confirmPwd.value === '') {
+                        confirmPwd.classList.remove('input-error');
+                        if (msg) msg.style.display = 'none';
+                        return;
+                    }
+
+                    if (confirmPwd.value !== pwd.value) {
+                        confirmPwd.classList.add('input-error');
+                        if (msg) msg.style.display = 'block';
+                    } else {
+                        confirmPwd.classList.remove('input-error');
+                        if (msg) msg.style.display = 'none';
+                    }
+                }
+
+                pwd.addEventListener('input', checkMatch);
+                confirmPwd.addEventListener('input', checkMatch);
+            }
+
+            var form = document.querySelector('form');
+
+            if (form) {
+                form.addEventListener('submit', function () {
+                    form.querySelectorAll('[required]').forEach(function (field) {
+                        if (!field.checkValidity()) {
+                            field.classList.add('input-error');
+                        }
+                    });
+                });
+
+                form.querySelectorAll('[required]').forEach(function (field) {
+                    ['input', 'change'].forEach(function (evt) {
+                        field.addEventListener(evt, function () {
+                            if (field.checkValidity()) {
+                                field.classList.remove('input-error');
+                            }
+                        });
+                    });
+                });
+            }
+        })();
+    </script>
+
+    @include('partials.pwa-register')
+
 </body>
-</html> 
+</html>

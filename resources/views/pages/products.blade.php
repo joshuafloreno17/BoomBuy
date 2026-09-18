@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoomBuy - Products</title>
 
+    @include('partials.pwa-head')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -124,138 +126,6 @@
 
         .buy-now:active {
             transform: translateY(1px);
-        }
-
-        /* =========================
-           NAVBAR — SAME AS BUYER DASHBOARD
-        ========================= */
-
-        .navbar {
-            width: 100%;
-            max-width: 100%;
-            height: 72px;
-            background: #ffffff;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 16px 7%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-
-        .logo {
-            flex-shrink: 0;
-            font-size: 23px;
-            font-weight: 800;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 22px;
-            margin-left: auto;
-            margin-right: 25px;
-            min-width: 0;
-        }
-
-        .nav-links a {
-            color: #8d6c62;
-            font-size: 13px;
-            font-weight: 700;
-            padding: 8px 2px;
-            white-space: nowrap;
-            transition: 0.2s ease;
-        }
-
-        .nav-links a:hover,
-        .nav-links a.active {
-            color: #e8420f;
-        }
-
-        .nav-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-shrink: 0;
-        }
-
-        .nav-right form {
-            margin: 0;
-        }
-
-        .search {
-            width: 220px;
-            padding: 10px 14px;
-            border-radius: 9px;
-            border: 1px solid #fbe2db;
-            background: #fff7f5;
-            outline: none;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 12px;
-            color: #172033;
-        }
-
-        .search::placeholder {
-            color: #a78b84;
-        }
-
-        .search:focus {
-            border-color: #ff7044;
-            background: #ffffff;
-        }
-
-        .cart-link {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            color: #8d6c62;
-            font-size: 13px;
-            font-weight: 700;
-            white-space: nowrap;
-            transition: 0.2s ease;
-        }
-
-        .cart-link:hover {
-            color: #e8420f;
-        }
-
-        .cart-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 5px;
-            background: #ef4444;
-            color: #ffffff;
-            border-radius: 50%;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .logout {
-            border: none;
-            background: #fff3f0;
-            color: #dc2626;
-            padding: 8px 12px;
-            border-radius: 8px !important;
-            cursor: pointer;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            font-size: 12px;
-            font-weight: 700;
-            white-space: nowrap;
-            transition: 0.2s ease;
-        }
-
-        .logout:hover {
-            background: #ffe1e1;
         }
 
         /* =========================
@@ -385,8 +255,65 @@
             border-radius: 14px;
             padding: 15px 18px;
             display: flex;
-            justify-content: flex-end;
+            justify-content: space-between;
             align-items: center;
+            gap: 15px;
+        }
+
+        .filter-search {
+            flex: 1;
+            max-width: 320px;
+
+            border: 1px solid #fbe2db;
+            padding: 9px 12px;
+            border-radius: 8px;
+            color: #172033;
+            background: #fff7f5;
+            outline: none;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .filter-search::placeholder {
+            color: #a78b84;
+        }
+
+        .price-range {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+
+            color: #a78b84;
+            font-size: 12px;
+
+            flex-shrink: 0;
+        }
+
+        .price-input {
+            width: 78px;
+
+            border: 1px solid #fbe2db;
+            padding: 9px 10px;
+            border-radius: 8px;
+            color: #172033;
+            background: #fff7f5;
+            outline: none;
+            font-family: inherit;
+            font-size: 13px;
+        }
+
+        .price-input::placeholder {
+            color: #a78b84;
+        }
+
+        .price-input:focus {
+            border-color: #ff7044;
+            background: #ffffff;
+        }
+
+        .filter-search:focus {
+            border-color: #ff7044;
+            background: #ffffff;
         }
 
         .sort {
@@ -447,6 +374,43 @@
             justify-content: center;
             position: relative;
             overflow: hidden;
+        }
+
+        .wishlist-toggle {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 2;
+
+            width: 32px;
+            height: 32px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: rgba(255, 255, 255, 0.9);
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            font-size: 15px;
+
+            cursor: pointer;
+
+            box-shadow: 0 4px 10px rgba(72, 45, 35, 0.12);
+
+            transition: 0.2s ease;
+        }
+
+        .wishlist-toggle:hover {
+            background: #fff;
+            transform: scale(1.08);
+        }
+
+        .wishlist-toggle svg {
+            width: 16px;
+            height: 16px;
         }
 
         .product-image::after {
@@ -668,19 +632,6 @@
         ========================= */
 
         @media (max-width: 1100px) {
-            .nav-links {
-                gap: 15px;
-                margin-right: 15px;
-            }
-
-            .nav-links a {
-                font-size: 12px;
-            }
-
-            .search {
-                width: 180px;
-            }
-
             .product-grid {
                 grid-template-columns: repeat(3, 1fr);
             }
@@ -691,39 +642,6 @@
         }
 
         @media (max-width: 700px) {
-            .navbar {
-                height: auto;
-                min-height: 72px;
-                padding: 15px 20px;
-                gap: 12px;
-                flex-wrap: wrap;
-            }
-
-            .logo {
-                font-size: 21px;
-            }
-
-            .nav-right {
-                margin-left: auto;
-            }
-
-            .nav-links {
-                order: 3;
-                width: 100%;
-                justify-content: center;
-                margin: 0;
-                gap: 15px;
-                flex-wrap: wrap;
-            }
-
-            .nav-links a {
-                font-size: 12px;
-            }
-
-            .search {
-                width: 180px;
-            }
-
             .product-grid {
                 grid-template-columns: repeat(2, 1fr);
             }
@@ -748,6 +666,21 @@
 
             .filter-bar {
                 justify-content: stretch;
+                flex-wrap: wrap;
+            }
+
+            .filter-search {
+                max-width: none;
+                width: 100%;
+            }
+
+            .price-range {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            .price-input {
+                width: 100%;
             }
 
             .sort {
@@ -789,106 +722,12 @@
             }
         }
 
-        @media (max-width: 450px) {
-            .nav-links {
-                gap: 10px;
-            }
-
-            .nav-links a {
-                font-size: 11px;
-            }
-
-            .search {
-                display: none;
-            }
-
-            .logout {
-                padding: 7px 9px;
-                font-size: 11px;
-            }
-        }
     </style>
 </head>
 
 <body>
 
-    <!-- =========================
-         NAVBAR
-    ========================= -->
-
-    <nav class="navbar">
-
-        <a href="{{ route('buyer.dashboard') }}" class="logo">
-            Boom<span>Buy</span>
-        </a>
-
-        <div class="nav-links">
-
-            <a href="{{ route('buyer.dashboard') }}">
-                Home
-            </a>
-
-            <a href="{{ route('products') }}" class="active">
-                🛍️ Shop
-            </a>
-
-            <a href="{{ route('buyer.orders') }}">
-                📦 My Orders
-            </a>
-
-        </div>
-
-        <div class="nav-right">
-
-            <input
-                type="text"
-                class="search"
-                id="searchInput"
-                placeholder="Search anything..."
-            >
-
-            @php
-                $cartCount = array_sum(session()->get('cart', []));
-            @endphp
-
-            <a href="{{ route('cart') }}" class="cart-link">
-
-                🛒 Cart
-
-                @if($cartCount > 0)
-                    <span class="cart-number" id="cartCount">
-                        {{ $cartCount }}
-                    </span>
-                @else
-                    <span
-                        class="cart-number"
-                        id="cartCount"
-                        style="display: none;"
-                    >
-                        0
-                    </span>
-                @endif
-
-            </a>
-
-            <form
-                action="{{ route('logout') }}"
-                method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
-            >
-                @csrf
-
-                <button
-                    type="submit"
-                    class="logout"
-                >
-                    Logout
-                </button>
-            </form>
-
-        </div>
-
-    </nav>
+    @include('partials.buyer-navbar', ['activeNav' => 'shop'])
 
     <!-- =========================
          PAGE HEADER
@@ -1046,6 +885,27 @@
     ========================= -->
 
     <div class="filter-bar">
+
+        <input
+            type="text"
+            class="filter-search"
+            id="searchInput"
+            placeholder="Search these products..."
+        >
+
+        <div class="price-range">
+            <input type="number" class="price-input" id="minPrice" placeholder="Min ₱" min="0">
+            <span>–</span>
+            <input type="number" class="price-input" id="maxPrice" placeholder="Max ₱" min="0">
+        </div>
+
+        <select class="sort" id="ratingSelect">
+            <option value="0">Any Rating</option>
+            <option value="4">4★ &amp; up</option>
+            <option value="3">3★ &amp; up</option>
+            <option value="2">2★ &amp; up</option>
+            <option value="1">1★ &amp; up</option>
+        </select>
 
         <select class="sort" id="sortSelect">
             <option value="default">Sort by</option>
@@ -1341,6 +1201,21 @@
 
                     <div class="product-image {{ $background }}">
 
+                        @php
+                            $isWishlisted = in_array(
+                                $product['id'] ?? null,
+                                $wishlistedIds ?? []
+                            );
+                        @endphp
+
+                        <button
+                            type="button"
+                            class="wishlist-toggle {{ $isWishlisted ? 'active' : '' }}"
+                            data-product-id="{{ $product['id'] ?? '' }}"
+                            aria-label="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}"
+                            onclick="event.preventDefault(); toggleWishlist(this);"
+                        >@if($isWishlisted)<svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@else<svg viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@endif</button>
+
                         @if($image && $image !== '📦')
 
                             <img
@@ -1348,24 +1223,25 @@
                                     ? $image
                                     : asset('storage/' . ltrim($image, '/')) }}"
                                 alt="{{ $name }}"
+                                style="display:none;"
+                                onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
+                                onerror="this.style.display='none';"
                             >
-
-                        @else
-
-                            <div
-                                style="
-                                    width: 100%;
-                                    height: 100%;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    font-size: 82px;
-                                "
-                            >
-                                📦
-                            </div>
 
                         @endif
+
+                        <div
+                            style="
+                                width: 100%;
+                                height: 100%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                font-size: 82px;
+                            "
+                        >
+                            📦
+                        </div>
 
                     </div>
 
@@ -1550,6 +1426,44 @@
 
     <script>
 
+        var HEART_FILLED = '<svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        var HEART_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+
+        function toggleWishlist(btn) {
+            var productId = btn.dataset.productId;
+            var token = document.querySelector('input[name="_token"]')
+                ? document.querySelector('input[name="_token"]').value
+                : '';
+
+            var form = new FormData();
+            form.append('_token', token);
+
+            fetch('/wishlist/toggle/' + productId, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: form
+            })
+                .then(function (res) {
+                    if (!res.ok) throw new Error('not ok');
+                    return res.json();
+                })
+                .then(function (data) {
+                    btn.classList.toggle('active', data.in_wishlist);
+                    btn.innerHTML = data.in_wishlist ? HEART_FILLED : HEART_OUTLINE;
+                    btn.setAttribute(
+                        'aria-label',
+                        data.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist'
+                    );
+                })
+                .catch(function () {
+                    // Likely a guest — send them to log in
+                    window.location.href = '/login';
+                });
+        }
+
         const products =
             Array.from(
                 document.querySelectorAll(
@@ -1565,6 +1479,21 @@
         const sortSelect =
             document.getElementById(
                 "sortSelect"
+            );
+
+        const minPriceInput =
+            document.getElementById(
+                "minPrice"
+            );
+
+        const maxPriceInput =
+            document.getElementById(
+                "maxPrice"
+            );
+
+        const ratingSelect =
+            document.getElementById(
+                "ratingSelect"
             );
 
         const results =
@@ -1608,6 +1537,37 @@
                             currentCategory.toLowerCase();
 
                     if (!matchesCategory) {
+                        return false;
+                    }
+
+                    const price =
+                        Number(product.dataset.price) || 0;
+
+                    const minPrice =
+                        minPriceInput.value !== ""
+                            ? Number(minPriceInput.value)
+                            : null;
+
+                    const maxPrice =
+                        maxPriceInput.value !== ""
+                            ? Number(maxPriceInput.value)
+                            : null;
+
+                    if (minPrice !== null && price < minPrice) {
+                        return false;
+                    }
+
+                    if (maxPrice !== null && price > maxPrice) {
+                        return false;
+                    }
+
+                    const minRating =
+                        Number(ratingSelect.value) || 0;
+
+                    if (
+                        minRating > 0 &&
+                        Number(product.dataset.rating) < minRating
+                    ) {
                         return false;
                     }
 
@@ -1704,6 +1664,21 @@
         );
 
         sortSelect.addEventListener(
+            "change",
+            updateProducts
+        );
+
+        minPriceInput.addEventListener(
+            "input",
+            updateProducts
+        );
+
+        maxPriceInput.addEventListener(
+            "input",
+            updateProducts
+        );
+
+        ratingSelect.addEventListener(
             "change",
             updateProducts
         );
@@ -1841,6 +1816,8 @@
         updateProducts();
 
     </script>
+
+    @include('partials.pwa-register')
 
 </body>
 </html>

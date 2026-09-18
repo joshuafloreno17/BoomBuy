@@ -6,6 +6,8 @@
 
     <title>Shopping Cart — BoomBuy</title>
 
+    @include('partials.pwa-head')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -24,57 +26,6 @@
         a {
             text-decoration: none;
             color: inherit;
-        }
-
-        .navbar {
-            background: #fff;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            font-size: 23px;
-            font-weight: 700;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 30px;
-            font-size: 14px;
-            color: #8d6c62;
-        }
-
-        .nav-links a:hover {
-            color: #e8420f;
-        }
-
-        .cart-link {
-            color: #e8420f;
-            font-weight: 700;
-            font-size: 14px;
-        }
-
-        .cart-number {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 5px;
-            margin-left: 4px;
-            background: #ef4444;
-            color: white;
-            border-radius: 50%;
-            font-size: 11px;
-            font-weight: 700;
         }
 
         .container {
@@ -397,10 +348,6 @@
         }
 
         @media (max-width: 850px) {
-            .nav-links {
-                display: none;
-            }
-
             .cart-layout {
                 grid-template-columns: 1fr;
             }
@@ -441,32 +388,7 @@
 
 <body>
 
-<nav class="navbar">
-
-    <a href="/" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <div class="nav-links">
-        <a href="/">Home</a>
-        <a href="/products">Shop</a>
-        <a href="/#about">About</a>
-    </div>
-
-    @php
-        $cart = session()->get('cart', []);
-        $cartCount = array_sum($cart);
-    @endphp
-
-    <a href="{{ route('cart') }}" class="cart-link">
-        🛒 Cart
-
-        @if($cartCount > 0)
-            <span class="cart-number">{{ $cartCount }}</span>
-        @endif
-    </a>
-
-</nav>
+@include('partials.buyer-navbar', ['activeNav' => 'cart'])
 
 <div class="container">
 
@@ -567,7 +489,7 @@
                             $totalItems += $quantity;
                         @endphp
 
-                        <div class="cart-item">
+                        <div class="cart-item" id="cart-item-{{ $product->id }}" data-product-id="{{ $product->id }}">
 
                             <div class="product-image">
 
@@ -603,6 +525,8 @@
                                 <div class="quantity">
 
                                     <form
+                                        class="qty-form"
+                                        data-product-id="{{ $product->id }}"
                                         action="{{ route('cart.update', $product->id) }}"
                                         method="POST"
                                     >
@@ -624,11 +548,13 @@
 
                                     </form>
 
-                                    <span class="qty-number">
+                                    <span class="qty-number" id="qty-{{ $product->id }}">
                                         {{ $quantity }}
                                     </span>
 
                                     <form
+                                        class="qty-form"
+                                        data-product-id="{{ $product->id }}"
                                         action="{{ route('cart.update', $product->id) }}"
                                         method="POST"
                                     >
@@ -656,11 +582,13 @@
 
                             <div class="item-right">
 
-                                <div class="item-total">
+                                <div class="item-total" id="item-total-{{ $product->id }}">
                                     ₱{{ number_format($itemTotal, 2) }}
                                 </div>
 
                                 <form
+                                    class="remove-form"
+                                    data-product-id="{{ $product->id }}"
                                     action="{{ route('cart.remove', $product->id) }}"
                                     method="POST"
                                 >
@@ -698,7 +626,7 @@
                         Items
                     </span>
 
-                    <strong>
+                    <strong id="summary-items">
                         {{ $totalItems }}
                     </strong>
 
@@ -710,7 +638,7 @@
                         Subtotal
                     </span>
 
-                    <strong>
+                    <strong id="summary-subtotal">
                         ₱{{ number_format($subtotal, 2) }}
                     </strong>
 
@@ -734,7 +662,7 @@
                         Total
                     </span>
 
-                    <strong>
+                    <strong id="summary-total">
                         ₱{{ number_format($subtotal, 2) }}
                     </strong>
 
@@ -773,6 +701,85 @@
     </div>
 
 </footer>
+
+    <script>
+        (function () {
+            function updateCartBadge(count) {
+                var badge = document.getElementById('cartCount');
+                if (!badge) return;
+
+                badge.textContent = count;
+                badge.style.display = count > 0 ? 'inline-flex' : 'none';
+            }
+
+            function applySummary(data) {
+                var itemsEl = document.getElementById('summary-items');
+                var subtotalEl = document.getElementById('summary-subtotal');
+                var totalEl = document.getElementById('summary-total');
+
+                if (itemsEl) itemsEl.textContent = data.total_items;
+                if (subtotalEl) subtotalEl.textContent = '₱' + data.subtotal;
+                if (totalEl) totalEl.textContent = '₱' + data.subtotal;
+
+                if (typeof data.cart_count !== 'undefined') {
+                    updateCartBadge(data.cart_count);
+                }
+            }
+
+            function submitCartForm(form) {
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: new FormData(form)
+                })
+                    .then(function (res) {
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        return data;
+                    })
+                    .catch(function () {
+                        form.submit();
+                        return null;
+                    })
+                    .then(function (data) {
+                        if (!data) return;
+
+                        var productId = form.dataset.productId;
+
+                        if (data.removed) {
+                            var row = document.getElementById('cart-item-' + productId);
+                            if (row) row.remove();
+                        } else {
+                            var qtyEl = document.getElementById('qty-' + productId);
+                            var totalEl = document.getElementById('item-total-' + productId);
+
+                            if (qtyEl) qtyEl.textContent = data.quantity;
+                            if (totalEl) totalEl.textContent = '₱' + data.item_total;
+                        }
+
+                        if (document.querySelectorAll('.cart-item').length === 0) {
+                            location.reload();
+                            return;
+                        }
+
+                        applySummary(data);
+                    });
+            }
+
+            document.querySelectorAll('.qty-form, .remove-form').forEach(function (form) {
+                form.addEventListener('submit', function (e) {
+                    e.preventDefault();
+                    submitCartForm(form);
+                });
+            });
+        })();
+    </script>
+
+    @include('partials.pwa-register')
 
 </body>
 </html>

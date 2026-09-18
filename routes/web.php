@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use App\Models\Product;
+use App\Mail\OtpMail;
+use Illuminate\Support\Facades\Mail;
 /*
 |--------------------------------------------------------------------------
 | BOOMBUY - HELPER FUNCTIONS
@@ -21,6 +23,49 @@ function requireUserRole($role)
     }
 
     return $user;
+}
+
+function cartSummary($cart)
+{
+    $databaseProducts = \App\Models\Product::whereIn('id', array_keys($cart))
+        ->get()
+        ->keyBy('id');
+
+    $subtotal = 0;
+    $totalItems = 0;
+
+    foreach ($cart as $productId => $quantity) {
+
+        $product = $databaseProducts->get($productId);
+
+        if ($product) {
+            $subtotal += (float) $product->price * (int) $quantity;
+            $totalItems += (int) $quantity;
+        }
+    }
+
+    return [
+        'subtotal' => number_format($subtotal, 2),
+        'total_items' => $totalItems,
+        'cart_count' => array_sum($cart),
+    ];
+}
+
+function generateAndSendOtp($email, $name)
+{
+    $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+    session()->put('otp_code', $otpCode);
+    session()->put('otp_email', $email);
+    session()->put('otp_expires_at', now()->addMinutes(10));
+
+    try {
+        Mail::to($email)->send(new OtpMail($otpCode, $name));
+        return true;
+    } catch (\Throwable $e) {
+        report($e);
+        return false;
+    }
 }
 
 Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request) {
@@ -294,6 +339,39 @@ Route::post('/login', function () {
             ->with('error', 'Invalid email or password.');
     }
 
+    // Sellers and riders must have an Approved application before they
+    // can log in — this is what actually enforces the ID/document
+    // verification we collect at registration.
+    if (in_array($user->role, ['seller', 'rider'])) {
+
+        $applicationTable = $user->role === 'seller'
+            ? 'seller_applications'
+            : 'rider_applications';
+
+        $application = DB::table($applicationTable)
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->first();
+
+        if (!$application || $application->status !== 'Approved') {
+
+            $message = ($application->status ?? null) === 'Rejected'
+                ? 'Your ' . $user->role . ' application was not approved. Please contact support for more information.'
+                : 'Your ' . $user->role . ' account is still pending verification. We will notify you once it has been approved.';
+
+            return back()
+                ->withInput()
+                ->with('error', $message);
+        }
+    }
+
+    // Remember Me — keep the session alive for 30 days instead of the
+    // default lifetime, so the user isn't logged out after a short while.
+    if (request('remember')) {
+        config(['session.lifetime' => 60 * 24 * 30]);
+        config(['session.expire_on_close' => false]);
+    }
+
 session()->put('user', [
     'id' => $user->id,
     'name' => $user->name,
@@ -341,7 +419,7 @@ session()->put('user', [
 // ==========================================================
 
 Route::get('/register', function () {
-    return view('pages.register');
+    return view('register.choose');
 })->name('register');
 
 
@@ -645,6 +723,236 @@ Route::get('/buyer', function () {
     );
 
 })->name('buyer.dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| BUYER PROFILE
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/buyer/profile', function () {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $dbUser = User::find($user['id']);
+
+    $totalOrders = DB::table('orders')
+        ->where('buyer_id', $user['id'])
+        ->count();
+
+    $totalSpent = DB::table('orders')
+        ->where('buyer_id', $user['id'])
+        ->where('status', 'Delivered')
+        ->sum('total_amount');
+
+    return view(
+        'pages.buyer.profile',
+        compact('user', 'dbUser', 'totalOrders', 'totalSpent')
+    );
+
+})->name('buyer.profile');
+
+
+Route::post('/buyer/profile', function () {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $name = trim(request('name'));
+    $phone = trim(request('phone'));
+    $address = trim(request('address'));
+
+    if (empty($name) || empty($phone) || empty($address)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (
+        User::where('phone', $phone)
+            ->where('id', '!=', $user['id'])
+            ->exists()
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    $dbUser = User::find($user['id']);
+    $dbUser->name = $name;
+    $dbUser->phone = $phone;
+    $dbUser->address = $address;
+    $dbUser->save();
+
+    // Keep the session copy in sync so the navbar/name display updates too
+    session()->put('user', array_merge($user, [
+        'name' => $name,
+    ]));
+
+    return back()->with('success', 'Profile updated successfully.');
+
+})->name('buyer.profile.update');
+
+
+Route::post('/buyer/profile/photo', function (\Illuminate\Http\Request $request) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $request->validate([
+        'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    $file = $request->file('profile_photo');
+
+    $filename = 'buyer_' . $user['id'] . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+    $file->storeAs(
+        'profile-photos',
+        $filename,
+        'public'
+    );
+
+    DB::table('users')
+        ->where('id', $user['id'])
+        ->update([
+            'profile_photo' => $filename,
+            'updated_at' => now(),
+        ]);
+
+    $user['profile_photo'] = $filename;
+    session()->put('user', $user);
+
+    return back()->with('success', 'Profile picture updated successfully.');
+
+})->name('buyer.profile.photo');
+
+
+Route::post('/buyer/profile/password', function () {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $current = request('current_password');
+    $new = request('new_password');
+    $confirm = request('new_password_confirmation');
+
+    if (empty($current) || empty($new) || empty($confirm)) {
+        return back()->with('error', 'Please complete all password fields.');
+    }
+
+    $dbUser = User::find($user['id']);
+
+    if (!Hash::check($current, $dbUser->password)) {
+        return back()->with('error', 'Current password is incorrect.');
+    }
+
+    if (strlen($new) < 8) {
+        return back()->with('error', 'New password must be at least 8 characters.');
+    }
+
+    if ($new !== $confirm) {
+        return back()->with('error', 'New passwords do not match.');
+    }
+
+    $dbUser->password = Hash::make($new);
+    $dbUser->save();
+
+    return back()->with('success', 'Password changed successfully.');
+
+})->name('buyer.profile.password');
+
+/*
+|--------------------------------------------------------------------------
+| WISHLIST
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/wishlist', function () {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $products = DB::table('wishlists')
+        ->join('products', 'products.id', '=', 'wishlists.product_id')
+        ->where('wishlists.user_id', $user['id'])
+        ->select('products.*', 'wishlists.created_at as wishlisted_at')
+        ->orderByDesc('wishlists.created_at')
+        ->get();
+
+    return view(
+        'pages.buyer.wishlist',
+        compact('user', 'products')
+    );
+
+})->name('wishlist.index');
+
+
+Route::post('/wishlist/toggle/{id}', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $existing = DB::table('wishlists')
+        ->where('user_id', $user['id'])
+        ->where('product_id', $id)
+        ->first();
+
+    if ($existing) {
+
+        DB::table('wishlists')
+            ->where('id', $existing->id)
+            ->delete();
+
+        $inWishlist = false;
+
+    } else {
+
+        DB::table('wishlists')->insert([
+            'user_id' => $user['id'],
+            'product_id' => $id,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $inWishlist = true;
+    }
+
+    if (request()->wantsJson()) {
+        return response()->json(['in_wishlist' => $inWishlist]);
+    }
+
+    return back()->with(
+        'success',
+        $inWishlist ? 'Added to your wishlist.' : 'Removed from your wishlist.'
+    );
+
+})->name('wishlist.toggle');
 
 /*
 |--------------------------------------------------------------------------
@@ -1422,6 +1730,8 @@ Route::get('/products', function () {
     |--------------------------------------------------------------------------
     */
 
+    $search = trim((string) request('search'));
+
     $databaseProducts = Product::latest()
         ->when(
             $category && isset($categoryMap[$category]),
@@ -1430,6 +1740,18 @@ Route::get('/products', function () {
                 $query->whereIn(
                     'category',
                     $categoryMap[$category]
+                );
+
+            }
+        )
+        ->when(
+            $search !== '',
+            function ($query) use ($search) {
+
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $search . '%'
                 );
 
             }
@@ -1493,16 +1815,66 @@ Route::get('/products', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | WISHLIST STATE (empty for guests)
+    |--------------------------------------------------------------------------
+    */
+
+    $sessionUser = session()->get('user');
+
+    $wishlistedIds = ($sessionUser && ($sessionUser['role'] ?? '') === 'buyer')
+        ? DB::table('wishlists')
+            ->where('user_id', $sessionUser['id'])
+            ->pluck('product_id')
+            ->toArray()
+        : [];
+
+
+    /*
+    |--------------------------------------------------------------------------
     | RETURN SHOP PAGE
     |--------------------------------------------------------------------------
     */
 
     return view(
         'pages.products',
-        compact('products')
+        compact('products', 'wishlistedIds')
     );
 
 })->name('products');
+
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN PRODUCTS LIST
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/admin/products', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $products = Product::latest()
+        ->get()
+        ->map(function ($product) {
+
+            return [
+                'id' => $product->id,
+                'slug' => Str::slug($product->name),
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'icon' => $product->image,
+            ];
+
+        })
+        ->toArray();
+
+    return view('pages.admin-products', compact('products'));
+
+})->name('admin.products');
 
 
 /*
@@ -1779,6 +2151,130 @@ Route::get('/admin/reports', function () {
     );
 
 })->name('admin.reports');
+
+/*
+|--------------------------------------------------------------------------
+| ADMIN — SELLER & RIDER APPLICATIONS
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/admin/applications', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $sellerApplications = DB::table('seller_applications')
+        ->join('users', 'users.id', '=', 'seller_applications.user_id')
+        ->select('seller_applications.*', 'users.email as user_email')
+        ->orderByDesc('seller_applications.created_at')
+        ->get();
+
+    $riderApplications = DB::table('rider_applications')
+        ->join('users', 'users.id', '=', 'rider_applications.user_id')
+        ->select('rider_applications.*', 'users.email as user_email')
+        ->orderByDesc('rider_applications.created_at')
+        ->get();
+
+    return view(
+        'pages.admin.applications',
+        compact('sellerApplications', 'riderApplications')
+    );
+
+})->name('admin.applications');
+
+
+Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    if (!in_array($type, ['seller', 'rider'])) {
+        abort(404);
+    }
+
+    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+
+    $updated = DB::table($table)->where('id', $id)->update([
+        'status' => 'Approved',
+        'admin_remarks' => null,
+        'reviewed_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    if (!$updated) {
+        return back()->with('error', 'Application not found.');
+    }
+
+    return back()->with('success', ucfirst($type) . ' application approved.');
+
+})->name('admin.applications.approve');
+
+
+Route::post('/admin/applications/{type}/{id}/reject', function ($type, $id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    if (!in_array($type, ['seller', 'rider'])) {
+        abort(404);
+    }
+
+    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+
+    $remarks = trim((string) request('admin_remarks'));
+
+    $updated = DB::table($table)->where('id', $id)->update([
+        'status' => 'Rejected',
+        'admin_remarks' => $remarks !== '' ? $remarks : null,
+        'reviewed_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    if (!$updated) {
+        return back()->with('error', 'Application not found.');
+    }
+
+    return back()->with('success', ucfirst($type) . ' application rejected.');
+
+})->name('admin.applications.reject');
+
+
+Route::get('/admin/applications/{type}/{id}/document/{field}', function ($type, $id, $field) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    if (!in_array($type, ['seller', 'rider'])) {
+        abort(404);
+    }
+
+    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+
+    $allowedFields = $type === 'seller'
+        ? ['national_id', 'business_permit']
+        : ['national_id', 'drivers_license', 'profile_selfie', 'proof_of_address', 'or_cr'];
+
+    if (!in_array($field, $allowedFields)) {
+        abort(404);
+    }
+
+    $application = DB::table($table)->where('id', $id)->first();
+
+    if (!$application || empty($application->$field)) {
+        abort(404);
+    }
+
+    if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($application->$field)) {
+        abort(404);
+    }
+
+    return \Illuminate\Support\Facades\Storage::disk('local')->response($application->$field);
+
+})->name('admin.applications.document');
 
 /*
 |--------------------------------------------------------------------------
@@ -3194,8 +3690,17 @@ Route::get('/', function () {
     }
 
 
+    /*
+    |--------------------------------------------------------------------------
+    | FEATURED PRODUCTS FOR THE LANDING PAGE
+    |--------------------------------------------------------------------------
+    */
+
+    $featuredProducts = Product::latest()->take(4)->get();
+
+
     // Guest → Landing Page
-    return view('welcome');
+    return view('welcome', compact('featuredProducts'));
 
 })->name('home');
 
@@ -3228,9 +3733,53 @@ Route::get('/product-details/{id}', function ($id) {
         abort(404);
     }
 
+    // REAL reviews for this product — no reviews yet means no orders
+    // have been delivered and rated for it, which is expected/honest.
+    $reviews = DB::table('product_reviews')
+        ->join('users', 'users.id', '=', 'product_reviews.buyer_id')
+        ->where('product_reviews.product_id', $product->id)
+        ->select(
+            'product_reviews.rating',
+            'product_reviews.review',
+            'product_reviews.created_at',
+            'users.name as buyer_name'
+        )
+        ->orderByDesc('product_reviews.created_at')
+        ->get();
+
+    $reviewCount = $reviews->count();
+
+    $averageRating = $reviewCount > 0
+        ? round($reviews->avg('rating'), 1)
+        : 0;
+
+    // A handful of other products from the same category
+    $relatedProducts = Product::where('category', $product->category)
+        ->where('id', '!=', $product->id)
+        ->latest()
+        ->take(4)
+        ->get();
+
+    // Wishlist state (false for guests)
+    $sessionUser = session()->get('user');
+
+    $isWishlisted = ($sessionUser && ($sessionUser['role'] ?? '') === 'buyer')
+        ? DB::table('wishlists')
+            ->where('user_id', $sessionUser['id'])
+            ->where('product_id', $product->id)
+            ->exists()
+        : false;
+
     return view(
         'pages.product-details',
-        compact('product')
+        compact(
+            'product',
+            'reviews',
+            'reviewCount',
+            'averageRating',
+            'relatedProducts',
+            'isWishlisted'
+        )
     );
 
 })->name('product.details');
@@ -3464,6 +4013,23 @@ Route::post('/cart/update/{slug}', function ($slug) {
         $cart
     );
 
+    if (request()->wantsJson()) {
+
+        $newQuantity = $cart[$slug] ?? 0;
+        $product = Product::find($slug);
+
+        return response()->json(array_merge(
+            [
+                'removed' => $newQuantity <= 0,
+                'quantity' => $newQuantity,
+                'item_total' => $product
+                    ? number_format((float) $product->price * $newQuantity, 2)
+                    : '0.00',
+            ],
+            cartSummary($cart)
+        ));
+    }
+
     return back();
 
 })->name('cart.update');
@@ -3484,6 +4050,14 @@ Route::post('/cart/remove/{slug}', function ($slug) {
         'cart',
         $cart
     );
+
+    if (request()->wantsJson()) {
+
+        return response()->json(array_merge(
+            ['removed' => true],
+            cartSummary($cart)
+        ));
+    }
 
     return back()->with(
         'success',
@@ -4639,7 +5213,7 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
 
     $validated = $request->validate([
         'full_name' => ['required', 'string', 'max:255'],
-        'phone' => ['required', 'string', 'max:30'],
+        'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
         'address' => ['required', 'string', 'max:1000'],
 
         'vehicle_type' => [
@@ -4698,6 +5272,10 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
             'mimes:jpg,jpeg,png,webp,pdf',
             'max:5120'
         ],
+
+        'terms' => ['accepted'],
+    ], [
+        'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
     ]);
 
     $userId = DB::transaction(function () use ($request, $validated) {
@@ -4805,6 +5383,12 @@ Route::post('/buyer/register', function () {
             ->with('error', 'Please complete all fields.');
     }
 
+    if (!request('terms')) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
+    }
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return back()
             ->withInput()
@@ -4830,19 +5414,276 @@ Route::post('/buyer/register', function () {
             ->with('error', 'Email is already registered.');
     }
 
-    // CREATE BUYER ACCOUNT
-    User::create([
+    // CHECK EXISTING PHONE NUMBER
+    if (User::where('phone', $phone)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    // Hold registration data until OTP is verified — walang naka-save sa DB pa
+    session()->put('pending_registration', [
         'name' => $name,
         'email' => $email,
         'password' => Hash::make($password),
+        'phone' => $phone,
+        'address' => $address,
         'role' => 'buyer',
     ]);
 
-    return redirect()
-        ->route('login')
-        ->with(
-            'success',
-            'Buyer account created successfully! You can now log in.'
-        );
+    if (!generateAndSendOtp($email, $name)) {
+        return back()
+            ->withInput()
+            ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
+    }
 
-})->name('buyer.register.submit');  
+    return redirect()
+        ->route('otp.show')
+        ->with('success', 'We sent a 6-digit code to your email.');
+
+})->name('buyer.register.submit');
+
+
+// Seller Registration Page
+Route::get('/seller/register', function () {
+    return view('pages.seller.register');
+})->name('seller.register');
+
+
+// Seller Registration Submit
+Route::post('/seller/register', function (\Illuminate\Http\Request $request) {
+
+    $name = trim($request->input('name'));
+    $email = strtolower(trim($request->input('email')));
+    $password = $request->input('password');
+    $passwordConfirmation = $request->input('password_confirmation');
+    $phone = trim($request->input('phone'));
+    $address = trim($request->input('address'));
+
+    // VALIDATION
+    if (
+        empty($name) ||
+        empty($email) ||
+        empty($password) ||
+        empty($passwordConfirmation) ||
+        empty($phone) ||
+        empty($address)
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (!request('terms')) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please enter a valid email address.');
+    }
+
+    if (strlen($password) < 8) {
+        return back()
+            ->withInput()
+            ->with('error', 'Password must be at least 8 characters.');
+    }
+
+    if ($password !== $passwordConfirmation) {
+        return back()
+            ->withInput()
+            ->with('error', 'Passwords do not match.');
+    }
+
+    // CHECK EXISTING EMAIL
+    if (User::where('email', $email)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'Email is already registered.');
+    }
+
+    // CHECK EXISTING PHONE NUMBER
+    if (User::where('phone', $phone)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    // SELLER VERIFICATION DOCUMENTS
+    $request->validate([
+        'national_id' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120',
+        ],
+
+        'business_permit' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:5120',
+        ],
+    ], [], [
+        'national_id' => 'valid government ID',
+        'business_permit' => 'proof of business',
+    ]);
+
+    // Store the documents now (private disk) — the account itself is only
+    // created once the OTP is verified, so we keep the file paths in the
+    // pending_registration session data alongside the rest of the form.
+    $folder = 'seller-applications/' . (string) Str::uuid();
+
+    $nationalIdPath = $request
+        ->file('national_id')
+        ->store($folder, 'local');
+
+    $businessPermitPath = $request
+        ->file('business_permit')
+        ->store($folder, 'local');
+
+    // Hold registration data until OTP is verified — walang naka-save sa DB pa
+    session()->put('pending_registration', [
+        'name' => $name,
+        'email' => $email,
+        'password' => Hash::make($password),
+        'phone' => $phone,
+        'address' => $address,
+        'role' => 'seller',
+        'national_id' => $nationalIdPath,
+        'business_permit' => $businessPermitPath,
+    ]);
+
+    if (!generateAndSendOtp($email, $name)) {
+        return back()
+            ->withInput()
+            ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
+    }
+
+    return redirect()
+        ->route('otp.show')
+        ->with('success', 'We sent a 6-digit code to your email.');
+
+})->name('seller.register.submit');
+
+
+// Verify OTP Page
+Route::get('/verify-otp', function () {
+
+    if (!session()->has('pending_registration')) {
+        return redirect()->route('register');
+    }
+
+    return view('pages.verify-otp');
+
+})->name('otp.show');
+
+
+// Verify OTP Submit
+Route::post('/verify-otp', function () {
+
+    
+    $pending = session()->get('pending_registration');
+
+    if (!$pending) {
+        return redirect()->route('register')
+            ->with('error', 'Your registration session expired. Please register again.');
+    }
+
+    $inputCode = trim(request('otp_code'));
+
+    $storedCode = session()->get('otp_code');
+    $expiresAt = session()->get('otp_expires_at');
+
+    if (
+        empty($storedCode) ||
+        $storedCode !== $inputCode ||
+        !$expiresAt ||
+        now()->greaterThan($expiresAt)
+    ) {
+        return back()->with('error', 'Invalid or expired code.');
+    }
+
+    // Ngayon lang gagawin ang account, matapos ma-verify ang email
+    $user = User::create([
+        'name' => $pending['name'],
+        'email' => $pending['email'],
+        'password' => $pending['password'],
+        'role' => $pending['role'],
+        'phone' => $pending['phone'],
+        'address' => $pending['address'],
+        'is_verified' => true,
+    ]);
+
+    // Sellers also submitted verification documents during registration —
+    // create their application record now that the account exists.
+    if ($pending['role'] === 'seller') {
+        DB::table('seller_applications')->insert([
+            'user_id' => $user->id,
+
+            'full_name' => $pending['name'],
+            'phone' => $pending['phone'],
+            'address' => $pending['address'],
+
+            'national_id' => $pending['national_id'] ?? null,
+            'business_permit' => $pending['business_permit'] ?? null,
+
+            'status' => 'Pending Verification',
+
+            'admin_remarks' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    session()->forget(['pending_registration', 'otp_code', 'otp_email', 'otp_expires_at']);
+
+    // Sellers need admin approval before they can access their account —
+    // send them to login (which enforces that check) instead of auto
+    // logging them in.
+    if ($user->role === 'seller') {
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Your seller account has been created! We\'re verifying your documents — you\'ll be able to log in once approved.'
+            );
+    }
+
+    session()->put('user', [
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'profile_photo' => $user->profile_photo,
+    ]);
+
+    return redirect()
+        ->route('buyer.dashboard')
+        ->with('success', 'Welcome to BoomBuy!');
+
+})->name('otp.verify');
+
+
+// Resend OTP
+Route::post('/resend-otp', function () {
+
+    $pending = session()->get('pending_registration');
+
+    if (!$pending) {
+        return redirect()->route('register');
+    }
+
+    if (!generateAndSendOtp($pending['email'], $pending['name'])) {
+        return back()->with('error', 'We could not resend the verification code right now. Please try again in a moment.');
+    }
+
+    return back()->with('success', 'A new code has been sent to your email.');
+
+})->name('otp.resend');
