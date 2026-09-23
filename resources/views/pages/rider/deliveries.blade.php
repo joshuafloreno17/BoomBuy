@@ -4,7 +4,6 @@
 <head>
 
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>My Deliveries — BoomBuy</title>
@@ -12,8 +11,8 @@
     @include('partials.pwa-head')
 
     <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
+        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
         * {
             margin: 0;
@@ -21,351 +20,647 @@
             box-sizing: border-box;
         }
 
+        html,
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            background: #fbf6f5;
-            color: #222;
+            width: 100%;
+            min-height: 100%;
+            overflow-x: hidden;
         }
 
-        /* =========================
-           SIDEBAR
-        ========================= */
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #fff7f4;
+            color: #172033;
+        }
 
-        .sidebar {
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        button,
+        input,
+        select {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+
+        /* =========================================================
+           RIDER SIDEBAR
+        ========================================================= */
+
+        .rider-sidebar {
+
             position: fixed;
+
             left: 0;
             top: 0;
 
             width: 250px;
             height: 100vh;
 
-            background: #111827;
-            color: white;
+            background: #ffffff;
 
-            padding: 25px 18px;
+            border-right: 1px solid #f7e5e0;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+
+            padding: 26px 16px;
+
+            z-index: 1000;
         }
 
-        .logo {
-            font-size: 27px;
-            font-weight: bold;
 
-            margin-bottom: 35px;
-
-            padding-left: 10px;
-        }
-
-        .logo span {
-            color: #f9bc16;
-        }
-
-        .menu-title {
-            font-size: 12px;
-
-            color: #b0a09b;
-
-            text-transform: uppercase;
-
-            margin: 20px 10px 10px;
-
-            letter-spacing: 1px;
-        }
-
-        .menu a {
-            display: block;
-
-            text-decoration: none;
-
-            color: #dbd3d1;
-
-            padding: 13px 12px;
-
-            border-radius: 8px;
-
-            margin-bottom: 6px;
-
-            transition: 0.2s;
-        }
-
-        .menu a:hover,
-        .menu a.active {
-            background: #f9bc16;
-
-            color: white;
-        }
-
-        /* LOGOUT */
-
-        .logout {
-            position: absolute;
-
-            bottom: 25px;
-
-            left: 18px;
-
-            right: 18px;
-        }
-
-        .logout button {
+        .rider-sidebar-top {
             width: 100%;
+        }
+
+
+        /* =========================================================
+           BRAND
+        ========================================================= */
+
+        .rider-brand {
+
+            display: flex;
+            align-items: center;
+
+            gap: 11px;
+
+            padding: 0 10px;
+
+            margin-bottom: 30px;
+
+            color: #172033;
+        }
+
+
+        .rider-brand-icon {
+
+            width: 42px;
+            height: 42px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #fff0eb;
+
+            border-radius: 12px;
+
+            font-size: 21px;
+        }
+
+
+        .rider-brand-name {
+
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 25px;
+            font-weight: 800;
+
+            line-height: 1;
+        }
+
+
+        .rider-brand-role {
+
+            margin-top: 4px;
+
+            color: #c47a66;
+
+            font-size: 10px;
+            font-weight: 600;
+        }
+
+
+        /* =========================================================
+           SIDEBAR NAVIGATION
+        ========================================================= */
+
+        .rider-sidebar-nav {
+
+            display: flex;
+            flex-direction: column;
+
+            gap: 6px;
+        }
+
+
+        .rider-sidebar-link {
+
+            position: relative;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            width: 100%;
+
+            padding: 12px 14px;
+
+            border-radius: 11px;
+
+            color: #6f5d58;
+
+            font-size: 12px;
+            font-weight: 700;
+
+            transition: .2s ease;
+        }
+
+
+        .rider-sidebar-link:hover {
+
+            background: #fff4f0;
+
+            color: #e8420f;
+
+            transform: translateX(2px);
+        }
+
+
+        .rider-sidebar-link.active {
+
+            background: #ef4715;
+
+            color: #ffffff;
+
+            box-shadow: 0 7px 18px rgba(232, 66, 15, .18);
+        }
+
+
+        .sidebar-icon {
+
+            width: 22px;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            font-size: 16px;
+        }
+
+
+        .sidebar-notification-badge {
+
+            margin-left: auto;
+
+            min-width: 19px;
+            height: 19px;
+
+            padding: 0 5px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            background: #ef4715;
+
+            color: #ffffff;
+
+            border-radius: 999px;
+
+            font-size: 9px;
+            font-weight: 800;
+        }
+
+
+        .rider-sidebar-link.active .sidebar-notification-badge {
+
+            background: #ffffff;
+
+            color: #ef4715;
+        }
+
+
+        /* =========================================================
+           SIDEBAR BOTTOM
+        ========================================================= */
+
+        .rider-sidebar-bottom {
+
+            width: 100%;
+        }
+
+
+        .rider-sidebar-divider {
+
+            width: 100%;
+
+            height: 1px;
+
+            background: #f7e5e0;
+
+            margin-bottom: 14px;
+        }
+
+
+        .rider-sidebar-bottom form {
+            width: 100%;
+        }
+
+
+        .rider-sidebar-logout {
+
+            width: 100%;
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            padding: 12px 14px;
 
             border: none;
 
-            background: #dc2626;
+            background: transparent;
 
-            color: white;
+            color: #e8420f;
 
-            padding: 12px;
+            border-radius: 11px;
 
-            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
 
             cursor: pointer;
 
-            font-size: 14px;
+            text-align: left;
+
+            transition: .2s ease;
         }
 
-        .logout button:hover {
-            background: #b91c1c;
+
+        .rider-sidebar-logout:hover {
+
+            background: #fff0eb;
         }
 
 
-        /* =========================
+        /* =========================================================
            MAIN
-        ========================= */
+        ========================================================= */
 
         .main {
+
+            width: calc(100% - 250px);
+
+            min-height: 100vh;
+
             margin-left: 250px;
 
-            padding: 30px;
+            padding: 38px 40px 70px;
         }
+
+
+        .content-wrapper {
+
+            width: 100%;
+
+            max-width: 1200px;
+
+            margin: 0 auto;
+        }
+
+
+        /* =========================================================
+           TOPBAR
+        ========================================================= */
 
         .topbar {
+
             display: flex;
 
             justify-content: space-between;
-
             align-items: center;
-
-            margin-bottom: 30px;
-        }
-
-        .topbar h1 {
-            font-size: 28px;
-        }
-
-        .subtitle {
-            color: #816f6a;
-
-            margin-top: 6px;
-        }
-
-        .profile {
-            background: white;
-
-            padding: 10px 16px;
-
-            border-radius: 10px;
-
-            box-shadow:
-                0 2px 10px rgba(0,0,0,0.05);
-        }
-
-        .profile strong {
-            color: #111827;
-        }
-
-
-        /* =========================
-           ALERTS
-        ========================= */
-
-        .alert {
-            padding: 14px 18px;
-
-            border-radius: 10px;
-
-            margin-bottom: 20px;
-
-            font-size: 14px;
-        }
-
-        .success {
-            background: #dcfce7;
-
-            color: #166534;
-        }
-
-        .error {
-            background: #fee2e2;
-
-            color: #991b1b;
-        }
-
-
-        /* =========================
-           FILTER
-        ========================= */
-
-        .filter-box {
-            background: white;
-
-            padding: 18px;
-
-            border-radius: 14px;
-
-            margin-bottom: 20px;
-
-            box-shadow:
-                0 2px 12px rgba(0,0,0,0.05);
-        }
-
-        .filter-box label {
-            font-size: 13px;
-
-            color: #816f6a;
-
-            margin-right: 10px;
-        }
-
-        .filter-box select {
-            padding: 10px 13px;
-
-            border: 1px solid #dbd3d1;
-
-            border-radius: 8px;
-
-            outline: none;
-
-            background: white;
-
-            cursor: pointer;
-        }
-
-
-        /* =========================
-           DELIVERY GRID
-        ========================= */
-
-        .deliveries {
-            display: grid;
-
-            grid-template-columns:
-                repeat(2, 1fr);
 
             gap: 20px;
+
+            margin-bottom: 28px;
         }
 
 
-        /* =========================
-           DELIVERY CARD
-        ========================= */
+        .topbar h1 {
 
-        .delivery-card {
-            background: white;
+            font-family: 'Baloo 2', sans-serif;
 
-            border-radius: 14px;
+            color: #172033;
 
-            padding: 22px;
+            font-size: 32px;
+            font-weight: 800;
 
-            box-shadow:
-                0 2px 12px rgba(0,0,0,0.05);
-
-            transition: 0.2s;
+            line-height: 1.15;
         }
 
-        .delivery-card:hover {
-            transform: translateY(-2px);
 
-            box-shadow:
-                0 5px 18px rgba(0,0,0,0.08);
+        .subtitle {
+
+            margin-top: 5px;
+
+            color: #977970;
+
+            font-size: 13px;
+
+            line-height: 1.5;
         }
 
-        .delivery-header {
+
+        .profile {
+
             display: flex;
-
-            justify-content: space-between;
-
             align-items: center;
 
-            gap: 15px;
+            gap: 9px;
 
-            margin-bottom: 18px;
-        }
+            background: #ffffff;
 
-        .order-id {
-            font-size: 18px;
+            border: 1px solid #f7e5e0;
 
-            font-weight: bold;
-        }
+            padding: 10px 15px;
 
+            border-radius: 11px;
 
-        /* =========================
-           STATUS
-        ========================= */
-
-        .status {
-            padding: 7px 11px;
-
-            border-radius: 20px;
+            color: #977970;
 
             font-size: 12px;
 
-            font-weight: bold;
+            flex-shrink: 0;
+        }
 
-            background: #fffaed;
 
-            color: #eaaf0c;
+        .profile strong {
+
+            color: #172033;
+
+            font-weight: 800;
+        }
+
+
+        /* =========================================================
+           ALERTS
+        ========================================================= */
+
+        .alert {
+
+            padding: 13px 17px;
+
+            border-radius: 11px;
+
+            margin-bottom: 20px;
+
+            font-size: 12px;
+            font-weight: 600;
+
+            border: 1px solid transparent;
+        }
+
+
+        .success {
+
+            background: #ecfdf5;
+
+            color: #047857;
+
+            border-color: #bbf7d0;
+        }
+
+
+        .error {
+
+            background: #fff1f2;
+
+            color: #be123c;
+
+            border-color: #fecdd3;
+        }
+
+
+        /* =========================================================
+           FILTER
+        ========================================================= */
+
+        .filter-box {
+
+            display: flex;
+            align-items: center;
+
+            gap: 12px;
+
+            background: #ffffff;
+
+            border: 1px solid #f7e5e0;
+
+            padding: 16px 18px;
+
+            border-radius: 14px;
+
+            margin-bottom: 25px;
+        }
+
+
+        .filter-box label {
+
+            color: #977970;
+
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+
+        .filter-box select {
+
+            min-width: 190px;
+
+            padding: 9px 12px;
+
+            border: 1px solid #f3d8d0;
+
+            border-radius: 9px;
+
+            outline: none;
+
+            background: #ffffff;
+
+            color: #523d36;
+
+            font-size: 12px;
+
+            cursor: pointer;
+        }
+
+
+        .filter-box select:focus {
+
+            border-color: #ef4715;
+
+            box-shadow: 0 0 0 3px rgba(232, 66, 15, .08);
+        }
+
+
+        /* =========================================================
+           DELIVERY GRID
+        ========================================================= */
+
+        .deliveries {
+
+            display: grid;
+
+            grid-template-columns:
+                repeat(2, minmax(0, 1fr));
+
+            gap: 18px;
+        }
+
+
+        /* =========================================================
+           DELIVERY CARD
+        ========================================================= */
+
+        .delivery-card {
+
+            background: #ffffff;
+
+            border: 1px solid #f7e5e0;
+
+            border-radius: 15px;
+
+            padding: 20px;
+
+            transition: .2s ease;
+
+            overflow: hidden;
+        }
+
+
+        .delivery-card:hover {
+
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 10px 28px rgba(232, 66, 15, .08);
+        }
+
+
+        .delivery-header {
+
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 17px;
+        }
+
+
+        .order-id {
+
+            color: #172033;
+
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 19px;
+            font-weight: 800;
+        }
+
+
+        /* =========================================================
+           STATUS
+        ========================================================= */
+
+        .status {
+
+            padding: 6px 10px;
+
+            border-radius: 999px;
+
+            font-size: 10px;
+            font-weight: 800;
 
             white-space: nowrap;
         }
 
-        .status.delivered {
-            background: #dcfce7;
 
-            color: #166534;
+        .status.delivered {
+
+            background: #ecfdf5;
+
+            color: #059669;
         }
+
 
         .status.transit {
-            background: #ffe3da;
 
-            color: #df4516;
+            background: #fff0eb;
+
+            color: #e8420f;
         }
+
 
         .status.pending {
-            background: #fef3c7;
 
-            color: #926f0e;
+            background: #fff8ed;
+
+            color: #b77900;
         }
 
 
-        /* =========================
+        .status.ready {
+
+            background: #fff0eb;
+
+            color: #e8420f;
+        }
+
+
+        /* =========================================================
            INFO
-        ========================= */
+        ========================================================= */
 
         .info {
-            border-top:
-                1px solid #ebe6e5;
 
-            padding-top: 15px;
+            border-top: 1px solid #f7e5e0;
+
+            padding-top: 13px;
         }
 
+
         .info-row {
+
             display: flex;
 
             justify-content: space-between;
 
+            align-items: flex-start;
+
             gap: 20px;
 
-            padding: 8px 0;
+            padding: 7px 0;
 
-            font-size: 14px;
+            font-size: 12px;
         }
+
 
         .info-label {
-            color: #816f6a;
+
+            color: #977970;
+
+            flex-shrink: 0;
         }
 
+
         .info-value {
-            font-weight: 500;
+
+            color: #523d36;
+
+            font-weight: 600;
 
             text-align: right;
 
@@ -373,26 +668,36 @@
         }
 
 
-        /* =========================
+        /* =========================================================
            BUTTONS
-        ========================= */
+        ========================================================= */
 
         .buttons {
+
             display: flex;
 
-            gap: 10px;
+            gap: 8px;
 
-            margin-top: 18px;
+            margin-top: 17px;
+
+            flex-wrap: wrap;
         }
 
-        .btn {
-            flex: 1;
 
-            padding: 10px;
+        .btn {
+
+            min-height: 36px;
+
+            display: inline-flex;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 8px 12px;
 
             border: none;
 
-            border-radius: 8px;
+            border-radius: 9px;
 
             text-decoration: none;
 
@@ -400,44 +705,59 @@
 
             cursor: pointer;
 
-            font-size: 13px;
+            font-size: 11px;
+            font-weight: 800;
 
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            transition: .2s ease;
+        }
+
+
+        .btn:hover {
+
+            transform: translateY(-1px);
         }
 
 
         /* VIEW */
 
         .view-btn {
-            background: #f9bc16;
 
-            color: white;
+            background: #ef4715;
+
+            color: #ffffff;
+
+            flex: 1;
         }
 
+
         .view-btn:hover {
-            background: #eaaf0c;
+
+            background: #cf370b;
         }
 
 
         /* CLAIM */
 
         .claim-form {
+
             flex: 1;
         }
 
-        .claim-btn {
-            width: 100%;
 
-            border: none;
+        .claim-btn {
+
+            width: 100%;
 
             background: #16a34a;
 
-            color: white;
+            color: #ffffff;
 
-            font-weight: bold;
+            font-weight: 800;
         }
 
+
         .claim-btn:hover {
+
             background: #15803d;
         }
 
@@ -445,175 +765,401 @@
         /* UPDATE */
 
         .status-btn {
-            background: #111827;
 
-            color: white;
+            background: #fff0eb;
+
+            color: #e8420f;
+
+            border: 1px solid #f6cfc4;
+
+            flex: 1;
         }
+
 
         .status-btn:hover {
-            background: #523d36;
+
+            background: #ffe3da;
         }
 
 
-        /* =========================
+        /* =========================================================
            EMPTY
-        ========================= */
+        ========================================================= */
 
         .empty {
-            background: white;
 
-            border-radius: 14px;
+            background: #ffffff;
 
-            padding: 60px 20px;
+            border: 1px solid #f7e5e0;
+
+            border-radius: 15px;
+
+            padding: 55px 20px;
 
             text-align: center;
 
-            box-shadow:
-                0 2px 12px rgba(0,0,0,0.05);
+            box-shadow: 0 6px 20px rgba(232, 66, 15, .04);
         }
+
 
         .empty-icon {
-            font-size: 60px;
 
-            margin-bottom: 15px;
+            width: 60px;
+            height: 60px;
+
+            display: flex;
+
+            align-items: center;
+            justify-content: center;
+
+            margin: 0 auto 13px;
+
+            background: #fff0eb;
+
+            border-radius: 16px;
+
+            font-size: 27px;
         }
+
 
         .empty h2 {
-            margin-bottom: 8px;
+
+            color: #172033;
+
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 21px;
+            font-weight: 800;
+
+            margin-bottom: 5px;
         }
+
 
         .empty p {
-            color: #b0a09b;
+
+            color: #977970;
+
+            font-size: 12px;
         }
 
 
-        /* =========================
-           RESPONSIVE
-        ========================= */
+        /* =========================================================
+           FOOTER
+        ========================================================= */
 
-        @media (max-width: 950px) {
+        .page-footer {
+
+            margin-top: 35px;
+
+            padding-top: 22px;
+
+            border-top: 1px solid #f7e5e0;
+
+            display: flex;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            color: #977970;
+
+            font-size: 11px;
+        }
+
+
+        .page-footer strong {
+
+            color: #e8420f;
+        }
+
+
+        /* =========================================================
+           RESPONSIVE
+        ========================================================= */
+
+        @media (max-width: 1000px) {
 
             .deliveries {
+
                 grid-template-columns: 1fr;
             }
 
         }
 
 
-        @media (max-width: 700px) {
+        @media (max-width: 760px) {
 
-            .sidebar {
-                width: 210px;
+            .rider-sidebar {
+
+                width: 78px;
+
+                padding: 22px 10px;
             }
+
+
+            .rider-brand {
+
+                justify-content: center;
+
+                padding: 0;
+
+                margin-bottom: 25px;
+            }
+
+
+            .rider-brand-icon {
+
+                width: 42px;
+                height: 42px;
+            }
+
+
+            .rider-brand > div:last-child {
+
+                display: none;
+            }
+
+
+            .rider-sidebar-link {
+
+                justify-content: center;
+
+                padding: 12px 8px;
+            }
+
+
+            .rider-sidebar-link > span:not(.sidebar-icon):not(.sidebar-notification-badge) {
+
+                display: none;
+            }
+
+
+            .sidebar-icon {
+
+                font-size: 17px;
+            }
+
+
+            .sidebar-notification-badge {
+
+                position: absolute;
+
+                top: 4px;
+                right: 5px;
+            }
+
+
+            .rider-sidebar-bottom .rider-sidebar-logout {
+
+                justify-content: center;
+
+                padding: 12px 8px;
+            }
+
+
+            .rider-sidebar-logout > span:not(.sidebar-icon) {
+
+                display: none;
+            }
+
 
             .main {
-                margin-left: 210px;
 
-                padding: 20px;
-            }
+                width: calc(100% - 78px);
 
-            .topbar {
-                flex-direction: column;
+                margin-left: 78px;
 
-                align-items: flex-start;
-
-                gap: 15px;
+                padding: 28px 22px 55px;
             }
 
         }
 
 
-        @media (max-width: 500px) {
+        @media (max-width: 560px) {
 
-            .sidebar {
+            .rider-sidebar {
+
                 position: relative;
 
                 width: 100%;
 
                 height: auto;
 
-                display: flex;
-                flex-direction: column;
-                padding: 14px 16px;
+                min-height: auto;
+
+                padding: 12px;
+
+                border-right: none;
+
+                border-bottom: 1px solid #f7e5e0;
             }
 
-            .logo {
-                font-size: 20px;
-                margin-bottom: 10px;
+
+            .rider-brand {
+
+                justify-content: flex-start;
+
+                margin-bottom: 12px;
+
+                padding: 0 5px;
             }
 
-            .menu-title {
+
+            .rider-brand > div:last-child {
+
+                display: block;
+            }
+
+
+            .rider-sidebar-nav {
+
+                flex-direction: row;
+
+                overflow-x: auto;
+
+                padding-bottom: 3px;
+
+                gap: 5px;
+            }
+
+
+            .rider-sidebar-link {
+
+                width: auto;
+
+                flex-shrink: 0;
+
+                justify-content: flex-start;
+
+                padding: 9px 11px;
+
+                gap: 7px;
+
+                font-size: 11px;
+            }
+
+
+            .rider-sidebar-link > span:not(.sidebar-icon):not(.sidebar-notification-badge) {
+
+                display: inline;
+            }
+
+
+            .rider-sidebar-bottom {
+
+                margin-top: 8px;
+            }
+
+
+            .rider-sidebar-divider {
+
                 display: none;
             }
 
-            .menu {
+
+            .rider-sidebar-bottom form {
+
                 display: flex;
-                flex-direction: row;
-                overflow-x: auto;
-                gap: 8px;
-                margin-bottom: 4px;
-                -webkit-overflow-scrolling: touch;
             }
 
-            .menu a {
-                white-space: nowrap;
-                margin-bottom: 0;
-                flex-shrink: 0;
-                font-size: 13px;
-                padding: 10px 14px;
+
+            .rider-sidebar-logout {
+
+                width: auto;
+
+                padding: 8px 11px;
+
+                font-size: 11px;
             }
+
+
+            .rider-sidebar-logout > span:not(.sidebar-icon) {
+
+                display: inline;
+            }
+
 
             .main {
+
+                width: 100%;
+
                 margin-left: 0;
+
+                padding: 22px 14px 45px;
             }
 
-            .logout {
-                position: static;
-                margin-top: 10px;
+
+            .topbar {
+
+                flex-direction: column;
+
+                align-items: flex-start;
+
+                margin-bottom: 22px;
             }
 
-            .deliveries {
-                grid-template-columns: 1fr;
+
+            .topbar h1 {
+
+                font-size: 28px;
             }
 
-            .delivery-header {
+
+            .profile {
+
+                width: 100%;
+
+                justify-content: center;
+            }
+
+
+            .filter-box {
+
                 flex-direction: column;
 
                 align-items: flex-start;
             }
 
-            .buttons {
+
+            .filter-box select {
+
+                width: 100%;
+            }
+
+
+            .delivery-header {
+
+                align-items: flex-start;
+
                 flex-direction: column;
+            }
+
+
+            .buttons {
+
+                flex-direction: column;
+            }
+
+
+            .buttons .btn,
+            .claim-form {
+
+                width: 100%;
+
+                flex: none;
+            }
+
+
+            .page-footer {
+
+                flex-direction: column;
+
+                text-align: center;
             }
 
         }
 
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
+    </style>
 
 </head>
 
@@ -621,570 +1167,694 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 <body>
 
 
-<!-- =========================
-     SIDEBAR
-========================= -->
+    <!-- =========================================================
+         RIDER SIDEBAR
+    ========================================================= -->
 
-<aside class="sidebar">
+    <aside class="rider-sidebar">
 
-    <div class="logo">
 
-        Boom<span>Buy</span>
+        <div class="rider-sidebar-top">
 
-    </div>
 
+            <!-- BRAND -->
 
-    <div class="menu-title">
+            <a
+                href="{{ route('rider.dashboard') }}"
+                class="rider-brand"
+            >
 
-        Rider Menu
+                <div class="rider-brand-icon">
+                    🛍️
+                </div>
 
-    </div>
+                <div>
 
+                    <div class="rider-brand-name">
+                        BoomBuy
+                    </div>
 
-    <div class="menu">
+                    <div class="rider-brand-role">
+                        Rider Center
+                    </div>
 
-        <a href="{{ route('rider.dashboard') }}">
+                </div>
 
-            🏠 Dashboard
+            </a>
 
-        </a>
 
+            <!-- NAVIGATION -->
 
-        <a
-            href="{{ route('rider.deliveries') }}"
-            class="active"
-        >
+            <nav class="rider-sidebar-nav">
 
-            🚚 My Deliveries
 
-        </a>
+                <a
+                    href="{{ route('rider.dashboard') }}"
+                    class="rider-sidebar-link
+                        {{ request()->routeIs('rider.dashboard') ? 'active' : '' }}"
+                >
 
+                    <span class="sidebar-icon">
+                        🏠
+                    </span>
 
-        <a href="{{ route('rider.profile') }}">
+                    <span>
+                        Dashboard
+                    </span>
 
-            👤 My Profile
+                </a>
 
-        </a>
 
-    </div>
+                <a
+                    href="{{ route('rider.deliveries') }}"
+                    class="rider-sidebar-link
+                        {{ request()->routeIs('rider.deliveries') ? 'active' : '' }}"
+                >
 
+                    <span class="sidebar-icon">
+                        🚚
+                    </span>
 
-    <div class="menu-title">
+                    <span>
+                        My Deliveries
+                    </span>
 
-        Account
+                </a>
 
-    </div>
 
+                <a
+                    href="{{ route('rider.profile') }}"
+                    class="rider-sidebar-link
+                        {{ request()->routeIs('rider.profile') ? 'active' : '' }}"
+                >
 
-    <div class="menu">
+                    <span class="sidebar-icon">
+                        👤
+                    </span>
 
-        <a href="{{ url('/') }}">
+                    <span>
+                        My Profile
+                    </span>
 
-            🛍️ BoomBuy Store
-
-        </a>
-
-    </div>
-
-
-    <div class="logout">
-
-        <form
-            method="POST"
-            action="{{ route('logout') }}"
-        >
-
-            @csrf
-
-            <button type="submit">
-
-                🚪 Logout
-
-            </button>
-
-        </form>
-
-    </div>
-
-</aside>
-
-
-
-<!-- =========================
-     MAIN
-========================= -->
-
-<main class="main">
-
-
-    <!-- TOPBAR -->
-
-    <div class="topbar">
-
-        <div>
-
-            <h1>
-                My Deliveries
-            </h1>
-
-            <p class="subtitle">
-                Manage and track your assigned orders.
-            </p>
-
-        </div>
-
-
-        <div class="profile">
-
-            🚴
-
-            <strong>
-                {{ $user['name'] ?? 'Rider' }}
-            </strong>
-
-        </div>
-
-    </div>
-
-
-
-    <!-- =========================
-         ALERTS
-    ========================= -->
-
-    @if(session('success'))
-
-        <div class="alert success">
-
-            ✅ {{ session('success') }}
-
-        </div>
-
-    @endif
-
-
-    @if(session('error'))
-
-        <div class="alert error">
-
-            ❌ {{ session('error') }}
-
-        </div>
-
-    @endif
-
-
-
-    <!-- =========================
-         FILTER
-    ========================= -->
-
-    <div class="filter-box">
-
-        <label for="statusFilter">
-
-            Filter by Status:
-
-        </label>
-
-
-        <select id="statusFilter">
-
-            <option value="all">
-                All Deliveries
-            </option>
-
-            <option value="Pending">
-                Pending
-            </option>
-
-            <option value="Ready for Pickup">
-                Ready for Pickup
-            </option>
-
-            <option value="Picked Up">
-                Picked Up
-            </option>
-
-            <option value="On the Way">
-                On the Way
-            </option>
-
-            <option value="Delivered">
-                Delivered
-            </option>
-
-        </select>
-
-    </div>
-
-
-
-    <!-- =========================
-         DELIVERIES
-    ========================= -->
-
-    @if(count($deliveries ?? []) > 0)
-
-
-        <div class="deliveries">
-
-
-            @foreach($deliveries as $delivery)
+                </a>
 
 
                 @php
 
-                    $status =
-                        $delivery['status']
-                        ?? 'Pending';
-
-
-                    $statusClass =
-                        'pending';
-
-
-                    if (
-                        $status === 'Picked Up' ||
-                        $status === 'On the Way'
-                    ) {
-
-                        $statusClass =
-                            'transit';
-
-                    }
-
-
-                    if (
-                        $status === 'Delivered'
-                    ) {
-
-                        $statusClass =
-                            'delivered';
-
-                    }
+                    $riderUnreadNotifications =
+                        \App\Models\Notification::where(
+                            'user_id',
+                            $user['id']
+                        )
+                        ->whereNull('read_at')
+                        ->count();
 
                 @endphp
 
 
-
-                <!-- DELIVERY CARD -->
-
-                <div
-                    class="delivery-card"
-                    data-status="{{ $status }}"
+                <a
+                    href="{{ route('rider.notifications') }}"
+                    class="rider-sidebar-link
+                        {{ request()->routeIs('rider.notifications') ? 'active' : '' }}"
                 >
 
+                    <span class="sidebar-icon">
+                        🔔
+                    </span>
 
-                    <!-- HEADER -->
+                    <span>
+                        Notifications
+                    </span>
 
-                    <div class="delivery-header">
+                    @if($riderUnreadNotifications > 0)
+
+                        <span class="sidebar-notification-badge">
+                            {{ $riderUnreadNotifications }}
+                        </span>
+
+                    @endif
+
+                </a>
 
 
-                        <div class="order-id">
+                <a
+                    href="{{ url('/') }}"
+                    class="rider-sidebar-link"
+                >
 
-                            📦 Order #{{ $delivery['id'] ?? 'N/A' }}
+                    <span class="sidebar-icon">
+                        🛒
+                    </span>
 
-                        </div>
+                    <span>
+                        Store
+                    </span>
 
+                </a>
+
+
+            </nav>
+
+        </div>
+
+
+        <!-- =====================================================
+             SIDEBAR BOTTOM
+        ===================================================== -->
+
+        <div class="rider-sidebar-bottom">
+
+
+            <div class="rider-sidebar-divider"></div>
+
+
+            <form
+                action="{{ route('logout') }}"
+                method="POST"
+                onsubmit="return confirm('Are you sure you want to log out?');"
+            >
+
+                @csrf
+
+                <button
+                    type="submit"
+                    class="rider-sidebar-logout"
+                >
+
+                    <span class="sidebar-icon">
+                        🚪
+                    </span>
+
+                    <span>
+                        Logout
+                    </span>
+
+                </button>
+
+            </form>
+
+
+        </div>
+
+    </aside>
+
+
+
+    <!-- =========================================================
+         MAIN
+    ========================================================= -->
+
+    <main class="main">
+
+
+        <div class="content-wrapper">
+
+
+            <!-- =====================================================
+                 TOPBAR
+            ===================================================== -->
+
+            <div class="topbar">
+
+
+                <div>
+
+                    <h1>
+                        My Deliveries
+                    </h1>
+
+                    <p class="subtitle">
+                        Manage and track your assigned orders.
+                    </p>
+
+                </div>
+
+
+                <div class="profile">
+
+                    🚴
+
+                    <strong>
+                        {{ $user['name'] ?? 'Rider' }}
+                    </strong>
+
+                </div>
+
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 ALERTS
+            ===================================================== -->
+
+            @if(session('success'))
+
+                <div class="alert success">
+                    ✅ {{ session('success') }}
+                </div>
+
+            @endif
+
+
+            @if(session('error'))
+
+                <div class="alert error">
+                    ❌ {{ session('error') }}
+                </div>
+
+            @endif
+
+
+
+            <!-- =====================================================
+                 FILTER
+            ===================================================== -->
+
+            <div class="filter-box">
+
+                <label for="statusFilter">
+                    Filter by Status:
+                </label>
+
+
+                <select id="statusFilter">
+
+                    <option value="all">
+                        All Deliveries
+                    </option>
+
+                    <option value="Pending">
+                        Pending
+                    </option>
+
+                    <option value="Ready for Pickup">
+                        Ready for Pickup
+                    </option>
+
+                    <option value="Picked Up">
+                        Picked Up
+                    </option>
+
+                    <option value="Out for Delivery">
+                        Out for Delivery
+                    </option>
+
+                    <option value="Delivered">
+                        Delivered
+                    </option>
+
+                </select>
+
+            </div>
+
+
+
+            <!-- =====================================================
+                 DELIVERIES
+            ===================================================== -->
+
+            @if(count($deliveries ?? []) > 0)
+
+
+                <div class="deliveries">
+
+
+                    @foreach($deliveries as $delivery)
+
+
+                        @php
+
+                            $status =
+                                $delivery['status']
+                                ?? 'Pending';
+
+
+                            $statusClass = 'pending';
+
+
+                            if ($status === 'Ready for Pickup') {
+
+                                $statusClass = 'ready';
+
+                            }
+
+
+                            if (
+                                $status === 'Picked Up' ||
+                                $status === 'Out for Delivery'
+                            ) {
+
+                                $statusClass = 'transit';
+
+                            }
+
+
+                            if ($status === 'Delivered') {
+
+                                $statusClass = 'delivered';
+
+                            }
+
+                        @endphp
+
+
+
+                        <!-- DELIVERY CARD -->
 
                         <div
-                            class="status {{ $statusClass }}"
+                            class="delivery-card"
+                            data-status="{{ $status }}"
                         >
 
-                            {{ $status }}
 
-                        </div>
+                            <!-- HEADER -->
 
-
-                    </div>
+                            <div class="delivery-header">
 
 
+                                <div class="order-id">
 
-                    <!-- INFO -->
+                                    📦
 
-                    <div class="info">
+                                    Order #{{ $delivery['id'] ?? 'N/A' }}
 
-
-                        <div class="info-row">
-
-                            <span class="info-label">
-                                Customer
-                            </span>
+                                </div>
 
 
-                            <span class="info-value">
+                                <div
+                                    class="status {{ $statusClass }}"
+                                >
 
-                                {{ $delivery['buyer_name'] ?? 'Customer' }}
+                                    {{ $status }}
 
-                            </span>
+                                </div>
 
-                        </div>
-
-
-
-                        <div class="info-row">
-
-                            <span class="info-label">
-                                Address
-                            </span>
-
-
-                            <span class="info-value">
-
-                                {{ $delivery['address'] ?? 'No address provided' }}
-
-                            </span>
-
-                        </div>
-
-
-
-                        <div class="info-row">
-
-                            <span class="info-label">
-                                Amount
-                            </span>
-
-
-                            <span class="info-value">
-
-                                ₱{{ number_format($delivery['total'] ?? 0, 2) }}
-
-                            </span>
-
-                        </div>
-
-
-
-                        <div class="info-row">
-
-                            <span class="info-label">
-                                Payment
-                            </span>
-
-
-                            <span class="info-value">
-
-                                {{ $delivery['payment'] ?? 'Cash on Delivery' }}
-
-                            </span>
-
-                        </div>
-
-
-
-                        @if(
-                            isset($delivery['items']) &&
-                            is_array($delivery['items'])
-                        )
-
-                            <div class="info-row">
-
-                                <span class="info-label">
-                                    Items
-                                </span>
-
-
-                                <span class="info-value">
-
-                                    {{ count($delivery['items']) }}
-                                    item(s)
-
-                                </span>
 
                             </div>
 
-                        @endif
 
 
-                    </div>
+                            <!-- INFO -->
+
+                            <div class="info">
+
+
+                                <div class="info-row">
+
+                                    <span class="info-label">
+                                        Customer
+                                    </span>
+
+                                    <span class="info-value">
+
+                                        {{ $delivery['buyer_name'] ?? 'Customer' }}
+
+                                    </span>
+
+                                </div>
 
 
 
-                    <!-- =========================
-                         BUTTONS
-                    ========================= -->
+                                <div class="info-row">
 
-                    <div class="buttons">
+                                    <span class="info-label">
+                                        Address
+                                    </span>
 
+                                    <span class="info-value">
 
-                        {{-- =========================
-                             READY FOR PICKUP
-                        ========================= --}}
+                                        {{ $delivery['address'] ?? 'No address provided' }}
 
-                        @if(
-                            $status === 'Ready for Pickup' &&
-                            empty($delivery['rider_id'] ?? null)
-                        )
+                                    </span>
+
+                                </div>
 
 
-                            <form
-                                method="POST"
-                                action="{{ route('rider.delivery.claim', $delivery['id']) }}"
-                                class="claim-form"
-                            >
 
-                                @csrf
+                                <div class="info-row">
+
+                                    <span class="info-label">
+                                        Amount
+                                    </span>
+
+                                    <span class="info-value">
+
+                                        ₱{{ number_format($delivery['total'] ?? 0, 2) }}
+
+                                    </span>
+
+                                </div>
 
 
-                                <button
-                                    type="submit"
-                                    class="btn claim-btn"
+
+                                <div class="info-row">
+
+                                    <span class="info-label">
+                                        Payment
+                                    </span>
+
+                                    <span class="info-value">
+
+                                        {{ $delivery['payment'] ?? 'Cash on Delivery' }}
+
+                                    </span>
+
+                                </div>
+
+
+
+                                @if(
+                                    isset($delivery['items']) &&
+                                    is_array($delivery['items'])
+                                )
+
+                                    <div class="info-row">
+
+                                        <span class="info-label">
+                                            Items
+                                        </span>
+
+                                        <span class="info-value">
+
+                                            {{ count($delivery['items']) }}
+
+                                            item(s)
+
+                                        </span>
+
+                                    </div>
+
+                                @endif
+
+
+                            </div>
+
+
+
+                            <!-- BUTTONS -->
+
+                            <div class="buttons">
+
+
+                                {{-- READY FOR PICKUP --}}
+
+                                @if(
+                                    $status === 'Ready for Pickup' &&
+                                    empty($delivery['rider_id'] ?? null)
+                                )
+
+
+                                    <form
+                                        method="POST"
+                                        action="{{ route(
+                                            'rider.delivery.claim',
+                                            $delivery['id']
+                                        ) }}"
+                                        class="claim-form"
+                                    >
+
+                                        @csrf
+
+                                        <button
+                                            type="submit"
+                                            class="btn claim-btn"
+                                        >
+
+                                            🚚 Pick Up Order
+
+                                        </button>
+
+                                    </form>
+
+
+                                @endif
+
+
+
+                                {{-- VIEW DETAILS --}}
+
+                                <a
+                                    href="{{ route(
+                                        'rider.delivery.details',
+                                        $delivery['id']
+                                    ) }}"
+                                    class="btn view-btn"
                                 >
 
-                                    🚚 Pick Up Order
+                                    👁 View Details
 
-                                </button>
-
-
-                            </form>
-
-
-                        @endif
+                                </a>
 
 
 
-                        {{-- =========================
-                             VIEW DETAILS
-                        ========================= --}}
+                                {{-- UPDATE STATUS --}}
 
-                        <a
-                            href="{{ route('rider.delivery.details', $delivery['id']) }}"
-                            class="btn view-btn"
-                        >
-
-                            👁 View Details
-
-                        </a>
+                                @if(
+                                    !empty($delivery['rider_id'] ?? null) &&
+                                    $status !== 'Delivered'
+                                )
 
 
+                                    <a
+                                        href="{{ route(
+                                            'rider.delivery.details',
+                                            $delivery['id']
+                                        ) }}"
+                                        class="btn status-btn"
+                                    >
 
-                        {{-- =========================
-                             UPDATE STATUS
-                        ========================= --}}
+                                        🔄 Update Status
 
-                        @if(
-                            !empty($delivery['rider_id'] ?? null) &&
-                            $status !== 'Delivered'
-                        )
-
-
-                            <a
-                                href="{{ route('rider.delivery.details', $delivery['id']) }}"
-                                class="btn status-btn"
-                            >
-
-                                🔄 Update Status
-
-                            </a>
+                                    </a>
 
 
-                        @endif
+                                @endif
 
 
-                    </div>
+                            </div>
+
+
+                        </div>
+
+
+                    @endforeach
 
 
                 </div>
 
 
-            @endforeach
+            @else
 
 
-        </div>
+                <!-- EMPTY STATE -->
+
+                <div class="empty">
 
 
-    @else
+                    <div class="empty-icon">
+                        🚚
+                    </div>
 
 
-        <!-- EMPTY STATE -->
+                    <h2>
+                        No Deliveries Yet
+                    </h2>
 
-        <div class="empty">
+
+                    <p>
+                        Orders assigned to you will appear here.
+                    </p>
 
 
-            <div class="empty-icon">
+                </div>
 
-                🚚
+
+            @endif
+
+
+
+            <!-- =====================================================
+                 FOOTER
+            ===================================================== -->
+
+            <div class="page-footer">
+
+                <div>
+
+                    © 2026
+
+                    <strong>
+                        BoomBuy
+                    </strong>
+
+                </div>
+
+
+                <div>
+                    Rider Center
+                </div>
 
             </div>
 
 
-            <h2>
-
-                No Deliveries Yet
-
-            </h2>
-
-
-            <p>
-
-                Orders assigned to you will appear here.
-
-            </p>
-
-
         </div>
 
 
-    @endif
-
-
-</main>
+    </main>
 
 
 
-<!-- =========================
-     FILTER SCRIPT
-========================= -->
+    <!-- =========================================================
+         FILTER SCRIPT
+    ========================================================= -->
 
-<script>
+    <script>
 
-    const statusFilter =
-        document.getElementById('statusFilter');
-
-
-    const deliveryCards =
-        document.querySelectorAll('.delivery-card');
+        const statusFilter =
+            document.getElementById('statusFilter');
 
 
-    statusFilter.addEventListener(
-        'change',
-        function () {
-
-            const selected =
-                this.value;
+        const deliveryCards =
+            document.querySelectorAll('.delivery-card');
 
 
-            deliveryCards.forEach(
-                function (card) {
+        statusFilter.addEventListener(
+            'change',
+            function () {
 
-                    const status =
-                        card.dataset.status;
+                const selected =
+                    this.value;
 
 
-                    if (
-                        selected === 'all' ||
-                        status === selected
-                    ) {
+                deliveryCards.forEach(
+                    function (card) {
 
-                        card.style.display =
-                            '';
+                        const status =
+                            card.dataset.status;
 
-                    } else {
 
-                        card.style.display =
-                            'none';
+                        if (
+                            selected === 'all' ||
+                            status === selected
+                        ) {
+
+                            card.style.display = '';
+
+                        } else {
+
+                            card.style.display = 'none';
+
+                        }
 
                     }
+                );
 
-                }
-            );
+            }
+        );
 
-        }
-    );
-
-</script>
+    </script>
 
 
     @include('partials.pwa-register')

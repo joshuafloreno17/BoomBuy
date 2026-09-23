@@ -44,6 +44,55 @@ button {
 }
 
 /* =========================
+   ADMIN NOTIFICATION
+========================= */
+
+.topbar-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.notification-button {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: 1px solid #f7e5e0;
+    background: #ffffff;
+    color: #e8420f;
+    border-radius: 10px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s ease;
+}
+
+.notification-button:hover {
+    background: #fff4f1;
+    transform: translateY(-1px);
+}
+
+.notification-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border-radius: 20px;
+    background: #e8420f;
+    color: #ffffff;
+    font-size: 9px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid #ffffff;
+}
+
+
+/* =========================
    SIDEBAR
 ========================= */
 
@@ -991,44 +1040,105 @@ button:hover {
 
     <main class="main">
 
-        <!-- TOPBAR -->
+      <!-- TOPBAR -->
+<div class="topbar">
 
-        <div class="topbar">
+    <div>
+        <small>
+            BoomBuy Administration
+        </small>
 
-            <div>
+        <h1>
+            Dashboard
+        </h1>
+    </div>
 
-                <small>
-                    BoomBuy Administration
-                </small>
+    <!-- RIGHT SIDE -->
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:12px;
+    ">
 
-                <h1>
-                    Dashboard
-                </h1>
+        <!-- NOTIFICATION -->
+        @php
+            $adminUser = \App\Models\User::where(
+                'email',
+                'admin@boombuy.com'
+            )->first();
 
+            $adminUnreadNotifications = $adminUser
+                ? \App\Models\Notification::where(
+                    'user_id',
+                    $adminUser->id
+                )
+                ->whereNull('read_at')
+                ->count()
+                : 0;
+        @endphp
+
+        <a
+            href="{{ route('notifications.index') }}"
+            class="notification-button"
+            title="Notifications"
+        >
+            <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="19"
+                height="19"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+            >
+                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
+                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+
+            @if($adminUnreadNotifications > 0)
+                <span class="notification-badge">
+                    {{ $adminUnreadNotifications > 9 ? '9+' : $adminUnreadNotifications }}
+                </span>
+            @endif
+        </a>
+
+        <!-- ADMIN PROFILE -->
+        <div class="admin-profile">
+
+            <div class="profile-icon">
+                <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                    <circle cx="12" cy="7" r="4"/>
+                </svg>
             </div>
 
-            <div class="admin-profile">
-
-                <div class="profile-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <div>
+                <div class="profile-name">
+                    Administrator
                 </div>
 
-                <div>
-
-                    <div class="profile-name">
-                        Administrator
-                    </div>
-
-                    <div class="profile-role">
-                        Store Manager
-                    </div>
-
+                <div class="profile-role">
+                    Store Manager
                 </div>
-
             </div>
 
         </div>
 
+    </div>
+
+</div>
         <!-- =========================
              DASHBOARD STATS
         ========================= -->

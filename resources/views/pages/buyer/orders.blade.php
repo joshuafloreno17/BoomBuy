@@ -537,6 +537,28 @@
         font-weight: 800;
     }
 
+    .return-btn{border:1px solid #f3c6ba;background:#fff5f1;color:#d9471c;padding:11px 16px;border-radius:12px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
+    .return-btn:hover{background:#ffe9e1}
+    .return-modal{display:none;position:fixed;inset:0;z-index:9999;background:rgba(31,41,55,.55);padding:20px;align-items:center;justify-content:center}
+    .return-modal.active{display:flex}
+    .return-modal-card{width:100%;max-width:560px;max-height:90vh;overflow-y:auto;background:#fff;border-radius:18px;padding:24px;box-shadow:0 20px 60px rgba(0,0,0,.18)}
+    .return-modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:15px;margin-bottom:20px}
+    .return-modal-title{font-family:'Baloo 2',sans-serif;font-size:25px;font-weight:800;color:#523d36}
+    .return-modal-subtitle{color:#816f6a;font-size:12px;margin-top:3px}
+    .return-close{border:none;background:#f7f2f0;color:#6f5a52;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;font-weight:800}
+    .return-form-group{margin-bottom:16px}
+    .return-form-group label{display:block;margin-bottom:7px;color:#523d36;font-size:12px;font-weight:800}
+    .return-form-group select,.return-form-group textarea{width:100%;border:1px solid #eadfd8;border-radius:10px;padding:11px 13px;font-family:inherit;font-size:13px;outline:none;background:#fff}
+    .return-form-group select:focus,.return-form-group textarea:focus{border-color:#f34f1d;box-shadow:0 0 0 3px rgba(243,79,29,.10)}
+    .return-form-group textarea{min-height:90px;resize:vertical}
+    .return-note{background:#fff8f4;border:1px solid #f3dfd7;color:#7d6259;padding:12px 14px;border-radius:10px;font-size:11px;line-height:1.5;margin-bottom:18px}
+    .return-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+    .return-cancel,.return-submit{border:none;padding:11px 16px;border-radius:10px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
+    .return-cancel{background:#f3efed;color:#67544d}
+    .return-submit{background:#f34f1d;color:#fff}
+    .return-submit:hover{background:#df4516}
+    @media(max-width:600px){.return-modal{padding:12px}.return-modal-card{padding:18px}}
+
     /* =========================
        TRACKING PANEL
     ========================= */
@@ -1190,48 +1212,44 @@
 
                                 <div class="footer-actions">
 
-                                    <!-- TRACK -->
+                                    @if(empty($order['buyer_received_at']))
 
-                                    <button
-                                        type="button"
-                                        class="track-btn"
-                                        onclick="toggleTracking('{{ $trackingId }}')"
-                                    >
-                                        📍 Track Order
-                                    </button>
-
-                                    <!-- ORDER RECEIVED -->
-
-                                    @if(
-                                        ($order['status'] ?? '') === 'Delivered'
-                                        && empty($order['buyer_received_at'])
-                                    )
-
-                                        <form
-                                            method="POST"
-                                            action="{{ route(
-                                                'buyer.order.received',
-                                                $order['id']
-                                            ) }}"
+                                        <a
+                                            href="{{ route('buyer.order.track', ['id' => $order['id']]) }}"
+                                            class="track-btn"
                                         >
+                                            📍 Track Order
+                                        </a>
 
-                                            @csrf
-
-                                            <button
-                                                type="submit"
-                                                class="received-btn"
-                                                onclick="return confirm('Confirm that you received this order?')"
+                                        @if(($order['status'] ?? '') === 'Delivered')
+                                            <form
+                                                method="POST"
+                                                action="{{ route('buyer.order.received', $order['id']) }}"
                                             >
-                                                📦 Order Received
-                                            </button>
+                                                @csrf
+                                                <button
+                                                    type="submit"
+                                                    class="received-btn"
+                                                    onclick="return confirm('Confirm that you received this order?')"
+                                                >
+                                                    📦 Order Received
+                                                </button>
+                                            </form>
+                                        @endif
 
-                                        </form>
-
-                                    @elseif(!empty($order['buyer_received_at']))
+                                    @else
 
                                         <div class="received-badge">
                                             ✓ Order Received
                                         </div>
+
+                                        <button
+                                            type="button"
+                                            class="return-btn"
+                                            onclick="openReturnRefund('{{ $order['id'] }}')"
+                                        >
+                                            ↩️ Return / Refund
+                                        </button>
 
                                     @endif
 
@@ -1243,7 +1261,110 @@
                                  TRACKING PANEL
                             ========================= -->
 
+                            @if(!empty($order['buyer_received_at']))
+
                             <div
+                                id="return-modal-{{ $order['id'] }}"
+                                class="return-modal"
+                                onclick="closeReturnRefundOutside(event, '{{ $order['id'] }}')"
+                            >
+                                <div class="return-modal-card" onclick="event.stopPropagation()">
+
+                                    <div class="return-modal-head">
+                                        <div>
+                                            <div class="return-modal-title">↩️ Return / Refund</div>
+                                            <div class="return-modal-subtitle">
+                                                Order #{{ $order['id'] }}
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            type="button"
+                                            class="return-close"
+                                            onclick="closeReturnRefund('{{ $order['id'] }}')"
+                                        >
+                                            ×
+                                        </button>
+                                    </div>
+
+                                    <div class="return-note">
+                                        Your order has already been marked as received.
+                                        Choose the item and tell us why you want a return or refund.
+                                    </div>
+
+                                    <form
+                                        method="POST"
+                                        action="{{ route('buyer.return-refund.store', ['orderId' => $order['id']]) }}"
+                                    >
+                                        @csrf
+
+                                        <div class="return-form-group">
+                                            <label for="return-item-{{ $order['id'] }}">Product</label>
+                                            <select id="return-item-{{ $order['id'] }}" name="order_item_id" required>
+                                                <option value="">Select product</option>
+                                                @foreach($order['items'] ?? [] as $returnItem)
+                                                    @if(!empty($returnItem['id']))
+                                                        <option value="{{ $returnItem['id'] }}">
+                                                            {{ $returnItem['name'] ?? 'Product' }}
+                                                            — Qty {{ $returnItem['quantity'] ?? 1 }}
+                                                            — ₱{{ number_format((float)($returnItem['subtotal'] ?? 0), 2) }}
+                                                        </option>
+                                                    @endif
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="request-type-{{ $order['id'] }}">Request Type</label>
+                                            <select id="request-type-{{ $order['id'] }}" name="request_type" required>
+                                                <option value="">Select request type</option>
+                                                <option value="Return">Return the item</option>
+                                                <option value="Refund">Refund only</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="return-reason-{{ $order['id'] }}">Reason</label>
+                                            <select id="return-reason-{{ $order['id'] }}" name="reason" required>
+                                                <option value="">Select reason</option>
+                                                <option value="Wrong item received">Wrong item received</option>
+                                                <option value="Damaged item">Damaged item</option>
+                                                <option value="Defective product">Defective product</option>
+                                                <option value="Missing item">Missing item</option>
+                                                <option value="Item doesn't match description">Item doesn't match description</option>
+                                                <option value="Other">Other</option>
+                                            </select>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="return-message-{{ $order['id'] }}">Additional Details</label>
+                                            <textarea
+                                                id="return-message-{{ $order['id'] }}"
+                                                name="message"
+                                                placeholder="Explain what happened (optional)"
+                                            ></textarea>
+                                        </div>
+
+                                        <div class="return-actions">
+                                            <button
+                                                type="button"
+                                                class="return-cancel"
+                                                onclick="closeReturnRefund('{{ $order['id'] }}')"
+                                            >
+                                                Cancel
+                                            </button>
+
+                                            <button type="submit" class="return-submit">
+                                                Submit Request
+                                            </button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                        @endif
+
+                        <div
                                 id="{{ $trackingId }}"
                                 class="tracking-panel"
                             >
@@ -1851,6 +1972,40 @@
         }, 300);
 
     }
+
+    /* =========================
+       RETURN / REFUND MODAL
+    ========================= */
+
+    function openReturnRefund(orderId) {
+        const modal = document.getElementById('return-modal-' + orderId);
+        if (!modal) return;
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeReturnRefund(orderId) {
+        const modal = document.getElementById('return-modal-' + orderId);
+        if (!modal) return;
+        modal.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    function closeReturnRefundOutside(event, orderId) {
+        if (event.target.classList.contains('return-modal')) {
+            closeReturnRefund(orderId);
+        }
+    }
+
+    document.addEventListener('keydown', function(event) {
+        if (event.key !== 'Escape') return;
+
+        document.querySelectorAll('.return-modal.active').forEach(function(modal) {
+            modal.classList.remove('active');
+        });
+
+        document.body.style.overflow = '';
+    });
 
     /* =========================
        RATING PANEL

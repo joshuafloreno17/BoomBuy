@@ -41,7 +41,7 @@
         display: flex;
         align-items: center;
 
-        gap: 28px;
+        gap: 22px;
 
         margin-left: 40px;
         margin-right: auto;
@@ -337,6 +337,17 @@
     $bbNavUser = session()->get('user');
     $bbCartCount = array_sum(session()->get('cart', []));
     $bbActive = $activeNav ?? null;
+
+    $bbNotificationCount = 0;
+
+    if ($bbNavUser) {
+        $bbNotificationCount = \App\Models\Notification::where(
+            'user_id',
+            $bbNavUser['id']
+        )
+        ->whereNull('read_at')
+        ->count();
+    }
 @endphp
 
 <nav class="bb-navbar">
@@ -355,15 +366,37 @@
             Shop
         </a>
 
-        @if($bbNavUser)
-            <a href="{{ route('buyer.orders') }}" class="{{ $bbActive === 'orders' ? 'active' : '' }}">
-                My Orders
-            </a>
+@if($bbNavUser)
 
-            <a href="{{ route('wishlist.index') }}" class="{{ $bbActive === 'wishlist' ? 'active' : '' }}">
-                Wishlist
-            </a>
-        @endif
+    <a
+        href="{{ route('buyer.orders') }}"
+        class="{{ $bbActive === 'orders' ? 'active' : '' }}"
+    >
+        My Orders
+    </a>
+
+    <a
+        href="{{ route('wishlist.index') }}"
+        class="{{ $bbActive === 'wishlist' ? 'active' : '' }}"
+    >
+        Wishlist
+    </a>
+
+    <a
+        href="{{ route('notifications') }}"
+        class="bb-cart-link {{ $bbActive === 'notifications' ? 'active' : '' }}"
+    >
+        🔔 Notifications
+
+        <span
+            class="bb-cart-number"
+            style="{{ $bbNotificationCount > 0 ? '' : 'display:none;' }}"
+        >
+            {{ $bbNotificationCount }}
+        </span>
+    </a>
+
+@endif
 
         <a href="{{ route('cart') }}" class="bb-cart-link {{ $bbActive === 'cart' ? 'active' : '' }}">
             Cart

@@ -372,6 +372,10 @@
             color: #24965a;
         }
 
+        .summary-card.red .summary-value {
+            color: #d6362b;
+        }
+
         /* =========================
            EMPTY
         ========================= */
@@ -422,6 +426,42 @@
             color: #927c75;
 
             font-size: 13px;
+        }
+
+        /* =========================
+           SECTION HEADING (used for Returns block)
+        ========================= */
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+
+            margin: 40px 0 16px;
+        }
+
+        .section-heading h2 {
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 22px;
+            font-weight: 800;
+            color: #2d2523;
+        }
+
+        .section-heading .count-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+
+            padding: 6px 12px;
+
+            border-radius: 999px;
+
+            background: #fff0e9;
+            color: #e4491f;
+
+            font-size: 11px;
+            font-weight: 800;
         }
 
         /* =========================
@@ -519,6 +559,22 @@
             border-radius: 50%;
 
             background: currentColor;
+        }
+
+        /* status color variants — used by both orders and return requests */
+        .status.status-approved {
+            background: #eafaf0;
+            color: #24733e;
+        }
+
+        .status.status-rejected {
+            background: #fdeceb;
+            color: #c23b2c;
+        }
+
+        .status.status-pending {
+            background: #fff3cd;
+            color: #9a7210;
         }
 
         /* =========================
@@ -685,6 +741,260 @@
         }
 
         /* =========================
+           RETURN / REFUND REQUESTS
+        ========================= */
+
+        .return-card {
+            background: #ffffff;
+
+            border: 1px solid #f2e4df;
+
+            border-radius: 20px;
+
+            margin-bottom: 18px;
+
+            overflow: hidden;
+
+            box-shadow: 0 6px 24px rgba(104, 70, 60, 0.055);
+
+            transition: 0.2s ease;
+        }
+
+        .return-card:hover {
+            transform: translateY(-2px);
+
+            box-shadow: 0 10px 28px rgba(104, 70, 60, 0.08);
+        }
+
+        .return-header {
+            display: flex;
+
+            justify-content: space-between;
+            align-items: center;
+
+            gap: 20px;
+
+            padding: 20px 22px;
+
+            background: #fff8f5;
+
+            border-bottom: 1px solid #f4e7e2;
+        }
+
+        .return-id {
+            font-family: 'Baloo 2', sans-serif;
+
+            font-size: 19px;
+            font-weight: 800;
+
+            color: #2d2523;
+        }
+
+        .return-id .order-ref {
+            font-size: 11px;
+            font-weight: 700;
+            color: #a08b83;
+
+            margin-left: 6px;
+        }
+
+        .return-body {
+            padding: 18px 22px 4px;
+        }
+
+        .return-block {
+            margin-bottom: 16px;
+        }
+
+        .return-block-title {
+            font-size: 10px;
+            font-weight: 800;
+
+            color: #a18d86;
+
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+
+            margin-bottom: 5px;
+        }
+
+        .return-block-text {
+            font-size: 13px;
+            font-weight: 600;
+            color: #3a2f2b;
+            line-height: 1.6;
+
+            background: #fff8f5;
+            border: 1px solid #f4e6e1;
+            border-radius: 12px;
+            padding: 12px 14px;
+        }
+
+        .seller-note-box {
+            background: #fff1eb;
+            border: 1px solid #f7d9cb;
+        }
+
+        .return-footer {
+            display: flex;
+
+            justify-content: flex-end;
+            align-items: center;
+
+            gap: 10px;
+
+            padding: 16px 22px 22px;
+
+            border-top: 1px solid #f1e8e4;
+            margin-top: 8px;
+        }
+
+        .btn {
+            border: none;
+            cursor: pointer;
+            font-family: inherit;
+
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+
+            padding: 11px 18px;
+
+            border-radius: 12px;
+
+            font-size: 12px;
+            font-weight: 800;
+
+            transition: 0.2s ease;
+        }
+
+        .btn-approve {
+            background: #24965a;
+            color: #ffffff;
+            box-shadow: 0 5px 12px rgba(36, 150, 90, 0.18);
+        }
+
+        .btn-approve:hover {
+            background: #1e8049;
+            transform: translateY(-1px);
+        }
+
+        .btn-reject {
+            background: #ffffff;
+            color: #d6362b;
+            border: 1px solid #f4c9c3;
+        }
+
+        .btn-reject:hover {
+            background: #fff0ee;
+            transform: translateY(-1px);
+        }
+
+        /* =========================
+           REJECT MODAL
+        ========================= */
+
+        .modal-overlay {
+            display: none;
+
+            position: fixed;
+            inset: 0;
+
+            background: rgba(45, 37, 35, 0.45);
+
+            z-index: 2000;
+
+            align-items: center;
+            justify-content: center;
+
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #ffffff;
+
+            border-radius: 20px;
+
+            width: min(440px, 100%);
+
+            padding: 26px 26px 22px;
+
+            box-shadow: 0 20px 50px rgba(45, 37, 35, 0.25);
+        }
+
+        .modal-box h3 {
+            font-family: 'Baloo 2', sans-serif;
+            font-size: 21px;
+            font-weight: 800;
+            color: #2d2523;
+
+            margin-bottom: 6px;
+        }
+
+        .modal-box p {
+            font-size: 12px;
+            color: #927c75;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .modal-box label {
+            display: block;
+            font-size: 11px;
+            font-weight: 800;
+            color: #a18d86;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 6px;
+        }
+
+        .modal-box textarea {
+            width: 100%;
+
+            min-height: 100px;
+
+            resize: vertical;
+
+            border: 1px solid #f0ddd5;
+            border-radius: 12px;
+
+            padding: 12px 14px;
+
+            font-family: inherit;
+            font-size: 13px;
+            color: #2d2523;
+
+            background: #fff8f5;
+        }
+
+        .modal-box textarea:focus {
+            outline: none;
+            border-color: #f45b2a;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+
+            margin-top: 18px;
+        }
+
+        .btn-cancel {
+            background: #fff0ed;
+            color: #816f69;
+        }
+
+        .btn-cancel:hover {
+            background: #f4e6e1;
+        }
+
+        /* =========================
            RESPONSIVE
         ========================= */
 
@@ -746,7 +1056,8 @@
             }
 
             .order-header,
-            .order-footer {
+            .order-footer,
+            .return-header {
                 flex-direction: column;
                 align-items: flex-start;
             }
@@ -759,6 +1070,11 @@
 
             .subtotal {
                 align-self: flex-end;
+            }
+
+            .return-footer {
+                justify-content: flex-start;
+                flex-wrap: wrap;
             }
         }
     </style>
@@ -1103,11 +1419,260 @@
 
             @endif
 
+
+            {{-- =========================
+                 RETURN / REFUND REQUESTS
+            ========================== --}}
+
+            @if(isset($returnRequests) && !$returnRequests->isEmpty())
+
+                @php
+                    $pendingReturns = $returnRequests->filter(function ($r) {
+                        return strtolower($r->status) === 'pending';
+                    })->count();
+                @endphp
+
+                <div class="section-heading">
+
+                    <h2>Return / Refund Requests</h2>
+
+                    @if($pendingReturns > 0)
+                        <span class="count-pill">
+                            {{ $pendingReturns }} pending
+                        </span>
+                    @endif
+
+                </div>
+
+                @foreach($returnRequests as $request)
+
+                    @php
+                        $statusLower = strtolower($request->status);
+                        $statusClass = 'status-pending';
+
+                        if ($statusLower === 'approved') {
+                            $statusClass = 'status-approved';
+                        } elseif ($statusLower === 'rejected') {
+                            $statusClass = 'status-rejected';
+                        }
+                    @endphp
+
+                    <div class="return-card">
+
+                        <div class="return-header">
+
+                            <div>
+
+                                <div class="return-id">
+                                    Return #{{ $request->id }}
+                                    <span class="order-ref">
+                                        — Order #{{ $request->order_id }}
+                                    </span>
+                                </div>
+
+                                <div class="date">
+                                    Requested {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y • h:i A') }}
+                                </div>
+
+                            </div>
+
+                            <div class="status {{ $statusClass }}">
+                                {{ ucwords($request->status) }}
+                            </div>
+
+                        </div>
+
+                        @if($request->order && $request->order->shipping_name)
+
+                            <div class="customer" style="margin-top:18px;">
+
+                                <div class="customer-title">
+                                    Customer
+                                </div>
+
+                                <div class="customer-name">
+                                    {{ $request->order->shipping_name }}
+                                </div>
+
+                                @if($request->order->shipping_phone)
+
+                                    <div class="customer-phone">
+                                        📞 {{ $request->order->shipping_phone }}
+                                    </div>
+
+                                @endif
+
+                            </div>
+
+                        @endif
+
+                        <div class="return-body">
+
+                            <div class="return-block">
+
+                                <div class="return-block-title">
+                                    Reason for Return
+                                </div>
+
+                                <div class="return-block-text">
+                                    {{ $request->reason ?? 'No reason provided.' }}
+                                </div>
+
+                            </div>
+
+                            @if(!empty($request->buyer_note))
+
+                                <div class="return-block">
+
+                                    <div class="return-block-title">
+                                        Buyer Note
+                                    </div>
+
+                                    <div class="return-block-text">
+                                        {{ $request->buyer_note }}
+                                    </div>
+
+                                </div>
+
+                            @endif
+
+                            @if(!empty($request->seller_note))
+
+                                <div class="return-block">
+
+                                    <div class="return-block-title">
+                                        Your Note (Seller)
+                                    </div>
+
+                                    <div class="return-block-text seller-note-box">
+                                        {{ $request->seller_note }}
+                                    </div>
+
+                                </div>
+
+                            @endif
+
+                        </div>
+
+                        @if($statusLower === 'pending')
+
+                            <div class="return-footer">
+
+                                {{-- APPROVE --}}
+                                <form
+                                    action="{{ route('seller.returns.approve', ['id' => $request->id]) }}"
+                                    method="POST"
+                                >
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-approve">
+                                        ✓ Approve
+                                    </button>
+                                </form>
+
+                                {{-- REJECT (opens modal) --}}
+                                <button
+                                    type="button"
+                                    class="btn btn-reject"
+                                    onclick="openRejectModal({{ $request->id }})"
+                                >
+                                    ✕ Reject
+                                </button>
+
+                            </div>
+
+                        @endif
+
+                    </div>
+
+                @endforeach
+
+            @endif
+
         </div>
 
     </main>
 
 </div>
+
+
+{{-- =========================
+     REJECT MODAL (shared)
+========================== --}}
+
+<div class="modal-overlay" id="rejectModalOverlay">
+
+    <div class="modal-box">
+
+        <h3>Reject Return Request</h3>
+
+        <p>
+            Please add a note explaining why this return/refund request
+            is being rejected. The buyer will see this note.
+        </p>
+
+        <form
+            id="rejectForm"
+            method="POST"
+            action=""
+        >
+            @csrf
+
+            <label for="seller_note">Seller Note</label>
+
+            <textarea
+                name="seller_note"
+                id="seller_note"
+                placeholder="e.g. Item does not meet return policy conditions..."
+                required
+            ></textarea>
+
+            <div class="modal-actions">
+
+                <button
+                    type="button"
+                    class="btn btn-cancel"
+                    onclick="closeRejectModal()"
+                >
+                    Cancel
+                </button>
+
+                <button type="submit" class="btn btn-reject" style="background:#d6362b; color:#fff; border:none;">
+                    Confirm Reject
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<script>
+    function openRejectModal(requestId) {
+        const overlay = document.getElementById('rejectModalOverlay');
+        const form = document.getElementById('rejectForm');
+
+        // Build the reject route dynamically using the base URL pattern.
+        form.action = "{{ url('seller/returns') }}/" + requestId + "/reject";
+
+        document.getElementById('seller_note').value = '';
+        overlay.classList.add('active');
+    }
+
+    function closeRejectModal() {
+        document.getElementById('rejectModalOverlay').classList.remove('active');
+    }
+
+    // Close modal when clicking outside the box
+    document.getElementById('rejectModalOverlay').addEventListener('click', function (e) {
+        if (e.target === this) {
+            closeRejectModal();
+        }
+    });
+</script>
 
     @include('partials.pwa-register')
 

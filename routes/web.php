@@ -8,65 +8,257 @@ use App\Models\User;
 use App\Models\Product;
 use App\Mail\OtpMail;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+
 /*
 |--------------------------------------------------------------------------
 | BOOMBUY - HELPER FUNCTIONS
 |--------------------------------------------------------------------------
+|
+| Wrapped in function_exists() guards. This is what actually prevents the
+| "Cannot redeclare function requireUserRole()" fatal error — Laravel can
+| sometimes boot the application twice within the same process (this
+| happens during `config:cache`, for example, which needs a "fresh" boot
+| to build the cached config). Without the guard, a function declared
+| directly in a routes file will blow up the second time it's loaded.
+|
 */
 
-function requireUserRole($role)
-{
-    $user = session()->get('user');
+if (!function_exists('requireUserRole')) {
+    function requireUserRole($role)
+    {
+        $user = session()->get('user');
 
-    if (!$user || ($user['role'] ?? '') !== $role) {
-        return redirect()->route('login');
+        if (!$user || ($user['role'] ?? '') !== $role) {
+            return redirect()->route('login');
+        }
+
+        return $user;
     }
-
-    return $user;
 }
 
-function cartSummary($cart)
-{
-    $databaseProducts = \App\Models\Product::whereIn('id', array_keys($cart))
-        ->get()
-        ->keyBy('id');
+if (!function_exists('cartSummary')) {
+    function cartSummary($cart)
+    {
+        $databaseProducts = \App\Models\Product::whereIn('id', array_keys($cart))
+            ->get()
+            ->keyBy('id');
 
-    $subtotal = 0;
-    $totalItems = 0;
+        $subtotal = 0;
+        $totalItems = 0;
 
-    foreach ($cart as $productId => $quantity) {
+        foreach ($cart as $productId => $quantity) {
 
-        $product = $databaseProducts->get($productId);
+            $product = $databaseProducts->get($productId);
 
-        if ($product) {
-            $subtotal += (float) $product->price * (int) $quantity;
-            $totalItems += (int) $quantity;
+            if ($product) {
+                $subtotal += (float) $product->price * (int) $quantity;
+                $totalItems += (int) $quantity;
+            }
+        }
+
+        return [
+            'subtotal' => number_format($subtotal, 2),
+            'total_items' => $totalItems,
+            'cart_count' => array_sum($cart),
+        ];
+    }
+}
+
+if (!function_exists('generateAndSendOtp')) {
+    function generateAndSendOtp($email, $name)
+    {
+        $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        session()->put('otp_code', $otpCode);
+        session()->put('otp_email', $email);
+        session()->put('otp_expires_at', now()->addMinutes(10));
+
+        try {
+            Mail::to($email)->send(new OtpMail($otpCode, $name));
+            return true;
+        } catch (\Throwable $e) {
+            report($e);
+            return false;
         }
     }
-
-    return [
-        'subtotal' => number_format($subtotal, 2),
-        'total_items' => $totalItems,
-        'cart_count' => array_sum($cart),
-    ];
 }
 
-function generateAndSendOtp($email, $name)
-{
-    $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+if (!function_exists('defaultProducts')) {
+    // Default BoomBuy products
+    function defaultProducts()
+    {
+        return [
 
-    session()->put('otp_code', $otpCode);
-    session()->put('otp_email', $email);
-    session()->put('otp_expires_at', now()->addMinutes(10));
+            [
+                'slug' => 'nova-x5-pro',
+                'name' => 'Nova X5 Pro',
+                'category' => 'Smartphone',
+                'price' => 18999,
+                'icon' => '📱',
+                'rating' => '4.8',
+                'reviews' => 124,
+                'description' => 'Powerful smartphone with a vibrant display and long-lasting battery.',
+                'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)',
+                'specs' => [
+                    'Display' => '6.7-inch AMOLED',
+                    'Processor' => 'Octa-Core',
+                    'RAM' => '12GB',
+                    'Storage' => '256GB',
+                    'Battery' => '5000mAh',
+                    'Camera' => '50MP Main Camera',
+                ],
+            ],
 
-    try {
-        Mail::to($email)->send(new OtpMail($otpCode, $name));
-        return true;
-    } catch (\Throwable $e) {
-        report($e);
-        return false;
+            [
+                'slug' => 'airbook-14',
+                'name' => 'AirBook 14',
+                'category' => 'Laptop',
+                'price' => 34990,
+                'icon' => '💻',
+                'rating' => '4.7',
+                'reviews' => 89,
+                'description' => 'Lightweight laptop designed for work, school and everyday use.',
+                'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)',
+                'specs' => [
+                    'Display' => '14-inch Full HD',
+                    'Processor' => 'Intel Core i5',
+                    'RAM' => '16GB',
+                    'Storage' => '512GB SSD',
+                    'Battery' => 'Up to 10 hours',
+                    'Weight' => '1.4 kg',
+                ],
+            ],
+
+            [
+                'slug' => 'soundcore-pro',
+                'name' => 'SoundCore Pro',
+                'category' => 'Audio',
+                'price' => 2799,
+                'icon' => '🎧',
+                'rating' => '4.9',
+                'reviews' => 216,
+                'description' => 'Wireless headphones with clear sound and deep bass.',
+                'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)',
+                'specs' => [
+                    'Type' => 'Wireless Headphones',
+                    'Connection' => 'Bluetooth 5.3',
+                    'Battery' => '40 Hours',
+                    'Driver' => '40mm',
+                    'Microphone' => 'Built-in',
+                    'Charging' => 'USB-C',
+                ],
+            ],
+
+            [
+                'slug' => 'fitwatch-s2',
+                'name' => 'FitWatch S2',
+                'category' => 'Wearable',
+                'price' => 3499,
+                'icon' => '⌚',
+                'rating' => '4.6',
+                'reviews' => 73,
+                'description' => 'Smart wearable with fitness tracking and smart functions.',
+                'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)',
+                'specs' => [
+                    'Display' => '1.8-inch AMOLED',
+                    'Battery' => '7 Days',
+                    'Water Resistance' => '5 ATM',
+                    'Connectivity' => 'Bluetooth 5.2',
+                    'Sensors' => 'Heart Rate + SpO2',
+                    'Compatibility' => 'Android / iOS',
+                ],
+            ],
+
+            [
+                'slug' => 'gamepad-x',
+                'name' => 'GamePad X',
+                'category' => 'Accessories',
+                'price' => 2199,
+                'icon' => '🎮',
+                'rating' => '4.8',
+                'reviews' => 61,
+                'description' => 'Comfortable wireless controller designed for gaming.',
+                'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)',
+                'specs' => [
+                    'Connection' => 'Wireless',
+                    'Battery' => '20 Hours',
+                    'Compatibility' => 'PC / Android',
+                    'Charging' => 'USB-C',
+                    'Vibration' => 'Dual Vibration',
+                    'Buttons' => 'Programmable',
+                ],
+            ],
+
+            [
+                'slug' => 'mechakeys-75',
+                'name' => 'MechaKeys 75',
+                'category' => 'Accessories',
+                'price' => 3299,
+                'icon' => '⌨️',
+                'rating' => '4.7',
+                'reviews' => 95,
+                'description' => 'Compact mechanical keyboard built for productivity and gaming.',
+                'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)',
+                'specs' => [
+                    'Layout' => '75%',
+                    'Switches' => 'Mechanical',
+                    'Connection' => 'USB-C',
+                    'Lighting' => 'RGB',
+                    'Keycaps' => 'PBT',
+                    'Compatibility' => 'Windows / Mac',
+                ],
+            ],
+
+            [
+                'slug' => 'glide-mouse-x',
+                'name' => 'Glide Mouse X',
+                'category' => 'Accessories',
+                'price' => 1499,
+                'icon' => '🖱️',
+                'rating' => '4.6',
+                'reviews' => 54,
+                'description' => 'Lightweight wireless mouse with a precise sensor.',
+                'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)',
+                'specs' => [
+                    'Sensor' => '12,000 DPI',
+                    'Connection' => 'Wireless',
+                    'Battery' => '70 Hours',
+                    'Weight' => '68g',
+                    'Buttons' => '6 Buttons',
+                    'Compatibility' => 'Windows / Mac',
+                ],
+            ],
+
+            [
+                'slug' => 'minisound-go',
+                'name' => 'MiniSound Go',
+                'category' => 'Audio',
+                'price' => 1899,
+                'icon' => '🔊',
+                'rating' => '4.7',
+                'reviews' => 108,
+                'description' => 'Portable Bluetooth speaker made for music anywhere.',
+                'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)',
+                'specs' => [
+                    'Connection' => 'Bluetooth 5.3',
+                    'Battery' => '15 Hours',
+                    'Power' => '20W',
+                    'Water Resistance' => 'IPX7',
+                    'Charging' => 'USB-C',
+                    'Range' => '15 meters',
+                ],
+            ],
+
+        ];
     }
 }
+
+/*
+|--------------------------------------------------------------------------
+| RIDER PROFILE PHOTO
+|--------------------------------------------------------------------------
+*/
 
 Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request) {
 
@@ -108,176 +300,6 @@ Route::post('/rider/profile/photo', function (\Illuminate\Http\Request $request)
         ->with('success', 'Profile picture updated successfully.');
 
 })->name('rider.profile.photo');
-
-
-
-// Default BoomBuy products
-function defaultProducts()
-{
-    return [
-
-        [
-            'slug' => 'nova-x5-pro',
-            'name' => 'Nova X5 Pro',
-            'category' => 'Smartphone',
-            'price' => 18999,
-            'icon' => '📱',
-            'rating' => '4.8',
-            'reviews' => 124,
-            'description' => 'Powerful smartphone with a vibrant display and long-lasting battery.',
-            'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)',
-            'specs' => [
-                'Display' => '6.7-inch AMOLED',
-                'Processor' => 'Octa-Core',
-                'RAM' => '12GB',
-                'Storage' => '256GB',
-                'Battery' => '5000mAh',
-                'Camera' => '50MP Main Camera',
-            ],
-        ],
-
-        [
-            'slug' => 'airbook-14',
-            'name' => 'AirBook 14',
-            'category' => 'Laptop',
-            'price' => 34990,
-            'icon' => '💻',
-            'rating' => '4.7',
-            'reviews' => 89,
-            'description' => 'Lightweight laptop designed for work, school and everyday use.',
-            'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)',
-            'specs' => [
-                'Display' => '14-inch Full HD',
-                'Processor' => 'Intel Core i5',
-                'RAM' => '16GB',
-                'Storage' => '512GB SSD',
-                'Battery' => 'Up to 10 hours',
-                'Weight' => '1.4 kg',
-            ],
-        ],
-
-        [
-            'slug' => 'soundcore-pro',
-            'name' => 'SoundCore Pro',
-            'category' => 'Audio',
-            'price' => 2799,
-            'icon' => '🎧',
-            'rating' => '4.9',
-            'reviews' => 216,
-            'description' => 'Wireless headphones with clear sound and deep bass.',
-            'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)',
-            'specs' => [
-                'Type' => 'Wireless Headphones',
-                'Connection' => 'Bluetooth 5.3',
-                'Battery' => '40 Hours',
-                'Driver' => '40mm',
-                'Microphone' => 'Built-in',
-                'Charging' => 'USB-C',
-            ],
-        ],
-
-        [
-            'slug' => 'fitwatch-s2',
-            'name' => 'FitWatch S2',
-            'category' => 'Wearable',
-            'price' => 3499,
-            'icon' => '⌚',
-            'rating' => '4.6',
-            'reviews' => 73,
-            'description' => 'Smart wearable with fitness tracking and smart functions.',
-            'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)',
-            'specs' => [
-                'Display' => '1.8-inch AMOLED',
-                'Battery' => '7 Days',
-                'Water Resistance' => '5 ATM',
-                'Connectivity' => 'Bluetooth 5.2',
-                'Sensors' => 'Heart Rate + SpO2',
-                'Compatibility' => 'Android / iOS',
-            ],
-        ],
-
-        [
-            'slug' => 'gamepad-x',
-            'name' => 'GamePad X',
-            'category' => 'Accessories',
-            'price' => 2199,
-            'icon' => '🎮',
-            'rating' => '4.8',
-            'reviews' => 61,
-            'description' => 'Comfortable wireless controller designed for gaming.',
-            'background' => 'linear-gradient(145deg, #e7fbff, #d5f4ff)',
-            'specs' => [
-                'Connection' => 'Wireless',
-                'Battery' => '20 Hours',
-                'Compatibility' => 'PC / Android',
-                'Charging' => 'USB-C',
-                'Vibration' => 'Dual Vibration',
-                'Buttons' => 'Programmable',
-            ],
-        ],
-
-        [
-            'slug' => 'mechakeys-75',
-            'name' => 'MechaKeys 75',
-            'category' => 'Accessories',
-            'price' => 3299,
-            'icon' => '⌨️',
-            'rating' => '4.7',
-            'reviews' => 95,
-            'description' => 'Compact mechanical keyboard built for productivity and gaming.',
-            'background' => 'linear-gradient(145deg, #e8f2ff, #d5e8ff)',
-            'specs' => [
-                'Layout' => '75%',
-                'Switches' => 'Mechanical',
-                'Connection' => 'USB-C',
-                'Lighting' => 'RGB',
-                'Keycaps' => 'PBT',
-                'Compatibility' => 'Windows / Mac',
-            ],
-        ],
-
-        [
-            'slug' => 'glide-mouse-x',
-            'name' => 'Glide Mouse X',
-            'category' => 'Accessories',
-            'price' => 1499,
-            'icon' => '🖱️',
-            'rating' => '4.6',
-            'reviews' => 54,
-            'description' => 'Lightweight wireless mouse with a precise sensor.',
-            'background' => 'linear-gradient(145deg, #f0efff, #e1e3ff)',
-            'specs' => [
-                'Sensor' => '12,000 DPI',
-                'Connection' => 'Wireless',
-                'Battery' => '70 Hours',
-                'Weight' => '68g',
-                'Buttons' => '6 Buttons',
-                'Compatibility' => 'Windows / Mac',
-            ],
-        ],
-
-        [
-            'slug' => 'minisound-go',
-            'name' => 'MiniSound Go',
-            'category' => 'Audio',
-            'price' => 1899,
-            'icon' => '🔊',
-            'rating' => '4.7',
-            'reviews' => 108,
-            'description' => 'Portable Bluetooth speaker made for music anywhere.',
-            'background' => 'linear-gradient(145deg, #f3edff, #e9ddff)',
-            'specs' => [
-                'Connection' => 'Bluetooth 5.3',
-                'Battery' => '15 Hours',
-                'Power' => '20W',
-                'Water Resistance' => 'IPX7',
-                'Charging' => 'USB-C',
-                'Range' => '15 meters',
-            ],
-        ],
-
-    ];
-}
 
 
 Route::get('/login', function () { return view('pages.login'); })->name('login');
@@ -372,13 +394,13 @@ Route::post('/login', function () {
         config(['session.expire_on_close' => false]);
     }
 
-session()->put('user', [
-    'id' => $user->id,
-    'name' => $user->name,
-    'email' => $user->email,
-    'role' => $user->role,
-    'profile_photo' => $user->profile_photo,
-]);
+    session()->put('user', [
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'role' => $user->role,
+        'profile_photo' => $user->profile_photo,
+    ]);
 
     switch ($user->role) {
 
@@ -413,7 +435,6 @@ session()->put('user', [
 |--------------------------------------------------------------------------
 */
 
-/// Register - Role Selection
 // ==========================================================
 // REGISTER PAGE
 // ==========================================================
@@ -641,12 +662,6 @@ Route::post('/logout', function () {
 |--------------------------------------------------------------------------
 */
 
-/*
-|--------------------------------------------------------------------------
-| BUYER
-|--------------------------------------------------------------------------
-*/
-
 Route::get('/buyer', function () {
 
     $user = requireUserRole('buyer');
@@ -659,10 +674,6 @@ Route::get('/buyer', function () {
     |--------------------------------------------------------------------------
     | PRODUCTS FROM DATABASE ONLY
     |--------------------------------------------------------------------------
-    |
-    | The Buyer page now gets products directly from
-    | the products table.
-    |
     */
 
     $databaseProducts = Product::latest()->get();
@@ -674,27 +685,16 @@ Route::get('/buyer', function () {
         return [
 
             'id' => $product->id,
-
             'slug' => $slug,
-
             'name' => $product->name,
-
             'category' => $product->category,
-
             'price' => (float) $product->price,
-
             'stock' => (int) $product->stock,
-
             'description' => $product->description,
-
             'image' => $product->image,
-
             'icon' => $product->image ?? '📦',
-
             'seller_id' => $product->seller_id,
-
             'rating' => '5.0',
-
             'reviews' => 0,
 
         ];
@@ -1067,8 +1067,6 @@ Route::get('/buyer/orders', function () {
 })->name('buyer.orders');
 
 
-
-
 Route::post('/buyer/orders/{id}/received', function ($id) {
 
     $user = requireUserRole('buyer');
@@ -1300,6 +1298,11 @@ Route::post('/admin/login', function () {
     ) {
 
         session()->put('admin_logged_in', true);
+
+        // Initialize Admin notifications
+        if (!session()->has('admin_notifications')) {
+            session()->put('admin_notifications', []);
+        }
 
         return redirect()
             ->route('admin.dashboard')
@@ -1572,8 +1575,6 @@ Route::post('/admin/logout', function () {
 })->name('admin.logout');
 
 
-
-
 /*
 |--------------------------------------------------------------------------
 | PRODUCTS
@@ -1783,23 +1784,14 @@ Route::get('/products', function () {
         return [
 
             'id' => $product->id,
-
             'slug' => Str::slug($product->name),
-
             'name' => $product->name,
-
             'category' => $product->category,
-
             'price' => (float) $product->price,
-
             'stock' => (int) $product->stock,
-
             'description' => $product->description,
-
             'image' => $product->image,
-
             'icon' => $product->image ?? '📦',
-
             'seller_id' => $product->seller_id,
 
             // REAL rating from product_reviews
@@ -1900,17 +1892,24 @@ Route::post('/admin/products/store', function () {
         return redirect()->route('admin.login');
     }
 
-   $name = trim(request('name'));
-$category = trim(request('category'));
-$price = (float) request('price');
-$image = request()->file('image');
-$description = trim(request('description'));
+    $name = trim(request('name'));
+    $category = trim(request('category'));
+    $price = (float) request('price');
+    $image = request()->file('image');
+    $description = trim(request('description'));
+
+    /*
+    |--------------------------------------------------------------------------
+    | FIX: the old code validated/used an undefined $icon variable here.
+    | This form uploads an image file, so we validate that instead.
+    |--------------------------------------------------------------------------
+    */
 
     if (
         empty($name) ||
         empty($category) ||
         $price <= 0 ||
-        empty($icon) ||
+        !$image ||
         empty($description)
     ) {
 
@@ -1957,13 +1956,16 @@ $description = trim(request('description'));
         }
     }
 
+    // Store the uploaded image and use its path as the product icon/image
+    $imagePath = $image->store('products', 'public');
+
     $products[] = [
 
         'slug' => $slug,
         'name' => $name,
         'category' => $categoryName,
         'price' => $price,
-        'icon' => $icon,
+        'icon' => $imagePath,
         'description' => $description,
         'rating' => '5.0',
         'reviews' => 0,
@@ -2009,7 +2011,18 @@ Route::get('/admin/accounts', function () {
         return redirect()->route('admin.login');
     }
 
-    // GET ALL REGISTERED ACCOUNTS FROM DATABASE
+    /*
+    |--------------------------------------------------------------------------
+    | ADMIN MANAGE ACCOUNTS
+    |--------------------------------------------------------------------------
+    |
+    | Buyer and Rider accounts are shown normally.
+    |
+    | Seller accounts are shown ONLY when their seller application
+    | has been approved by the admin.
+    |
+    */
+
     $users = DB::table('users')
         ->select(
             'id',
@@ -2018,11 +2031,36 @@ Route::get('/admin/accounts', function () {
             'role',
             'created_at'
         )
-        ->whereIn('role', [
-            'buyer',
-            'seller',
-            'rider'
-        ])
+        ->where(function ($query) {
+
+            // Buyers and Riders can appear normally
+            $query->whereIn('role', [
+                'buyer',
+                'rider'
+            ]);
+
+            // Sellers appear only after admin approval
+            $query->orWhere(function ($sellerQuery) {
+
+                $sellerQuery
+                    ->where('role', 'seller')
+                    ->whereExists(function ($applicationQuery) {
+
+                        $applicationQuery
+                            ->select(DB::raw(1))
+                            ->from('seller_applications')
+                            ->whereColumn(
+                                'seller_applications.user_id',
+                                'users.id'
+                            )
+                            ->where(
+                                'seller_applications.status',
+                                'Approved'
+                            );
+                    });
+            });
+
+        })
         ->orderByDesc('created_at')
         ->get()
         ->map(function ($user) {
@@ -2194,20 +2232,72 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
         abort(404);
     }
 
-    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+    $table = $type === 'seller'
+        ? 'seller_applications'
+        : 'rider_applications';
 
-    $updated = DB::table($table)->where('id', $id)->update([
-        'status' => 'Approved',
-        'admin_remarks' => null,
-        'reviewed_at' => now(),
-        'updated_at' => now(),
-    ]);
+    // Get application before updating
+    $application = DB::table($table)
+        ->where('id', $id)
+        ->first();
 
-    if (!$updated) {
-        return back()->with('error', 'Application not found.');
+    if (!$application) {
+
+        return back()->with(
+            'error',
+            'Application not found.'
+        );
     }
 
-    return back()->with('success', ucfirst($type) . ' application approved.');
+    // Approve application
+    $updated = DB::table($table)
+        ->where('id', $id)
+        ->update([
+            'status' => 'Approved',
+            'admin_remarks' => null,
+            'reviewed_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    if (!$updated) {
+
+        return back()->with(
+            'error',
+            'Application could not be approved.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEND NOTIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($type === 'seller') {
+
+        createNotification(
+            (int) $application->user_id,
+            'Seller Application Approved',
+            'Congratulations! Your seller application has been approved. You can now access your seller account.',
+            'seller',
+            (int) $application->id
+        );
+
+    } elseif ($type === 'rider') {
+
+        createNotification(
+            (int) $application->user_id,
+            'Rider Application Approved',
+            'Congratulations! Your rider application has been approved. You can now access your rider account.',
+            'rider',
+            (int) $application->id
+        );
+    }
+
+    return back()->with(
+        'success',
+        ucfirst($type) . ' application approved.'
+    );
 
 })->name('admin.applications.approve');
 
@@ -2222,22 +2312,79 @@ Route::post('/admin/applications/{type}/{id}/reject', function ($type, $id) {
         abort(404);
     }
 
-    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+    $table = $type === 'seller'
+        ? 'seller_applications'
+        : 'rider_applications';
 
     $remarks = trim((string) request('admin_remarks'));
 
-    $updated = DB::table($table)->where('id', $id)->update([
-        'status' => 'Rejected',
-        'admin_remarks' => $remarks !== '' ? $remarks : null,
-        'reviewed_at' => now(),
-        'updated_at' => now(),
-    ]);
+    // Kunin muna ang application bago i-update
+    $application = DB::table($table)
+        ->where('id', $id)
+        ->first();
 
-    if (!$updated) {
+    if (!$application) {
         return back()->with('error', 'Application not found.');
     }
 
-    return back()->with('success', ucfirst($type) . ' application rejected.');
+    // Reject application
+    $updated = DB::table($table)
+        ->where('id', $id)
+        ->update([
+            'status' => 'Rejected',
+            'admin_remarks' => $remarks !== ''
+                ? $remarks
+                : null,
+            'reviewed_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    if (!$updated) {
+        return back()->with(
+            'error',
+            'Application could not be rejected.'
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SEND NOTIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($type === 'seller') {
+
+        $message = $remarks !== ''
+            ? 'Your seller application was rejected. Admin remarks: ' . $remarks
+            : 'Your seller application was rejected. Please review your application and try again.';
+
+        createNotification(
+            $application->user_id,
+            'Seller Application Rejected',
+            $message,
+            'seller',
+            $application->id
+        );
+
+    } elseif ($type === 'rider') {
+
+        $message = $remarks !== ''
+            ? 'Your rider application was rejected. Admin remarks: ' . $remarks
+            : 'Your rider application was rejected. Please review your application and try again.';
+
+        createNotification(
+            $application->user_id,
+            'Rider Application Rejected',
+            $message,
+            'rider',
+            $application->id
+        );
+    }
+
+    return back()->with(
+        'success',
+        ucfirst($type) . ' application rejected.'
+    );
 
 })->name('admin.applications.reject');
 
@@ -2268,11 +2415,11 @@ Route::get('/admin/applications/{type}/{id}/document/{field}', function ($type, 
         abort(404);
     }
 
-    if (!\Illuminate\Support\Facades\Storage::disk('local')->exists($application->$field)) {
+    if (!Storage::disk('local')->exists($application->$field)) {
         abort(404);
     }
 
-    return \Illuminate\Support\Facades\Storage::disk('local')->response($application->$field);
+    return Storage::disk('local')->response($application->$field);
 
 })->name('admin.applications.document');
 
@@ -2642,19 +2789,16 @@ Route::get('/seller', function () {
     |--------------------------------------------------------------------------
     */
 
-    // 📦 Total Products
+    // Total Products
     $totalProducts = count($products);
 
-
-    // 🧾 Total Orders
+    // Total Orders
     $totalOrders = count($sellerOrders);
 
-
-    // ⏳ Pending Orders
+    // Pending Orders
     $pendingOrders = 0;
 
-
-    // 💰 Total Sales
+    // Total Sales
     $totalSales = 0;
 
 
@@ -2722,6 +2866,7 @@ Route::get('/seller', function () {
 
 
 })->name('seller.dashboard');
+
 /*
 |--------------------------------------------------------------------------
 | SELLER ADD PRODUCT
@@ -2766,9 +2911,12 @@ Route::post('/seller/products/store', function () {
     $name = trim(request('name'));
     $category = trim(request('category'));
     $price = (float) request('price');
+    $stock = (int) request('stock');
     $description = trim(request('description'));
 
     // Validate basic fields
+    // FIX: $stock is now actually defined above instead of being
+    // referenced without ever being read from the request.
     if (
         empty($name) ||
         empty($category) ||
@@ -3173,7 +3321,7 @@ Route::post('/seller/order/{id}/status', function ($id) {
         );
     }
 
-    // Delivered orders cannot be updated
+    // Delivered orders cannot be updated by seller
     if ($order->status === 'Delivered') {
 
         return back()->with(
@@ -3182,13 +3330,49 @@ Route::post('/seller/order/{id}/status', function ($id) {
         );
     }
 
-    // Update order status
-  DB::table('orders')
-    ->where('id', $id)
-    ->update([
-        'status' => $status,
-        'updated_at' => now(),
-    ]);
+    // ==============================
+    // UPDATE ORDER STATUS
+    // ==============================
+
+    DB::table('orders')
+        ->where('id', $id)
+        ->update([
+            'status' => $status,
+            'updated_at' => now(),
+        ]);
+
+    // ==============================
+    // BUYER NOTIFICATION
+    // ==============================
+
+    if ($status === 'Processing') {
+
+        createNotification(
+            (int) $order->buyer_id,
+            'Order Processing',
+            'Your order #' . $id .
+            ' is now being processed by the seller.',
+            'order',
+            (int) $id
+        );
+    }
+
+    // ==============================
+    // SELLER NOTIFICATION
+    // ==============================
+    //
+    // Notify the seller that the order status
+    // has been updated successfully.
+    //
+
+    createNotification(
+        (int) $user['id'],
+        'Order Status Updated',
+        'Order #' . $id .
+        ' is now ' . $status . '.',
+        'order_status',
+        (int) $id
+    );
 
     return back()->with(
         'success',
@@ -3279,20 +3463,20 @@ Route::get('/rider', function () {
     })->toArray();
 
 
-// ==========================================
-// OUT FOR DELIVERY
-// ==========================================
+    // ==========================================
+    // OUT FOR DELIVERY
+    // ==========================================
 
-$inTransit = array_values(
-    array_filter(
-        $myDeliveries,
-        function ($order) {
+    $inTransit = array_values(
+        array_filter(
+            $myDeliveries,
+            function ($order) {
 
-            return ($order['status'] ?? '') === 'Out for Delivery';
+                return ($order['status'] ?? '') === 'Out for Delivery';
 
-        }
-    )
-);
+            }
+        )
+    );
 
 
     // ==========================================
@@ -3444,11 +3628,15 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
         ->first();
 
     if (!$order) {
-        return back()->with('error', 'Delivery not found.');
+        return back()->with(
+            'error',
+            'Delivery not found.'
+        );
     }
 
     // Order must be Ready for Pickup
     if ($order->status !== 'Ready for Pickup') {
+
         return back()->with(
             'error',
             'This order is not ready for pickup.'
@@ -3457,6 +3645,7 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
 
     // Prevent another rider from claiming it
     if (!empty($order->rider_id)) {
+
         return back()->with(
             'error',
             'This order has already been assigned to another rider.'
@@ -3471,6 +3660,32 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
             'status' => 'Picked Up',
             'updated_at' => now(),
         ]);
+
+// ==============================
+// BUYER NOTIFICATION
+// ==============================
+
+createNotification(
+    (int) $order->buyer_id,
+    'Order Picked Up',
+    'Your order #' . $id .
+    ' has been picked up by the rider and is now on its way.',
+    'order',
+    (int) $id
+);
+
+// ==============================
+// RIDER NOTIFICATION
+// ==============================
+
+createNotification(
+    (int) $riderId,
+    'Delivery Claimed',
+    'You successfully claimed Order #' . $id .
+    '. The order is now assigned to you.',
+    'delivery',
+    (int) $id
+);
 
     return back()->with(
         'success',
@@ -3631,12 +3846,67 @@ Route::post('/rider/delivery/{id}/status', function ($id) {
 
     }
 
+    // Update order status
     DB::table('orders')
         ->where('id', $id)
         ->update([
             'status' => $status,
             'updated_at' => now(),
         ]);
+
+    // ==============================
+    // BUYER NOTIFICATIONS
+    // ==============================
+
+    if ($status === 'Out for Delivery') {
+
+        createNotification(
+            (int) $order->buyer_id,
+            'Order Out for Delivery',
+            'Your order #' . $id .
+            ' is now out for delivery.',
+            'order',
+            (int) $id
+        );
+
+    } elseif ($status === 'Delivered') {
+
+        createNotification(
+            (int) $order->buyer_id,
+            'Order Delivered',
+            'Your order #' . $id .
+            ' has been delivered successfully.',
+            'order',
+            (int) $id
+        );
+    }
+
+    // ==============================
+    // RIDER NOTIFICATION
+    // ==============================
+
+    if ($status === 'Out for Delivery') {
+
+        createNotification(
+            (int) $riderId,
+            'Delivery Out for Delivery',
+            'Order #' . $id .
+            ' is now out for delivery.',
+            'delivery_status',
+            (int) $id
+        );
+
+    } elseif ($status === 'Delivered') {
+
+        createNotification(
+            (int) $riderId,
+            'Delivery Completed',
+            'Order #' . $id .
+            ' has been successfully delivered.',
+            'delivery_status',
+            (int) $id
+        );
+    }
 
     return back()->with(
         'success',
@@ -3786,53 +4056,6 @@ Route::get('/product-details/{id}', function ($id) {
 
 /*
 |--------------------------------------------------------------------------
-| BUY NOW
-|--------------------------------------------------------------------------
-*/
-
-Route::post('/buy-now/{id}', function ($id) {
-
-    $user = requireUserRole('buyer');
-
-    if (!is_array($user)) {
-        return $user;
-    }
-
-    // Find the actual product from the database
-    $product = Product::find($id);
-
-    if (!$product) {
-        return back()->with('error', 'Product not found.');
-    }
-
-    $quantity = (int) request('quantity', 1);
-
-    if ($quantity < 1) {
-        $quantity = 1;
-    }
-
-    // Check available stock
-    if ($quantity > $product->stock) {
-        return back()->with('error', 'Not enough stock available.');
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | SAVE BUY NOW PRODUCT
-    |--------------------------------------------------------------------------
-    */
-
-    session()->put('buy_now', [
-        $product->id => $quantity
-    ]);
-
-    return redirect()
-        ->route('checkout');
-
-})->name('buy.now');
-
-/*
-|--------------------------------------------------------------------------
 | CART
 |--------------------------------------------------------------------------
 */
@@ -3916,20 +4139,25 @@ Route::post('/cart/add/{id}', function ($id) {
 
     session()->put('cart', $cart);
 
-    /*
-    |--------------------------------------------------------------------------
-    | RETURN TO BUYER DASHBOARD
-    |--------------------------------------------------------------------------
-    */
-
-   return back()->with(
-    'success',
-    '✓ Added to cart!'
-);
+    return back()->with(
+        'success',
+        '✓ Added to cart!'
+    );
 
 })->name('cart.add');
 
-// Buy Now
+/*
+|--------------------------------------------------------------------------
+| BUY NOW
+|--------------------------------------------------------------------------
+|
+| FIX: this route was previously registered twice (identical duplicate)
+| under the same name 'buy.now'. Kept a single, combined version here:
+| validates quantity from the request like the original first version,
+| defaulting to 1 if not supplied — same behaviour either caller relied on.
+|
+*/
+
 Route::post('/buy-now/{id}', function ($id) {
 
     $user = requireUserRole('buyer');
@@ -3938,47 +4166,38 @@ Route::post('/buy-now/{id}', function ($id) {
         return $user;
     }
 
-    // Find product
+    // Find the actual product from the database
     $product = Product::find($id);
 
     if (!$product) {
-        return back()->with(
-            'error',
-            'Product not found.'
-        );
+        return back()->with('error', 'Product not found.');
     }
 
-    // Check stock
-    $stock = (int) $product->stock;
+    $quantity = (int) request('quantity', 1);
 
-    if ($stock <= 0) {
-        return back()->with(
-            'error',
-            'This product is currently out of stock.'
-        );
+    if ($quantity < 1) {
+        $quantity = 1;
+    }
+
+    // Check available stock
+    if ($quantity > $product->stock) {
+        return back()->with('error', 'Not enough stock available.');
     }
 
     /*
     |--------------------------------------------------------------------------
-    | BUY NOW = 1 QUANTITY
+    | SAVE BUY NOW PRODUCT
     |--------------------------------------------------------------------------
     */
 
     session()->put('buy_now', [
-        $product->id => 1
+        $product->id => $quantity
     ]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | DIRECTLY GO TO CHECKOUT
-    |--------------------------------------------------------------------------
-    */
 
     return redirect()
         ->route('checkout');
 
 })->name('buy.now');
-
 
 
 // Update cart
@@ -4174,12 +4393,6 @@ Route::get('/checkout', function () {
 })->name('checkout');
 
 
-
-/*
-|--------------------------------------------------------------------------
-| PLACE ORDER
-|--------------------------------------------------------------------------
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -4392,6 +4605,21 @@ Route::post('/checkout/place-order', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | BUYER NOTIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    createNotification(
+        (int) $user['id'],
+        'Order Confirmed',
+        'Your order #' . $orderId .
+        ' has been placed successfully and is now Pending.',
+        'order',
+        (int) $orderId
+    );
+
+    /*
+    |--------------------------------------------------------------------------
     | CREATE ORDER ITEMS + REDUCE STOCK
     |--------------------------------------------------------------------------
     */
@@ -4438,6 +4666,35 @@ Route::post('/checkout/place-order', function () {
         )->decrement(
             'stock',
             $item['quantity']
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER NOTIFICATIONS
+    |--------------------------------------------------------------------------
+    |
+    | Get unique sellers from the products included
+    | in this order. Each seller receives one notification.
+    |
+    */
+
+    $sellerIds = collect($orderItems)
+        ->pluck('seller_id')
+        ->filter()
+        ->unique()
+        ->values();
+
+    foreach ($sellerIds as $sellerId) {
+
+        createNotification(
+            (int) $sellerId,
+            'New Order Received',
+            'You have a new order #' .
+            $orderId .
+            ' that is waiting for processing.',
+            'order',
+            (int) $orderId
         );
     }
 
@@ -4663,35 +4920,20 @@ Route::put('/seller/products/{id}', function ($id) {
     $categoryNames = [
 
         'electronics' => 'Electronics',
-
         'womens-fashion' => "Women's Fashion",
-
         'mens-fashion' => "Men's Fashion",
-
         'kids-baby' => 'Kids & Baby',
-
         'home-living' => 'Home & Living',
-
         'sports-outdoors' => 'Sports & Outdoors',
-
         'beauty-personal-care' => 'Beauty & Personal Care',
-
         'food-beverages' => 'Food & Beverages',
-
         'automotive' => 'Automotive',
-
         'office-school' => 'Office & School',
-
         'pet-supplies' => 'Pet Supplies',
-
         'toys-games-hobbies' => 'Toys, Games & Hobbies',
-
         'jewelry-accessories' => 'Jewelry & Accessories',
-
         'shoes' => 'Shoes',
-
         'tools-home-improvement' => 'Tools & Home Improvement',
-
         'garden-outdoor' => 'Garden & Outdoor',
 
     ];
@@ -4843,15 +5085,10 @@ Route::put('/seller/products/{id}', function ($id) {
     $product->update([
 
         'name' => $name,
-
         'category' => $categoryName,
-
         'price' => $price,
-
         'image' => $imagePath,
-
         'stock' => $stock,
-
         'description' => $description,
 
     ]);
@@ -4872,12 +5109,6 @@ Route::put('/seller/products/{id}', function ($id) {
 })->name('seller.products.update');
 
 
-
-/*
-|--------------------------------------------------------------------------
-| SELLER DELETE PRODUCT
-|--------------------------------------------------------------------------
-*/
 
 /*
 |--------------------------------------------------------------------------
@@ -4922,8 +5153,12 @@ Route::get('/categories', function () {
 
 
 Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
+
     $user = requireUserRole('buyer');
-    if (!is_array($user)) return $user;
+
+    if (!is_array($user)) {
+        return $user;
+    }
 
     $order = DB::table('orders')
         ->where('id', $orderId)
@@ -4934,8 +5169,20 @@ Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
         return back()->with('error', 'Order not found.');
     }
 
+    // Must be delivered first
     if ($order->status !== 'Delivered') {
-        return back()->with('error', 'Only delivered orders can be returned or refunded.');
+        return back()->with(
+            'error',
+            'Only delivered orders can be returned or refunded.'
+        );
+    }
+
+    // Buyer must confirm that the order was received first
+    if (empty($order->buyer_received_at)) {
+        return back()->with(
+            'error',
+            'Please confirm that you received the order before requesting a return or refund.'
+        );
     }
 
     $orderItemId = (int) request('order_item_id');
@@ -4972,31 +5219,97 @@ Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
         ->exists();
 
     if ($existingRequest) {
-        return back()->with('error', 'A return/refund request already exists for this item.');
+        return back()->with(
+            'error',
+            'A return/refund request already exists for this item.'
+        );
     }
 
-    $refundAmount = (float) $item->price * (int) $item->quantity;
+    $refundAmount =
+        (float) $item->price *
+        (int) $item->quantity;
+
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE RETURN / REFUND REQUEST
+    |--------------------------------------------------------------------------
+    */
 
     DB::table('return_refund_requests')->insert([
-        'order_id' => $orderId,
-        'order_item_id' => $orderItemId,
-        'buyer_id' => $user['id'],
-        'seller_id' => $item->seller_id,
-        'request_type' => $requestType,
-        'reason' => $reason,
-        'message' => $message ?: null,
-        'evidence' => null,
-        'status' => 'pending',
-        'refund_amount' => $refundAmount,
-        'seller_note' => null,
-        'created_at' => now(),
-        'updated_at' => now(),
+        'order_id' =>
+            $orderId,
+
+        'order_item_id' =>
+            $orderItemId,
+
+        'buyer_id' =>
+            $user['id'],
+
+        'seller_id' =>
+            $item->seller_id,
+
+        'request_type' =>
+            $requestType,
+
+        'reason' =>
+            $reason,
+
+        'message' =>
+            $message ?: null,
+
+        'evidence' =>
+            null,
+
+        'status' =>
+            'pending',
+
+        'refund_amount' =>
+            $refundAmount,
+
+        'seller_note' =>
+            null,
+
+        'created_at' =>
+            now(),
+
+        'updated_at' =>
+            now(),
     ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER NOTIFICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if (!empty($item->seller_id)) {
+
+        createNotification(
+            (int) $item->seller_id,
+            'New Return / Refund Request',
+            'A buyer submitted a ' .
+            strtolower($requestType) .
+            ' request for Order #' .
+            $orderId .
+            '.',
+            'return_refund',
+            (int) $orderId
+        );
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | SUCCESS
+    |--------------------------------------------------------------------------
+    */
 
     return back()->with(
         'success',
-        'Your ' . strtolower($requestType) . ' request has been submitted successfully.'
+        'Your ' .
+        strtolower($requestType) .
+        ' request has been submitted successfully.'
     );
+
 })->name('buyer.return-refund.store');
 
 
@@ -5203,7 +5516,6 @@ Route::get('/rider/apply', function () {
     return view('pages.rider.apply', compact('application'));
 })->name('rider.apply');
 
-use Illuminate\Support\Facades\Storage;
 
 // =========================
 // RIDER APPLICATION SUBMIT
@@ -5213,16 +5525,36 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
 
     $validated = $request->validate([
         'full_name' => ['required', 'string', 'max:255'],
-        'phone' => ['required', 'string', 'max:30', 'unique:users,phone'],
-        'address' => ['required', 'string', 'max:1000'],
+
+        'phone' => [
+            'required',
+            'string',
+            'max:30',
+            'unique:users,phone'
+        ],
+
+        'address' => [
+            'required',
+            'string',
+            'max:1000'
+        ],
 
         'vehicle_type' => [
             'required',
             'in:Motorcycle,Car,Van'
         ],
 
-        'vehicle_model' => ['required', 'string', 'max:255'],
-        'plate_number' => ['required', 'string', 'max:50'],
+        'vehicle_model' => [
+            'required',
+            'string',
+            'max:255'
+        ],
+
+        'plate_number' => [
+            'required',
+            'string',
+            'max:50'
+        ],
 
         'email' => [
             'required',
@@ -5242,116 +5574,155 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120'
+            'max:10240'
         ],
 
         'drivers_license' => [
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120'
+            'max:10240'
         ],
 
         'profile_selfie' => [
             'required',
             'image',
             'mimes:jpg,jpeg,png,webp',
-            'max:5120'
+            'max:10240'
         ],
 
         'proof_of_address' => [
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120'
+            'max:10240'
         ],
 
         'or_cr' => [
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120'
+            'max:10240'
         ],
 
         'terms' => ['accepted'],
+
     ], [
-        'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
+
+        'terms.accepted' =>
+            'Please agree to the Terms & Conditions and Privacy Policy.',
+
     ]);
 
-    $userId = DB::transaction(function () use ($request, $validated) {
+    /*
+    |--------------------------------------------------------------------------
+    | STORE RIDER REGISTRATION TEMPORARILY
+    |--------------------------------------------------------------------------
+    */
 
-        // CREATE RIDER ACCOUNT
-        $user = \App\Models\User::create([
-            'name' => $validated['full_name'],
-            'email' => $validated['email'],
-            'password' => \Illuminate\Support\Facades\Hash::make(
-                $validated['password']
-            ),
-            'role' => 'rider',
-        ]);
+    $folder = 'rider-applications/' . \Illuminate\Support\Str::uuid();
 
-        // FILE STORAGE
-        $folder = 'rider-applications/' . $user->id;
+    $nationalIdPath = $request
+        ->file('national_id')
+        ->store($folder, 'local');
 
-        $nationalIdPath = $request
-            ->file('national_id')
-            ->store($folder, 'local');
+    $driversLicensePath = $request
+        ->file('drivers_license')
+        ->store($folder, 'local');
 
-        $driversLicensePath = $request
-            ->file('drivers_license')
-            ->store($folder, 'local');
+    $selfiePath = $request
+        ->file('profile_selfie')
+        ->store($folder, 'local');
 
-        $selfiePath = $request
-            ->file('profile_selfie')
-            ->store($folder, 'local');
+    $proofOfAddressPath = $request
+        ->file('proof_of_address')
+        ->store($folder, 'local');
 
-        $proofOfAddressPath = $request
-            ->file('proof_of_address')
-            ->store($folder, 'local');
+    $orCrPath = $request
+        ->file('or_cr')
+        ->store($folder, 'local');
 
-        $orCrPath = $request
-            ->file('or_cr')
-            ->store($folder, 'local');
 
-        // CREATE RIDER APPLICATION
-        DB::table('rider_applications')->insert([
-            'user_id' => $user->id,
+    /*
+    |--------------------------------------------------------------------------
+    | SAVE PENDING RIDER DATA IN SESSION
+    |--------------------------------------------------------------------------
+    */
 
-            'full_name' => $validated['full_name'],
-            'phone' => $validated['phone'],
-            'address' => $validated['address'],
+    session()->put('pending_registration', [
 
-            'vehicle_type' => $validated['vehicle_type'],
-            'vehicle_model' => $validated['vehicle_model'],
-            'plate_number' => $validated['plate_number'],
+    'full_name' => $validated['full_name'],
 
-            'national_id' => $nationalIdPath,
-            'drivers_license' => $driversLicensePath,
-            'profile_selfie' => $selfiePath,
-            'proof_of_address' => $proofOfAddressPath,
-            'or_cr' => $orCrPath,
+    // Compatible sa existing OTP verification
+    'name' => $validated['full_name'],
 
-            'status' => 'Pending Verification',
+    'phone' => $validated['phone'],
+    'address' => $validated['address'],
 
-            'admin_remarks' => null,
-            'reviewed_at' => null,
-            'reviewed_by' => null,
+    'vehicle_type' => $validated['vehicle_type'],
+    'vehicle_model' => $validated['vehicle_model'],
+    'plate_number' => $validated['plate_number'],
 
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+    'email' => $validated['email'],
 
-        return $user->id;
-    });
+    'password' => \Illuminate\Support\Facades\Hash::make(
+        $validated['password']
+    ),
 
-    return redirect()
-        ->route('login')
+    'national_id' => $nationalIdPath,
+    'drivers_license' => $driversLicensePath,
+    'profile_selfie' => $selfiePath,
+    'proof_of_address' => $proofOfAddressPath,
+    'or_cr' => $orCrPath,
+
+    // IMPORTANT
+    'role' => 'rider',
+
+    'application_folder' => $folder,
+
+]);
+
+
+/*
+|--------------------------------------------------------------------------
+| SEND OTP
+|--------------------------------------------------------------------------
+*/
+
+$otpSent = generateAndSendOtp(
+    $validated['email'],
+    $validated['full_name']
+);
+
+
+if (!$otpSent) {
+
+    session()->forget('pending_registration');
+
+    return back()
+        ->withInput()
         ->with(
-            'success',
-            'Rider application submitted successfully! Your account is pending Admin verification.'
+            'error',
+            'Unable to send OTP. Please check your email and try again.'
         );
+}
+
+
+/*
+|--------------------------------------------------------------------------
+| REDIRECT TO OTP PAGE
+|--------------------------------------------------------------------------
+*/
+
+return redirect()
+    ->route('otp.verify')
+    ->with(
+        'success',
+        'OTP sent successfully! Please check your email.'
+    );
 
 })->name('rider.apply.submit');
+
 
 // Buyer Registration Page
 Route::get('/buyer/register', function () {
@@ -5518,14 +5889,14 @@ Route::post('/seller/register', function (\Illuminate\Http\Request $request) {
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120',
+            'max:10240',
         ],
 
         'business_permit' => [
             'required',
             'file',
             'mimes:jpg,jpeg,png,webp,pdf',
-            'max:5120',
+            'max:10240',
         ],
     ], [], [
         'national_id' => 'valid government ID',
@@ -5585,12 +5956,15 @@ Route::get('/verify-otp', function () {
 // Verify OTP Submit
 Route::post('/verify-otp', function () {
 
-    
     $pending = session()->get('pending_registration');
 
     if (!$pending) {
-        return redirect()->route('register')
-            ->with('error', 'Your registration session expired. Please register again.');
+        return redirect()
+            ->route('register')
+            ->with(
+                'error',
+                'Your registration session expired. Please register again.'
+            );
     }
 
     $inputCode = trim(request('otp_code'));
@@ -5598,56 +5972,177 @@ Route::post('/verify-otp', function () {
     $storedCode = session()->get('otp_code');
     $expiresAt = session()->get('otp_expires_at');
 
+    /*
+    |--------------------------------------------------------------------------
+    | VERIFY OTP
+    |--------------------------------------------------------------------------
+    */
+
     if (
         empty($storedCode) ||
         $storedCode !== $inputCode ||
         !$expiresAt ||
         now()->greaterThan($expiresAt)
     ) {
-        return back()->with('error', 'Invalid or expired code.');
+        return back()->with(
+            'error',
+            'Invalid or expired code.'
+        );
     }
 
-    // Ngayon lang gagawin ang account, matapos ma-verify ang email
-    $user = User::create([
-        'name' => $pending['name'],
-        'email' => $pending['email'],
-        'password' => $pending['password'],
-        'role' => $pending['role'],
-        'phone' => $pending['phone'],
-        'address' => $pending['address'],
-        'is_verified' => true,
-    ]);
 
-    // Sellers also submitted verification documents during registration —
-    // create their application record now that the account exists.
-    if ($pending['role'] === 'seller') {
+    /*
+    |--------------------------------------------------------------------------
+    | CREATE USER ACCOUNT
+    |--------------------------------------------------------------------------
+    */
+$role = $pending['role']
+    ?? (!empty($pending['vehicle_type']) ? 'rider' : 'buyer');
+
+$user = User::create([
+    'name' => $pending['name'] ?? $pending['full_name'],
+    'email' => $pending['email'],
+    'password' => $pending['password'],
+    'role' => $role,
+    'phone' => $pending['phone'] ?? null,
+    'address' => $pending['address'] ?? null,
+    'is_verified' => true,
+]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER APPLICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($role === 'seller') {
+
         DB::table('seller_applications')->insert([
+
             'user_id' => $user->id,
 
-            'full_name' => $pending['name'],
-            'phone' => $pending['phone'],
-            'address' => $pending['address'],
+            'full_name' =>
+                $pending['name'] ?? $pending['full_name'],
 
-            'national_id' => $pending['national_id'] ?? null,
-            'business_permit' => $pending['business_permit'] ?? null,
+            'phone' =>
+                $pending['phone'] ?? null,
 
-            'status' => 'Pending Verification',
+            'address' =>
+                $pending['address'] ?? null,
+
+            'national_id' =>
+                $pending['national_id'] ?? null,
+
+            'business_permit' =>
+                $pending['business_permit'] ?? null,
+
+            'status' =>
+                'Pending Verification',
 
             'admin_remarks' => null,
+
             'reviewed_at' => null,
+
             'reviewed_by' => null,
 
             'created_at' => now(),
+
             'updated_at' => now(),
+
         ]);
     }
 
-    session()->forget(['pending_registration', 'otp_code', 'otp_email', 'otp_expires_at']);
 
-    // Sellers need admin approval before they can access their account —
-    // send them to login (which enforces that check) instead of auto
-    // logging them in.
+    /*
+    |--------------------------------------------------------------------------
+    | RIDER APPLICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($role === 'rider') {
+
+        DB::table('rider_applications')->insert([
+
+            'user_id' => $user->id,
+
+            'full_name' =>
+                $pending['full_name'] ?? $pending['name'],
+
+            'phone' =>
+                $pending['phone'],
+
+            'address' =>
+                $pending['address'],
+
+            'vehicle_type' =>
+                $pending['vehicle_type'],
+
+            'vehicle_model' =>
+                $pending['vehicle_model'],
+
+            'plate_number' =>
+                $pending['plate_number'],
+
+            'national_id' =>
+                $pending['national_id'],
+
+            'drivers_license' =>
+                $pending['drivers_license'],
+
+            'profile_selfie' =>
+                $pending['profile_selfie'],
+
+            'proof_of_address' =>
+                $pending['proof_of_address'],
+
+            'or_cr' =>
+                $pending['or_cr'],
+
+            'status' =>
+                'Pending Verification',
+
+            'admin_remarks' =>
+                null,
+
+            'reviewed_at' =>
+                null,
+
+            'reviewed_by' =>
+                null,
+
+            'created_at' =>
+                now(),
+
+            'updated_at' =>
+                now(),
+
+        ]);
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | CLEAR OTP SESSION
+    |--------------------------------------------------------------------------
+    */
+
+    session()->forget([
+        'pending_registration',
+        'otp_code',
+        'otp_email',
+        'otp_expires_at'
+    ]);
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | SELLER
+    |--------------------------------------------------------------------------
+    */
+
     if ($user->role === 'seller') {
+
         return redirect()
             ->route('login')
             ->with(
@@ -5656,17 +6151,56 @@ Route::post('/verify-otp', function () {
             );
     }
 
+
+    /*
+    |--------------------------------------------------------------------------
+    | RIDER
+    |--------------------------------------------------------------------------
+    */
+
+    if ($user->role === 'rider') {
+
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Your rider account has been created! Your application is now pending Admin verification. You can log in once approved.'
+            );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | BUYER
+    |--------------------------------------------------------------------------
+    */
+
     session()->put('user', [
-        'id' => $user->id,
-        'name' => $user->name,
-        'email' => $user->email,
-        'role' => $user->role,
-        'profile_photo' => $user->profile_photo,
+
+        'id' =>
+            $user->id,
+
+        'name' =>
+            $user->name,
+
+        'email' =>
+            $user->email,
+
+        'role' =>
+            $user->role,
+
+        'profile_photo' =>
+            $user->profile_photo,
+
     ]);
+
 
     return redirect()
         ->route('buyer.dashboard')
-        ->with('success', 'Welcome to BoomBuy!');
+        ->with(
+            'success',
+            'Welcome to BoomBuy!'
+        );
 
 })->name('otp.verify');
 
@@ -5677,13 +6211,267 @@ Route::post('/resend-otp', function () {
     $pending = session()->get('pending_registration');
 
     if (!$pending) {
-        return redirect()->route('register');
+        return redirect()
+            ->route('register')
+            ->with(
+                'error',
+                'Your registration session expired. Please register again.'
+            );
     }
 
-    if (!generateAndSendOtp($pending['email'], $pending['name'])) {
-        return back()->with('error', 'We could not resend the verification code right now. Please try again in a moment.');
+    $name = $pending['name']
+        ?? $pending['full_name']
+        ?? 'BoomBuy User';
+
+    if (!generateAndSendOtp(
+        $pending['email'],
+        $name
+    )) {
+
+        return back()->with(
+            'error',
+            'We could not resend the verification code right now. Please try again in a moment.'
+        );
     }
 
-    return back()->with('success', 'A new code has been sent to your email.');
+    return back()->with(
+        'success',
+        'A new code has been sent to your email.'
+    );
 
 })->name('otp.resend');
+
+
+Route::get('/notifications', function () {
+
+    $user = session()->get('user');
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    $notifications = \App\Models\Notification::where(
+        'user_id',
+        $user['id']
+    )
+    ->orderByDesc('created_at')
+    ->get();
+
+    return view(
+        'pages.notifications',
+        compact('notifications')
+    );
+
+})->name('notifications');
+
+
+Route::post('/notifications/{id}/read', function ($id) {
+
+    $user = session()->get('user');
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->where('user_id', $user['id'])
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back();
+
+})->name('notifications.read');
+
+
+
+// ======================================================
+// ADMIN NOTIFICATIONS
+// ======================================================
+
+Route::get('/admin/notifications', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $notifications = \App\Models\Notification::orderByDesc('created_at')
+        ->get();
+
+    $unreadCount = \App\Models\Notification::whereNull('read_at')
+        ->count();
+
+    return view(
+        'pages.admin.notifications',
+        compact('notifications', 'unreadCount')
+    );
+
+})->name('admin.notifications');
+
+
+Route::post('/admin/notifications/{id}/read', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back();
+
+})->name('admin.notifications.read');
+
+// =========================
+// NOTIFICATIONS
+// =========================
+
+Route::get('/notifications', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $adminUser = \App\Models\User::where(
+        'email',
+        'admin@boombuy.com'
+    )->first();
+
+    $notifications = $adminUser
+        ? \App\Models\Notification::where(
+            'user_id',
+            $adminUser->id
+        )
+        ->orderByDesc('created_at')
+        ->get()
+        : collect();
+
+    $unreadCount = $notifications
+        ->whereNull('read_at')
+        ->count();
+
+    return view(
+        'pages.admin.notifications',
+        compact(
+            'notifications',
+            'unreadCount'
+        )
+    );
+
+})->name('notifications.index');
+
+
+Route::post('/notifications/{id}/read', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->where('user_id', function ($query) {
+            $query->select('id')
+                ->from('users')
+                ->where('email', 'admin@boombuy.com')
+                ->limit(1);
+        })
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+        ]);
+
+    return back();
+
+})->name('notifications.read');
+
+
+Route::get('/seller/notifications', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $notifications = \App\Models\Notification::where(
+        'user_id',
+        $user['id']
+    )
+    ->orderByDesc('created_at')
+    ->get();
+
+    return view(
+        'pages.seller.notifications',
+        compact('user', 'notifications')
+    );
+
+})->name('seller.notifications');
+
+
+Route::post('/seller/notifications/{id}/read', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->where('user_id', $user['id'])
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back();
+
+})->name('seller.notifications.read');
+
+
+Route::get('/rider/notifications', function () {
+
+    $user = requireUserRole('rider');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $notifications = \App\Models\Notification::where(
+        'user_id',
+        $user['id']
+    )
+    ->orderByDesc('created_at')
+    ->get();
+
+    return view(
+        'pages.rider.notifications',
+        compact('user', 'notifications')
+    );
+
+})->name('rider.notifications');
+
+Route::post('/rider/notifications/{id}/read', function ($id) {
+
+    $user = requireUserRole('rider');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->where('user_id', $user['id'])
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back();
+
+})->name('rider.notifications.read');

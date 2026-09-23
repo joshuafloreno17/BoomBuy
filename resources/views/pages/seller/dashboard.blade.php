@@ -76,6 +76,49 @@
             background: #ffe0e0;
         }
 
+/* ===== SELLER NOTIFICATION ===== */
+
+.notification-link {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #e8420f;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+@media (max-width: 900px) {
+
+    .notification-link {
+        justify-content: center;
+    }
+
+    .notification-badge {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        font-size: 9px;
+    }
+}
+
+
         /* CONTAINER */
 
         .container {
@@ -545,11 +588,61 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <div class="sidebar-label">Seller Panel</div>
 
-    <nav class="menu">
-        <a href="{{ route('seller.dashboard') }}" class="active">📊 <span class="label-text">Dashboard</span></a>
-        <a href="{{ route('seller.products.create') }}">➕ <span class="label-text">Add Product</span></a>
-        <a href="{{ route('seller.orders') }}">🛒 <span class="label-text">Orders</span></a>
-    </nav>
+   <nav class="menu">
+
+    <a
+        href="{{ route('seller.dashboard') }}"
+        class="active"
+    >
+        📊
+        <span class="label-text">
+            Dashboard
+        </span>
+    </a>
+
+    <a href="{{ route('seller.products.create') }}">
+        ➕
+        <span class="label-text">
+            Add Product
+        </span>
+    </a>
+
+    <a href="{{ route('seller.orders') }}">
+        🛒
+        <span class="label-text">
+            Orders
+        </span>
+    </a>
+
+    @php
+        $sellerUnreadNotifications = \App\Models\Notification::where(
+            'user_id',
+            $user['id']
+        )
+        ->whereNull('read_at')
+        ->count();
+    @endphp
+
+    <a
+        href="{{ route('seller.notifications') }}"
+        class="notification-link"
+    >
+        🔔
+
+        <span class="label-text">
+            Notifications
+        </span>
+
+        @if($sellerUnreadNotifications > 0)
+            <span class="notification-badge">
+                {{ $sellerUnreadNotifications > 99
+                    ? '99+'
+                    : $sellerUnreadNotifications }}
+            </span>
+        @endif
+    </a>
+
+</nav>
 
     <div class="sidebar-footer">
 
