@@ -2889,6 +2889,9 @@ Route::get('/admin/orders', function () {
         $order['buyer_name'] =
             $order['shipping_name'] ?? 'Unknown Buyer';
 
+        $order['buyer_email'] =
+            optional(DB::table('users')->where('id', $order['buyer_id'] ?? null)->first())->email;
+
         $order['address'] =
             $order['shipping_address'] ?? '';
 
@@ -2987,6 +2990,9 @@ Route::get('/admin/order/{id}', function ($id) {
     $order['buyer_name'] =
         $order['shipping_name'] ?? 'Unknown Buyer';
 
+    $order['buyer_email'] =
+        optional(DB::table('users')->where('id', $order['buyer_id'] ?? null)->first())->email;
+
     $order['address'] =
         $order['shipping_address'] ?? '';
 
@@ -3073,6 +3079,14 @@ Route::post('/admin/order/{id}/status', function ($id) {
             'status' => $status,
             'updated_at' => now(),
         ]);
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Order Status Updated',
+        'Your order #' . $id . ' status was updated to "' . $status . '" by an administrator.',
+        'order',
+        (int) $id
+    );
 
     /*
     |--------------------------------------------------------------------------
@@ -5208,9 +5222,23 @@ Route::get('/rider/deliveries/history', function () {
         return $user;
     }
 
+    $from = request('from') ?: now()->subDays(30)->format('Y-m-d');
+    $to = request('to') ?: now()->format('Y-m-d');
+
+    // Credit whoever actually completed the final-mile leg, same as the
+    // Profit page: if the Sorting Center assigned a (possibly different)
+    // delivery_rider_id, that delivery belongs in this rider's history too.
     $history = DB::table('orders')
-        ->where('rider_id', $user['id'])
+        ->where(function ($query) use ($user) {
+            $query->where('delivery_rider_id', $user['id'])
+                ->orWhere(function ($q) use ($user) {
+                    $q->whereNull('delivery_rider_id')
+                        ->where('rider_id', $user['id']);
+                });
+        })
         ->where('status', 'Delivered')
+        ->whereDate('updated_at', '>=', $from)
+        ->whereDate('updated_at', '<=', $to)
         ->orderByDesc('updated_at')
         ->get();
 
@@ -5231,7 +5259,7 @@ Route::get('/rider/deliveries/history', function () {
 
     });
 
-    return view('pages.rider.delivery-history', compact('user', 'history'));
+    return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to'));
 
 })->name('rider.deliveries.history');
 
@@ -5256,6 +5284,16 @@ Route::get('/', function () {
     // Logged-in Seller
     if ($user && ($user['role'] ?? '') === 'seller') {
         return redirect()->route('seller.dashboard');
+    }
+
+    // Logged-in Rider
+    if ($user && ($user['role'] ?? '') === 'rider') {
+        return redirect()->route('rider.dashboard');
+    }
+
+    // Logged-in Logistics
+    if ($user && ($user['role'] ?? '') === 'logistics') {
+        return redirect()->route('logistics.dashboard');
     }
 
 
@@ -5554,9 +5592,17 @@ Route::post('/cart/update/{slug}', function ($slug) {
     $action =
         request('action');
 
+    $product = Product::find($slug);
+
+    $blocked = false;
+
     if ($action === 'increase') {
 
-        $cart[$slug]++;
+        if ($product && $cart[$slug] >= $product->stock) {
+            $blocked = true;
+        } else {
+            $cart[$slug]++;
+        }
 
     } elseif ($action === 'decrease') {
 
@@ -5576,7 +5622,6 @@ Route::post('/cart/update/{slug}', function ($slug) {
     if (request()->wantsJson()) {
 
         $newQuantity = $cart[$slug] ?? 0;
-        $product = Product::find($slug);
 
         return response()->json(array_merge(
             [
@@ -5585,9 +5630,15 @@ Route::post('/cart/update/{slug}', function ($slug) {
                 'item_total' => $product
                     ? number_format((float) $product->price * $newQuantity, 2)
                     : '0.00',
+                'blocked' => $blocked,
+                'message' => $blocked ? 'No more stock available for this product.' : null,
             ],
             cartSummary($cart)
         ));
+    }
+
+    if ($blocked) {
+        return back()->with('error', 'No more stock available for this product.');
     }
 
     return back();
@@ -5819,6 +5870,16 @@ Route::get('/checkout', function () {
     |--------------------------------------------------------------------------
     */
 
+    /*
+    |--------------------------------------------------------------------------
+    | PRE-FILL SAVED ADDRESS/PHONE FROM THE BUYER'S PROFILE
+    |--------------------------------------------------------------------------
+    */
+
+    $savedBuyer = User::find($user['id']);
+    $savedAddress = $savedBuyer->address ?? '';
+    $savedPhone = $savedBuyer->phone ?? '';
+
     return view(
         'pages.checkout',
         compact(
@@ -5826,7 +5887,9 @@ Route::get('/checkout', function () {
             'cart',
             'products',
             'appliedVoucher',
-            'cartVariations'
+            'cartVariations',
+            'savedAddress',
+            'savedPhone'
         )
     );
 

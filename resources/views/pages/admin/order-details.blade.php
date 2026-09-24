@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Order #{{ $order['id'] }} - BoomBuy Admin</title>
+
+    @include('partials.pwa-head')
+
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
+    <style>
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+.received-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    margin-top: 8px;
+
+    padding: 7px 11px;
+
+    border-radius: 999px;
+
+    background: #e9f8ef;
+    color: #087a3d;
+
+    border: 1px solid #ccefd9;
+
+    font-size: 11px;
+    font-weight: 800;
+
+    white-space: nowrap;
+}
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #fff7f4;
+            color: #172033;
+        }
+
+        .container {
+            width: 86%;
+            max-width: 900px;
+            margin: 40px auto;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-bottom: 18px;
+            color: #8e7067;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        h1 {
+            margin-bottom: 8px;
+        }
+
+        .subtitle {
+            color: #8e7067;
+            margin-bottom: 28px;
+        }
+
+        .order-card {
+            background: white;
+            border: 1px solid #f6e1db;
+            border-radius: 14px;
+            padding: 22px;
+            margin-bottom: 18px;
+        }
+
+        .order-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .order-id {
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 7px 12px;
+            border-radius: 20px;
+            background: #fff4d6;
+            color: #9a6700;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .info {
+            color: #7c5f57;
+            line-height: 1.7;
+        }
+
+        .items {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f6efed;
+        }
+
+        .item {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+        }
+
+        .total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #f6efed;
+            font-size: 18px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-weight: 700;
+        }
+
+        select {
+            padding: 10px 12px;
+            border: 1px solid #e6d1cb;
+            border-radius: 8px;
+            background: white;
+        }
+
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+::selection {
+    background: #ffd7c2;
+    color: #7c1a00;
+}
+
+@media (max-width: 640px) {
+    .container { width: 92%; margin: 24px auto; }
+    .order-header { flex-wrap: wrap; gap: 8px; }
+    .order-card { padding: 16px; }
+    .actions { flex-direction: column; align-items: stretch; }
+    .actions .btn, .actions select { width: 100%; text-align: center; }
+    h1 { font-size: 22px; }
+}
+</style>
+</head>
+
+<body>
+
+<div class="layout">
+
+    <x-layout.admin-sidebar active="orders" />
+
+    <main class="main">
+
+<div class="container">
+
+    <a href="{{ route('admin.orders') }}" class="back-link">
+        ← Back to Orders
+    </a>
+
+    <h1>Order #{{ $order['id'] }}</h1>
+    <div class="subtitle">
+        Placed {{ \Carbon\Carbon::parse($order['created_at'])->format('M d, Y • h:i A') }}
+    </div>
+
+    @if(session('success'))
+        <div class="alert">{{ session('success') }}</div>
+    @endif
+
+    <div class="order-card">
+
+        <div class="order-header">
+
+            <div>
+                <div class="order-id">Order #{{ $order['id'] }}</div>
+                <span class="status">{{ $order['status'] }}</span>
+
+                @if(!empty($order['buyer_received_at']))
+
+                    <div class="received-badge">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
+                        Received by Buyer
+                    </div>
+
+                @endif
+
+            </div>
+
+        </div>
+
+        <div class="info">
+
+            <strong>Buyer:</strong>
+            {{ $order['buyer_name'] ?? 'Buyer' }}
+
+            <br>
+
+            <strong>Email:</strong>
+            {{ $order['buyer_email'] ?? 'N/A' }}
+
+            <br>
+
+            <strong>Phone:</strong>
+            {{ $order['phone'] ?? 'N/A' }}
+
+            <br>
+
+            <strong>Address:</strong>
+            {{ $order['address'] ?? 'N/A' }}
+
+            <br>
+
+            <strong>Payment:</strong>
+            {{ $order['payment'] ?? 'N/A' }}
+
+        </div>
+
+        <div class="items">
+
+            <strong>Order Items</strong>
+
+            @foreach(($order['items'] ?? []) as $item)
+
+                <div class="item">
+
+                    <span>
+                        {{ $item['product_name'] ?? 'Product' }}
+                        @if(!empty($item['variation_label']))
+                            ({{ $item['variation_label'] }})
+                        @endif
+                        × {{ $item['quantity'] ?? 1 }}
+                    </span>
+
+                    <span>
+                        ₱{{ number_format($item['subtotal'] ?? 0, 2) }}
+                    </span>
+
+                </div>
+
+            @endforeach
+
+        </div>
+
+        <div class="total">
+            <span>Total</span>
+            <span>₱{{ number_format($order['total'] ?? 0, 2) }}</span>
+        </div>
+
+        @if(!empty($order['rider_name']))
+
+            <div class="info" style="margin-top:15px;">
+                <strong>Rider:</strong>
+                {{ $order['rider_name'] }}
+            </div>
+
+        @endif
+
+        <div class="actions">
+
+            <form
+                method="POST"
+                action="{{ route('admin.order.status', $order['id']) }}"
+            >
+
+                @csrf
+
+                <select name="status">
+
+                    <option value="Pending" {{ ($order['status'] ?? '') === 'Pending' ? 'selected' : '' }}>Pending</option>
+                    <option value="Processing" {{ ($order['status'] ?? '') === 'Processing' ? 'selected' : '' }}>Processing</option>
+                    <option value="Ready for Pickup" {{ ($order['status'] ?? '') === 'Ready for Pickup' ? 'selected' : '' }}>Ready for Pickup</option>
+                    <option value="Picked Up" {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
+                    <option value="On the Way" {{ ($order['status'] ?? '') === 'On the Way' ? 'selected' : '' }}>On the Way</option>
+                    <option value="Out for Delivery" {{ ($order['status'] ?? '') === 'Out for Delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                    <option value="Delivered" {{ ($order['status'] ?? '') === 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                    <option value="Cancelled" {{ ($order['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+
+                </select>
+
+                <button type="submit" class="btn" style="background:#f13f09; color:white;">
+                    Update Status
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+    </main>
+
+</div>
+
+    @include('partials.pwa-register')
+
+</body>
+</html>

@@ -339,7 +339,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <input
                         type="text"
                         name="address"
-                        value="{{ old('address') }}"
+                        value="{{ old('address', $savedAddress ?? '') }}"
                         placeholder="House No., Street, Barangay, City"
                         required
                     >
@@ -356,7 +356,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <input
                         type="text"
                         name="phone"
-                        value="{{ old('phone') }}"
+                        value="{{ old('phone', $savedPhone ?? '') }}"
                         placeholder="09XXXXXXXXX"
                         required
                     >

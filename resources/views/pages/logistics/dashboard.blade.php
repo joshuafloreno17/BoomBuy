@@ -20,6 +20,8 @@
 
         <div class="container">
 
+            @include('partials.announcement-banner')
+
             <div class="page-header">
                 <h1>Logistics Dashboard</h1>
                 <p>Welcome back, {{ $user['name'] ?? 'Logistics Partner' }}.</p>

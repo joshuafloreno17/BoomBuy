@@ -30,6 +30,8 @@
 
 <div class="container">
 
+    @include('partials.announcement-banner')
+
     <!-- WELCOME -->
 
     <section class="welcome">

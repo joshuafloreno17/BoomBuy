@@ -14,6 +14,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -364,25 +366,12 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <body>
 
+<div class="layout">
 
-<nav class="navbar">
+    <x-layout.admin-sidebar active="products" />
 
-    <a href="/admin" class="logo">
-        Boom<span>Buy</span>
-    </a>
-
-    <div class="admin-label">
-        Admin Panel
-    </div>
-
-    <a href="/admin" class="back">
-        ← Dashboard
-    </a>
-
-</nav>
-
-
-<main class="container">
+    <main class="main">
+    <div class="container">
 
 
     <div class="header">
@@ -619,8 +608,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </div>
 
 
-</main>
+    </div>
+    </main>
 
+</div>
 
 <footer>
 

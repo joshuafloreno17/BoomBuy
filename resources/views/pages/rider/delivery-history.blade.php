@@ -21,8 +21,28 @@
         <div class="container">
 
             <div class="page-header">
-                <h1>Delivery History</h1>
-                <p>All of your completed deliveries.</p>
+
+                <div>
+                    <h1>Delivery History</h1>
+                    <p>All of your completed deliveries.</p>
+                </div>
+
+                <form method="GET" action="{{ route('rider.deliveries.history') }}" class="filter-form">
+
+                    <div>
+                        <label for="from">From</label>
+                        <input type="date" id="from" name="from" value="{{ $from }}">
+                    </div>
+
+                    <div>
+                        <label for="to">To</label>
+                        <input type="date" id="to" name="to" value="{{ $to }}">
+                    </div>
+
+                    <button type="submit" class="filter-btn">Apply</button>
+
+                </form>
+
             </div>
 
             @forelse($history as $order)

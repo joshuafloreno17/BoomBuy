@@ -8,51 +8,64 @@
 
     @include('partials.pwa-head')
 
+    @php
+        $role = $me['role'] ?? 'buyer';
+    @endphp
+
+    @if($role === 'seller')
+        <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
+    @elseif($role === 'rider')
+        <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+    @elseif($role === 'logistics')
+        <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+    @endif
+
     <link rel="stylesheet" href="{{ asset('css/pages/messages.css') }}">
 </head>
 
 <body>
 
-<div class="container">
+@if($role === 'seller')
 
-    <a href="{{ route('messages.index') }}" class="back-link">
-        ← Back to Messages
-    </a>
+    <div class="layout">
 
-    <div class="thread-header">
-        <div class="avatar">
-            {{ strtoupper(substr($partner->name, 0, 1)) }}
-        </div>
-        <div>
-            <div class="conversation-name">{{ $partner->name }}</div>
-            <div class="conversation-role">{{ $partner->role }}</div>
-        </div>
-    </div>
+        <x-layout.seller-sidebar active="messages" :user="$me" />
 
-    <div class="thread-box" id="threadBox">
-
-        @forelse($thread as $message)
-
-            <div class="bubble {{ $message->sender_id === $me['id'] ? 'bubble-mine' : 'bubble-theirs' }}">
-                {{ $message->message }}
-                <span class="bubble-time">{{ $message->created_at->format('M d, h:i A') }}</span>
+        <main class="main-content">
+            <div class="container">
+                @include('pages.partials.messages-thread-body')
             </div>
-
-        @empty
-
-            <div class="empty-thread">No messages yet. Say hello!</div>
-
-        @endforelse
+        </main>
 
     </div>
 
-    <form method="POST" action="{{ route('messages.store', $partner->id) }}" class="send-form">
-        @csrf
-        <input type="text" name="message" placeholder="Type a message..." required autofocus>
-        <button type="submit" class="send-btn">Send</button>
-    </form>
+@elseif($role === 'rider')
 
-</div>
+    <x-layout.rider-sidebar active="messages" :user="$me" />
+
+    <main class="main-content">
+        <div class="container">
+            @include('pages.partials.messages-thread-body')
+        </div>
+    </main>
+
+@elseif($role === 'logistics')
+
+    <x-layout.logistics-sidebar active="messages" :user="$me" />
+
+    <main class="main-content">
+        <div class="container">
+            @include('pages.partials.messages-thread-body')
+        </div>
+    </main>
+
+@else
+
+    <div class="container">
+        @include('pages.partials.messages-thread-body')
+    </div>
+
+@endif
 
 <script>
     var box = document.getElementById('threadBox');

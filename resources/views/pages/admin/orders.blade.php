@@ -329,7 +329,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         <div class="item">
 
                             <span>
-                                {{ $item['name'] ?? 'Product' }}
+                                {{ $item['product_name'] ?? 'Product' }}
                                 × {{ $item['quantity'] ?? 1 }}
                             </span>
 

@@ -824,6 +824,11 @@
                     .then(function (data) {
                         if (!data) return;
 
+                        if (data.blocked) {
+                            alert(data.message || 'No more stock available for this product.');
+                            return;
+                        }
+
                         var productId = form.dataset.productId;
 
                         if (data.removed) {

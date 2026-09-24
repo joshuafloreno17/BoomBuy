@@ -8,92 +8,80 @@
 
     @include('partials.pwa-head')
 
+    @php
+        $role = $me['role'] ?? 'buyer';
+    @endphp
+
+    @if($role === 'seller')
+        <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
+    @elseif($role === 'rider')
+        <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+    @elseif($role === 'logistics')
+        <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+    @endif
+
     <link rel="stylesheet" href="{{ asset('css/pages/messages.css') }}">
 </head>
 
 <body>
 
-<div class="container">
+@if($role === 'seller')
 
-    @php
-        $dashboardRoute = match($me['role'] ?? 'buyer') {
-            'seller' => 'seller.dashboard',
-            'rider' => 'rider.dashboard',
-            'admin' => 'admin.dashboard',
-            'logistics' => 'logistics.dashboard',
-            default => 'buyer.dashboard',
-        };
-    @endphp
+    <div class="layout">
 
-    <a href="{{ route($dashboardRoute) }}" class="back-link">
-        ← Back to Dashboard
-    </a>
+        <x-layout.seller-sidebar active="messages" :user="$me" />
 
-    <div class="header">
-        <h1>Messages</h1>
-        <p>Conversations with BoomBuy users and support.</p>
+        <main class="main-content">
+            <div class="container">
+                @include('pages.partials.messages-inbox-body')
+            </div>
+        </main>
+
     </div>
 
-    @if(session('error'))
-        <div class="error-box">{{ session('error') }}</div>
-    @endif
+@elseif($role === 'rider')
 
-    @if($me['role'] !== 'admin')
+    <x-layout.rider-sidebar active="messages" :user="$me" />
+
+    <main class="main-content">
+        <div class="container">
+            @include('pages.partials.messages-inbox-body')
+        </div>
+    </main>
+
+@elseif($role === 'logistics')
+
+    <x-layout.logistics-sidebar active="messages" :user="$me" />
+
+    <main class="main-content">
+        <div class="container">
+            @include('pages.partials.messages-inbox-body')
+        </div>
+    </main>
+
+@else
+
+    <div class="container">
 
         @php
-            $admin = \App\Models\User::where('email', 'admin@boombuy.com')->first();
+            $dashboardRoute = match($role) {
+                'seller' => 'seller.dashboard',
+                'rider' => 'rider.dashboard',
+                'admin' => 'admin.dashboard',
+                'logistics' => 'logistics.dashboard',
+                default => 'buyer.dashboard',
+            };
         @endphp
 
-        @if($admin)
-            <div style="margin-bottom:15px;">
-                <a href="{{ route('messages.thread', $admin->id) }}" class="send-btn" style="display:inline-block; padding:11px 18px; border-radius:10px;">
-                    💬 Message BoomBuy Support
-                </a>
-            </div>
-        @endif
+        <a href="{{ route($dashboardRoute) }}" class="back-link">
+            ← Back to Dashboard
+        </a>
 
-    @endif
+        @include('pages.partials.messages-inbox-body')
 
-    @if($conversations->count() > 0)
+    </div>
 
-        <div class="conversation-list">
-
-            @foreach($conversations as $conversation)
-
-                <a href="{{ route('messages.thread', $conversation['partner_id']) }}" class="conversation-item {{ $conversation['unread_count'] > 0 ? 'unread' : '' }}">
-
-                    <div class="avatar">
-                        {{ strtoupper(substr($conversation['partner_name'], 0, 1)) }}
-                    </div>
-
-                    <div style="flex:1; min-width:0;">
-                        <div>
-                            <span class="conversation-name">{{ $conversation['partner_name'] }}</span>
-                            <span class="conversation-role">{{ $conversation['partner_role'] }}</span>
-                        </div>
-                        <div class="conversation-preview">{{ $conversation['last_message'] }}</div>
-                    </div>
-
-                    <div class="conversation-meta">
-                        <div class="conversation-time">{{ $conversation['last_message_at']->diffForHumans() }}</div>
-                        @if($conversation['unread_count'] > 0)
-                            <span class="unread-badge">{{ $conversation['unread_count'] }}</span>
-                        @endif
-                    </div>
-
-                </a>
-
-            @endforeach
-
-        </div>
-
-    @else
-
-        <div class="empty">No conversations yet.</div>
-
-    @endif
-
-</div>
+@endif
 
     @include('partials.pwa-register')
 

@@ -10,6 +10,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+
     <style>
 
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -209,7 +211,7 @@
         ========================= */
 
         .main {
-            margin-left: 250px;
+            margin-left: 245px;
 
             padding: 35px;
 
@@ -684,108 +686,7 @@
          SIDEBAR
     ========================= -->
 
-    <aside class="sidebar">
-
-        <div class="logo">
-            Boom<span>Buy</span>
-        </div>
-
-        <div class="menu-title">
-            Rider Menu
-        </div>
-
-        <div class="menu">
-
-            <a href="{{ route('rider.dashboard') }}">
-                🏠 Dashboard
-            </a>
-
-            <a href="{{ route('rider.deliveries') }}">
-                🚚 My Deliveries
-            </a>
-
-            <a href="{{ route('rider.profit') }}">
-                💰 Profit
-            </a>
-
-            <a href="{{ route('rider.profile') }}">
-                👤 My Profile
-            </a>
-
-            @php
-
-                $riderUnreadNotifications =
-                    \App\Models\Notification::where(
-                        'user_id',
-                        $user['id']
-                    )
-                    ->whereNull('read_at')
-                    ->count();
-
-            @endphp
-
-            <a
-                href="{{ route('rider.notifications') }}"
-                class="active"
-            >
-
-                🔔 Notifications
-
-                @if($riderUnreadNotifications > 0)
-
-                    <span class="notification-badge">
-
-                        {{ $riderUnreadNotifications > 99
-                            ? '99+'
-                            : $riderUnreadNotifications }}
-
-                    </span>
-
-                @endif
-
-            </a>
-
-            <a href="{{ route('complaints.index') }}">
-                ⚠️ Complaints
-            </a>
-
-            <a href="{{ route('messages.index') }}">
-                💬 Messages
-            </a>
-
-        </div>
-
-        <div class="menu-title">
-            Account
-        </div>
-
-        <div class="menu">
-
-            <a href="{{ url('/') }}">
-                🛍️ BoomBuy Store
-            </a>
-
-        </div>
-
-        <div class="logout">
-
-            <form
-                method="POST"
-                action="{{ route('logout') }}"
-                onsubmit="return confirm('Are you sure you want to log out?');"
-            >
-
-                @csrf
-
-                <button type="submit">
-                    🚪 Logout
-                </button>
-
-            </form>
-
-        </div>
-
-    </aside>
+    <x-layout.rider-sidebar active="notifications" :user="$user" />
 
 
     <!-- =========================
