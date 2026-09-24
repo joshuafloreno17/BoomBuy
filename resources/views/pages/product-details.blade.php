@@ -656,6 +656,33 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
+            <!-- VARIATIONS -->
+
+            @if($variations->count() > 0)
+
+                <label class="quantity-label">
+                    Options
+                </label>
+
+                <select
+                    id="variationSelect"
+                    onchange="updateVariationInputs()"
+                    style="width:100%; padding:11px 13px; border:1px solid #f0ddd5; border-radius:10px; font-family:inherit; font-size:13px; margin-bottom:16px;"
+                >
+                    @foreach($variations as $variation)
+                        <option value="{{ $variation->id }}" data-adjustment="{{ $variation->price_adjustment }}">
+                            {{ $variation->variation_type }}: {{ $variation->variation_value }}
+                            @if($variation->price_adjustment > 0)
+                                (+₱{{ number_format($variation->price_adjustment, 2) }})
+                            @endif
+                            — {{ $variation->stock }} in stock
+                        </option>
+                    @endforeach
+                </select>
+
+            @endif
+
+
             <!-- QUANTITY -->
 
             <label class="quantity-label">
@@ -728,9 +755,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     action="{{ route('cart.add', $product->id) }}"
                     method="POST"
                     style="flex:1;"
+                    id="addToCartForm"
                 >
 
                     @csrf
+
+                    <input type="hidden" name="quantity" id="cartQuantity" value="1">
+                    <input type="hidden" name="variation_id" id="cartVariationId" value="">
 
                     <button
                         type="submit"
@@ -760,6 +791,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         id="buyNowQuantity"
                         value="1"
                     >
+
+                    <input type="hidden" name="variation_id" id="buyNowVariationId" value="">
 
                     <button
                         type="submit"
@@ -949,7 +982,34 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             'buyNowQuantity'
         ).value = quantity;
 
+        const cartQuantityInput = document.getElementById('cartQuantity');
+
+        if (cartQuantityInput) {
+            cartQuantityInput.value = quantity;
+        }
+
     }
+
+    function updateVariationInputs() {
+
+        const select = document.getElementById('variationSelect');
+
+        if (!select) {
+            return;
+        }
+
+        const variationId = select.value;
+
+        const cartVariationInput = document.getElementById('cartVariationId');
+        const buyNowVariationInput = document.getElementById('buyNowVariationId');
+
+        if (cartVariationInput) cartVariationInput.value = variationId;
+        if (buyNowVariationInput) buyNowVariationInput.value = variationId;
+
+    }
+
+    // Initialize variation selection on page load
+    updateVariationInputs();
 
 
     document

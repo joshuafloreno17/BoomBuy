@@ -928,6 +928,9 @@
 
                                             <div class="item-name">
                                                 {{ $item['name'] ?? 'Product' }}
+                                                @if(!empty($item['variation_label']))
+                                                    <span style="color:#977970; font-weight:400;">({{ $item['variation_label'] }})</span>
+                                                @endif
                                             </div>
 
                                             <div class="item-info">
@@ -1214,12 +1217,13 @@
 
                                     @if(empty($order['buyer_received_at']))
 
-                                        <a
-                                            href="{{ route('buyer.order.track', ['id' => $order['id']]) }}"
+                                        <button
+                                            type="button"
                                             class="track-btn"
+                                            onclick="toggleTracking('{{ $trackingId }}')"
                                         >
                                             📍 Track Order
-                                        </a>
+                                        </button>
 
                                         @if(($order['status'] ?? '') === 'Delivered')
                                             <form

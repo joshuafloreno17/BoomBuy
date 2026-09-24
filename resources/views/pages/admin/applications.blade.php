@@ -13,6 +13,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -30,37 +32,6 @@
 
         a {
             text-decoration: none;
-        }
-
-        /* NAVBAR */
-
-        .navbar {
-            background: #ffffff;
-            border-bottom: 1px solid #ffe9e2;
-            padding: 18px 7%;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .logo {
-            font-family: 'Baloo 2', sans-serif;
-            font-size: 23px;
-            font-weight: 800;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .back {
-            color: #8d6c62;
-            font-size: 13px;
-        }
-
-        .back:hover {
-            color: #e8420f;
         }
 
         /* PAGE */
@@ -344,14 +315,6 @@
         }
 
         @media (max-width: 500px) {
-            .navbar {
-                padding: 16px 5%;
-            }
-
-            .back {
-                display: none;
-            }
-
             .app-card-top {
                 flex-direction: column;
             }
@@ -365,18 +328,11 @@
 
 <body>
 
-    <nav class="navbar">
+<div class="layout">
 
-        <a href="{{ route('admin.dashboard') }}" class="logo">
-            Boom<span>Buy</span>
-        </a>
+    <x-layout.admin-sidebar active="applications" />
 
-        <a href="{{ route('admin.dashboard') }}" class="back">
-            ← Admin Dashboard
-        </a>
-
-    </nav>
-
+    <main class="main">
 
     <div class="container">
 
@@ -464,6 +420,25 @@
 
                             <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => 'seller', 'id' => $app->id]) }}">
                                 @csrf
+                                <select name="business_category" required style="padding:9px 11px; border:1px solid #f0ddd6; border-radius:8px; font-size:11px; font-family:inherit;">
+                                    <option value="">Registered Category…</option>
+                                    <option value="electronics">📱 Electronics</option>
+                                    <option value="womens-fashion">👗 Women's Fashion</option>
+                                    <option value="mens-fashion">👕 Men's Fashion</option>
+                                    <option value="kids-baby">👶 Kids & Baby</option>
+                                    <option value="home-living">🏠 Home & Living</option>
+                                    <option value="sports-outdoors">⚽ Sports & Outdoors</option>
+                                    <option value="beauty-personal-care">💄 Beauty & Personal Care</option>
+                                    <option value="food-beverages">🍔 Food & Beverages</option>
+                                    <option value="automotive">🚗 Automotive</option>
+                                    <option value="office-school">📚 Office & School</option>
+                                    <option value="pet-supplies">🐶 Pet Supplies</option>
+                                    <option value="toys-games-hobbies">🎮 Toys, Games & Hobbies</option>
+                                    <option value="jewelry-accessories">💍 Jewelry & Accessories</option>
+                                    <option value="shoes">👟 Shoes</option>
+                                    <option value="tools-home-improvement">🧰 Tools & Home Improvement</option>
+                                    <option value="garden-outdoor">🌱 Garden & Outdoor</option>
+                                </select>
                                 <button type="submit" class="approve-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg> Approve</button>
                             </form>
 
@@ -602,6 +577,10 @@
         </div>
 
     </div>
+
+    </main>
+
+</div>
 
     <script>
         document.querySelectorAll('.tab-btn').forEach(function (btn) {

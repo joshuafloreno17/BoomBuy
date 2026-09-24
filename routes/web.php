@@ -37,12 +37,43 @@ if (!function_exists('requireUserRole')) {
     }
 }
 
+if (!function_exists('currentMessagingUser')) {
+    // Identifies "who is logged in" for the messaging feature, whether
+    // that's a buyer/seller/rider (session('user')) or the admin
+    // (session('admin_logged_in'), backed by the admin@boombuy.com row).
+    function currentMessagingUser()
+    {
+        $user = session()->get('user');
+
+        if ($user) {
+            return $user;
+        }
+
+        if (session()->get('admin_logged_in')) {
+
+            $admin = \App\Models\User::where('email', 'admin@boombuy.com')->first();
+
+            if ($admin) {
+                return [
+                    'id' => $admin->id,
+                    'name' => $admin->name,
+                    'role' => 'admin',
+                ];
+            }
+        }
+
+        return null;
+    }
+}
+
 if (!function_exists('cartSummary')) {
     function cartSummary($cart)
     {
         $databaseProducts = \App\Models\Product::whereIn('id', array_keys($cart))
             ->get()
             ->keyBy('id');
+
+        $cartVariations = session()->get('cart_variations', []);
 
         $subtotal = 0;
         $totalItems = 0;
@@ -52,7 +83,19 @@ if (!function_exists('cartSummary')) {
             $product = $databaseProducts->get($productId);
 
             if ($product) {
-                $subtotal += (float) $product->price * (int) $quantity;
+
+                $unitPrice = (float) $product->price;
+
+                if (!empty($cartVariations[$productId])) {
+
+                    $variation = \App\Models\ProductVariation::find($cartVariations[$productId]);
+
+                    if ($variation) {
+                        $unitPrice += (float) $variation->price_adjustment;
+                    }
+                }
+
+                $subtotal += $unitPrice * (int) $quantity;
                 $totalItems += (int) $quantity;
             }
         }
@@ -359,6 +402,18 @@ Route::post('/login', function () {
         return back()
             ->withInput()
             ->with('error', 'Invalid email or password.');
+    }
+
+    // Suspended/deactivated accounts cannot log in, regardless of role.
+    if (($user->status ?? 'Active') !== 'Active') {
+
+        $statusMessage = $user->status === 'Suspended'
+            ? 'Your account has been suspended. Please contact BoomBuy support for assistance.'
+            : 'Your account has been deactivated. Please contact BoomBuy support for assistance.';
+
+        return back()
+            ->withInput()
+            ->with('error', $statusMessage);
     }
 
     // Sellers and riders must have an Approved application before they
@@ -985,6 +1040,9 @@ Route::get('/buyer/orders', function () {
 
             $item = (array) $item;
 
+            $item['name'] =
+                $item['product_name'] ?? 'Product';
+
             $item['subtotal'] =
                 (float) ($item['price'] ?? 0) *
                 (int) ($item['quantity'] ?? 1);
@@ -1108,6 +1166,23 @@ Route::post('/buyer/orders/{id}/received', function ($id) {
             'buyer_received_at' => now(),
             'updated_at' => now(),
         ]);
+
+    // Notify every seller who has items in this order
+    $sellerIds = DB::table('order_items')
+        ->where('order_id', $id)
+        ->distinct()
+        ->pluck('seller_id');
+
+    foreach ($sellerIds as $sellerId) {
+
+        createNotification(
+            $sellerId,
+            'Order Received by Buyer',
+            "Order #{$id} has been confirmed as received by the buyer.",
+            'order_status',
+            $id
+        );
+    }
 
     return back()->with(
         'success',
@@ -1303,6 +1378,17 @@ Route::post('/admin/login', function () {
         if (!session()->has('admin_notifications')) {
             session()->put('admin_notifications', []);
         }
+
+        // Make sure a real `users` row exists for the admin account —
+        // notifications and messaging both need a real user_id to attach to.
+        \App\Models\User::firstOrCreate(
+            ['email' => 'admin@boombuy.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'admin',
+            ]
+        );
 
         return redirect()
             ->route('admin.dashboard')
@@ -1734,6 +1820,8 @@ Route::get('/products', function () {
     $search = trim((string) request('search'));
 
     $databaseProducts = Product::latest()
+        ->where('is_flagged', false)
+        ->where('is_archived', false)
         ->when(
             $category && isset($categoryMap[$category]),
             function ($query) use ($category, $categoryMap) {
@@ -2029,6 +2117,7 @@ Route::get('/admin/accounts', function () {
             'name',
             'email',
             'role',
+            'status',
             'created_at'
         )
         ->where(function ($query) {
@@ -2070,6 +2159,7 @@ Route::get('/admin/accounts', function () {
                 'name' => $user->name,
                 'email' => $user->email,
                 'role' => $user->role,
+                'status' => $user->status ?? 'Active',
                 'created_at' => $user->created_at,
             ];
 
@@ -2090,9 +2180,126 @@ Route::get('/admin/settings', function () {
         return redirect()->route('admin.login');
     }
 
-    return view('pages.admin.settings');
+    $announcements = \App\Models\PlatformAnnouncement::orderByDesc('created_at')->get();
+
+    $termsPolicy = \App\Models\PlatformSetting::get('terms_policy');
+    $privacyPolicy = \App\Models\PlatformSetting::get('privacy_policy');
+    $returnPolicy = \App\Models\PlatformSetting::get('return_policy');
+    $commissionRate = \App\Models\PlatformSetting::get('commission_rate', '10');
+    $deliveryFee = \App\Models\PlatformSetting::get('delivery_fee', '50');
+
+    return view(
+        'pages.admin.settings',
+        compact('announcements', 'termsPolicy', 'privacyPolicy', 'returnPolicy', 'commissionRate', 'deliveryFee')
+    );
 
 })->name('admin.settings');
+
+
+Route::post('/admin/settings/commission', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $rate = request()->validate([
+        'commission_rate' => 'required|numeric|min:0|max:100',
+    ])['commission_rate'];
+
+    \App\Models\PlatformSetting::set('commission_rate', (string) $rate);
+
+    return back()->with('success', 'Commission rate updated to ' . $rate . '%.');
+
+})->name('admin.settings.commission.update');
+
+
+Route::post('/admin/settings/delivery-fee', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $fee = request()->validate([
+        'delivery_fee' => 'required|numeric|min:0',
+    ])['delivery_fee'];
+
+    \App\Models\PlatformSetting::set('delivery_fee', (string) $fee);
+
+    return back()->with('success', 'Rider delivery fee updated to ₱' . $fee . '.');
+
+})->name('admin.settings.delivery-fee.update');
+
+
+Route::post('/admin/settings/announcements', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    request()->validate([
+        'title' => 'required|string|max:150',
+        'message' => 'required|string|max:2000',
+    ]);
+
+    \App\Models\PlatformAnnouncement::create([
+        'title' => request('title'),
+        'message' => request('message'),
+        'is_active' => true,
+    ]);
+
+    return back()->with('success', 'Announcement posted successfully.');
+
+})->name('admin.settings.announcements.store');
+
+
+Route::post('/admin/settings/announcements/{id}/toggle', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $announcement = \App\Models\PlatformAnnouncement::find($id);
+
+    if (!$announcement) {
+        return back()->with('error', 'Announcement not found.');
+    }
+
+    $announcement->update(['is_active' => !$announcement->is_active]);
+
+    return back()->with(
+        'success',
+        'Announcement is now ' . ($announcement->is_active ? 'active' : 'hidden') . '.'
+    );
+
+})->name('admin.settings.announcements.toggle');
+
+
+Route::delete('/admin/settings/announcements/{id}', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    \App\Models\PlatformAnnouncement::where('id', $id)->delete();
+
+    return back()->with('success', 'Announcement deleted.');
+
+})->name('admin.settings.announcements.delete');
+
+
+Route::post('/admin/settings/policies', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    \App\Models\PlatformSetting::set('terms_policy', request('terms_policy', ''));
+    \App\Models\PlatformSetting::set('privacy_policy', request('privacy_policy', ''));
+    \App\Models\PlatformSetting::set('return_policy', request('return_policy', ''));
+
+    return back()->with('success', 'Platform policies updated successfully.');
+
+})->name('admin.settings.policies.update');
 
 
 Route::delete('/admin/accounts/{id}', function ($id) {
@@ -2122,6 +2329,46 @@ Route::delete('/admin/accounts/{id}', function ($id) {
 })->name('admin.accounts.delete');
 
 
+Route::post('/admin/accounts/{id}/status', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $status = request('status');
+
+    if (!in_array($status, ['Active', 'Suspended', 'Deactivated'])) {
+        return back()->with('error', 'Invalid account status.');
+    }
+
+    $user = DB::table('users')
+        ->where('id', $id)
+        ->whereIn('role', ['buyer', 'seller', 'rider'])
+        ->first();
+
+    if (!$user) {
+        return back()->with('error', 'Account not found.');
+    }
+
+    DB::table('users')
+        ->where('id', $id)
+        ->update(['status' => $status]);
+
+    createNotification(
+        $user->id,
+        'Account Status Updated',
+        "Your BoomBuy account status was changed to \"{$status}\" by an administrator.",
+        'account_status'
+    );
+
+    return back()->with(
+        'success',
+        $user->name . '\'s account status has been set to ' . $status . '.'
+    );
+
+})->name('admin.accounts.status');
+
+
 /*
 |--------------------------------------------------------------------------
 | ADMIN REPORTS
@@ -2134,59 +2381,9 @@ Route::get('/admin/reports', function () {
         return redirect()->route('admin.login');
     }
 
-    $users = session()->get('users', []);
-    $orders = session()->get('orders', []);
-
-    $products = array_merge(
-        session()->get('seller_products', []),
-        session()->get('admin_products', []),
-        defaultProducts()
-    );
-
-    $totalUsers = count($users);
-    $totalOrders = count($orders);
-    $totalProducts = count($products);
-
-    $totalSales = 0;
-
-    foreach ($orders as $order) {
-        if (($order['status'] ?? '') === 'Delivered') {
-            $totalSales += (float) ($order['total'] ?? 0);
-        }
-    }
-
-    $pendingOrders = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Pending';
-    }));
-
-    $processingOrders = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Processing';
-    }));
-
-    $deliveredOrders = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Delivered';
-    }));
-
-    $cancelledOrders = count(array_filter($orders, function ($order) {
-        return ($order['status'] ?? '') === 'Cancelled';
-    }));
-
-    return view(
-        'pages.admin.reports',
-        compact(
-            'users',
-            'orders',
-            'products',
-            'totalUsers',
-            'totalOrders',
-            'totalProducts',
-            'totalSales',
-            'pendingOrders',
-            'processingOrders',
-            'deliveredOrders',
-            'cancelledOrders'
-        )
-    );
+    // The view computes all of its report figures itself, straight from
+    // the database (see its top @php block) — nothing extra to pass here.
+    return view('pages.admin.reports');
 
 })->name('admin.reports');
 
@@ -2250,14 +2447,20 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
     }
 
     // Approve application
+    $approvalData = [
+        'status' => 'Approved',
+        'admin_remarks' => null,
+        'reviewed_at' => now(),
+        'updated_at' => now(),
+    ];
+
+    if ($type === 'seller') {
+        $approvalData['business_category'] = request('business_category');
+    }
+
     $updated = DB::table($table)
         ->where('id', $id)
-        ->update([
-            'status' => 'Approved',
-            'admin_remarks' => null,
-            'reviewed_at' => now(),
-            'updated_at' => now(),
-        ]);
+        ->update($approvalData);
 
     if (!$updated) {
 
@@ -2292,6 +2495,23 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
             'rider',
             (int) $application->id
         );
+    }
+
+    $applicant = DB::table('users')->where('id', $application->user_id)->first();
+
+    if ($applicant) {
+
+        try {
+            Mail::to($applicant->email)->send(
+                new \App\Mail\ApplicationStatusMail(
+                    $application->full_name ?? $applicant->name,
+                    $type,
+                    'Approved'
+                )
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     return back()->with(
@@ -2379,6 +2599,24 @@ Route::post('/admin/applications/{type}/{id}/reject', function ($type, $id) {
             'rider',
             $application->id
         );
+    }
+
+    $applicant = DB::table('users')->where('id', $application->user_id)->first();
+
+    if ($applicant) {
+
+        try {
+            Mail::to($applicant->email)->send(
+                new \App\Mail\ApplicationStatusMail(
+                    $application->full_name ?? $applicant->name,
+                    $type,
+                    'Rejected',
+                    $remarks !== '' ? $remarks : null
+                )
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
     }
 
     return back()->with(
@@ -2723,7 +2961,12 @@ Route::get('/seller', function () {
     $products = Product::where(
         'seller_id',
         $user['id']
-    )->latest()->get();
+    )->where('is_archived', false)->latest()->get();
+
+    $archivedProducts = Product::where(
+        'seller_id',
+        $user['id']
+    )->where('is_archived', true)->latest()->get();
 
 
     /*
@@ -2856,6 +3099,7 @@ Route::get('/seller', function () {
         compact(
             'user',
             'products',
+            'archivedProducts',
             'sellerOrders',
             'totalProducts',
             'totalOrders',
@@ -2866,6 +3110,253 @@ Route::get('/seller', function () {
 
 
 })->name('seller.dashboard');
+
+
+Route::get('/seller/reports', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Date range — defaults to the last 30 days if not specified
+    $from = request('from') ?: now()->subDays(30)->format('Y-m-d');
+    $to = request('to') ?: now()->format('Y-m-d');
+
+    $baseQuery = DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->where('order_items.seller_id', $user['id'])
+        ->whereDate('orders.created_at', '>=', $from)
+        ->whereDate('orders.created_at', '<=', $to);
+
+    $deliveredQuery = (clone $baseQuery)->where('orders.status', 'Delivered');
+
+    $totalSales = (float) $deliveredQuery->sum(DB::raw('order_items.price * order_items.quantity'));
+
+    $totalOrders = (clone $baseQuery)->distinct('order_items.order_id')->count('order_items.order_id');
+
+    $deliveredOrders = (clone $deliveredQuery)->distinct('order_items.order_id')->count('order_items.order_id');
+
+    $averageOrder = $deliveredOrders > 0 ? $totalSales / $deliveredOrders : 0;
+
+    $commissionRate = (float) \App\Models\PlatformSetting::get('commission_rate', '10');
+    $commissionOwed = $totalSales * ($commissionRate / 100);
+    $netEarnings = $totalSales - $commissionOwed;
+
+    // Sales by product, within range, delivered only
+    $productSales = (clone $deliveredQuery)
+        ->select(
+            'order_items.product_name',
+            DB::raw('SUM(order_items.quantity) as units_sold'),
+            DB::raw('SUM(order_items.price * order_items.quantity) as revenue')
+        )
+        ->groupBy('order_items.product_name')
+        ->orderByDesc('revenue')
+        ->get();
+
+    // Sales by day, within range, delivered only
+    $dailySales = (clone $deliveredQuery)
+        ->select(
+            DB::raw('DATE(orders.created_at) as day'),
+            DB::raw('SUM(order_items.price * order_items.quantity) as revenue')
+        )
+        ->groupBy('day')
+        ->orderBy('day')
+        ->get();
+
+    return view(
+        'pages.seller.reports',
+        compact(
+            'user',
+            'from',
+            'to',
+            'totalSales',
+            'totalOrders',
+            'deliveredOrders',
+            'averageOrder',
+            'commissionRate',
+            'commissionOwed',
+            'netEarnings',
+            'productSales',
+            'dailySales'
+        )
+    );
+
+})->name('seller.reports');
+
+
+Route::get('/seller/vouchers', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $vouchers = \App\Models\Voucher::where('seller_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->get();
+
+    return view(
+        'pages.seller.vouchers',
+        compact('user', 'vouchers')
+    );
+
+})->name('seller.vouchers');
+
+
+Route::post('/seller/vouchers', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    request()->validate([
+        'code' => 'required|string|max:30|unique:vouchers,code',
+        'discount_type' => 'required|in:percentage,fixed',
+        'discount_value' => 'required|numeric|min:0.01',
+        'min_order_amount' => 'nullable|numeric|min:0',
+        'max_uses' => 'nullable|integer|min:1',
+        'expires_at' => 'nullable|date',
+    ]);
+
+    \App\Models\Voucher::create([
+        'seller_id' => $user['id'],
+        'code' => strtoupper(request('code')),
+        'discount_type' => request('discount_type'),
+        'discount_value' => request('discount_value'),
+        'min_order_amount' => request('min_order_amount', 0),
+        'max_uses' => request('max_uses') ?: null,
+        'expires_at' => request('expires_at') ?: null,
+        'is_active' => true,
+    ]);
+
+    return back()->with('success', 'Voucher created successfully.');
+
+})->name('seller.vouchers.store');
+
+
+Route::post('/seller/vouchers/{id}/toggle', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $voucher = \App\Models\Voucher::where('id', $id)->where('seller_id', $user['id'])->first();
+
+    if (!$voucher) {
+        abort(404);
+    }
+
+    $voucher->update(['is_active' => !$voucher->is_active]);
+
+    return back()->with('success', 'Voucher updated.');
+
+})->name('seller.vouchers.toggle');
+
+
+Route::delete('/seller/vouchers/{id}', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    \App\Models\Voucher::where('id', $id)->where('seller_id', $user['id'])->delete();
+
+    return back()->with('success', 'Voucher deleted.');
+
+})->name('seller.vouchers.delete');
+
+
+Route::get('/seller/products/{id}/variations', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $variations = \App\Models\ProductVariation::where('product_id', $id)
+        ->orderBy('variation_type')
+        ->orderBy('variation_value')
+        ->get();
+
+    return view(
+        'pages.seller.variations',
+        compact('user', 'product', 'variations')
+    );
+
+})->name('seller.products.variations');
+
+
+Route::post('/seller/products/{id}/variations', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+    if (!$product) {
+        abort(404);
+    }
+
+    request()->validate([
+        'variation_type' => 'required|string|max:50',
+        'variation_value' => 'required|string|max:50',
+        'price_adjustment' => 'nullable|numeric',
+        'stock' => 'required|integer|min:0',
+    ]);
+
+    \App\Models\ProductVariation::create([
+        'product_id' => $product->id,
+        'variation_type' => request('variation_type'),
+        'variation_value' => request('variation_value'),
+        'price_adjustment' => request('price_adjustment', 0),
+        'stock' => request('stock'),
+    ]);
+
+    return back()->with('success', 'Variation added successfully.');
+
+})->name('seller.products.variations.store');
+
+
+Route::delete('/seller/products/{id}/variations/{variationId}', function ($id, $variationId) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+    if (!$product) {
+        abort(404);
+    }
+
+    \App\Models\ProductVariation::where('id', $variationId)
+        ->where('product_id', $product->id)
+        ->delete();
+
+    return back()->with('success', 'Variation removed.');
+
+})->name('seller.products.variations.delete');
 
 /*
 |--------------------------------------------------------------------------
@@ -2881,7 +3372,7 @@ Route::get('/seller/products/create', function () {
         return $user;
     }
 
-    return view('pages.seller.add-product');
+    return view('pages.seller.add-product', compact('user'));
 
 })->name('seller.products.create');
 
@@ -3225,6 +3716,57 @@ Route::get('/seller/order/{id}', function ($id) {
     );
 
 })->name('seller.order.details');
+
+
+Route::get('/seller/order/{id}/waybill', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->first();
+
+    if (!$order) {
+        abort(404);
+    }
+
+    $sellerItems = DB::table('order_items')
+        ->where('order_id', $order->id)
+        ->where('seller_id', $user['id'])
+        ->get();
+
+    if ($sellerItems->isEmpty()) {
+        abort(404);
+    }
+
+    $order = (array) $order;
+
+    $order['buyer_name'] = $order['shipping_name'] ?? 'Buyer';
+    $order['phone'] = $order['shipping_phone'] ?? 'N/A';
+    $order['address'] = $order['shipping_address'] ?? 'N/A';
+
+    $order['items'] = $sellerItems->map(function ($item) {
+
+        $item = (array) $item;
+        $item['name'] = $item['product_name'] ?? 'Product';
+        $item['subtotal'] = (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
+
+        return $item;
+
+    })->toArray();
+
+    $order['seller_total'] = array_sum(array_column($order['items'], 'subtotal'));
+
+    return view(
+        'pages.seller.waybill',
+        compact('user', 'order')
+    );
+
+})->name('seller.order.waybill');
 
 
 /*
@@ -3652,14 +4194,28 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
         );
     }
 
-    // Assign rider and mark as Picked Up
-    DB::table('orders')
+    // Atomic first-come-first-served claim: this UPDATE only affects a row
+    // if it's STILL unclaimed and Ready for Pickup at the moment it runs,
+    // so if two riders click "claim" at the same time, only one of these
+    // queries actually changes a row — the database itself is the lock,
+    // no separate read-then-write race is possible.
+    $claimed = DB::table('orders')
         ->where('id', $id)
+        ->where('status', 'Ready for Pickup')
+        ->whereNull('rider_id')
         ->update([
             'rider_id' => $riderId,
             'status' => 'Picked Up',
             'updated_at' => now(),
         ]);
+
+    if (!$claimed) {
+
+        return back()->with(
+            'error',
+            'This order was just claimed by another rider. Please choose a different delivery.'
+        );
+    }
 
 // ==============================
 // BUYER NOTIFICATION
@@ -3937,6 +4493,61 @@ Route::get('/rider/profile', function () {
 })->name('rider.profile');
 
 
+Route::get('/rider/profit', function () {
+
+    $user = requireUserRole('rider');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $from = request('from') ?: now()->subDays(30)->format('Y-m-d');
+    $to = request('to') ?: now()->format('Y-m-d');
+
+    $deliveryFee = (float) \App\Models\PlatformSetting::get('delivery_fee', '50');
+
+    $completedDeliveries = DB::table('orders')
+        ->where('rider_id', $user['id'])
+        ->where('status', 'Delivered')
+        ->whereDate('updated_at', '>=', $from)
+        ->whereDate('updated_at', '<=', $to)
+        ->orderByDesc('updated_at')
+        ->get();
+
+    $totalDeliveries = $completedDeliveries->count();
+    $totalProfit = $totalDeliveries * $deliveryFee;
+
+    $dailyProfit = $completedDeliveries
+        ->groupBy(function ($order) {
+            return \Illuminate\Support\Carbon::parse($order->updated_at)->format('Y-m-d');
+        })
+        ->map(function ($orders, $day) use ($deliveryFee) {
+            return [
+                'day' => $day,
+                'deliveries' => $orders->count(),
+                'profit' => $orders->count() * $deliveryFee,
+            ];
+        })
+        ->sortKeysDesc()
+        ->values();
+
+    return view(
+        'pages.rider.profit',
+        compact(
+            'user',
+            'from',
+            'to',
+            'deliveryFee',
+            'totalDeliveries',
+            'totalProfit',
+            'completedDeliveries',
+            'dailyProfit'
+        )
+    );
+
+})->name('rider.profit');
+
+
 
 
 /*
@@ -4040,6 +4651,8 @@ Route::get('/product-details/{id}', function ($id) {
             ->exists()
         : false;
 
+    $variations = \App\Models\ProductVariation::where('product_id', $product->id)->get();
+
     return view(
         'pages.product-details',
         compact(
@@ -4048,7 +4661,8 @@ Route::get('/product-details/{id}', function ($id) {
             'reviewCount',
             'averageRating',
             'relatedProducts',
-            'isWishlisted'
+            'isWishlisted',
+            'variations'
         )
     );
 
@@ -4129,7 +4743,33 @@ Route::post('/cart/add/{id}', function ($id) {
     |--------------------------------------------------------------------------
     */
 
-    $cart[$product->id] = $currentQuantity + 1;
+    $requestedQty = max(1, (int) request('quantity', 1));
+
+    $cart[$product->id] = $currentQuantity + $requestedQty;
+
+    /*
+    |--------------------------------------------------------------------------
+    | REMEMBER SELECTED VARIATION (COLOR/SIZE/ETC.)
+    |--------------------------------------------------------------------------
+    |
+    | Simplification: the cart tracks at most one chosen variation per
+    | product — adding the same product again with a different variation
+    | replaces the previous choice rather than creating a second line.
+    |
+    */
+
+    if (request('variation_id')) {
+
+        $variation = \App\Models\ProductVariation::where('id', request('variation_id'))
+            ->where('product_id', $product->id)
+            ->first();
+
+        if ($variation) {
+            $cartVariations = session()->get('cart_variations', []);
+            $cartVariations[$product->id] = $variation->id;
+            session()->put('cart_variations', $cartVariations);
+        }
+    }
 
     /*
     |--------------------------------------------------------------------------
@@ -4193,6 +4833,18 @@ Route::post('/buy-now/{id}', function ($id) {
     session()->put('buy_now', [
         $product->id => $quantity
     ]);
+
+    if (request('variation_id')) {
+
+        $variation = \App\Models\ProductVariation::where('id', request('variation_id'))
+            ->where('product_id', $product->id)
+            ->first();
+
+        session()->put('buy_now_variations', $variation ? [$product->id => $variation->id] : []);
+
+    } else {
+        session()->put('buy_now_variations', []);
+    }
 
     return redirect()
         ->route('checkout');
@@ -4292,12 +4944,69 @@ Route::get('/cart', function () {
     $cart =
         session()->get('cart', []);
 
+    $appliedVoucher = null;
+    $voucherError = null;
+
+    $voucherCode = session()->get('applied_voucher');
+
+    if ($voucherCode) {
+
+        $summary = cartSummary($cart);
+        $subtotal = (float) str_replace(',', '', $summary['subtotal']);
+
+        $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
+
+        if ($voucher && $voucher->isValidFor($subtotal)) {
+            $appliedVoucher = $voucher;
+        } else {
+            session()->forget('applied_voucher');
+        }
+    }
+
     return view(
         'pages.cart',
-        compact('cart')
+        compact('cart', 'appliedVoucher', 'voucherError')
     );
 
 })->name('cart');
+
+
+Route::post('/cart/voucher/apply', function () {
+
+    $cart = session()->get('cart', []);
+    $code = strtoupper(trim((string) request('voucher_code')));
+
+    if ($code === '') {
+        return back()->with('error', 'Please enter a voucher code.');
+    }
+
+    $voucher = \App\Models\Voucher::where('code', $code)->first();
+
+    if (!$voucher) {
+        return back()->with('error', 'Invalid voucher code.');
+    }
+
+    $summary = cartSummary($cart);
+    $subtotal = (float) str_replace(',', '', $summary['subtotal']);
+
+    if (!$voucher->isValidFor($subtotal)) {
+        return back()->with('error', 'This voucher is expired, fully used, or your order does not meet its minimum amount.');
+    }
+
+    session()->put('applied_voucher', $voucher->code);
+
+    return back()->with('success', 'Voucher "' . $voucher->code . '" applied!');
+
+})->name('cart.voucher.apply');
+
+
+Route::post('/cart/voucher/remove', function () {
+
+    session()->forget('applied_voucher');
+
+    return back()->with('success', 'Voucher removed.');
+
+})->name('cart.voucher.remove');
 
 
 /*
@@ -4325,10 +5034,12 @@ Route::get('/checkout', function () {
     if (!empty($buyNow)) {
 
         $cart = $buyNow;
+        $cartVariations = session()->get('buy_now_variations', []);
 
     } else {
 
         $cart = session()->get('cart', []);
+        $cartVariations = session()->get('cart_variations', []);
 
         if (empty($cart)) {
 
@@ -4377,6 +5088,44 @@ Route::get('/checkout', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | APPLIED VOUCHER (carried over from the cart page)
+    |--------------------------------------------------------------------------
+    */
+
+    $appliedVoucher = null;
+    $voucherCode = session()->get('applied_voucher');
+
+    if ($voucherCode) {
+
+        $checkoutSubtotal = 0;
+
+        foreach ($cart as $productId => $quantity) {
+            if ($products->has((int) $productId)) {
+
+                $unitPrice = (float) $products[(int) $productId]->price;
+
+                if (!empty($cartVariations[$productId])) {
+                    $variation = \App\Models\ProductVariation::find($cartVariations[$productId]);
+                    if ($variation) {
+                        $unitPrice += (float) $variation->price_adjustment;
+                    }
+                }
+
+                $checkoutSubtotal += $unitPrice * (int) $quantity;
+            }
+        }
+
+        $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
+
+        if ($voucher && $voucher->isValidFor($checkoutSubtotal)) {
+            $appliedVoucher = $voucher;
+        } else {
+            session()->forget('applied_voucher');
+        }
+    }
+
+    /*
+    |--------------------------------------------------------------------------
     | SEND TO CHECKOUT PAGE
     |--------------------------------------------------------------------------
     */
@@ -4386,7 +5135,9 @@ Route::get('/checkout', function () {
         compact(
             'user',
             'cart',
-            'products'
+            'products',
+            'appliedVoucher',
+            'cartVariations'
         )
     );
 
@@ -4470,6 +5221,10 @@ Route::post('/checkout/place-order', function () {
     $orderItems = [];
     $total = 0;
 
+    $cartVariations = $isBuyNow
+        ? session()->get('buy_now_variations', [])
+        : session()->get('cart_variations', []);
+
     foreach ($cart as $productId => $quantity) {
 
         $quantity = (int) $quantity;
@@ -4515,12 +5270,33 @@ Route::post('/checkout/place-order', function () {
 
         /*
         |--------------------------------------------------------------------------
+        | RESOLVE SELECTED VARIATION (IF ANY)
+        |--------------------------------------------------------------------------
+        */
+
+        $unitPrice = (float) $product->price;
+        $variationLabel = null;
+
+        if (!empty($cartVariations[$productId])) {
+
+            $variation = \App\Models\ProductVariation::where('id', $cartVariations[$productId])
+                ->where('product_id', $product->id)
+                ->first();
+
+            if ($variation) {
+                $unitPrice += (float) $variation->price_adjustment;
+                $variationLabel = $variation->variation_type . ': ' . $variation->variation_value;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
         | CALCULATE SUBTOTAL
         |--------------------------------------------------------------------------
         */
 
         $subtotal =
-            (float) $product->price * $quantity;
+            $unitPrice * $quantity;
 
         /*
         |--------------------------------------------------------------------------
@@ -4539,8 +5315,11 @@ Route::post('/checkout/place-order', function () {
             'product_name' =>
                 $product->name,
 
+            'variation_label' =>
+                $variationLabel,
+
             'price' =>
-                $product->price,
+                $unitPrice,
 
             'quantity' =>
                 $quantity,
@@ -4567,6 +5346,30 @@ Route::post('/checkout/place-order', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | APPLY VOUCHER (if one was applied on the cart page)
+    |--------------------------------------------------------------------------
+    */
+
+    $voucherCode = session()->get('applied_voucher');
+    $discountAmount = 0;
+    $voucher = null;
+
+    if ($voucherCode) {
+
+        $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
+
+        if ($voucher && $voucher->isValidFor($total)) {
+            $discountAmount = $voucher->calculateDiscount($total);
+        } else {
+            $voucher = null;
+            $voucherCode = null;
+        }
+    }
+
+    $total = max(0, $total - $discountAmount);
+
+    /*
+    |--------------------------------------------------------------------------
     | CREATE ORDER
     |--------------------------------------------------------------------------
     */
@@ -4578,6 +5381,12 @@ Route::post('/checkout/place-order', function () {
 
         'total_amount' =>
             $total,
+
+        'voucher_code' =>
+            $voucherCode,
+
+        'discount_amount' =>
+            $discountAmount,
 
         // Seller workflow starts here
         'status' =>
@@ -4602,6 +5411,18 @@ Route::post('/checkout/place-order', function () {
             now(),
 
     ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | RECORD VOUCHER USE
+    |--------------------------------------------------------------------------
+    */
+
+    if ($voucher) {
+        $voucher->increment('used_count');
+    }
+
+    session()->forget('applied_voucher');
 
     /*
     |--------------------------------------------------------------------------
@@ -4639,6 +5460,9 @@ Route::post('/checkout/place-order', function () {
 
             'product_name' =>
                 $item['product_name'],
+
+            'variation_label' =>
+                $item['variation_label'] ?? null,
 
             'price' =>
                 $item['price'],
@@ -4707,10 +5531,12 @@ Route::post('/checkout/place-order', function () {
     if ($isBuyNow) {
 
         session()->forget('buy_now');
+        session()->forget('buy_now_variations');
 
     } else {
 
         session()->forget('cart');
+        session()->forget('cart_variations');
     }
 
     /*
@@ -5144,6 +5970,58 @@ Route::delete('/seller/products/{id}', function ($id) {
         );
 
 })->name('seller.products.delete');
+
+
+Route::post('/seller/products/{id}/archive', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $product->update(['is_archived' => true]);
+
+    return back()->with(
+        'success',
+        $product->name . ' has been archived and removed from the storefront.'
+    );
+
+})->name('seller.products.archive');
+
+
+Route::post('/seller/products/{id}/unarchive', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $product = Product::where('id', $id)
+        ->where('seller_id', $user['id'])
+        ->first();
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $product->update(['is_archived' => false]);
+
+    return back()->with(
+        'success',
+        $product->name . ' has been restored to the storefront.'
+    );
+
+})->name('seller.products.unarchive');
 
 
 
@@ -6286,53 +7164,11 @@ Route::post('/notifications/{id}/read', function ($id) {
 })->name('notifications.read');
 
 
-
-// ======================================================
+// =========================
 // ADMIN NOTIFICATIONS
-// ======================================================
+// =========================
 
 Route::get('/admin/notifications', function () {
-
-    if (!session()->get('admin_logged_in')) {
-        return redirect()->route('admin.login');
-    }
-
-    $notifications = \App\Models\Notification::orderByDesc('created_at')
-        ->get();
-
-    $unreadCount = \App\Models\Notification::whereNull('read_at')
-        ->count();
-
-    return view(
-        'pages.admin.notifications',
-        compact('notifications', 'unreadCount')
-    );
-
-})->name('admin.notifications');
-
-
-Route::post('/admin/notifications/{id}/read', function ($id) {
-
-    if (!session()->get('admin_logged_in')) {
-        return redirect()->route('admin.login');
-    }
-
-    \App\Models\Notification::where('id', $id)
-        ->whereNull('read_at')
-        ->update([
-            'read_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-    return back();
-
-})->name('admin.notifications.read');
-
-// =========================
-// NOTIFICATIONS
-// =========================
-
-Route::get('/notifications', function () {
 
     if (!session()->get('admin_logged_in')) {
         return redirect()->route('admin.login');
@@ -6364,10 +7200,10 @@ Route::get('/notifications', function () {
         )
     );
 
-})->name('notifications.index');
+})->name('admin.notifications');
 
 
-Route::post('/notifications/{id}/read', function ($id) {
+Route::post('/admin/notifications/{id}/read', function ($id) {
 
     if (!session()->get('admin_logged_in')) {
         return redirect()->route('admin.login');
@@ -6387,7 +7223,7 @@ Route::post('/notifications/{id}/read', function ($id) {
 
     return back();
 
-})->name('notifications.read');
+})->name('admin.notifications.read');
 
 
 Route::get('/seller/notifications', function () {
@@ -6475,3 +7311,411 @@ Route::post('/rider/notifications/{id}/read', function ($id) {
     return back();
 
 })->name('rider.notifications.read');
+
+
+/*
+|--------------------------------------------------------------------------
+| COMPLAINTS & DISPUTES
+|--------------------------------------------------------------------------
+|
+| Any logged-in buyer, seller, or rider can file a complaint (about
+| another user, an order, or a general platform issue). Admin reviews
+| and resolves them from the admin panel.
+|
+*/
+
+Route::get('/complaints', function () {
+
+    $user = session()->get('user');
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    $myComplaints = \App\Models\Complaint::where('complainant_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->get();
+
+    $myOrders = \Illuminate\Support\Facades\DB::table('orders')
+        ->where('buyer_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->get();
+
+    return view(
+        'pages.complaints',
+        compact('user', 'myComplaints', 'myOrders')
+    );
+
+})->name('complaints.index');
+
+
+Route::post('/complaints', function () {
+
+    $user = session()->get('user');
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    request()->validate([
+        'subject' => 'required|string|max:150',
+        'description' => 'required|string|max:2000',
+        'order_id' => 'nullable|integer',
+        'evidence' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
+    ]);
+
+    $evidencePath = null;
+
+    if (request()->hasFile('evidence')) {
+        $evidencePath = request()->file('evidence')->store('complaints', 'public');
+    }
+
+    \App\Models\Complaint::create([
+        'complainant_id' => $user['id'],
+        'complainant_role' => $user['role'],
+        'order_id' => request('order_id') ?: null,
+        'subject' => request('subject'),
+        'description' => request('description'),
+        'evidence' => $evidencePath,
+        'status' => 'Pending',
+    ]);
+
+    return back()->with('success', 'Your complaint has been submitted. Our team will review it shortly.');
+
+})->name('complaints.store');
+
+
+Route::get('/admin/complaints', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $complaints = \App\Models\Complaint::with('complainant')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $pendingCount = $complaints->where('status', 'Pending')->count();
+
+    return view(
+        'pages.admin.complaints',
+        compact('complaints', 'pendingCount')
+    );
+
+})->name('admin.complaints');
+
+
+Route::post('/admin/complaints/{id}/status', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $status = request('status');
+
+    if (!in_array($status, ['Pending', 'Under Review', 'Resolved', 'Dismissed'])) {
+        return back()->with('error', 'Invalid status.');
+    }
+
+    $complaint = \App\Models\Complaint::find($id);
+
+    if (!$complaint) {
+        return back()->with('error', 'Complaint not found.');
+    }
+
+    $complaint->update([
+        'status' => $status,
+        'admin_notes' => request('admin_notes', $complaint->admin_notes),
+        'resolved_at' => in_array($status, ['Resolved', 'Dismissed']) ? now() : null,
+    ]);
+
+    createNotification(
+        $complaint->complainant_id,
+        'Complaint Update',
+        "Your complaint \"{$complaint->subject}\" is now marked as \"{$status}\".",
+        'complaint',
+        $complaint->id
+    );
+
+    return back()->with('success', 'Complaint updated successfully.');
+
+})->name('admin.complaints.update');
+
+
+/*
+|--------------------------------------------------------------------------
+| MESSAGES / CHAT
+|--------------------------------------------------------------------------
+|
+| A simple inbox-and-thread messaging system between any two BoomBuy
+| accounts (buyer, seller, rider, or admin). Not real-time — messages
+| load on page visit/refresh, same as the rest of this app.
+|
+*/
+
+Route::get('/messages', function () {
+
+    $me = currentMessagingUser();
+
+    if (!$me) {
+        return redirect()->route('login');
+    }
+
+    $conversations = \App\Models\Message::where('sender_id', $me['id'])
+        ->orWhere('recipient_id', $me['id'])
+        ->orderByDesc('created_at')
+        ->get()
+        ->groupBy(function ($message) use ($me) {
+            return $message->sender_id === $me['id']
+                ? $message->recipient_id
+                : $message->sender_id;
+        })
+        ->map(function ($messages, $partnerId) use ($me) {
+
+            $partner = \App\Models\User::find($partnerId);
+            $lastMessage = $messages->first();
+
+            $unreadCount = $messages
+                ->where('recipient_id', $me['id'])
+                ->whereNull('read_at')
+                ->count();
+
+            return [
+                'partner_id' => $partnerId,
+                'partner_name' => $partner->name ?? 'Deleted User',
+                'partner_role' => $partner->role ?? '',
+                'last_message' => $lastMessage->message,
+                'last_message_at' => $lastMessage->created_at,
+                'unread_count' => $unreadCount,
+            ];
+        })
+        ->sortByDesc('last_message_at')
+        ->values();
+
+    return view(
+        'pages.messages.inbox',
+        compact('me', 'conversations')
+    );
+
+})->name('messages.index');
+
+
+Route::get('/messages/{userId}', function ($userId) {
+
+    $me = currentMessagingUser();
+
+    if (!$me) {
+        return redirect()->route('login');
+    }
+
+    $partner = \App\Models\User::find($userId);
+
+    if (!$partner) {
+        return redirect()->route('messages.index')->with('error', 'User not found.');
+    }
+
+    $thread = \App\Models\Message::where(function ($query) use ($me, $userId) {
+            $query->where('sender_id', $me['id'])->where('recipient_id', $userId);
+        })
+        ->orWhere(function ($query) use ($me, $userId) {
+            $query->where('sender_id', $userId)->where('recipient_id', $me['id']);
+        })
+        ->orderBy('created_at')
+        ->get();
+
+    // Mark incoming messages as read
+    \App\Models\Message::where('sender_id', $userId)
+        ->where('recipient_id', $me['id'])
+        ->whereNull('read_at')
+        ->update(['read_at' => now()]);
+
+    return view(
+        'pages.messages.thread',
+        compact('me', 'partner', 'thread')
+    );
+
+})->name('messages.thread');
+
+
+Route::post('/messages/{userId}', function ($userId) {
+
+    $me = currentMessagingUser();
+
+    if (!$me) {
+        return redirect()->route('login');
+    }
+
+    request()->validate([
+        'message' => 'required|string|max:2000',
+    ]);
+
+    $partner = \App\Models\User::find($userId);
+
+    if (!$partner) {
+        return back()->with('error', 'User not found.');
+    }
+
+    \App\Models\Message::create([
+        'sender_id' => $me['id'],
+        'recipient_id' => $userId,
+        'message' => request('message'),
+    ]);
+
+    createNotification(
+        $partner->id,
+        'New Message from ' . $me['name'],
+        request('message'),
+        'message',
+        $me['id']
+    );
+
+    return redirect()->route('messages.thread', $userId);
+
+})->name('messages.store');
+
+
+/*
+|--------------------------------------------------------------------------
+| SELLER COMPLIANCE MONITORING
+|--------------------------------------------------------------------------
+|
+| Cross-checks each approved seller's products against the business
+| category they were approved for (set by admin during application
+| approval), and lets admin flag individual products as prohibited or
+| inappropriate — flagged products are hidden from the storefront
+| immediately (see /products route) — plus issue a warning notification
+| or jump straight to suspending the seller's account.
+|
+*/
+
+Route::get('/admin/compliance', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $sellers = DB::table('seller_applications')
+        ->join('users', 'users.id', '=', 'seller_applications.user_id')
+        ->where('seller_applications.status', 'Approved')
+        ->select(
+            'users.id as user_id',
+            'users.name',
+            'users.email',
+            'users.status as account_status',
+            'seller_applications.business_category'
+        )
+        ->orderBy('users.name')
+        ->get()
+        ->map(function ($seller) {
+
+            $products = \App\Models\Product::where('seller_id', $seller->user_id)->get();
+
+            $mismatches = $seller->business_category
+                ? $products->filter(function ($product) use ($seller) {
+                    return $product->category !== $seller->business_category;
+                })
+                : collect();
+
+            $flagged = $products->where('is_flagged', true);
+
+            return [
+                'user_id' => $seller->user_id,
+                'name' => $seller->name,
+                'email' => $seller->email,
+                'account_status' => $seller->account_status,
+                'business_category' => $seller->business_category,
+                'total_products' => $products->count(),
+                'mismatches' => $mismatches,
+                'flagged' => $flagged,
+            ];
+        });
+
+    $totalMismatches = $sellers->sum(fn ($s) => $s['mismatches']->count());
+    $totalFlagged = $sellers->sum(fn ($s) => $s['flagged']->count());
+
+    return view(
+        'pages.admin.compliance',
+        compact('sellers', 'totalMismatches', 'totalFlagged')
+    );
+
+})->name('admin.compliance');
+
+
+Route::post('/admin/compliance/products/{id}/flag', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = \App\Models\Product::find($id);
+
+    if (!$product) {
+        return back()->with('error', 'Product not found.');
+    }
+
+    $reason = trim((string) request('flag_reason'));
+
+    $product->update([
+        'is_flagged' => true,
+        'flag_reason' => $reason !== '' ? $reason : 'Flagged by admin for review.',
+    ]);
+
+    if ($product->seller_id) {
+
+        createNotification(
+            $product->seller_id,
+            'Product Flagged: ' . $product->name,
+            'Your product "' . $product->name . '" has been flagged and removed from the storefront. Reason: ' . $product->flag_reason,
+            'compliance_warning',
+            $product->id
+        );
+    }
+
+    return back()->with('success', 'Product flagged and hidden from the storefront.');
+
+})->name('admin.compliance.flag');
+
+
+Route::post('/admin/compliance/products/{id}/unflag', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = \App\Models\Product::find($id);
+
+    if (!$product) {
+        return back()->with('error', 'Product not found.');
+    }
+
+    $product->update(['is_flagged' => false, 'flag_reason' => null]);
+
+    return back()->with('success', 'Product unflagged and restored to the storefront.');
+
+})->name('admin.compliance.unflag');
+
+
+Route::post('/admin/compliance/warn/{userId}', function ($userId) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $seller = DB::table('users')->where('id', $userId)->first();
+
+    if (!$seller) {
+        return back()->with('error', 'Seller not found.');
+    }
+
+    $message = trim((string) request('warning_message'));
+
+    createNotification(
+        $userId,
+        'Compliance Warning',
+        $message !== '' ? $message : 'Your seller account has received a compliance warning from BoomBuy admin. Please review your product listings.',
+        'compliance_warning'
+    );
+
+    return back()->with('success', 'Warning sent to ' . $seller->name . '.');
+
+})->name('admin.compliance.warn');

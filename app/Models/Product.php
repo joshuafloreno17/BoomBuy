@@ -14,5 +14,13 @@ class Product extends Model
         'stock',
         'description',
         'image',
+        'is_flagged',
+        'flag_reason',
+        'is_archived',
+    ];
+
+    protected $casts = [
+        'is_flagged' => 'boolean',
+        'is_archived' => 'boolean',
     ];
 }

@@ -443,8 +443,17 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                             $product = $products[$slug];
 
-                            $subtotal =
-                                $product['price'] * $quantity;
+                            $unitPrice = (float) $product['price'];
+                            $lineVariation = null;
+
+                            if (!empty($cartVariations[$slug])) {
+                                $lineVariation = \App\Models\ProductVariation::find($cartVariations[$slug]);
+                                if ($lineVariation) {
+                                    $unitPrice += (float) $lineVariation->price_adjustment;
+                                }
+                            }
+
+                            $subtotal = $unitPrice * $quantity;
 
                             $total += $subtotal;
 
@@ -484,6 +493,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                         Quantity:
                                         {{ $quantity }}
 
+                                        @if($lineVariation)
+                                            · {{ $lineVariation->variation_type }}: {{ $lineVariation->variation_value }}
+                                        @endif
+
                                     </div>
 
                                 </div>
@@ -514,6 +527,18 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <strong>FREE</strong>
                 </div>
 
+                @php
+                    $checkoutDiscount = $appliedVoucher ? $appliedVoucher->calculateDiscount($total) : 0;
+                    $checkoutFinalTotal = max(0, $total - $checkoutDiscount);
+                @endphp
+
+                @if($appliedVoucher)
+                    <div class="subtotal-row">
+                        <span>Voucher ({{ $appliedVoucher->code }})</span>
+                        <strong style="color:#15803d;">−₱{{ number_format($checkoutDiscount, 2) }}</strong>
+                    </div>
+                @endif
+
                 <div class="total-row">
 
                     <span class="total-label">
@@ -522,7 +547,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <span class="total-price">
 
-                        ₱{{ number_format($total, 2) }}
+                        ₱{{ number_format($checkoutFinalTotal, 2) }}
 
                     </span>
 

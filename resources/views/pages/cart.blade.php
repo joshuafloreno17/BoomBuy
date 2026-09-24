@@ -481,8 +481,15 @@
                         @php
                             $quantity = (int) $quantity;
 
+                            $cartVariations = $cartVariations ?? session()->get('cart_variations', []);
+                            $itemVariation = !empty($cartVariations[$productId])
+                                ? \App\Models\ProductVariation::find($cartVariations[$productId])
+                                : null;
+
+                            $itemUnitPrice = (float) $product->price + ($itemVariation ? (float) $itemVariation->price_adjustment : 0);
+
                             $itemTotal =
-                                (float) $product->price * $quantity;
+                                $itemUnitPrice * $quantity;
 
                             $subtotal += $itemTotal;
 
@@ -519,7 +526,10 @@
                                 </h3>
 
                                 <div class="unit-price">
-                                    ₱{{ number_format($product->price, 2) }} each
+                                    ₱{{ number_format($itemUnitPrice, 2) }} each
+                                    @if($itemVariation)
+                                        <br>{{ $itemVariation->variation_type }}: {{ $itemVariation->variation_value }}
+                                    @endif
                                 </div>
 
                                 <div class="quantity">
@@ -656,6 +666,53 @@
 
                 </div>
 
+                @if($appliedVoucher)
+
+                    @php
+                        $discountAmount = $appliedVoucher->calculateDiscount($subtotal);
+                        $finalTotal = max(0, $subtotal - $discountAmount);
+                    @endphp
+
+                    <div class="summary-row">
+
+                        <span>
+                            Voucher ({{ $appliedVoucher->code }})
+                        </span>
+
+                        <strong style="color:#15803d;">
+                            −₱{{ number_format($discountAmount, 2) }}
+                        </strong>
+
+                    </div>
+
+                    <form method="POST" action="{{ route('cart.voucher.remove') }}" style="margin-bottom:12px;">
+                        @csrf
+                        <button type="submit" style="border:none; background:none; color:#be123c; font-size:11px; font-weight:700; cursor:pointer; text-decoration:underline;">
+                            Remove voucher
+                        </button>
+                    </form>
+
+                @else
+
+                    @php
+                        $finalTotal = $subtotal;
+                    @endphp
+
+                    <form method="POST" action="{{ route('cart.voucher.apply') }}" style="display:flex; gap:8px; margin-bottom:12px;">
+                        @csrf
+                        <input
+                            type="text"
+                            name="voucher_code"
+                            placeholder="Voucher code"
+                            style="flex:1; padding:9px 11px; border:1px solid #f0ddd5; border-radius:8px; font-family:inherit; font-size:12px; text-transform:uppercase;"
+                        >
+                        <button type="submit" style="border:none; background:#172033; color:white; padding:9px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                            Apply
+                        </button>
+                    </form>
+
+                @endif
+
                 <div class="summary-total">
 
                     <span>
@@ -663,7 +720,7 @@
                     </span>
 
                     <strong id="summary-total">
-                        ₱{{ number_format($subtotal, 2) }}
+                        ₱{{ number_format($finalTotal, 2) }}
                     </strong>
 
                 </div>
@@ -704,6 +761,14 @@
 
     <script>
         (function () {
+            // A voucher's discount depends on server-side rules (percentage vs.
+            // fixed, minimum order amount) that this script doesn't know, so if
+            // one is applied, reload after any quantity change instead of trying
+            // to patch the discounted total here — keeps the total correct and
+            // re-validates the voucher (e.g. if the subtotal drops below its
+            // minimum) instead of silently going stale.
+            var cartHasVoucher = @json((bool) $appliedVoucher);
+
             function updateCartBadge(count) {
                 var badge = document.getElementById('cartCount');
                 if (!badge) return;
@@ -713,6 +778,11 @@
             }
 
             function applySummary(data) {
+                if (cartHasVoucher) {
+                    location.reload();
+                    return;
+                }
+
                 var itemsEl = document.getElementById('summary-items');
                 var subtotalEl = document.getElementById('summary-subtotal');
                 var totalEl = document.getElementById('summary-total');
@@ -736,10 +806,16 @@
                     body: new FormData(form)
                 })
                     .then(function (res) {
+                        if (!res.ok) {
+                            // Session/CSRF expired or a server error occurred —
+                            // reload so the user gets a fresh, correct page
+                            // instead of "undefined" values written from an
+                            // error response.
+                            location.reload();
+                            return null;
+                        }
+
                         return res.json();
-                    })
-                    .then(function (data) {
-                        return data;
                     })
                     .catch(function () {
                         form.submit();
@@ -773,6 +849,19 @@
             document.querySelectorAll('.qty-form, .remove-form').forEach(function (form) {
                 form.addEventListener('submit', function (e) {
                     e.preventDefault();
+
+                    var actionInput = form.querySelector('input[name="action"]');
+
+                    if (actionInput && actionInput.value === 'decrease') {
+                        var qtyEl = document.getElementById('qty-' + form.dataset.productId);
+                        var currentQty = qtyEl ? parseInt(qtyEl.textContent, 10) : 0;
+
+                        if (currentQty <= 1) {
+                            alert('Quantity can\'t go below 1. Use "Remove" if you want to take this item out of your cart.');
+                            return;
+                        }
+                    }
+
                     submitCartForm(form);
                 });
             });

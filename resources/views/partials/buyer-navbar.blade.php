@@ -396,6 +396,20 @@
         </span>
     </a>
 
+    <a
+        href="{{ route('complaints.index') }}"
+        class="{{ $bbActive === 'complaints' ? 'active' : '' }}"
+    >
+        Complaints
+    </a>
+
+    <a
+        href="{{ route('messages.index') }}"
+        class="{{ $bbActive === 'messages' ? 'active' : '' }}"
+    >
+        Messages
+    </a>
+
 @endif
 
         <a href="{{ route('cart') }}" class="bb-cart-link {{ $bbActive === 'cart' ? 'active' : '' }}">

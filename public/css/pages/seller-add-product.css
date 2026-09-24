@@ -1,0 +1,383 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+    min-height: 100vh;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.sidebar {
+    width: 230px;
+    background: #ffffff;
+    border-right: 1px solid #ffe9e2;
+    padding: 25px 18px;
+    display: flex;
+    flex-direction: column;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 1000;
+    overflow-y: auto;
+}
+
+.logo {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 23px;
+    font-weight: 800;
+    color: #e8420f;
+}
+
+.logo span {
+    color: #172033;
+}
+
+.sidebar-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #b99c93;
+    margin-top: 22px;
+    margin-bottom: 4px;
+    font-weight: 700;
+}
+
+.menu {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 8px;
+}
+
+.menu a {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    color: #8d6c62;
+    font-size: 13px;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.menu a:hover,
+.menu a.active {
+    background: #fff4f1;
+    color: #e8420f;
+}
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 16px;
+    border-top: 1px solid #ffe9e2;
+}
+
+.sidebar-footer a {
+    display: block;
+    padding: 12px;
+    border-radius: 10px;
+    color: #8d6c62;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.sidebar-footer a:hover {
+    background: #fff4f1;
+    color: #e8420f;
+}
+
+/* =========================
+   MAIN
+========================= */
+
+.main-content {
+    margin-left: 230px;
+    width: calc(100% - 230px);
+    min-width: 0;
+}
+
+.container {
+    width: 86%;
+    max-width: 850px;
+    margin: 45px auto 80px;
+}
+
+.header {
+    margin-bottom: 25px;
+}
+
+.header small {
+    color: #db5a33;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 36px;
+    font-weight: 800;
+    margin-top: 8px;
+    letter-spacing: -0.01em;
+}
+
+.header p {
+    color: #977970;
+    font-size: 14px;
+    margin-top: 8px;
+}
+
+/* =========================
+   ALERTS
+========================= */
+
+.error {
+    background: #fff3f0;
+    color: #dc2626;
+    border: 1px solid #ffd0d0;
+    padding: 13px 16px;
+    border-radius: 9px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+.success {
+    background: #effdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+    padding: 13px 16px;
+    border-radius: 9px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+/* =========================
+   FORM
+========================= */
+
+.form-box {
+    background: #ffffff;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    padding: 30px;
+    box-shadow: 0 15px 35px rgba(39, 84, 150, 0.08);
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-size: 13px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #563a32;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    border: 1px solid #fbe2db;
+    background: #fffaf8;
+    padding: 12px 14px;
+    border-radius: 8px;
+    outline: none;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    color: #172033;
+    transition: 0.2s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #e8420f;
+    background: #ffffff;
+    box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.08);
+}
+
+textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+/* =========================
+   IMAGE UPLOAD
+========================= */
+
+.image-upload {
+    border: 1.5px dashed #f3cfc4;
+    background: #fffaf8;
+    border-radius: 12px;
+    padding: 22px;
+    text-align: center;
+    transition: 0.2s;
+}
+
+.image-upload:hover {
+    border-color: #e8420f;
+    background: #fff7f4;
+}
+
+.image-upload-icon {
+    font-size: 32px;
+    margin-bottom: 8px;
+}
+
+.image-upload-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #563a32;
+    margin-bottom: 5px;
+}
+
+.image-upload-text {
+    font-size: 11px;
+    color: #a0847b;
+    margin-bottom: 14px;
+}
+
+.file-input {
+    background: #ffffff;
+    cursor: pointer;
+    padding: 10px;
+}
+
+.image-preview {
+    display: none;
+    margin-top: 18px;
+}
+
+.image-preview img {
+    width: 160px;
+    height: 160px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid #f3ddd6;
+    box-shadow: 0 8px 20px rgba(39, 84, 150, 0.08);
+}
+
+.preview-label {
+    margin-top: 8px;
+    font-size: 11px;
+    color: #8d6c62;
+}
+
+/* =========================
+   BUTTONS
+========================= */
+
+.buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 25px;
+}
+
+.save {
+    border: none;
+    background: #e8420f;
+    color: #ffffff;
+    padding: 13px 22px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+.save:hover {
+    background: #c43408;
+    transform: translateY(-1px);
+}
+
+.cancel {
+    background: #f9f0ed;
+    color: #7c5a50;
+    padding: 13px 22px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.cancel:hover {
+    background: #f1e5e1;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 72px;
+        padding: 20px 8px;
+    }
+
+    .sidebar .label-text,
+    .sidebar-label {
+        display: none;
+    }
+
+    .menu a {
+        text-align: center;
+    }
+
+    .main-content {
+        margin-left: 72px;
+        width: calc(100% - 72px);
+    }
+}
+
+@media (max-width: 600px) {
+
+    .container {
+        width: 92%;
+        margin-top: 30px;
+    }
+
+    .header h1 {
+        font-size: 28px;
+    }
+
+    .form-box {
+        padding: 22px;
+    }
+
+    .buttons {
+        flex-direction: column;
+    }
+
+    .save,
+    .cancel {
+        width: 100%;
+        text-align: center;
+    }
+
+    .image-preview img {
+        width: 130px;
+        height: 130px;
+    }
+}

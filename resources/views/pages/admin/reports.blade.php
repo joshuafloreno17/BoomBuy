@@ -8,6 +8,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -36,99 +38,6 @@
         .layout {
             display: flex;
             min-height: 100vh;
-        }
-
-        /* =========================
-           SIDEBAR
-        ========================= */
-
-        .sidebar {
-            width: 245px;
-            background: #ffffff;
-            border-right: 1px solid #f7e5e0;
-            padding: 25px 18px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            z-index: 1000;
-            overflow-y: auto;
-        }
-
-        .logo {
-            padding: 0 12px;
-            margin-bottom: 35px;
-            font-size: 23px;
-            font-weight: 700;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .admin-label {
-            padding: 0 12px;
-            color: #b99c93;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .menu a {
-            display: block;
-            padding: 12px;
-            border-radius: 9px;
-            color: #8d6c62;
-            font-size: 13px;
-            font-weight: 600;
-            transition: 0.2s;
-        }
-
-        .menu a:hover {
-            background: #fff4f1;
-            color: #e8420f;
-        }
-
-        .menu a.active {
-            background: #ffefea;
-            color: #e8420f;
-        }
-
-        .logout {
-            margin-top: 35px;
-        }
-
-        .logout a {
-            display: block;
-            padding: 12px;
-            border-radius: 9px;
-            color: #ef4444;
-            font-size: 13px;
-            font-weight: 600;
-        }
-
-        .logout a:hover {
-            background: #fff1f2;
-        }
-
-        /* =========================
-           MAIN
-        ========================= */
-
-        .main {
-            margin-left: 245px;
-            width: calc(100% - 245px);
-            min-width: 0;
-            padding: 35px 5%;
         }
 
         /* =========================
@@ -519,40 +428,6 @@
         }
 
         @media (max-width: 750px) {
-            .sidebar {
-                width: 70px;
-                padding: 20px 10px;
-            }
-
-            .logo {
-                font-size: 0;
-                text-align: center;
-                padding: 0;
-            }
-
-            .logo::before {
-                content: "B";
-                font-size: 23px;
-                color: #e8420f;
-            }
-
-            .admin-label,
-            .menu a span,
-            .logout a span {
-                display: none;
-            }
-
-            .menu a,
-            .logout a {
-                text-align: center;
-                font-size: 18px;
-            }
-
-            .main {
-                margin-left: 70px;
-                width: calc(100% - 70px);
-                padding: 25px 4%;
-            }
 
             .profile-name,
             .profile-role {
@@ -663,6 +538,46 @@
     $averageOrder = $successfulOrderCount > 0
         ? $totalRevenue / $successfulOrderCount
         : 0;
+
+    /*
+    |--------------------------------------------------------------------------
+    | COMMISSION REPORT
+    |--------------------------------------------------------------------------
+    |
+    | BoomBuy takes a configurable cut (default 10%) of every seller's
+    | sales. Computed straight from order_items (which already records
+    | which seller each line item belongs to and its own selling price),
+    | filtered to non-cancelled orders — the same rule used for revenue.
+    |
+    */
+
+    $commissionRate = (float) \App\Models\PlatformSetting::get('commission_rate', '10');
+
+    $sellerSales = \Illuminate\Support\Facades\DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->join('users', 'users.id', '=', 'order_items.seller_id')
+        ->where('orders.status', '!=', 'Cancelled')
+        ->selectRaw('order_items.seller_id, users.name as seller_name, SUM(order_items.price * order_items.quantity) as sales')
+        ->groupBy('order_items.seller_id', 'users.name')
+        ->orderByDesc('sales')
+        ->get()
+        ->map(function ($row) use ($commissionRate) {
+
+            $sales = (float) $row->sales;
+            $commission = $sales * ($commissionRate / 100);
+
+            return [
+                'seller_id' => $row->seller_id,
+                'seller_name' => $row->seller_name,
+                'sales' => $sales,
+                'commission' => $commission,
+                'payout' => $sales - $commission,
+            ];
+        });
+
+    $totalSellerSales = $sellerSales->sum('sales');
+    $totalCommission = $sellerSales->sum('commission');
+    $totalPayouts = $sellerSales->sum('payout');
 
     /*
     |--------------------------------------------------------------------------
@@ -841,58 +756,7 @@
 
     <!-- SIDEBAR -->
 
-    <aside class="sidebar">
-
-        <div class="logo">
-            Boom<span>Buy</span>
-        </div>
-
-        <div class="admin-label">
-            Administration
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('admin.dashboard') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('admin.accounts') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Accounts</span>
-            </a>
-
-            <a href="{{ route('admin.applications') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-                <span>Applications</span>
-            </a>
-
-            <a href="{{ route('admin.reports') }}" class="active">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                <span>Reports</span>
-            </a>
-
-            <a href="{{ route('admin.settings') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-                <span>Settings</span>
-            </a>
-
-        </nav>
-
-        <div class="logout">
-
-            <a
-                href="{{ route('admin.login') }}"
-                onclick="return confirm('Are you sure you want to log out?');"
-            >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Logout</span>
-            </a>
-
-        </div>
-
-    </aside>
+    <x-layout.admin-sidebar active="reports" />
 
 
     <!-- MAIN -->
@@ -1046,6 +910,86 @@
                 <div class="stat-sub">
                     Average successful order value
                 </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- COMMISSION REPORT -->
+
+        <section class="panel" style="margin-bottom: 25px;">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h2>
+                        Commission Report
+                    </h2>
+
+                    <p class="panel-description">
+                        BoomBuy's platform commission ({{ number_format($commissionRate, 1) }}%) across all sellers
+                    </p>
+
+                </div>
+
+            </div>
+
+            <div class="stats" style="margin-bottom: 20px;">
+
+                <div class="stat-card">
+                    <div class="stat-title">Total Seller Sales</div>
+                    <div class="stat-value">₱{{ number_format($totalSellerSales, 2) }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">Platform Commission</div>
+                    <div class="stat-value">₱{{ number_format($totalCommission, 2) }}</div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">Seller Payouts</div>
+                    <div class="stat-value">₱{{ number_format($totalPayouts, 2) }}</div>
+                </div>
+
+            </div>
+
+            <div class="table-wrapper">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>SELLER</th>
+                            <th>SALES</th>
+                            <th>COMMISSION ({{ number_format($commissionRate, 1) }}%)</th>
+                            <th>NET PAYOUT</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @forelse($sellerSales as $row)
+
+                            <tr>
+                                <td>{{ $row['seller_name'] }}</td>
+                                <td>₱{{ number_format($row['sales'], 2) }}</td>
+                                <td>₱{{ number_format($row['commission'], 2) }}</td>
+                                <td>₱{{ number_format($row['payout'], 2) }}</td>
+                            </tr>
+
+                        @empty
+
+                            <tr>
+                                <td colspan="4" class="empty-message">No seller sales recorded yet.</td>
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
 
             </div>
 

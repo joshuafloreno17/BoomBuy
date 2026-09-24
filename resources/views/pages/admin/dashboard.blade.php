@@ -7,6 +7,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -91,101 +93,6 @@ button {
     border: 2px solid #ffffff;
 }
 
-
-/* =========================
-   SIDEBAR
-========================= */
-
-.sidebar {
-    width: 245px;
-    background: #ffffff;
-    border-right: 1px solid #f7e5e0;
-    padding: 25px 18px;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    overflow-y: auto;
-    overflow-x: hidden;
-}
-
-.logo {
-    padding: 0 12px;
-    margin-bottom: 35px;
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 23px;
-    font-weight: 700;
-    color: #e8420f;
-    white-space: nowrap;
-}
-
-.logo span {
-    color: #172033;
-}
-
-.admin-label {
-    padding: 0 12px;
-    color: #b99c93;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 700;
-    margin-bottom: 12px;
-}
-
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 5px;
-}
-
-.menu a {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    width: 100%;
-    padding: 12px;
-    border-radius: 9px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s ease;
-}
-
-.menu a:hover {
-    background: #fff4f1;
-    color: #e8420f;
-}
-
-.menu a.active {
-    background: #ffefea;
-    color: #e8420f;
-}
-
-.logout {
-    margin-top: 35px;
-}
-
-.logout button {
-    transition: 0.2s ease;
-}
-
-.logout button:hover {
-    background: #fff1f2 !important;
-}
-
-/* =========================
-   MAIN
-========================= */
-
-.main {
-    margin-left: 245px;
-    width: calc(100% - 245px);
-    min-width: 0;
-    padding: 35px 5%;
-    overflow-x: hidden;
-}
 
 /* =========================
    TOPBAR
@@ -727,64 +634,6 @@ button {
 
 @media (max-width: 750px) {
 
-    .sidebar {
-        width: 68px;
-        padding: 20px 9px;
-    }
-
-    .logo {
-        font-size: 0;
-        text-align: center;
-        padding: 0;
-        margin-bottom: 30px;
-    }
-
-    .logo::before {
-        content: "B";
-        font-family: 'Baloo 2', sans-serif;
-        font-size: 25px;
-        font-weight: 800;
-        color: #e8420f;
-    }
-
-    .admin-label {
-        display: none;
-    }
-
-    .menu {
-        gap: 7px;
-    }
-
-    .menu a {
-        justify-content: center;
-        padding: 12px 8px;
-        font-size: 18px;
-    }
-
-    .menu a span {
-        display: none;
-    }
-
-    .logout {
-        margin-top: 25px;
-    }
-
-    .logout button {
-        text-align: center !important;
-        padding: 12px 8px !important;
-        font-size: 18px !important;
-    }
-
-    .logout button span {
-        display: none;
-    }
-
-    .main {
-        margin-left: 68px;
-        width: calc(100% - 68px);
-        padding: 25px 18px;
-    }
-
     .topbar {
         align-items: flex-start;
         margin-bottom: 25px;
@@ -839,17 +688,6 @@ button {
 ========================= */
 
 @media (max-width: 480px) {
-
-    .sidebar {
-        width: 58px;
-        padding: 18px 6px;
-    }
-
-    .main {
-        margin-left: 58px;
-        width: calc(100% - 58px);
-        padding: 20px 12px;
-    }
 
     .topbar {
         flex-direction: column;
@@ -953,86 +791,7 @@ button:hover {
 
 <div class="layout">
 
-    <!-- =========================
-         SIDEBAR
-    ========================= -->
-
-    <aside class="sidebar">
-
-        <div class="logo">
-            Boom<span>Buy</span>
-        </div>
-
-        <div class="admin-label">
-            Administration
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('admin.dashboard') }}" class="active">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('admin.accounts') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Accounts</span>
-            </a>
-
-            <a href="{{ route('admin.applications') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-                <span>Applications</span>
-            </a>
-
-            <a href="{{ route('admin.reports') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-                <span>Reports</span>
-            </a>
-
-            <a href="{{ route('admin.settings') }}">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
-                <span>Settings</span>
-            </a>
-
-        </nav>
-
-        <div class="logout">
-
-            <form
-                action="{{ route('admin.logout') }}"
-                method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
-            >
-
-                @csrf
-
-                <button
-                    type="submit"
-                    style="
-                        width: 100%;
-                        border: none;
-                        background: transparent;
-                        text-align: left;
-                        padding: 12px;
-                        border-radius: 9px;
-                        color: #ef4444;
-                        font-size: 13px;
-                        font-weight: 600;
-                        cursor: pointer;
-                        display: flex;
-                        align-items: center;
-                        gap: 9px;
-                    "
-                >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                    <span>Logout</span>
-                </button>
-
-            </form>
-
-        </div>
-
-    </aside>
+    <x-layout.admin-sidebar active="dashboard" />
 
     <!-- =========================
          MAIN
@@ -1059,50 +818,6 @@ button:hover {
         align-items:center;
         gap:12px;
     ">
-
-        <!-- NOTIFICATION -->
-        @php
-            $adminUser = \App\Models\User::where(
-                'email',
-                'admin@boombuy.com'
-            )->first();
-
-            $adminUnreadNotifications = $adminUser
-                ? \App\Models\Notification::where(
-                    'user_id',
-                    $adminUser->id
-                )
-                ->whereNull('read_at')
-                ->count()
-                : 0;
-        @endphp
-
-        <a
-            href="{{ route('notifications.index') }}"
-            class="notification-button"
-            title="Notifications"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="19"
-                height="19"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-            >
-                <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/>
-                <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-            </svg>
-
-            @if($adminUnreadNotifications > 0)
-                <span class="notification-badge">
-                    {{ $adminUnreadNotifications > 9 ? '9+' : $adminUnreadNotifications }}
-                </span>
-            @endif
-        </a>
 
         <!-- ADMIN PROFILE -->
         <div class="admin-profile">

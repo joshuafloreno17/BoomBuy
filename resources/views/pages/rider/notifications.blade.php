@@ -704,6 +704,10 @@
                 🚚 My Deliveries
             </a>
 
+            <a href="{{ route('rider.profit') }}">
+                💰 Profit
+            </a>
+
             <a href="{{ route('rider.profile') }}">
                 👤 My Profile
             </a>
@@ -739,6 +743,14 @@
 
                 @endif
 
+            </a>
+
+            <a href="{{ route('complaints.index') }}">
+                ⚠️ Complaints
+            </a>
+
+            <a href="{{ route('messages.index') }}">
+                💬 Messages
             </a>
 
         </div>

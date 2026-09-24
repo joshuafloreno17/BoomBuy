@@ -1,0 +1,251 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.container {
+    width: 90%;
+    max-width: 800px;
+    margin: 40px auto 60px;
+}
+
+.back-link {
+    display: inline-block;
+    margin-bottom: 20px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #8d6c62;
+}
+
+.header {
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 28px;
+}
+
+.header p {
+    color: #977970;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.error-box {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+/* INBOX */
+
+.conversation-list {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 12px 30px rgba(39, 84, 150, 0.06);
+}
+
+.conversation-item {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #f7efed;
+    transition: 0.15s;
+}
+
+.conversation-item:last-child {
+    border-bottom: none;
+}
+
+.conversation-item:hover {
+    background: #fffaf8;
+}
+
+.conversation-item.unread {
+    background: #fffaf8;
+}
+
+.avatar {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    border-radius: 50%;
+    background: #ffede8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: 800;
+    color: #e8420f;
+}
+
+.conversation-name {
+    font-weight: 700;
+    font-size: 14px;
+}
+
+.conversation-role {
+    color: #b99c93;
+    font-size: 10px;
+    text-transform: uppercase;
+    margin-left: 6px;
+}
+
+.conversation-preview {
+    color: #977970;
+    font-size: 12px;
+    margin-top: 3px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 400px;
+}
+
+.conversation-meta {
+    margin-left: auto;
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.conversation-time {
+    color: #b99c93;
+    font-size: 10px;
+}
+
+.unread-badge {
+    display: inline-block;
+    background: #e8420f;
+    color: white;
+    min-width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 18px;
+    margin-top: 4px;
+}
+
+.empty {
+    text-align: center;
+    padding: 55px 20px;
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    color: #b99c93;
+    font-size: 13px;
+}
+
+/* THREAD */
+
+.thread-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.thread-box {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    padding: 20px;
+    height: 420px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.bubble {
+    max-width: 70%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.bubble-mine {
+    align-self: flex-end;
+    background: #e8420f;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.bubble-theirs {
+    align-self: flex-start;
+    background: #fff1eb;
+    color: #172033;
+    border-bottom-left-radius: 4px;
+}
+
+.bubble-time {
+    display: block;
+    font-size: 9px;
+    opacity: 0.7;
+    margin-top: 4px;
+}
+
+.send-form {
+    display: flex;
+    gap: 10px;
+}
+
+.send-form input[type="text"] {
+    flex: 1;
+    padding: 12px 15px;
+    border: 1px solid #f0ddd5;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.send-form input[type="text"]:focus {
+    border-color: #e8420f;
+}
+
+.send-btn {
+    border: none;
+    background: #e8420f;
+    color: white;
+    padding: 0 22px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.send-btn:hover {
+    background: #c43408;
+}
+
+.empty-thread {
+    margin: auto;
+    color: #b99c93;
+    font-size: 12px;
+    text-align: center;
+}

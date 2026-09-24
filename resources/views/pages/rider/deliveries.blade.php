@@ -1243,6 +1243,22 @@
 
 
                 <a
+                    href="{{ route('rider.profit') }}"
+                    class="rider-sidebar-link {{ request()->routeIs('rider.profit') ? 'active' : '' }}"
+                >
+
+                    <span class="sidebar-icon">
+                        💰
+                    </span>
+
+                    <span>
+                        Profit
+                    </span>
+
+                </a>
+
+
+                <a
                     href="{{ route('rider.profile') }}"
                     class="rider-sidebar-link
                         {{ request()->routeIs('rider.profile') ? 'active' : '' }}"
@@ -1293,6 +1309,38 @@
                         </span>
 
                     @endif
+
+                </a>
+
+
+                <a
+                    href="{{ route('complaints.index') }}"
+                    class="rider-sidebar-link {{ request()->routeIs('complaints.index') ? 'active' : '' }}"
+                >
+
+                    <span class="sidebar-icon">
+                        ⚠️
+                    </span>
+
+                    <span>
+                        Complaints
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="{{ route('messages.index') }}"
+                    class="rider-sidebar-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"
+                >
+
+                    <span class="sidebar-icon">
+                        💬
+                    </span>
+
+                    <span>
+                        Messages
+                    </span>
 
                 </a>
 

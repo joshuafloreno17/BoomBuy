@@ -9,6 +9,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -34,109 +36,6 @@
             min-height: 100vh;
         }
 
-        /* SIDEBAR */
-
-        .sidebar {
-            width: 245px;
-            background: #ffffff;
-            border-right: 1px solid #f7e5e0;
-            padding: 25px 18px;
-            position: fixed;
-            left: 0;
-            top: 0;
-            bottom: 0;
-            z-index: 1000;
-        }
-
-        .logo {
-            padding: 0 12px;
-            margin-bottom: 35px;
-            font-family: 'Baloo 2', sans-serif;
-            font-size: 23px;
-            font-weight: 700;
-            color: #e8420f;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .admin-label {
-            padding: 0 12px;
-            color: #b99c93;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            margin-bottom: 12px;
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .menu a {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            width: 100%;
-            padding: 12px;
-            border-radius: 9px;
-            color: #8d6c62;
-            font-size: 13px;
-            font-weight: 600;
-            transition: 0.2s ease;
-        }
-
-        .menu a:hover {
-            background: #fff4f1;
-            color: #e8420f;
-        }
-
-        .menu a.active {
-            background: #ffefea;
-            color: #e8420f;
-        }
-
-        .notification-count {
-            margin-left: auto;
-            min-width: 20px;
-            height: 20px;
-            padding: 0 6px;
-            border-radius: 999px;
-            background: #e8420f;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        /* LOGOUT */
-
-        .logout {
-            margin-top: 35px;
-        }
-
-        .logout button {
-            transition: 0.2s ease;
-        }
-
-        .logout button:hover {
-            background: #fff1f2 !important;
-        }
-
-        /* MAIN */
-
-        .main {
-            margin-left: 245px;
-            width: calc(100% - 245px);
-            min-height: 100vh;
-            padding: 35px 5%;
-        }
 
         /* TOP */
 
@@ -351,54 +250,6 @@
 
         @media (max-width: 750px) {
 
-            .sidebar {
-                width: 68px;
-                padding: 20px 9px;
-            }
-
-            .logo {
-                font-size: 0;
-                text-align: center;
-                padding: 0;
-            }
-
-            .logo::before {
-                content: "B";
-                font-family: 'Baloo 2', sans-serif;
-                font-size: 25px;
-                font-weight: 800;
-                color: #e8420f;
-            }
-
-            .admin-label {
-                display: none;
-            }
-
-            .menu a {
-                justify-content: center;
-                padding: 12px 8px;
-                font-size: 18px;
-            }
-
-            .menu a span {
-                display: none;
-            }
-
-            .notification-count {
-                position: absolute;
-                margin-left: 25px;
-                margin-top: -20px;
-            }
-
-            .logout button span {
-                display: none;
-            }
-
-            .main {
-                margin-left: 68px;
-                width: calc(100% - 68px);
-                padding: 25px 18px;
-            }
 
             .page-header {
                 align-items: flex-start;
@@ -411,15 +262,6 @@
 
         @media (max-width: 480px) {
 
-            .sidebar {
-                width: 58px;
-            }
-
-            .main {
-                margin-left: 58px;
-                width: calc(100% - 58px);
-                padding: 20px 12px;
-            }
 
             .page-header {
                 flex-direction: column;
@@ -437,105 +279,7 @@
 
 <div class="layout">
 
-    <!-- SIDEBAR -->
-
-    <aside class="sidebar">
-
-        <div class="logo">
-            Boom<span>Buy</span>
-        </div>
-
-        <div class="admin-label">
-            Administration
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('admin.dashboard') }}">
-                <span>▦</span>
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('admin.accounts') }}">
-                <span>♙</span>
-                <span>Accounts</span>
-            </a>
-
-            <a href="{{ route('admin.applications') }}">
-                <span>✓</span>
-                <span>Applications</span>
-            </a>
-
-            <a href="{{ route('admin.reports') }}">
-                <span>↗</span>
-                <span>Reports</span>
-            </a>
-
-            <a href="{{ route('admin.settings') }}">
-                <span>☷</span>
-                <span>Settings</span>
-            </a>
-
-            <!-- NOTIFICATIONS -->
-
-            <a
-                href="{{ route('notifications.index') }}"
-                class="active"
-            >
-                <span>🔔</span>
-
-                <span>
-                    Notifications
-                </span>
-
-                @if($unreadCount > 0)
-                    <span class="notification-count">
-                        {{ $unreadCount > 9 ? '9+' : $unreadCount }}
-                    </span>
-                @endif
-            </a>
-
-        </nav>
-
-        <div class="logout">
-
-            <form
-                action="{{ route('admin.logout') }}"
-                method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
-            >
-
-                @csrf
-
-                <button
-                    type="submit"
-                    style="
-                        width:100%;
-                        border:none;
-                        background:transparent;
-                        text-align:left;
-                        padding:12px;
-                        border-radius:9px;
-                        color:#ef4444;
-                        font-size:13px;
-                        font-weight:600;
-                        cursor:pointer;
-                        display:flex;
-                        align-items:center;
-                        gap:9px;
-                    "
-                >
-                    🚪
-                    <span>
-                        Logout
-                    </span>
-                </button>
-
-            </form>
-
-        </div>
-
-    </aside>
+    <x-layout.admin-sidebar active="notifications" />
 
 
     <!-- MAIN -->
@@ -605,7 +349,7 @@
 
                     <form
                         action="{{ !$notification->read_at
-                            ? route('notifications.read', $notification->id)
+                            ? route('admin.notifications.read', $notification->id)
                             : '#'
                         }}"
                         method="{{ !$notification->read_at ? 'POST' : 'GET' }}"

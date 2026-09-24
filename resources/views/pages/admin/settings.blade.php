@@ -8,127 +8,177 @@
 
     @include('partials.pwa-head')
 
-    <style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            background: #fbf6f5;
-            color: #1f2937;
-        }
-
-        .container {
-            width: 86%;
-            max-width: 1100px;
-            margin: 40px auto;
-        }
-
-        .header {
-            margin-bottom: 25px;
-        }
-
-        .header h1 {
-            font-size: 32px;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            color: #816f6a;
-        }
-
-        .card {
-            background: white;
-            border: 1px solid #ebe6e5;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-            box-shadow: 0 5px 20px rgba(0,0,0,.05);
-        }
-
-        .card h2 {
-            font-size: 19px;
-            margin-bottom: 8px;
-        }
-
-        .card p {
-            color: #816f6a;
-            font-size: 14px;
-        }
-
-        .back {
-            display: inline-block;
-            margin-bottom: 25px;
-            color: #f34f1d;
-            text-decoration: none;
-            font-weight: 700;
-        }
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-
-@media (max-width: 640px) {
-    .container { width: 92%; margin: 24px auto; }
-    .header h1 { font-size: 24px; }
-    .card { padding: 18px; }
-}
-</style>
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/pages/admin-settings.css') }}">
 </head>
 
 <body>
 
-<div class="container">
+<div class="layout">
 
-    <a href="{{ route('admin.dashboard') }}" class="back">
-        ← Back to Dashboard
-    </a>
+    <x-layout.admin-sidebar active="settings" />
 
-    <div class="header">
-        <h1>Admin Settings</h1>
-        <p>Manage your BoomBuy admin settings.</p>
+    <main class="main">
+
+    <div class="container">
+
+        <div class="header">
+            <h1>Platform Settings</h1>
+            <p>Post announcements and manage BoomBuy's platform policies.</p>
+        </div>
+
+        @if(session('success'))
+            <div class="success-box">{{ session('success') }}</div>
+        @endif
+
+        @if(session('error'))
+            <div class="error-box">{{ session('error') }}</div>
+        @endif
+
+        @if($errors->any())
+            <div class="error-box">
+                @foreach($errors->all() as $error)
+                    <div>{{ $error }}</div>
+                @endforeach
+            </div>
+        @endif
+
+        <!-- COMMISSION -->
+
+        <div class="card">
+            <h2>💰 Platform Commission</h2>
+            <p class="desc">Set the percentage BoomBuy takes from every seller's sales. Applies to the Commission Report in Reports.</p>
+
+            <form method="POST" action="{{ route('admin.settings.commission.update') }}">
+                @csrf
+
+                <div class="form-group" style="max-width:180px;">
+                    <label for="commission_rate">Commission Rate (%)</label>
+                    <input type="text" id="commission_rate" name="commission_rate" value="{{ old('commission_rate', $commissionRate) }}" placeholder="10" required>
+                </div>
+
+                <button type="submit" class="save-btn">Save Commission Rate</button>
+            </form>
+        </div>
+
+
+        <!-- RIDER DELIVERY FEE -->
+
+        <div class="card">
+            <h2>🏍️ Rider Delivery Fee</h2>
+            <p class="desc">Set how much a rider earns per completed delivery. Used in the rider Profit dashboard.</p>
+
+            <form method="POST" action="{{ route('admin.settings.delivery-fee.update') }}">
+                @csrf
+
+                <div class="form-group" style="max-width:180px;">
+                    <label for="delivery_fee">Delivery Fee (₱)</label>
+                    <input type="text" id="delivery_fee" name="delivery_fee" value="{{ old('delivery_fee', $deliveryFee) }}" placeholder="50" required>
+                </div>
+
+                <button type="submit" class="save-btn">Save Delivery Fee</button>
+            </form>
+        </div>
+
+
+        <!-- ANNOUNCEMENTS -->
+
+        <div class="card">
+            <h2>📣 Platform Announcements</h2>
+            <p class="desc">Post an announcement that BoomBuy can display to users. Newest announcements appear first.</p>
+
+            <form method="POST" action="{{ route('admin.settings.announcements.store') }}">
+                @csrf
+
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" value="{{ old('title') }}" placeholder="e.g. Scheduled Maintenance" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message</label>
+                    <textarea id="message" name="message" placeholder="Write the announcement details..." required>{{ old('message') }}</textarea>
+                </div>
+
+                <button type="submit" class="save-btn">Post Announcement</button>
+            </form>
+
+            <div class="announcement-list">
+
+                @forelse($announcements as $announcement)
+
+                    <div class="announcement-item {{ $announcement->is_active ? '' : 'inactive' }}">
+
+                        <div>
+                            <div class="announcement-title">{{ $announcement->title }}</div>
+                            <div class="announcement-message">{{ $announcement->message }}</div>
+                            <div class="announcement-date">
+                                {{ $announcement->created_at->format('M d, Y • h:i A') }}
+                                — {{ $announcement->is_active ? 'Active' : 'Hidden' }}
+                            </div>
+                        </div>
+
+                        <div class="announcement-actions">
+
+                            <form method="POST" action="{{ route('admin.settings.announcements.toggle', $announcement->id) }}">
+                                @csrf
+                                <button type="submit" class="mini-btn toggle">
+                                    {{ $announcement->is_active ? 'Hide' : 'Show' }}
+                                </button>
+                            </form>
+
+                            <form method="POST" action="{{ route('admin.settings.announcements.delete', $announcement->id) }}" onsubmit="return confirm('Delete this announcement?');">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit" class="mini-btn delete">Delete</button>
+                            </form>
+
+                        </div>
+
+                    </div>
+
+                @empty
+
+                    <div class="empty-note">No announcements posted yet.</div>
+
+                @endforelse
+
+            </div>
+
+        </div>
+
+        <!-- PLATFORM POLICIES -->
+
+        <div class="card">
+            <h2>📄 Platform Policies</h2>
+            <p class="desc">Update the Terms &amp; Conditions, Privacy Policy, and Return Policy text shown to users.</p>
+
+            <form method="POST" action="{{ route('admin.settings.policies.update') }}">
+                @csrf
+
+                <div class="form-group">
+                    <label for="terms_policy">Terms &amp; Conditions</label>
+                    <textarea id="terms_policy" name="terms_policy" placeholder="Enter the platform's terms and conditions...">{{ old('terms_policy', $termsPolicy) }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="privacy_policy">Privacy Policy</label>
+                    <textarea id="privacy_policy" name="privacy_policy" placeholder="Enter the platform's privacy policy...">{{ old('privacy_policy', $privacyPolicy) }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="return_policy">Return &amp; Refund Policy</label>
+                    <textarea id="return_policy" name="return_policy" placeholder="Enter the platform's return and refund policy...">{{ old('return_policy', $returnPolicy) }}</textarea>
+                </div>
+
+                <button type="submit" class="save-btn">Save Policies</button>
+            </form>
+
+        </div>
+
     </div>
 
-    <div class="card">
-        <h2><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg> General Settings</h2>
-        <p>System configuration and general marketplace settings.</p>
-    </div>
-
-    <div class="card">
-        <h2><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> Notifications</h2>
-        <p>Manage admin notifications and alerts.</p>
-    </div>
-
-    <div class="card">
-        <h2><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Security</h2>
-        <p>Manage account and security preferences.</p>
-    </div>
+    </main>
 
 </div>
 

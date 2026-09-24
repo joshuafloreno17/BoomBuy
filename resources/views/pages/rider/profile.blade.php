@@ -695,6 +695,19 @@
             </a>
 
 
+            <a href="{{ route('rider.profit') }}">
+
+                <span class="menu-icon">
+                    💰
+                </span>
+
+                <span>
+                    Profit
+                </span>
+
+            </a>
+
+
             <a
                 href="{{ route('rider.profile') }}"
                 class="active"
@@ -750,6 +763,38 @@
                     </span>
 
                 @endif
+
+            </a>
+
+
+            <a
+                href="{{ route('complaints.index') }}"
+                class="notification-link"
+            >
+
+                <span class="menu-icon">
+                    ⚠️
+                </span>
+
+                <span>
+                    Complaints
+                </span>
+
+            </a>
+
+
+            <a
+                href="{{ route('messages.index') }}"
+                class="notification-link"
+            >
+
+                <span class="menu-icon">
+                    💬
+                </span>
+
+                <span>
+                    Messages
+                </span>
 
             </a>
 

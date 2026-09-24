@@ -566,6 +566,8 @@
 
         <div class="container">
 
+            @include('partials.announcement-banner')
+
             <!-- =========================
                  WELCOME
             ========================= -->

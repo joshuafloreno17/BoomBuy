@@ -8,6 +8,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -42,31 +44,6 @@
             font-family: Arial, sans-serif;
             background: #fff7f4;
             color: #172033;
-        }
-
-        .navbar {
-            background: white;
-            border-bottom: 1px solid #f6e1db;
-            padding: 18px 7%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .logo {
-            font-size: 26px;
-            font-weight: 800;
-            color: #f13f09;
-        }
-
-        .logo span {
-            color: #172033;
-        }
-
-        .back {
-            text-decoration: none;
-            color: #f13f09;
-            font-weight: 600;
         }
 
         .container {
@@ -231,7 +208,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 }
 
 @media (max-width: 640px) {
-    .navbar { padding: 14px 5%; }
     .container { width: 92%; margin: 24px auto; }
     .order-header { flex-wrap: wrap; gap: 8px; }
     .order-card { padding: 16px; }
@@ -244,15 +220,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <body>
 
-<nav class="navbar">
-    <div class="logo">
-        Boom<span>Buy</span>
-    </div>
+<div class="layout">
 
-    <a href="{{ route('admin.dashboard') }}" class="back">
-        ← Admin Dashboard
-    </a>
-</nav>
+    <x-layout.admin-sidebar active="orders" />
+
+    <main class="main">
 
 <div class="container">
 
@@ -465,6 +437,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         @endforeach
 
     @endif
+
+</div>
+
+    </main>
 
 </div>
 
