@@ -777,105 +777,6 @@
                     </div>
 
 
-                    {{-- ROLE --}}
-
-                    <div class="form-group">
-
-                        <span class="role-title">
-                            Login As
-                        </span>
-
-
-                        <div class="role-options">
-
-
-                            {{-- BUYER --}}
-
-                            <div class="role-option">
-
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    id="role-buyer"
-                                    value="buyer"
-                                    {{ old('role') === 'buyer' ? 'checked' : '' }}
-                                    required
-                                >
-
-                                <label for="role-buyer">
-
-                                    <span class="role-icon">
-                                        👤
-                                    </span>
-
-                                    <span>
-                                        Buyer
-                                    </span>
-
-                                </label>
-
-                            </div>
-
-
-                            {{-- SELLER --}}
-
-                            <div class="role-option">
-
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    id="role-seller"
-                                    value="seller"
-                                    {{ old('role') === 'seller' ? 'checked' : '' }}
-                                >
-
-                                <label for="role-seller">
-
-                                    <span class="role-icon">
-                                        🛍️
-                                    </span>
-
-                                    <span>
-                                        Seller
-                                    </span>
-
-                                </label>
-
-                            </div>
-
-
-                            {{-- RIDER --}}
-
-                            <div class="role-option">
-
-                                <input
-                                    type="radio"
-                                    name="role"
-                                    id="role-rider"
-                                    value="rider"
-                                    {{ old('role') === 'rider' ? 'checked' : '' }}
-                                >
-
-                                <label for="role-rider">
-
-                                    <span class="role-icon">
-                                        🛵
-                                    </span>
-
-                                    <span>
-                                        Rider
-                                    </span>
-
-                                </label>
-
-                            </div>
-
-
-                        </div>
-
-                    </div>
-
-
                     {{-- LOGIN BUTTON --}}
 
                     <button
@@ -921,15 +822,6 @@
 
                     <a href="{{ route('register') }}">
                         Create one
-                    </a>
-
-                </div>
-
-
-                <div class="admin-link">
-
-                    <a href="{{ route('admin.login') }}">
-                        🛠️ Admin Login
                     </a>
 
                 </div>

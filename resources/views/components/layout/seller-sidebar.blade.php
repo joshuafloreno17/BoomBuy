@@ -76,6 +76,16 @@
             </span>
         </a>
 
+        <a
+            href="{{ route('seller.reviews') }}"
+            @class(['active' => $active === 'reviews'])
+        >
+            ⭐
+            <span class="label-text">
+                Reviews
+            </span>
+        </a>
+
         @if($showNotifications)
 
             <a
@@ -122,6 +132,16 @@
             💬
             <span class="label-text">
                 Messages
+            </span>
+        </a>
+
+        <a
+            href="{{ route('seller.profile') }}"
+            @class(['active' => $active === 'profile'])
+        >
+            👤
+            <span class="label-text">
+                My Profile
             </span>
         </a>
 

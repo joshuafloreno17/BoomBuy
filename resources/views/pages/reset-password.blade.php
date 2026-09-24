@@ -300,7 +300,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </h1>
 
             <p>
-                Enter your new password below.
+                Enter the 6-digit code we emailed you, then choose a new password.
             </p>
 
         </div>
@@ -335,6 +335,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             <div class="form-group">
 
                 <label>
+                    Verification Code
+                </label>
+
+                <input
+                    type="text"
+                    id="otp_code"
+                    name="otp_code"
+                    placeholder="6-digit code from your email"
+                    maxlength="6"
+                    inputmode="numeric"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label>
                     New Password
                 </label>
 
@@ -344,6 +363,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         id="password"
                         name="password"
                         placeholder="Enter new password"
+                        minlength="8"
                         required
                     >
                     <button

@@ -1501,8 +1501,20 @@
                         Ready for Pickup
                     </option>
 
+                    <option value="Assigned">
+                        Assigned
+                    </option>
+
                     <option value="Picked Up">
                         Picked Up
+                    </option>
+
+                    <option value="At Sorting Center">
+                        At Sorting Center
+                    </option>
+
+                    <option value="Assigned for Delivery">
+                        Assigned for Delivery
                     </option>
 
                     <option value="Out for Delivery">
@@ -1550,7 +1562,10 @@
 
 
                             if (
+                                $status === 'Assigned' ||
                                 $status === 'Picked Up' ||
+                                $status === 'At Sorting Center' ||
+                                $status === 'Assigned for Delivery' ||
                                 $status === 'Out for Delivery'
                             ) {
 
@@ -1730,7 +1745,7 @@
                                             class="btn claim-btn"
                                         >
 
-                                            🚚 Pick Up Order
+                                            🚚 Accept Delivery
 
                                         </button>
 
@@ -1760,7 +1775,10 @@
                                 {{-- UPDATE STATUS --}}
 
                                 @if(
-                                    !empty($delivery['rider_id'] ?? null) &&
+                                    (
+                                        !empty($delivery['rider_id'] ?? null) ||
+                                        !empty($delivery['delivery_rider_id'] ?? null)
+                                    ) &&
                                     $status !== 'Delivered'
                                 )
 

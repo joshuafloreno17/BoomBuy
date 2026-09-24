@@ -223,6 +223,11 @@ tr:hover td {
     color: #15803d;
 }
 
+.logistics {
+    background: #eef6ff;
+    color: #1d4ed8;
+}
+
 /* STATUS BADGES */
 
 .status-badge {

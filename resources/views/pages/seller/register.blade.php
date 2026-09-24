@@ -190,7 +190,8 @@
             margin-bottom: 6px;
         }
 
-        .field input {
+        .field input,
+        .field select {
             width: 100%;
 
             padding: 12px 14px;
@@ -206,8 +207,18 @@
             transition: 0.2s;
         }
 
-        .field input:focus {
+        .field input:focus,
+        .field select:focus {
             border-color: #e8420f;
+        }
+
+        .field input[readonly] {
+            background: #fff6f3;
+            color: #8d6c62;
+        }
+
+        .form-grid .field-full {
+            grid-column: 1 / -1;
         }
 
         .submit-btn {
@@ -416,15 +427,40 @@
 
             <div class="form-grid">
 
+                <div class="section-label">Personal Information</div>
+
                 <div class="field">
-                    <label for="name">Full Name</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value="{{ old('name') }}"
-                        required
-                    >
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="middle_initial">Middle Initial</label>
+                    <input type="text" id="middle_initial" name="middle_initial" maxlength="5" value="{{ old('middle_initial') }}" placeholder="Optional">
+                </div>
+
+                <div class="field">
+                    <label for="sex">Sex</label>
+                    <select id="sex" name="sex" required>
+                        <option value="">Select Sex</option>
+                        <option value="Male" {{ old('sex') === 'Male' ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ old('sex') === 'Female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="birthdate">Birthday</label>
+                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="age">Age</label>
+                    <input type="text" id="age" name="age" value="{{ old('age') }}" readonly placeholder="Auto-computed">
                 </div>
 
                 <div class="field">
@@ -450,15 +486,60 @@
                     >
                 </div>
 
+                <div class="section-label">Address</div>
+
                 <div class="field">
-                    <label for="address">Address</label>
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value="{{ old('address') }}"
-                        required
-                    >
+                    <label for="province">Province</label>
+                    <select id="province" name="province" required data-old="{{ old('province') }}">
+                        <option value="">Select Province</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="city_municipality">City / Municipality</label>
+                    <select id="city_municipality" name="city_municipality" required disabled>
+                        <option value="">Select City / Municipality</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="barangay">Barangay</label>
+                    <input type="text" id="barangay" name="barangay" value="{{ old('barangay') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="street_address">House No. / Street</label>
+                    <input type="text" id="street_address" name="street_address" value="{{ old('street_address') }}" required>
+                </div>
+
+                <div class="section-label">Business Information</div>
+
+                <div class="field">
+                    <label for="business_name">Business Name</label>
+                    <input type="text" id="business_name" name="business_name" value="{{ old('business_name') }}" placeholder="e.g. Juan's Online Store" required>
+                </div>
+
+                <div class="field">
+                    <label for="business_category">Line of Business / Category</label>
+                    <select id="business_category" name="business_category" required>
+                        <option value="">Select Category</option>
+                        <option value="electronics" {{ old('business_category') === 'electronics' ? 'selected' : '' }}>Electronics</option>
+                        <option value="womens-fashion" {{ old('business_category') === 'womens-fashion' ? 'selected' : '' }}>Women's Fashion</option>
+                        <option value="mens-fashion" {{ old('business_category') === 'mens-fashion' ? 'selected' : '' }}>Men's Fashion</option>
+                        <option value="kids-baby" {{ old('business_category') === 'kids-baby' ? 'selected' : '' }}>Kids &amp; Baby</option>
+                        <option value="home-living" {{ old('business_category') === 'home-living' ? 'selected' : '' }}>Home &amp; Living</option>
+                        <option value="sports-outdoors" {{ old('business_category') === 'sports-outdoors' ? 'selected' : '' }}>Sports &amp; Outdoors</option>
+                        <option value="beauty-personal-care" {{ old('business_category') === 'beauty-personal-care' ? 'selected' : '' }}>Beauty &amp; Personal Care</option>
+                        <option value="food-beverages" {{ old('business_category') === 'food-beverages' ? 'selected' : '' }}>Food &amp; Beverages</option>
+                        <option value="automotive" {{ old('business_category') === 'automotive' ? 'selected' : '' }}>Automotive</option>
+                        <option value="office-school" {{ old('business_category') === 'office-school' ? 'selected' : '' }}>Office &amp; School</option>
+                        <option value="pet-supplies" {{ old('business_category') === 'pet-supplies' ? 'selected' : '' }}>Pet Supplies</option>
+                        <option value="toys-games-hobbies" {{ old('business_category') === 'toys-games-hobbies' ? 'selected' : '' }}>Toys, Games &amp; Hobbies</option>
+                        <option value="jewelry-accessories" {{ old('business_category') === 'jewelry-accessories' ? 'selected' : '' }}>Jewelry &amp; Accessories</option>
+                        <option value="shoes" {{ old('business_category') === 'shoes' ? 'selected' : '' }}>Shoes</option>
+                        <option value="tools-home-improvement" {{ old('business_category') === 'tools-home-improvement' ? 'selected' : '' }}>Tools &amp; Home Improvement</option>
+                        <option value="garden-outdoor" {{ old('business_category') === 'garden-outdoor' ? 'selected' : '' }}>Garden &amp; Outdoor</option>
+                    </select>
                 </div>
 
                 <div class="section-label">
@@ -564,7 +645,12 @@
 
     @include('partials.terms-modal')
 
+    <script src="{{ asset('js/data/psgc-data.js') }}"></script>
+    <script src="{{ asset('js/pages/registration-fields.js') }}"></script>
     <script>
+        initAddressCascade('province', 'city_municipality', @json(old('city_municipality')));
+        initAgeCalc('birthdate', 'age');
+
         function showFileName(input, targetId) {
             var target = document.getElementById(targetId);
             if (!target) return;

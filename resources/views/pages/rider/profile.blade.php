@@ -1100,10 +1100,8 @@
 
                         $myDeliveries =
                             DB::table('orders')
-                                ->where(
-                                    'rider_id',
-                                    $riderId
-                                )
+                                ->where('rider_id', $riderId)
+                                ->orWhere('delivery_rider_id', $riderId)
                                 ->get();
 
                         $totalDeliveries =
@@ -1122,7 +1120,10 @@
                                 ->whereIn(
                                     'status',
                                     [
+                                        'Assigned',
                                         'Picked Up',
+                                        'At Sorting Center',
+                                        'Assigned for Delivery',
                                         'On the Way',
                                         'Out for Delivery'
                                     ]

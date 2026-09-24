@@ -161,6 +161,23 @@
     </section>
 
 
+    <!-- CHARTS -->
+
+    <section class="stats" style="grid-template-columns: 1.4fr 1fr; margin-bottom:20px;">
+
+        <div class="stat-card" style="display:block;">
+            <div class="stat-title" style="margin-bottom:12px;">Sales Trend (Last 7 Days)</div>
+            <canvas id="sellerSalesTrendChart" height="110"></canvas>
+        </div>
+
+        <div class="stat-card" style="display:block;">
+            <div class="stat-title" style="margin-bottom:12px;">Orders by Status</div>
+            <canvas id="sellerOrderStatusChart" height="110"></canvas>
+        </div>
+
+    </section>
+
+
     <!-- PRODUCTS HEADER -->
 
     <div class="top">
@@ -474,6 +491,52 @@
 </footer>
 
     @include('partials.pwa-register')
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script>
+        var trendLabels = @json($salesTrend->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('M d')));
+        var trendRevenue = @json($salesTrend->map(fn($r) => (float) $r->revenue));
+
+        var statusLabels = @json($orderStatusBreakdown->pluck('status'));
+        var statusCounts = @json($orderStatusBreakdown->pluck('total'));
+
+        if (window.Chart) {
+            new Chart(document.getElementById('sellerSalesTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: trendLabels,
+                    datasets: [{
+                        label: 'Revenue (₱)',
+                        data: trendRevenue,
+                        borderColor: '#e8420f',
+                        backgroundColor: 'rgba(232,66,15,0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('sellerOrderStatusChart'), {
+                type: 'doughnut',
+                data: {
+                    labels: statusLabels,
+                    datasets: [{
+                        data: statusCounts,
+                        backgroundColor: ['#e8420f', '#f4a582', '#facc15', '#38bdf8', '#4ade80', '#a78bfa', '#f87171'],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

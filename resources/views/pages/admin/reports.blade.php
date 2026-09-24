@@ -1247,12 +1247,17 @@
 
                                     'Processing',
                                     'Ready for Pickup',
+                                    'Assigned',
                                     'Picked Up',
+                                    'At Sorting Center',
+                                    'Assigned for Delivery',
                                     'Out for Delivery',
                                     'On the Way' =>
                                         'processing',
 
-                                    'Cancelled' =>
+                                    'Cancelled',
+                                    'Delivery Failed',
+                                    'Returned to Seller' =>
                                         'cancelled',
 
                                     default =>

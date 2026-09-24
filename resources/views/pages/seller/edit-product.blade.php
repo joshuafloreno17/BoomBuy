@@ -89,6 +89,13 @@
 
                     {{ \Illuminate\Support\Str::slug($product->name) }}
 
+                    <a
+                        href="{{ route('seller.products.variations', $product->id) }}"
+                        style="float:right; color:#e8420f; font-weight:700; font-size:12px;"
+                    >
+                        🎨 Manage Variations
+                    </a>
+
                 </div>
 
 
@@ -96,6 +103,7 @@
                 <form
                     action="{{ route('seller.products.update', ['id' => $product->id]) }}"
                     method="POST"
+                    enctype="multipart/form-data"
                 >
 
                     @csrf
@@ -342,23 +350,35 @@
                     </div>
 
 
-                    {{-- ICON + STOCK --}}
+                    {{-- IMAGE + STOCK --}}
                     <div class="row">
 
                         <div class="form-group">
 
-                            <label for="icon">
-                                Product Icon
+                            <label for="image">
+                                Product Image
                             </label>
 
+                            @if(!empty($product->image))
+                                <div style="margin-bottom:8px;">
+                                    <img
+                                        src="{{ asset('storage/' . $product->image) }}"
+                                        alt="Current product image"
+                                        style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #f0ddd6;"
+                                    >
+                                </div>
+                            @endif
+
                             <input
-                                type="text"
-                                id="icon"
-                                name="icon"
-                                value="{{ old('icon', $product->image ?? '📦') }}"
-                                placeholder="Example: 💻"
-                                required
+                                type="file"
+                                id="image"
+                                name="image"
+                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                             >
+
+                            <span style="display:block; font-size:11px; color:#b99c93; margin-top:5px;">
+                                Leave blank to keep the current image. JPG, PNG, or WEBP, max 5MB.
+                            </span>
 
                         </div>
 

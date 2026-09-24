@@ -308,6 +308,39 @@
                     </div>
 
 
+                    <!-- VARIATIONS (OPTIONAL) -->
+                    <div class="form-group">
+
+                        <label>
+                            Variations (Optional)
+                        </label>
+
+                        <div style="margin-bottom:10px; color:#a0847b; font-size:11px;">
+                            Does this product come in different colors, sizes, etc.? Add them here.
+                        </div>
+
+                        <div id="variationRows"></div>
+
+                        <button
+                            type="button"
+                            id="addVariationBtn"
+                            style="
+                                background:#fff4f1;
+                                color:#e8420f;
+                                border:1px dashed #f0b8a5;
+                                border-radius:8px;
+                                padding:10px 14px;
+                                font-size:12px;
+                                font-weight:700;
+                                cursor:pointer;
+                            "
+                        >
+                            + Add Variation
+                        </button>
+
+                    </div>
+
+
                     <!-- BUTTONS -->
                     <div class="buttons">
 
@@ -338,6 +371,38 @@
 </div>
 
 <script src="{{ asset('js/pages/product-image-preview.js') }}"></script>
+<script>
+    (function () {
+        var rowsContainer = document.getElementById('variationRows');
+        var addBtn = document.getElementById('addVariationBtn');
+        var index = 0;
+
+        function addRow() {
+            var row = document.createElement('div');
+            row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:8px; margin-bottom:8px; align-items:center;';
+
+            row.innerHTML =
+                '<input type="text" name="variations[' + index + '][type]" placeholder="Type (e.g. Color)">' +
+                '<input type="text" name="variations[' + index + '][value]" placeholder="Value (e.g. Red)">' +
+                '<input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" placeholder="Extra Price (₱)" value="0">' +
+                '<input type="number" min="0" name="variations[' + index + '][stock]" placeholder="Stock" value="0">' +
+                '<button type="button" class="remove-variation-btn" style="background:#fff1f1; color:#dc2626; border:none; border-radius:6px; padding:10px 12px; font-size:11px; font-weight:700; cursor:pointer;">✕</button>';
+
+            row.querySelectorAll('input').forEach(function (input) {
+                input.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #f0ddd6; border-radius:8px; font-size:12px; font-family:inherit; outline:none;';
+            });
+
+            row.querySelector('.remove-variation-btn').addEventListener('click', function () {
+                row.remove();
+            });
+
+            rowsContainer.appendChild(row);
+            index++;
+        }
+
+        addBtn.addEventListener('click', addRow);
+    })();
+</script>
 
     @include('partials.pwa-register')
 

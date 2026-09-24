@@ -1027,7 +1027,10 @@ button:hover {
                                     => 'pending',
 
                                 'Processing',
+                                'Assigned',
                                 'Picked Up',
+                                'At Sorting Center',
+                                'Assigned for Delivery',
                                 'Out for Delivery',
                                 'On the Way'
                                     => 'processing',
@@ -1421,6 +1424,20 @@ button:hover {
 
                     <strong class="account-stat-value">
                         {{ $riderCount }}
+                    </strong>
+
+                </div>
+
+
+                <div class="account-stat">
+
+                    <div class="account-stat-title">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
+                        Logistics
+                    </div>
+
+                    <strong class="account-stat-value">
+                        {{ $logisticsCount }}
                     </strong>
 
                 </div>

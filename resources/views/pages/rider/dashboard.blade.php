@@ -1614,11 +1614,11 @@
                 <div>
 
                     <h2>
-                        My Active Deliveries
+                        📥 Items for Pickup
                     </h2>
 
                     <p>
-                        Track the orders currently assigned to you.
+                        Orders you've accepted from sellers — pick up and hand over to the Sorting Center.
                     </p>
 
                 </div>
@@ -1679,7 +1679,11 @@
 
                                 🚚 This order is assigned to you.
 
-                                @if($status === 'Picked Up')
+                                @if($status === 'Assigned')
+
+                                    Proceed to the seller's location and confirm pickup.
+
+                                @elseif($status === 'Picked Up')
 
                                     Continue the delivery process.
 
@@ -1819,6 +1823,119 @@
 
                     <div class="empty-text">
                         Orders you claim will appear here.
+                    </div>
+
+                </div>
+
+            @endif
+
+
+            <!-- =====================================================
+                 ITEMS FOR DELIVERY (assigned by the Sorting Center)
+            ===================================================== -->
+
+            <div class="section-title">
+
+                <div>
+
+                    <h2>
+                        📦 Items for Delivery
+                    </h2>
+
+                    <p>
+                        Parcels assigned to you by the Sorting Center — pick up there and deliver to the buyer.
+                    </p>
+
+                </div>
+
+            </div>
+
+            @if(count($myDeliveryAssignments) > 0)
+
+                <div class="delivery-list">
+
+                    @foreach($myDeliveryAssignments as $delivery)
+
+                        @php
+                            $deliveryStatus = $delivery['status'] ?? 'Assigned for Delivery';
+                        @endphp
+
+                        <div class="delivery-card">
+
+                            <div class="delivery-header">
+
+                                <div class="delivery-id">
+                                    📦
+                                    Order #{{ $delivery['id'] ?? 'N/A' }}
+                                </div>
+
+                                <div class="status status-way">
+                                    {{ $deliveryStatus }}
+                                </div>
+
+                            </div>
+
+                            <div class="active-label">
+                                🚚
+                                @if($deliveryStatus === 'Assigned for Delivery')
+                                    Pick up this parcel from the Sorting Center.
+                                @else
+                                    Currently out for delivery.
+                                @endif
+                            </div>
+
+                            <div class="delivery-info">
+
+                                <div>
+                                    👤
+                                    <strong>Customer:</strong>
+                                    {{ $delivery['buyer_name'] ?? 'Customer' }}
+                                </div>
+
+                                <div>
+                                    📍
+                                    <strong>Address:</strong>
+                                    {{ $delivery['address'] ?? 'No address provided' }}
+                                </div>
+
+                                <div>
+                                    💰
+                                    <strong>Total:</strong>
+                                    ₱{{ number_format($delivery['total'] ?? 0, 2) }}
+                                </div>
+
+                            </div>
+
+                            <div class="delivery-actions">
+
+                                <a href="{{ route('rider.delivery.details', $delivery['id']) }}" class="view-btn">
+                                    👁 View Details
+                                </a>
+
+                                <a href="{{ route('rider.delivery.details', $delivery['id']) }}" class="status-btn">
+                                    🔄 Update Status
+                                </a>
+
+                            </div>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+            @else
+
+                <div class="empty">
+
+                    <div class="empty-icon">📦</div>
+
+                    <div class="empty-title">
+                        No Delivery Assignments
+                    </div>
+
+                    <div class="empty-text">
+                        Parcels assigned to you by the Sorting Center will appear here.
                     </div>
 
                 </div>

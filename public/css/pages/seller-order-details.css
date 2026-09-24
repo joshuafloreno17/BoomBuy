@@ -133,11 +133,51 @@ body {
     border-top: 1px solid var(--border);
 }
 
-.sidebar-user {
+.sidebar-user,
+.sidebar-footer .user {
     color: #8d6c62;
     font-size: 13px;
     font-weight: 700;
     line-height: 1.5;
+}
+
+.sidebar-footer .logout {
+    width: 100%;
+    border: none;
+    background: #fff3f0;
+    color: #dc2626;
+    padding: 10px 12px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.sidebar-footer .logout:hover {
+    background: #ffe0e0;
+}
+
+.notification-link {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--orange);
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 /* =========================================

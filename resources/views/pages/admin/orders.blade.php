@@ -399,6 +399,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 Ready for Pickup
                             </option>
 
+                            <option value="Assigned"
+                                {{ ($order['status'] ?? '') === 'Assigned' ? 'selected' : '' }}>
+                                Assigned to Courier
+                            </option>
+
                             <option value="Picked Up"
                                 {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>
                                 Picked Up

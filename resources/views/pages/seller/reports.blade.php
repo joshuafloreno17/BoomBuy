@@ -71,6 +71,16 @@
             </div>
 
             <div class="panel">
+                <h2>Sales Trend</h2>
+                <canvas id="salesTrendChart" height="90"></canvas>
+            </div>
+
+            <div class="panel">
+                <h2>Top Products by Revenue</h2>
+                <canvas id="topProductsChart" height="90"></canvas>
+            </div>
+
+            <div class="panel">
                 <h2>Sales by Product</h2>
 
                 <table>
@@ -129,6 +139,54 @@
 </div>
 
     @include('partials.pwa-register')
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <script>
+        var dailyLabels = @json($dailySales->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('M d')));
+        var dailyRevenue = @json($dailySales->map(fn($r) => (float) $r->revenue));
+
+        var productLabels = @json($productSales->take(5)->map(fn($r) => $r->product_name));
+        var productRevenue = @json($productSales->take(5)->map(fn($r) => (float) $r->revenue));
+
+        if (window.Chart) {
+            new Chart(document.getElementById('salesTrendChart'), {
+                type: 'line',
+                data: {
+                    labels: dailyLabels,
+                    datasets: [{
+                        label: 'Revenue (₱)',
+                        data: dailyRevenue,
+                        borderColor: '#e8420f',
+                        backgroundColor: 'rgba(232,66,15,0.1)',
+                        tension: 0.3,
+                        fill: true,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+
+            new Chart(document.getElementById('topProductsChart'), {
+                type: 'bar',
+                data: {
+                    labels: productLabels,
+                    datasets: [{
+                        label: 'Revenue (₱)',
+                        data: productRevenue,
+                        backgroundColor: '#f4a582',
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    </script>
 
 </body>
 </html>

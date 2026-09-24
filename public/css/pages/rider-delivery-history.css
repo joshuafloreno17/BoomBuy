@@ -1,0 +1,94 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+}
+
+a { text-decoration: none; }
+
+.container {
+    width: 86%;
+    max-width: 1000px;
+    margin: 45px auto 80px;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 30px;
+}
+
+.page-header p {
+    color: #977970;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.history-card {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 14px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+
+.history-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.history-id {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 15px;
+}
+
+.history-date {
+    color: #b99c93;
+    font-size: 11px;
+}
+
+.history-badge {
+    background: #e9f9ef;
+    color: #15803d;
+    font-size: 10px;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+}
+
+.history-info {
+    color: #6a4e46;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.history-items {
+    color: #8d6c62;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.empty {
+    text-align: center;
+    padding: 60px 20px;
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+}
+
+.empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty h3 { font-family: 'Baloo 2', sans-serif; margin-bottom: 6px; }
+.empty p { color: #977970; font-size: 13px; }

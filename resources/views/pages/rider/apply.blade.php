@@ -599,7 +599,7 @@
                 <div class="requirements-note">
                     <strong>Application under review.</strong>
                     Your rider application has already been submitted.
-                    Please wait for the Admin to review your requirements.
+                    Please wait for the Logistics Center to review your requirements.
                 </div>
 
             @elseif($application->status === 'Approved')
@@ -614,13 +614,43 @@
 
                 <div class="requirements-note">
                     <strong>Application rejected.</strong>
-                    You may submit a new application after reviewing
-                    the requirements below.
+                    @if(!empty($application->admin_remarks))
+                        Reason: {{ $application->admin_remarks }}
+                    @endif
+                    You may submit a new application below.
                 </div>
 
             @endif
 
         @endif
+
+
+        {{-- CHECK EXISTING APPLICATION STATUS --}}
+        <div class="status-check-box" style="background:#fff; border:1px solid #f4e2dc; border-radius:14px; padding:18px; margin-bottom:20px;">
+
+            <form method="GET" action="{{ route('rider.apply') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
+
+                <div style="flex:1; min-width:200px;">
+                    <label for="check_email" style="display:block; font-size:11px; font-weight:800; color:#4e3831; margin-bottom:6px;">
+                        Already applied? Check your status
+                    </label>
+                    <input
+                        type="email"
+                        id="check_email"
+                        name="email"
+                        value="{{ $checkedEmail ?? '' }}"
+                        placeholder="Enter the email you applied with"
+                        style="width:100%; padding:10px 12px; border:1px solid #ead7d1; border-radius:8px; font-family:inherit; font-size:12px;"
+                    >
+                </div>
+
+                <button type="submit" style="background:#fff1ed; color:#e8420f; border:1px solid #f0b8a5; border-radius:8px; padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;">
+                    Check Status
+                </button>
+
+            </form>
+
+        </div>
 
 
         {{-- APPLICATION FORM --}}
@@ -649,22 +679,38 @@
                 <div class="form-grid">
 
                     <div class="form-group">
-
-                        <label for="full_name">
-                            Full Name <span class="required">*</span>
-                        </label>
-
-                        <input
-                            type="text"
-                            id="full_name"
-                            name="full_name"
-                            value="{{ old('full_name', $user['name'] ?? '') }}"
-                            placeholder="Enter your complete name"
-                            required
-                        >
-
+                        <label for="last_name">Last Name <span class="required">*</span></label>
+                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
                     </div>
 
+                    <div class="form-group">
+                        <label for="first_name">First Name <span class="required">*</span></label>
+                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="middle_initial">Middle Initial</label>
+                        <input type="text" id="middle_initial" name="middle_initial" maxlength="5" value="{{ old('middle_initial') }}" placeholder="Optional">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sex">Sex <span class="required">*</span></label>
+                        <select id="sex" name="sex" required>
+                            <option value="">Select Sex</option>
+                            <option value="Male" {{ old('sex') === 'Male' ? 'selected' : '' }}>Male</option>
+                            <option value="Female" {{ old('sex') === 'Female' ? 'selected' : '' }}>Female</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="birthdate">Birthday <span class="required">*</span></label>
+                        <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="age">Age</label>
+                        <input type="text" id="age" name="age" value="{{ old('age') }}" readonly placeholder="Auto-computed">
+                    </div>
 
                     <div class="form-group">
 
@@ -683,20 +729,28 @@
 
                     </div>
 
+                    <div class="form-group">
+                        <label for="province">Province <span class="required">*</span></label>
+                        <select id="province" name="province" required data-old="{{ old('province') }}">
+                            <option value="">Select Province</option>
+                        </select>
+                    </div>
 
-                    <div class="form-group full">
+                    <div class="form-group">
+                        <label for="city_municipality">City / Municipality <span class="required">*</span></label>
+                        <select id="city_municipality" name="city_municipality" required disabled>
+                            <option value="">Select City / Municipality</option>
+                        </select>
+                    </div>
 
-                        <label for="address">
-                            Complete Address <span class="required">*</span>
-                        </label>
+                    <div class="form-group">
+                        <label for="barangay">Barangay <span class="required">*</span></label>
+                        <input type="text" id="barangay" name="barangay" value="{{ old('barangay') }}" required>
+                    </div>
 
-                        <textarea
-                            id="address"
-                            name="address"
-                            placeholder="House number, street, barangay, city/municipality, province"
-                            required
-                        >{{ old('address') }}</textarea>
-
+                    <div class="form-group">
+                        <label for="street_address">House No. / Street <span class="required">*</span></label>
+                        <input type="text" id="street_address" name="street_address" value="{{ old('street_address') }}" required>
                     </div>
 
                 </div>
@@ -1092,7 +1146,12 @@
 
     @include('partials.terms-modal')
 
+    <script src="{{ asset('js/data/psgc-data.js') }}"></script>
+    <script src="{{ asset('js/pages/registration-fields.js') }}"></script>
     <script>
+        initAddressCascade('province', 'city_municipality', @json(old('city_municipality')));
+        initAgeCalc('birthdate', 'age');
+
         function showFileName(input, targetId) {
             var target = document.getElementById(targetId);
             if (!target) return;

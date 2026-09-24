@@ -17,48 +17,7 @@
 
 <div class="layout">
 
-    <!-- =========================================
-         SIDEBAR
-    ========================================== -->
-
-    <aside class="sidebar">
-
-        <a href="/" class="logo">
-            Boom<span>Buy</span>
-        </a>
-
-        <div class="sidebar-label">
-            Seller Panel
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('seller.dashboard') }}">
-                📊
-                <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('seller.products.create') }}">
-                ➕
-                <span>Add Product</span>
-            </a>
-
-            <a href="{{ route('seller.orders') }}" class="active">
-                🛒
-                <span>Orders</span>
-            </a>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <div class="sidebar-user">
-                Seller: {{ $user['name'] ?? 'Seller' }}
-            </div>
-
-        </div>
-
-    </aside>
+    <x-layout.seller-sidebar active="orders" :user="$user" />
 
 
     <!-- =========================================
@@ -288,6 +247,70 @@
 
 
             <!-- =========================================
+                 SHIPMENT / COURIER TRACKING
+            ========================================== -->
+
+            <div class="card">
+
+                <h2>
+                    Shipment Tracking
+                </h2>
+
+                <div class="info-grid">
+
+                    <div class="info-box">
+                        <div class="label">Courier Status</div>
+                        <div class="value">{{ $order['status'] ?? 'Pending' }}</div>
+                    </div>
+
+                    <div class="info-box">
+                        <div class="label">Assigned Courier</div>
+                        <div class="value">
+                            @if($assignedRider)
+                                {{ $assignedRider->name }}
+                            @elseif(in_array($order['status'] ?? '', ['Ready for Pickup']))
+                                Waiting for a courier to accept this delivery…
+                            @else
+                                Not yet applicable
+                            @endif
+                        </div>
+                    </div>
+
+                    @if($assignedRider)
+                        <div class="info-box">
+                            <div class="label">Courier Contact</div>
+                            <div class="value">{{ $assignedRider->phone ?? 'N/A' }}</div>
+                        </div>
+                    @endif
+
+                </div>
+
+                @if(!empty($order['rider_id']))
+
+                    @if(!empty($order['seller_confirmed_pickup_at']))
+
+                        <div class="success" style="margin-top:16px;">
+                            ✓ You confirmed handing this order over to the rider on
+                            {{ \Illuminate\Support\Carbon::parse($order['seller_confirmed_pickup_at'])->format('M d, Y • h:i A') }}.
+                        </div>
+
+                    @else
+
+                        <form method="POST" action="{{ route('seller.order.confirm-pickup', $order['id']) }}" style="margin-top:16px;">
+                            @csrf
+                            <button type="submit">
+                                ✓ Confirm Rider Pickup
+                            </button>
+                        </form>
+
+                    @endif
+
+                @endif
+
+            </div>
+
+
+            <!-- =========================================
                  UPDATE STATUS
             ========================================== -->
 
@@ -304,7 +327,7 @@
 
                     @csrf
 
-                    <select name="status" required>
+                    <select name="status" id="sellerStatusSelect" required onchange="document.getElementById('cancellationReasonBox').style.display = this.value === 'Cancelled' ? 'block' : 'none';">
 
                         <option value="">
                             Select Status
@@ -319,10 +342,17 @@
                         </option>
 
                         <option value="Cancelled">
-                            Cancelled
+                            Cancelled (e.g. out of stock)
                         </option>
 
                     </select>
+
+                    <div id="cancellationReasonBox" style="display:none; margin-top:10px;">
+                        <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">
+                            Reason for cancellation
+                        </label>
+                        <textarea name="cancellation_reason" placeholder="e.g. Item is out of stock" style="width:100%; min-height:70px; padding:10px; border:1px solid #f0ddd6; border-radius:8px; font-family:inherit; font-size:13px;"></textarea>
+                    </div>
 
                     <button type="submit">
                         Update Order Status

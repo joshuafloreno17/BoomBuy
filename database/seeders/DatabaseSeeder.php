@@ -25,6 +25,7 @@ class DatabaseSeeder extends Seeder
         // --- Dagdag na seeder para sa products (may kasamang category text field) ---
         $this->call([
             ProductSeeder::class,
+            TestAccountsSeeder::class,
         ]);
     }
 }

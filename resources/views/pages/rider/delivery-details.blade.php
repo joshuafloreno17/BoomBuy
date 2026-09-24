@@ -524,7 +524,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             $statusClass = 'pending';
 
             if (
+                $currentStatus === 'Assigned' ||
                 $currentStatus === 'Picked Up' ||
+                $currentStatus === 'At Sorting Center' ||
+                $currentStatus === 'Assigned for Delivery' ||
                 $currentStatus === 'On the Way'
             ) {
                 $statusClass = 'transit';
@@ -721,11 +724,56 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <!-- UPDATE STATUS -->
 @if(
-    !empty($delivery['rider_id']) &&
-    (string) $delivery['rider_id'] === (string) ($user['id'] ?? '')
+    (
+        !empty($delivery['rider_id']) &&
+        (string) $delivery['rider_id'] === (string) ($user['id'] ?? '')
+    ) || (
+        !empty($delivery['delivery_rider_id']) &&
+        (string) $delivery['delivery_rider_id'] === (string) ($user['id'] ?? '')
+    )
 )
 
-    @if($currentStatus !== 'Delivered')
+    @if($currentStatus === 'Assigned')
+
+        <div class="card update-box">
+
+            <h3>
+                📦 Confirm Pickup
+            </h3>
+
+            <p style="font-size:12px; color:#8d6c62; margin-bottom:12px;">
+                Proceed to the seller's location, verify the order, then confirm that you have picked it up.
+            </p>
+
+            <form
+                method="POST"
+                action="{{ route('rider.delivery.confirm-pickup', $delivery['id']) }}"
+            >
+
+                @csrf
+
+                <button type="submit" class="btn update-btn">
+                    ✅ Confirm Item Pickup
+                </button>
+
+            </form>
+
+        </div>
+
+    @endif
+
+    @if($currentStatus === 'Picked Up' || $currentStatus === 'At Sorting Center')
+
+        <div class="card update-box">
+            <h3>📍 At the Sorting Center</h3>
+            <p style="font-size:12px; color:#8d6c62;">
+                This parcel is being processed by the Sorting Center. You'll be notified once it's assigned to a rider for final delivery.
+            </p>
+        </div>
+
+    @endif
+
+    @if($currentStatus === 'Assigned for Delivery' || $currentStatus === 'Out for Delivery')
 
         <div class="card update-box">
 
@@ -740,13 +788,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                 @csrf
 
-                <select name="status" required>
+                <select name="status" id="deliveryStatusSelect" required onchange="document.getElementById('failureReasonBox').style.display = this.value === 'Delivery Failed' ? 'block' : 'none';">
 
                     <option value="">
                         Select new status
                     </option>
 
-                    @if($currentStatus === 'Picked Up')
+                    @if($currentStatus === 'Assigned for Delivery')
 
                         <option value="Out for Delivery">
                             Out for Delivery
@@ -760,9 +808,20 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                             Delivered
                         </option>
 
+                        <option value="Delivery Failed">
+                            Delivery Failed
+                        </option>
+
                     @endif
 
                 </select>
+
+                <div id="failureReasonBox" style="display:none; margin-top:10px;">
+                    <label style="font-size:12px; font-weight:700; display:block; margin-bottom:5px;">
+                        Reason for failed delivery
+                    </label>
+                    <textarea name="failure_reason" placeholder="e.g. Customer not available, wrong address..." style="width:100%; min-height:70px; padding:10px; border:1px solid #f0ddd6; border-radius:8px; font-family:inherit; font-size:12px;"></textarea>
+                </div>
 
                 <button
                     type="submit"

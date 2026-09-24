@@ -20,6 +20,7 @@
             'seller' => 'seller.dashboard',
             'rider' => 'rider.dashboard',
             'admin' => 'admin.dashboard',
+            'logistics' => 'logistics.dashboard',
             default => 'buyer.dashboard',
         };
     @endphp

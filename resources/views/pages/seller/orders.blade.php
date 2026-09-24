@@ -24,52 +24,7 @@
          SIDEBAR
     ========================== --}}
 
-    <aside class="sidebar">
-
-        <a href="/" class="logo">
-            Boom<span>Buy</span>
-        </a>
-
-        <div class="sidebar-label">
-            Seller Panel
-        </div>
-
-        <nav class="menu">
-
-            <a href="{{ route('seller.dashboard') }}">
-                <span class="menu-icon">📊</span>
-                <span class="label-text">Dashboard</span>
-            </a>
-
-            <a href="{{ route('seller.products.create') }}">
-                <span class="menu-icon">➕</span>
-                <span class="label-text">Add Product</span>
-            </a>
-
-            <a href="{{ route('seller.orders') }}" class="active">
-                <span class="menu-icon">🛒</span>
-                <span class="label-text">Orders</span>
-            </a>
-
-        </nav>
-
-        <div class="sidebar-footer">
-
-            <div class="seller-info">
-                Seller: {{ $user['name'] ?? 'Seller' }}
-            </div>
-
-            <form action="{{ route('logout') }}" method="POST">
-                @csrf
-
-                <button type="submit" class="logout">
-                    Logout
-                </button>
-            </form>
-
-        </div>
-
-    </aside>
+    <x-layout.seller-sidebar active="orders" :user="$user" />
 
 
     {{-- =========================
@@ -387,13 +342,14 @@
 
                     @php
                         $statusLower = strtolower($request->status);
-                        $statusClass = 'status-pending';
-
-                        if ($statusLower === 'approved') {
-                            $statusClass = 'status-approved';
-                        } elseif ($statusLower === 'rejected') {
-                            $statusClass = 'status-rejected';
-                        }
+                        $statusClass = match($statusLower) {
+                            'approved' => 'status-approved',
+                            'rejected' => 'status-rejected',
+                            'returned' => 'status-returned',
+                            'refund_processing' => 'status-refund-processing',
+                            'completed' => 'status-completed',
+                            default => 'status-pending',
+                        };
                     @endphp
 
                     <div class="return-card">
@@ -403,9 +359,12 @@
                             <div>
 
                                 <div class="return-id">
-                                    Return #{{ $request->id }}
+                                    {{ $request->request_type }} #{{ $request->id }}
                                     <span class="order-ref">
                                         — Order #{{ $request->order_id }}
+                                        @if(!empty($request->product_name))
+                                            • {{ $request->product_name }}
+                                        @endif
                                     </span>
                                 </div>
 
@@ -416,12 +375,12 @@
                             </div>
 
                             <div class="status {{ $statusClass }}">
-                                {{ ucwords($request->status) }}
+                                {{ ucwords(str_replace('_', ' ', $request->status)) }}
                             </div>
 
                         </div>
 
-                        @if($request->order && $request->order->shipping_name)
+                        @if(!empty($request->shipping_name))
 
                             <div class="customer" style="margin-top:18px;">
 
@@ -430,13 +389,13 @@
                                 </div>
 
                                 <div class="customer-name">
-                                    {{ $request->order->shipping_name }}
+                                    {{ $request->shipping_name }}
                                 </div>
 
-                                @if($request->order->shipping_phone)
+                                @if($request->shipping_phone)
 
                                     <div class="customer-phone">
-                                        📞 {{ $request->order->shipping_phone }}
+                                        📞 {{ $request->shipping_phone }}
                                     </div>
 
                                 @endif
@@ -450,7 +409,7 @@
                             <div class="return-block">
 
                                 <div class="return-block-title">
-                                    Reason for Return
+                                    Reason for {{ $request->request_type }}
                                 </div>
 
                                 <div class="return-block-text">
@@ -459,7 +418,7 @@
 
                             </div>
 
-                            @if(!empty($request->buyer_note))
+                            @if(!empty($request->message))
 
                                 <div class="return-block">
 
@@ -468,7 +427,7 @@
                                     </div>
 
                                     <div class="return-block-text">
-                                        {{ $request->buyer_note }}
+                                        {{ $request->message }}
                                     </div>
 
                                 </div>
@@ -499,7 +458,7 @@
 
                                 {{-- APPROVE --}}
                                 <form
-                                    action="{{ route('seller.returns.approve', ['id' => $request->id]) }}"
+                                    action="{{ route('seller.return-refund.approve', ['id' => $request->id]) }}"
                                     method="POST"
                                 >
                                     @csrf
@@ -517,6 +476,57 @@
                                 >
                                     ✕ Reject
                                 </button>
+
+                            </div>
+
+                        @elseif($statusLower === 'approved' && $request->request_type === 'Return')
+
+                            <div class="return-footer">
+
+                                <form
+                                    action="{{ route('seller.return-refund.returned', ['id' => $request->id]) }}"
+                                    method="POST"
+                                >
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-approve">
+                                        📦 Mark as Returned
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        @elseif($statusLower === 'approved' && $request->request_type === 'Refund')
+
+                            <div class="return-footer">
+
+                                <form
+                                    action="{{ route('seller.return-refund.processing', ['id' => $request->id]) }}"
+                                    method="POST"
+                                >
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-approve">
+                                        💳 Start Refund Processing
+                                    </button>
+                                </form>
+
+                            </div>
+
+                        @elseif($statusLower === 'refund_processing')
+
+                            <div class="return-footer">
+
+                                <form
+                                    action="{{ route('seller.return-refund.complete', ['id' => $request->id]) }}"
+                                    method="POST"
+                                >
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-approve">
+                                        ✓ Mark Refund Completed
+                                    </button>
+                                </form>
 
                             </div>
 
@@ -539,7 +549,7 @@
      REJECT MODAL (shared)
 ========================== --}}
 
-<div class="modal-overlay" id="rejectModalOverlay" data-base-url="{{ url('seller/returns') }}">
+<div class="modal-overlay" id="rejectModalOverlay" data-base-url="{{ url('seller/return-refund') }}">
 
     <div class="modal-box">
 

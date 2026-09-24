@@ -19,6 +19,7 @@
         $dashboardRoute = match($user['role'] ?? 'buyer') {
             'seller' => 'seller.dashboard',
             'rider' => 'rider.dashboard',
+            'logistics' => 'logistics.dashboard',
             default => 'buyer.dashboard',
         };
     @endphp

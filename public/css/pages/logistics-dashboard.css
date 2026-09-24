@@ -1,0 +1,130 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+}
+
+a { text-decoration: none; }
+
+.container {
+    width: 86%;
+    max-width: 1000px;
+    margin: 45px auto 80px;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 30px;
+}
+
+.page-header p {
+    color: #977970;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.success-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.status-card {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    padding: 22px 26px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 7px 13px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.status-approved { background: #e9f9ef; color: #15803d; }
+.status-pending { background: #fff4d6; color: #a16207; }
+.status-rejected { background: #ffe8e8; color: #dc2626; }
+
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 14px;
+    padding: 18px 20px;
+}
+
+.stat-label {
+    display: block;
+    color: #8d6c62;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    color: #e8420f;
+}
+
+.coming-soon-card {
+    background: white;
+    border: 1px dashed #f0ddd6;
+    border-radius: 16px;
+    padding: 26px;
+}
+
+.coming-soon-card h3 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 17px;
+    margin-bottom: 10px;
+}
+
+.coming-soon-card ul {
+    margin-left: 18px;
+    color: #6a4e46;
+    font-size: 13px;
+    line-height: 1.9;
+}
+
+@media (max-width: 900px) {
+    .stats-row { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 600px) {
+    .stats-row { grid-template-columns: 1fr; }
+}

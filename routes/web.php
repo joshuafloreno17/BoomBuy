@@ -352,31 +352,42 @@ Route::post('/login', function () {
 
     $email = strtolower(trim(request('email')));
     $password = request('password');
-    $role = strtolower(trim(request('role')));
 
     if (
         empty($email) ||
-        empty($password) ||
-        empty($role)
+        empty($password)
     ) {
         return back()
             ->withInput()
             ->with(
                 'error',
-                'Please enter your email, password, and select your role.'
+                'Please enter your email and password.'
             );
     }
 
-    $allowedRoles = [
-        'buyer',
-        'seller',
-        'rider'
-    ];
+    // The Admin account isn't a real "role" a user registers for — it's a
+    // fixed set of credentials. Detect it here so Admin can use the same
+    // login form as everyone else instead of a separate page.
+    if ($email === 'admin@boombuy.com' && $password === 'admin123') {
 
-    if (!in_array($role, $allowedRoles)) {
-        return back()
-            ->withInput()
-            ->with('error', 'Invalid account role.');
+        session()->put('admin_logged_in', true);
+
+        if (!session()->has('admin_notifications')) {
+            session()->put('admin_notifications', []);
+        }
+
+        \App\Models\User::firstOrCreate(
+            ['email' => 'admin@boombuy.com'],
+            [
+                'name' => 'Admin',
+                'password' => Hash::make(Str::random(32)),
+                'role' => 'admin',
+            ]
+        );
+
+        return redirect()
+            ->route('admin.dashboard')
+            ->with('success', 'Welcome, Admin!');
     }
 
     $user = DB::table('users')
@@ -387,15 +398,6 @@ Route::post('/login', function () {
         return back()
             ->withInput()
             ->with('error', 'Invalid email or password.');
-    }
-
-    if (($user->role ?? '') !== $role) {
-        return back()
-            ->withInput()
-            ->with(
-                'error',
-                'The selected role does not match this account.'
-            );
     }
 
     if (!Hash::check($password, $user->password)) {
@@ -416,14 +418,16 @@ Route::post('/login', function () {
             ->with('error', $statusMessage);
     }
 
-    // Sellers and riders must have an Approved application before they
-    // can log in — this is what actually enforces the ID/document
-    // verification we collect at registration.
-    if (in_array($user->role, ['seller', 'rider'])) {
+    // Sellers, riders, and logistics accounts must have an Approved
+    // application before they can log in — this is what actually enforces
+    // the ID/document verification we collect at registration.
+    if (in_array($user->role, ['seller', 'rider', 'logistics'])) {
 
-        $applicationTable = $user->role === 'seller'
-            ? 'seller_applications'
-            : 'rider_applications';
+        $applicationTable = match ($user->role) {
+            'seller' => 'seller_applications',
+            'rider' => 'rider_applications',
+            'logistics' => 'logistics_applications',
+        };
 
         $application = DB::table($applicationTable)
             ->where('user_id', $user->id)
@@ -435,6 +439,29 @@ Route::post('/login', function () {
             $message = ($application->status ?? null) === 'Rejected'
                 ? 'Your ' . $user->role . ' application was not approved. Please contact support for more information.'
                 : 'Your ' . $user->role . ' account is still pending verification. We will notify you once it has been approved.';
+
+            return back()
+                ->withInput()
+                ->with('error', $message);
+        }
+    }
+
+    // Buyers registered after the admin-approval feature was added also
+    // need an Approved application. Buyers with no application row at all
+    // are legacy accounts created before this gate existed — they're left
+    // alone rather than retroactively locked out.
+    if ($user->role === 'buyer') {
+
+        $application = DB::table('buyer_applications')
+            ->where('user_id', $user->id)
+            ->orderByDesc('created_at')
+            ->first();
+
+        if ($application && $application->status !== 'Approved') {
+
+            $message = $application->status === 'Rejected'
+                ? 'Your account application was not approved. Please contact support for more information.'
+                : 'Your account is still pending administrator verification. We will notify you by email once it has been approved.';
 
             return back()
                 ->withInput()
@@ -473,6 +500,11 @@ Route::post('/login', function () {
             return redirect()
                 ->route('buyer.dashboard')
                 ->with('success', 'Welcome to BoomBuy!');
+
+        case 'logistics':
+            return redirect()
+                ->route('logistics.dashboard')
+                ->with('success', 'Welcome to BoomBuy Logistics!');
 
         default:
             session()->forget('user');
@@ -573,19 +605,37 @@ Route::post('/forgot-password', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | SAVE RESET USER TEMPORARILY
+    | SEND A ONE-TIME RESET CODE — proves whoever is resetting the password
+    | actually controls this email address, instead of trusting the email
+    | field alone. Uses its own session keys (not otp_code/otp_email/etc.)
+    | so an in-progress registration OTP in the same browser can't collide
+    | with a password-reset OTP.
     |--------------------------------------------------------------------------
     */
 
+    $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
     session([
-        'reset_user_id' => $user->id
+        'password_reset_user_id' => $user->id,
+        'password_reset_otp' => $otpCode,
+        'password_reset_expires_at' => now()->addMinutes(10),
     ]);
+
+    try {
+        Mail::to($user->email)->send(new \App\Mail\OtpMail($otpCode, $user->name));
+    } catch (\Throwable $e) {
+        report($e);
+
+        return back()
+            ->withInput()
+            ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
+    }
 
     return redirect()
         ->route('password.reset')
         ->with(
             'success',
-            'Account found. You can now create a new password.'
+            'We sent a 6-digit code to your email. Enter it below along with your new password.'
         );
 
 })->name('password.email');
@@ -597,7 +647,7 @@ Route::post('/forgot-password', function () {
 
 Route::get('/reset-password', function () {
 
-    if (!session()->has('reset_user_id')) {
+    if (!session()->has('password_reset_user_id')) {
 
         return redirect()
             ->route('password.request')
@@ -618,8 +668,11 @@ Route::get('/reset-password', function () {
 
 Route::post('/reset-password', function () {
 
-    $userId = session('reset_user_id');
+    $userId = session('password_reset_user_id');
+    $storedOtp = session('password_reset_otp');
+    $expiresAt = session('password_reset_expires_at');
 
+    $inputOtp = trim((string) request('otp_code'));
     $password = request('password');
     $confirmation = request('password_confirmation');
 
@@ -633,24 +686,46 @@ Route::post('/reset-password', function () {
             );
     }
 
+    if (empty($inputOtp)) {
+
+        return back()
+            ->withInput()
+            ->with('error', 'Please enter the 6-digit code we emailed you.');
+    }
+
+    if (
+        empty($storedOtp) ||
+        $inputOtp !== $storedOtp ||
+        !$expiresAt ||
+        now()->greaterThan($expiresAt)
+    ) {
+
+        return back()
+            ->withInput()
+            ->with('error', 'Invalid or expired code. Please request a new one.');
+    }
+
     if (empty($password) || empty($confirmation)) {
 
         return back()
+            ->withInput()
             ->with('error', 'Please complete both password fields.');
     }
 
-    if (strlen($password) < 6) {
+    if (strlen($password) < 8) {
 
         return back()
+            ->withInput()
             ->with(
                 'error',
-                'Password must be at least 6 characters.'
+                'Password must be at least 8 characters.'
             );
     }
 
     if ($password !== $confirmation) {
 
         return back()
+            ->withInput()
             ->with(
                 'error',
                 'Passwords do not match.'
@@ -661,7 +736,7 @@ Route::post('/reset-password', function () {
 
     if (!$user) {
 
-        session()->forget('reset_user_id');
+        session()->forget(['password_reset_user_id', 'password_reset_otp', 'password_reset_expires_at']);
 
         return redirect()
             ->route('password.request')
@@ -686,7 +761,7 @@ Route::post('/reset-password', function () {
     |--------------------------------------------------------------------------
     */
 
-    session()->forget('reset_user_id');
+    session()->forget(['password_reset_user_id', 'password_reset_otp', 'password_reset_expires_at']);
 
     return redirect()
         ->route('login')
@@ -1027,7 +1102,7 @@ Route::get('/buyer/orders', function () {
         ->orderByDesc('created_at')
         ->get();
 
-    $orders = $orders->map(function ($order) {
+    $orders = $orders->map(function ($order) use ($user) {
 
         $order = (array) $order;
 
@@ -1036,7 +1111,7 @@ Route::get('/buyer/orders', function () {
             ->where('order_id', $order['id'])
             ->get();
 
-        $order['items'] = $items->map(function ($item) {
+        $order['items'] = $items->map(function ($item) use ($order, $user) {
 
             $item = (array) $item;
 
@@ -1058,6 +1133,24 @@ Route::get('/buyer/orders', function () {
                     $seller->name ?? null;
             } else {
                 $item['seller_name'] = null;
+            }
+
+            // Has this buyer already reviewed this product for this order?
+            // Without this, the "already rated" badge could never show and
+            // the Rate Product form would keep reappearing after rating.
+            $item['review'] = null;
+
+            if (!empty($item['product_id'])) {
+
+                $review = DB::table('product_reviews')
+                    ->where('buyer_id', $user['id'])
+                    ->where('order_id', $order['id'])
+                    ->where('product_id', $item['product_id'])
+                    ->first();
+
+                if ($review) {
+                    $item['review'] = (array) $review;
+                }
             }
 
             return $item;
@@ -1355,9 +1448,13 @@ Route::post('/buyer/orders/{orderId}/review/{productId}', function ($orderId, $p
 |--------------------------------------------------------------------------
 */
 
+// Admin no longer has a separate login page — the unified /login form
+// detects the admin credentials automatically. This route is kept only
+// because every admin-gated route redirects here by name when the
+// session has expired; it just forwards to the unified form.
 Route::get('/admin/login', function () {
 
-    return view('pages.admin.login');
+    return redirect()->route('login');
 
 })->name('admin.login');
 
@@ -1434,7 +1531,8 @@ Route::get('/admin', function () {
         ->whereIn('role', [
             'buyer',
             'seller',
-            'rider'
+            'rider',
+            'logistics'
         ])
         ->orderByDesc('created_at')
         ->get()
@@ -1469,6 +1567,10 @@ Route::get('/admin', function () {
 
     $riderCount = count(array_filter($users, function ($user) {
         return ($user['role'] ?? '') === 'rider';
+    }));
+
+    $logisticsCount = count(array_filter($users, function ($user) {
+        return ($user['role'] ?? '') === 'logistics';
     }));
 
 
@@ -1629,6 +1731,7 @@ Route::get('/admin', function () {
             'buyerCount',
             'sellerCount',
             'riderCount',
+            'logisticsCount',
 
             'totalOrders',
 
@@ -2149,6 +2252,27 @@ Route::get('/admin/accounts', function () {
                     });
             });
 
+            // Logistics accounts appear only after admin approval, same as sellers
+            $query->orWhere(function ($logisticsQuery) {
+
+                $logisticsQuery
+                    ->where('role', 'logistics')
+                    ->whereExists(function ($applicationQuery) {
+
+                        $applicationQuery
+                            ->select(DB::raw(1))
+                            ->from('logistics_applications')
+                            ->whereColumn(
+                                'logistics_applications.user_id',
+                                'users.id'
+                            )
+                            ->where(
+                                'logistics_applications.status',
+                                'Approved'
+                            );
+                    });
+            });
+
         })
         ->orderByDesc('created_at')
         ->get()
@@ -2310,7 +2434,7 @@ Route::delete('/admin/accounts/{id}', function ($id) {
 
     $user = DB::table('users')
         ->where('id', $id)
-        ->whereIn('role', ['buyer', 'seller', 'rider'])
+        ->whereIn('role', ['buyer', 'seller', 'rider', 'logistics'])
         ->first();
 
     if (!$user) {
@@ -2343,7 +2467,7 @@ Route::post('/admin/accounts/{id}/status', function ($id) {
 
     $user = DB::table('users')
         ->where('id', $id)
-        ->whereIn('role', ['buyer', 'seller', 'rider'])
+        ->whereIn('role', ['buyer', 'seller', 'rider', 'logistics'])
         ->first();
 
     if (!$user) {
@@ -2405,15 +2529,21 @@ Route::get('/admin/applications', function () {
         ->orderByDesc('seller_applications.created_at')
         ->get();
 
-    $riderApplications = DB::table('rider_applications')
-        ->join('users', 'users.id', '=', 'rider_applications.user_id')
-        ->select('rider_applications.*', 'users.email as user_email')
-        ->orderByDesc('rider_applications.created_at')
+    $buyerApplications = DB::table('buyer_applications')
+        ->join('users', 'users.id', '=', 'buyer_applications.user_id')
+        ->select('buyer_applications.*', 'users.email as user_email')
+        ->orderByDesc('buyer_applications.created_at')
+        ->get();
+
+    $logisticsApplications = DB::table('logistics_applications')
+        ->join('users', 'users.id', '=', 'logistics_applications.user_id')
+        ->select('logistics_applications.*', 'users.email as user_email')
+        ->orderByDesc('logistics_applications.created_at')
         ->get();
 
     return view(
         'pages.admin.applications',
-        compact('sellerApplications', 'riderApplications')
+        compact('sellerApplications', 'buyerApplications', 'logisticsApplications')
     );
 
 })->name('admin.applications');
@@ -2425,13 +2555,15 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
         return redirect()->route('admin.login');
     }
 
-    if (!in_array($type, ['seller', 'rider'])) {
+    if (!in_array($type, ['seller', 'buyer', 'logistics'])) {
         abort(404);
     }
 
-    $table = $type === 'seller'
-        ? 'seller_applications'
-        : 'rider_applications';
+    $table = match ($type) {
+        'seller' => 'seller_applications',
+        'buyer' => 'buyer_applications',
+        'logistics' => 'logistics_applications',
+    };
 
     // Get application before updating
     $application = DB::table($table)
@@ -2455,7 +2587,8 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
     ];
 
     if ($type === 'seller') {
-        $approvalData['business_category'] = request('business_category');
+        $approvalData['business_category'] = request('business_category')
+            ?: $application->business_category;
     }
 
     $updated = DB::table($table)
@@ -2486,13 +2619,23 @@ Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
             (int) $application->id
         );
 
-    } elseif ($type === 'rider') {
+    } elseif ($type === 'buyer') {
 
         createNotification(
             (int) $application->user_id,
-            'Rider Application Approved',
-            'Congratulations! Your rider application has been approved. You can now access your rider account.',
-            'rider',
+            'Account Approved',
+            'Congratulations! Your BoomBuy account has been approved. You can now log in.',
+            'buyer',
+            (int) $application->id
+        );
+
+    } elseif ($type === 'logistics') {
+
+        createNotification(
+            (int) $application->user_id,
+            'Logistics Application Approved',
+            'Congratulations! Your Logistics account has been approved. You can now log in.',
+            'logistics',
             (int) $application->id
         );
     }
@@ -2528,13 +2671,15 @@ Route::post('/admin/applications/{type}/{id}/reject', function ($type, $id) {
         return redirect()->route('admin.login');
     }
 
-    if (!in_array($type, ['seller', 'rider'])) {
+    if (!in_array($type, ['seller', 'buyer', 'logistics'])) {
         abort(404);
     }
 
-    $table = $type === 'seller'
-        ? 'seller_applications'
-        : 'rider_applications';
+    $table = match ($type) {
+        'seller' => 'seller_applications',
+        'buyer' => 'buyer_applications',
+        'logistics' => 'logistics_applications',
+    };
 
     $remarks = trim((string) request('admin_remarks'));
 
@@ -2586,17 +2731,31 @@ Route::post('/admin/applications/{type}/{id}/reject', function ($type, $id) {
             $application->id
         );
 
-    } elseif ($type === 'rider') {
+    } elseif ($type === 'buyer') {
 
         $message = $remarks !== ''
-            ? 'Your rider application was rejected. Admin remarks: ' . $remarks
-            : 'Your rider application was rejected. Please review your application and try again.';
+            ? 'Your BoomBuy account application was rejected. Admin remarks: ' . $remarks
+            : 'Your BoomBuy account application was rejected. Please contact support for more information.';
 
         createNotification(
             $application->user_id,
-            'Rider Application Rejected',
+            'Account Application Rejected',
             $message,
-            'rider',
+            'buyer',
+            $application->id
+        );
+
+    } elseif ($type === 'logistics') {
+
+        $message = $remarks !== ''
+            ? 'Your Logistics application was rejected. Admin remarks: ' . $remarks
+            : 'Your Logistics application was rejected. Please review your application and try again.';
+
+        createNotification(
+            $application->user_id,
+            'Logistics Application Rejected',
+            $message,
+            'logistics',
             $application->id
         );
     }
@@ -2633,15 +2792,21 @@ Route::get('/admin/applications/{type}/{id}/document/{field}', function ($type, 
         return redirect()->route('admin.login');
     }
 
-    if (!in_array($type, ['seller', 'rider'])) {
+    if (!in_array($type, ['seller', 'buyer', 'logistics'])) {
         abort(404);
     }
 
-    $table = $type === 'seller' ? 'seller_applications' : 'rider_applications';
+    $table = match ($type) {
+        'seller' => 'seller_applications',
+        'buyer' => 'buyer_applications',
+        'logistics' => 'logistics_applications',
+    };
 
-    $allowedFields = $type === 'seller'
-        ? ['national_id', 'business_permit']
-        : ['national_id', 'drivers_license', 'profile_selfie', 'proof_of_address', 'or_cr'];
+    $allowedFields = match ($type) {
+        'seller' => ['national_id', 'business_permit'],
+        'buyer' => ['id_photo'],
+        'logistics' => ['id_photo', 'business_permit'],
+    };
 
     if (!in_array($field, $allowedFields)) {
         abort(404);
@@ -3090,6 +3255,34 @@ Route::get('/seller', function () {
 
     /*
     |--------------------------------------------------------------------------
+    | ORDER STATUS BREAKDOWN (for dashboard chart)
+    |--------------------------------------------------------------------------
+    */
+
+    $orderStatusBreakdown = DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->where('order_items.seller_id', $user['id'])
+        ->select('orders.status', DB::raw('COUNT(DISTINCT order_items.order_id) as total'))
+        ->groupBy('orders.status')
+        ->get();
+
+    // Last 7 days sales trend (delivered only)
+    $salesTrend = DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->where('order_items.seller_id', $user['id'])
+        ->where('orders.status', 'Delivered')
+        ->whereDate('orders.created_at', '>=', now()->subDays(6)->startOfDay())
+        ->select(
+            DB::raw('DATE(orders.created_at) as day'),
+            DB::raw('SUM(order_items.price * order_items.quantity) as revenue')
+        )
+        ->groupBy('day')
+        ->orderBy('day')
+        ->get();
+
+
+    /*
+    |--------------------------------------------------------------------------
     | SELLER DASHBOARD
     |--------------------------------------------------------------------------
     */
@@ -3104,12 +3297,234 @@ Route::get('/seller', function () {
             'totalProducts',
             'totalOrders',
             'pendingOrders',
-            'totalSales'
+            'totalSales',
+            'orderStatusBreakdown',
+            'salesTrend'
         )
     );
 
 
 })->name('seller.dashboard');
+
+/*
+|--------------------------------------------------------------------------
+| SELLER PROFILE
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/seller/profile', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $dbUser = User::find($user['id']);
+
+    $application = DB::table('seller_applications')
+        ->where('user_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->first();
+
+    $totalProducts = DB::table('products')
+        ->where('seller_id', $user['id'])
+        ->count();
+
+    $totalSales = DB::table('order_items')
+        ->join('orders', 'orders.id', '=', 'order_items.order_id')
+        ->where('order_items.seller_id', $user['id'])
+        ->where('orders.status', 'Delivered')
+        ->sum(DB::raw('order_items.price * order_items.quantity'));
+
+    return view(
+        'pages.seller.profile',
+        compact('user', 'dbUser', 'application', 'totalProducts', 'totalSales')
+    );
+
+})->name('seller.profile');
+
+
+Route::post('/seller/profile', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $name = trim(request('name'));
+    $phone = trim(request('phone'));
+    $address = trim(request('address'));
+
+    if (empty($name) || empty($phone) || empty($address)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (
+        User::where('phone', $phone)
+            ->where('id', '!=', $user['id'])
+            ->exists()
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    $dbUser = User::find($user['id']);
+    $dbUser->name = $name;
+    $dbUser->phone = $phone;
+    $dbUser->address = $address;
+    $dbUser->save();
+
+    session()->put('user', array_merge($user, [
+        'name' => $name,
+    ]));
+
+    return back()->with('success', 'Profile updated successfully.');
+
+})->name('seller.profile.update');
+
+
+Route::post('/seller/profile/photo', function (\Illuminate\Http\Request $request) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $request->validate([
+        'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    $file = $request->file('profile_photo');
+
+    $filename = 'seller_' . $user['id'] . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+    $file->storeAs('profile-photos', $filename, 'public');
+
+    DB::table('users')
+        ->where('id', $user['id'])
+        ->update([
+            'profile_photo' => $filename,
+            'updated_at' => now(),
+        ]);
+
+    $user['profile_photo'] = $filename;
+    session()->put('user', $user);
+
+    return back()->with('success', 'Profile picture updated successfully.');
+
+})->name('seller.profile.photo');
+
+
+Route::post('/seller/profile/password', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $current = request('current_password');
+    $new = request('new_password');
+    $confirm = request('new_password_confirmation');
+
+    if (empty($current) || empty($new) || empty($confirm)) {
+        return back()->with('error', 'Please complete all password fields.');
+    }
+
+    $dbUser = User::find($user['id']);
+
+    if (!Hash::check($current, $dbUser->password)) {
+        return back()->with('error', 'Current password is incorrect.');
+    }
+
+    if (strlen($new) < 8) {
+        return back()->with('error', 'New password must be at least 8 characters.');
+    }
+
+    if ($new !== $confirm) {
+        return back()->with('error', 'New passwords do not match.');
+    }
+
+    $dbUser->password = Hash::make($new);
+    $dbUser->save();
+
+    return back()->with('success', 'Password changed successfully.');
+
+})->name('seller.profile.password');
+
+/*
+|--------------------------------------------------------------------------
+| SELLER — CUSTOMER FEEDBACK / REVIEWS
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/seller/reviews', function () {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $reviews = DB::table('product_reviews')
+        ->join('users', 'users.id', '=', 'product_reviews.buyer_id')
+        ->join('products', 'products.id', '=', 'product_reviews.product_id')
+        ->where('products.seller_id', $user['id'])
+        ->select(
+            'product_reviews.*',
+            'users.name as buyer_name',
+            'products.name as product_name'
+        )
+        ->orderByDesc('product_reviews.created_at')
+        ->get();
+
+    return view('pages.seller.reviews', compact('user', 'reviews'));
+
+})->name('seller.reviews');
+
+
+Route::post('/seller/reviews/{id}/reply', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $reply = trim((string) request('seller_reply'));
+
+    if (empty($reply)) {
+        return back()->with('error', 'Please write a reply before submitting.');
+    }
+
+    $review = DB::table('product_reviews')
+        ->join('products', 'products.id', '=', 'product_reviews.product_id')
+        ->where('product_reviews.id', $id)
+        ->where('products.seller_id', $user['id'])
+        ->select('product_reviews.id')
+        ->first();
+
+    if (!$review) {
+        abort(404);
+    }
+
+    DB::table('product_reviews')
+        ->where('id', $id)
+        ->update([
+            'seller_reply' => $reply,
+            'seller_replied_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back()->with('success', 'Reply posted.');
+
+})->name('seller.reviews.reply');
 
 
 Route::get('/seller/reports', function () {
@@ -3454,18 +3869,17 @@ Route::post('/seller/products/store', function () {
 
     $categoryName = $categoryNames[strtolower($category)];
 
-    // Prevent duplicate product names
-    $existingProduct = Product::where(
-        'name',
-        $name
-    )->first();
+    // Prevent duplicate product names within this seller's own store
+    $existingProduct = Product::where('name', $name)
+        ->where('seller_id', $user['id'])
+        ->first();
 
     if ($existingProduct) {
         return back()
             ->withInput()
             ->with(
                 'error',
-                'A product with this name already exists.'
+                'You already have a product with this name.'
             );
     }
 
@@ -3524,7 +3938,7 @@ Route::post('/seller/products/store', function () {
     );
 
     // Create product
-    Product::create([
+    $product = Product::create([
         'seller_id' => $user['id'],
         'name' => $name,
         'category' => $categoryName,
@@ -3533,6 +3947,27 @@ Route::post('/seller/products/store', function () {
         'description' => $description,
         'image' => $imagePath,
     ]);
+
+    // Optional variations submitted inline on this form
+    $submittedVariations = request('variations', []);
+
+    foreach ($submittedVariations as $variation) {
+
+        $type = trim($variation['type'] ?? '');
+        $value = trim($variation['value'] ?? '');
+
+        if (empty($type) || empty($value)) {
+            continue;
+        }
+
+        \App\Models\ProductVariation::create([
+            'product_id' => $product->id,
+            'variation_type' => $type,
+            'variation_value' => $value,
+            'price_adjustment' => (float) ($variation['price_adjustment'] ?? 0),
+            'stock' => (int) ($variation['stock'] ?? 0),
+        ]);
+    }
 
     return redirect()
         ->route('seller.dashboard')
@@ -3606,9 +4041,22 @@ Route::get('/seller/orders', function () {
         });
     }
 
+    $returnRequests = DB::table('return_refund_requests')
+        ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
+        ->join('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+        ->where('return_refund_requests.seller_id', $user['id'])
+        ->select(
+            'return_refund_requests.*',
+            'orders.shipping_name',
+            'orders.shipping_phone',
+            'order_items.product_name'
+        )
+        ->orderByDesc('return_refund_requests.created_at')
+        ->get();
+
     return view(
         'pages.seller.orders',
-        compact('user', 'orders')
+        compact('user', 'orders', 'returnRequests')
     );
 
 })->name('seller.orders');
@@ -3710,9 +4158,19 @@ Route::get('/seller/order/{id}', function ($id) {
         array_column($order['items'], 'subtotal')
     );
 
+    /*
+    |--------------------------------------------------------------------------
+    | ASSIGNED COURIER (for shipment tracking)
+    |--------------------------------------------------------------------------
+    */
+
+    $assignedRider = !empty($order['rider_id'])
+        ? DB::table('users')->where('id', $order['rider_id'])->first()
+        : null;
+
     return view(
         'pages.seller.order-details',
-        compact('user', 'order')
+        compact('user', 'order', 'assignedRider')
     );
 
 })->name('seller.order.details');
@@ -3789,6 +4247,7 @@ Route::post('/seller/order/{id}/status', function ($id) {
     $allowedStatuses = [
         'Processing',
         'Ready for Pickup',
+        'Cancelled',
     ];
 
     if (!in_array($status, $allowedStatuses)) {
@@ -3830,10 +4289,10 @@ Route::post('/seller/order/{id}/status', function ($id) {
     // ENFORCE SELLER STATUS FLOW
     // ==============================
 
-    // Pending → Processing
+    // Pending → Processing or Cancelled
     if (
         $order->status === 'Pending' &&
-        $status !== 'Processing'
+        !in_array($status, ['Processing', 'Cancelled'])
     ) {
 
         return back()->with(
@@ -3842,16 +4301,25 @@ Route::post('/seller/order/{id}/status', function ($id) {
         );
     }
 
-    // Processing → Ready for Pickup
+    // Processing → Ready for Pickup or Cancelled
     if (
         $order->status === 'Processing' &&
-        $status !== 'Ready for Pickup'
+        !in_array($status, ['Ready for Pickup', 'Cancelled'])
     ) {
 
         return back()->with(
             'error',
             'Processing orders must be moved to Ready for Pickup.'
         );
+    }
+
+    if ($status === 'Cancelled') {
+
+        $reason = trim((string) request('cancellation_reason'));
+
+        if (empty($reason)) {
+            return back()->with('error', 'Please provide a reason for cancelling this order.');
+        }
     }
 
     // Once Ready for Pickup, seller can no longer update it
@@ -3880,6 +4348,7 @@ Route::post('/seller/order/{id}/status', function ($id) {
         ->where('id', $id)
         ->update([
             'status' => $status,
+            'cancellation_reason' => $status === 'Cancelled' ? $reason : null,
             'updated_at' => now(),
         ]);
 
@@ -3894,6 +4363,16 @@ Route::post('/seller/order/{id}/status', function ($id) {
             'Order Processing',
             'Your order #' . $id .
             ' is now being processed by the seller.',
+            'order',
+            (int) $id
+        );
+
+    } elseif ($status === 'Cancelled') {
+
+        createNotification(
+            (int) $order->buyer_id,
+            'Order Cancelled by Seller',
+            'Your order #' . $id . ' was cancelled by the seller. Reason: ' . $reason,
             'order',
             (int) $id
         );
@@ -3922,6 +4401,42 @@ Route::post('/seller/order/{id}/status', function ($id) {
     );
 
 })->name('seller.order.status');
+
+
+Route::post('/seller/order/{id}/confirm-pickup', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    $hasSellerProduct = DB::table('order_items')
+        ->where('order_id', $id)
+        ->where('seller_id', $user['id'])
+        ->exists();
+
+    if (!$hasSellerProduct) {
+        return back()->with('error', 'This order does not belong to you.');
+    }
+
+    if (empty($order->rider_id)) {
+        return back()->with('error', 'No rider has picked up this order yet.');
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'seller_confirmed_pickup_at' => now(),
+    ]);
+
+    return back()->with('success', 'Rider pickup confirmed.');
+
+})->name('seller.order.confirm-pickup');
 
 /*
 |--------------------------------------------------------------------------
@@ -4006,6 +4521,41 @@ Route::get('/rider', function () {
 
 
     // ==========================================
+    // ITEMS FOR DELIVERY (assigned by the Sorting Center for the
+    // final-mile leg — may be a different rider than the one who
+    // picked the parcel up from the seller)
+    // ==========================================
+
+    $myDeliveryAssignments = DB::table('orders')
+        ->where('delivery_rider_id', $riderId)
+        ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
+        ->orderByDesc('updated_at')
+        ->get();
+
+    $myDeliveryAssignments = $myDeliveryAssignments->map(function ($order) {
+
+        $order = (array) $order;
+
+        $items = DB::table('order_items')
+            ->where('order_id', $order['id'])
+            ->get();
+
+        $order['items'] = $items->map(function ($item) {
+            return (array) $item;
+        })->toArray();
+
+        $order['total'] = (float) $order['total_amount'];
+        $order['buyer_name'] = $order['shipping_name'];
+        $order['address'] = $order['shipping_address'];
+        $order['phone'] = $order['shipping_phone'];
+        $order['payment'] = $order['payment_method'];
+
+        return $order;
+
+    })->toArray();
+
+
+    // ==========================================
     // OUT FOR DELIVERY
     // ==========================================
 
@@ -4056,6 +4606,7 @@ Route::get('/rider', function () {
             'user',
             'availableOrders',
             'myDeliveries',
+            'myDeliveryAssignments',
             'inTransit',
             'delivered',
             'totalCount'
@@ -4097,8 +4648,11 @@ Route::get('/rider/deliveries', function () {
                 ->whereNull('rider_id');
             })
 
-            // OR orders already assigned to this rider
-            ->orWhere('rider_id', $riderId);
+            // OR orders already assigned to this rider (pickup leg)
+            ->orWhere('rider_id', $riderId)
+
+            // OR orders assigned to this rider by the Sorting Center (delivery leg)
+            ->orWhere('delivery_rider_id', $riderId);
 
         })
         ->orderByDesc('created_at')
@@ -4205,7 +4759,7 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
         ->whereNull('rider_id')
         ->update([
             'rider_id' => $riderId,
-            'status' => 'Picked Up',
+            'status' => 'Assigned',
             'updated_at' => now(),
         ]);
 
@@ -4223,9 +4777,9 @@ Route::post('/rider/delivery/{id}/claim', function ($id) {
 
 createNotification(
     (int) $order->buyer_id,
-    'Order Picked Up',
-    'Your order #' . $id .
-    ' has been picked up by the rider and is now on its way.',
+    'Rider Assigned',
+    'A rider has accepted your order #' . $id .
+    ' and will pick it up from the seller shortly.',
     'order',
     (int) $id
 );
@@ -4236,19 +4790,72 @@ createNotification(
 
 createNotification(
     (int) $riderId,
-    'Delivery Claimed',
-    'You successfully claimed Order #' . $id .
-    '. The order is now assigned to you.',
+    'Delivery Accepted',
+    'You accepted Order #' . $id .
+    '. Proceed to the seller\'s location, verify the order, then confirm pickup.',
     'delivery',
     (int) $id
 );
 
     return back()->with(
         'success',
-        'Order successfully picked up!'
+        'Delivery accepted! Proceed to the seller\'s location and confirm pickup once you have the order.'
     );
 
 })->name('rider.delivery.claim');
+
+
+Route::post('/rider/delivery/{id}/confirm-pickup', function ($id) {
+
+    $user = requireUserRole('rider');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $riderId = $user['id'] ?? null;
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Delivery not found.');
+    }
+
+    if ((int) $order->rider_id !== (int) $riderId) {
+        return back()->with('error', 'This delivery is not assigned to you.');
+    }
+
+    if ($order->status !== 'Assigned') {
+        return back()->with('error', 'This order has already been picked up.');
+    }
+
+    DB::table('orders')
+        ->where('id', $id)
+        ->where('rider_id', $riderId)
+        ->where('status', 'Assigned')
+        ->update([
+            'status' => 'Picked Up',
+            'updated_at' => now(),
+        ]);
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Order Picked Up',
+        'Your order #' . $id . ' has been picked up by the rider and is now on its way.',
+        'order',
+        (int) $id
+    );
+
+    notifyLogisticsUsers(
+        'Parcel En Route',
+        'Order #' . $id . ' has been picked up by a rider and is on its way to the Sorting Center.',
+        'parcel',
+        (int) $id
+    );
+
+    return back()->with('success', 'Pickup confirmed! You can now mark the order Out for Delivery.');
+
+})->name('rider.delivery.confirm-pickup');
 
 /*
 |--------------------------------------------------------------------------
@@ -4280,9 +4887,12 @@ Route::get('/rider/delivery/{id}', function ($id) {
         $delivery->status === 'Ready for Pickup'
         && empty($delivery->rider_id);
 
-    // Check if this order belongs to the logged-in rider
+    // Check if this order belongs to the logged-in rider — either as the
+    // pickup-leg rider (rider_id) or, once the Sorting Center has assigned
+    // it, as the final-mile delivery rider (delivery_rider_id).
     $isAssigned =
-        (int) $delivery->rider_id === (int) $riderId;
+        (int) $delivery->rider_id === (int) $riderId
+        || (int) ($delivery->delivery_rider_id ?? 0) === (int) $riderId;
 
     if (!$isAvailable && !$isAssigned) {
         abort(404);
@@ -4340,6 +4950,7 @@ Route::post('/rider/delivery/{id}/status', function ($id) {
     $allowedStatuses = [
         'Out for Delivery',
         'Delivered',
+        'Delivery Failed',
     ];
 
     if (!in_array($status, $allowedStatuses)) {
@@ -4360,34 +4971,66 @@ Route::post('/rider/delivery/{id}/status', function ($id) {
         );
     }
 
-    // Make sure this delivery belongs to this rider
-    if ((int) $order->rider_id !== (int) $riderId) {
+    // Make sure this delivery belongs to this rider — the final-mile leg is
+    // owned by whoever the Sorting Center assigned (delivery_rider_id); older
+    // orders placed before the Sorting Center hop existed fall back to rider_id.
+    $effectiveRiderId = $order->delivery_rider_id ?? $order->rider_id;
+
+    if ((int) $effectiveRiderId !== (int) $riderId) {
         return back()->with(
             'error',
             'This delivery is not assigned to you.'
         );
     }
 
-    // Picked Up → Out for Delivery
-    if ($order->status === 'Picked Up') {
+    // Assigned for Delivery → Out for Delivery
+    if ($order->status === 'Assigned for Delivery') {
 
         if ($status !== 'Out for Delivery') {
             return back()->with(
                 'error',
-                'Picked Up orders must be moved to Out for Delivery first.'
+                'This order must be moved to Out for Delivery first.'
             );
         }
 
     }
 
-    // Out for Delivery → Delivered
+    // Out for Delivery → Delivered or Delivery Failed
     elseif ($order->status === 'Out for Delivery') {
 
-        if ($status !== 'Delivered') {
+        if (!in_array($status, ['Delivered', 'Delivery Failed'])) {
             return back()->with(
                 'error',
-                'Out for Delivery orders can only be marked as Delivered.'
+                'Out for Delivery orders can only be marked as Delivered or Delivery Failed.'
             );
+        }
+
+        if ($status === 'Delivery Failed') {
+
+            $reason = trim((string) request('failure_reason'));
+
+            if (empty($reason)) {
+                return back()->with('error', 'Please provide a reason for the failed delivery.');
+            }
+
+            DB::table('orders')->where('id', $id)->update([
+                'status' => 'Delivery Failed',
+                'failure_reason' => $reason,
+                'delivery_failed_at' => now(),
+                'delivery_attempts' => $order->delivery_attempts + 1,
+                'updated_at' => now(),
+            ]);
+
+            createNotification(
+                (int) $order->buyer_id,
+                'Delivery Attempt Failed',
+                'We were unable to deliver your order #' . $id . '. Reason: ' . $reason . '. It will be rescheduled shortly.',
+                'order',
+                (int) $id
+            );
+
+            return back()->with('success', 'Delivery marked as failed. The Sorting Center will reschedule or return this parcel.');
+
         }
 
     }
@@ -4506,8 +5149,17 @@ Route::get('/rider/profit', function () {
 
     $deliveryFee = (float) \App\Models\PlatformSetting::get('delivery_fee', '50');
 
+    // Credit whoever actually completed the final-mile leg: if the Sorting
+    // Center assigned a (possibly different) delivery_rider_id, that rider
+    // earns the fee, not the one who only handled the seller pickup leg.
     $completedDeliveries = DB::table('orders')
-        ->where('rider_id', $user['id'])
+        ->where(function ($query) use ($user) {
+            $query->where('delivery_rider_id', $user['id'])
+                ->orWhere(function ($q) use ($user) {
+                    $q->whereNull('delivery_rider_id')
+                        ->where('rider_id', $user['id']);
+                });
+        })
         ->where('status', 'Delivered')
         ->whereDate('updated_at', '>=', $from)
         ->whereDate('updated_at', '<=', $to)
@@ -4546,6 +5198,42 @@ Route::get('/rider/profit', function () {
     );
 
 })->name('rider.profit');
+
+
+Route::get('/rider/deliveries/history', function () {
+
+    $user = requireUserRole('rider');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $history = DB::table('orders')
+        ->where('rider_id', $user['id'])
+        ->where('status', 'Delivered')
+        ->orderByDesc('updated_at')
+        ->get();
+
+    $history = $history->map(function ($order) {
+
+        $order = (array) $order;
+
+        $order['items'] = DB::table('order_items')
+            ->where('order_id', $order['id'])
+            ->get()
+            ->map(fn ($item) => (array) $item)
+            ->toArray();
+
+        $order['buyer_name'] = $order['shipping_name'] ?? 'Buyer';
+        $order['address'] = $order['shipping_address'] ?? 'N/A';
+
+        return $order;
+
+    });
+
+    return view('pages.rider.delivery-history', compact('user', 'history'));
+
+})->name('rider.deliveries.history');
 
 
 
@@ -4622,6 +5310,7 @@ Route::get('/product-details/{id}', function ($id) {
         ->select(
             'product_reviews.rating',
             'product_reviews.review',
+            'product_reviews.seller_reply',
             'product_reviews.created_at',
             'users.name as buyer_name'
         )
@@ -5826,6 +6515,7 @@ Route::put('/seller/products/{id}', function ($id) {
     */
 
     $existingProduct = Product::where('name', $name)
+        ->where('seller_id', $user['id'])
         ->where('id', '!=', $product->id)
         ->first();
 
@@ -5835,7 +6525,7 @@ Route::put('/seller/products/{id}', function ($id) {
             ->withInput()
             ->with(
                 'error',
-                'A product with this name already exists.'
+                'You already have a product with this name.'
             );
     }
 
@@ -6026,7 +6716,7 @@ Route::post('/seller/products/{id}/unarchive', function ($id) {
 
 
 Route::get('/categories', function () {
-    return view('pages.categories');
+    return view('categories');
 })->name('categories');
 
 
@@ -6250,11 +6940,13 @@ Route::post('/seller/return-refund/{id}/reject', function ($id) {
         return back()->with('error', 'This request has already been processed.');
     }
 
+    $sellerNote = trim((string) request('seller_note'));
+
     DB::table('return_refund_requests')
         ->where('id', $id)
         ->update([
             'status' => 'rejected',
-            'seller_note' => 'Request rejected by seller.',
+            'seller_note' => $sellerNote !== '' ? $sellerNote : 'Request rejected by seller.',
             'updated_at' => now(),
         ]);
 
@@ -6389,9 +7081,34 @@ Route::post('/seller/return-refund/{id}/complete', function ($id) {
 // =========================
 
 Route::get('/rider/apply', function () {
-    $application = null;
 
-    return view('pages.rider.apply', compact('application'));
+    $application = null;
+    $checkedEmail = trim((string) request('email'));
+
+    // Pending/Rejected riders can't log in yet, so there's no session to
+    // read their status from — let them look it up by the email they
+    // applied with instead of always showing a blank form.
+    if (!empty($checkedEmail)) {
+
+        $applicantUser = DB::table('users')
+            ->where('email', strtolower($checkedEmail))
+            ->where('role', 'rider')
+            ->first();
+
+        if ($applicantUser) {
+
+            $application = DB::table('rider_applications')
+                ->where('user_id', $applicantUser->id)
+                ->orderByDesc('created_at')
+                ->first();
+        }
+
+        if (!$application) {
+            session()->flash('error', 'No rider application was found for that email address.');
+        }
+    }
+
+    return view('pages.rider.apply', compact('application', 'checkedEmail'));
 })->name('rider.apply');
 
 
@@ -6402,7 +7119,11 @@ Route::get('/rider/apply', function () {
 Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
 
     $validated = $request->validate([
-        'full_name' => ['required', 'string', 'max:255'],
+        'last_name' => ['required', 'string', 'max:255'],
+        'first_name' => ['required', 'string', 'max:255'],
+        'middle_initial' => ['nullable', 'string', 'max:5'],
+        'sex' => ['required', 'in:Male,Female'],
+        'birthdate' => ['required', 'date', 'before:today'],
 
         'phone' => [
             'required',
@@ -6411,11 +7132,10 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
             'unique:users,phone'
         ],
 
-        'address' => [
-            'required',
-            'string',
-            'max:1000'
-        ],
+        'province' => ['required', 'string', 'max:255'],
+        'city_municipality' => ['required', 'string', 'max:255'],
+        'barangay' => ['required', 'string', 'max:255'],
+        'street_address' => ['required', 'string', 'max:255'],
 
         'vehicle_type' => [
             'required',
@@ -6520,6 +7240,19 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
         ->file('or_cr')
         ->store($folder, 'local');
 
+    $riderFullName = formatFullName(
+        $validated['first_name'],
+        $validated['middle_initial'] ?? null,
+        $validated['last_name']
+    );
+
+    $riderAddress = $validated['street_address'] . ', '
+        . $validated['barangay'] . ', '
+        . $validated['city_municipality'] . ', '
+        . $validated['province'];
+
+    $riderAge = calculateAge($validated['birthdate']);
+
 
     /*
     |--------------------------------------------------------------------------
@@ -6529,13 +7262,24 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
 
     session()->put('pending_registration', [
 
-    'full_name' => $validated['full_name'],
+    'full_name' => $riderFullName,
 
     // Compatible sa existing OTP verification
-    'name' => $validated['full_name'],
+    'name' => $riderFullName,
+
+    'last_name' => $validated['last_name'],
+    'first_name' => $validated['first_name'],
+    'middle_initial' => $validated['middle_initial'] ?? null,
+    'sex' => $validated['sex'],
+    'birthdate' => $validated['birthdate'],
+    'age' => $riderAge,
 
     'phone' => $validated['phone'],
-    'address' => $validated['address'],
+    'address' => $riderAddress,
+    'province' => $validated['province'],
+    'city_municipality' => $validated['city_municipality'],
+    'barangay' => $validated['barangay'],
+    'street_address' => $validated['street_address'],
 
     'vehicle_type' => $validated['vehicle_type'],
     'vehicle_model' => $validated['vehicle_model'],
@@ -6569,7 +7313,7 @@ Route::post('/rider/apply', function (\Illuminate\Http\Request $request) {
 
 $otpSent = generateAndSendOtp(
     $validated['email'],
-    $validated['full_name']
+    $riderFullName
 );
 
 
@@ -6609,23 +7353,39 @@ Route::get('/buyer/register', function () {
 
 
 // Buyer Registration Submit
-Route::post('/buyer/register', function () {
+Route::post('/buyer/register', function (\Illuminate\Http\Request $request) {
 
-    $name = trim(request('name'));
+    $lastName = trim(request('last_name'));
+    $firstName = trim(request('first_name'));
+    $middleInitial = trim(request('middle_initial'));
+    $sex = request('sex');
+    $birthdate = request('birthdate');
     $email = strtolower(trim(request('email')));
     $password = request('password');
     $passwordConfirmation = request('password_confirmation');
     $phone = trim(request('phone'));
-    $address = trim(request('address'));
+    $province = trim(request('province'));
+    $cityMunicipality = trim(request('city_municipality'));
+    $barangay = trim(request('barangay'));
+    $streetAddress = trim(request('street_address'));
+
+    $name = formatFullName($firstName, $middleInitial, $lastName);
+    $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
 
     // VALIDATION
     if (
-        empty($name) ||
+        empty($lastName) ||
+        empty($firstName) ||
+        empty($sex) ||
+        empty($birthdate) ||
         empty($email) ||
         empty($password) ||
         empty($passwordConfirmation) ||
         empty($phone) ||
-        empty($address)
+        empty($province) ||
+        empty($cityMunicipality) ||
+        empty($barangay) ||
+        empty($streetAddress)
     ) {
         return back()
             ->withInput()
@@ -6670,13 +7430,40 @@ Route::post('/buyer/register', function () {
             ->with('error', 'This phone number is already registered.');
     }
 
+    // VALID ID UPLOAD
+    $request->validate([
+        'id_photo' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:10240',
+        ],
+    ], [], [
+        'id_photo' => 'valid ID',
+    ]);
+
+    $idPhotoPath = $request
+        ->file('id_photo')
+        ->store('buyer-ids/' . (string) Str::uuid(), 'local');
+
     // Hold registration data until OTP is verified — walang naka-save sa DB pa
     session()->put('pending_registration', [
         'name' => $name,
+        'last_name' => $lastName,
+        'first_name' => $firstName,
+        'middle_initial' => $middleInitial ?: null,
+        'sex' => $sex,
+        'birthdate' => $birthdate,
+        'age' => calculateAge($birthdate),
         'email' => $email,
         'password' => Hash::make($password),
         'phone' => $phone,
         'address' => $address,
+        'province' => $province,
+        'city_municipality' => $cityMunicipality,
+        'barangay' => $barangay,
+        'street_address' => $streetAddress,
+        'id_photo' => $idPhotoPath,
         'role' => 'buyer',
     ]);
 
@@ -6702,21 +7489,41 @@ Route::get('/seller/register', function () {
 // Seller Registration Submit
 Route::post('/seller/register', function (\Illuminate\Http\Request $request) {
 
-    $name = trim($request->input('name'));
+    $lastName = trim($request->input('last_name'));
+    $firstName = trim($request->input('first_name'));
+    $middleInitial = trim($request->input('middle_initial'));
+    $sex = $request->input('sex');
+    $birthdate = $request->input('birthdate');
     $email = strtolower(trim($request->input('email')));
     $password = $request->input('password');
     $passwordConfirmation = $request->input('password_confirmation');
     $phone = trim($request->input('phone'));
-    $address = trim($request->input('address'));
+    $province = trim($request->input('province'));
+    $cityMunicipality = trim($request->input('city_municipality'));
+    $barangay = trim($request->input('barangay'));
+    $streetAddress = trim($request->input('street_address'));
+    $businessName = trim($request->input('business_name'));
+    $businessCategory = $request->input('business_category');
+
+    $name = formatFullName($firstName, $middleInitial, $lastName);
+    $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
 
     // VALIDATION
     if (
-        empty($name) ||
+        empty($lastName) ||
+        empty($firstName) ||
+        empty($sex) ||
+        empty($birthdate) ||
         empty($email) ||
         empty($password) ||
         empty($passwordConfirmation) ||
         empty($phone) ||
-        empty($address)
+        empty($province) ||
+        empty($cityMunicipality) ||
+        empty($barangay) ||
+        empty($streetAddress) ||
+        empty($businessName) ||
+        empty($businessCategory)
     ) {
         return back()
             ->withInput()
@@ -6797,13 +7604,25 @@ Route::post('/seller/register', function (\Illuminate\Http\Request $request) {
     // Hold registration data until OTP is verified — walang naka-save sa DB pa
     session()->put('pending_registration', [
         'name' => $name,
+        'last_name' => $lastName,
+        'first_name' => $firstName,
+        'middle_initial' => $middleInitial ?: null,
+        'sex' => $sex,
+        'birthdate' => $birthdate,
+        'age' => calculateAge($birthdate),
         'email' => $email,
         'password' => Hash::make($password),
         'phone' => $phone,
         'address' => $address,
+        'province' => $province,
+        'city_municipality' => $cityMunicipality,
+        'barangay' => $barangay,
+        'street_address' => $streetAddress,
         'role' => 'seller',
         'national_id' => $nationalIdPath,
         'business_permit' => $businessPermitPath,
+        'business_name' => $businessName,
+        'business_category' => $businessCategory,
     ]);
 
     if (!generateAndSendOtp($email, $name)) {
@@ -6817,6 +7636,838 @@ Route::post('/seller/register', function (\Illuminate\Http\Request $request) {
         ->with('success', 'We sent a 6-digit code to your email.');
 
 })->name('seller.register.submit');
+
+
+// Logistics Registration Page
+Route::get('/logistics/register', function () {
+    return view('pages.logistics.register');
+})->name('logistics.register');
+
+
+// Logistics Registration Submit
+Route::post('/logistics/register', function (\Illuminate\Http\Request $request) {
+
+    $lastName = trim($request->input('last_name'));
+    $firstName = trim($request->input('first_name'));
+    $middleInitial = trim($request->input('middle_initial'));
+    $sex = $request->input('sex');
+    $birthdate = $request->input('birthdate');
+    $email = strtolower(trim($request->input('email')));
+    $password = $request->input('password');
+    $passwordConfirmation = $request->input('password_confirmation');
+    $phone = trim($request->input('phone'));
+    $province = trim($request->input('province'));
+    $cityMunicipality = trim($request->input('city_municipality'));
+    $barangay = trim($request->input('barangay'));
+    $streetAddress = trim($request->input('street_address'));
+    $businessName = trim($request->input('business_name'));
+
+    $name = formatFullName($firstName, $middleInitial, $lastName);
+    $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
+
+    // VALIDATION
+    if (
+        empty($lastName) ||
+        empty($firstName) ||
+        empty($sex) ||
+        empty($birthdate) ||
+        empty($email) ||
+        empty($password) ||
+        empty($passwordConfirmation) ||
+        empty($phone) ||
+        empty($province) ||
+        empty($cityMunicipality) ||
+        empty($barangay) ||
+        empty($streetAddress) ||
+        empty($businessName)
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (!request('terms')) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please enter a valid email address.');
+    }
+
+    if (strlen($password) < 8) {
+        return back()
+            ->withInput()
+            ->with('error', 'Password must be at least 8 characters.');
+    }
+
+    if ($password !== $passwordConfirmation) {
+        return back()
+            ->withInput()
+            ->with('error', 'Passwords do not match.');
+    }
+
+    if (User::where('email', $email)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'Email is already registered.');
+    }
+
+    if (User::where('phone', $phone)->exists()) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    $request->validate([
+        'id_photo' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:10240',
+        ],
+        'business_permit' => [
+            'required',
+            'file',
+            'mimes:jpg,jpeg,png,webp,pdf',
+            'max:10240',
+        ],
+    ], [], [
+        'id_photo' => 'valid ID',
+        'business_permit' => 'business/DTI permit',
+    ]);
+
+    $folder = 'logistics-applications/' . (string) Str::uuid();
+
+    $idPhotoPath = $request->file('id_photo')->store($folder, 'local');
+    $businessPermitPath = $request->file('business_permit')->store($folder, 'local');
+
+    session()->put('pending_registration', [
+        'name' => $name,
+        'last_name' => $lastName,
+        'first_name' => $firstName,
+        'middle_initial' => $middleInitial ?: null,
+        'sex' => $sex,
+        'birthdate' => $birthdate,
+        'age' => calculateAge($birthdate),
+        'email' => $email,
+        'password' => Hash::make($password),
+        'phone' => $phone,
+        'address' => $address,
+        'province' => $province,
+        'city_municipality' => $cityMunicipality,
+        'barangay' => $barangay,
+        'street_address' => $streetAddress,
+        'role' => 'logistics',
+        'business_name' => $businessName,
+        'id_photo' => $idPhotoPath,
+        'business_permit' => $businessPermitPath,
+    ]);
+
+    if (!generateAndSendOtp($email, $name)) {
+        return back()
+            ->withInput()
+            ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
+    }
+
+    return redirect()
+        ->route('otp.show')
+        ->with('success', 'We sent a 6-digit code to your email.');
+
+})->name('logistics.register.submit');
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGISTICS DASHBOARD
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/logistics', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $application = DB::table('logistics_applications')
+        ->where('user_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->first();
+
+    $parcelsForSorting = DB::table('orders')
+        ->whereIn('status', ['Picked Up', 'At Sorting Center'])
+        ->count();
+
+    $activeRiders = DB::table('users')
+        ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
+        ->where('users.role', 'rider')
+        ->where('users.status', 'Active')
+        ->where('rider_applications.status', 'Approved')
+        ->distinct('users.id')
+        ->count('users.id');
+
+    $deliveredToday = DB::table('orders')
+        ->where('status', 'Delivered')
+        ->whereDate('updated_at', now()->toDateString())
+        ->count();
+
+    return view(
+        'pages.logistics.dashboard',
+        compact('user', 'application', 'parcelsForSorting', 'activeRiders', 'deliveredToday')
+    );
+
+})->name('logistics.dashboard');
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGISTICS PROFILE
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/logistics/profile', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $dbUser = User::find($user['id']);
+
+    $application = DB::table('logistics_applications')
+        ->where('user_id', $user['id'])
+        ->orderByDesc('created_at')
+        ->first();
+
+    return view('pages.logistics.profile', compact('user', 'dbUser', 'application'));
+
+})->name('logistics.profile');
+
+
+Route::post('/logistics/profile', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $name = trim(request('name'));
+    $phone = trim(request('phone'));
+    $address = trim(request('address'));
+
+    if (empty($name) || empty($phone) || empty($address)) {
+        return back()
+            ->withInput()
+            ->with('error', 'Please complete all fields.');
+    }
+
+    if (
+        User::where('phone', $phone)
+            ->where('id', '!=', $user['id'])
+            ->exists()
+    ) {
+        return back()
+            ->withInput()
+            ->with('error', 'This phone number is already registered.');
+    }
+
+    $dbUser = User::find($user['id']);
+    $dbUser->name = $name;
+    $dbUser->phone = $phone;
+    $dbUser->address = $address;
+    $dbUser->save();
+
+    session()->put('user', array_merge($user, [
+        'name' => $name,
+    ]));
+
+    return back()->with('success', 'Profile updated successfully.');
+
+})->name('logistics.profile.update');
+
+
+Route::post('/logistics/profile/photo', function (\Illuminate\Http\Request $request) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $request->validate([
+        'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+    ]);
+
+    $file = $request->file('profile_photo');
+
+    $filename = 'logistics_' . $user['id'] . '_' . time() . '.' . $file->getClientOriginalExtension();
+
+    $file->storeAs('profile-photos', $filename, 'public');
+
+    DB::table('users')
+        ->where('id', $user['id'])
+        ->update([
+            'profile_photo' => $filename,
+            'updated_at' => now(),
+        ]);
+
+    $user['profile_photo'] = $filename;
+    session()->put('user', $user);
+
+    return back()->with('success', 'Profile picture updated successfully.');
+
+})->name('logistics.profile.photo');
+
+
+Route::post('/logistics/profile/password', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $current = request('current_password');
+    $new = request('new_password');
+    $confirm = request('new_password_confirmation');
+
+    if (empty($current) || empty($new) || empty($confirm)) {
+        return back()->with('error', 'Please complete all password fields.');
+    }
+
+    $dbUser = User::find($user['id']);
+
+    if (!Hash::check($current, $dbUser->password)) {
+        return back()->with('error', 'Current password is incorrect.');
+    }
+
+    if (strlen($new) < 8) {
+        return back()->with('error', 'New password must be at least 8 characters.');
+    }
+
+    if ($new !== $confirm) {
+        return back()->with('error', 'New passwords do not match.');
+    }
+
+    $dbUser->password = Hash::make($new);
+    $dbUser->save();
+
+    return back()->with('success', 'Password changed successfully.');
+
+})->name('logistics.profile.password');
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGISTICS — RIDER MANAGEMENT
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/logistics/riders', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $riderApplications = DB::table('rider_applications')
+        ->join('users', 'users.id', '=', 'rider_applications.user_id')
+        ->select('rider_applications.*', 'users.email as user_email', 'users.status as account_status')
+        ->orderByDesc('rider_applications.created_at')
+        ->get();
+
+    $riderAreas = \App\Models\RiderArea::whereIn(
+        'rider_id',
+        $riderApplications->pluck('user_id')
+    )->get()->groupBy('rider_id');
+
+    return view('pages.logistics.riders', compact('user', 'riderApplications', 'riderAreas'));
+
+})->name('logistics.riders');
+
+
+Route::post('/logistics/riders/{riderId}/areas', function ($riderId) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $province = trim(request('province'));
+    $cityMunicipality = trim(request('city_municipality'));
+
+    if (empty($province) || empty($cityMunicipality)) {
+        return back()->with('error', 'Please select a province and city/municipality.');
+    }
+
+    $rider = DB::table('users')->where('id', $riderId)->where('role', 'rider')->first();
+
+    if (!$rider) {
+        return back()->with('error', 'Rider not found.');
+    }
+
+    \App\Models\RiderArea::firstOrCreate([
+        'rider_id' => $riderId,
+        'province' => $province,
+        'city_municipality' => $cityMunicipality,
+    ]);
+
+    return back()->with('success', 'Area assigned to ' . $rider->name . '.');
+
+})->name('logistics.riders.areas.store');
+
+
+Route::post('/logistics/riders/areas/{areaId}/delete', function ($areaId) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    \App\Models\RiderArea::where('id', $areaId)->delete();
+
+    return back()->with('success', 'Area removed.');
+
+})->name('logistics.riders.areas.delete');
+
+
+/*
+|--------------------------------------------------------------------------
+| LOGISTICS — PARCEL SORTING
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/logistics/parcels', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    // Picked up by a rider from the seller, en route to this Sorting Center
+    $awaitingConfirmation = DB::table('orders')
+        ->where('status', 'Picked Up')
+        ->orderBy('updated_at')
+        ->get();
+
+    // Physically received at the Sorting Center, waiting to be assigned
+    // to a rider for the final-mile delivery leg.
+    $awaitingAssignment = DB::table('orders')
+        ->where('status', 'At Sorting Center')
+        ->orderBy('sorting_center_received_at')
+        ->get();
+
+    $activeRiders = DB::table('users')
+        ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
+        ->where('users.role', 'rider')
+        ->where('users.status', 'Active')
+        ->where('rider_applications.status', 'Approved')
+        ->select('users.id', 'users.name')
+        ->distinct()
+        ->get();
+
+    $riderAreas = \App\Models\RiderArea::whereIn('rider_id', $activeRiders->pluck('id'))->get();
+
+    // For each parcel awaiting assignment, suggest riders whose assigned
+    // area name appears in the shipping address — a simple, honest match
+    // since orders only store a single free-text shipping address string.
+    $suggestedRidersByOrder = [];
+
+    foreach ($awaitingAssignment as $order) {
+
+        $matches = $riderAreas->filter(function ($area) use ($order) {
+            return stripos($order->shipping_address, $area->city_municipality) !== false
+                || stripos($order->shipping_address, $area->province) !== false;
+        })->pluck('rider_id')->unique();
+
+        $suggestedRidersByOrder[$order->id] = $activeRiders->whereIn('id', $matches)->values();
+    }
+
+    $failedDeliveries = DB::table('orders')
+        ->where('status', 'Delivery Failed')
+        ->orderByDesc('delivery_failed_at')
+        ->get();
+
+    return view(
+        'pages.logistics.parcels',
+        compact('user', 'awaitingConfirmation', 'awaitingAssignment', 'activeRiders', 'suggestedRidersByOrder', 'failedDeliveries')
+    );
+
+})->name('logistics.parcels');
+
+
+Route::post('/logistics/parcels/{id}/confirm-received', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Parcel not found.');
+    }
+
+    if ($order->status !== 'Picked Up') {
+        return back()->with('error', 'This parcel is not awaiting Sorting Center confirmation.');
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'status' => 'At Sorting Center',
+        'sorting_center_received_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Parcel at Sorting Center',
+        'Your order #' . $id . ' has arrived at the sorting facility and will be assigned to a rider for delivery shortly.',
+        'order',
+        (int) $id
+    );
+
+    return back()->with('success', 'Parcel #' . $id . ' confirmed as received.');
+
+})->name('logistics.parcels.confirm-received');
+
+
+Route::post('/logistics/parcels/{id}/assign', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $riderId = request('rider_id');
+
+    if (empty($riderId)) {
+        return back()->with('error', 'Please select a rider to assign this parcel to.');
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Parcel not found.');
+    }
+
+    if ($order->status !== 'At Sorting Center') {
+        return back()->with('error', 'This parcel is not awaiting assignment.');
+    }
+
+    $rider = DB::table('users')->where('id', $riderId)->where('role', 'rider')->first();
+
+    if (!$rider) {
+        return back()->with('error', 'Selected rider not found.');
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'delivery_rider_id' => $riderId,
+        'status' => 'Assigned for Delivery',
+        'updated_at' => now(),
+    ]);
+
+    createNotification(
+        (int) $riderId,
+        'New Delivery Assignment',
+        'You have been assigned to deliver Order #' . $id . '. Please pick it up from the Sorting Center.',
+        'delivery',
+        (int) $id
+    );
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Rider Assigned for Delivery',
+        'Your order #' . $id . ' has been assigned to a rider and will be out for delivery soon.',
+        'order',
+        (int) $id
+    );
+
+    return back()->with('success', 'Parcel #' . $id . ' assigned to ' . $rider->name . '.');
+
+})->name('logistics.parcels.assign');
+
+
+Route::post('/logistics/parcels/{id}/reschedule', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $riderId = request('rider_id');
+
+    if (empty($riderId)) {
+        return back()->with('error', 'Please select a rider to reschedule this delivery to.');
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Parcel not found.');
+    }
+
+    if ($order->status !== 'Delivery Failed') {
+        return back()->with('error', 'This parcel is not marked as a failed delivery.');
+    }
+
+    if ($order->delivery_attempts >= 2) {
+        return back()->with('error', 'This parcel has reached the maximum delivery attempts. Please return it to the seller instead.');
+    }
+
+    $rider = DB::table('users')->where('id', $riderId)->where('role', 'rider')->first();
+
+    if (!$rider) {
+        return back()->with('error', 'Selected rider not found.');
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'delivery_rider_id' => $riderId,
+        'status' => 'Assigned for Delivery',
+        'updated_at' => now(),
+    ]);
+
+    createNotification(
+        (int) $riderId,
+        'Delivery Rescheduled',
+        'Order #' . $id . ' has been rescheduled to you for another delivery attempt.',
+        'delivery',
+        (int) $id
+    );
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Delivery Rescheduled',
+        'We will attempt to deliver your order #' . $id . ' again shortly.',
+        'order',
+        (int) $id
+    );
+
+    return back()->with('success', 'Parcel #' . $id . ' rescheduled to ' . $rider->name . '.');
+
+})->name('logistics.parcels.reschedule');
+
+
+Route::post('/logistics/parcels/{id}/return-to-seller', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Parcel not found.');
+    }
+
+    if ($order->status !== 'Delivery Failed') {
+        return back()->with('error', 'This parcel is not marked as a failed delivery.');
+    }
+
+    DB::table('orders')->where('id', $id)->update([
+        'status' => 'Returned to Seller',
+        'updated_at' => now(),
+    ]);
+
+    createNotification(
+        (int) $order->buyer_id,
+        'Order Returned to Seller',
+        'After repeated failed delivery attempts, order #' . $id . ' has been returned to the seller.',
+        'order',
+        (int) $id
+    );
+
+    return back()->with('success', 'Parcel #' . $id . ' has been returned to the seller.');
+
+})->name('logistics.parcels.return-to-seller');
+
+
+Route::post('/logistics/riders/{id}/approve', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $application = DB::table('rider_applications')->where('id', $id)->first();
+
+    if (!$application) {
+        return back()->with('error', 'Application not found.');
+    }
+
+    DB::table('rider_applications')->where('id', $id)->update([
+        'status' => 'Approved',
+        'admin_remarks' => null,
+        'reviewed_at' => now(),
+        'reviewed_by' => $user['id'],
+        'updated_at' => now(),
+    ]);
+
+    createNotification(
+        (int) $application->user_id,
+        'Rider Application Approved',
+        'Congratulations! Your rider application has been approved. You can now access your rider account.',
+        'rider',
+        (int) $application->id
+    );
+
+    $applicant = DB::table('users')->where('id', $application->user_id)->first();
+
+    if ($applicant) {
+        try {
+            Mail::to($applicant->email)->send(
+                new \App\Mail\ApplicationStatusMail(
+                    $application->full_name ?? $applicant->name,
+                    'rider',
+                    'Approved'
+                )
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    return back()->with('success', 'Rider application approved.');
+
+})->name('logistics.riders.approve');
+
+
+Route::post('/logistics/riders/{id}/reject', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $remarks = trim((string) request('admin_remarks'));
+
+    $application = DB::table('rider_applications')->where('id', $id)->first();
+
+    if (!$application) {
+        return back()->with('error', 'Application not found.');
+    }
+
+    DB::table('rider_applications')->where('id', $id)->update([
+        'status' => 'Rejected',
+        'admin_remarks' => $remarks !== '' ? $remarks : null,
+        'reviewed_at' => now(),
+        'reviewed_by' => $user['id'],
+        'updated_at' => now(),
+    ]);
+
+    $message = $remarks !== ''
+        ? 'Your rider application was rejected. Admin remarks: ' . $remarks
+        : 'Your rider application was rejected. Please review your application and try again.';
+
+    createNotification(
+        $application->user_id,
+        'Rider Application Rejected',
+        $message,
+        'rider',
+        $application->id
+    );
+
+    $applicant = DB::table('users')->where('id', $application->user_id)->first();
+
+    if ($applicant) {
+        try {
+            Mail::to($applicant->email)->send(
+                new \App\Mail\ApplicationStatusMail(
+                    $application->full_name ?? $applicant->name,
+                    'rider',
+                    'Rejected',
+                    $remarks !== '' ? $remarks : null
+                )
+            );
+        } catch (\Throwable $e) {
+            report($e);
+        }
+    }
+
+    return back()->with('success', 'Rider application rejected.');
+
+})->name('logistics.riders.reject');
+
+
+Route::get('/logistics/riders/{id}/document/{field}', function ($id, $field) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $allowedFields = ['national_id', 'drivers_license', 'profile_selfie', 'proof_of_address', 'or_cr'];
+
+    if (!in_array($field, $allowedFields)) {
+        abort(404);
+    }
+
+    $application = DB::table('rider_applications')->where('id', $id)->first();
+
+    if (!$application || empty($application->$field)) {
+        abort(404);
+    }
+
+    if (!Storage::disk('local')->exists($application->$field)) {
+        abort(404);
+    }
+
+    return Storage::disk('local')->response($application->$field);
+
+})->name('logistics.riders.document');
+
+
+Route::post('/logistics/riders/{userId}/toggle-status', function ($userId) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $status = request('status');
+
+    if (!in_array($status, ['Active', 'Deactivated'])) {
+        return back()->with('error', 'Invalid account status.');
+    }
+
+    $rider = DB::table('users')->where('id', $userId)->where('role', 'rider')->first();
+
+    if (!$rider) {
+        return back()->with('error', 'Rider account not found.');
+    }
+
+    DB::table('users')->where('id', $userId)->update(['status' => $status]);
+
+    createNotification(
+        $rider->id,
+        'Account Status Updated',
+        "Your BoomBuy rider account status was changed to \"{$status}\" by the Logistics Center.",
+        'account_status'
+    );
+
+    return back()->with('success', $rider->name . '\'s account has been set to ' . $status . '.');
+
+})->name('logistics.riders.toggle-status');
 
 
 // Verify OTP Page
@@ -6885,6 +8536,17 @@ $user = User::create([
     'phone' => $pending['phone'] ?? null,
     'address' => $pending['address'] ?? null,
     'is_verified' => true,
+    'last_name' => $pending['last_name'] ?? null,
+    'first_name' => $pending['first_name'] ?? null,
+    'middle_initial' => $pending['middle_initial'] ?? null,
+    'sex' => $pending['sex'] ?? null,
+    'birthdate' => $pending['birthdate'] ?? null,
+    'age' => $pending['age'] ?? null,
+    'id_photo' => $pending['id_photo'] ?? null,
+    'province' => $pending['province'] ?? null,
+    'city_municipality' => $pending['city_municipality'] ?? null,
+    'barangay' => $pending['barangay'] ?? null,
+    'street_address' => $pending['street_address'] ?? null,
 ]);
 
 
@@ -6903,6 +8565,9 @@ $user = User::create([
             'full_name' =>
                 $pending['name'] ?? $pending['full_name'],
 
+            'business_name' =>
+                $pending['business_name'] ?? null,
+
             'phone' =>
                 $pending['phone'] ?? null,
 
@@ -6914,6 +8579,9 @@ $user = User::create([
 
             'business_permit' =>
                 $pending['business_permit'] ?? null,
+
+            'business_category' =>
+                $pending['business_category'] ?? null,
 
             'status' =>
                 'Pending Verification',
@@ -6996,6 +8664,38 @@ $user = User::create([
                 now(),
 
         ]);
+
+        notifyLogisticsUsers(
+            'New Rider Application',
+            ($pending['full_name'] ?? $pending['name']) . ' has applied to become a rider and is awaiting review.',
+            'rider'
+        );
+    }
+
+
+    /*
+    |--------------------------------------------------------------------------
+    | LOGISTICS APPLICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($role === 'logistics') {
+
+        DB::table('logistics_applications')->insert([
+            'user_id' => $user->id,
+            'full_name' => $pending['name'] ?? null,
+            'business_name' => $pending['business_name'] ?? null,
+            'phone' => $pending['phone'] ?? null,
+            'address' => $pending['address'] ?? null,
+            'id_photo' => $pending['id_photo'] ?? null,
+            'business_permit' => $pending['business_permit'] ?? null,
+            'status' => 'Pending Verification',
+            'admin_remarks' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
     }
 
 
@@ -7049,36 +8749,52 @@ $user = User::create([
 
     /*
     |--------------------------------------------------------------------------
-    | BUYER
+    | LOGISTICS
     |--------------------------------------------------------------------------
     */
 
-    session()->put('user', [
+    if ($user->role === 'logistics') {
 
-        'id' =>
-            $user->id,
-
-        'name' =>
-            $user->name,
-
-        'email' =>
-            $user->email,
-
-        'role' =>
-            $user->role,
-
-        'profile_photo' =>
-            $user->profile_photo,
-
-    ]);
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Your Logistics account has been created! We\'re verifying your documents — you\'ll be able to log in once approved.'
+            );
+    }
 
 
-    return redirect()
-        ->route('buyer.dashboard')
-        ->with(
-            'success',
-            'Welcome to BoomBuy!'
-        );
+    /*
+    |--------------------------------------------------------------------------
+    | BUYER APPLICATION
+    |--------------------------------------------------------------------------
+    */
+
+    if ($user->role === 'buyer') {
+
+        DB::table('buyer_applications')->insert([
+
+            'user_id' => $user->id,
+            'full_name' => $pending['name'] ?? $user->name,
+            'phone' => $pending['phone'] ?? null,
+            'address' => $pending['address'] ?? null,
+            'id_photo' => $pending['id_photo'] ?? null,
+            'status' => 'Pending Verification',
+            'admin_remarks' => null,
+            'reviewed_at' => null,
+            'reviewed_by' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+
+        ]);
+
+        return redirect()
+            ->route('login')
+            ->with(
+                'success',
+                'Your account has been created! Please wait for the administrator\'s approval — we\'ll notify you by email once your account is verified.'
+            );
+    }
 
 })->name('otp.verify');
 
@@ -7268,6 +8984,50 @@ Route::post('/seller/notifications/{id}/read', function ($id) {
     return back();
 
 })->name('seller.notifications.read');
+
+
+Route::get('/logistics/notifications', function () {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $notifications = \App\Models\Notification::where(
+        'user_id',
+        $user['id']
+    )
+    ->orderByDesc('created_at')
+    ->get();
+
+    return view(
+        'pages.logistics.notifications',
+        compact('user', 'notifications')
+    );
+
+})->name('logistics.notifications');
+
+
+Route::post('/logistics/notifications/{id}/read', function ($id) {
+
+    $user = requireUserRole('logistics');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    \App\Models\Notification::where('id', $id)
+        ->where('user_id', $user['id'])
+        ->whereNull('read_at')
+        ->update([
+            'read_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+    return back();
+
+})->name('logistics.notifications.read');
 
 
 Route::get('/rider/notifications', function () {
@@ -7610,9 +9370,34 @@ Route::get('/admin/compliance', function () {
 
             $products = \App\Models\Product::where('seller_id', $seller->user_id)->get();
 
+            // business_category is stored as a slug ("electronics") while
+            // products.category is stored as its Title Case label
+            // ("Electronics") — convert the slug to that same label before
+            // comparing, otherwise every product would always "mismatch".
+            $categoryNames = [
+                'electronics' => 'Electronics',
+                'womens-fashion' => "Women's Fashion",
+                'mens-fashion' => "Men's Fashion",
+                'kids-baby' => 'Kids & Baby',
+                'home-living' => 'Home & Living',
+                'sports-outdoors' => 'Sports & Outdoors',
+                'beauty-personal-care' => 'Beauty & Personal Care',
+                'food-beverages' => 'Food & Beverages',
+                'automotive' => 'Automotive',
+                'office-school' => 'Office & School',
+                'pet-supplies' => 'Pet Supplies',
+                'toys-games-hobbies' => 'Toys, Games & Hobbies',
+                'jewelry-accessories' => 'Jewelry & Accessories',
+                'shoes' => 'Shoes',
+                'tools-home-improvement' => 'Tools & Home Improvement',
+                'garden-outdoor' => 'Garden & Outdoor',
+            ];
+
+            $registeredCategoryLabel = $categoryNames[$seller->business_category] ?? $seller->business_category;
+
             $mismatches = $seller->business_category
-                ? $products->filter(function ($product) use ($seller) {
-                    return $product->category !== $seller->business_category;
+                ? $products->filter(function ($product) use ($registeredCategoryLabel) {
+                    return $product->category !== $registeredCategoryLabel;
                 })
                 : collect();
 

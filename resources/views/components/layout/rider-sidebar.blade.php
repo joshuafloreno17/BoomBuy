@@ -38,6 +38,11 @@
                 <span>Profit</span>
             </a>
 
+            <a href="{{ route('rider.deliveries.history') }}" class="rider-sidebar-link {{ $active === 'history' ? 'active' : '' }}">
+                <span class="sidebar-icon">📜</span>
+                <span>Delivery History</span>
+            </a>
+
             <a href="{{ route('rider.profile') }}" class="rider-sidebar-link {{ $active === 'profile' ? 'active' : '' }}">
                 <span class="sidebar-icon">👤</span>
                 <span>My Profile</span>

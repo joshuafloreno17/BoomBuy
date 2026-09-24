@@ -135,6 +135,10 @@ a { text-decoration: none; }
     margin-bottom: 20px;
 }
 
+.panel canvas {
+    max-width: 100%;
+}
+
 .panel h2 {
     font-family: 'Baloo 2', sans-serif;
     font-size: 18px;

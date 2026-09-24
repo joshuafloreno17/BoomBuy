@@ -877,6 +877,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         <p class="review-text">{{ $review->review }}</p>
                     @endif
 
+                    @if(!empty($review->seller_reply))
+                        <div class="seller-reply-box" style="background:#fff7f4; border:1px solid #f4e2dc; border-radius:10px; padding:10px 12px; margin-top:8px;">
+                            <div style="font-size:11px; font-weight:800; color:#e8420f; margin-bottom:3px;">Seller Reply</div>
+                            <div style="font-size:13px; color:#563a32;">{{ $review->seller_reply }}</div>
+                        </div>
+                    @endif
+
                 </div>
 
             @endforeach

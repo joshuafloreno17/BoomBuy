@@ -207,6 +207,13 @@
                 <span class="choose-btn">Continue as Rider</span>
             </a>
 
+            <a href="{{ route('logistics.register') }}" class="choose-card">
+                <div class="choose-icon">📦</div>
+                <h2>Logistics / Sorting Center</h2>
+                <p>Manage parcel sorting and rider delivery assignments.</p>
+                <span class="choose-btn">Continue as Logistics</span>
+            </a>
+
         </div>
 
         <div class="choose-footer">

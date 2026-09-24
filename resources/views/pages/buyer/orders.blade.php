@@ -1580,6 +1580,8 @@
                                                         'preparing',
                                                         'ready for pickup',
                                                         'picked up',
+                                                        'at sorting center',
+                                                        'assigned for delivery',
                                                         'out for delivery',
                                                         'delivered'
                                                     ]
@@ -1618,7 +1620,10 @@
                                                     $orderStatus,
                                                     [
                                                         'ready for pickup',
+                                                        'assigned',
                                                         'picked up',
+                                                        'at sorting center',
+                                                        'assigned for delivery',
                                                         'out for delivery',
                                                         'delivered'
                                                     ]
@@ -1657,6 +1662,8 @@
                                                     $orderStatus,
                                                     [
                                                         'picked up',
+                                                        'at sorting center',
+                                                        'assigned for delivery',
                                                         'out for delivery',
                                                         'delivered'
                                                     ]

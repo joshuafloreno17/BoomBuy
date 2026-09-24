@@ -1,0 +1,332 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+}
+
+a { text-decoration: none; }
+
+.container {
+    width: 86%;
+    max-width: 1100px;
+    margin: 45px auto 80px;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 30px;
+    margin-top: 7px;
+}
+
+.page-header p {
+    color: #977970;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.success-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.error-box {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.app-card {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 30px rgba(39, 84, 150, 0.05);
+}
+
+.app-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.app-name {
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.app-email {
+    color: #8d6c62;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.badge-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-pending-verification { background: #fffaed; color: #c2910c; }
+.status-approved { background: #f0fdf4; color: #15803d; }
+.status-rejected { background: #fff1f2; color: #be123c; }
+.status-active { background: #f0fdf4; color: #15803d; }
+.status-deactivated { background: #f1f1f1; color: #6b7280; }
+
+.app-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px 20px;
+    font-size: 12px;
+    color: #563a32;
+    margin-bottom: 14px;
+}
+
+.app-details strong {
+    display: block;
+    color: #b99c93;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+
+.documents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff6f3;
+    border: 1px solid #f4ded6;
+    color: #e8420f;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.doc-link:hover { background: #ffe4dc; }
+
+.remarks-note {
+    background: #fff1f2;
+    color: #be123c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    margin-bottom: 14px;
+}
+
+.app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid #f7efed;
+}
+
+.approve-form,
+.reject-form,
+.status-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.reject-form input[type="text"] {
+    padding: 9px 11px;
+    border: 1px solid #f0ddd6;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: inherit;
+    width: 190px;
+}
+
+.approve-btn {
+    background: #15803d;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.approve-btn:hover { background: #116530; }
+
+.reject-btn {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.reject-btn:hover { background: #be123c; color: white; }
+
+.activate-btn {
+    background: #eef6ff;
+    border: 1px solid #bfdbfe;
+    color: #1d4ed8;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.activate-btn:hover { background: #1d4ed8; color: white; }
+
+.deactivate-btn {
+    background: #f1f1f1;
+    border: 1px solid #e2e2e2;
+    color: #4b5563;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.deactivate-btn:hover { background: #4b5563; color: white; }
+
+.areas-section {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid #f7efed;
+}
+
+.areas-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: #b99c93;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.area-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 10px;
+}
+
+.area-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #fff6f3;
+    border: 1px solid #f4ded6;
+    color: #563a32;
+    padding: 6px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+}
+
+.area-chip-remove {
+    background: none;
+    border: none;
+    color: #be123c;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 800;
+    padding: 0;
+}
+
+.no-areas {
+    color: #b99c93;
+    font-size: 12px;
+}
+
+.area-add-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.area-add-form select {
+    padding: 8px 10px;
+    border: 1px solid #f0ddd6;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: inherit;
+    outline: none;
+}
+
+.add-area-btn {
+    background: #fff4f1;
+    color: #e8420f;
+    border: 1px dashed #f0b8a5;
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.add-area-btn:hover {
+    background: #ffe4dc;
+}
+
+.empty {
+    text-align: center;
+    padding: 55px 20px;
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+}
+
+.empty-icon { font-size: 45px; margin-bottom: 12px; }
+.empty h3 { font-family: 'Baloo 2', sans-serif; font-size: 17px; margin-bottom: 7px; }
+.empty p { color: #b99c93; font-size: 12px; }
+
+@media (max-width: 500px) {
+    .app-card-top { flex-direction: column; }
+    .reject-form input[type="text"] { width: 140px; }
+}

@@ -141,7 +141,8 @@ body {
     border-top: 1px solid #f3e4df;
 }
 
-.seller-info {
+.seller-info,
+.sidebar-footer .user {
     padding: 0 10px;
     margin-bottom: 12px;
 
@@ -153,6 +154,29 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+.notification-link {
+    position: relative;
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+}
+
+.notification-badge {
+    margin-left: auto;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: #f45b2a;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
 }
 
 .logout {
@@ -559,6 +583,17 @@ h1 {
 .status.status-pending {
     background: #fff3cd;
     color: #9a7210;
+}
+
+.status.status-returned,
+.status.status-completed {
+    background: #eafaf0;
+    color: #24733e;
+}
+
+.status.status-refund-processing {
+    background: #eaf2fd;
+    color: #1d5fb8;
 }
 
 /* =========================
@@ -1001,7 +1036,8 @@ h1 {
 
     .sidebar-label,
     .label-text,
-    .seller-info {
+    .seller-info,
+    .sidebar-footer .user {
         display: none;
     }
 

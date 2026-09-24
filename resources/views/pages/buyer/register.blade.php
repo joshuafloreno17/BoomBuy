@@ -189,7 +189,8 @@
             margin-bottom: 6px;
         }
 
-        .field input {
+        .field input,
+        .field select {
             width: 100%;
 
             padding: 12px 14px;
@@ -205,8 +206,42 @@
             transition: 0.2s;
         }
 
-        .field input:focus {
+        .field input:focus,
+        .field select:focus {
             border-color: #e8420f;
+        }
+
+        .field input[type="file"] {
+            padding: 10px 14px;
+            font-size: 12px;
+            color: #6a4e46;
+            background: #fff6f3;
+        }
+
+        .field input[readonly] {
+            background: #fff6f3;
+            color: #8d6c62;
+        }
+
+        .form-grid .field-full {
+            grid-column: 1 / -1;
+        }
+
+        .section-label {
+            grid-column: 1 / -1;
+            text-align: left;
+
+            font-size: 12px;
+            font-weight: 800;
+            color: #33241f;
+
+            text-transform: uppercase;
+            letter-spacing: 1px;
+
+            margin: 10px 0 2px;
+
+            padding-top: 12px;
+            border-top: 1px solid #f4e2dc;
         }
 
         .submit-btn {
@@ -364,20 +399,45 @@
             </div>
         @endif
 
-        <form method="POST" action="{{ route('buyer.register') }}">
+        <form method="POST" action="{{ route('buyer.register') }}" enctype="multipart/form-data">
             @csrf
 
             <div class="form-grid">
 
+                <div class="section-label">Personal Information</div>
+
                 <div class="field">
-                    <label for="name">Full Name</label>
-                    <input
-                        type="text"
-                        id="name"
-                        name="name"
-                        value="{{ old('name') }}"
-                        required
-                    >
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="middle_initial">Middle Initial</label>
+                    <input type="text" id="middle_initial" name="middle_initial" maxlength="5" value="{{ old('middle_initial') }}" placeholder="Optional">
+                </div>
+
+                <div class="field">
+                    <label for="sex">Sex</label>
+                    <select id="sex" name="sex" required>
+                        <option value="">Select Sex</option>
+                        <option value="Male" {{ old('sex') === 'Male' ? 'selected' : '' }}>Male</option>
+                        <option value="Female" {{ old('sex') === 'Female' ? 'selected' : '' }}>Female</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="birthdate">Birthday</label>
+                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="age">Age</label>
+                    <input type="text" id="age" name="age" value="{{ old('age') }}" readonly placeholder="Auto-computed">
                 </div>
 
                 <div class="field">
@@ -403,15 +463,36 @@
                     >
                 </div>
 
+                <div class="field field-full">
+                    <label for="id_photo">Upload Valid ID</label>
+                    <input type="file" id="id_photo" name="id_photo" accept=".jpg,.jpeg,.png,.webp,.pdf" required>
+                    <span class="field-hint">Any government-issued ID, used to verify your identity as a buyer.</span>
+                </div>
+
+                <div class="section-label">Address</div>
+
                 <div class="field">
-                    <label for="address">Address</label>
-                    <input
-                        type="text"
-                        id="address"
-                        name="address"
-                        value="{{ old('address') }}"
-                        required
-                    >
+                    <label for="province">Province</label>
+                    <select id="province" name="province" required data-old="{{ old('province') }}">
+                        <option value="">Select Province</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="city_municipality">City / Municipality</label>
+                    <select id="city_municipality" name="city_municipality" required disabled>
+                        <option value="">Select City / Municipality</option>
+                    </select>
+                </div>
+
+                <div class="field">
+                    <label for="barangay">Barangay</label>
+                    <input type="text" id="barangay" name="barangay" value="{{ old('barangay') }}" required>
+                </div>
+
+                <div class="field">
+                    <label for="street_address">House No. / Street</label>
+                    <input type="text" id="street_address" name="street_address" value="{{ old('street_address') }}" required>
                 </div>
 
                 <div class="field">
@@ -484,7 +565,13 @@
 
     @include('partials.terms-modal')
 
+    <script src="{{ asset('js/data/psgc-data.js') }}"></script>
+    <script src="{{ asset('js/pages/registration-fields.js') }}"></script>
+
     <script>
+        initAddressCascade('province', 'city_municipality', @json(old('city_municipality')));
+        initAgeCalc('birthdate', 'age');
+
         (function () {
             var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
             var EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
