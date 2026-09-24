@@ -6,6 +6,8 @@
 
     <title>My Wishlist — BoomBuy</title>
 
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     @include('partials.pwa-head')
 
     <style>
@@ -371,8 +373,8 @@
     <script>
         function removeFromWishlist(btn) {
             var productId = btn.dataset.productId;
-            var token = document.querySelector('input[name="_token"]')
-                ? document.querySelector('input[name="_token"]').value
+            var token = document.querySelector('meta[name="csrf-token"]')
+                ? document.querySelector('meta[name="csrf-token"]').content
                 : '';
 
             var form = new FormData();

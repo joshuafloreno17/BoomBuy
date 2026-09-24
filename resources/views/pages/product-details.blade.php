@@ -812,41 +812,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </section>
 
 
-    <!-- SPECIFICATIONS -->
-
-    @if(!empty($product['specs']))
-
-        <section class="specs">
-
-            <h2>
-                Product Specifications
-            </h2>
-
-            <div class="spec-grid">
-
-                @foreach($product['specs'] as $key => $value)
-
-                    <div class="spec">
-
-                        <strong>
-                            {{ $key }}
-                        </strong>
-
-                        <span>
-                            {{ $value }}
-                        </span>
-
-                    </div>
-
-                @endforeach
-
-            </div>
-
-        </section>
-
-    @endif
-
-
     <!-- REVIEWS -->
 
     <section class="reviews-section">

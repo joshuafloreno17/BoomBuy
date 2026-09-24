@@ -329,6 +329,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <form
             action="{{ route('admin.products.store') }}"
             method="POST"
+            enctype="multipart/form-data"
         >
 
             @csrf
@@ -420,21 +421,40 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
             <div class="form-group">
 
-                <label for="icon">
-                    Product Icon
+                <label for="stock">
+                    Stock Quantity
                 </label>
 
                 <input
-                    type="text"
-                    id="icon"
-                    name="icon"
-                    value="{{ old('icon') }}"
-                    placeholder="Example: 📱"
+                    type="number"
+                    id="stock"
+                    name="stock"
+                    value="{{ old('stock', 1) }}"
+                    min="0"
+                    step="1"
+                    placeholder="Example: 50"
+                    required
+                >
+
+            </div>
+
+
+            <div class="form-group">
+
+                <label for="image">
+                    Product Image
+                </label>
+
+                <input
+                    type="file"
+                    id="image"
+                    name="image"
+                    accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
                     required
                 >
 
                 <div class="hint">
-                    You can use an emoji such as 📱 💻 🎧 ⌚ 🎮
+                    JPG, JPEG, PNG, or WEBP • Maximum 5MB
                 </div>
 
             </div>

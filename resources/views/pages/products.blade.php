@@ -1431,8 +1431,8 @@
 
         function toggleWishlist(btn) {
             var productId = btn.dataset.productId;
-            var token = document.querySelector('input[name="_token"]')
-                ? document.querySelector('input[name="_token"]').value
+            var token = document.querySelector('meta[name="csrf-token"]')
+                ? document.querySelector('meta[name="csrf-token"]').content
                 : '';
 
             var form = new FormData();

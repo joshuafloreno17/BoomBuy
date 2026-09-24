@@ -241,57 +241,6 @@
             font-weight: 700;
         }
 
-        .role-options {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-
-        .role-option {
-            position: relative;
-        }
-
-        .role-option input {
-            position: absolute;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .role-option label {
-            min-height: 72px;
-            border: 1px solid #fbe2db;
-            background: #fffaf8;
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            cursor: pointer;
-            transition: 0.2s;
-            margin: 0;
-            font-size: 11px;
-            color: #6a4e46;
-        }
-
-        .role-icon {
-            font-size: 23px;
-        }
-
-        .role-option input:checked + label {
-            border-color: #e8420f;
-            background: #fff2ee;
-            color: #e8420f;
-            box-shadow:
-                0 0 0 2px
-                rgba(23, 105, 224, 0.08);
-        }
-
-        .role-option label:hover {
-            border-color: #f9a389;
-            transform: translateY(-1px);
-        }
-
         /* LOGIN BUTTON */
 
         .login-btn {
@@ -537,17 +486,6 @@
 
             .login-header h1 {
                 font-size: 26px;
-            }
-
-            .role-options {
-                grid-template-columns: 1fr;
-            }
-
-            .role-option label {
-                min-height: 55px;
-                flex-direction: row;
-                justify-content: flex-start;
-                padding: 0 18px;
             }
 
             .terms-box {

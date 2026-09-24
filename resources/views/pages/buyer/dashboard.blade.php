@@ -672,11 +672,11 @@
             </div>
 
 
-            @if(count($products) > 0)
+            @if(count($newestProducts) > 0)
 
                 <div class="products">
 
-                    @foreach($products as $product)
+                    @foreach($newestProducts as $product)
 
                         <div class="product-card">
 
