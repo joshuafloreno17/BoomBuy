@@ -2334,6 +2334,83 @@ Route::get('/admin/applications', function () {
 })->name('admin.applications');
 
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN — LOGISTICS OVERVIEW (READ-ONLY)
+|
+| Rider vetting and parcel/sorting-center operations are fully owned by
+| the Logistics role (see logistics.riders / logistics.parcels) — Admin
+| has no action buttons here, only visibility into what's happening.
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/admin/logistics', function () {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $riderApplications = DB::table('rider_applications')
+        ->join('users', 'users.id', '=', 'rider_applications.user_id')
+        ->select('rider_applications.*', 'users.email as user_email', 'users.status as account_status')
+        ->orderByDesc('rider_applications.created_at')
+        ->get();
+
+    $riderAreas = \App\Models\RiderArea::whereIn(
+        'rider_id',
+        $riderApplications->pluck('user_id')
+    )->get()->groupBy('rider_id');
+
+    $awaitingConfirmation = DB::table('orders')
+        ->where('status', 'Picked Up')
+        ->orderBy('updated_at')
+        ->get();
+
+    $awaitingAssignment = DB::table('orders')
+        ->where('status', 'At Sorting Center')
+        ->orderBy('sorting_center_received_at')
+        ->get();
+
+    $failedDeliveries = DB::table('orders')
+        ->where('status', 'Delivery Failed')
+        ->orderByDesc('delivery_failed_at')
+        ->get();
+
+    $returnedToSeller = DB::table('orders')
+        ->where('status', 'Returned to Seller')
+        ->orderByDesc('updated_at')
+        ->get();
+
+    $activeRiders = DB::table('users')
+        ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
+        ->where('users.role', 'rider')
+        ->where('users.status', 'Active')
+        ->where('rider_applications.status', 'Approved')
+        ->distinct('users.id')
+        ->count('users.id');
+
+    $deliveredToday = DB::table('orders')
+        ->where('status', 'Delivered')
+        ->whereDate('updated_at', now()->toDateString())
+        ->count();
+
+    return view(
+        'pages.admin.logistics',
+        compact(
+            'riderApplications',
+            'riderAreas',
+            'awaitingConfirmation',
+            'awaitingAssignment',
+            'failedDeliveries',
+            'returnedToSeller',
+            'activeRiders',
+            'deliveredToday'
+        )
+    );
+
+})->name('admin.logistics');
+
+
 Route::post('/admin/applications/{type}/{id}/approve', function ($type, $id) {
 
     if (!session()->get('admin_logged_in')) {

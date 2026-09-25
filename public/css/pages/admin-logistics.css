@@ -1,0 +1,90 @@
+@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+    background: #fff7f4;
+    color: #172033;
+}
+
+a { text-decoration: none; }
+
+.layout {
+    display: flex;
+    min-height: 100vh;
+}
+
+.main {
+    flex: 1;
+}
+
+.container {
+    width: 90%;
+    max-width: 1100px;
+    margin: 40px auto 80px;
+}
+
+.header {
+    margin-bottom: 25px;
+}
+
+.header small {
+    color: #db5a33;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.header h1 {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 30px;
+    margin-top: 7px;
+}
+
+.header p {
+    color: #977970;
+    font-size: 13px;
+    margin-top: 6px;
+}
+
+.stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #f7e5e0;
+    border-radius: 14px;
+    padding: 20px;
+}
+
+.stat-card span {
+    display: block;
+    color: #8d6c62;
+    font-size: 11px;
+    margin-bottom: 8px;
+}
+
+.stat-card strong {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 25px;
+}
+
+.readonly-note {
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a5b1f;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 25px;
+}

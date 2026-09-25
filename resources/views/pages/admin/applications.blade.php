@@ -339,7 +339,7 @@
         <div class="page-header">
             <small>Admin Panel</small>
             <h1>Account Registrations</h1>
-            <p>Review uploaded IDs and documents, then approve or reject applicants before they can log in. Rider applications are now managed by the Logistics Center.</p>
+            <p>Review uploaded IDs and documents, then approve or reject applicants before they can log in. Rider applications are managed by the Logistics Center — see the <a href="{{ route('admin.logistics') }}" style="color:#db5a33; font-weight:600;">Logistics overview</a> for a read-only view.</p>
         </div>
 
         @if (session('success'))
