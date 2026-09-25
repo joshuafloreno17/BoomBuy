@@ -429,9 +429,14 @@
         |--------------------------------------------------------------------------
         */
 
+        $cartProductIds = array_map(
+            fn ($key) => parseCartKey($key)[0],
+            array_keys($cart)
+        );
+
         $databaseProducts = \App\Models\Product::whereIn(
             'id',
-            array_keys($cart)
+            array_unique($cartProductIds)
         )->get()->keyBy('id');
 
         $subtotal = 0;
@@ -470,9 +475,10 @@
                     Cart Items
                 </div>
 
-                @foreach($cart as $productId => $quantity)
+                @foreach($cart as $cartKey => $quantity)
 
                     @php
+                        [$productId, $variationId] = parseCartKey($cartKey);
                         $product = $databaseProducts->get($productId);
                     @endphp
 
@@ -481,9 +487,8 @@
                         @php
                             $quantity = (int) $quantity;
 
-                            $cartVariations = $cartVariations ?? session()->get('cart_variations', []);
-                            $itemVariation = !empty($cartVariations[$productId])
-                                ? \App\Models\ProductVariation::find($cartVariations[$productId])
+                            $itemVariation = $variationId
+                                ? \App\Models\ProductVariation::find($variationId)
                                 : null;
 
                             $itemUnitPrice = (float) $product->price + ($itemVariation ? (float) $itemVariation->price_adjustment : 0);
@@ -496,7 +501,7 @@
                             $totalItems += $quantity;
                         @endphp
 
-                        <div class="cart-item" id="cart-item-{{ $product->id }}" data-product-id="{{ $product->id }}">
+                        <div class="cart-item" id="cart-item-{{ $cartKey }}" data-cart-key="{{ $cartKey }}">
 
                             <div class="product-image">
 
@@ -536,8 +541,8 @@
 
                                     <form
                                         class="qty-form"
-                                        data-product-id="{{ $product->id }}"
-                                        action="{{ route('cart.update', $product->id) }}"
+                                        data-cart-key="{{ $cartKey }}"
+                                        action="{{ route('cart.update', $cartKey) }}"
                                         method="POST"
                                     >
 
@@ -558,14 +563,14 @@
 
                                     </form>
 
-                                    <span class="qty-number" id="qty-{{ $product->id }}">
+                                    <span class="qty-number" id="qty-{{ $cartKey }}">
                                         {{ $quantity }}
                                     </span>
 
                                     <form
                                         class="qty-form"
-                                        data-product-id="{{ $product->id }}"
-                                        action="{{ route('cart.update', $product->id) }}"
+                                        data-cart-key="{{ $cartKey }}"
+                                        action="{{ route('cart.update', $cartKey) }}"
                                         method="POST"
                                     >
 
@@ -592,14 +597,14 @@
 
                             <div class="item-right">
 
-                                <div class="item-total" id="item-total-{{ $product->id }}">
+                                <div class="item-total" id="item-total-{{ $cartKey }}">
                                     ₱{{ number_format($itemTotal, 2) }}
                                 </div>
 
                                 <form
                                     class="remove-form"
-                                    data-product-id="{{ $product->id }}"
-                                    action="{{ route('cart.remove', $product->id) }}"
+                                    data-cart-key="{{ $cartKey }}"
+                                    action="{{ route('cart.remove', $cartKey) }}"
                                     method="POST"
                                 >
 
@@ -829,14 +834,14 @@
                             return;
                         }
 
-                        var productId = form.dataset.productId;
+                        var cartKey = form.dataset.cartKey;
 
                         if (data.removed) {
-                            var row = document.getElementById('cart-item-' + productId);
+                            var row = document.getElementById('cart-item-' + cartKey);
                             if (row) row.remove();
                         } else {
-                            var qtyEl = document.getElementById('qty-' + productId);
-                            var totalEl = document.getElementById('item-total-' + productId);
+                            var qtyEl = document.getElementById('qty-' + cartKey);
+                            var totalEl = document.getElementById('item-total-' + cartKey);
 
                             if (qtyEl) qtyEl.textContent = data.quantity;
                             if (totalEl) totalEl.textContent = '₱' + data.item_total;
@@ -858,7 +863,7 @@
                     var actionInput = form.querySelector('input[name="action"]');
 
                     if (actionInput && actionInput.value === 'decrease') {
-                        var qtyEl = document.getElementById('qty-' + form.dataset.productId);
+                        var qtyEl = document.getElementById('qty-' + form.dataset.cartKey);
                         var currentQty = qtyEl ? parseInt(qtyEl.textContent, 10) : 0;
 
                         if (currentQty <= 1) {

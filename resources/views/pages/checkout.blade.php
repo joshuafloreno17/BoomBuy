@@ -435,22 +435,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 @endphp
 
 
-                @foreach($cart as $slug => $quantity)
+                @foreach($cart as $cartKey => $quantity)
 
-                    @if(isset($products[$slug]))
+                    @php
+                        [$productId, $variationId] = parseCartKey($cartKey);
+                    @endphp
+
+                    @if(isset($products[$productId]))
 
                         @php
 
-                            $product = $products[$slug];
+                            $product = $products[$productId];
 
                             $unitPrice = (float) $product['price'];
-                            $lineVariation = null;
+                            $lineVariation = $variationId
+                                ? \App\Models\ProductVariation::find($variationId)
+                                : null;
 
-                            if (!empty($cartVariations[$slug])) {
-                                $lineVariation = \App\Models\ProductVariation::find($cartVariations[$slug]);
-                                if ($lineVariation) {
-                                    $unitPrice += (float) $lineVariation->price_adjustment;
-                                }
+                            if ($lineVariation) {
+                                $unitPrice += (float) $lineVariation->price_adjustment;
                             }
 
                             $subtotal = $unitPrice * $quantity;

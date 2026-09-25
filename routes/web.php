@@ -69,16 +69,21 @@ if (!function_exists('currentMessagingUser')) {
 if (!function_exists('cartSummary')) {
     function cartSummary($cart)
     {
-        $databaseProducts = \App\Models\Product::whereIn('id', array_keys($cart))
+        $productIds = array_map(
+            fn ($key) => parseCartKey($key)[0],
+            array_keys($cart)
+        );
+
+        $databaseProducts = \App\Models\Product::whereIn('id', array_unique($productIds))
             ->get()
             ->keyBy('id');
-
-        $cartVariations = session()->get('cart_variations', []);
 
         $subtotal = 0;
         $totalItems = 0;
 
-        foreach ($cart as $productId => $quantity) {
+        foreach ($cart as $cartKey => $quantity) {
+
+            [$productId, $variationId] = parseCartKey($cartKey);
 
             $product = $databaseProducts->get($productId);
 
@@ -86,9 +91,9 @@ if (!function_exists('cartSummary')) {
 
                 $unitPrice = (float) $product->price;
 
-                if (!empty($cartVariations[$productId])) {
+                if ($variationId) {
 
-                    $variation = \App\Models\ProductVariation::find($cartVariations[$productId]);
+                    $variation = \App\Models\ProductVariation::find($variationId);
 
                     if ($variation) {
                         $unitPrice += (float) $variation->price_adjustment;
@@ -104,6 +109,23 @@ if (!function_exists('cartSummary')) {
             'subtotal' => number_format($subtotal, 2),
             'total_items' => $totalItems,
             'cart_count' => array_sum($cart),
+        ];
+    }
+}
+
+if (!function_exists('parseCartKey')) {
+
+    // Cart lines are keyed "productId:variationId" so that two different
+    // variations (colors, sizes...) of the same product are tracked as
+    // separate lines instead of merging into one. variationId is 0 when
+    // the product has no variation selected.
+    function parseCartKey($key)
+    {
+        $parts = explode(':', (string) $key);
+
+        return [
+            (int) ($parts[0] ?? 0),
+            (int) ($parts[1] ?? 0),
         ];
     }
 }
@@ -5132,13 +5154,39 @@ Route::post('/cart/add/{id}', function ($id) {
 
     /*
     |--------------------------------------------------------------------------
+    | RESOLVE THE SELECTED VARIATION (IF ANY)
+    |--------------------------------------------------------------------------
+    |
+    | A product with variations tracks its real sellable stock per
+    | variation (see the "N in stock" shown per color/size on the product
+    | page) — the base product's own stock column only matters when there
+    | is no variation involved.
+    |
+    */
+
+    $variationId = (int) request('variation_id', 0);
+    $variation = null;
+
+    if ($variationId) {
+
+        $variation = \App\Models\ProductVariation::where('id', $variationId)
+            ->where('product_id', $product->id)
+            ->first();
+
+        if (!$variation) {
+            $variationId = 0;
+        }
+    }
+
+    $effectiveStock = $variation ? (int) $variation->stock : (int) $product->stock;
+
+    /*
+    |--------------------------------------------------------------------------
     | CHECK STOCK
     |--------------------------------------------------------------------------
     */
 
-    $stock = (int) $product->stock;
-
-    if ($stock <= 0) {
+    if ($effectiveStock <= 0) {
         return back()->with(
             'error',
             'This product is currently out of stock.'
@@ -5149,11 +5197,18 @@ Route::post('/cart/add/{id}', function ($id) {
     |--------------------------------------------------------------------------
     | GET CURRENT CART
     |--------------------------------------------------------------------------
+    |
+    | Keyed "productId:variationId" so that different variations (e.g. two
+    | different colors) of the same product land on separate cart lines
+    | instead of merging into one.
+    |
     */
+
+    $cartKey = $product->id . ':' . $variationId;
 
     $cart = session()->get('cart', []);
 
-    $currentQuantity = (int) ($cart[$product->id] ?? 0);
+    $currentQuantity = (int) ($cart[$cartKey] ?? 0);
 
     /*
     |--------------------------------------------------------------------------
@@ -5161,7 +5216,7 @@ Route::post('/cart/add/{id}', function ($id) {
     |--------------------------------------------------------------------------
     */
 
-    if ($currentQuantity >= $stock) {
+    if ($currentQuantity >= $effectiveStock) {
         return back()->with(
             'error',
             'You cannot add more than the available stock.'
@@ -5176,31 +5231,7 @@ Route::post('/cart/add/{id}', function ($id) {
 
     $requestedQty = max(1, (int) request('quantity', 1));
 
-    $cart[$product->id] = $currentQuantity + $requestedQty;
-
-    /*
-    |--------------------------------------------------------------------------
-    | REMEMBER SELECTED VARIATION (COLOR/SIZE/ETC.)
-    |--------------------------------------------------------------------------
-    |
-    | Simplification: the cart tracks at most one chosen variation per
-    | product — adding the same product again with a different variation
-    | replaces the previous choice rather than creating a second line.
-    |
-    */
-
-    if (request('variation_id')) {
-
-        $variation = \App\Models\ProductVariation::where('id', request('variation_id'))
-            ->where('product_id', $product->id)
-            ->first();
-
-        if ($variation) {
-            $cartVariations = session()->get('cart_variations', []);
-            $cartVariations[$product->id] = $variation->id;
-            session()->put('cart_variations', $cartVariations);
-        }
-    }
+    $cart[$cartKey] = $currentQuantity + $requestedQty;
 
     /*
     |--------------------------------------------------------------------------
@@ -5250,8 +5281,24 @@ Route::post('/buy-now/{id}', function ($id) {
         $quantity = 1;
     }
 
+    $variationId = (int) request('variation_id', 0);
+    $variation = null;
+
+    if ($variationId) {
+
+        $variation = \App\Models\ProductVariation::where('id', $variationId)
+            ->where('product_id', $product->id)
+            ->first();
+
+        if (!$variation) {
+            $variationId = 0;
+        }
+    }
+
+    $effectiveStock = $variation ? (int) $variation->stock : (int) $product->stock;
+
     // Check available stock
-    if ($quantity > $product->stock) {
+    if ($quantity > $effectiveStock) {
         return back()->with('error', 'Not enough stock available.');
     }
 
@@ -5262,20 +5309,8 @@ Route::post('/buy-now/{id}', function ($id) {
     */
 
     session()->put('buy_now', [
-        $product->id => $quantity
+        $product->id . ':' . $variationId => $quantity,
     ]);
-
-    if (request('variation_id')) {
-
-        $variation = \App\Models\ProductVariation::where('id', request('variation_id'))
-            ->where('product_id', $product->id)
-            ->first();
-
-        session()->put('buy_now_variations', $variation ? [$product->id => $variation->id] : []);
-
-    } else {
-        session()->put('buy_now_variations', []);
-    }
 
     return redirect()
         ->route('checkout');
@@ -5284,37 +5319,42 @@ Route::post('/buy-now/{id}', function ($id) {
 
 
 // Update cart
-Route::post('/cart/update/{slug}', function ($slug) {
+Route::post('/cart/update/{key}', function ($key) {
 
     $cart =
         session()->get('cart', []);
 
-    if (!isset($cart[$slug])) {
+    if (!isset($cart[$key])) {
         return back();
     }
 
     $action =
         request('action');
 
-    $product = Product::find($slug);
+    [$productId, $variationId] = parseCartKey($key);
+
+    $product = Product::find($productId);
+    $variation = $variationId ? \App\Models\ProductVariation::find($variationId) : null;
 
     $blocked = false;
 
     if ($action === 'increase') {
 
-        if ($product && $cart[$slug] >= $product->stock) {
+        $effectiveStock = $variation ? (int) $variation->stock : (int) ($product->stock ?? 0);
+
+        if ($cart[$key] >= $effectiveStock) {
             $blocked = true;
         } else {
-            $cart[$slug]++;
+            $cart[$key]++;
         }
 
     } elseif ($action === 'decrease') {
 
-        $cart[$slug]--;
+        $cart[$key]--;
 
-        if ($cart[$slug] <= 0) {
+        if ($cart[$key] <= 0) {
 
-            unset($cart[$slug]);
+            unset($cart[$key]);
         }
     }
 
@@ -5325,14 +5365,20 @@ Route::post('/cart/update/{slug}', function ($slug) {
 
     if (request()->wantsJson()) {
 
-        $newQuantity = $cart[$slug] ?? 0;
+        $newQuantity = $cart[$key] ?? 0;
+
+        $unitPrice = $product ? (float) $product->price : 0;
+
+        if ($variation) {
+            $unitPrice += (float) $variation->price_adjustment;
+        }
 
         return response()->json(array_merge(
             [
                 'removed' => $newQuantity <= 0,
                 'quantity' => $newQuantity,
                 'item_total' => $product
-                    ? number_format((float) $product->price * $newQuantity, 2)
+                    ? number_format($unitPrice * $newQuantity, 2)
                     : '0.00',
                 'blocked' => $blocked,
                 'message' => $blocked ? 'No more stock available for this product.' : null,
@@ -5351,14 +5397,14 @@ Route::post('/cart/update/{slug}', function ($slug) {
 
 
 // Remove from cart
-Route::post('/cart/remove/{slug}', function ($slug) {
+Route::post('/cart/remove/{key}', function ($key) {
 
     $cart =
         session()->get('cart', []);
 
-    if (isset($cart[$slug])) {
+    if (isset($cart[$key])) {
 
-        unset($cart[$slug]);
+        unset($cart[$key]);
     }
 
     session()->put(
@@ -5478,12 +5524,10 @@ Route::get('/checkout', function () {
     if (!empty($buyNow)) {
 
         $cart = $buyNow;
-        $cartVariations = session()->get('buy_now_variations', []);
 
     } else {
 
         $cart = session()->get('cart', []);
-        $cartVariations = session()->get('cart_variations', []);
 
         if (empty($cart)) {
 
@@ -5503,11 +5547,11 @@ Route::get('/checkout', function () {
     */
 
     $productIds = array_map(
-        'intval',
+        fn ($key) => parseCartKey($key)[0],
         array_keys($cart)
     );
 
-    $products = Product::whereIn('id', $productIds)
+    $products = Product::whereIn('id', array_unique($productIds))
         ->get()
         ->keyBy('id');
 
@@ -5517,9 +5561,11 @@ Route::get('/checkout', function () {
     |--------------------------------------------------------------------------
     */
 
-    foreach ($cart as $productId => $quantity) {
+    foreach ($cart as $cartKey => $quantity) {
 
-        if (!$products->has((int) $productId)) {
+        [$productId] = parseCartKey($cartKey);
+
+        if (!$products->has($productId)) {
 
             return redirect()
                 ->route('cart')
@@ -5543,13 +5589,16 @@ Route::get('/checkout', function () {
 
         $checkoutSubtotal = 0;
 
-        foreach ($cart as $productId => $quantity) {
-            if ($products->has((int) $productId)) {
+        foreach ($cart as $cartKey => $quantity) {
 
-                $unitPrice = (float) $products[(int) $productId]->price;
+            [$productId, $variationId] = parseCartKey($cartKey);
 
-                if (!empty($cartVariations[$productId])) {
-                    $variation = \App\Models\ProductVariation::find($cartVariations[$productId]);
+            if ($products->has($productId)) {
+
+                $unitPrice = (float) $products[$productId]->price;
+
+                if ($variationId) {
+                    $variation = \App\Models\ProductVariation::find($variationId);
                     if ($variation) {
                         $unitPrice += (float) $variation->price_adjustment;
                     }
@@ -5591,7 +5640,6 @@ Route::get('/checkout', function () {
             'cart',
             'products',
             'appliedVoucher',
-            'cartVariations',
             'savedAddress',
             'savedPhone'
         )
@@ -5677,11 +5725,7 @@ Route::post('/checkout/place-order', function () {
     $orderItems = [];
     $total = 0;
 
-    $cartVariations = $isBuyNow
-        ? session()->get('buy_now_variations', [])
-        : session()->get('cart_variations', []);
-
-    foreach ($cart as $productId => $quantity) {
+    foreach ($cart as $cartKey => $quantity) {
 
         $quantity = (int) $quantity;
 
@@ -5689,13 +5733,15 @@ Route::post('/checkout/place-order', function () {
             continue;
         }
 
+        [$productId, $variationId] = parseCartKey($cartKey);
+
         /*
         |--------------------------------------------------------------------------
         | FIND PRODUCT BY DATABASE ID
         |--------------------------------------------------------------------------
         */
 
-        $product = Product::find((int) $productId);
+        $product = Product::find($productId);
 
         if (!$product) {
 
@@ -5709,40 +5755,53 @@ Route::post('/checkout/place-order', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | CHECK STOCK
+        | RESOLVE SELECTED VARIATION (IF ANY)
         |--------------------------------------------------------------------------
         */
 
-        if ((int) $product->stock < $quantity) {
+        $variation = null;
+        $variationLabel = null;
+
+        if ($variationId) {
+
+            $variation = \App\Models\ProductVariation::where('id', $variationId)
+                ->where('product_id', $product->id)
+                ->first();
+
+            if ($variation) {
+                $variationLabel = $variation->variation_type . ': ' . $variation->variation_value;
+            }
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CHECK STOCK
+        |--------------------------------------------------------------------------
+        |
+        | A variation tracks its own sellable stock (see the "N in stock"
+        | shown per color/size on the product page) — the base product's
+        | stock column only applies when there is no variation.
+        |
+        */
+
+        $effectiveStock = $variation ? (int) $variation->stock : (int) $product->stock;
+
+        if ($effectiveStock < $quantity) {
 
             return back()
                 ->withInput()
                 ->with(
                     'error',
                     $product->name .
+                    ($variationLabel ? " ({$variationLabel})" : '') .
                     ' does not have enough stock.'
                 );
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | RESOLVE SELECTED VARIATION (IF ANY)
-        |--------------------------------------------------------------------------
-        */
-
         $unitPrice = (float) $product->price;
-        $variationLabel = null;
 
-        if (!empty($cartVariations[$productId])) {
-
-            $variation = \App\Models\ProductVariation::where('id', $cartVariations[$productId])
-                ->where('product_id', $product->id)
-                ->first();
-
-            if ($variation) {
-                $unitPrice += (float) $variation->price_adjustment;
-                $variationLabel = $variation->variation_type . ': ' . $variation->variation_value;
-            }
+        if ($variation) {
+            $unitPrice += (float) $variation->price_adjustment;
         }
 
         /*
@@ -5770,6 +5829,11 @@ Route::post('/checkout/place-order', function () {
 
             'product_name' =>
                 $product->name,
+
+            // Transient — used below to decrement the right stock row,
+            // not a real order_items column.
+            'variation_id' =>
+                $variation->id ?? null,
 
             'variation_label' =>
                 $variationLabel,
@@ -5936,17 +6000,34 @@ Route::post('/checkout/place-order', function () {
 
         /*
         |--------------------------------------------------------------------------
-        | REDUCE PRODUCT STOCK
+        | REDUCE STOCK
         |--------------------------------------------------------------------------
+        |
+        | A variation carries its own stock — reduce that instead of the
+        | base product's when one was selected.
+        |
         */
 
-        Product::where(
-            'id',
-            $item['product_id']
-        )->decrement(
-            'stock',
-            $item['quantity']
-        );
+        if (!empty($item['variation_id'])) {
+
+            \App\Models\ProductVariation::where(
+                'id',
+                $item['variation_id']
+            )->decrement(
+                'stock',
+                $item['quantity']
+            );
+
+        } else {
+
+            Product::where(
+                'id',
+                $item['product_id']
+            )->decrement(
+                'stock',
+                $item['quantity']
+            );
+        }
     }
 
     /*
@@ -5987,12 +6068,10 @@ Route::post('/checkout/place-order', function () {
     if ($isBuyNow) {
 
         session()->forget('buy_now');
-        session()->forget('buy_now_variations');
 
     } else {
 
         session()->forget('cart');
-        session()->forget('cart_variations');
     }
 
     /*
