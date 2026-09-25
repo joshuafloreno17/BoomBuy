@@ -223,6 +223,10 @@
                         </th>
 
                         <th>
+                            Stock
+                        </th>
+
+                        <th>
                             Rating
                         </th>
 
@@ -293,6 +297,23 @@
 
                                 <span class="product-price">
                                     ₱{{ number_format($product->price ?? 0, 2) }}
+                                </span>
+
+                            </td>
+
+
+                            <!-- STOCK -->
+
+                            <td>
+
+                                @php
+                                    $stockClass = $product->stock <= 0
+                                        ? 'out'
+                                        : ($product->stock <= 5 ? 'low' : '');
+                                @endphp
+
+                                <span class="stock-count {{ $stockClass }}">
+                                    {{ $product->stock > 0 ? $product->stock : 'Out of stock' }}
                                 </span>
 
                             </td>

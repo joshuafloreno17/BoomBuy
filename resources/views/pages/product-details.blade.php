@@ -932,6 +932,18 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
             </div>
 
+
+            @if($canMessageSeller)
+
+                <a
+                    href="{{ route('messages.thread', $product->seller_id) }}"
+                    style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; color:#e8420f; font-size:13px; font-weight:700;"
+                >
+                    💬 Message Seller
+                </a>
+
+            @endif
+
         </div>
 
     </section>

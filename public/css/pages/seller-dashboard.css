@@ -335,6 +335,19 @@ a {
     font-weight: 700;
 }
 
+.stock-count {
+    color: #15803d;
+    font-weight: 700;
+}
+
+.stock-count.low {
+    color: #b45309;
+}
+
+.stock-count.out {
+    color: #dc2626;
+}
+
 .rating {
     color: #f5b70b;
     font-weight: 700;

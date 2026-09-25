@@ -5532,6 +5532,14 @@ Route::get('/product-details/{id}', function ($id) {
             ->exists()
         : false;
 
+    // A buyer can message this product's seller as long as it actually
+    // has one (admin-added products have no seller_id) and they aren't
+    // somehow viewing their own listing.
+    $canMessageSeller = $sessionUser
+        && ($sessionUser['role'] ?? '') === 'buyer'
+        && !empty($product->seller_id)
+        && (int) $product->seller_id !== (int) $sessionUser['id'];
+
     $variations = \App\Models\ProductVariation::where('product_id', $product->id)->get();
 
     return view(
@@ -5543,7 +5551,8 @@ Route::get('/product-details/{id}', function ($id) {
             'averageRating',
             'relatedProducts',
             'isWishlisted',
-            'variations'
+            'variations',
+            'canMessageSeller'
         )
     );
 
@@ -7358,6 +7367,14 @@ Route::post('/seller/return-refund/{id}/approve', function ($id) {
             'updated_at' => now(),
         ]);
 
+    createNotification(
+        (int) $requestData->buyer_id,
+        ucfirst($requestData->request_type) . ' Request Approved',
+        'Your ' . strtolower($requestData->request_type) . ' request for ' . $requestData->product_name . ' has been approved.',
+        'return_refund',
+        (int) $id
+    );
+
     return back()->with(
         'success',
         'Return/Refund request for ' . $requestData->product_name . ' has been approved.'
@@ -7391,6 +7408,15 @@ Route::post('/seller/return-refund/{id}/reject', function ($id) {
             'seller_note' => $sellerNote !== '' ? $sellerNote : 'Request rejected by seller.',
             'updated_at' => now(),
         ]);
+
+    createNotification(
+        (int) $requestData->buyer_id,
+        ucfirst($requestData->request_type) . ' Request Rejected',
+        'Your ' . strtolower($requestData->request_type) . ' request was rejected by the seller.' .
+        ($sellerNote !== '' ? ' Reason: ' . $sellerNote : ''),
+        'return_refund',
+        (int) $id
+    );
 
     return back()->with(
         'success',
@@ -7432,6 +7458,14 @@ Route::post('/seller/return-refund/{id}/returned', function ($id) {
             'updated_at' => now(),
         ]);
 
+    createNotification(
+        (int) $requestData->buyer_id,
+        'Item Marked as Returned',
+        'The seller has confirmed receipt of your returned item.',
+        'return_refund',
+        (int) $id
+    );
+
     return back()->with(
         'success',
         'Return request has been marked as returned.'
@@ -7472,6 +7506,14 @@ Route::post('/seller/return-refund/{id}/refund-processing', function ($id) {
             'updated_at' => now(),
         ]);
 
+    createNotification(
+        (int) $requestData->buyer_id,
+        'Refund Processing',
+        'Your refund is now being processed by the seller.',
+        'return_refund',
+        (int) $id
+    );
+
     return back()->with(
         'success',
         'Refund is now being processed.'
@@ -7511,6 +7553,14 @@ Route::post('/seller/return-refund/{id}/complete', function ($id) {
             'seller_note' => 'Refund has been completed by the seller.',
             'updated_at' => now(),
         ]);
+
+    createNotification(
+        (int) $requestData->buyer_id,
+        'Refund Completed',
+        'Your refund has been completed by the seller.',
+        'return_refund',
+        (int) $id
+    );
 
     return back()->with(
         'success',

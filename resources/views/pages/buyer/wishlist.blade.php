@@ -73,6 +73,16 @@
             margin-bottom: 20px;
         }
 
+        .error-box {
+            background: #fff1f2;
+            border: 1px solid #fecdd3;
+            color: #be123c;
+            padding: 12px 15px;
+            border-radius: 9px;
+            font-size: 12px;
+            margin-bottom: 20px;
+        }
+
         .products {
             width: 100%;
 
@@ -192,26 +202,59 @@
             margin-bottom: 12px;
         }
 
-        .view-btn {
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .view-btn,
+        .add-cart-btn {
             display: block;
 
+            flex: 1;
             width: 100%;
             text-align: center;
-
-            background: #e8420f;
-            color: white;
 
             padding: 10px;
             border-radius: 9px;
 
+            border: none;
+            font-family: inherit;
             font-size: 12px;
             font-weight: 700;
+            cursor: pointer;
 
             transition: 0.2s;
         }
 
-        .view-btn:hover {
+        .add-cart-btn {
+            background: #e8420f;
+            color: white;
+        }
+
+        .add-cart-btn:hover {
             background: #c43408;
+        }
+
+        .view-btn {
+            background: #fff0eb;
+            color: #e8420f;
+        }
+
+        .view-btn:hover {
+            background: #ffe1d5;
+        }
+
+        .out-of-stock-label {
+            display: block;
+            width: 100%;
+            text-align: center;
+            padding: 10px;
+            border-radius: 9px;
+            background: #f1f1f1;
+            color: #6b7280;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .empty-state {
@@ -304,6 +347,10 @@
             <div class="success-box">{{ session('success') }}</div>
         @endif
 
+        @if (session('error'))
+            <div class="error-box">{{ session('error') }}</div>
+        @endif
+
         @if ($products->count() > 0)
 
             <div class="products">
@@ -347,9 +394,30 @@
                             ₱{{ number_format($product->price, 2) }}
                         </div>
 
-                        <a href="{{ route('product.details', $product->id) }}" class="view-btn">
-                            View Product
-                        </a>
+                        <div class="card-actions">
+
+                            @if(!$product->is_archived && $product->stock > 0)
+
+                                <form action="{{ route('cart.add', $product->id) }}" method="POST">
+                                    @csrf
+                                    <button type="submit" class="add-cart-btn">
+                                        Add to Cart
+                                    </button>
+                                </form>
+
+                            @else
+
+                                <span class="out-of-stock-label">
+                                    {{ $product->is_archived ? 'Unavailable' : 'Out of Stock' }}
+                                </span>
+
+                            @endif
+
+                            <a href="{{ route('product.details', $product->id) }}" class="view-btn">
+                                View
+                            </a>
+
+                        </div>
 
                     </div>
 
