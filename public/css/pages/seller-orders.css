@@ -741,10 +741,13 @@ h1 {
     background: #f45b2a;
     color: #ffffff;
 
+    border: none;
     border-radius: 12px;
 
+    font-family: inherit;
     font-size: 12px;
     font-weight: 800;
+    cursor: pointer;
 
     transition: 0.2s ease;
 

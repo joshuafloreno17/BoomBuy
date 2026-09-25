@@ -198,6 +198,14 @@
 
     @endif
 
+    @if($order->status === 'Returned to Seller' && !empty($order->restocked_at))
+
+        <div class="received-badge">
+            ✓ Restocked
+        </div>
+
+    @endif
+
 </div>
 
                         </div>
@@ -294,7 +302,9 @@
 
                             </div>
 
-                           @if(empty($order->buyer_received_at))
+                           <div style="display:flex; align-items:center; gap:10px;">
+
+@if(empty($order->buyer_received_at))
 
     <a
         href="{{ route('seller.order.details', ['id' => $order->id]) }}"
@@ -304,6 +314,19 @@
     </a>
 
 @endif
+
+@if($order->status === 'Returned to Seller' && empty($order->restocked_at))
+
+    <form method="POST" action="{{ route('seller.order.restock', ['id' => $order->id]) }}">
+        @csrf
+        <button type="submit" class="view-btn" onclick="return confirm('Mark this order as restocked? This will add the returned items back to your inventory.')">
+            📦 Mark as Restocked
+        </button>
+    </form>
+
+@endif
+
+                           </div>
 
                         </div>
 

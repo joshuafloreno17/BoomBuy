@@ -3812,6 +3812,7 @@ Route::get('/seller/orders', function () {
             'orders.total_amount',
             'orders.status',
             'orders.buyer_received_at',
+            'orders.restocked_at',
             'orders.shipping_name',
             'orders.shipping_phone',
             'orders.shipping_address',
@@ -8294,9 +8295,116 @@ Route::post('/logistics/parcels/{id}/return-to-seller', function ($id) {
         (int) $id
     );
 
+    $sellerIds = DB::table('order_items')
+        ->where('order_id', $id)
+        ->distinct()
+        ->pluck('seller_id');
+
+    foreach ($sellerIds as $sellerId) {
+        createNotification(
+            (int) $sellerId,
+            'Order Returned to You',
+            'Order #' . $id . ' could not be delivered after repeated attempts and has been returned to you. Please restock the items once received.',
+            'order',
+            (int) $id
+        );
+    }
+
     return back()->with('success', 'Parcel #' . $id . ' has been returned to the seller.');
 
 })->name('logistics.parcels.return-to-seller');
+
+
+Route::post('/seller/order/{id}/restock', function ($id) {
+
+    $user = requireUserRole('seller');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')->where('id', $id)->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    if ($order->status !== 'Returned to Seller') {
+        return back()->with('error', 'Only orders returned to you can be restocked.');
+    }
+
+    if (!empty($order->restocked_at)) {
+        return back()->with('error', 'This order has already been marked as restocked.');
+    }
+
+    $items = DB::table('order_items')
+        ->where('order_id', $id)
+        ->where('seller_id', $user['id'])
+        ->get();
+
+    if ($items->isEmpty()) {
+        return back()->with('error', 'This order does not belong to you.');
+    }
+
+    $restoredCount = 0;
+    $skippedCount = 0;
+
+    foreach ($items as $item) {
+
+        // Plain products carry no variation_label — restore the base
+        // product's stock directly.
+        if (empty($item->variation_label)) {
+
+            Product::where('id', $item->product_id)
+                ->increment('stock', $item->quantity);
+
+            $restoredCount++;
+
+            continue;
+        }
+
+        // Variation items only stored a display label ("Color: Red") at
+        // checkout, not a variation_id — but that label is built from the
+        // variation's own type/value, so it can be parsed back and matched
+        // against this product's variations to find the right stock row.
+        [$variationType, $variationValue] = array_pad(
+            explode(': ', $item->variation_label, 2),
+            2,
+            null
+        );
+
+        $variation = \App\Models\ProductVariation::where('product_id', $item->product_id)
+            ->where('variation_type', $variationType)
+            ->where('variation_value', $variationValue)
+            ->first();
+
+        if ($variation) {
+
+            $variation->increment('stock', $item->quantity);
+
+            $restoredCount++;
+
+        } else {
+
+            // The variation no longer exists (e.g. removed by the seller
+            // since this order was placed) — nothing to safely restock.
+            $skippedCount++;
+        }
+    }
+
+    DB::table('orders')
+        ->where('id', $id)
+        ->update(['restocked_at' => now()]);
+
+    $message = 'Order #' . $id . ' marked as restocked (' . $restoredCount . ' item(s) added back to inventory).';
+
+    if ($skippedCount > 0) {
+        $message .= ' ' . $skippedCount . ' item(s) could not be matched to a variation and were skipped — please adjust stock manually.';
+    }
+
+    return back()->with('success', $message);
+
+})->name('seller.order.restock');
 
 
 Route::post('/logistics/riders/{id}/approve', function ($id) {
