@@ -61,20 +61,9 @@
 
 @else
 
+    @include('partials.buyer-navbar', ['activeNav' => 'complaints'])
+
     <div class="container">
-
-        @php
-            $dashboardRoute = match($role) {
-                'seller' => 'seller.dashboard',
-                'rider' => 'rider.dashboard',
-                'logistics' => 'logistics.dashboard',
-                default => 'buyer.dashboard',
-            };
-        @endphp
-
-        <a href="{{ route($dashboardRoute) }}" class="back-link">
-            ← Back to Dashboard
-        </a>
 
         @include('pages.partials.complaints-body')
 

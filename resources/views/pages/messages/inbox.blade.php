@@ -61,21 +61,9 @@
 
 @else
 
+    @include('partials.buyer-navbar', ['activeNav' => 'messages'])
+
     <div class="container">
-
-        @php
-            $dashboardRoute = match($role) {
-                'seller' => 'seller.dashboard',
-                'rider' => 'rider.dashboard',
-                'admin' => 'admin.dashboard',
-                'logistics' => 'logistics.dashboard',
-                default => 'buyer.dashboard',
-            };
-        @endphp
-
-        <a href="{{ route($dashboardRoute) }}" class="back-link">
-            ← Back to Dashboard
-        </a>
 
         @include('pages.partials.messages-inbox-body')
 

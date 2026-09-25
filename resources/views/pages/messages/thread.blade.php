@@ -61,6 +61,8 @@
 
 @else
 
+    @include('partials.buyer-navbar', ['activeNav' => 'messages'])
+
     <div class="container">
         @include('pages.partials.messages-thread-body')
     </div>
