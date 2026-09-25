@@ -303,11 +303,11 @@
                             <td>
 
                                 <span class="rating">
-                                    ★  0.0
+                                    ★ {{ number_format($product->reviews_avg_rating ?? 0, 1) }}
                                 </span>
 
                                 <span class="reviews">
-                                    (0)
+                                    ({{ $product->reviews_count ?? 0 }})
                                 </span>
 
                             </td>

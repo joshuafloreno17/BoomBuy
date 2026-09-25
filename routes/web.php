@@ -1914,6 +1914,7 @@ Route::get('/admin/products', function () {
                 'price' => (float) $product->price,
                 'stock' => (int) $product->stock,
                 'icon' => $product->image,
+                'is_archived' => (bool) $product->is_archived,
             ];
 
         })
@@ -2015,6 +2016,200 @@ Route::post('/admin/products/store', function () {
         );
 
 })->name('admin.products.store');
+
+
+Route::get('/admin/products/{id}/edit', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    return view('pages.admin-edit-product', compact('product'));
+
+})->name('admin.products.edit');
+
+
+Route::put('/admin/products/{id}', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $name = trim(request('name'));
+    $category = trim(request('category'));
+    $price = (float) request('price');
+    $stock = (int) request('stock');
+    $description = trim(request('description'));
+    $image = request()->file('image');
+
+    if (
+        empty($name) ||
+        empty($category) ||
+        $price <= 0 ||
+        $stock < 0 ||
+        empty($description)
+    ) {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'Please complete all product fields.'
+            );
+    }
+
+    $categoryNames = [
+        'smartphone' => 'Smartphone',
+        'laptop' => 'Laptop',
+        'audio' => 'Audio',
+        'wearable' => 'Wearable',
+        'accessories' => 'Accessories',
+    ];
+
+    $categoryName =
+        $categoryNames[strtolower($category)]
+        ?? ucfirst($category);
+
+    if (Product::where('name', $name)->where('id', '!=', $product->id)->exists()) {
+
+        return back()
+            ->withInput()
+            ->with(
+                'error',
+                'A product with this name already exists.'
+            );
+    }
+
+    $updateData = [
+        'name' => $name,
+        'category' => $categoryName,
+        'price' => $price,
+        'stock' => $stock,
+        'description' => $description,
+    ];
+
+    if ($image) {
+
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
+        }
+
+        $updateData['image'] = $image->store('products', 'public');
+    }
+
+    $product->update($updateData);
+
+    return redirect()
+        ->route('admin.products')
+        ->with(
+            'success',
+            $product->name . ' has been updated successfully!'
+        );
+
+})->name('admin.products.update');
+
+
+Route::delete('/admin/products/{id}', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    // order_items.product_id cascades on delete — if any order ever
+    // included this product, deleting it would silently wipe those
+    // buyers' order lines (and any reviews) out from under real orders.
+    // Archiving is the safe equivalent: it hides the product without
+    // touching order history.
+    $hasOrderHistory = DB::table('order_items')
+        ->where('product_id', $product->id)
+        ->exists();
+
+    if ($hasOrderHistory) {
+
+        return back()->with(
+            'error',
+            'This product has order history and cannot be deleted. Archive it instead to hide it from the shop.'
+        );
+    }
+
+    $productName = $product->name;
+
+    if ($product->image) {
+        Storage::disk('public')->delete($product->image);
+    }
+
+    $product->delete();
+
+    return redirect()
+        ->route('admin.products')
+        ->with(
+            'success',
+            $productName . ' deleted successfully!'
+        );
+
+})->name('admin.products.delete');
+
+
+Route::post('/admin/products/{id}/archive', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $product->update(['is_archived' => true]);
+
+    return back()->with(
+        'success',
+        $product->name . ' has been archived and removed from the storefront.'
+    );
+
+})->name('admin.products.archive');
+
+
+Route::post('/admin/products/{id}/unarchive', function ($id) {
+
+    if (!session()->get('admin_logged_in')) {
+        return redirect()->route('admin.login');
+    }
+
+    $product = Product::find($id);
+
+    if (!$product) {
+        abort(404);
+    }
+
+    $product->update(['is_archived' => false]);
+
+    return back()->with(
+        'success',
+        $product->name . ' has been restored to the storefront.'
+    );
+
+})->name('admin.products.unarchive');
 
 
 /*
@@ -3059,7 +3254,11 @@ Route::get('/seller', function () {
     $products = Product::where(
         'seller_id',
         $user['id']
-    )->where('is_archived', false)->latest()->get();
+    )->where('is_archived', false)
+        ->withAvg('reviews', 'rating')
+        ->withCount('reviews')
+        ->latest()
+        ->get();
 
     $archivedProducts = Product::where(
         'seller_id',

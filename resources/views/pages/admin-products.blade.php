@@ -240,13 +240,19 @@
             font-weight: 600;
         }
 
+        .stock.out {
+            color: #dc2626;
+        }
+
         .actions {
             display: flex;
+            flex-wrap: wrap;
             gap: 7px;
         }
 
         .edit,
-        .delete {
+        .delete,
+        .archive {
             border: none;
             padding: 7px 10px;
             border-radius: 6px;
@@ -265,12 +271,21 @@
             color: #dc2626;
         }
 
+        .archive {
+            background: #f1f1f1;
+            color: #6b7280;
+        }
+
         .edit:hover {
             background: #ffe4dc;
         }
 
         .delete:hover {
             background: #ffe0e0;
+        }
+
+        .archive:hover {
+            background: #e5e7eb;
         }
 
         .empty {
@@ -543,8 +558,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         </td>
 
 
-                        <td class="stock">
-                            In Stock
+                        <td class="stock {{ ($product['stock'] ?? 0) <= 0 ? 'out' : '' }}">
+                            {{ ($product['stock'] ?? 0) > 0 ? ($product['stock'] . ' in stock') : 'Out of stock' }}
                         </td>
 
 
@@ -552,22 +567,40 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                             <div class="actions">
 
-                                <button
-                                    type="button"
+                                <a
+                                    href="{{ route('admin.products.edit', ['id' => $product['id']]) }}"
                                     class="edit"
-                                    onclick="editProduct('{{ addslashes($product['name'] ?? 'Product') }}')"
                                 >
                                     Edit
-                                </button>
+                                </a>
 
 
-                                <button
-                                    type="button"
-                                    class="delete"
-                                    onclick="deleteProduct(this, '{{ addslashes($product['name'] ?? 'Product') }}')"
+                                @if($product['is_archived'] ?? false)
+
+                                    <form method="POST" action="{{ route('admin.products.unarchive', ['id' => $product['id']]) }}">
+                                        @csrf
+                                        <button type="submit" class="archive">Unarchive</button>
+                                    </form>
+
+                                @else
+
+                                    <form method="POST" action="{{ route('admin.products.archive', ['id' => $product['id']]) }}">
+                                        @csrf
+                                        <button type="submit" class="archive">Archive</button>
+                                    </form>
+
+                                @endif
+
+
+                                <form
+                                    method="POST"
+                                    action="{{ route('admin.products.delete', ['id' => $product['id']]) }}"
+                                    onsubmit="return confirm('Delete ' + {{ Js::from($product['name'] ?? 'this product') }} + '? This cannot be undone.');"
                                 >
-                                    Delete
-                                </button>
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="delete">Delete</button>
+                                </form>
 
                             </div>
 
@@ -708,27 +741,6 @@ categoryFilter.addEventListener(
     filterProducts
 );
 
-
-function deleteProduct(button, name) {
-
-    alert(
-        "Delete feature for " +
-        name +
-        " will be connected next."
-    );
-
-}
-
-
-function editProduct(name) {
-
-    alert(
-        "Edit feature for " +
-        name +
-        " will be connected next."
-    );
-
-}
 
 </script>
 

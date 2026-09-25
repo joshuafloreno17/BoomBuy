@@ -23,4 +23,9 @@ class Product extends Model
         'is_flagged' => 'boolean',
         'is_archived' => 'boolean',
     ];
+
+    public function reviews()
+    {
+        return $this->hasMany(ProductReview::class);
+    }
 }
