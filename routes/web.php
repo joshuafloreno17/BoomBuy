@@ -3612,7 +3612,14 @@ Route::post('/seller/products/{id}/variations', function ($id) {
         'variation_value' => 'required|string|max:50',
         'price_adjustment' => 'nullable|numeric',
         'stock' => 'required|integer|min:0',
+        'image' => 'nullable|image|max:4096',
     ]);
+
+    $imagePath = null;
+
+    if (request()->hasFile('image')) {
+        $imagePath = request()->file('image')->store('variations', 'public');
+    }
 
     \App\Models\ProductVariation::create([
         'product_id' => $product->id,
@@ -3620,6 +3627,7 @@ Route::post('/seller/products/{id}/variations', function ($id) {
         'variation_value' => request('variation_value'),
         'price_adjustment' => request('price_adjustment', 0),
         'stock' => request('stock'),
+        'image' => $imagePath,
     ]);
 
     return back()->with('success', 'Variation added successfully.');
@@ -3641,9 +3649,18 @@ Route::delete('/seller/products/{id}/variations/{variationId}', function ($id, $
         abort(404);
     }
 
-    \App\Models\ProductVariation::where('id', $variationId)
+    $variation = \App\Models\ProductVariation::where('id', $variationId)
         ->where('product_id', $product->id)
-        ->delete();
+        ->first();
+
+    if ($variation) {
+
+        if ($variation->image) {
+            Storage::disk('public')->delete($variation->image);
+        }
+
+        $variation->delete();
+    }
 
     return back()->with('success', 'Variation removed.');
 

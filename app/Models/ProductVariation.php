@@ -12,6 +12,7 @@ class ProductVariation extends Model
         'variation_value',
         'price_adjustment',
         'stock',
+        'image',
     ];
 
     public function product()

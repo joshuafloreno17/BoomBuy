@@ -82,6 +82,8 @@
         /* PRODUCT VISUAL */
 
         .product-visual {
+            position: relative;
+
             min-height: 420px;
 
             border-radius: 16px;
@@ -95,6 +97,98 @@
             justify-content: center;
 
             font-size: 130px;
+
+            touch-action: pan-y;
+            user-select: none;
+        }
+
+        .gallery-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+
+            width: 38px;
+            height: 38px;
+
+            border: none;
+            border-radius: 50%;
+
+            background: rgba(255, 255, 255, 0.85);
+            color: #172033;
+
+            font-size: 20px;
+            font-weight: 700;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            cursor: pointer;
+            z-index: 2;
+
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        }
+
+        .gallery-nav:hover {
+            background: #ffffff;
+        }
+
+        .gallery-nav.prev { left: 12px; }
+        .gallery-nav.next { right: 12px; }
+
+        .variation-swatches {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+
+            margin-top: 12px;
+        }
+
+        .variation-swatch {
+            width: 52px;
+            height: 52px;
+
+            border: 2px solid #f0ddd5;
+            border-radius: 10px;
+            overflow: hidden;
+
+            background: #fff7f4;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            padding: 0;
+            cursor: pointer;
+
+            transition: border-color 0.15s ease;
+        }
+
+        .variation-swatch img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .variation-swatch .swatch-fallback {
+            font-size: 10px;
+            font-weight: 700;
+            color: #977970;
+            text-align: center;
+            padding: 2px;
+            overflow-wrap: anywhere;
+        }
+
+        .variation-swatch.active {
+            border-color: #e8420f;
+        }
+
+        .variation-info {
+            margin-top: 10px;
+
+            font-size: 13px;
+            font-weight: 600;
+            color: #6f5d58;
         }
 
         /* INFO */
@@ -498,6 +592,11 @@
                 font-size: 90px;
             }
 
+            .variation-swatch {
+                width: 44px;
+                height: 44px;
+            }
+
             .product-name {
                 font-size: 28px;
             }
@@ -564,18 +663,29 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         <!-- PRODUCT IMAGE / ICON -->
 
   {{-- PRODUCT IMAGE --}}
-<div class="product-visual">
+<div>
 
     @php
         $productImage = $product['image'] ?? null;
+
+        $productImageUrl = $productImage
+            ? (str_starts_with($productImage, 'http')
+                ? $productImage
+                : asset('storage/' . ltrim($productImage, '/')))
+            : null;
     @endphp
 
-    @if($productImage)
+    <div class="product-visual" id="mainImageContainer">
+
+        @if($variations->count() > 1)
+            <button type="button" class="gallery-nav prev" onclick="galleryStep(-1)" aria-label="Previous option">‹</button>
+            <button type="button" class="gallery-nav next" onclick="galleryStep(1)" aria-label="Next option">›</button>
+        @endif
 
         <img
-            src="{{ str_starts_with($productImage, 'http')
-                ? $productImage
-                : asset('storage/' . ltrim($productImage, '/')) }}"
+            id="mainProductImage"
+            @if($productImageUrl) src="{{ $productImageUrl }}" @endif
+            data-fallback-src="{{ $productImageUrl }}"
             alt="{{ $product['name'] ?? 'Product' }}"
             style="
                 width: 100%;
@@ -584,12 +694,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 display: none;
             "
             onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-            onerror="this.style.display='none';"
+            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
         >
 
-    @endif
-
-        <div style="
+        <div id="mainImageFallback" style="
             width: 100%;
             height: 100%;
             display: flex;
@@ -599,6 +707,47 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         ">
             📦
         </div>
+
+    </div>
+
+    @if($variations->count() > 0)
+
+        <div class="variation-swatches" id="variationSwatches">
+
+            @foreach($variations as $index => $variation)
+
+                @php
+                    $variationImageUrl = $variation->image
+                        ? asset('storage/' . ltrim($variation->image, '/'))
+                        : '';
+                @endphp
+
+                <button
+                    type="button"
+                    class="variation-swatch {{ $index === 0 ? 'active' : '' }}"
+                    data-index="{{ $index }}"
+                    data-id="{{ $variation->id }}"
+                    data-adjustment="{{ $variation->price_adjustment }}"
+                    data-stock="{{ $variation->stock }}"
+                    data-label="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                    data-image="{{ $variationImageUrl }}"
+                    onclick="selectVariation({{ $index }})"
+                    title="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                >
+                    @if($variationImageUrl)
+                        <img src="{{ $variationImageUrl }}" alt="{{ $variation->variation_value }}">
+                    @else
+                        <span class="swatch-fallback">{{ $variation->variation_value }}</span>
+                    @endif
+                </button>
+
+            @endforeach
+
+        </div>
+
+        <div class="variation-info" id="variationInfo"></div>
+
+    @endif
 
 </div>
 
@@ -656,31 +805,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
-            <!-- VARIATIONS -->
-
-            @if($variations->count() > 0)
-
-                <label class="quantity-label">
-                    Options
-                </label>
-
-                <select
-                    id="variationSelect"
-                    onchange="updateVariationInputs()"
-                    style="width:100%; padding:11px 13px; border:1px solid #f0ddd5; border-radius:10px; font-family:inherit; font-size:13px; margin-bottom:16px;"
-                >
-                    @foreach($variations as $variation)
-                        <option value="{{ $variation->id }}" data-adjustment="{{ $variation->price_adjustment }}">
-                            {{ $variation->variation_type }}: {{ $variation->variation_value }}
-                            @if($variation->price_adjustment > 0)
-                                (+₱{{ number_format($variation->price_adjustment, 2) }})
-                            @endif
-                            — {{ $variation->stock }} in stock
-                        </option>
-                    @endforeach
-                </select>
-
-            @endif
+            <!-- VARIATIONS: selected via the swatches next to the product photo -->
 
 
             <!-- QUANTITY -->
@@ -962,26 +1087,117 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     }
 
-    function updateVariationInputs() {
+    function selectVariation(index) {
 
-        const select = document.getElementById('variationSelect');
+        const swatches = Array.prototype.slice.call(
+            document.querySelectorAll('.variation-swatch')
+        );
 
-        if (!select) {
+        const swatch = swatches[index];
+
+        if (!swatch) {
             return;
         }
 
-        const variationId = select.value;
+        swatches.forEach(function (s) {
+            s.classList.toggle('active', s === swatch);
+        });
 
         const cartVariationInput = document.getElementById('cartVariationId');
         const buyNowVariationInput = document.getElementById('buyNowVariationId');
 
-        if (cartVariationInput) cartVariationInput.value = variationId;
-        if (buyNowVariationInput) buyNowVariationInput.value = variationId;
+        if (cartVariationInput) cartVariationInput.value = swatch.dataset.id;
+        if (buyNowVariationInput) buyNowVariationInput.value = swatch.dataset.id;
+
+        const img = document.getElementById('mainProductImage');
+        const fallback = document.getElementById('mainImageFallback');
+
+        const imageUrl = swatch.dataset.image || img.dataset.fallbackSrc || '';
+
+        if (imageUrl) {
+            img.src = imageUrl;
+        } else {
+            img.removeAttribute('src');
+            img.style.display = 'none';
+            fallback.style.display = 'flex';
+        }
+
+        const infoEl = document.getElementById('variationInfo');
+
+        if (infoEl) {
+
+            const adjustment = parseFloat(swatch.dataset.adjustment) || 0;
+
+            let text = swatch.dataset.label;
+
+            if (adjustment > 0) {
+                text += ' (+₱' + adjustment.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')';
+            }
+
+            text += ' — ' + swatch.dataset.stock + ' in stock';
+
+            infoEl.textContent = text;
+        }
 
     }
 
+    function galleryStep(direction) {
+
+        const swatches = document.querySelectorAll('.variation-swatch');
+
+        if (swatches.length === 0) {
+            return;
+        }
+
+        let currentIndex = 0;
+
+        swatches.forEach(function (s, i) {
+            if (s.classList.contains('active')) currentIndex = i;
+        });
+
+        let nextIndex = (currentIndex + direction + swatches.length) % swatches.length;
+
+        selectVariation(nextIndex);
+
+    }
+
+    // Swipe support on the main image
+    (function () {
+
+        const container = document.getElementById('mainImageContainer');
+
+        if (!container) {
+            return;
+        }
+
+        let touchStartX = null;
+
+        container.addEventListener('touchstart', function (e) {
+            touchStartX = e.changedTouches[0].clientX;
+        }, { passive: true });
+
+        container.addEventListener('touchend', function (e) {
+
+            if (touchStartX === null) {
+                return;
+            }
+
+            const deltaX = e.changedTouches[0].clientX - touchStartX;
+
+            if (Math.abs(deltaX) > 40) {
+                galleryStep(deltaX < 0 ? 1 : -1);
+            }
+
+            touchStartX = null;
+
+        }, { passive: true });
+
+    })();
+
     // Initialize variation selection on page load
-    updateVariationInputs();
+    if (document.querySelector('.variation-swatch')) {
+        selectVariation(0);
+    }
 
 
     document

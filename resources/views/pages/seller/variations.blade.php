@@ -44,7 +44,7 @@
             <div class="card">
                 <h2>Add Variation</h2>
 
-                <form method="POST" action="{{ route('seller.products.variations.store', $product->id) }}">
+                <form method="POST" action="{{ route('seller.products.variations.store', $product->id) }}" enctype="multipart/form-data">
                     @csrf
 
                     <div class="form-row">
@@ -69,7 +69,16 @@
                             <input type="number" min="0" id="stock" name="stock" placeholder="0" required>
                         </div>
 
+                        <div class="form-group">
+                            <label for="image">Photo (optional)</label>
+                            <input type="file" id="image" name="image" accept="image/*">
+                        </div>
+
                     </div>
+
+                    <p style="font-size:12px; color:#977970; margin:-8px 0 14px;">
+                        Add a photo for color/appearance variations so buyers can see what each option looks like on the product page.
+                    </p>
 
                     <button type="submit" class="save-btn">Add Variation</button>
 
@@ -82,6 +91,7 @@
                 <table>
                     <thead>
                         <tr>
+                            <th>PHOTO</th>
                             <th>TYPE</th>
                             <th>VALUE</th>
                             <th>EXTRA PRICE</th>
@@ -92,6 +102,13 @@
                     <tbody>
                         @forelse($variations as $variation)
                             <tr>
+                                <td>
+                                    @if($variation->image)
+                                        <img src="{{ asset('storage/' . ltrim($variation->image, '/')) }}" alt="{{ $variation->variation_value }}" style="width:40px; height:40px; object-fit:cover; border-radius:8px;">
+                                    @else
+                                        <span style="color:#c9b8b2; font-size:11px;">No photo</span>
+                                    @endif
+                                </td>
                                 <td>{{ $variation->variation_type }}</td>
                                 <td>{{ $variation->variation_value }}</td>
                                 <td>₱{{ number_format($variation->price_adjustment, 2) }}</td>
@@ -106,7 +123,7 @@
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="5" class="empty-message">No variations yet — this product will be sold as a single option.</td>
+                                <td colspan="6" class="empty-message">No variations yet — this product will be sold as a single option.</td>
                             </tr>
                         @endforelse
                     </tbody>
