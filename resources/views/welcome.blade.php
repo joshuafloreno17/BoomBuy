@@ -46,6 +46,79 @@
         }
 
         /* =========================
+           MOTION PRIMITIVES
+        ========================= */
+
+        @keyframes bbDrift {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            50% { transform: translate(-18px, 16px) scale(1.07); }
+        }
+
+        @keyframes bbPulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(232, 66, 15, 0.35); }
+            50% { box-shadow: 0 0 0 9px rgba(232, 66, 15, 0); }
+        }
+
+        @keyframes bbShine {
+            0% { transform: translateX(-120%) skewX(-12deg); }
+            100% { transform: translateX(220%) skewX(-12deg); }
+        }
+
+        @keyframes bbFadeUp {
+            from { opacity: 0; transform: translateY(22px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .bb-reveal {
+            opacity: 0;
+            transform: translateY(24px);
+            transition: opacity 0.6s cubic-bezier(.2,.7,.3,1), transform 0.6s cubic-bezier(.2,.7,.3,1);
+            transition-delay: calc(var(--bb-i, 0) * 70ms);
+        }
+        .bb-reveal.bb-in-view { opacity: 1; transform: translateY(0); }
+
+        .categories .category:nth-child(8n+1) { --bb-i: 0; }
+        .categories .category:nth-child(8n+2) { --bb-i: 1; }
+        .categories .category:nth-child(8n+3) { --bb-i: 2; }
+        .categories .category:nth-child(8n+4) { --bb-i: 3; }
+        .categories .category:nth-child(8n+5) { --bb-i: 4; }
+        .categories .category:nth-child(8n+6) { --bb-i: 5; }
+        .categories .category:nth-child(8n+7) { --bb-i: 6; }
+        .categories .category:nth-child(8n+8) { --bb-i: 7; }
+
+        .products .product:nth-child(4n+1) { --bb-i: 0; }
+        .products .product:nth-child(4n+2) { --bb-i: 1; }
+        .products .product:nth-child(4n+3) { --bb-i: 2; }
+        .products .product:nth-child(4n+4) { --bb-i: 3; }
+
+        .features .feature:nth-child(1) { --bb-i: 0; }
+        .features .feature:nth-child(2) { --bb-i: 1; }
+        .features .feature:nth-child(3) { --bb-i: 2; }
+
+        .bb-shine { position: relative; overflow: hidden; }
+        .bb-shine::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 40%;
+            height: 100%;
+            background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+            transform: translateX(-120%) skewX(-12deg);
+            pointer-events: none;
+        }
+        .bb-shine:hover::after { animation: bbShine 0.85s ease; }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.001ms !important;
+            }
+            .bb-reveal { opacity: 1; transform: none; }
+        }
+
+        /* =========================
            TYPOGRAPHY
         ========================= */
 
@@ -80,6 +153,13 @@
             justify-content: space-between;
 
             box-shadow: 0 2px 12px rgba(70, 40, 30, 0.03);
+
+            transition: box-shadow 0.25s ease, padding 0.25s ease;
+        }
+
+        .navbar.is-scrolled {
+            padding-block: 12px;
+            box-shadow: 0 14px 30px -20px rgba(70, 40, 30, 0.28);
         }
 
         .logo {
@@ -331,6 +411,10 @@
         ========================= */
 
         .hero {
+            position: relative;
+            overflow: hidden;
+            isolation: isolate;
+
             padding: 82px 7% 75px;
 
             display: grid;
@@ -341,6 +425,30 @@
             background:
                 radial-gradient(circle at 80% 20%, #ffe5dc 0, transparent 35%),
                 linear-gradient(180deg, #ffffff, #fff7f4);
+        }
+
+        .hero-orb {
+            position: absolute;
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(1px);
+            pointer-events: none;
+        }
+        .hero-orb.a {
+            width: 260px;
+            height: 260px;
+            top: -80px;
+            right: 12%;
+            background: radial-gradient(circle, rgba(232, 66, 15, 0.14), transparent 70%);
+            animation: bbDrift 10s ease-in-out infinite;
+        }
+        .hero-orb.b {
+            width: 180px;
+            height: 180px;
+            bottom: -40px;
+            left: 4%;
+            background: radial-gradient(circle, rgba(245, 183, 11, 0.16), transparent 70%);
+            animation: bbDrift 8s ease-in-out infinite reverse;
         }
 
         .hero-content small {
@@ -359,6 +467,8 @@
             text-transform: uppercase;
 
             margin-bottom: 18px;
+
+            animation: bbFadeUp 0.7s cubic-bezier(.2,.7,.3,1) both;
         }
 
         .hero-content h1 {
@@ -367,6 +477,8 @@
             letter-spacing: -2px;
 
             margin-bottom: 22px;
+
+            animation: bbFadeUp 0.7s 0.08s cubic-bezier(.2,.7,.3,1) both;
         }
 
         .hero-content h1 span {
@@ -382,12 +494,16 @@
             line-height: 1.8;
 
             margin-bottom: 30px;
+
+            animation: bbFadeUp 0.7s 0.16s cubic-bezier(.2,.7,.3,1) both;
         }
 
         .hero-actions {
             display: flex;
             gap: 12px;
             flex-wrap: wrap;
+
+            animation: bbFadeUp 0.7s 0.24s cubic-bezier(.2,.7,.3,1) both;
         }
 
         .shop-btn {
@@ -451,6 +567,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .hero-visual::before {
+            content: '';
+            position: absolute;
+            width: 340px;
+            height: 340px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(232, 66, 15, 0.16), transparent 65%);
+            z-index: 0;
+            animation: bbDrift 9s ease-in-out infinite;
         }
 
         .hero-card-stack {
@@ -577,6 +704,13 @@
 
             gap: 13px;
             padding: 9px;
+
+            transition: transform 0.25s ease;
+        }
+        .feature:hover { transform: translateX(4px); }
+        .feature:hover .feature-icon {
+            transform: scale(1.1) rotate(-6deg);
+            background: #ffe4dc;
         }
 
         .feature-icon {
@@ -592,6 +726,8 @@
             display: flex;
             align-items: center;
             justify-content: center;
+
+            transition: transform 0.3s cubic-bezier(.3,1.6,.4,1), background 0.22s ease;
             overflow: hidden;
 
             font-size: 21px;
@@ -711,7 +847,11 @@
 
         .category:hover .category-icon {
             background: #ffe4dc;
-            transform: scale(1.04);
+            transform: scale(1.12) rotate(-6deg);
+        }
+
+        .category-icon {
+            transition: transform 0.3s cubic-bezier(.3,1.6,.4,1), background 0.22s ease;
         }
 
         .category-icon img {
@@ -790,6 +930,12 @@
             height: 100%;
 
             object-fit: cover;
+
+            transition: transform 0.4s cubic-bezier(.2,.8,.3,1);
+        }
+
+        .product:hover .product-image img {
+            transform: scale(1.08);
         }
 
         .product-info {
@@ -829,11 +975,14 @@
             font-size: 11px;
             font-weight: 800;
 
+            display: inline-block;
+
             transition: 0.2s ease;
         }
 
         .view-btn:hover {
             color: #c43408;
+            transform: translateX(3px);
         }
 
         /* =========================
@@ -1252,6 +1401,9 @@
 
     <section class="hero">
 
+        <div class="hero-orb a"></div>
+        <div class="hero-orb b"></div>
+
         <div class="hero-content">
 
             <small>
@@ -1272,7 +1424,7 @@
 
             <div class="hero-actions">
 
-                <a href="{{ route('login') }}" class="shop-btn">
+                <a href="{{ route('login') }}" class="shop-btn bb-shine">
                     Start Shopping →
                 </a>
 
@@ -1348,7 +1500,7 @@
 
     <section class="features">
 
-        <div class="feature">
+        <div class="feature bb-reveal">
 
             <div class="feature-icon">
                 <img
@@ -1375,7 +1527,7 @@
         </div>
 
 
-        <div class="feature">
+        <div class="feature bb-reveal">
 
             <div class="feature-icon">
                 <img
@@ -1402,7 +1554,7 @@
         </div>
 
 
-        <div class="feature">
+        <div class="feature bb-reveal">
 
             <div class="feature-icon">
                 <img
@@ -1460,7 +1612,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1488,7 +1640,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1516,7 +1668,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1544,7 +1696,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1572,7 +1724,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1600,7 +1752,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1628,7 +1780,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1656,7 +1808,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1684,7 +1836,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1712,7 +1864,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1740,7 +1892,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1768,7 +1920,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1796,7 +1948,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1824,7 +1976,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1852,7 +2004,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1880,7 +2032,7 @@
 
             <a
                 href="{{ route('login') }}"
-                class="category"
+                class="category bb-reveal"
             >
 
                 <div class="category-icon">
@@ -1935,7 +2087,7 @@
 
             @forelse ($featuredProducts ?? [] as $product)
 
-                <div class="product">
+                <div class="product bb-reveal">
 
                     <div class="product-image">
                         @if ($product->image)
@@ -1996,7 +2148,7 @@
          CALL TO ACTION
     ========================= -->
 
-    <section class="cta">
+    <section class="cta bb-reveal">
 
         <div>
 
@@ -2013,7 +2165,7 @@
 
         <a
             href="{{ route('register') }}"
-            class="cta-btn"
+            class="cta-btn bb-shine"
         >
             Join BoomBuy →
         </a>
@@ -2143,6 +2295,44 @@
         </div>
 
     </footer>
+
+
+    <!-- =========================
+         SCROLL EFFECTS SCRIPT
+    ========================= -->
+
+    <script>
+        (function () {
+
+            var nav = document.querySelector('.navbar');
+
+            if (nav) {
+                window.addEventListener('scroll', function () {
+                    nav.classList.toggle('is-scrolled', window.scrollY > 8);
+                }, { passive: true });
+            }
+
+            var revealEls = document.querySelectorAll('.bb-reveal');
+
+            if ('IntersectionObserver' in window) {
+
+                var io = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (entry) {
+                        if (entry.isIntersecting) {
+                            entry.target.classList.add('bb-in-view');
+                            io.unobserve(entry.target);
+                        }
+                    });
+                }, { threshold: 0.15 });
+
+                revealEls.forEach(function (el) { io.observe(el); });
+
+            } else {
+                revealEls.forEach(function (el) { el.classList.add('bb-in-view'); });
+            }
+
+        })();
+    </script>
 
 
     <!-- =========================
