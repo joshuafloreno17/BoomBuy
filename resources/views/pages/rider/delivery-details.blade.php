@@ -10,6 +10,8 @@
 
     @include('partials.pwa-head')
 
+    <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -21,80 +23,12 @@
 
     body {
         font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-        background: #fbf6f5;
-        color: #222;
-    }
-
-    .sidebar {
-        position: fixed;
-        left: 0;
-        top: 0;
-        width: 250px;
-        height: 100vh;
-        background: #111827;
-        color: white;
-        padding: 25px 18px;
-    }
-
-    .logo {
-        font-size: 27px;
-        font-weight: bold;
-        margin-bottom: 35px;
-        padding-left: 10px;
-    }
-
-    .logo span {
-        color: #f9bc16;
-    }
-
-    .menu-title {
-        font-size: 12px;
-        color: #b0a09b;
-        text-transform: uppercase;
-        margin: 20px 10px 10px;
-        letter-spacing: 1px;
-    }
-
-    .menu a {
-        display: block;
-        text-decoration: none;
-        color: #dbd3d1;
-        padding: 13px 12px;
-        border-radius: 8px;
-        margin-bottom: 6px;
-        transition: 0.2s;
-    }
-
-    .menu a:hover,
-    .menu a.active {
-        background: #f9bc16;
-        color: white;
-    }
-
-    .logout {
-        position: absolute;
-        bottom: 25px;
-        left: 18px;
-        right: 18px;
-    }
-
-    .logout button {
-        width: 100%;
-        border: none;
-        background: #dc2626;
-        color: white;
-        padding: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-    }
-
-    .logout button:hover {
-        background: #b91c1c;
+        background: #fff7f4;
+        color: #172033;
     }
 
     .main {
-        margin-left: 250px;
+        margin-left: 245px;
         padding: 30px;
         max-width: 1100px;
     }
@@ -298,13 +232,9 @@
         padding: 10px 0;
     }
 
-    @media (max-width: 700px) {
-        .sidebar {
-            width: 210px;
-        }
-
+    @media (max-width: 800px) {
         .main {
-            margin-left: 210px;
+            margin-left: 75px;
             padding: 20px;
         }
 
@@ -325,49 +255,9 @@
         }
     }
 
-    @media (max-width: 500px) {
-        .sidebar {
-            position: relative;
-            width: 100%;
-            height: auto;
-            display: flex;
-            flex-direction: column;
-            padding: 14px 16px;
-        }
-
-        .logo {
-            font-size: 20px;
-            margin-bottom: 10px;
-        }
-
-        .menu-title {
-            display: none;
-        }
-
-        .menu {
-            display: flex;
-            flex-direction: row;
-            overflow-x: auto;
-            gap: 8px;
-            margin-bottom: 4px;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        .menu a {
-            white-space: nowrap;
-            margin-bottom: 0;
-            flex-shrink: 0;
-            font-size: 13px;
-            padding: 10px 14px;
-        }
-
-        .logout {
-            position: static;
-            margin-top: 10px;
-        }
-
+    @media (max-width: 450px) {
         .main {
-            margin-left: 0;
+            margin-left: 64px;
         }
     }
 
@@ -402,61 +292,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <body>
 
-<aside class="sidebar">
-
-
-<div class="logo">
-    Boom<span>Buy</span>
-</div>
-
-<div class="menu-title">
-    Rider Menu
-</div>
-
-<div class="menu">
-
-    <a href="{{ route('rider.dashboard') }}">
-        🏠 Dashboard
-    </a>
-
-    <a href="{{ route('rider.deliveries') }}" class="active">
-        🚚 My Deliveries
-    </a>
-
-    <a href="{{ route('rider.profile') }}">
-        👤 My Profile
-    </a>
-
-</div>
-
-<div class="menu-title">
-    Account
-</div>
-
-<div class="menu">
-
-    <a href="{{ url('/') }}">
-        🛍️ BoomBuy Store
-    </a>
-
-</div>
-
-<div class="logout">
-
-    <form method="POST" action="{{ route('logout') }}">
-
-        @csrf
-
-        <button type="submit">
-            🚪 Logout
-        </button>
-
-    </form>
-
-</div>
-
-
-</aside>
+<x-layout.rider-sidebar active="deliveries" :user="$user" />
 
 <main class="main">
 
