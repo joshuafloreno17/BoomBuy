@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Product;
+use App\Models\ProductVariation;
 
 class ProductSeeder extends Seeder
 {
@@ -127,9 +128,40 @@ class ProductSeeder extends Seeder
             ],
         ];
 
+        // Hindi lahat ng kategorya kailangan ng variant sa totoong buhay
+        // (hal. kape, gamit sa opisina) — dito lang ito ilalagay kung
+        // makatuwiran.
+        $sizeCategories = [
+            "Women's Fashion",
+            "Men's Fashion",
+            'Kids & Baby',
+            'Shoes',
+        ];
+
+        $colorCategories = [
+            'Electronics',
+            'Home & Living',
+            'Toys, Games & Hobbies',
+            'Jewelry & Accessories',
+        ];
+
+        $sizes = [
+            ['value' => 'S', 'price_adjustment' => 0],
+            ['value' => 'M', 'price_adjustment' => 0],
+            ['value' => 'L', 'price_adjustment' => 0],
+            ['value' => 'XL', 'price_adjustment' => 50],
+        ];
+
+        $colors = [
+            ['value' => 'Black', 'price_adjustment' => 0],
+            ['value' => 'White', 'price_adjustment' => 0],
+            ['value' => 'Blue', 'price_adjustment' => 0],
+            ['value' => 'Red', 'price_adjustment' => 30],
+        ];
+
         foreach ($productsByCategory as $categoryName => $products) {
             foreach ($products as $productName) {
-                Product::firstOrCreate(
+                $product = Product::firstOrCreate(
                     [
                         'name' => $productName,
                         'category' => $categoryName,
@@ -144,7 +176,30 @@ class ProductSeeder extends Seeder
                         'image' => 'products/placeholder.jpg',
                     ]
                 );
+
+                if (in_array($categoryName, $sizeCategories)) {
+                    $this->seedVariations($product, 'Size', $sizes);
+                } elseif (in_array($categoryName, $colorCategories)) {
+                    $this->seedVariations($product, 'Color', $colors);
+                }
             }
+        }
+    }
+
+    private function seedVariations(Product $product, string $type, array $options): void
+    {
+        foreach ($options as $option) {
+            ProductVariation::firstOrCreate(
+                [
+                    'product_id' => $product->id,
+                    'variation_type' => $type,
+                    'variation_value' => $option['value'],
+                ],
+                [
+                    'price_adjustment' => $option['price_adjustment'],
+                    'stock' => rand(5, 30),
+                ]
+            );
         }
     }
 }
