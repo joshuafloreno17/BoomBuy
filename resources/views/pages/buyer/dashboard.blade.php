@@ -248,6 +248,8 @@
         }
 
         .product-card {
+            display: block;
+
             min-width: 0;
             max-width: 100%;
 
@@ -678,7 +680,15 @@
 
                     @foreach($newestProducts as $product)
 
-                        <div class="product-card">
+                        <a
+                            href="{{
+                                route(
+                                    'product.details',
+                                    $product['slug']
+                                )
+                            }}"
+                            class="product-card"
+                        >
 
                             <div class="product-icon">
 
@@ -766,19 +776,11 @@
                             </div>
 
 
-                            <a
-                                href="{{
-                                    route(
-                                        'product.details',
-                                        $product['slug']
-                                    )
-                                }}"
-                                class="view-btn"
-                            >
+                            <span class="view-btn">
                                 View Product
-                            </a>
+                            </span>
 
-                        </div>
+                        </a>
 
                     @endforeach
 
