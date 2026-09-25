@@ -48,9 +48,8 @@
                 <span>My Profile</span>
             </a>
 
-            <a href="{{ route('rider.notifications') }}" class="rider-sidebar-link {{ $active === 'notifications' ? 'active' : '' }}">
+            <a href="{{ route('rider.notifications') }}" class="rider-sidebar-link {{ $active === 'notifications' ? 'active' : '' }}" aria-label="Notifications" title="Notifications">
                 <span class="sidebar-icon">🔔</span>
-                <span>Notifications</span>
 
                 @if($riderUnreadNotifications > 0)
                     <span class="sidebar-notification-badge">{{ $riderUnreadNotifications }}</span>

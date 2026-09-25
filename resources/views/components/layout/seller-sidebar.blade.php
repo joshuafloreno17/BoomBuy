@@ -94,12 +94,10 @@
                     'active' => $active === 'notifications',
                     'notification-link' => $notifLinkFix,
                 ])
+                aria-label="Notifications"
+                title="Notifications"
             >
                 🔔
-
-                <span class="label-text">
-                    Notifications
-                </span>
 
                 @if($sellerUnreadNotifications > 0)
 

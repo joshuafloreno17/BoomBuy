@@ -1292,14 +1292,12 @@
                     href="{{ route('rider.notifications') }}"
                     class="rider-sidebar-link
                         {{ request()->routeIs('rider.notifications') ? 'active' : '' }}"
+                    aria-label="Notifications"
+                    title="Notifications"
                 >
 
                     <span class="sidebar-icon">
                         🔔
-                    </span>
-
-                    <span>
-                        Notifications
                     </span>
 
                     @if($riderUnreadNotifications > 0)

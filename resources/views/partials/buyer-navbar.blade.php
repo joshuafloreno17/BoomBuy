@@ -385,8 +385,10 @@
     <a
         href="{{ route('notifications') }}"
         class="bb-cart-link {{ $bbActive === 'notifications' ? 'active' : '' }}"
+        aria-label="Notifications"
+        title="Notifications"
     >
-        🔔 Notifications
+        🔔
 
         <span
             class="bb-cart-number"
