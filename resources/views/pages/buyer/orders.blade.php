@@ -1721,6 +1721,45 @@
 
                                     </div>
 
+                                    <!-- AT SORTING CENTER -->
+
+                                    <div class="timeline-item">
+
+                                        <div class="timeline-line"></div>
+
+                                        <div
+                                            class="timeline-dot
+                                            {{
+                                                in_array(
+                                                    $orderStatus,
+                                                    [
+                                                        'at sorting center',
+                                                        'assigned for delivery',
+                                                        'out for delivery',
+                                                        'delivered'
+                                                    ]
+                                                )
+                                                ? ''
+                                                : 'gray'
+                                            }}"
+                                        >
+                                            📦
+                                        </div>
+
+                                        <div class="timeline-content">
+
+                                            <strong>
+                                                At Sorting Center
+                                            </strong>
+
+                                            <span>
+                                                Your parcel has arrived at the sorting facility and is being prepared for delivery.
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
                                     <!-- OUT FOR DELIVERY -->
 
                                     <div class="timeline-item">
