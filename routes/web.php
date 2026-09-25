@@ -4166,6 +4166,24 @@ Route::post('/seller/order/{id}/status', function ($id) {
             (int) $id
         );
 
+    } elseif ($status === 'Ready for Pickup') {
+
+        createNotification(
+            (int) $order->buyer_id,
+            'Order Ready for Pickup',
+            'Your order #' . $id .
+            ' has been packed and is ready for a rider to pick up.',
+            'order',
+            (int) $id
+        );
+
+        notifyAllActiveRiders(
+            'New Delivery Available',
+            'Order #' . $id . ' is ready for pickup and available to claim.',
+            'delivery',
+            (int) $id
+        );
+
     } elseif ($status === 'Cancelled') {
 
         createNotification(
