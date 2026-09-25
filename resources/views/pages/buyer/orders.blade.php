@@ -84,6 +84,59 @@
     }
 
     /* =========================
+       ORDER FILTERS
+    ========================= */
+
+    .order-filters {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 22px;
+    }
+
+    .order-search-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #f0ddd5;
+        border-radius: 10px;
+        font-family: inherit;
+        font-size: 13px;
+        outline: none;
+    }
+
+    .order-search-input:focus {
+        border-color: #e8420f;
+    }
+
+    .order-tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .order-tab {
+        border: 1px solid #f0ddd5;
+        background: #ffffff;
+        color: #6f5d58;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: 0.15s ease;
+    }
+
+    .order-tab:hover {
+        background: #fff4f0;
+    }
+
+    .order-tab.active {
+        background: #e8420f;
+        border-color: #e8420f;
+        color: #ffffff;
+    }
+
+    /* =========================
        ALERT
     ========================= */
 
@@ -876,7 +929,26 @@
 
             @else
 
-                <div class="orders">
+                <div class="order-filters">
+
+                    <input
+                        type="text"
+                        id="orderSearchInput"
+                        class="order-search-input"
+                        placeholder="Search by order # or product name..."
+                    >
+
+                    <div class="order-tabs" id="orderTabs">
+                        <button type="button" class="order-tab active" data-group="all">All</button>
+                        <button type="button" class="order-tab" data-group="to-ship">To Ship</button>
+                        <button type="button" class="order-tab" data-group="to-receive">To Receive</button>
+                        <button type="button" class="order-tab" data-group="delivered">Delivered</button>
+                        <button type="button" class="order-tab" data-group="cancelled">Cancelled/Returned</button>
+                    </div>
+
+                </div>
+
+                <div class="orders" id="ordersList">
 
                     @foreach($orders as $order)
 
@@ -897,13 +969,38 @@
                                 ($order['status'] ?? '') === 'Delivered'
                                 && !empty($order['buyer_received_at']);
 
+                            $statusGroups = [
+                                'to-ship' => ['pending', 'processing', 'ready for pickup'],
+                                'to-receive' => ['assigned', 'picked up', 'at sorting center', 'assigned for delivery', 'out for delivery'],
+                                'delivered' => ['delivered'],
+                                'cancelled' => ['cancelled', 'delivery failed', 'returned to seller'],
+                            ];
+
+                            $orderGroup = 'to-ship';
+
+                            foreach ($statusGroups as $groupKey => $groupStatuses) {
+                                if (in_array($orderStatus, $groupStatuses)) {
+                                    $orderGroup = $groupKey;
+                                    break;
+                                }
+                            }
+
+                            $orderSearchText = strtolower(
+                                'order #' . ($order['id'] ?? '') . ' ' .
+                                collect($order['items'] ?? [])->pluck('name')->implode(' ')
+                            );
+
                         @endphp
 
                         <!-- =========================
                              ORDER CARD
                         ========================= -->
 
-                        <div class="order-card">
+                        <div
+                            class="order-card"
+                            data-order-group="{{ $orderGroup }}"
+                            data-order-search="{{ $orderSearchText }}"
+                        >
 
                             <!-- HEADER -->
 
@@ -1289,6 +1386,13 @@
 
                                     @endif
 
+                                    <form method="POST" action="{{ route('buyer.order.reorder', $order['id']) }}">
+                                        @csrf
+                                        <button type="submit" class="track-btn">
+                                            🔁 Buy Again
+                                        </button>
+                                    </form>
+
                                 </div>
 
                             </div>
@@ -1331,6 +1435,7 @@
                                     <form
                                         method="POST"
                                         action="{{ route('buyer.return-refund.store', ['orderId' => $order['id']]) }}"
+                                        enctype="multipart/form-data"
                                     >
                                         @csrf
 
@@ -1379,6 +1484,16 @@
                                                 name="message"
                                                 placeholder="Explain what happened (optional)"
                                             ></textarea>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="return-evidence-{{ $order['id'] }}">Photo Evidence (optional)</label>
+                                            <input
+                                                type="file"
+                                                id="return-evidence-{{ $order['id'] }}"
+                                                name="evidence"
+                                                accept="image/*"
+                                            >
                                         </div>
 
                                         <div class="return-actions">
@@ -1836,6 +1951,12 @@
 
                 </div>
 
+                <div class="empty" id="ordersNoMatch" style="display:none;">
+                    <div class="empty-icon">🔍</div>
+                    <h2>No Matching Orders</h2>
+                    <p>Try a different search term or filter.</p>
+                </div>
+
             @endif
 
         </div>
@@ -2138,6 +2259,62 @@
 
         return true;
     }
+
+    /* =========================
+       ORDER SEARCH / TAB FILTER
+    ========================= */
+
+    (function () {
+
+        var searchInput = document.getElementById('orderSearchInput');
+        var tabs = document.querySelectorAll('.order-tab');
+        var noMatch = document.getElementById('ordersNoMatch');
+        var ordersList = document.getElementById('ordersList');
+
+        if (!searchInput || !ordersList) {
+            return;
+        }
+
+        var activeGroup = 'all';
+
+        function applyFilters() {
+
+            var query = searchInput.value.trim().toLowerCase();
+            var cards = ordersList.querySelectorAll('.order-card');
+            var visibleCount = 0;
+
+            cards.forEach(function (card) {
+
+                var matchesGroup = activeGroup === 'all' || card.dataset.orderGroup === activeGroup;
+                var matchesSearch = query === '' || (card.dataset.orderSearch || '').indexOf(query) !== -1;
+                var visible = matchesGroup && matchesSearch;
+
+                card.style.display = visible ? '' : 'none';
+
+                if (visible) visibleCount++;
+            });
+
+            if (noMatch) {
+                noMatch.style.display = visibleCount === 0 ? '' : 'none';
+            }
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+
+        tabs.forEach(function (tab) {
+
+            tab.addEventListener('click', function () {
+
+                tabs.forEach(function (t) { t.classList.remove('active'); });
+                tab.classList.add('active');
+
+                activeGroup = tab.dataset.group;
+
+                applyFilters();
+            });
+        });
+
+    })();
 
 </script>
 

@@ -457,6 +457,22 @@
 
                             @endif
 
+                            @if(!empty($request->evidence))
+
+                                <div class="return-block">
+
+                                    <div class="return-block-title">
+                                        Photo Evidence
+                                    </div>
+
+                                    <a href="{{ asset('storage/' . ltrim($request->evidence, '/')) }}" target="_blank">
+                                        <img src="{{ asset('storage/' . ltrim($request->evidence, '/')) }}" alt="Return evidence" style="max-width:160px; border-radius:8px; margin-top:6px;">
+                                    </a>
+
+                                </div>
+
+                            @endif
+
                             @if(!empty($request->seller_note))
 
                                 <div class="return-block">

@@ -296,31 +296,45 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         <div class="actions">
 
-            <form
-                method="POST"
-                action="{{ route('admin.order.status', $order['id']) }}"
-            >
+            @if(in_array($order['status'] ?? '', ['Delivered', 'Cancelled', 'Returned to Seller']))
 
-                @csrf
+                <p style="color:#977970; font-size:13px;">
+                    This order is finalized ({{ $order['status'] }}) and can no longer be changed.
+                </p>
 
-                <select name="status">
+            @else
 
-                    <option value="Pending" {{ ($order['status'] ?? '') === 'Pending' ? 'selected' : '' }}>Pending</option>
-                    <option value="Processing" {{ ($order['status'] ?? '') === 'Processing' ? 'selected' : '' }}>Processing</option>
-                    <option value="Ready for Pickup" {{ ($order['status'] ?? '') === 'Ready for Pickup' ? 'selected' : '' }}>Ready for Pickup</option>
-                    <option value="Picked Up" {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
-                    <option value="On the Way" {{ ($order['status'] ?? '') === 'On the Way' ? 'selected' : '' }}>On the Way</option>
-                    <option value="Out for Delivery" {{ ($order['status'] ?? '') === 'Out for Delivery' ? 'selected' : '' }}>Out for Delivery</option>
-                    <option value="Delivered" {{ ($order['status'] ?? '') === 'Delivered' ? 'selected' : '' }}>Delivered</option>
-                    <option value="Cancelled" {{ ($order['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+                <form
+                    method="POST"
+                    action="{{ route('admin.order.status', $order['id']) }}"
+                >
 
-                </select>
+                    @csrf
 
-                <button type="submit" class="btn" style="background:#f13f09; color:white;">
-                    Update Status
-                </button>
+                    <select name="status">
 
-            </form>
+                        <option value="Pending" {{ ($order['status'] ?? '') === 'Pending' ? 'selected' : '' }}>Pending</option>
+                        <option value="Processing" {{ ($order['status'] ?? '') === 'Processing' ? 'selected' : '' }}>Processing</option>
+                        <option value="Ready for Pickup" {{ ($order['status'] ?? '') === 'Ready for Pickup' ? 'selected' : '' }}>Ready for Pickup</option>
+                        <option value="Assigned" {{ ($order['status'] ?? '') === 'Assigned' ? 'selected' : '' }}>Assigned (Rider Pickup)</option>
+                        <option value="Picked Up" {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>Picked Up</option>
+                        <option value="At Sorting Center" {{ ($order['status'] ?? '') === 'At Sorting Center' ? 'selected' : '' }}>At Sorting Center</option>
+                        <option value="Assigned for Delivery" {{ ($order['status'] ?? '') === 'Assigned for Delivery' ? 'selected' : '' }}>Assigned for Delivery</option>
+                        <option value="Out for Delivery" {{ ($order['status'] ?? '') === 'Out for Delivery' ? 'selected' : '' }}>Out for Delivery</option>
+                        <option value="Delivered" {{ ($order['status'] ?? '') === 'Delivered' ? 'selected' : '' }}>Delivered</option>
+                        <option value="Delivery Failed" {{ ($order['status'] ?? '') === 'Delivery Failed' ? 'selected' : '' }}>Delivery Failed</option>
+                        <option value="Returned to Seller" {{ ($order['status'] ?? '') === 'Returned to Seller' ? 'selected' : '' }}>Returned to Seller</option>
+                        <option value="Cancelled" {{ ($order['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>Cancelled</option>
+
+                    </select>
+
+                    <button type="submit" class="btn" style="background:#f13f09; color:white;">
+                        Update Status
+                    </button>
+
+                </form>
+
+            @endif
 
         </div>
 

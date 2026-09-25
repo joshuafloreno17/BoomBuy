@@ -1241,6 +1241,98 @@ Route::post('/buyer/orders/{id}/cancel', function ($id) {
 })->name('buyer.order.cancel');
 
 
+Route::post('/buyer/orders/{id}/reorder', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    $items = DB::table('order_items')->where('order_id', $id)->get();
+
+    $cart = session()->get('cart', []);
+    $addedCount = 0;
+    $skippedCount = 0;
+
+    foreach ($items as $item) {
+
+        $product = Product::find($item->product_id);
+
+        if (!$product || $product->is_archived) {
+            $skippedCount++;
+            continue;
+        }
+
+        $variationId = 0;
+        $effectiveStock = (int) $product->stock;
+
+        // The order only stored a display label ("Color: Red"), not a
+        // variation_id — parse it back and match against this product's
+        // current variations, the same technique used for seller restock.
+        if (!empty($item->variation_label)) {
+
+            [$variationType, $variationValue] = array_pad(
+                explode(': ', $item->variation_label, 2),
+                2,
+                null
+            );
+
+            $variation = \App\Models\ProductVariation::where('product_id', $product->id)
+                ->where('variation_type', $variationType)
+                ->where('variation_value', $variationValue)
+                ->first();
+
+            if (!$variation) {
+                $skippedCount++;
+                continue;
+            }
+
+            $variationId = $variation->id;
+            $effectiveStock = (int) $variation->stock;
+        }
+
+        if ($effectiveStock <= 0) {
+            $skippedCount++;
+            continue;
+        }
+
+        $cartKey = $product->id . ':' . $variationId;
+        $quantity = min((int) $item->quantity, $effectiveStock);
+
+        $cart[$cartKey] = ($cart[$cartKey] ?? 0) + $quantity;
+        $addedCount++;
+    }
+
+    session()->put('cart', $cart);
+
+    if ($addedCount === 0) {
+        return redirect()->route('buyer.orders')->with(
+            'error',
+            'None of the items from this order are available to reorder right now.'
+        );
+    }
+
+    $message = $addedCount . ' item(s) added to your cart.';
+
+    if ($skippedCount > 0) {
+        $message .= ' ' . $skippedCount . ' item(s) could not be added (out of stock or no longer available).';
+    }
+
+    return redirect()->route('cart')->with('success', $message);
+
+})->name('buyer.order.reorder');
+
+
 Route::post('/buyer/orders/{orderId}/review/{productId}', function ($orderId, $productId) {
     $user = requireUserRole('buyer');
     if (!is_array($user)) return $user;
@@ -3150,14 +3242,22 @@ Route::post('/admin/order/{id}/status', function ($id) {
 
     $status = trim(request('status'));
 
+    // Matches the real statuses the seller/rider/logistics pipeline
+    // actually uses elsewhere in the app — "On the Way" was never a
+    // real status anywhere else and could never be reached again once
+    // set here.
     $allowedStatuses = [
         'Pending',
         'Processing',
         'Ready for Pickup',
+        'Assigned',
         'Picked Up',
-        'On the Way',
+        'At Sorting Center',
+        'Assigned for Delivery',
         'Out for Delivery',
         'Delivered',
+        'Delivery Failed',
+        'Returned to Seller',
         'Cancelled',
     ];
 
@@ -3184,6 +3284,19 @@ Route::post('/admin/order/{id}/status', function ($id) {
         return back()->with(
             'error',
             'Order not found.'
+        );
+    }
+
+    // Delivered/Cancelled/Returned to Seller are finalized outcomes owned
+    // by their own dedicated flows (buyer confirmation, cancellation
+    // reasons, the Logistics return flow) — letting this generic admin
+    // override reopen them would desync the timestamps and history those
+    // flows rely on (e.g. buyer_received_at, sorting_center_received_at).
+    if (in_array($order->status, ['Delivered', 'Cancelled', 'Returned to Seller'])) {
+
+        return back()->with(
+            'error',
+            'This order is finalized (' . $order->status . ') and can no longer be changed here.'
         );
     }
 
@@ -7204,6 +7317,20 @@ Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
         );
     }
 
+    // Matches the platform's stated return window — an unlimited-time
+    // return/refund window is unusual and hard to honor for a seller.
+    $returnWindowDays = 7;
+
+    $returnDeadline = \Illuminate\Support\Carbon::parse($order->buyer_received_at)
+        ->addDays($returnWindowDays);
+
+    if ($returnDeadline->isPast()) {
+        return back()->with(
+            'error',
+            'The ' . $returnWindowDays . '-day return/refund window for this order has passed.'
+        );
+    }
+
     $orderItemId = (int) request('order_item_id');
     $requestType = trim(request('request_type'));
     $reason = trim(request('reason'));
@@ -7248,6 +7375,17 @@ Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
         (float) $item->price *
         (int) $item->quantity;
 
+    $evidencePath = null;
+
+    if (request()->hasFile('evidence')) {
+
+        request()->validate([
+            'evidence' => 'image|max:4096',
+        ]);
+
+        $evidencePath = request()->file('evidence')->store('return-evidence', 'public');
+    }
+
     /*
     |--------------------------------------------------------------------------
     | CREATE RETURN / REFUND REQUEST
@@ -7277,7 +7415,7 @@ Route::post('/buyer/order/{orderId}/return-refund', function ($orderId) {
             $message ?: null,
 
         'evidence' =>
-            null,
+            $evidencePath,
 
         'status' =>
             'pending',

@@ -510,14 +510,15 @@
     | TOTAL REVENUE
     |--------------------------------------------------------------------------
     |
-    | Successful orders are counted immediately.
-    | Cancelled orders are excluded.
+    | Only Delivered orders count as real revenue — same definition the
+    | Admin Dashboard's Total Sales stat uses, so the two pages never show
+    | two different numbers for what looks like the same figure.
     |
     */
 
     $totalRevenue = $allOrders
         ->filter(function ($order) {
-            return ($order->status ?? '') !== 'Cancelled';
+            return ($order->status ?? '') === 'Delivered';
         })
         ->sum(function ($order) {
             return (float) ($order->total_amount ?? 0);
@@ -531,7 +532,7 @@
 
     $successfulOrderCount = $allOrders
         ->filter(function ($order) {
-            return ($order->status ?? '') !== 'Cancelled';
+            return ($order->status ?? '') === 'Delivered';
         })
         ->count();
 
