@@ -589,7 +589,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </div>
 
                 @php
-                    $checkoutDiscount = $appliedVoucher ? $appliedVoucher->calculateDiscount($total) : 0;
+                    $checkoutDiscount = $appliedVoucher ? $appliedVoucher->calculateDiscount($voucherSubtotal) : 0;
                     $checkoutFinalTotal = max(0, $total - $checkoutDiscount);
                 @endphp
 

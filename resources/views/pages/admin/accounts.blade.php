@@ -391,7 +391,7 @@
                                                     class="delete-btn"
                                                 >
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                                    Delete
+                                                    Deactivate
                                                 </button>
 
                                             </form>
@@ -450,11 +450,11 @@
         function confirmDelete(name) {
 
             return confirm(
-                'Delete Account\n\n' +
-                'Are you sure you want to delete "' +
+                'Deactivate Account\n\n' +
+                'Are you sure you want to deactivate "' +
                 name +
                 '"?\n\n' +
-                'This account will be permanently removed and will no longer be able to log in.'
+                'This account will no longer be able to log in. Their existing orders, reviews, and messages are kept.'
             );
 
         }

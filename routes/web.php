@@ -113,6 +113,51 @@ if (!function_exists('cartSummary')) {
     }
 }
 
+if (!function_exists('cartSubtotalForSeller')) {
+
+    // Same math as cartSummary(), but scoped to a single seller's lines —
+    // used so a seller-specific voucher can only ever discount that
+    // seller's own products, never a buyer's whole multi-seller cart.
+    function cartSubtotalForSeller($cart, $sellerId)
+    {
+        $productIds = array_map(
+            fn ($key) => parseCartKey($key)[0],
+            array_keys($cart)
+        );
+
+        $databaseProducts = \App\Models\Product::whereIn('id', array_unique($productIds))
+            ->get()
+            ->keyBy('id');
+
+        $subtotal = 0;
+
+        foreach ($cart as $cartKey => $quantity) {
+
+            [$productId, $variationId] = parseCartKey($cartKey);
+
+            $product = $databaseProducts->get($productId);
+
+            if ($product && (int) $product->seller_id === (int) $sellerId) {
+
+                $unitPrice = (float) $product->price;
+
+                if ($variationId) {
+
+                    $variation = \App\Models\ProductVariation::find($variationId);
+
+                    if ($variation) {
+                        $unitPrice += (float) $variation->price_adjustment;
+                    }
+                }
+
+                $subtotal += $unitPrice * (int) $quantity;
+            }
+        }
+
+        return $subtotal;
+    }
+}
+
 if (!function_exists('parseCartKey')) {
 
     // Cart lines are keyed "productId:variationId" so that two different
@@ -2223,13 +2268,25 @@ Route::delete('/admin/accounts/{id}', function ($id) {
         return back()->with('error', 'Account not found.');
     }
 
+    // A hard delete here cascades through orders, order_items, reviews,
+    // and messages (all foreign keys to users are cascadeOnDelete) — it
+    // would silently wipe out other people's transaction history too, not
+    // just this account's. Deactivating achieves the real intent (this
+    // person can no longer use BoomBuy) without destroying shared records.
     DB::table('users')
         ->where('id', $id)
-        ->delete();
+        ->update(['status' => 'Deactivated']);
+
+    createNotification(
+        $user->id,
+        'Account Deactivated',
+        'Your BoomBuy account has been deactivated by an administrator.',
+        'account_status'
+    );
 
     return back()->with(
         'success',
-        $user->name . ' account has been deleted successfully.'
+        $user->name . '\'s account has been deactivated.'
     );
 
 })->name('admin.accounts.delete');
@@ -5324,6 +5381,13 @@ Route::post('/cart/add/{id}', function ($id) {
         );
     }
 
+    if ($product->is_archived) {
+        return back()->with(
+            'error',
+            'This product is no longer available.'
+        );
+    }
+
     /*
     |--------------------------------------------------------------------------
     | RESOLVE THE SELECTED VARIATION (IF ANY)
@@ -5445,6 +5509,10 @@ Route::post('/buy-now/{id}', function ($id) {
 
     if (!$product) {
         return back()->with('error', 'Product not found.');
+    }
+
+    if ($product->is_archived) {
+        return back()->with('error', 'This product is no longer available.');
     }
 
     $quantity = (int) request('quantity', 1);
@@ -5608,17 +5676,24 @@ Route::get('/cart', function () {
 
     $appliedVoucher = null;
     $voucherError = null;
+    $voucherSubtotal = 0;
 
     $voucherCode = session()->get('applied_voucher');
 
     if ($voucherCode) {
 
-        $summary = cartSummary($cart);
-        $subtotal = (float) str_replace(',', '', $summary['subtotal']);
-
         $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
 
-        if ($voucher && $voucher->isValidFor($subtotal)) {
+        if ($voucher) {
+
+            // A seller-specific voucher can only ever discount that
+            // seller's own lines — never the whole multi-seller cart.
+            $voucherSubtotal = $voucher->seller_id
+                ? cartSubtotalForSeller($cart, $voucher->seller_id)
+                : (float) str_replace(',', '', cartSummary($cart)['subtotal']);
+        }
+
+        if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal)) {
             $appliedVoucher = $voucher;
         } else {
             session()->forget('applied_voucher');
@@ -5627,7 +5702,7 @@ Route::get('/cart', function () {
 
     return view(
         'pages.cart',
-        compact('cart', 'appliedVoucher', 'voucherError')
+        compact('cart', 'appliedVoucher', 'voucherError', 'voucherSubtotal')
     );
 
 })->name('cart');
@@ -5648,8 +5723,21 @@ Route::post('/cart/voucher/apply', function () {
         return back()->with('error', 'Invalid voucher code.');
     }
 
-    $summary = cartSummary($cart);
-    $subtotal = (float) str_replace(',', '', $summary['subtotal']);
+    // A seller-specific voucher can only discount that seller's own items —
+    // compute the subtotal from just their lines, not the whole cart.
+    if ($voucher->seller_id) {
+
+        $subtotal = cartSubtotalForSeller($cart, $voucher->seller_id);
+
+        if ($subtotal <= 0) {
+            return back()->with('error', 'This voucher only applies to a seller whose products are not in your cart.');
+        }
+
+    } else {
+
+        $summary = cartSummary($cart);
+        $subtotal = (float) str_replace(',', '', $summary['subtotal']);
+    }
 
     if (!$voucher->isValidFor($subtotal)) {
         return back()->with('error', 'This voucher is expired, fully used, or your order does not meet its minimum amount.');
@@ -5804,19 +5892,32 @@ Route::get('/checkout', function () {
     */
 
     $appliedVoucher = null;
+    $voucherSubtotal = 0;
     $voucherCode = session()->get('applied_voucher');
 
     if ($voucherCode) {
 
-        $checkoutSubtotal = 0;
+        $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
 
-        foreach ($cart as $cartKey => $quantity) {
+        if ($voucher) {
 
-            [$productId, $variationId] = parseCartKey($cartKey);
+            foreach ($cart as $cartKey => $quantity) {
 
-            if ($products->has($productId)) {
+                [$productId, $variationId] = parseCartKey($cartKey);
 
-                $unitPrice = (float) $products[$productId]->price;
+                if (!$products->has($productId)) {
+                    continue;
+                }
+
+                $product = $products[$productId];
+
+                // A seller-specific voucher can only ever discount that
+                // seller's own lines — never the whole multi-seller cart.
+                if ($voucher->seller_id && (int) $product->seller_id !== (int) $voucher->seller_id) {
+                    continue;
+                }
+
+                $unitPrice = (float) $product->price;
 
                 if ($variationId) {
                     $variation = \App\Models\ProductVariation::find($variationId);
@@ -5825,13 +5926,11 @@ Route::get('/checkout', function () {
                     }
                 }
 
-                $checkoutSubtotal += $unitPrice * (int) $quantity;
+                $voucherSubtotal += $unitPrice * (int) $quantity;
             }
         }
 
-        $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
-
-        if ($voucher && $voucher->isValidFor($checkoutSubtotal)) {
+        if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal)) {
             $appliedVoucher = $voucher;
         } else {
             session()->forget('applied_voucher');
@@ -5861,6 +5960,7 @@ Route::get('/checkout', function () {
             'cart',
             'products',
             'appliedVoucher',
+            'voucherSubtotal',
             'savedAddress',
             'savedPhone'
         )
@@ -6119,8 +6219,19 @@ Route::post('/checkout/place-order', function () {
 
         $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
 
-        if ($voucher && $voucher->isValidFor($total)) {
-            $discountAmount = $voucher->calculateDiscount($total);
+        if ($voucher) {
+
+            // A seller-specific voucher can only ever discount that
+            // seller's own items — never a buyer's whole multi-seller order.
+            $voucherApplicableTotal = $voucher->seller_id
+                ? collect($orderItems)
+                    ->filter(fn ($item) => (int) $item['seller_id'] === (int) $voucher->seller_id)
+                    ->sum(fn ($item) => $item['price'] * $item['quantity'])
+                : $total;
+        }
+
+        if ($voucher && $voucherApplicableTotal > 0 && $voucher->isValidFor($voucherApplicableTotal)) {
+            $discountAmount = $voucher->calculateDiscount($voucherApplicableTotal);
         } else {
             $voucher = null;
             $voucherCode = null;
@@ -6131,145 +6242,164 @@ Route::post('/checkout/place-order', function () {
 
     /*
     |--------------------------------------------------------------------------
-    | CREATE ORDER
+    | CREATE ORDER + ORDER ITEMS + REDUCE STOCK (ONE TRANSACTION)
     |--------------------------------------------------------------------------
+    |
+    | Everything below runs atomically. The stock check earlier in this
+    | route is only a fast pre-check for a friendly error message — the
+    | decrements here are the real guard: each is a conditional
+    | "UPDATE ... WHERE stock >= quantity" that MySQL applies as a single
+    | atomic row operation, so two concurrent checkouts racing for the
+    | last unit can't both succeed. If any item lost the race, the whole
+    | order (and its notifications) rolls back instead of overselling.
+    |
     */
 
-    $orderId = DB::table('orders')->insertGetId([
+    $orderId = null;
 
-        'buyer_id' =>
-            $user['id'],
+    try {
 
-        'total_amount' =>
+        $orderId = DB::transaction(function () use (
+            $user,
             $total,
-
-        'voucher_code' =>
             $voucherCode,
-
-        'discount_amount' =>
             $discountAmount,
-
-        // Seller workflow starts here
-        'status' =>
-            'Pending',
-
-        'shipping_name' =>
-            $user['name'] ?? 'Buyer',
-
-        'shipping_phone' =>
+            $voucher,
             $phone,
-
-        'shipping_address' =>
             $address,
-
-        'payment_method' =>
             $payment,
+            $orderItems
+        ) {
 
-        'created_at' =>
-            now(),
+            $orderId = DB::table('orders')->insertGetId([
 
-        'updated_at' =>
-            now(),
+                'buyer_id' =>
+                    $user['id'],
 
-    ]);
+                'total_amount' =>
+                    $total,
 
-    /*
-    |--------------------------------------------------------------------------
-    | RECORD VOUCHER USE
-    |--------------------------------------------------------------------------
-    */
+                'voucher_code' =>
+                    $voucherCode,
 
-    if ($voucher) {
-        $voucher->increment('used_count');
+                'discount_amount' =>
+                    $discountAmount,
+
+                // Seller workflow starts here
+                'status' =>
+                    'Pending',
+
+                'shipping_name' =>
+                    $user['name'] ?? 'Buyer',
+
+                'shipping_phone' =>
+                    $phone,
+
+                'shipping_address' =>
+                    $address,
+
+                'payment_method' =>
+                    $payment,
+
+                'created_at' =>
+                    now(),
+
+                'updated_at' =>
+                    now(),
+
+            ]);
+
+            if ($voucher) {
+                $voucher->increment('used_count');
+            }
+
+            createNotification(
+                (int) $user['id'],
+                'Order Confirmed',
+                'Your order #' . $orderId .
+                ' has been placed successfully and is now Pending.',
+                'order',
+                (int) $orderId
+            );
+
+            foreach ($orderItems as $item) {
+
+                DB::table('order_items')->insert([
+
+                    'order_id' =>
+                        $orderId,
+
+                    'product_id' =>
+                        $item['product_id'],
+
+                    'seller_id' =>
+                        $item['seller_id'],
+
+                    'product_name' =>
+                        $item['product_name'],
+
+                    'variation_label' =>
+                        $item['variation_label'] ?? null,
+
+                    'price' =>
+                        $item['price'],
+
+                    'quantity' =>
+                        $item['quantity'],
+
+                    'created_at' =>
+                        now(),
+
+                    'updated_at' =>
+                        now(),
+
+                ]);
+
+                // A variation carries its own stock — reduce that instead
+                // of the base product's when one was selected. The WHERE
+                // stock >= quantity clause is what actually prevents the
+                // race: it can never take stock below zero, and it tells
+                // us via $decremented whether we won the race.
+                if (!empty($item['variation_id'])) {
+
+                    $decremented = \App\Models\ProductVariation::where('id', $item['variation_id'])
+                        ->where('stock', '>=', $item['quantity'])
+                        ->decrement('stock', $item['quantity']);
+
+                } else {
+
+                    $decremented = Product::where('id', $item['product_id'])
+                        ->where('stock', '>=', $item['quantity'])
+                        ->decrement('stock', $item['quantity']);
+                }
+
+                if (!$decremented) {
+                    throw new \RuntimeException('OUT_OF_STOCK:' . $item['product_name']);
+                }
+            }
+
+            return $orderId;
+        });
+
+    } catch (\RuntimeException $e) {
+
+        if (str_starts_with($e->getMessage(), 'OUT_OF_STOCK:')) {
+
+            session()->forget('applied_voucher');
+
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    substr($e->getMessage(), strlen('OUT_OF_STOCK:')) .
+                    ' just sold out while you were checking out. Please adjust your cart and try again.'
+                );
+        }
+
+        throw $e;
     }
 
     session()->forget('applied_voucher');
-
-    /*
-    |--------------------------------------------------------------------------
-    | BUYER NOTIFICATION
-    |--------------------------------------------------------------------------
-    */
-
-    createNotification(
-        (int) $user['id'],
-        'Order Confirmed',
-        'Your order #' . $orderId .
-        ' has been placed successfully and is now Pending.',
-        'order',
-        (int) $orderId
-    );
-
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE ORDER ITEMS + REDUCE STOCK
-    |--------------------------------------------------------------------------
-    */
-
-    foreach ($orderItems as $item) {
-
-        DB::table('order_items')->insert([
-
-            'order_id' =>
-                $orderId,
-
-            'product_id' =>
-                $item['product_id'],
-
-            'seller_id' =>
-                $item['seller_id'],
-
-            'product_name' =>
-                $item['product_name'],
-
-            'variation_label' =>
-                $item['variation_label'] ?? null,
-
-            'price' =>
-                $item['price'],
-
-            'quantity' =>
-                $item['quantity'],
-
-            'created_at' =>
-                now(),
-
-            'updated_at' =>
-                now(),
-
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | REDUCE STOCK
-        |--------------------------------------------------------------------------
-        |
-        | A variation carries its own stock — reduce that instead of the
-        | base product's when one was selected.
-        |
-        */
-
-        if (!empty($item['variation_id'])) {
-
-            \App\Models\ProductVariation::where(
-                'id',
-                $item['variation_id']
-            )->decrement(
-                'stock',
-                $item['quantity']
-            );
-
-        } else {
-
-            Product::where(
-                'id',
-                $item['product_id']
-            )->decrement(
-                'stock',
-                $item['quantity']
-            );
-        }
-    }
 
     /*
     |--------------------------------------------------------------------------
@@ -6742,6 +6872,23 @@ Route::delete('/seller/products/{id}', function ($id) {
 
     if (!$product) {
         abort(404);
+    }
+
+    // order_items.product_id cascades on delete — if any order ever
+    // included this product, deleting it would silently wipe those
+    // buyers' order lines (and any reviews) out from under real orders.
+    // Archive is the safe equivalent: it hides the product without
+    // touching order history.
+    $hasOrderHistory = DB::table('order_items')
+        ->where('product_id', $product->id)
+        ->exists();
+
+    if ($hasOrderHistory) {
+
+        return back()->with(
+            'error',
+            'This product has order history and cannot be deleted. Archive it instead to hide it from the shop.'
+        );
     }
 
     $productName = $product->name;

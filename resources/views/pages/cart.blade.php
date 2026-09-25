@@ -716,7 +716,7 @@
                 @if($appliedVoucher)
 
                     @php
-                        $discountAmount = $appliedVoucher->calculateDiscount($subtotal);
+                        $discountAmount = $appliedVoucher->calculateDiscount($voucherSubtotal);
                         $finalTotal = max(0, $subtotal - $discountAmount);
                     @endphp
 
