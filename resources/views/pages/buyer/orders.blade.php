@@ -525,6 +525,22 @@
         background: #1d7f4c;
     }
 
+    .cancel-order-btn {
+        border: 1px solid #f4c7c3;
+        cursor: pointer;
+        padding: 10px 15px;
+        border-radius: 12px;
+        background: #fff1f0;
+        color: #c0362c;
+        font-family: inherit;
+        font-size: 12px;
+        font-weight: 800;
+    }
+
+    .cancel-order-btn:hover {
+        background: #ffe1de;
+    }
+
     .received-badge {
         display: inline-flex;
         align-items: center;
@@ -1224,6 +1240,22 @@
                                         >
                                             📍 Track Order
                                         </button>
+
+                                        @if(($order['status'] ?? '') === 'Pending')
+                                            <form
+                                                method="POST"
+                                                action="{{ route('buyer.order.cancel', $order['id']) }}"
+                                            >
+                                                @csrf
+                                                <button
+                                                    type="submit"
+                                                    class="cancel-order-btn"
+                                                    onclick="return confirm('Cancel this order? This cannot be undone.')"
+                                                >
+                                                    ✕ Cancel Order
+                                                </button>
+                                            </form>
+                                        @endif
 
                                         @if(($order['status'] ?? '') === 'Delivered')
                                             <form

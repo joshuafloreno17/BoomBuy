@@ -101,6 +101,54 @@
                 rgba(23, 105, 224, 0.08);
         }
 
+        .payment-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .payment-option {
+            position: relative;
+        }
+
+        .payment-option input {
+            position: absolute;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        .payment-option label {
+            display: block;
+            padding: 13px 14px;
+            border: 1.5px solid #fbe2db;
+            border-radius: 10px;
+            background: #fffaf8;
+            font-size: 13px;
+            font-weight: 700;
+            color: #563a32;
+            cursor: pointer;
+            transition: 0.15s ease;
+        }
+
+        .payment-option input:checked + label {
+            border-color: #e8420f;
+            background: #fff1ec;
+            color: #c43408;
+        }
+
+        .payment-option input:focus-visible + label {
+            box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.18);
+        }
+
+        @media (max-width: 480px) {
+            .payment-options {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .error-box {
             background: #fff1f2;
             border: 1px solid #fecdd3;
@@ -375,44 +423,54 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         Select Payment Method
                     </label>
 
-                    <select
-                        name="payment"
-                        required
-                    >
+                    <div class="payment-options">
 
-                        <option value="">
-                            Select Payment Method
-                        </option>
+                        <div class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment"
+                                id="payment-cod"
+                                value="Cash on Delivery"
+                                {{ old('payment') === 'Cash on Delivery' ? 'checked' : '' }}
+                                required
+                            >
+                            <label for="payment-cod">💵 Cash on Delivery</label>
+                        </div>
 
-                        <option
-                            value="Cash on Delivery"
-                            {{ old('payment') === 'Cash on Delivery' ? 'selected' : '' }}
-                        >
-                            Cash on Delivery
-                        </option>
+                        <div class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment"
+                                id="payment-gcash"
+                                value="GCash"
+                                {{ old('payment') === 'GCash' ? 'checked' : '' }}
+                            >
+                            <label for="payment-gcash">📱 GCash</label>
+                        </div>
 
-                        <option
-                            value="GCash"
-                            {{ old('payment') === 'GCash' ? 'selected' : '' }}
-                        >
-                            GCash
-                        </option>
+                        <div class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment"
+                                id="payment-maya"
+                                value="Maya"
+                                {{ old('payment') === 'Maya' ? 'checked' : '' }}
+                            >
+                            <label for="payment-maya">📱 Maya</label>
+                        </div>
 
-                        <option
-                            value="Maya"
-                            {{ old('payment') === 'Maya' ? 'selected' : '' }}
-                        >
-                            Maya
-                        </option>
+                        <div class="payment-option">
+                            <input
+                                type="radio"
+                                name="payment"
+                                id="payment-card"
+                                value="Credit / Debit Card"
+                                {{ old('payment') === 'Credit / Debit Card' ? 'checked' : '' }}
+                            >
+                            <label for="payment-card">💳 Credit / Debit Card</label>
+                        </div>
 
-                        <option
-                            value="Credit / Debit Card"
-                            {{ old('payment') === 'Credit / Debit Card' ? 'selected' : '' }}
-                        >
-                            Credit / Debit Card
-                        </option>
-
-                    </select>
+                    </div>
 
                 </div>
 

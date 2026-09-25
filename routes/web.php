@@ -1137,6 +1137,65 @@ Route::post('/buyer/orders/{id}/received', function ($id) {
 })->name('buyer.order.received');
 
 
+Route::post('/buyer/orders/{id}/cancel', function ($id) {
+
+    $user = requireUserRole('buyer');
+
+    if (!is_array($user)) {
+        return $user;
+    }
+
+    $order = DB::table('orders')
+        ->where('id', $id)
+        ->where('buyer_id', $user['id'])
+        ->first();
+
+    if (!$order) {
+        return back()->with('error', 'Order not found.');
+    }
+
+    // A buyer can only cancel before the seller has started processing it —
+    // once Processing (or later), only the seller can cancel, since work
+    // may already be underway.
+    if ($order->status !== 'Pending') {
+        return back()->with(
+            'error',
+            'This order can no longer be cancelled — it is already being processed.'
+        );
+    }
+
+    DB::table('orders')
+        ->where('id', $id)
+        ->update([
+            'status' => 'Cancelled',
+            'cancellation_reason' => 'Cancelled by buyer.',
+            'updated_at' => now(),
+        ]);
+
+    $sellerIds = DB::table('order_items')
+        ->where('order_id', $id)
+        ->distinct()
+        ->pluck('seller_id');
+
+    foreach ($sellerIds as $sellerId) {
+
+        createNotification(
+            $sellerId,
+            'Order Cancelled by Buyer',
+            "Order #{$id} was cancelled by the buyer before processing.",
+            'order_status',
+            $id
+        );
+    }
+
+    return back()->with(
+        'success',
+        'Your order has been cancelled.'
+    );
+
+})->name('buyer.order.cancel');
+
+
 Route::post('/buyer/orders/{orderId}/review/{productId}', function ($orderId, $productId) {
     $user = requireUserRole('buyer');
     if (!is_array($user)) return $user;
