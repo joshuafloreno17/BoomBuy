@@ -94,13 +94,43 @@
             font-weight: 700;
         }
 
+        .cart-header-row {
+            display: flex;
+            align-items: center;
+        }
+
+        .select-all-label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .select-all-label input {
+            width: 17px;
+            height: 17px;
+            accent-color: #e8420f;
+            cursor: pointer;
+        }
+
         .cart-item {
             padding: 22px 24px;
             display: grid;
-            grid-template-columns: 90px 1fr auto;
+            grid-template-columns: 22px 90px 1fr auto;
             gap: 18px;
             align-items: center;
             border-bottom: 1px solid #f7efed;
+        }
+
+        .cart-item.item-deselected {
+            opacity: 0.5;
+        }
+
+        .item-checkbox {
+            width: 17px;
+            height: 17px;
+            accent-color: #e8420f;
+            cursor: pointer;
         }
 
         .cart-item:last-child {
@@ -363,7 +393,7 @@
             }
 
             .cart-item {
-                grid-template-columns: 70px 1fr;
+                grid-template-columns: 20px 70px 1fr;
             }
 
             .product-image {
@@ -373,7 +403,7 @@
             }
 
             .item-right {
-                grid-column: 2;
+                grid-column: 3;
                 text-align: left;
             }
 
@@ -471,8 +501,11 @@
 
             <div class="cart-box">
 
-                <div class="cart-header">
-                    Cart Items
+                <div class="cart-header cart-header-row">
+                    <label class="select-all-label">
+                        <input type="checkbox" id="selectAll" checked>
+                        Cart Items
+                    </label>
                 </div>
 
                 @foreach($cart as $cartKey => $quantity)
@@ -502,6 +535,15 @@
                         @endphp
 
                         <div class="cart-item" id="cart-item-{{ $cartKey }}" data-cart-key="{{ $cartKey }}">
+
+                            <input
+                                type="checkbox"
+                                class="item-checkbox"
+                                data-cart-key="{{ $cartKey }}"
+                                data-unit-price="{{ $itemUnitPrice }}"
+                                data-quantity="{{ $quantity }}"
+                                checked
+                            >
 
                             <div class="product-image">
 
@@ -732,6 +774,7 @@
 
                 <a
                     href="{{ route('checkout') }}"
+                    id="checkoutBtn"
                     class="checkout-btn"
                 >
                     💳 Proceed to Checkout
@@ -842,9 +885,11 @@
                         } else {
                             var qtyEl = document.getElementById('qty-' + cartKey);
                             var totalEl = document.getElementById('item-total-' + cartKey);
+                            var checkboxEl = document.querySelector('.item-checkbox[data-cart-key="' + cartKey + '"]');
 
                             if (qtyEl) qtyEl.textContent = data.quantity;
                             if (totalEl) totalEl.textContent = '₱' + data.item_total;
+                            if (checkboxEl) checkboxEl.dataset.quantity = data.quantity;
                         }
 
                         if (document.querySelectorAll('.cart-item').length === 0) {
@@ -853,6 +898,7 @@
                         }
 
                         applySummary(data);
+                        recomputeSelection();
                     });
             }
 
@@ -875,6 +921,87 @@
                     submitCartForm(form);
                 });
             });
+
+            /* =========================
+               ITEM SELECTION FOR CHECKOUT
+               ========================= */
+
+            var selectAllBox = document.getElementById('selectAll');
+            var checkoutBtn = document.getElementById('checkoutBtn');
+            var checkoutBaseUrl = checkoutBtn ? checkoutBtn.getAttribute('href') : '';
+
+            function getCheckboxes() {
+                return Array.prototype.slice.call(document.querySelectorAll('.item-checkbox'));
+            }
+
+            function recomputeSelection() {
+                var boxes = getCheckboxes();
+                var items = 0;
+                var subtotal = 0;
+
+                boxes.forEach(function (box) {
+                    var row = document.getElementById('cart-item-' + box.dataset.cartKey);
+                    if (row) row.classList.toggle('item-deselected', !box.checked);
+
+                    if (box.checked) {
+                        var qty = parseInt(box.dataset.quantity, 10) || 0;
+                        var price = parseFloat(box.dataset.unitPrice) || 0;
+                        items += qty;
+                        subtotal += qty * price;
+                    }
+                });
+
+                var itemsEl = document.getElementById('summary-items');
+                var subtotalEl = document.getElementById('summary-subtotal');
+                var totalEl = document.getElementById('summary-total');
+
+                if (itemsEl) itemsEl.textContent = items;
+                if (subtotalEl) subtotalEl.textContent = '₱' + subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+                // A voucher's discount is server-side logic (percentage vs. fixed,
+                // minimum order amount) — only mirror the total here when there's
+                // no voucher to keep this in sync without reimplementing that math.
+                if (!cartHasVoucher && totalEl) {
+                    totalEl.textContent = '₱' + subtotal.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                }
+
+                if (selectAllBox) {
+                    var checkedCount = boxes.filter(function (b) { return b.checked; }).length;
+                    selectAllBox.checked = checkedCount === boxes.length;
+                    selectAllBox.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
+                }
+            }
+
+            getCheckboxes().forEach(function (box) {
+                box.addEventListener('change', recomputeSelection);
+            });
+
+            if (selectAllBox) {
+                selectAllBox.addEventListener('change', function () {
+                    getCheckboxes().forEach(function (box) {
+                        box.checked = selectAllBox.checked;
+                    });
+                    recomputeSelection();
+                });
+            }
+
+            if (checkoutBtn) {
+                checkoutBtn.addEventListener('click', function (e) {
+                    e.preventDefault();
+
+                    var selectedKeys = getCheckboxes()
+                        .filter(function (b) { return b.checked; })
+                        .map(function (b) { return b.dataset.cartKey; });
+
+                    if (selectedKeys.length === 0) {
+                        alert('Select at least one item to check out.');
+                        return;
+                    }
+
+                    var separator = checkoutBaseUrl.indexOf('?') === -1 ? '?' : '&';
+                    window.location.href = checkoutBaseUrl + separator + 'items=' + encodeURIComponent(selectedKeys.join(','));
+                });
+            }
         })();
     </script>
 

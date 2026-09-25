@@ -5597,6 +5597,55 @@ Route::get('/checkout', function () {
                     'Your cart is empty.'
                 );
         }
+
+        /*
+        |----------------------------------------------------------------------
+        | ONLY CHECK OUT THE ITEMS THE BUYER ACTUALLY SELECTED
+        |----------------------------------------------------------------------
+        |
+        | The cart page lets a buyer tick which lines to include. If a
+        | selection was passed, narrow $cart down to just those keys and
+        | remember the choice in the session so the place-order step (a
+        | separate request) checks out the same subset and leaves the rest
+        | of the cart untouched.
+        |
+        */
+
+        $requestedItems = request('items');
+
+        if ($requestedItems !== null) {
+
+            $selectedKeys = array_filter(explode(',', $requestedItems));
+
+            $cart = array_intersect_key(
+                $cart,
+                array_flip($selectedKeys)
+            );
+
+            if (empty($cart)) {
+
+                return redirect()
+                    ->route('cart')
+                    ->with(
+                        'error',
+                        'Please select at least one item to check out.'
+                    );
+            }
+
+            session()->put('checkout_selection', array_keys($cart));
+
+        } elseif (session()->has('checkout_selection')) {
+
+            $cart = array_intersect_key(
+                $cart,
+                array_flip(session()->get('checkout_selection'))
+            );
+
+            if (empty($cart)) {
+                session()->forget('checkout_selection');
+                $cart = session()->get('cart', []);
+            }
+        }
     }
 
     /*
@@ -5748,6 +5797,26 @@ Route::post('/checkout/place-order', function () {
                     'error',
                     'Your cart is empty.'
                 );
+        }
+
+        // Only place an order for the lines the buyer actually selected on
+        // the cart page — everything else stays in the cart untouched.
+        if (session()->has('checkout_selection')) {
+
+            $cart = array_intersect_key(
+                $cart,
+                array_flip(session()->get('checkout_selection'))
+            );
+
+            if (empty($cart)) {
+
+                return redirect()
+                    ->route('cart')
+                    ->with(
+                        'error',
+                        'Please select at least one item to check out.'
+                    );
+            }
         }
     }
 
@@ -6130,7 +6199,16 @@ Route::post('/checkout/place-order', function () {
 
     } else {
 
-        session()->forget('cart');
+        // Remove only the lines that were just ordered — anything the
+        // buyer left unchecked on the cart page stays there.
+        $remainingCart = session()->get('cart', []);
+
+        foreach (array_keys($cart) as $orderedKey) {
+            unset($remainingCart[$orderedKey]);
+        }
+
+        session()->put('cart', $remainingCart);
+        session()->forget('checkout_selection');
     }
 
     /*
