@@ -9,6 +9,7 @@
     <title>Notifications — BoomBuy Rider</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
 
@@ -702,7 +703,7 @@
                 <div>
 
                     <h1>
-                        Notifications 🔔
+                        Notifications
                     </h1>
 
                     <p>
@@ -714,7 +715,7 @@
 
                 <div class="profile-top">
 
-                    🚴
+                    <i class="bi bi-bicycle"></i>
 
                     <strong>
                         {{ $user['name'] ?? 'Rider' }}
@@ -736,14 +737,14 @@
                             $icon = match($notification->type) {
 
                                 'delivery',
-                                'order' => '🚚',
+                                'order' => 'bi-truck',
 
                                 'delivery_status',
-                                'order_status' => '📦',
+                                'order_status' => 'bi-box-seam-fill',
 
-                                'rider' => '🏍️',
+                                'rider' => 'bi-bicycle',
 
-                                default => '🔔',
+                                default => 'bi-bell-fill',
 
                             };
 
@@ -791,7 +792,7 @@
                                 <div class="notification-top">
 
                                     <div class="notification-icon">
-                                        {{ $icon }}
+                                        <i class="bi {{ $icon }}"></i>
                                     </div>
 
 
@@ -849,7 +850,7 @@
                                     @if($notification->read_at)
 
                                         <span class="read-label">
-                                            ✓ Read
+                                            <i class="bi bi-check2"></i> Read
                                         </span>
 
                                     @endif
@@ -869,7 +870,7 @@
                 <div class="empty">
 
                     <div class="empty-icon">
-                        🔔
+                        <i class="bi bi-bell-fill"></i>
                     </div>
 
                     <h3>

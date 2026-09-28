@@ -9,13 +9,8 @@
 
 <title>My Orders — BoomBuy</title>
 
-<!-- Leaflet -->
-<link
-    rel="stylesheet"
-    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
->
-
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
 <style>
     @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -628,6 +623,17 @@
     .return-submit:hover{background:#df4516}
     @media(max-width:600px){.return-modal{padding:12px}.return-modal-card{padding:18px}}
 
+    .cancel-reasons{display:grid;gap:8px}
+    .cancel-reason{display:flex!important;align-items:center;gap:10px;margin:0!important;padding:11px 13px;border:1px solid #eadfd8;border-radius:10px;font-size:13px!important;font-weight:600!important;color:#523d36;cursor:pointer;transition:.15s}
+    .cancel-reason:hover{border-color:#f3c6ba;background:#fffaf8}
+    .cancel-reason input{accent-color:#c62828;margin:0}
+    .cancel-reason:has(input:checked){border-color:#c62828;background:#fff1f0}
+    .return-note.is-warning{background:#fff4e5;border-color:#f5d9a8;color:#8a5a00}
+    .cancel-submit{background:#c62828}
+    .cancel-submit:hover{background:#a51f1f}
+    .cancel-note{display:flex;gap:8px;align-items:flex-start;margin-top:14px;padding:11px 13px;border-radius:10px;background:#f7f4f2;color:#6b5048;font-size:12px;line-height:1.5}
+    .cancel-note i{margin-top:2px}
+
     /* =========================
        TRACKING PANEL
     ========================= */
@@ -647,24 +653,6 @@
         font-size: 22px;
         font-weight: 800;
         margin-bottom: 18px;
-    }
-
-    /* =========================
-       MAP
-    ========================= */
-
-    .map-container {
-        width: 100%;
-        height: 400px;
-        border-radius: 14px;
-        overflow: hidden;
-        border: 1px solid #f0dfda;
-        margin-bottom: 25px;
-    }
-
-    .map {
-        width: 100%;
-        height: 100%;
     }
 
     /* =========================
@@ -761,6 +749,15 @@
         background: #e2d0ca;
     }
 
+    .timeline-dot.danger {
+        background: #c62828;
+    }
+
+    .timeline-content .timeline-reason {
+        display: block;
+        margin-top: 6px;
+    }
+
     .timeline-content strong {
         display: block;
         margin-bottom: 4px;
@@ -849,10 +846,6 @@
         .tracking-grid {
             grid-template-columns: 1fr;
         }
-
-        .map-container {
-            height: 320px;
-        }
     }
 </style>
 
@@ -885,7 +878,7 @@
             @if(session('success'))
 
                 <div class="alert alert-success">
-                    ✓ {{ session('success') }}
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 </div>
 
             @endif
@@ -895,7 +888,7 @@
             @if(session('error'))
 
                 <div class="alert alert-error">
-                    ⚠ {{ session('error') }}
+                    <i class="bi bi-exclamation-triangle-fill"></i> {{ session('error') }}
                 </div>
 
             @endif
@@ -907,7 +900,7 @@
                 <div class="empty">
 
                     <div class="empty-icon">
-                        📦
+                        <i class="bi bi-box-seam-fill"></i>
                     </div>
 
                     <h2>
@@ -985,6 +978,42 @@
                                 }
                             }
 
+                            // Rider + map only mean something once a rider
+                            // actually has the parcel; a closed order (cancelled,
+                            // failed, returned) gets its own short history instead
+                            // of an unfinished delivery timeline.
+                            $showRider = $orderGroup === 'to-receive';
+                            $isClosed = $orderGroup === 'cancelled';
+
+                            $closedLabels = [
+                                'cancelled' => 'Order Cancelled',
+                                'delivery failed' => 'Delivery Failed',
+                                'returned to seller' => 'Returned to Seller',
+                            ];
+
+                            $closedLabel = $closedLabels[$orderStatus] ?? 'Order Closed';
+
+                            $closedReason = $orderStatus === 'cancelled'
+                                ? ($order['cancellation_reason'] ?? null)
+                                : ($order['failure_reason'] ?? $order['cancellation_reason'] ?? null);
+
+                            $closedAt = $orderStatus === 'delivery failed' && !empty($order['delivery_failed_at'])
+                                ? $order['delivery_failed_at']
+                                : ($order['updated_at'] ?? null);
+
+                            // COD: cancellable while Pending/Processing.
+                            // Prepaid: never by the buyer once checked out.
+                            $isCod = \App\Support\CodPolicy::isCod($order['payment_method'] ?? null);
+                            $canCancel = \App\Support\CodPolicy::buyerCanCancel($order);
+
+                            $cancelNote = null;
+
+                            if (!$canCancel && in_array($orderGroup, ['to-ship', 'to-receive'])) {
+                                $cancelNote = $isCod
+                                    ? 'This order can no longer be cancelled because it is already ready for pickup or on its way. You can refuse the parcel when it arrives, or request a return after receiving it.'
+                                    : 'Paid orders (GCash, Maya or card) can\'t be cancelled after checkout. You can request a return once you receive it.';
+                            }
+
                             $orderSearchText = strtolower(
                                 'order #' . ($order['id'] ?? '') . ' ' .
                                 collect($order['items'] ?? [])->pluck('name')->implode(' ')
@@ -1018,9 +1047,7 @@
 
                                 </div>
 
-                                <div class="status">
-                                    {{ $order['status'] ?? 'Pending' }}
-                                </div>
+                                <x-status-pill :status="$order['status'] ?? 'Pending'" />
 
                             </div>
 
@@ -1079,7 +1106,7 @@
 
                                                     <div class="rated-badge">
 
-                                                        ⭐
+                                                        <i class="bi bi-star-fill"></i>
                                                         {{ $itemReview['rating'] ?? $itemReview->rating ?? 0 }}/5
 
                                                     </div>
@@ -1091,7 +1118,7 @@
                                                         class="rate-btn"
                                                         onclick="toggleRating('{{ $order['id'] }}-{{ $productId }}')"
                                                     >
-                                                        ⭐ Rate Product
+                                                        <i class="bi bi-star-fill"></i> Rate Product
                                                     </button>
 
                                                 @endif
@@ -1135,7 +1162,7 @@
                                         >
 
                                             <div class="rating-title">
-                                                ⭐ Rate Your Product
+                                                <i class="bi bi-star-fill"></i> Rate Your Product
                                             </div>
 
                                             <div class="rating-subtitle">
@@ -1169,7 +1196,7 @@
                                                             for="star5-{{ $ratingPanelId }}"
                                                             title="5 stars"
                                                         >
-                                                            ★
+                                                            <i class="bi bi-star-fill"></i>
                                                         </label>
 
                                                         <input
@@ -1183,7 +1210,7 @@
                                                             for="star4-{{ $ratingPanelId }}"
                                                             title="4 stars"
                                                         >
-                                                            ★
+                                                            <i class="bi bi-star-fill"></i>
                                                         </label>
 
                                                         <input
@@ -1197,7 +1224,7 @@
                                                             for="star3-{{ $ratingPanelId }}"
                                                             title="3 stars"
                                                         >
-                                                            ★
+                                                            <i class="bi bi-star-fill"></i>
                                                         </label>
 
                                                         <input
@@ -1211,7 +1238,7 @@
                                                             for="star2-{{ $ratingPanelId }}"
                                                             title="2 stars"
                                                         >
-                                                            ★
+                                                            <i class="bi bi-star-fill"></i>
                                                         </label>
 
                                                         <input
@@ -1225,7 +1252,7 @@
                                                             for="star1-{{ $ratingPanelId }}"
                                                             title="1 star"
                                                         >
-                                                            ★
+                                                            <i class="bi bi-star-fill"></i>
                                                         </label>
 
                                                     </div>
@@ -1240,7 +1267,7 @@
                                                         type="submit"
                                                         class="submit-rating"
                                                     >
-                                                        Submit Review ⭐
+                                                        Submit Review <i class="bi bi-star-fill"></i>
                                                     </button>
 
                                                     <div class="review-note">
@@ -1335,23 +1362,21 @@
                                             class="track-btn"
                                             onclick="toggleTracking('{{ $trackingId }}')"
                                         >
-                                            📍 Track Order
+                                            @if($isClosed)
+                                                <i class="bi bi-receipt"></i> View Details
+                                            @else
+                                                <i class="bi bi-geo-alt-fill"></i> Track Order
+                                            @endif
                                         </button>
 
-                                        @if(($order['status'] ?? '') === 'Pending')
-                                            <form
-                                                method="POST"
-                                                action="{{ route('buyer.order.cancel', $order['id']) }}"
+                                        @if($canCancel)
+                                            <button
+                                                type="button"
+                                                class="cancel-order-btn"
+                                                onclick="openCancelOrder('{{ route('buyer.order.cancel', $order['id']) }}', '{{ $order['id'] }}', '{{ $order['status'] }}')"
                                             >
-                                                @csrf
-                                                <button
-                                                    type="submit"
-                                                    class="cancel-order-btn"
-                                                    onclick="return confirm('Cancel this order? This cannot be undone.')"
-                                                >
-                                                    ✕ Cancel Order
-                                                </button>
-                                            </form>
+                                                <i class="bi bi-x-lg"></i> Cancel Order
+                                            </button>
                                         @endif
 
                                         @if(($order['status'] ?? '') === 'Delivered')
@@ -1363,9 +1388,9 @@
                                                 <button
                                                     type="submit"
                                                     class="received-btn"
-                                                    onclick="return confirm('Confirm that you received this order?')"
+                                                    data-confirm="Confirm that you received this order?" data-confirm-ok="Yes, Received"
                                                 >
-                                                    📦 Order Received
+                                                    <i class="bi bi-box-seam-fill"></i> Order Received
                                                 </button>
                                             </form>
                                         @endif
@@ -1373,7 +1398,7 @@
                                     @else
 
                                         <div class="received-badge">
-                                            ✓ Order Received
+                                            <i class="bi bi-check-circle-fill"></i> Order Received
                                         </div>
 
                                         <button
@@ -1381,7 +1406,7 @@
                                             class="return-btn"
                                             onclick="openReturnRefund('{{ $order['id'] }}')"
                                         >
-                                            ↩️ Return / Refund
+                                            <i class="bi bi-arrow-return-left"></i> Return / Refund
                                         </button>
 
                                     @endif
@@ -1389,13 +1414,20 @@
                                     <form method="POST" action="{{ route('buyer.order.reorder', $order['id']) }}">
                                         @csrf
                                         <button type="submit" class="track-btn">
-                                            🔁 Buy Again
+                                            <i class="bi bi-arrow-repeat"></i> Buy Again
                                         </button>
                                     </form>
 
                                 </div>
 
                             </div>
+
+                            @if($cancelNote)
+                                <div class="cancel-note">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                    <span>{{ $cancelNote }}</span>
+                                </div>
+                            @endif
 
                             <!-- =========================
                                  TRACKING PANEL
@@ -1412,7 +1444,7 @@
 
                                     <div class="return-modal-head">
                                         <div>
-                                            <div class="return-modal-title">↩️ Return / Refund</div>
+                                            <div class="return-modal-title"><i class="bi bi-arrow-return-left"></i> Return / Refund</div>
                                             <div class="return-modal-subtitle">
                                                 Order #{{ $order['id'] }}
                                             </div>
@@ -1521,8 +1553,10 @@
                             >
 
                             <div class="tracking-title">
-    📍 Order Tracking
+    <i class="bi bi-geo-alt-fill"></i> Order Tracking
 </div>
+
+@if($showRider || $orderGroup === 'delivered')
 
 {{-- RIDER PROFILE --}}
 @if(!empty($order['rider_name']))
@@ -1540,7 +1574,7 @@
         @else
 
             <div class="rider-profile-placeholder">
-                🏍️
+                <i class="bi bi-bicycle"></i>
             </div>
 
         @endif
@@ -1564,7 +1598,7 @@
         </div>
 
         <div class="rider-profile-status">
-            🚴 Assigned Rider
+            <i class="bi bi-bicycle"></i> Assigned Rider
         </div>
 
     </div>
@@ -1574,7 +1608,7 @@
     <div class="rider-profile">
 
         <div class="rider-profile-placeholder">
-            🏍️
+            <i class="bi bi-bicycle"></i>
         </div>
 
         <div class="rider-profile-info">
@@ -1597,24 +1631,43 @@
 
 @endif
 
-{{-- MAP --}}
-<div class="map-container">
+@elseif($orderGroup === 'to-ship')
 
-                                    <div
-                                        id="map-{{ $trackingId }}"
-                                        class="map"
-                                    ></div>
+    <div class="rider-profile">
 
-                                </div>
+        <div class="rider-profile-placeholder">
+            <i class="bi bi-shop"></i>
+        </div>
+
+        <div class="rider-profile-info">
+
+            <div class="rider-profile-label">
+                Still with the seller
+            </div>
+
+            <div class="rider-profile-name">
+                Not yet handed to a rider
+            </div>
+
+            <div class="rider-profile-email">
+                Rider details will appear here once a rider picks up your order.
+            </div>
+
+        </div>
+
+    </div>
+
+@endif
 
                                 <!-- RIDER INFO -->
 
                                 <div class="tracking-grid">
 
+                                    @unless($isClosed)
                                     <div class="tracking-box">
 
                                         <div class="tracking-box-title">
-                                            🚴 Delivery Rider
+                                            <i class="bi bi-bicycle"></i> Delivery Rider
                                         </div>
 
                                         <div class="tracking-box-value">
@@ -1622,7 +1675,7 @@
                                             @if(!empty($order['rider_name']))
 
                                                 <span class="rider-icon">
-                                                    🏍️
+                                                    <i class="bi bi-bicycle"></i>
                                                 </span>
 
                                                 {{ $order['rider_name'] }}
@@ -1638,15 +1691,16 @@
                                         </div>
 
                                     </div>
+                                    @endunless
 
                                     <div class="tracking-box">
 
                                         <div class="tracking-box-title">
-                                            📦 Current Status
+                                            <i class="bi bi-box-seam-fill"></i> Current Status
                                         </div>
 
                                         <div class="tracking-box-value">
-                                            {{ $order['status'] ?? 'Pending' }}
+                                            <x-status-pill :status="$order['status'] ?? 'Pending'" />
                                         </div>
 
                                     </div>
@@ -1654,7 +1708,7 @@
                                     <div class="tracking-box">
 
                                         <div class="tracking-box-title">
-                                            🏠 Delivery Address
+                                            <i class="bi bi-house-door-fill"></i> Delivery Address
                                         </div>
 
                                         <div class="tracking-box-value">
@@ -1666,7 +1720,7 @@
                                     <div class="tracking-box">
 
                                         <div class="tracking-box-title">
-                                            📞 Contact Number
+                                            <i class="bi bi-telephone-fill"></i> Contact Number
                                         </div>
 
                                         <div class="tracking-box-value">
@@ -1684,8 +1738,68 @@
                                 <div class="timeline">
 
                                     <div class="timeline-title">
-                                        Delivery Progress
+                                        {{ $isClosed ? 'Order History' : 'Delivery Progress' }}
                                     </div>
+
+                                    @if($isClosed)
+
+                                    <div class="timeline-item">
+
+                                        <div class="timeline-line"></div>
+
+                                        <div class="timeline-dot">
+                                            <i class="bi bi-check-lg"></i>
+                                        </div>
+
+                                        <div class="timeline-content">
+
+                                            <strong>
+                                                Order Placed
+                                            </strong>
+
+                                            <span>
+                                                {{ !empty($order['created_at']) ? \Carbon\Carbon::parse($order['created_at'])->format('M d, Y · h:i A') : 'Your order was placed.' }}
+                                            </span>
+
+                                        </div>
+
+                                    </div>
+
+                                    <div class="timeline-item">
+
+                                        <div class="timeline-dot danger">
+                                            <i class="bi bi-x-lg"></i>
+                                        </div>
+
+                                        <div class="timeline-content">
+
+                                            <strong>
+                                                {{ $closedLabel }}
+                                            </strong>
+
+                                            @if(!empty($closedAt))
+                                                <span>
+                                                    {{ \Carbon\Carbon::parse($closedAt)->format('M d, Y · h:i A') }}
+                                                </span>
+                                            @endif
+
+                                            @if(!empty($closedReason))
+                                                <span class="timeline-reason">
+                                                    Reason: {{ $closedReason }}
+                                                </span>
+                                            @endif
+
+                                            @if($orderStatus === 'cancelled')
+                                                <span class="timeline-reason">
+                                                    This order will not be shipped.
+                                                </span>
+                                            @endif
+
+                                        </div>
+
+                                    </div>
+
+                                    @else
 
                                     <!-- ORDER PLACED -->
 
@@ -1694,7 +1808,7 @@
                                         <div class="timeline-line"></div>
 
                                         <div class="timeline-dot">
-                                            ✓
+                                            <i class="bi bi-check-lg"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1737,7 +1851,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            ✓
+                                            <i class="bi bi-check-lg"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1779,7 +1893,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            ✓
+                                            <i class="bi bi-check-lg"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1819,7 +1933,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            🚚
+                                            <i class="bi bi-truck"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1858,7 +1972,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            📦
+                                            <i class="bi bi-box-seam-fill"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1895,7 +2009,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            🏍️
+                                            <i class="bi bi-bicycle"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1924,7 +2038,7 @@
                                                 : 'gray'
                                             }}"
                                         >
-                                            ✓
+                                            <i class="bi bi-check-lg"></i>
                                         </div>
 
                                         <div class="timeline-content">
@@ -1941,6 +2055,8 @@
 
                                     </div>
 
+                                    @endif
+
                                 </div>
 
                             </div>
@@ -1952,7 +2068,7 @@
                 </div>
 
                 <div class="empty" id="ordersNoMatch" style="display:none;">
-                    <div class="empty-icon">🔍</div>
+                    <div class="empty-icon"><i class="bi bi-search"></i></div>
                     <h2>No Matching Orders</h2>
                     <p>Try a different search term or filter.</p>
                 </div>
@@ -1963,19 +2079,7 @@
 
     </main>
 
-<!-- Leaflet JS -->
-
-<script
-    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
-></script>
-
 <script>
-
-    /* =========================
-       MAP STORAGE
-    ========================= */
-
-    const maps = {};
 
     /* =========================
        TOGGLE TRACKING
@@ -1985,195 +2089,9 @@
 
         const panel = document.getElementById(id);
 
-        if (!panel) {
-            return;
+        if (panel) {
+            panel.classList.toggle('active');
         }
-
-        const isOpen = panel.classList.contains('active');
-
-        if (isOpen) {
-
-            panel.classList.remove('active');
-
-            return;
-        }
-
-        panel.classList.add('active');
-
-        const mapElement = panel.querySelector('.map');
-
-        if (!mapElement) {
-            return;
-        }
-
-        if (maps[id]) {
-
-            setTimeout(function () {
-
-                maps[id].invalidateSize();
-
-            }, 100);
-
-            return;
-        }
-
-        /* =========================
-           TEMPORARY DEMO LOCATION
-        ========================= */
-
-        const buyerLocation = [
-            14.5995,
-            120.9842
-        ];
-
-        const riderLocation = [
-            14.6095,
-            120.9942
-        ];
-
-        /* =========================
-           CREATE MAP
-        ========================= */
-
-        const map = L.map(mapElement).setView(
-            buyerLocation,
-            13
-        );
-
-        maps[id] = map;
-
-        /* =========================
-           MAP TILES
-        ========================= */
-
-        L.tileLayer(
-            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            {
-                maxZoom: 19,
-                attribution: '&copy; OpenStreetMap contributors'
-            }
-        ).addTo(map);
-
-        /* =========================
-           BUYER MARKER
-        ========================= */
-
-        const buyerIcon = L.divIcon({
-
-            className: '',
-
-            html:
-                '<div style="' +
-                'font-size:32px;' +
-                'text-align:center;' +
-                '">🏠</div>',
-
-            iconSize: [
-                35,
-                35
-            ],
-
-            iconAnchor: [
-                17,
-                30
-            ]
-
-        });
-
-        L.marker(
-            buyerLocation,
-            {
-                icon: buyerIcon
-            }
-        )
-        .addTo(map)
-        .bindPopup(
-            '<strong>🏠 Delivery Address</strong><br>' +
-            'Your delivery location'
-        );
-
-        /* =========================
-           RIDER MARKER
-        ========================= */
-
-        const riderIcon = L.divIcon({
-
-            className: '',
-
-            html:
-                '<div style="' +
-                'font-size:32px;' +
-                'text-align:center;' +
-                '">🏍️</div>',
-
-            iconSize: [
-                35,
-                35
-            ],
-
-            iconAnchor: [
-                17,
-                30
-            ]
-
-        });
-
-        L.marker(
-            riderLocation,
-            {
-                icon: riderIcon
-            }
-        )
-        .addTo(map)
-        .bindPopup(
-            '<strong>🏍️ Rider</strong><br>' +
-            'Delivery rider location'
-        );
-
-        /* =========================
-           DELIVERY ROUTE
-        ========================= */
-
-        L.polyline(
-            [
-                riderLocation,
-                buyerLocation
-            ],
-            {
-                weight: 5,
-                opacity: 0.7
-            }
-        ).addTo(map);
-
-        /* =========================
-           FIT MAP
-        ========================= */
-
-        const bounds = L.latLngBounds([
-            riderLocation,
-            buyerLocation
-        ]);
-
-        map.fitBounds(
-            bounds,
-            {
-                padding: [
-                    40,
-                    40
-                ]
-            }
-        );
-
-        /* =========================
-           FIX MAP SIZE
-        ========================= */
-
-        setTimeout(function () {
-
-            map.invalidateSize();
-
-        }, 300);
-
     }
 
     /* =========================
@@ -2252,7 +2170,7 @@
 
         if (!selected) {
 
-            alert('Please select a star rating first.');
+            bbAlert('Please select a star rating first.');
 
             return false;
         }
@@ -2318,6 +2236,101 @@
 
 </script>
 
+
+    <div
+        id="cancel-order-modal"
+        class="return-modal"
+        onclick="if (event.target === this) closeCancelOrder()"
+    >
+        <div class="return-modal-card">
+
+            <div class="return-modal-head">
+                <div>
+                    <div class="return-modal-title"><i class="bi bi-x-circle"></i> Cancel Order</div>
+                    <div class="return-modal-subtitle" id="cancel-order-subtitle"></div>
+                </div>
+
+                <button type="button" class="return-close" onclick="closeCancelOrder()">×</button>
+            </div>
+
+            <div class="return-note" id="cancel-order-processing-note" style="display:none;">
+                The seller has already started preparing this order. Cancelling now still returns the items to their stock, but please only cancel if you really need to.
+            </div>
+
+            <form method="POST" id="cancel-order-form" action="">
+                @csrf
+
+                <div class="return-form-group">
+                    <label>Why are you cancelling?</label>
+
+                    <div class="cancel-reasons">
+                        @foreach($cancelReasons ?? \App\Support\CodPolicy::CANCEL_REASONS as $reasonOption)
+                            <label class="cancel-reason">
+                                <input type="radio" name="cancel_reason" value="{{ $reasonOption }}" required>
+                                <span>{{ $reasonOption }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </div>
+
+                <div class="return-form-group">
+                    <label for="cancel-details" id="cancel-details-label">Anything else? (optional)</label>
+                    <textarea id="cancel-details" name="cancel_details" maxlength="250" placeholder="Tell the seller a bit more…"></textarea>
+                </div>
+
+                <div class="return-note {{ ($codStatus['strikes'] ?? 0) >= ($codStatus['limit'] ?? 3) - 1 ? 'is-warning' : '' }}">
+                    <i class="bi bi-shield-exclamation"></i>
+                    You have <strong>{{ $codStatus['strikes'] ?? 0 }} of {{ $codStatus['limit'] ?? 3 }}</strong>
+                    cancellations or refused parcels in the last 30 days.
+                    Reaching {{ $codStatus['limit'] ?? 3 }} pauses Cash on Delivery on your account for a while.
+                </div>
+
+                <div class="return-actions">
+                    <button type="button" class="return-cancel" onclick="closeCancelOrder()">Keep Order</button>
+                    <button type="submit" class="return-submit cancel-submit">Cancel Order</button>
+                </div>
+            </form>
+
+        </div>
+    </div>
+
+    <script>
+        function openCancelOrder(action, orderId, status) {
+            var modal = document.getElementById('cancel-order-modal');
+            var form = document.getElementById('cancel-order-form');
+
+            form.reset();
+            form.action = action;
+            syncCancelDetails();
+
+            document.getElementById('cancel-order-subtitle').textContent = 'Order #' + orderId;
+            document.getElementById('cancel-order-processing-note').style.display =
+                status === 'Processing' ? 'block' : 'none';
+
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeCancelOrder() {
+            document.getElementById('cancel-order-modal').classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // "Other" needs an explanation; for the rest it's optional.
+        function syncCancelDetails() {
+            var picked = document.querySelector('#cancel-order-form input[name="cancel_reason"]:checked');
+            var isOther = picked && picked.value === 'Other';
+            var details = document.getElementById('cancel-details');
+
+            details.required = !!isOther;
+            document.getElementById('cancel-details-label').textContent =
+                isOther ? 'Please tell us why' : 'Anything else? (optional)';
+        }
+
+        document.querySelectorAll('#cancel-order-form input[name="cancel_reason"]').forEach(function (radio) {
+            radio.addEventListener('change', syncCancelDetails);
+        });
+    </script>
 
     @include('partials.pwa-register')
 

@@ -13,6 +13,7 @@
     <title>Notifications — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-notifications.css') }}">
 
@@ -37,7 +38,7 @@
                 </small>
 
                 <h1>
-                    Notifications 🔔
+                    Notifications
                 </h1>
 
                 <p>
@@ -57,17 +58,17 @@
 
                             $icon = match($notification->type) {
 
-                                'order' => '🛒',
+                                'order' => 'bi-cart-fill',
 
-                                'order_status' => '📦',
+                                'order_status' => 'bi-box-seam-fill',
 
-                                'return_refund' => '🔄',
+                                'return_refund' => 'bi-arrow-repeat',
 
-                                'seller' => '🏪',
+                                'seller' => 'bi-shop',
 
-                                'rider' => '🏍️',
+                                'rider' => 'bi-bicycle',
 
-                                default => '🔔',
+                                default => 'bi-bell-fill',
 
                             };
 

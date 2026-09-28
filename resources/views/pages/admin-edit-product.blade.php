@@ -9,6 +9,7 @@
     <title>Edit Product — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -338,7 +339,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </label>
 
                 @php
-                    $currentCategory = strtolower(old('category', $product->category));
+                    $currentCategory = \App\Support\Categories::slug(old('category', $product->category));
                 @endphp
 
                 <select
@@ -351,25 +352,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         Select Category
                     </option>
 
-                    <option value="smartphone" {{ $currentCategory == 'smartphone' ? 'selected' : '' }}>
-                        Smartphone
-                    </option>
-
-                    <option value="laptop" {{ $currentCategory == 'laptop' ? 'selected' : '' }}>
-                        Laptop
-                    </option>
-
-                    <option value="audio" {{ $currentCategory == 'audio' ? 'selected' : '' }}>
-                        Audio
-                    </option>
-
-                    <option value="wearable" {{ $currentCategory == 'wearable' ? 'selected' : '' }}>
-                        Wearable
-                    </option>
-
-                    <option value="accessories" {{ $currentCategory == 'accessories' ? 'selected' : '' }}>
-                        Accessories
-                    </option>
+                    @foreach(\App\Support\Categories::LIST as $categorySlug => $categoryLabel)
+                        <option value="{{ $categorySlug }}" {{ $currentCategory === $categorySlug ? 'selected' : '' }}>
+                            {{ $categoryLabel }}
+                        </option>
+                    @endforeach
 
                 </select>
 

@@ -7,6 +7,7 @@
     <title>Complaints & Disputes — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     @php
         $role = $user['role'] ?? 'buyer';

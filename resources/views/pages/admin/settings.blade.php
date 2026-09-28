@@ -7,6 +7,7 @@
     <title>Admin Settings — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-settings.css') }}">
@@ -46,7 +47,7 @@
         <!-- COMMISSION -->
 
         <div class="card">
-            <h2>💰 Platform Commission</h2>
+            <h2><i class="bi bi-cash-stack"></i> Platform Commission</h2>
             <p class="desc">Set the percentage BoomBuy takes from every seller's sales. Applies to the Commission Report in Reports.</p>
 
             <form method="POST" action="{{ route('admin.settings.commission.update') }}">
@@ -65,7 +66,7 @@
         <!-- RIDER DELIVERY FEE -->
 
         <div class="card">
-            <h2>🏍️ Rider Delivery Fee</h2>
+            <h2><i class="bi bi-bicycle"></i> Rider Delivery Fee</h2>
             <p class="desc">Set how much a rider earns per completed delivery. Used in the rider Profit dashboard.</p>
 
             <form method="POST" action="{{ route('admin.settings.delivery-fee.update') }}">
@@ -84,7 +85,7 @@
         <!-- ANNOUNCEMENTS -->
 
         <div class="card">
-            <h2>📣 Platform Announcements</h2>
+            <h2><i class="bi bi-megaphone-fill"></i> Platform Announcements</h2>
             <p class="desc">Post an announcement that BoomBuy can display to users. Newest announcements appear first.</p>
 
             <form method="POST" action="{{ route('admin.settings.announcements.store') }}">
@@ -127,7 +128,7 @@
                                 </button>
                             </form>
 
-                            <form method="POST" action="{{ route('admin.settings.announcements.delete', $announcement->id) }}" onsubmit="return confirm('Delete this announcement?');">
+                            <form method="POST" action="{{ route('admin.settings.announcements.delete', $announcement->id) }}" data-confirm="Delete this announcement?" data-confirm-ok="Delete" data-confirm-danger>
                                 @csrf
                                 @method('DELETE')
                                 <button type="submit" class="mini-btn delete">Delete</button>
@@ -150,7 +151,7 @@
         <!-- PLATFORM POLICIES -->
 
         <div class="card">
-            <h2>📄 Platform Policies</h2>
+            <h2><i class="bi bi-file-earmark-text-fill"></i> Platform Policies</h2>
             <p class="desc">Update the Terms &amp; Conditions, Privacy Policy, and Return Policy text shown to users.</p>
 
             <form method="POST" action="{{ route('admin.settings.policies.update') }}">

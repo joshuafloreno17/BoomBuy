@@ -7,6 +7,7 @@
     <title>Variations — {{ $product->name }} — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-variations.css') }}">
@@ -51,7 +52,12 @@
 
                         <div class="form-group">
                             <label for="variation_type">Type</label>
-                            <input type="text" id="variation_type" name="variation_type" placeholder="e.g. Color" required>
+                            <input type="text" id="variation_type" name="variation_type" placeholder="e.g. Color" list="variation-type-options" autocomplete="off" required>
+                            <datalist id="variation-type-options">
+                                @foreach(\App\Models\ProductVariation::COMMON_TYPES as $typeOption)
+                                    <option value="{{ $typeOption }}"></option>
+                                @endforeach
+                            </datalist>
                         </div>
 
                         <div class="form-group">
@@ -114,7 +120,7 @@
                                 <td>₱{{ number_format($variation->price_adjustment, 2) }}</td>
                                 <td>{{ $variation->stock }}</td>
                                 <td>
-                                    <form method="POST" action="{{ route('seller.products.variations.delete', [$product->id, $variation->id]) }}" onsubmit="return confirm('Remove this variation?');">
+                                    <form method="POST" action="{{ route('seller.products.variations.delete', [$product->id, $variation->id]) }}" data-confirm="Remove this variation?" data-confirm-ok="Remove" data-confirm-danger>
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="delete-btn">Remove</button>

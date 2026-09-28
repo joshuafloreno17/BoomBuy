@@ -44,12 +44,16 @@ class Voucher extends Model
         return true;
     }
 
+    /**
+     * Never more than the subtotal it applies to — a seller's voucher must not
+     * discount other sellers' items in the same order.
+     */
     public function calculateDiscount(float $subtotal): float
     {
-        if ($this->discount_type === 'percentage') {
-            return round($subtotal * ($this->discount_value / 100), 2);
-        }
+        $discount = $this->discount_type === 'percentage'
+            ? round($subtotal * (min((float) $this->discount_value, 100) / 100), 2)
+            : (float) $this->discount_value;
 
-        return min($this->discount_value, $subtotal);
+        return max(0, min($discount, $subtotal));
     }
 }

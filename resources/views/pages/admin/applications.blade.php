@@ -12,6 +12,7 @@
     <title>Account Registrations — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -432,22 +433,22 @@
                                 @csrf
                                 @php
                                     $categoryOptions = [
-                                        'electronics' => '📱 Electronics',
-                                        'womens-fashion' => "👗 Women's Fashion",
-                                        'mens-fashion' => "👕 Men's Fashion",
-                                        'kids-baby' => '👶 Kids & Baby',
-                                        'home-living' => '🏠 Home & Living',
-                                        'sports-outdoors' => '⚽ Sports & Outdoors',
-                                        'beauty-personal-care' => '💄 Beauty & Personal Care',
-                                        'food-beverages' => '🍔 Food & Beverages',
-                                        'automotive' => '🚗 Automotive',
-                                        'office-school' => '📚 Office & School',
-                                        'pet-supplies' => '🐶 Pet Supplies',
-                                        'toys-games-hobbies' => '🎮 Toys, Games & Hobbies',
-                                        'jewelry-accessories' => '💍 Jewelry & Accessories',
-                                        'shoes' => '👟 Shoes',
-                                        'tools-home-improvement' => '🧰 Tools & Home Improvement',
-                                        'garden-outdoor' => '🌱 Garden & Outdoor',
+                                        'electronics' => 'Electronics',
+                                        'womens-fashion' => "Women's Fashion",
+                                        'mens-fashion' => "Men's Fashion",
+                                        'kids-baby' => 'Kids & Baby',
+                                        'home-living' => 'Home & Living',
+                                        'sports-outdoors' => 'Sports & Outdoors',
+                                        'beauty-personal-care' => 'Beauty & Personal Care',
+                                        'food-beverages' => 'Food & Beverages',
+                                        'automotive' => 'Automotive',
+                                        'office-school' => 'Office & School',
+                                        'pet-supplies' => 'Pet Supplies',
+                                        'toys-games-hobbies' => 'Toys, Games & Hobbies',
+                                        'jewelry-accessories' => 'Jewelry & Accessories',
+                                        'shoes' => 'Shoes',
+                                        'tools-home-improvement' => 'Tools & Home Improvement',
+                                        'garden-outdoor' => 'Garden & Outdoor',
                                     ];
                                 @endphp
                                 <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid #f0ddd6; border-radius:8px; font-size:11px; font-family:inherit;">

@@ -7,6 +7,7 @@
     <title>Complaints & Disputes — BoomBuy Admin</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-complaints.css') }}">
@@ -95,7 +96,7 @@
 
                 @if($complaint->evidence)
                     <a href="{{ asset('storage/' . $complaint->evidence) }}" target="_blank" class="evidence-link">
-                        📎 View Evidence
+                        <i class="bi bi-paperclip"></i> View Evidence
                     </a>
                 @endif
 

@@ -7,6 +7,7 @@
     <title>Add Product — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-add-product.css') }}">
 </head>
@@ -49,7 +50,7 @@
             @if(session('error'))
 
                 <div class="error">
-                    ✕ {{ session('error') }}
+                    <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
                 </div>
 
             @endif
@@ -59,7 +60,7 @@
             @if(session('success'))
 
                 <div class="success">
-                    ✓ {{ session('success') }}
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 </div>
 
             @endif
@@ -137,82 +138,82 @@
 
                             <option value="electronics"
                                 {{ old('category') == 'electronics' ? 'selected' : '' }}>
-                                📱 Electronics
+                                Electronics
                             </option>
 
                             <option value="womens-fashion"
                                 {{ old('category') == 'womens-fashion' ? 'selected' : '' }}>
-                                👗 Women's Fashion
+                                Women's Fashion
                             </option>
 
                             <option value="mens-fashion"
                                 {{ old('category') == 'mens-fashion' ? 'selected' : '' }}>
-                                👕 Men's Fashion
+                                Men's Fashion
                             </option>
 
                             <option value="kids-baby"
                                 {{ old('category') == 'kids-baby' ? 'selected' : '' }}>
-                                👶 Kids & Baby
+                                Kids & Baby
                             </option>
 
                             <option value="home-living"
                                 {{ old('category') == 'home-living' ? 'selected' : '' }}>
-                                🏠 Home & Living
+                                Home & Living
                             </option>
 
                             <option value="sports-outdoors"
                                 {{ old('category') == 'sports-outdoors' ? 'selected' : '' }}>
-                                ⚽ Sports & Outdoors
+                                Sports & Outdoors
                             </option>
 
                             <option value="beauty-personal-care"
                                 {{ old('category') == 'beauty-personal-care' ? 'selected' : '' }}>
-                                💄 Beauty & Personal Care
+                                Beauty & Personal Care
                             </option>
 
                             <option value="food-beverages"
                                 {{ old('category') == 'food-beverages' ? 'selected' : '' }}>
-                                🍔 Food & Beverages
+                                Food & Beverages
                             </option>
 
                             <option value="automotive"
                                 {{ old('category') == 'automotive' ? 'selected' : '' }}>
-                                🚗 Automotive
+                                Automotive
                             </option>
 
                             <option value="office-school"
                                 {{ old('category') == 'office-school' ? 'selected' : '' }}>
-                                📚 Office & School
+                                Office & School
                             </option>
 
                             <option value="pet-supplies"
                                 {{ old('category') == 'pet-supplies' ? 'selected' : '' }}>
-                                🐶 Pet Supplies
+                                Pet Supplies
                             </option>
 
                             <option value="toys-games-hobbies"
                                 {{ old('category') == 'toys-games-hobbies' ? 'selected' : '' }}>
-                                🎮 Toys, Games & Hobbies
+                                Toys, Games & Hobbies
                             </option>
 
                             <option value="jewelry-accessories"
                                 {{ old('category') == 'jewelry-accessories' ? 'selected' : '' }}>
-                                💍 Jewelry & Accessories
+                                Jewelry & Accessories
                             </option>
 
                             <option value="shoes"
                                 {{ old('category') == 'shoes' ? 'selected' : '' }}>
-                                👟 Shoes
+                                Shoes
                             </option>
 
                             <option value="tools-home-improvement"
                                 {{ old('category') == 'tools-home-improvement' ? 'selected' : '' }}>
-                                🧰 Tools & Home Improvement
+                                Tools & Home Improvement
                             </option>
 
                             <option value="garden-outdoor"
                                 {{ old('category') == 'garden-outdoor' ? 'selected' : '' }}>
-                                🌱 Garden & Outdoor
+                                Garden & Outdoor
                             </option>
                         </select>
                     </div>
@@ -249,8 +250,7 @@
                         <div class="image-upload">
 
                             <div class="image-upload-icon">
-                                📷
-                            </div>
+                                                            </div>
 
                             <div class="image-upload-title">
                                 Upload your product image
@@ -320,6 +320,11 @@
                         </div>
 
                         <div id="variationRows"></div>
+                        <datalist id="variation-type-options">
+                            @foreach(\App\Models\ProductVariation::COMMON_TYPES as $typeOption)
+                                <option value="{{ $typeOption }}"></option>
+                            @endforeach
+                        </datalist>
 
                         <button
                             type="button"
@@ -348,7 +353,7 @@
                             type="submit"
                             class="save"
                         >
-                            ✓ Add Product
+                            <i class="bi bi-check-circle-fill"></i> Add Product
                         </button>
 
                         <a
@@ -382,11 +387,11 @@
             row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:8px; margin-bottom:8px; align-items:center;';
 
             row.innerHTML =
-                '<input type="text" name="variations[' + index + '][type]" placeholder="Type (e.g. Color)">' +
+                '<input type="text" name="variations[' + index + '][type]" placeholder="Type (e.g. Color)" list="variation-type-options" autocomplete="off">' +
                 '<input type="text" name="variations[' + index + '][value]" placeholder="Value (e.g. Red)">' +
                 '<input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" placeholder="Extra Price (₱)" value="0">' +
                 '<input type="number" min="0" name="variations[' + index + '][stock]" placeholder="Stock" value="0">' +
-                '<button type="button" class="remove-variation-btn" style="background:#fff1f1; color:#dc2626; border:none; border-radius:6px; padding:10px 12px; font-size:11px; font-weight:700; cursor:pointer;">✕</button>';
+                '<button type="button" class="remove-variation-btn" style="background:#fff1f1; color:#dc2626; border:none; border-radius:6px; padding:10px 12px; font-size:11px; font-weight:700; cursor:pointer;"><i class="bi bi-x-lg"></i></button>';
 
             row.querySelectorAll('input').forEach(function (input) {
                 input.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #f0ddd6; border-radius:8px; font-size:12px; font-family:inherit; outline:none;';

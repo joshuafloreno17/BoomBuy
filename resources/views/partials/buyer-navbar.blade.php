@@ -9,9 +9,10 @@
 
         padding: 16px 7%;
 
-        display: flex;
+        display: grid;
+        grid-template-columns: auto 1fr auto;
         align-items: center;
-        justify-content: space-between;
+        column-gap: 20px;
 
         position: sticky;
         top: 0;
@@ -22,6 +23,12 @@
 
     .bb-navbar a {
         text-decoration: none;
+    }
+
+    .bb-nav-left {
+        display: flex;
+        align-items: center;
+        min-width: 0;
     }
 
     .bb-logo {
@@ -44,7 +51,6 @@
         gap: 22px;
 
         margin-left: 40px;
-        margin-right: auto;
 
         min-width: 0;
     }
@@ -76,10 +82,10 @@
 
         padding: 0 4px 0 12px;
 
-        width: 200px;
-        flex-shrink: 0;
-
-        margin-right: 14px;
+        width: 100%;
+        max-width: 320px;
+        margin: 0 auto;
+        min-width: 0;
     }
 
     .bb-nav-search input {
@@ -113,13 +119,40 @@
     .bb-nav-right {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 14px;
 
         flex-shrink: 0;
     }
 
     .bb-nav-right form {
         margin: 0;
+    }
+
+    .bb-nav-right .bb-cart-link {
+        position: relative;
+
+        color: #8d6c62;
+        font-size: 18px;
+
+        transition: 0.2s;
+    }
+
+    .bb-nav-right .bb-cart-link:hover,
+    .bb-nav-right .bb-cart-link.active {
+        color: #e8420f;
+    }
+
+    .bb-nav-right .bb-cart-number {
+        position: absolute;
+        top: -8px;
+        right: -10px;
+
+        min-width: 17px;
+        height: 17px;
+
+        padding: 0 4px;
+
+        font-size: 9.5px;
     }
 
     .bb-user-chip {
@@ -265,18 +298,45 @@
         .bb-nav-links a {
             font-size: 12px;
         }
+
+        .bb-nav-search {
+            max-width: 220px;
+        }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 900px) {
         .bb-navbar {
+            grid-template-columns: 1fr auto;
+            grid-template-areas:
+                "left right"
+                "search search";
+
             height: auto;
             min-height: 72px;
 
-            flex-wrap: wrap;
-
-            gap: 12px;
+            row-gap: 12px;
 
             padding: 15px 20px;
+        }
+
+        .bb-nav-left {
+            grid-area: left;
+
+            flex-direction: column;
+            align-items: flex-start;
+
+            gap: 10px;
+        }
+
+        .bb-nav-search {
+            grid-area: search;
+            max-width: none;
+            width: 100%;
+            margin: 0;
+        }
+
+        .bb-nav-right {
+            grid-area: right;
         }
 
         .bb-logo {
@@ -284,32 +344,19 @@
         }
 
         .bb-nav-links {
-            order: 3;
-
             width: 100%;
 
-            justify-content: center;
+            justify-content: flex-start;
 
-            margin: 0;
+            margin-left: 0;
 
-            gap: 15px;
+            gap: 14px;
 
             flex-wrap: wrap;
         }
 
         .bb-nav-links a {
             font-size: 12px;
-        }
-
-        .bb-nav-search {
-            order: 4;
-
-            width: 100%;
-            margin: 8px 0 0;
-        }
-
-        .bb-nav-right {
-            margin-left: auto;
         }
 
         .bb-user-chip .bb-chip-text {
@@ -339,6 +386,7 @@
     $bbActive = $activeNav ?? null;
 
     $bbNotificationCount = 0;
+    $bbMessageCount = 0;
 
     if ($bbNavUser) {
         $bbNotificationCount = \App\Models\Notification::where(
@@ -347,10 +395,19 @@
         )
         ->whereNull('read_at')
         ->count();
+
+        $bbMessageCount = \App\Models\Message::where(
+            'recipient_id',
+            $bbNavUser['id']
+        )
+        ->whereNull('read_at')
+        ->count();
     }
 @endphp
 
 <nav class="bb-navbar">
+
+    <div class="bb-nav-left">
 
     <a href="{{ $bbNavUser ? route('buyer.dashboard') : route('home') }}" class="bb-logo">
         Boom<span>Buy</span>
@@ -383,22 +440,6 @@
     </a>
 
     <a
-        href="{{ route('notifications') }}"
-        class="bb-cart-link {{ $bbActive === 'notifications' ? 'active' : '' }}"
-        aria-label="Notifications"
-        title="Notifications"
-    >
-        🔔
-
-        <span
-            class="bb-cart-number"
-            style="{{ $bbNotificationCount > 0 ? '' : 'display:none;' }}"
-        >
-            {{ $bbNotificationCount }}
-        </span>
-    </a>
-
-    <a
         href="{{ route('complaints.index') }}"
         class="{{ $bbActive === 'complaints' ? 'active' : '' }}"
     >
@@ -408,21 +449,20 @@
     <a
         href="{{ route('messages.index') }}"
         class="{{ $bbActive === 'messages' ? 'active' : '' }}"
+        style="display:inline-flex; align-items:center; gap:6px;"
     >
         Messages
+
+        @if($bbMessageCount > 0)
+            <span class="bb-cart-number">
+                {{ $bbMessageCount > 99 ? '99+' : $bbMessageCount }}
+            </span>
+        @endif
     </a>
 
 @endif
 
-        <a href="{{ route('cart') }}" class="bb-cart-link {{ $bbActive === 'cart' ? 'active' : '' }}">
-            Cart
-
-            <span
-                class="bb-cart-number"
-                id="cartCount"
-                style="{{ $bbCartCount > 0 ? '' : 'display:none;' }}"
-            >{{ $bbCartCount }}</span>
-        </a>
+    </div>
 
     </div>
 
@@ -434,11 +474,41 @@
             aria-label="Search products"
         >
         <button type="submit" aria-label="Search">
-            🔍
+            <i class="bi bi-search"></i>
         </button>
     </form>
 
     <div class="bb-nav-right">
+
+        @if($bbNavUser)
+
+            <a
+                href="{{ route('notifications') }}"
+                class="bb-cart-link {{ $bbActive === 'notifications' ? 'active' : '' }}"
+                aria-label="Notifications"
+                title="Notifications"
+            >
+                <i class="bi bi-bell-fill"></i>
+
+                <span
+                    class="bb-cart-number"
+                    style="{{ $bbNotificationCount > 0 ? '' : 'display:none;' }}"
+                >
+                    {{ $bbNotificationCount }}
+                </span>
+            </a>
+
+        @endif
+
+        <a href="{{ route('cart') }}" class="bb-cart-link {{ $bbActive === 'cart' ? 'active' : '' }}">
+            <i class="bi bi-cart-fill"></i>
+
+            <span
+                class="bb-cart-number"
+                id="cartCount"
+                style="{{ $bbCartCount > 0 ? '' : 'display:none;' }}"
+            >{{ $bbCartCount }}</span>
+        </a>
 
         @if($bbNavUser)
 
@@ -461,7 +531,7 @@
             <form
                 action="{{ route('logout') }}"
                 method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
+                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
             >
                 @csrf
                 <button class="bb-logout" type="submit">
@@ -484,3 +554,5 @@
     </div>
 
 </nav>
+
+@include('partials.confirm-modal')

@@ -6,6 +6,7 @@
     <title>Register — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -377,7 +378,7 @@
 
     <div class="card">
 
-        <div class="icon">🛍️</div>
+        <div class="icon"><i class="bi bi-bag-fill"></i></div>
 
         <div class="eyebrow">Join BoomBuy</div>
         <h1>Create your account</h1>

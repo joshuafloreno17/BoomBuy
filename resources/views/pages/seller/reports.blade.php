@@ -7,6 +7,7 @@
     <title>Reports — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-reports.css') }}">
@@ -52,6 +53,11 @@
                 <div class="stat-card">
                     <span>Total Sales (Delivered)</span>
                     <strong>₱{{ number_format($totalSales, 2) }}</strong>
+                    @if(($voucherDiscounts ?? 0) > 0)
+                        <small style="display:block; margin-top:4px; font-size:11px; opacity:.75;">
+                            after ₱{{ number_format($voucherDiscounts, 2) }} in voucher discounts
+                        </small>
+                    @endif
                 </div>
 
                 <div class="stat-card">

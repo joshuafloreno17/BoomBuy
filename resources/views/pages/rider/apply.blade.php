@@ -7,6 +7,7 @@
     <title>BoomBuy — Rider Application</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -540,7 +541,7 @@
         {{-- SUCCESS MESSAGE --}}
         @if(session('success'))
             <div class="alert alert-success">
-                ✓ {{ session('success') }}
+                <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
             </div>
         @endif
 
@@ -672,7 +673,7 @@
             <section class="form-section">
 
                 <h2 class="section-title">
-                    <span>👤</span>
+                    <span><i class="bi bi-person-fill"></i></span>
                     Personal Information
                 </h2>
 
@@ -765,7 +766,7 @@
             <section class="form-section">
 
                 <h2 class="section-title">
-                    <span>🛵</span>
+                    <span><i class="bi bi-bicycle"></i></span>
                     Vehicle Information
                 </h2>
 
@@ -860,7 +861,7 @@
             <section class="form-section">
 
                 <h2 class="section-title">
-                    <span>📄</span>
+                    <span><i class="bi bi-file-earmark-text-fill"></i></span>
                     Required Documents
                 </h2>
 
@@ -1156,9 +1157,13 @@
             var target = document.getElementById(targetId);
             if (!target) return;
 
-            target.textContent = input.files && input.files[0]
-                ? '✓ ' + input.files[0].name
-                : '';
+            target.textContent = '';
+            if (input.files && input.files[0]) {
+                var icon = document.createElement('i');
+                icon.className = 'bi bi-check-circle-fill';
+                target.appendChild(icon);
+                target.appendChild(document.createTextNode(' ' + input.files[0].name));
+            }
         }
 
         var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';

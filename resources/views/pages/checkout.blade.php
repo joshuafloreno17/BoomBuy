@@ -13,6 +13,7 @@
     <title>Checkout — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -143,6 +144,41 @@
             box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.18);
         }
 
+        .payment-option.is-disabled label {
+            opacity: 0.45;
+            cursor: not-allowed;
+            text-decoration: line-through;
+        }
+
+        .payment-option.is-disabled input {
+            cursor: not-allowed;
+        }
+
+        .payment-note {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+
+            margin-top: 12px;
+            padding: 11px 13px;
+
+            border-radius: 10px;
+            background: #f7f4f2;
+            color: #6b5048;
+
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .payment-note i {
+            margin-top: 2px;
+        }
+
+        .payment-note.is-warning {
+            background: #fff4e5;
+            color: #8a5a00;
+        }
+
         @media (max-width: 480px) {
             .payment-options {
                 grid-template-columns: 1fr;
@@ -185,6 +221,7 @@
             justify-content: center;
 
             font-size: 22px;
+            color: var(--accent);
         }
 
         .product-name {
@@ -344,7 +381,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             <div class="card">
 
                 <h2>
-                    📍 Shipping Information
+                    <i class="bi bi-geo-alt-fill"></i> Shipping Information
                 </h2>
 
 
@@ -413,7 +450,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 
                 <h2 style="margin-top: 30px;">
-                    💳 Payment Method
+                    <i class="bi bi-credit-card-fill"></i> Payment Method
                 </h2>
 
 
@@ -425,16 +462,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <div class="payment-options">
 
-                        <div class="payment-option">
+                        @php $codBlocked = !empty($codStatus['blocked']); @endphp
+
+                        <div class="payment-option {{ $codBlocked ? 'is-disabled' : '' }}">
                             <input
                                 type="radio"
                                 name="payment"
                                 id="payment-cod"
                                 value="Cash on Delivery"
-                                {{ old('payment') === 'Cash on Delivery' ? 'checked' : '' }}
+                                {{ !$codBlocked && old('payment') === 'Cash on Delivery' ? 'checked' : '' }}
+                                {{ $codBlocked ? 'disabled' : '' }}
                                 required
                             >
-                            <label for="payment-cod">💵 Cash on Delivery</label>
+                            <label for="payment-cod"><i class="bi bi-cash-coin"></i> Cash on Delivery</label>
                         </div>
 
                         <div class="payment-option">
@@ -444,8 +484,9 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 id="payment-gcash"
                                 value="GCash"
                                 {{ old('payment') === 'GCash' ? 'checked' : '' }}
+                                required
                             >
-                            <label for="payment-gcash">📱 GCash</label>
+                            <label for="payment-gcash"><i class="bi bi-phone-fill"></i> GCash</label>
                         </div>
 
                         <div class="payment-option">
@@ -456,7 +497,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 value="Maya"
                                 {{ old('payment') === 'Maya' ? 'checked' : '' }}
                             >
-                            <label for="payment-maya">📱 Maya</label>
+                            <label for="payment-maya"><i class="bi bi-phone-fill"></i> Maya</label>
                         </div>
 
                         <div class="payment-option">
@@ -467,9 +508,26 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 value="Credit / Debit Card"
                                 {{ old('payment') === 'Credit / Debit Card' ? 'checked' : '' }}
                             >
-                            <label for="payment-card">💳 Credit / Debit Card</label>
+                            <label for="payment-card"><i class="bi bi-credit-card-fill"></i> Credit / Debit Card</label>
                         </div>
 
+                    </div>
+
+                    @if($codBlocked)
+                        <div class="payment-note is-warning">
+                            <i class="bi bi-exclamation-triangle-fill"></i>
+                            Cash on Delivery is paused on your account until
+                            <strong>{{ $codStatus['available_at']->format('M d, Y') }}</strong>
+                            because of {{ $codStatus['strikes'] }} cancelled or refused orders in the last 30 days.
+                        </div>
+                    @endif
+
+                    <div class="payment-note">
+                        <i class="bi bi-info-circle-fill"></i>
+                        <span>
+                            <strong>Cash on Delivery</strong> orders can be cancelled while the seller is still preparing them.
+                            Orders paid by <strong>GCash, Maya or card</strong> can't be cancelled after checkout — you can request a return once you receive them.
+                        </span>
                     </div>
 
                 </div>
@@ -482,7 +540,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             <div class="card">
 
                 <h2>
-                    🛒 Order Summary
+                    <i class="bi bi-receipt"></i> Order Summary
                 </h2>
 
 
@@ -528,14 +586,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 <div class="product-icon">
 
                                     @php
-                                        $pIcon = $product['icon'] ?? '📦';
+                                        $pIcon = $product['icon'] ?? null;
                                         $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
                                     @endphp
                                     @if($pIsImg)
                                         <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
-                                        <span>📦</span>
+                                        <span><i class="bi bi-box-seam-fill"></i></span>
                                     @else
-                                        {{ $pIcon }}
+                                        <i class="bi bi-box-seam-fill"></i>
                                     @endif
 
                                 </div>
@@ -583,17 +641,34 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     <strong>₱{{ number_format($total, 2) }}</strong>
                 </div>
 
-                <div class="subtotal-row">
-                    <span>Shipping</span>
-                    <strong>FREE</strong>
-                </div>
-
                 @php
-                    $checkoutDiscount = $appliedVoucher ? $appliedVoucher->calculateDiscount($voucherSubtotal) : 0;
-                    $checkoutFinalTotal = max(0, $total - $checkoutDiscount);
+                    // Computed by App\Support\CheckoutPlan — the same math placeOrder uses.
+                    $parcelCount = count($checkoutPlan['orders']);
+                    $checkoutDiscount = $checkoutPlan['discount'];
+                    $checkoutDeliveryFee = $checkoutPlan['delivery_fee'];
+                    $checkoutFinalTotal = $checkoutPlan['total'];
                 @endphp
 
-                @if($appliedVoucher)
+                <div class="subtotal-row">
+                    <span>
+                        Delivery Fee
+                        @if($parcelCount > 1)
+                            ({{ $parcelCount }} sellers)
+                        @endif
+                    </span>
+                    <strong>{{ $checkoutDeliveryFee > 0 ? '₱' . number_format($checkoutDeliveryFee, 2) : 'FREE' }}</strong>
+                </div>
+
+                <div class="subtotal-row" style="font-size:11px; color:#8d6c62;">
+                    <span>
+                        @if($parcelCount > 1)
+                            Items from different sellers become separate orders, each shipped on its own.
+                        @endif
+                        Free delivery on orders ₱{{ number_format($freeShippingMin ?? 999) }} and up{{ $parcelCount > 1 ? ' (per seller)' : '' }}.
+                    </span>
+                </div>
+
+                @if($appliedVoucher && $checkoutDiscount > 0)
                     <div class="subtotal-row">
                         <span>Voucher ({{ $appliedVoucher->code }})</span>
                         <strong style="color:#15803d;">−₱{{ number_format($checkoutDiscount, 2) }}</strong>
@@ -620,14 +695,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     class="place-order"
                 >
 
-                    🛍️ Place Order
+                    <i class="bi bi-bag-check-fill"></i> Place Order
 
                 </button>
 
 
                 <div class="secure">
 
-                    🔒 Your order information is stored securely.
+                    <i class="bi bi-shield-lock-fill"></i> Your order information is stored securely.
 
                 </div>
 

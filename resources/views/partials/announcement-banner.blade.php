@@ -18,7 +18,7 @@
         align-items: flex-start;
         gap: 10px;
     ">
-        <span>📣</span>
+        <span><i class="bi bi-megaphone-fill"></i></span>
         <span>
             <strong>{{ $latestAnnouncement->title }}</strong>
             — {{ $latestAnnouncement->message }}

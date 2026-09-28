@@ -7,6 +7,7 @@
     <title>Dashboard — BoomBuy Logistics</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/logistics-dashboard.css') }}">
@@ -54,16 +55,19 @@
             <div class="stats-row">
 
                 <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-inbox-fill"></i></div>
                     <span class="stat-label">Parcels for Sorting</span>
                     <strong class="stat-value">{{ $parcelsForSorting }}</strong>
                 </div>
 
                 <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-bicycle"></i></div>
                     <span class="stat-label">Active Riders</span>
                     <strong class="stat-value">{{ $activeRiders }}</strong>
                 </div>
 
                 <div class="stat-card">
+                    <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
                     <span class="stat-label">Delivered Today</span>
                     <strong class="stat-value">{{ $deliveredToday }}</strong>
                 </div>
@@ -71,7 +75,7 @@
             </div>
 
             <div class="coming-soon-card">
-                <h3>🚧 More Tools Coming Soon</h3>
+                <h3><i class="bi bi-cone-striped"></i> More Tools Coming Soon</h3>
                 <ul>
                     <li>Delivery monitoring dashboard &amp; reports</li>
                 </ul>

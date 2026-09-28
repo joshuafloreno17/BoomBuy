@@ -7,6 +7,7 @@
     <title>Customer Reviews — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-reviews.css') }}">
@@ -47,7 +48,7 @@
                             </div>
                         </div>
                         <div class="review-stars">
-                            {{ str_repeat('★', (int) $review->rating) }}{{ str_repeat('☆', 5 - (int) $review->rating) }}
+                            {!! str_repeat('<i class="bi bi-star-fill"></i>', (int) $review->rating) !!}{!! str_repeat('<i class="bi bi-star"></i>', 5 - (int) $review->rating) !!}
                         </div>
                     </div>
 
@@ -77,7 +78,7 @@
             @empty
 
                 <div class="empty">
-                    <div class="empty-icon">⭐</div>
+                    <div class="empty-icon"><i class="bi bi-star-fill"></i></div>
                     <h3>No Reviews Yet</h3>
                     <p>Customer ratings and feedback on your products will appear here.</p>
                 </div>

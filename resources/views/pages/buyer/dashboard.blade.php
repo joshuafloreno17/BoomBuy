@@ -7,6 +7,7 @@
     <title>BoomBuy — Buyer Home</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -288,6 +289,7 @@
             justify-content: center;
 
             font-size: 55px;
+            color: var(--accent);
 
             margin-bottom: 15px;
         }
@@ -582,7 +584,7 @@
 
                 <h1>
                     Welcome,
-                    {{ $user['name'] ?? 'Buyer' }}! 👋
+                    {{ $user['name'] ?? 'Buyer' }}!
                 </h1>
 
                 <p>
@@ -695,7 +697,7 @@
                                 @php
 
                                     $pIcon =
-                                        $product['icon'] ?? '📦';
+                                        $product['icon'] ?? null;
 
                                     $pIsImg =
                                         is_string($pIcon) &&
@@ -750,11 +752,11 @@
                                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                                         onerror="this.style.display='none';"
                                     >
-                                    <span>📦</span>
+                                    <span><i class="bi bi-box-seam-fill"></i></span>
 
                                 @else
 
-                                    {{ $pIcon }}
+                                    <i class="bi bi-box-seam-fill"></i>
 
                                 @endif
 

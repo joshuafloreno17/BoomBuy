@@ -7,6 +7,7 @@
     <title>Admin Orders - BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -274,9 +275,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                 <div>
 
-    <div class="status">
-        {{ $order['status'] ?? 'Pending' }}
-    </div>
+    <x-status-pill :status="$order['status'] ?? 'Pending'" />
 
     @if(!empty($order['buyer_received_at']))
 

@@ -7,6 +7,7 @@
     <title>My Profile — BoomBuy Logistics</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/logistics-profile.css') }}">
@@ -66,7 +67,7 @@
                         </div>
 
                         <label for="profile_photo_input" class="avatar-camera" title="Change photo">
-                            📷
+                            <i class="bi bi-camera-fill"></i>
                         </label>
 
                         <input

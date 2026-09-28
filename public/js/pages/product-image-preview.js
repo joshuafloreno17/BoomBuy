@@ -22,7 +22,7 @@ imageInput.addEventListener('change', function () {
 
     if (!allowedTypes.includes(file.type)) {
 
-        alert(
+        (window.bbAlert || window.alert)(
             'Please select a JPG, JPEG, PNG, or WEBP image.'
         );
 
@@ -36,7 +36,7 @@ imageInput.addEventListener('change', function () {
 
     if (file.size > 5 * 1024 * 1024) {
 
-        alert(
+        (window.bbAlert || window.alert)(
             'Product image must not be larger than 5MB.'
         );
 

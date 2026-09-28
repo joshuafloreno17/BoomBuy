@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-orders.css') }}">
 
@@ -66,7 +67,7 @@
             @if(session('success'))
 
                 <div class="alert success">
-                    ✓ {{ session('success') }}
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 </div>
 
             @endif
@@ -146,7 +147,7 @@
                 <div class="empty">
 
                     <div class="empty-icon">
-                        🛒
+                        <i class="bi bi-cart-fill"></i>
                     </div>
 
                     <h2>No Orders Yet</h2>
@@ -186,14 +187,12 @@
 
               <div>
 
-    <div class="status">
-        {{ ucwords(str_replace('_', ' ', $order->status)) }}
-    </div>
+    <x-status-pill :status="$order->status" />
 
     @if(!empty($order->buyer_received_at))
 
         <div class="received-badge">
-            ✓ Received by Buyer
+            <i class="bi bi-check-circle-fill"></i> Received by Buyer
         </div>
 
     @endif
@@ -201,7 +200,7 @@
     @if($order->status === 'Returned to Seller' && !empty($order->restocked_at))
 
         <div class="received-badge">
-            ✓ Restocked
+            <i class="bi bi-check-circle-fill"></i> Restocked
         </div>
 
     @endif
@@ -228,7 +227,7 @@
                                 @if($order->shipping_phone)
 
                                     <div class="customer-phone">
-                                        📞 {{ $order->shipping_phone }}
+                                        <i class="bi bi-telephone-fill"></i> {{ $order->shipping_phone }}
                                     </div>
 
                                 @endif
@@ -319,8 +318,8 @@
 
     <form method="POST" action="{{ route('seller.order.restock', ['id' => $order->id]) }}">
         @csrf
-        <button type="submit" class="view-btn" onclick="return confirm('Mark this order as restocked? This will add the returned items back to your inventory.')">
-            📦 Mark as Restocked
+        <button type="submit" class="view-btn" data-confirm="Mark this order as restocked? This will add the returned items back to your inventory." data-confirm-ok="Mark Restocked">
+            <i class="bi bi-box-seam-fill"></i> Mark as Restocked
         </button>
     </form>
 
@@ -418,7 +417,7 @@
                                 @if($request->shipping_phone)
 
                                     <div class="customer-phone">
-                                        📞 {{ $request->shipping_phone }}
+                                        <i class="bi bi-telephone-fill"></i> {{ $request->shipping_phone }}
                                     </div>
 
                                 @endif
@@ -503,7 +502,7 @@
                                     @csrf
 
                                     <button type="submit" class="btn btn-approve">
-                                        ✓ Approve
+                                        <i class="bi bi-check-circle-fill"></i> Approve
                                     </button>
                                 </form>
 
@@ -513,7 +512,7 @@
                                     class="btn btn-reject"
                                     onclick="openRejectModal({{ $request->id }})"
                                 >
-                                    ✕ Reject
+                                    <i class="bi bi-x-circle-fill"></i> Reject
                                 </button>
 
                             </div>
@@ -525,11 +524,19 @@
                                 <form
                                     action="{{ route('seller.return-refund.returned', ['id' => $request->id]) }}"
                                     method="POST"
+                                    style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;"
                                 >
                                     @csrf
 
+                                    {{-- Unticked sends restock=0; ticked overrides it with 1. --}}
+                                    <input type="hidden" name="restock" value="0">
+                                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer;">
+                                        <input type="checkbox" name="restock" value="1" checked>
+                                        Add back to stock (untick if damaged)
+                                    </label>
+
                                     <button type="submit" class="btn btn-approve">
-                                        📦 Mark as Returned
+                                        <i class="bi bi-box-seam-fill"></i> Mark as Returned
                                     </button>
                                 </form>
 
@@ -546,7 +553,7 @@
                                     @csrf
 
                                     <button type="submit" class="btn btn-approve">
-                                        💳 Start Refund Processing
+                                        <i class="bi bi-credit-card-fill"></i> Start Refund Processing
                                     </button>
                                 </form>
 
@@ -563,7 +570,7 @@
                                     @csrf
 
                                     <button type="submit" class="btn btn-approve">
-                                        ✓ Mark Refund Completed
+                                        <i class="bi bi-check-circle-fill"></i> Mark Refund Completed
                                     </button>
                                 </form>
 

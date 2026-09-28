@@ -1,9 +1,9 @@
-@props(['icon' => '🔔', 'title' => 'No Notifications Yet', 'message' => ''])
+@props(['icon' => 'bi-bell-fill', 'title' => 'No Notifications Yet', 'message' => ''])
 
 <div class="empty">
 
     <div class="empty-icon">
-        {{ $icon }}
+        <i class="bi {{ $icon }}"></i>
     </div>
 
     <h3>

@@ -9,6 +9,7 @@
     <title>My Deliveries — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
 
@@ -1185,7 +1186,7 @@
             >
 
                 <div class="rider-brand-icon">
-                    🛍️
+                    <i class="bi bi-bicycle"></i>
                 </div>
 
                 <div>
@@ -1215,7 +1216,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🏠
+                        <i class="bi bi-house-door-fill"></i>
                     </span>
 
                     <span>
@@ -1232,7 +1233,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </span>
 
                     <span>
@@ -1248,7 +1249,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        💰
+                        <i class="bi bi-cash-stack"></i>
                     </span>
 
                     <span>
@@ -1265,7 +1266,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        👤
+                        <i class="bi bi-person-fill"></i>
                     </span>
 
                     <span>
@@ -1297,7 +1298,11 @@
                 >
 
                     <span class="sidebar-icon">
-                        🔔
+                        <i class="bi bi-bell-fill"></i>
+                    </span>
+
+                    <span>
+                        Notifications
                     </span>
 
                     @if($riderUnreadNotifications > 0)
@@ -1317,7 +1322,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        ⚠️
+                        <i class="bi bi-exclamation-triangle-fill"></i>
                     </span>
 
                     <span>
@@ -1333,7 +1338,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        💬
+                        <i class="bi bi-chat-dots-fill"></i>
                     </span>
 
                     <span>
@@ -1349,7 +1354,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🛒
+                        <i class="bi bi-shop"></i>
                     </span>
 
                     <span>
@@ -1377,7 +1382,7 @@
             <form
                 action="{{ route('logout') }}"
                 method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
+                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
             >
 
                 @csrf
@@ -1388,7 +1393,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🚪
+                        <i class="bi bi-box-arrow-right"></i>
                     </span>
 
                     <span>
@@ -1438,7 +1443,7 @@
 
                 <div class="profile">
 
-                    🚴
+                    <i class="bi bi-bicycle"></i>
 
                     <strong>
                         {{ $user['name'] ?? 'Rider' }}
@@ -1458,7 +1463,7 @@
             @if(session('success'))
 
                 <div class="alert success">
-                    ✅ {{ session('success') }}
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 </div>
 
             @endif
@@ -1467,7 +1472,7 @@
             @if(session('error'))
 
                 <div class="alert error">
-                    ❌ {{ session('error') }}
+                    <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
                 </div>
 
             @endif
@@ -1548,36 +1553,6 @@
                                 $delivery['status']
                                 ?? 'Pending';
 
-
-                            $statusClass = 'pending';
-
-
-                            if ($status === 'Ready for Pickup') {
-
-                                $statusClass = 'ready';
-
-                            }
-
-
-                            if (
-                                $status === 'Assigned' ||
-                                $status === 'Picked Up' ||
-                                $status === 'At Sorting Center' ||
-                                $status === 'Assigned for Delivery' ||
-                                $status === 'Out for Delivery'
-                            ) {
-
-                                $statusClass = 'transit';
-
-                            }
-
-
-                            if ($status === 'Delivered') {
-
-                                $statusClass = 'delivered';
-
-                            }
-
                         @endphp
 
 
@@ -1597,20 +1572,14 @@
 
                                 <div class="order-id">
 
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
 
                                     Order #{{ $delivery['id'] ?? 'N/A' }}
 
                                 </div>
 
 
-                                <div
-                                    class="status {{ $statusClass }}"
-                                >
-
-                                    {{ $status }}
-
-                                </div>
+                                <x-status-pill :status="$status" />
 
 
                             </div>
@@ -1743,7 +1712,7 @@
                                             class="btn claim-btn"
                                         >
 
-                                            🚚 Accept Delivery
+                                            <i class="bi bi-truck"></i> Accept Delivery
 
                                         </button>
 
@@ -1764,7 +1733,7 @@
                                     class="btn view-btn"
                                 >
 
-                                    👁 View Details
+                                    <i class="bi bi-eye-fill"></i> View Details
 
                                 </a>
 
@@ -1789,7 +1758,7 @@
                                         class="btn status-btn"
                                     >
 
-                                        🔄 Update Status
+                                        <i class="bi bi-arrow-repeat"></i> Update Status
 
                                     </a>
 
@@ -1818,7 +1787,7 @@
 
 
                     <div class="empty-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </div>
 
 
@@ -1922,6 +1891,7 @@
 
 
     @include('partials.pwa-register')
+    @include('partials.confirm-modal')
 
 </body>
 

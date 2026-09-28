@@ -1,0 +1,1062 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\Product;
+use App\Models\User;
+use App\Support\CodPolicy;
+use App\Support\OrderStock;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+class BuyerController extends Controller
+{
+    public function dashboard()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | PRODUCTS FROM DATABASE ONLY
+        |--------------------------------------------------------------------------
+        */
+
+        // Same visibility rules as the shop page — hide flagged/archived
+        // products, and only load the 8 the dashboard actually shows.
+        $databaseProducts = Product::latest()
+            ->where('is_flagged', false)
+            ->where('is_archived', false)
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->take(8)
+            ->get();
+
+        $products = $databaseProducts->map(function ($product) {
+
+            // The id keeps the link unique when two sellers use the same name.
+            $slug = Str::slug($product->name) . '-' . $product->id;
+
+            $reviewCount = (int) $product->reviews_count;
+
+            return [
+
+                'id' => $product->id,
+                'slug' => $slug,
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'description' => $product->description,
+                'image' => $product->image,
+                'icon' => $product->image ?? null,
+                'seller_id' => $product->seller_id,
+                'rating' => $reviewCount > 0
+                    ? round((float) $product->reviews_avg_rating, 1)
+                    : 0,
+                'reviews' => $reviewCount,
+
+            ];
+
+        })->toArray();
+
+        $newestProducts = $products;
+
+        return view(
+            'pages.buyer.dashboard',
+            compact(
+                'user',
+                'products',
+                'newestProducts'
+            )
+        );
+    }
+
+    public function profile()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $dbUser = User::find($user['id']);
+
+        $totalOrders = DB::table('orders')
+            ->where('buyer_id', $user['id'])
+            ->count();
+
+        $totalSpent = DB::table('orders')
+            ->where('buyer_id', $user['id'])
+            ->where('status', 'Delivered')
+            ->sum('total_amount');
+
+        return view(
+            'pages.buyer.profile',
+            compact('user', 'dbUser', 'totalOrders', 'totalSpent')
+        );
+    }
+
+    public function updateProfile()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $name = trim(request('name'));
+        $phone = trim(request('phone'));
+        $address = trim(request('address'));
+
+        if (empty($name) || empty($phone) || empty($address)) {
+            return back()
+                ->withInput()
+                ->with('error', 'Please complete all fields.');
+        }
+
+        if (
+            User::where('phone', $phone)
+                ->where('id', '!=', $user['id'])
+                ->exists()
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'This phone number is already registered.');
+        }
+
+        $dbUser = User::find($user['id']);
+        $dbUser->name = $name;
+        $dbUser->phone = $phone;
+        $dbUser->address = $address;
+        $dbUser->save();
+
+        // Keep the session copy in sync so the navbar/name display updates too
+        session()->put('user', array_merge($user, [
+            'name' => $name,
+        ]));
+
+        return back()->with('success', 'Profile updated successfully.');
+    }
+
+    public function updatePhoto(Request $request)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $request->validate([
+            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+        ]);
+
+        $file = $request->file('profile_photo');
+
+        // Extension comes from the file's real content, never the client's
+        // filename — otherwise an image-looking file named "x.php" would be
+        // saved as executable PHP inside the public storage folder.
+        $filename = 'buyer_' . $user['id'] . '_' . time() . '.' . $file->extension();
+
+        $file->storeAs(
+            'profile-photos',
+            $filename,
+            'public'
+        );
+
+        DB::table('users')
+            ->where('id', $user['id'])
+            ->update([
+                'profile_photo' => $filename,
+                'updated_at' => now(),
+            ]);
+
+        $user['profile_photo'] = $filename;
+        session()->put('user', $user);
+
+        return back()->with('success', 'Profile picture updated successfully.');
+    }
+
+    public function updatePassword()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $current = request('current_password');
+        $new = request('new_password');
+        $confirm = request('new_password_confirmation');
+
+        if (empty($current) || empty($new) || empty($confirm)) {
+            return back()->with('error', 'Please complete all password fields.');
+        }
+
+        $dbUser = User::find($user['id']);
+
+        if (!Hash::check($current, $dbUser->password)) {
+            return back()->with('error', 'Current password is incorrect.');
+        }
+
+        if (strlen($new) < 8) {
+            return back()->with('error', 'New password must be at least 8 characters.');
+        }
+
+        if ($new !== $confirm) {
+            return back()->with('error', 'New passwords do not match.');
+        }
+
+        $dbUser->password = Hash::make($new);
+        $dbUser->save();
+
+        return back()->with('success', 'Password changed successfully.');
+    }
+
+    public function wishlist()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $products = DB::table('wishlists')
+            ->join('products', 'products.id', '=', 'wishlists.product_id')
+            ->where('wishlists.user_id', $user['id'])
+            ->select('products.*', 'wishlists.created_at as wishlisted_at')
+            ->orderByDesc('wishlists.created_at')
+            ->get();
+
+        return view(
+            'pages.buyer.wishlist',
+            compact('user', 'products')
+        );
+    }
+
+    public function toggleWishlist($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::find($id);
+
+        if (!$product) {
+            abort(404);
+        }
+
+        $existing = DB::table('wishlists')
+            ->where('user_id', $user['id'])
+            ->where('product_id', $id)
+            ->first();
+
+        if ($existing) {
+
+            DB::table('wishlists')
+                ->where('id', $existing->id)
+                ->delete();
+
+            $inWishlist = false;
+
+        } else {
+
+            DB::table('wishlists')->insert([
+                'user_id' => $user['id'],
+                'product_id' => $id,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            $inWishlist = true;
+        }
+
+        if (request()->wantsJson()) {
+            return response()->json(['in_wishlist' => $inWishlist]);
+        }
+
+        return back()->with(
+            'success',
+            $inWishlist ? 'Added to your wishlist.' : 'Removed from your wishlist.'
+        );
+    }
+
+    public function orders()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $orders = DB::table('orders')
+            ->where('buyer_id', $user['id'])
+            ->orderByDesc('created_at')
+            ->get();
+
+        $orders = $orders->map(function ($order) use ($user) {
+
+            $order = (array) $order;
+
+            // Get order items
+            $items = DB::table('order_items')
+                ->where('order_id', $order['id'])
+                ->get();
+
+            $order['items'] = $items->map(function ($item) use ($order, $user) {
+
+                $item = (array) $item;
+
+                $item['name'] =
+                    $item['product_name'] ?? 'Product';
+
+                $item['subtotal'] =
+                    (float) ($item['price'] ?? 0) *
+                    (int) ($item['quantity'] ?? 1);
+
+                // Get seller name if seller_id exists
+                if (!empty($item['seller_id'])) {
+
+                    $seller = DB::table('users')
+                        ->where('id', $item['seller_id'])
+                        ->first();
+
+                    $item['seller_name'] =
+                        $seller->name ?? null;
+                } else {
+                    $item['seller_name'] = null;
+                }
+
+                // Has this buyer already reviewed this product for this order?
+                // Without this, the "already rated" badge could never show and
+                // the Rate Product form would keep reappearing after rating.
+                $item['review'] = null;
+
+                if (!empty($item['product_id'])) {
+
+                    $review = DB::table('product_reviews')
+                        ->where('buyer_id', $user['id'])
+                        ->where('order_id', $order['id'])
+                        ->where('product_id', $item['product_id'])
+                        ->first();
+
+                    if ($review) {
+                        $item['review'] = (array) $review;
+                    }
+                }
+
+                return $item;
+
+            })->toArray();
+
+            // Basic order information
+            $order['total'] =
+                (float) ($order['total_amount'] ?? 0);
+
+            $order['date'] =
+                $order['created_at'] ?? null;
+
+            $order['buyer_name'] =
+                $order['shipping_name'] ?? 'Unknown Buyer';
+
+            $order['address'] =
+                $order['shipping_address'] ?? '';
+
+            $order['phone'] =
+                $order['shipping_phone'] ?? '';
+
+            $order['payment'] =
+                $order['payment_method'] ?? '';
+
+            /*
+            |--------------------------------------------------------------------------
+            | RIDER INFORMATION
+            |--------------------------------------------------------------------------
+            */
+
+            $order['rider_name'] = null;
+            $order['rider_email'] = null;
+            $order['rider_profile_photo'] = null;
+
+            if (!empty($order['rider_id'])) {
+
+                $rider = DB::table('users')
+                    ->where('id', $order['rider_id'])
+                    ->where('role', 'rider')
+                    ->first();
+
+                if ($rider) {
+
+                    $order['rider_name'] =
+                        $rider->name ?? 'BoomBuy Rider';
+
+                    $order['rider_email'] =
+                        $rider->email ?? '';
+
+                    $order['rider_profile_photo'] =
+                        $rider->profile_photo ?? null;
+                }
+            }
+
+            return $order;
+
+        })->toArray();
+
+        $codStatus = CodPolicy::status((int) $user['id']);
+        $cancelReasons = CodPolicy::CANCEL_REASONS;
+
+        return view(
+            'pages.buyer.orders',
+            compact('user', 'orders', 'codStatus', 'cancelReasons')
+        );
+    }
+
+    public function markReceived($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        // Hanapin ang order at siguraduhing sa buyer talaga ito
+        $order = DB::table('orders')
+            ->where('id', $id)
+            ->where('buyer_id', $user['id'])
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        // Puwede lang i-confirm kapag Delivered na
+        if ($order->status !== 'Delivered') {
+            return back()->with(
+                'error',
+                'You can only confirm an order after it has been delivered.'
+            );
+        }
+
+        // Huwag nang ulitin kung na-confirm na
+        if (!empty($order->buyer_received_at)) {
+            return back()->with(
+                'error',
+                'This order has already been marked as received.'
+            );
+        }
+
+        // Mark as received by buyer
+        DB::table('orders')
+            ->where('id', $id)
+            ->update([
+                'buyer_received_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        // Notify every seller who has items in this order
+        $sellerIds = DB::table('order_items')
+            ->where('order_id', $id)
+            ->distinct()
+            ->pluck('seller_id');
+
+        foreach ($sellerIds as $sellerId) {
+
+            createNotification(
+                $sellerId,
+                'Order Received by Buyer',
+                "Order #{$id} has been confirmed as received by the buyer.",
+                'order_status',
+                $id
+            );
+        }
+
+        return back()->with(
+            'success',
+            'Order received successfully!'
+        );
+    }
+
+    public function cancelOrder($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $order = DB::table('orders')
+            ->where('id', $id)
+            ->where('buyer_id', $user['id'])
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        // Paid orders can't be cancelled by the buyer at all once checked out;
+        // COD orders only until the seller hands them over (Pending/Processing).
+        if (!CodPolicy::isCod($order->payment_method)) {
+            return back()->with(
+                'error',
+                'Paid orders can no longer be cancelled. You can request a return once you receive it.'
+            );
+        }
+
+        if (!CodPolicy::buyerCanCancel($order)) {
+            return back()->with(
+                'error',
+                'This order can no longer be cancelled — it is already on its way. You can refuse the parcel on delivery or request a return after receiving it.'
+            );
+        }
+
+        $reason = trim((string) request('cancel_reason'));
+        $details = trim((string) request('cancel_details'));
+
+        if (!in_array($reason, CodPolicy::CANCEL_REASONS, true)) {
+            return back()->with('error', 'Please choose a reason for cancelling.');
+        }
+
+        if ($reason === 'Other' && $details === '') {
+            return back()->with('error', 'Please tell us why you are cancelling.');
+        }
+
+        $reasonText = $reason === 'Other'
+            ? Str::limit($details, 250)
+            : $reason . ($details !== '' ? ' — ' . Str::limit($details, 200) : '');
+
+        // Conditional on the status we just checked, so a double-click (or the
+        // seller moving it on at the same moment) can't cancel/restock twice.
+        $cancelled = DB::table('orders')
+            ->where('id', $id)
+            ->where('status', $order->status)
+            ->update([
+                'status' => 'Cancelled',
+                'cancellation_reason' => 'Cancelled by buyer: ' . $reasonText,
+                'cancelled_by' => 'buyer',
+                'cancelled_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+        if (!$cancelled) {
+            return back()->with(
+                'error',
+                'This order was just updated by the seller. Please refresh and try again.'
+            );
+        }
+
+        OrderStock::cancelled((int) $id, $order->status);
+
+        $sellerIds = DB::table('order_items')
+            ->where('order_id', $id)
+            ->distinct()
+            ->pluck('seller_id');
+
+        $stage = $order->status === 'Processing' ? 'while you were preparing it' : 'before processing';
+
+        foreach ($sellerIds as $sellerId) {
+
+            createNotification(
+                $sellerId,
+                'Order Cancelled by Buyer',
+                "Order #{$id} was cancelled by the buyer {$stage}. Reason: {$reasonText}. The items were returned to your stock.",
+                'order_status',
+                $id
+            );
+        }
+
+        $cod = CodPolicy::status((int) $user['id']);
+
+        $message = 'Your order has been cancelled.';
+
+        if ($cod['blocked']) {
+            $message .= ' Cash on Delivery is paused on your account until '
+                . $cod['available_at']->format('M d, Y')
+                . ' because of repeated cancellations.';
+        }
+
+        return back()->with('success', $message);
+    }
+
+    public function reorder($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $order = DB::table('orders')
+            ->where('id', $id)
+            ->where('buyer_id', $user['id'])
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        $items = DB::table('order_items')->where('order_id', $id)->get();
+
+        $cart = session()->get('cart', []);
+        $addedCount = 0;
+        $skippedCount = 0;
+
+        foreach ($items as $item) {
+
+            $product = Product::find($item->product_id);
+
+            if (!$product || !$product->isPurchasable()) {
+                $skippedCount++;
+                continue;
+            }
+
+            // Bought without an option, but the product has options now —
+            // the buyer has to pick one on the product page.
+            if (empty($item->variation_label) && $product->variations()->exists()) {
+                $skippedCount++;
+                continue;
+            }
+
+            $variationId = 0;
+            $effectiveStock = (int) $product->stock;
+
+            // The order only stored a display label ("Color: Red"), not a
+            // variation_id — parse it back and match against this product's
+            // current variations, the same technique used for seller restock.
+            if (!empty($item->variation_label)) {
+
+                [$variationType, $variationValue] = array_pad(
+                    explode(': ', $item->variation_label, 2),
+                    2,
+                    null
+                );
+
+                $variation = \App\Models\ProductVariation::where('product_id', $product->id)
+                    ->where('variation_type', $variationType)
+                    ->where('variation_value', $variationValue)
+                    ->first();
+
+                if (!$variation) {
+                    $skippedCount++;
+                    continue;
+                }
+
+                $variationId = $variation->id;
+                $effectiveStock = (int) $variation->stock;
+            }
+
+            if ($effectiveStock <= 0) {
+                $skippedCount++;
+                continue;
+            }
+
+            $cartKey = $product->id . ':' . $variationId;
+            $quantity = min((int) $item->quantity, $effectiveStock);
+
+            $cart[$cartKey] = ($cart[$cartKey] ?? 0) + $quantity;
+            $addedCount++;
+        }
+
+        session()->put('cart', $cart);
+
+        if ($addedCount === 0) {
+            return redirect()->route('buyer.orders')->with(
+                'error',
+                'None of the items from this order are available to reorder right now.'
+            );
+        }
+
+        $message = $addedCount . ' item(s) added to your cart.';
+
+        if ($skippedCount > 0) {
+            $message .= ' ' . $skippedCount . ' item(s) could not be added (out of stock or no longer available).';
+        }
+
+        return redirect()->route('cart')->with('success', $message);
+    }
+
+    public function reviewProduct($orderId, $productId)
+    {
+        $user = requireUserRole('buyer');
+        if (!is_array($user)) return $user;
+
+        $order = DB::table('orders')
+            ->where('id', $orderId)
+            ->where('buyer_id', $user['id'])
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        if ($order->status !== 'Delivered' || empty($order->buyer_received_at)) {
+            return back()->with('error', 'You can only review products after receiving the order.');
+        }
+
+        $item = DB::table('order_items')
+            ->where('order_id', $orderId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if (!$item) {
+            return back()->with('error', 'Product not found in this order.');
+        }
+
+        $rating = (int) request('rating');
+        $review = trim((string) request('review'));
+
+        if ($rating < 1 || $rating > 5) {
+            return back()->with('error', 'Please select a rating from 1 to 5 stars.');
+        }
+
+        $existing = DB::table('product_reviews')
+            ->where('buyer_id', $user['id'])
+            ->where('order_id', $orderId)
+            ->where('product_id', $productId)
+            ->first();
+
+        if ($existing) {
+            DB::table('product_reviews')
+                ->where('id', $existing->id)
+                ->update([
+                    'rating' => $rating,
+                    'review' => $review !== '' ? $review : null,
+                    'updated_at' => now(),
+                ]);
+
+            return back()->with('success', 'Your review has been updated!');
+        }
+
+        DB::table('product_reviews')->insert([
+            'buyer_id' => $user['id'],
+            'order_id' => $orderId,
+            'product_id' => $productId,
+            'rating' => $rating,
+            'review' => $review !== '' ? $review : null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Thank you! Your product review has been submitted.');
+    }
+
+    public function requestReturnRefund($orderId)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $order = DB::table('orders')
+            ->where('id', $orderId)
+            ->where('buyer_id', $user['id'])
+            ->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        // Must be delivered first
+        if ($order->status !== 'Delivered') {
+            return back()->with(
+                'error',
+                'Only delivered orders can be returned or refunded.'
+            );
+        }
+
+        // Buyer must confirm that the order was received first
+        if (empty($order->buyer_received_at)) {
+            return back()->with(
+                'error',
+                'Please confirm that you received the order before requesting a return or refund.'
+            );
+        }
+
+        // Matches the platform's stated return window — an unlimited-time
+        // return/refund window is unusual and hard to honor for a seller.
+        $returnWindowDays = 7;
+
+        $returnDeadline = \Illuminate\Support\Carbon::parse($order->buyer_received_at)
+            ->addDays($returnWindowDays);
+
+        if ($returnDeadline->isPast()) {
+            return back()->with(
+                'error',
+                'The ' . $returnWindowDays . '-day return/refund window for this order has passed.'
+            );
+        }
+
+        $orderItemId = (int) request('order_item_id');
+        $requestType = trim(request('request_type'));
+        $reason = trim(request('reason'));
+        $message = trim(request('message'));
+
+        if (!in_array($requestType, ['Return', 'Refund'])) {
+            return back()->with('error', 'Invalid request type.');
+        }
+
+        if (empty($reason)) {
+            return back()->with('error', 'Please select a reason.');
+        }
+
+        $item = DB::table('order_items')
+            ->where('id', $orderItemId)
+            ->where('order_id', $orderId)
+            ->first();
+
+        if (!$item) {
+            return back()->with('error', 'Order item not found.');
+        }
+
+        $existingRequest = DB::table('return_refund_requests')
+            ->where('order_id', $orderId)
+            ->where('order_item_id', $orderItemId)
+            ->whereIn('status', [
+                'pending',
+                'approved',
+                'returned',
+                'refund_processing'
+            ])
+            ->exists();
+
+        if ($existingRequest) {
+            return back()->with(
+                'error',
+                'A return/refund request already exists for this item.'
+            );
+        }
+
+        $refundAmount =
+            (float) $item->price *
+            (int) $item->quantity;
+
+        $evidencePath = null;
+
+        if (request()->hasFile('evidence')) {
+
+            request()->validate([
+                'evidence' => 'image|max:4096',
+            ]);
+
+            $evidencePath = request()->file('evidence')->store('return-evidence', 'public');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | CREATE RETURN / REFUND REQUEST
+        |--------------------------------------------------------------------------
+        */
+
+        DB::table('return_refund_requests')->insert([
+            'order_id' =>
+                $orderId,
+
+            'order_item_id' =>
+                $orderItemId,
+
+            'buyer_id' =>
+                $user['id'],
+
+            'seller_id' =>
+                $item->seller_id,
+
+            'request_type' =>
+                $requestType,
+
+            'reason' =>
+                $reason,
+
+            'message' =>
+                $message ?: null,
+
+            'evidence' =>
+                $evidencePath,
+
+            'status' =>
+                'pending',
+
+            'refund_amount' =>
+                $refundAmount,
+
+            'seller_note' =>
+                null,
+
+            'created_at' =>
+                now(),
+
+            'updated_at' =>
+                now(),
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | SELLER NOTIFICATION
+        |--------------------------------------------------------------------------
+        */
+
+        if (!empty($item->seller_id)) {
+
+            createNotification(
+                (int) $item->seller_id,
+                'New Return / Refund Request',
+                'A buyer submitted a ' .
+                strtolower($requestType) .
+                ' request for Order #' .
+                $orderId .
+                '.',
+                'return_refund',
+                (int) $orderId
+            );
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | SUCCESS
+        |--------------------------------------------------------------------------
+        */
+
+        return back()->with(
+            'success',
+            'Your ' .
+            strtolower($requestType) .
+            ' request has been submitted successfully.'
+        );
+    }
+
+    public function showRegister()
+    {
+        return view('pages.buyer.register');
+    }
+
+    public function register(Request $request)
+    {
+        $lastName = trim(request('last_name'));
+        $firstName = trim(request('first_name'));
+        $middleInitial = trim(request('middle_initial'));
+        $sex = request('sex');
+        $birthdate = request('birthdate');
+        $email = strtolower(trim(request('email')));
+        $password = request('password');
+        $passwordConfirmation = request('password_confirmation');
+        $phone = trim(request('phone'));
+        $province = trim(request('province'));
+        $cityMunicipality = trim(request('city_municipality'));
+        $barangay = trim(request('barangay'));
+        $streetAddress = trim(request('street_address'));
+
+        $name = formatFullName($firstName, $middleInitial, $lastName);
+        $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
+
+        // VALIDATION
+        if (
+            empty($lastName) ||
+            empty($firstName) ||
+            empty($sex) ||
+            empty($birthdate) ||
+            empty($email) ||
+            empty($password) ||
+            empty($passwordConfirmation) ||
+            empty($phone) ||
+            empty($province) ||
+            empty($cityMunicipality) ||
+            empty($barangay) ||
+            empty($streetAddress)
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'Please complete all fields.');
+        }
+
+        if (!request('terms')) {
+            return back()
+                ->withInput()
+                ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return back()
+                ->withInput()
+                ->with('error', 'Please enter a valid email address.');
+        }
+
+        if (strlen($password) < 8) {
+            return back()
+                ->withInput()
+                ->with('error', 'Password must be at least 8 characters.');
+        }
+
+        if ($password !== $passwordConfirmation) {
+            return back()
+                ->withInput()
+                ->with('error', 'Passwords do not match.');
+        }
+
+        // CHECK EXISTING EMAIL
+        if (User::where('email', $email)->exists()) {
+            return back()
+                ->withInput()
+                ->with('error', 'Email is already registered.');
+        }
+
+        // CHECK EXISTING PHONE NUMBER
+        if (User::where('phone', $phone)->exists()) {
+            return back()
+                ->withInput()
+                ->with('error', 'This phone number is already registered.');
+        }
+
+        // VALID ID UPLOAD
+        $request->validate([
+            'id_photo' => [
+                'required',
+                'file',
+                'mimes:jpg,jpeg,png,webp,pdf',
+                'max:10240',
+            ],
+        ], [], [
+            'id_photo' => 'valid ID',
+        ]);
+
+        $idPhotoPath = $request
+            ->file('id_photo')
+            ->store('buyer-ids/' . (string) Str::uuid(), 'local');
+
+        // Hold registration data until OTP is verified — walang naka-save sa DB pa
+        session()->put('pending_registration', [
+            'name' => $name,
+            'last_name' => $lastName,
+            'first_name' => $firstName,
+            'middle_initial' => $middleInitial ?: null,
+            'sex' => $sex,
+            'birthdate' => $birthdate,
+            'age' => calculateAge($birthdate),
+            'email' => $email,
+            'password' => Hash::make($password),
+            'phone' => $phone,
+            'address' => $address,
+            'province' => $province,
+            'city_municipality' => $cityMunicipality,
+            'barangay' => $barangay,
+            'street_address' => $streetAddress,
+            'id_photo' => $idPhotoPath,
+            'role' => 'buyer',
+        ]);
+
+        if (!generateAndSendOtp($email, $name)) {
+            return back()
+                ->withInput()
+                ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
+        }
+
+        return redirect()
+            ->route('otp.show')
+            ->with('success', 'We sent a 6-digit code to your email.');
+    }
+}

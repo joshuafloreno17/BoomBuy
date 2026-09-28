@@ -8,6 +8,12 @@
             ->whereNull('read_at')
             ->count()
         : 0;
+
+    $adminUnreadMessages = $adminUser
+        ? \App\Models\Message::where('recipient_id', $adminUser->id)
+            ->whereNull('read_at')
+            ->count()
+        : 0;
 @endphp
 
 <aside class="sidebar">
@@ -80,10 +86,17 @@
         <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Messages</span>
+
+            @if($adminUnreadMessages > 0)
+                <span class="notification-badge" style="position:static; margin-left:auto; border:none;">
+                    {{ $adminUnreadMessages > 99 ? '99+' : $adminUnreadMessages }}
+                </span>
+            @endif
         </a>
 
         <a href="{{ route('admin.notifications') }}" @class(['active' => $active === 'notifications']) aria-label="Notifications" title="Notifications">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+            <span>Notifications</span>
 
             @if($adminUnreadNotifications > 0)
                 <span class="notification-badge" style="position:static; margin-left:auto; border:none;">
@@ -104,7 +117,7 @@
         <form
             action="{{ route('admin.logout') }}"
             method="POST"
-            onsubmit="return confirm('Are you sure you want to log out?');"
+            onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
         >
 
             @csrf
@@ -136,3 +149,5 @@
     </div>
 
 </aside>
+
+@include('partials.confirm-modal')

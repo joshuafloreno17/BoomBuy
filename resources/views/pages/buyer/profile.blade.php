@@ -7,6 +7,7 @@
     <title>My Profile — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -413,7 +414,7 @@
                     </div>
 
                     <label for="profile_photo_input" class="avatar-camera" title="Change photo">
-                        📷
+                        <i class="bi bi-camera-fill"></i>
                     </label>
 
                     <input

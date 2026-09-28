@@ -12,6 +12,11 @@
         'user_id',
         $user['id'] ?? null
     )->whereNull('read_at')->count();
+
+    $sellerUnreadMessages = \App\Models\Message::where(
+        'recipient_id',
+        $user['id'] ?? null
+    )->whereNull('read_at')->count();
 @endphp
 
 <aside class="sidebar">
@@ -30,7 +35,7 @@
             href="{{ route('seller.dashboard') }}"
             @class(['active' => $active === 'dashboard'])
         >
-            📊
+            <i class="bi bi-speedometer2"></i>
             <span class="label-text">
                 Dashboard
             </span>
@@ -40,7 +45,7 @@
             href="{{ route('seller.products.create') }}"
             @class(['active' => $active === 'products'])
         >
-            ➕
+            <i class="bi bi-plus-circle-fill"></i>
             <span class="label-text">
                 Add Product
             </span>
@@ -50,7 +55,7 @@
             href="{{ route('seller.orders') }}"
             @class(['active' => $active === 'orders'])
         >
-            🛒
+            <i class="bi bi-cart-fill"></i>
             <span class="label-text">
                 Orders
             </span>
@@ -60,7 +65,7 @@
             href="{{ route('seller.reports') }}"
             @class(['active' => $active === 'reports'])
         >
-            📊
+            <i class="bi bi-bar-chart-fill"></i>
             <span class="label-text">
                 Reports
             </span>
@@ -70,7 +75,7 @@
             href="{{ route('seller.vouchers') }}"
             @class(['active' => $active === 'vouchers'])
         >
-            🎟️
+            <i class="bi bi-ticket-perforated-fill"></i>
             <span class="label-text">
                 Vouchers
             </span>
@@ -80,7 +85,7 @@
             href="{{ route('seller.reviews') }}"
             @class(['active' => $active === 'reviews'])
         >
-            ⭐
+            <i class="bi bi-star-fill"></i>
             <span class="label-text">
                 Reviews
             </span>
@@ -97,7 +102,10 @@
                 aria-label="Notifications"
                 title="Notifications"
             >
-                🔔
+                <i class="bi bi-bell-fill"></i>
+                <span class="label-text">
+                    Notifications
+                </span>
 
                 @if($sellerUnreadNotifications > 0)
 
@@ -117,7 +125,7 @@
             href="{{ route('complaints.index') }}"
             @class(['active' => $active === 'complaints'])
         >
-            ⚠️
+            <i class="bi bi-exclamation-triangle-fill"></i>
             <span class="label-text">
                 Complaints
             </span>
@@ -127,17 +135,28 @@
             href="{{ route('messages.index') }}"
             @class(['active' => $active === 'messages'])
         >
-            💬
+            <i class="bi bi-chat-dots-fill"></i>
             <span class="label-text">
                 Messages
             </span>
+
+            @if($sellerUnreadMessages > 0)
+
+                <span class="notification-badge">
+                    {{ $sellerUnreadMessages > 99
+                        ? '99+'
+                        : $sellerUnreadMessages }}
+                </span>
+
+            @endif
+
         </a>
 
         <a
             href="{{ route('seller.profile') }}"
             @class(['active' => $active === 'profile'])
         >
-            👤
+            <i class="bi bi-person-fill"></i>
             <span class="label-text">
                 My Profile
             </span>
@@ -165,7 +184,7 @@
             <form
                 action="{{ route('logout') }}"
                 method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
+                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
             >
 
                 @csrf
@@ -185,3 +204,5 @@
     </div>
 
 </aside>
+
+@include('partials.confirm-modal')

@@ -13,6 +13,7 @@
     <title>Manage Products — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -402,18 +403,10 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </h1>
 
             <p>
-                View and manage all products in BoomBuy.
+                View and moderate all seller products in BoomBuy.
             </p>
 
         </div>
-
-
-        <a
-            href="{{ route('admin.products.create') }}"
-            class="add-btn"
-        >
-            + Add Product
-        </a>
 
     </div>
 
@@ -421,7 +414,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @if(session('success'))
 
         <div class="success">
-            ✓ {{ session('success') }}
+            <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
         </div>
 
     @endif
@@ -430,7 +423,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     @if(session('error'))
 
         <div class="error">
-            ✕ {{ session('error') }}
+            <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
         </div>
 
     @endif
@@ -515,14 +508,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                                 <div class="product-icon">
                                     @php
-                                        $pIcon = $product['icon'] ?? '📦';
+                                        $pIcon = $product['icon'] ?? null;
                                         $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
                                     @endphp
                                     @if($pIsImg)
                                         <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
-                                        <span>📦</span>
+                                        <span><i class="bi bi-box-seam-fill"></i></span>
                                     @else
-                                        {{ $pIcon }}
+                                        <i class="bi bi-box-seam-fill"></i>
                                     @endif
                                 </div>
 
@@ -595,7 +588,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 <form
                                     method="POST"
                                     action="{{ route('admin.products.delete', ['id' => $product['id']]) }}"
-                                    onsubmit="return confirm('Delete ' + {{ Js::from($product['name'] ?? 'this product') }} + '? This cannot be undone.');"
+                                    data-confirm="Delete {{ $product['name'] ?? 'this product' }}? This cannot be undone." data-confirm-ok="Delete" data-confirm-danger
                                 >
                                     @csrf
                                     @method('DELETE')
@@ -616,7 +609,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                             <div class="empty">
 
-                                📦
+                                <i class="bi bi-box-seam-fill"></i>
 
                                 <br><br>
 

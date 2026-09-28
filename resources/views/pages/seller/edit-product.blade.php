@@ -8,6 +8,7 @@
     <title>Edit Product — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-edit-product.css') }}">
 </head>
@@ -93,7 +94,7 @@
                         href="{{ route('seller.products.variations', $product->id) }}"
                         style="float:right; color:#e8420f; font-weight:700; font-size:12px;"
                     >
-                        🎨 Manage Variations
+                        <i class="bi bi-palette"></i> Manage Variations
                     </a>
 
                 </div>
@@ -200,7 +201,7 @@
                                     value="electronics"
                                     {{ $selectedCategory === 'electronics' ? 'selected' : '' }}
                                 >
-                                    📱 Electronics
+                                    Electronics
                                 </option>
 
 
@@ -208,7 +209,7 @@
                                     value="womens-fashion"
                                     {{ $selectedCategory === 'womens-fashion' ? 'selected' : '' }}
                                 >
-                                    👗 Women's Fashion
+                                    Women's Fashion
                                 </option>
 
 
@@ -216,7 +217,7 @@
                                     value="mens-fashion"
                                     {{ $selectedCategory === 'mens-fashion' ? 'selected' : '' }}
                                 >
-                                    👕 Men's Fashion
+                                    Men's Fashion
                                 </option>
 
 
@@ -224,7 +225,7 @@
                                     value="kids-baby"
                                     {{ $selectedCategory === 'kids-baby' ? 'selected' : '' }}
                                 >
-                                    👶 Kids & Baby
+                                    Kids & Baby
                                 </option>
 
 
@@ -232,7 +233,7 @@
                                     value="home-living"
                                     {{ $selectedCategory === 'home-living' ? 'selected' : '' }}
                                 >
-                                    🏠 Home & Living
+                                    Home & Living
                                 </option>
 
 
@@ -240,7 +241,7 @@
                                     value="sports-outdoors"
                                     {{ $selectedCategory === 'sports-outdoors' ? 'selected' : '' }}
                                 >
-                                    ⚽ Sports & Outdoors
+                                    Sports & Outdoors
                                 </option>
 
 
@@ -248,7 +249,7 @@
                                     value="beauty-personal-care"
                                     {{ $selectedCategory === 'beauty-personal-care' ? 'selected' : '' }}
                                 >
-                                    💄 Beauty & Personal Care
+                                    Beauty & Personal Care
                                 </option>
 
 
@@ -256,7 +257,7 @@
                                     value="food-beverages"
                                     {{ $selectedCategory === 'food-beverages' ? 'selected' : '' }}
                                 >
-                                    🍔 Food & Beverages
+                                    Food & Beverages
                                 </option>
 
 
@@ -264,7 +265,7 @@
                                     value="automotive"
                                     {{ $selectedCategory === 'automotive' ? 'selected' : '' }}
                                 >
-                                    🚗 Automotive
+                                    Automotive
                                 </option>
 
 
@@ -272,7 +273,7 @@
                                     value="office-school"
                                     {{ $selectedCategory === 'office-school' ? 'selected' : '' }}
                                 >
-                                    📚 Office & School
+                                    Office & School
                                 </option>
 
 
@@ -280,7 +281,7 @@
                                     value="pet-supplies"
                                     {{ $selectedCategory === 'pet-supplies' ? 'selected' : '' }}
                                 >
-                                    🐶 Pet Supplies
+                                    Pet Supplies
                                 </option>
 
 
@@ -288,7 +289,7 @@
                                     value="toys-games-hobbies"
                                     {{ $selectedCategory === 'toys-games-hobbies' ? 'selected' : '' }}
                                 >
-                                    🎮 Toys, Games & Hobbies
+                                    Toys, Games & Hobbies
                                 </option>
 
 
@@ -296,7 +297,7 @@
                                     value="jewelry-accessories"
                                     {{ $selectedCategory === 'jewelry-accessories' ? 'selected' : '' }}
                                 >
-                                    💍 Jewelry & Accessories
+                                    Jewelry & Accessories
                                 </option>
 
 
@@ -304,7 +305,7 @@
                                     value="shoes"
                                     {{ $selectedCategory === 'shoes' ? 'selected' : '' }}
                                 >
-                                    👟 Shoes
+                                    Shoes
                                 </option>
 
 
@@ -312,7 +313,7 @@
                                     value="tools-home-improvement"
                                     {{ $selectedCategory === 'tools-home-improvement' ? 'selected' : '' }}
                                 >
-                                    🧰 Tools & Home Improvement
+                                    Tools & Home Improvement
                                 </option>
 
 
@@ -320,7 +321,7 @@
                                     value="garden-outdoor"
                                     {{ $selectedCategory === 'garden-outdoor' ? 'selected' : '' }}
                                 >
-                                    🌱 Garden & Outdoor
+                                    Garden & Outdoor
                                 </option>
 
                             </select>
@@ -435,7 +436,7 @@
                             type="submit"
                             class="save-btn"
                         >
-                            ✓ Save Changes
+                            Save Changes
                         </button>
 
                     </div>

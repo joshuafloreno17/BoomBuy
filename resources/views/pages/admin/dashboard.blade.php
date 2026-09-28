@@ -6,6 +6,7 @@
 <title>Admin Dashboard — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -1048,7 +1049,7 @@ button:hover {
                             <div class="order-info">
 
                                 <div class="order-icon">
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
                                 </div>
 
                                 <div>
@@ -1184,58 +1185,58 @@ button:hover {
                                 'gadgets',
                                 'smartphone',
                                 'phones'
-                                    => '📱',
+                                    => 'bi-phone',
 
                                 'laptop',
                                 'computers'
-                                    => '💻',
+                                    => 'bi-laptop',
 
                                 'audio',
                                 'headphones'
-                                    => '🎧',
+                                    => 'bi-headphones',
 
                                 'wearable',
                                 'watches'
-                                    => '⌚',
+                                    => 'bi-smartwatch',
 
                                 'accessories'
-                                    => '🎮',
+                                    => 'bi-controller',
 
                                 'women',
                                 "women's"
-                                    => '👗',
+                                    => 'bi-handbag',
 
                                 'men',
                                 "men's"
-                                    => '👕',
+                                    => 'bi-bag-fill',
 
                                 'kids',
                                 'baby',
                                 'kids & baby'
-                                    => '🧸',
+                                    => 'bi-balloon-heart-fill',
 
                                 'home'
-                                    => '🏠',
+                                    => 'bi-house-door-fill',
 
                                 'sports'
-                                    => '⚽',
+                                    => 'bi-trophy-fill',
 
                                 'beauty'
-                                    => '💄',
+                                    => 'bi-stars',
 
                                 'food'
-                                    => '🍔',
+                                    => 'bi-cup-hot-fill',
 
                                 'automotive'
-                                    => '🚗',
+                                    => 'bi-car-front-fill',
 
                                 'office',
                                 'school',
                                 'office & school'
-                                    => '📚',
+                                    => 'bi-backpack2-fill',
 
                                 default
-                                    => '📦',
+                                    => 'bi-box-seam-fill',
 
                             };
 
@@ -1245,7 +1246,7 @@ button:hover {
                         <div class="product-row">
 
                             <div class="product-icon">
-                                {{ $icon }}
+                                <i class="bi {{ $icon }}"></i>
                             </div>
 
                             <div class="product-info">

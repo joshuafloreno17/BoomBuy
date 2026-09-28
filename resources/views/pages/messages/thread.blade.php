@@ -7,6 +7,7 @@
     <title>{{ $partner->name }} — Messages — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     @php
         $role = $me['role'] ?? 'buyer';
@@ -18,6 +19,8 @@
         <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
     @elseif($role === 'logistics')
         <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+    @elseif($role === 'admin')
+        <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     @endif
 
     <link rel="stylesheet" href="{{ asset('css/pages/messages.css') }}">
@@ -58,6 +61,20 @@
             @include('pages.partials.messages-thread-body')
         </div>
     </main>
+
+@elseif($role === 'admin')
+
+    <div class="layout">
+
+        <x-layout.admin-sidebar active="messages" />
+
+        <main class="main">
+            <div class="container">
+                @include('pages.partials.messages-thread-body')
+            </div>
+        </main>
+
+    </div>
 
 @else
 

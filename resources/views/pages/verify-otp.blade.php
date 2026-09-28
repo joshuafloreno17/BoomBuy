@@ -5,6 +5,7 @@
     <title>Verify Code - BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
 </head>
 <body style="margin:0; padding:0; background:#fff7f4; font-family: Arial, sans-serif;">

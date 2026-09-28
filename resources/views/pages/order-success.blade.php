@@ -8,6 +8,7 @@
     <title>Order Successful — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -64,6 +65,7 @@
             justify-content: center;
 
             font-size: 40px;
+            color: var(--teal-dark);
         }
 
         .success-card small {
@@ -244,7 +246,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 <div class="success-card">
 
     <div class="success-icon">
-        ✅
+        <i class="bi bi-check-circle-fill"></i>
     </div>
 
     <small>
@@ -261,16 +263,32 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </p>
 
 
+    @php
+        $checkoutOrders = collect($checkoutOrders ?? []);
+        $isSplit = $checkoutOrders->count() > 1;
+    @endphp
+
+    @if($isSplit)
+        <p style="margin-top:-6px; font-size:13px;">
+            Your items come from {{ $checkoutOrders->count() }} different sellers, so they were placed as
+            {{ $checkoutOrders->count() }} separate orders — each seller ships their own parcel.
+        </p>
+    @endif
+
     <div class="order-box">
 
         <div class="order-row">
 
             <span class="order-label">
-                Order Number
+                {{ $isSplit ? 'Order Numbers' : 'Order Number' }}
             </span>
 
             <span class="order-value">
-                {{ $order['id'] ?? 'N/A' }}
+                @if($isSplit)
+                    {{ $checkoutOrders->map(fn ($o) => '#' . $o->id)->implode(', ') }}
+                @else
+                    {{ $order['id'] ?? 'N/A' }}
+                @endif
             </span>
 
         </div>
@@ -322,7 +340,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </span>
 
             <span class="order-value total">
-                ₱{{ number_format($order['total'] ?? 0, 2) }}
+                ₱{{ number_format($isSplit ? $checkoutOrders->sum('total_amount') : ($order['total'] ?? 0), 2) }}
             </span>
 
         </div>
@@ -336,7 +354,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             href="{{ route('buyer.orders') }}"
             class="btn btn-primary"
         >
-            📦 View My Orders
+            <i class="bi bi-box-seam-fill"></i> View My Orders
         </a>
 
 
@@ -344,7 +362,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             href="{{ route('products') }}"
             class="btn btn-secondary"
         >
-            🛍️ Continue Shopping
+            <i class="bi bi-bag-fill"></i> Continue Shopping
         </a>
 
     </div>

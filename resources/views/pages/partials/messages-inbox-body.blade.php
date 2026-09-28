@@ -16,7 +16,7 @@
         @if($admin)
             <div style="margin-bottom:15px;">
                 <a href="{{ route('messages.thread', $admin->id) }}" class="send-btn" style="display:inline-block; padding:11px 18px; border-radius:10px;">
-                    💬 Message BoomBuy Support
+                    <i class="bi bi-chat-dots-fill"></i> Message BoomBuy Support
                 </a>
             </div>
         @endif

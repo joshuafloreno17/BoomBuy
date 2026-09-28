@@ -1,4 +1,4 @@
-@props(['notification', 'icon' => '🔔', 'readRoute'])
+@props(['notification', 'icon' => 'bi-bell-fill', 'readRoute'])
 
 <form
     action="{{ !$notification->read_at
@@ -33,7 +33,7 @@
         <div class="notification-top">
 
             <div class="notification-icon">
-                {{ $icon }}
+                <i class="bi {{ $icon }}"></i>
             </div>
 
             <div class="notification-content">
@@ -80,7 +80,7 @@
             @if($notification->read_at)
 
                 <span class="read-label">
-                    ✓ Read
+                    <i class="bi bi-check2"></i> Read
                 </span>
 
             @endif

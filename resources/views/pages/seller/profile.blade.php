@@ -7,6 +7,7 @@
     <title>My Profile — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-profile.css') }}">
@@ -69,7 +70,7 @@
                         </div>
 
                         <label for="profile_photo_input" class="avatar-camera" title="Change photo">
-                            📷
+                            <i class="bi bi-camera-fill"></i>
                         </label>
 
                         <input

@@ -7,6 +7,7 @@
     <title>Profit — BoomBuy Rider</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/rider-profit.css') }}">

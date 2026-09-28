@@ -7,6 +7,7 @@
     <title>Vouchers — BoomBuy Seller</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-vouchers.css') }}">
@@ -134,7 +135,7 @@
                                             {{ $voucher->is_active ? 'Deactivate' : 'Activate' }}
                                         </button>
                                     </form>
-                                    <form method="POST" action="{{ route('seller.vouchers.delete', $voucher->id) }}" style="display:inline;" onsubmit="return confirm('Delete this voucher?');">
+                                    <form method="POST" action="{{ route('seller.vouchers.delete', $voucher->id) }}" style="display:inline;" data-confirm="Delete this voucher?" data-confirm-ok="Delete" data-confirm-danger>
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="mini-btn delete">Delete</button>

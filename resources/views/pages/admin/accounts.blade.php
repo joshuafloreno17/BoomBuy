@@ -12,6 +12,7 @@
     <title>Manage Accounts — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-accounts.css') }}">
@@ -358,7 +359,7 @@
                                                 method="POST"
                                                 action="{{ route('admin.accounts.status', ['id' => $user['id']]) }}"
                                                 class="status-form"
-                                                onsubmit="return confirmStatusChange(this, '{{ addslashes($user['name'] ?? 'this account') }}');"
+                                                onsubmit="return confirmStatusChange(event, this, '{{ addslashes($user['name'] ?? 'this account') }}');"
                                             >
 
                                                 @csrf
@@ -379,7 +380,7 @@
                                                 method="POST"
                                                 action="{{ route('admin.accounts.delete', ['id' => $user['id']]) }}"
                                                 class="delete-form"
-                                                onsubmit="return confirmDelete('{{ addslashes($user['name'] ?? 'this account') }}');"
+                                                onsubmit="return confirmDelete(event, this, '{{ addslashes($user['name'] ?? 'this account') }}');"
                                             >
 
                                                 @csrf
@@ -447,25 +448,40 @@
 
     <script>
 
-        function confirmDelete(name) {
+        function confirmDelete(event, form, name) {
 
-            return confirm(
-                'Deactivate Account\n\n' +
-                'Are you sure you want to deactivate "' +
-                name +
-                '"?\n\n' +
-                'This account will no longer be able to log in. Their existing orders, reviews, and messages are kept.'
+            return bbConfirmSubmit(
+                event,
+                form,
+                'Are you sure you want to deactivate "' + name + '"?\n\n' +
+                'This account will no longer be able to log in. Their existing orders, reviews, and messages are kept.',
+                {
+                    title: 'Deactivate Account',
+                    okText: 'Deactivate',
+                    danger: true
+                }
             );
 
         }
 
-        function confirmStatusChange(form, name) {
+        function confirmStatusChange(event, form, name) {
 
-            var newStatus = form.querySelector('select[name="status"]').value;
+            var select = form.querySelector('select[name="status"]');
+            var newStatus = select.value;
 
-            return confirm(
-                'Change Account Status\n\n' +
-                'Set "' + name + '"\'s account status to "' + newStatus + '"?'
+            return bbConfirmSubmit(
+                event,
+                form,
+                'Set "' + name + '"\'s account status to "' + newStatus + '"?',
+                {
+                    title: 'Change Account Status',
+                    okText: 'Set to ' + newStatus,
+                    danger: newStatus !== 'Active',
+                    // Cancelled — put the dropdown back to the saved status.
+                    onCancel: function () {
+                        form.reset();
+                    }
+                }
             );
 
         }

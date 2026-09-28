@@ -7,6 +7,7 @@
     <title>Shopping Cart — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -434,7 +435,7 @@
 
     @if(session('success'))
         <div class="success">
-            ✓ {{ session('success') }}
+            <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
         </div>
     @endif
 
@@ -478,7 +479,7 @@
         <div class="empty-cart">
 
             <div class="empty-icon">
-                🛒
+                <i class="bi bi-cart-x"></i>
             </div>
 
             <h2>
@@ -490,7 +491,7 @@
             </p>
 
             <a href="/products" class="shop-btn">
-                🛍️ Start Shopping
+                <i class="bi bi-bag-fill"></i> Start Shopping
             </a>
 
         </div>
@@ -556,7 +557,7 @@
 
                                 @else
 
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
 
                                 @endif
 
@@ -656,7 +657,7 @@
                                         type="submit"
                                         class="remove-btn"
                                     >
-                                        🗑 Remove
+                                        <i class="bi bi-trash3-fill"></i> Remove
                                     </button>
 
                                 </form>
@@ -704,11 +705,11 @@
                 <div class="summary-row">
 
                     <span>
-                        Shipping
+                        Delivery Fee
                     </span>
 
-                    <strong>
-                        FREE
+                    <strong style="font-size:12px;">
+                        Calculated at checkout
                     </strong>
 
                 </div>
@@ -777,7 +778,7 @@
                     id="checkoutBtn"
                     class="checkout-btn"
                 >
-                    💳 Proceed to Checkout
+                    <i class="bi bi-credit-card-fill"></i> Proceed to Checkout
                 </a>
 
                 <a
@@ -873,7 +874,7 @@
                         if (!data) return;
 
                         if (data.blocked) {
-                            alert(data.message || 'No more stock available for this product.');
+                            bbAlert(data.message || 'No more stock available for this product.');
                             return;
                         }
 
@@ -913,7 +914,7 @@
                         var currentQty = qtyEl ? parseInt(qtyEl.textContent, 10) : 0;
 
                         if (currentQty <= 1) {
-                            alert('Quantity can\'t go below 1. Use "Remove" if you want to take this item out of your cart.');
+                            bbAlert('Quantity can\'t go below 1. Use "Remove" if you want to take this item out of your cart.');
                             return;
                         }
                     }
@@ -994,7 +995,7 @@
                         .map(function (b) { return b.dataset.cartKey; });
 
                     if (selectedKeys.length === 0) {
-                        alert('Select at least one item to check out.');
+                        bbAlert('Select at least one item to check out.');
                         return;
                     }
 

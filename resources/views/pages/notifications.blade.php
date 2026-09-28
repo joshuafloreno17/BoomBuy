@@ -7,6 +7,7 @@
     <title>Notifications | BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -647,7 +648,7 @@
             <div class="header-content">
 
                 <div class="header-icon">
-                    🔔
+                    <i class="bi bi-bell-fill"></i>
                 </div>
 
                 <h1>
@@ -675,21 +676,21 @@
 
                         $icon = match($notification->type) {
 
-                            'order' => '📦',
+                            'order' => 'bi-box-seam-fill',
 
-                            'delivery' => '🚚',
+                            'delivery' => 'bi-truck',
 
-                            'payment' => '💳',
+                            'payment' => 'bi-credit-card-fill',
 
-                            'return_refund' => '↩️',
+                            'return_refund' => 'bi-arrow-return-left',
 
-                            'seller' => '🏪',
+                            'seller' => 'bi-shop',
 
-                            'rider' => '🛵',
+                            'rider' => 'bi-bicycle',
 
-                            'system' => '🔔',
+                            'system' => 'bi-bell-fill',
 
-                            default => '🔔',
+                            default => 'bi-bell-fill',
 
                         };
 
@@ -715,7 +716,7 @@
     >
 
         <div class="notification-icon">
-            {{ $icon }}
+            <i class="bi {{ $icon }}"></i>
         </div>
 
         <div class="notification-content">
@@ -750,7 +751,7 @@
 
                 @if($notification->read_at)
                     <span class="read-label">
-                        ✓ Read
+                        <i class="bi bi-check2"></i> Read
                     </span>
                 @endif
 
@@ -770,7 +771,7 @@
             <div class="empty">
 
                 <div class="empty-icon">
-                    🔔
+                    <i class="bi bi-bell-fill"></i>
                 </div>
 
                 <h3>

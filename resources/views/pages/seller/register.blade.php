@@ -6,6 +6,7 @@
     <title>Seller Registration — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -400,7 +401,7 @@
 
     <div class="card">
 
-        <div class="icon">🏬</div>
+        <div class="icon"><i class="bi bi-shop"></i></div>
 
         <div class="eyebrow">Sell on BoomBuy</div>
         <h1>Create your seller account</h1>
@@ -655,9 +656,13 @@
             var target = document.getElementById(targetId);
             if (!target) return;
 
-            target.textContent = input.files && input.files[0]
-                ? '✓ ' + input.files[0].name
-                : '';
+            target.textContent = '';
+            if (input.files && input.files[0]) {
+                var icon = document.createElement('i');
+                icon.className = 'bi bi-check-circle-fill';
+                target.appendChild(icon);
+                target.appendChild(document.createTextNode(' ' + input.files[0].name));
+            }
         }
 
         (function () {

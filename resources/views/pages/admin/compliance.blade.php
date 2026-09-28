@@ -7,6 +7,7 @@
     <title>Seller Compliance — BoomBuy Admin</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-compliance.css') }}">
@@ -78,16 +79,16 @@
 
                         <div style="display:flex; gap:6px;">
 
-                            <form method="POST" action="{{ route('admin.compliance.warn', $seller['user_id']) }}" class="warn-form" onsubmit="return confirm('Send a compliance warning to {{ addslashes($seller['name']) }}?');">
+                            <form method="POST" action="{{ route('admin.compliance.warn', $seller['user_id']) }}" class="warn-form" data-confirm="Send a compliance warning to {{ $seller['name'] }}?" data-confirm-ok="Send Warning">
                                 @csrf
                                 <input type="text" name="warning_message" placeholder="Warning message (optional)">
-                                <button type="submit" class="mini-btn warn">⚠️ Warn</button>
+                                <button type="submit" class="mini-btn warn"><i class="bi bi-exclamation-triangle-fill"></i> Warn</button>
                             </form>
 
-                            <form method="POST" action="{{ route('admin.accounts.status', $seller['user_id']) }}" onsubmit="return confirm('Suspend {{ addslashes($seller['name']) }}\'s account?');">
+                            <form method="POST" action="{{ route('admin.accounts.status', $seller['user_id']) }}" data-confirm="Suspend {{ $seller['name'] }}'s account?" data-confirm-ok="Suspend" data-confirm-danger>
                                 @csrf
                                 <input type="hidden" name="status" value="Suspended">
-                                <button type="submit" class="mini-btn suspend">🚫 Suspend</button>
+                                <button type="submit" class="mini-btn suspend"><i class="bi bi-slash-circle-fill"></i> Suspend</button>
                             </form>
 
                         </div>
@@ -98,7 +99,7 @@
 
                 @if($seller['mismatches']->count() > 0)
 
-                    <div class="section-label">⚠️ Category Mismatches</div>
+                    <div class="section-label"><i class="bi bi-exclamation-triangle-fill"></i> Category Mismatches</div>
 
                     @foreach($seller['mismatches'] as $product)
 
@@ -111,7 +112,7 @@
                             <form method="POST" action="{{ route('admin.compliance.flag', $product->id) }}" class="flag-form">
                                 @csrf
                                 <input type="text" name="flag_reason" value="Category mismatch — registered for {{ $seller['business_category'] }} but listed under {{ $product->category }}." style="display:none;">
-                                <button type="submit" class="mini-btn suspend" onclick="return confirm('Flag and hide this product from the storefront?');">Flag Product</button>
+                                <button type="submit" class="mini-btn suspend" data-confirm="Flag and hide this product from the storefront?" data-confirm-ok="Flag Product" data-confirm-danger>Flag Product</button>
                             </form>
                         </div>
 
@@ -121,7 +122,7 @@
 
                 @if($seller['flagged']->count() > 0)
 
-                    <div class="section-label" style="margin-top:14px;">🚫 Flagged Products</div>
+                    <div class="section-label" style="margin-top:14px;"><i class="bi bi-slash-circle-fill"></i> Flagged Products</div>
 
                     @foreach($seller['flagged'] as $product)
 
@@ -142,7 +143,7 @@
                 @endif
 
                 @if($seller['mismatches']->count() === 0 && $seller['flagged']->count() === 0)
-                    <div class="clean-note">✓ No compliance issues detected.</div>
+                    <div class="clean-note"><i class="bi bi-check-circle-fill"></i> No compliance issues detected.</div>
                 @endif
 
             </div>

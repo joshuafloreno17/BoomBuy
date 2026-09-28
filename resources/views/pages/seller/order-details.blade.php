@@ -8,6 +8,7 @@
     <title>Seller Order Details — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-order-details.css') }}">
 
@@ -40,7 +41,7 @@
                 class="back"
                 style="float:right;"
             >
-                🖨 Print Waybill
+                <i class="bi bi-printer-fill"></i> Print Waybill
             </a>
 
 
@@ -78,9 +79,7 @@
                     Order #{{ $order['id'] ?? 'N/A' }}
                 </div>
 
-                <div class="status">
-                    {{ $order['status'] ?? 'Pending' }}
-                </div>
+                <x-status-pill :status="$order['status'] ?? 'Pending'" />
 
 
                 <div class="info-grid">
@@ -145,6 +144,36 @@
                     </div>
 
                 </div>
+
+                @php
+                    $riskCount = ($buyerHistory['cancelled'] ?? 0) + ($buyerHistory['refused'] ?? 0);
+                    $isRisky = ($buyerHistory['recent'] ?? 0) >= 2;
+                @endphp
+
+                <div class="buyer-history {{ $isRisky ? 'is-risky' : '' }}">
+                    <i class="bi {{ $isRisky ? 'bi-exclamation-triangle-fill' : 'bi-person-check-fill' }}"></i>
+                    <div>
+                        <strong>Buyer history:</strong>
+                        {{ $buyerHistory['orders'] ?? 0 }} {{ Str::plural('order', $buyerHistory['orders'] ?? 0) }} ·
+                        {{ $buyerHistory['cancelled'] ?? 0 }} cancelled ·
+                        {{ $buyerHistory['refused'] ?? 0 }} refused on delivery
+
+                        @if($isRisky)
+                            <div class="buyer-history-sub">
+                                {{ $buyerHistory['recent'] }} cancellations/refusals in the last 30 days — consider confirming with the buyer before preparing a COD order.
+                            </div>
+                        @elseif($riskCount === 0)
+                            <div class="buyer-history-sub">No cancelled or refused orders.</div>
+                        @endif
+                    </div>
+                </div>
+
+                <style>
+                    .buyer-history { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: #eefaf3; color: #1f6b3a; font-size: 13px; line-height: 1.5; }
+                    .buyer-history i { margin-top: 2px; }
+                    .buyer-history.is-risky { background: #fff4e5; color: #8a5a00; }
+                    .buyer-history-sub { font-size: 12px; opacity: 0.9; margin-top: 2px; }
+                </style>
 
             </div>
 
@@ -260,7 +289,7 @@
 
                     <div class="info-box">
                         <div class="label">Courier Status</div>
-                        <div class="value">{{ $order['status'] ?? 'Pending' }}</div>
+                        <div class="value"><x-status-pill :status="$order['status'] ?? 'Pending'" /></div>
                     </div>
 
                     <div class="info-box">
@@ -290,7 +319,7 @@
                     @if(!empty($order['seller_confirmed_pickup_at']))
 
                         <div class="success" style="margin-top:16px;">
-                            ✓ You confirmed handing this order over to the rider on
+                            <i class="bi bi-check-circle-fill"></i> You confirmed handing this order over to the rider on
                             {{ \Illuminate\Support\Carbon::parse($order['seller_confirmed_pickup_at'])->format('M d, Y • h:i A') }}.
                         </div>
 
@@ -299,7 +328,7 @@
                         <form method="POST" action="{{ route('seller.order.confirm-pickup', $order['id']) }}" style="margin-top:16px;">
                             @csrf
                             <button type="submit">
-                                ✓ Confirm Rider Pickup
+                                <i class="bi bi-check-circle-fill"></i> Confirm Rider Pickup
                             </button>
                         </form>
 

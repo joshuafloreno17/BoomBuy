@@ -7,6 +7,7 @@
     <title>Reports — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -716,39 +717,39 @@
 
     $categoryIcons = [
 
-        'Smartphone' => '📱',
-        'Smartphones' => '📱',
+        'Smartphone' => 'bi-phone',
+        'Smartphones' => 'bi-phone',
 
-        'Laptop' => '💻',
-        'Laptops' => '💻',
+        'Laptop' => 'bi-laptop',
+        'Laptops' => 'bi-laptop',
 
-        'Audio' => '🎧',
+        'Audio' => 'bi-headphones',
 
-        'Wearable' => '⌚',
-        'Wearables' => '⌚',
+        'Wearable' => 'bi-smartwatch',
+        'Wearables' => 'bi-smartwatch',
 
-        'Accessories' => '🎮',
-        'Gaming' => '🎮',
+        'Accessories' => 'bi-controller',
+        'Gaming' => 'bi-controller',
 
-        'Women’s' => '👗',
-        "Women's" => '👗',
+        'Women’s' => 'bi-handbag',
+        "Women's" => 'bi-handbag',
 
-        'Men’s' => '👕',
-        "Men's" => '👕',
+        'Men’s' => 'bi-bag-fill',
+        "Men's" => 'bi-bag-fill',
 
-        'Kids & Baby' => '🧸',
+        'Kids & Baby' => 'bi-balloon-heart-fill',
 
-        'Home' => '🏠',
+        'Home' => 'bi-house-door-fill',
 
-        'Sports' => '⚽',
+        'Sports' => 'bi-trophy-fill',
 
-        'Beauty' => '💄',
+        'Beauty' => 'bi-stars',
 
-        'Food' => '🍔',
+        'Food' => 'bi-cup-hot-fill',
 
-        'Automotive' => '🚗',
+        'Automotive' => 'bi-car-front-fill',
 
-        'Office & School' => '📚',
+        'Office & School' => 'bi-backpack2-fill',
     ];
 
 @endphp
@@ -1130,7 +1131,7 @@
                                 )
                                 : 0;
 
-                            $icon = $categoryIcons[$category] ?? '📦';
+                            $icon = $categoryIcons[$category] ?? 'bi-box-seam-fill';
 
                         @endphp
 
@@ -1140,7 +1141,7 @@
                             <div class="category-top">
 
                                 <span class="category-name">
-                                    {{ $icon }} {{ $category }}
+                                    <i class="bi {{ $icon }}"></i> {{ $category }}
                                 </span>
 
                                 <span class="category-value">
@@ -1399,28 +1400,25 @@
                                 $icon =
                                     $categoryIcons[
                                         $product['category']
-                                    ] ?? '📦';
+                                    ] ?? 'bi-box-seam-fill';
 
+                                $filledStar = '<i class="bi bi-star-fill"></i>';
 
                                 if ($product['units_sold'] >= 20) {
 
-                                    $stars =
-                                        '⭐⭐⭐⭐⭐';
+                                    $stars = str_repeat($filledStar, 5);
 
                                 } elseif ($product['units_sold'] >= 10) {
 
-                                    $stars =
-                                        '⭐⭐⭐⭐';
+                                    $stars = str_repeat($filledStar, 4);
 
                                 } elseif ($product['units_sold'] >= 5) {
 
-                                    $stars =
-                                        '⭐⭐⭐';
+                                    $stars = str_repeat($filledStar, 3);
 
                                 } elseif ($product['units_sold'] > 0) {
 
-                                    $stars =
-                                        '⭐⭐';
+                                    $stars = str_repeat($filledStar, 2);
 
                                 } else {
 
@@ -1456,7 +1454,7 @@
                                 <td>
 
                                     <div class="product-name">
-                                        {{ $icon }}
+                                        <i class="bi {{ $icon }}"></i>
                                         {{ $product['name'] }}
                                     </div>
 
@@ -1489,7 +1487,7 @@
                                 </td>
 
                                 <td class="performance-stars">
-                                    {{ $stars }}
+                                    {!! $stars !!}
                                 </td>
 
                             </tr>

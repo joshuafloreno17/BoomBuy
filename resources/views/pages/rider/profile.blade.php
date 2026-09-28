@@ -12,6 +12,7 @@
     <title>My Profile — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
 
@@ -667,7 +668,7 @@
                     </div>
 
                     <h1>
-                        My Profile 👤
+                        My Profile
                     </h1>
 
                     <p class="subtitle">
@@ -680,7 +681,7 @@
                 <div class="profile-pill">
 
                     <div class="profile-pill-icon">
-                        🚴
+                        <i class="bi bi-bicycle"></i>
                     </div>
 
                     <strong>
@@ -697,7 +698,7 @@
             @if(session('success'))
 
                 <div class="alert success">
-                    ✅ {{ session('success') }}
+                    <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
                 </div>
 
             @endif
@@ -706,7 +707,7 @@
             @if(session('error'))
 
                 <div class="alert error">
-                    ❌ {{ session('error') }}
+                    <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
                 </div>
 
             @endif
@@ -736,7 +737,7 @@
 
                                 @else
 
-                                    🚴
+                                    <i class="bi bi-bicycle"></i>
 
                                 @endif
 
@@ -744,7 +745,7 @@
 
 
                             <div class="camera">
-                                📷
+                                <i class="bi bi-camera-fill"></i>
                             </div>
 
                         </div>
@@ -789,7 +790,7 @@
                                         document.getElementById('file-chosen-label').textContent =
                                         this.files[0]
                                         ? this.files[0].name
-                                        : '📷 Choose Photo';
+                                        : 'Choose Photo';
                                     "
                                 >
 
@@ -799,7 +800,7 @@
                                     class="upload-label"
                                     id="file-chosen-label"
                                 >
-                                    📷 Choose Photo
+                                    Choose Photo
                                 </label>
 
 
@@ -807,7 +808,7 @@
                                     type="submit"
                                     class="upload-submit-btn"
                                 >
-                                    ✓ Upload Photo
+                                    <i class="bi bi-check-circle-fill"></i> Upload Photo
                                 </button>
 
                             </form>
@@ -821,7 +822,7 @@
                         href="{{ route('rider.deliveries') }}"
                         class="deliveries-btn"
                     >
-                        🚚 View My Deliveries
+                        <i class="bi bi-truck"></i> View My Deliveries
                     </a>
 
                 </div>
@@ -837,7 +838,7 @@
                     <div class="card">
 
                         <div class="card-title">
-                            👤 Account Information
+                            <i class="bi bi-person-fill"></i> Account Information
                         </div>
 
 
@@ -946,7 +947,7 @@
                     <div class="card statistics">
 
                         <div class="card-title">
-                            📊 Delivery Statistics
+                            <i class="bi bi-bar-chart-fill"></i> Delivery Statistics
                         </div>
 
 
@@ -956,7 +957,7 @@
                             <div class="stat">
 
                                 <div class="stat-icon">
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
                                 </div>
 
                                 <div class="stat-number">
@@ -973,7 +974,7 @@
                             <div class="stat">
 
                                 <div class="stat-icon">
-                                    🚚
+                                    <i class="bi bi-truck"></i>
                                 </div>
 
                                 <div class="stat-number">
@@ -990,7 +991,7 @@
                             <div class="stat">
 
                                 <div class="stat-icon">
-                                    ✅
+                                    <i class="bi bi-check-circle-fill"></i>
                                 </div>
 
                                 <div class="stat-number">

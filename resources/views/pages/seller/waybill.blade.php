@@ -6,6 +6,8 @@
 
     <title>Waybill — Order #{{ $order['id'] }} — BoomBuy</title>
 
+    @include('partials.design-tokens')
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
@@ -138,7 +140,7 @@
 <body>
 
     <div class="no-print">
-        <button class="print-btn" onclick="window.print()">🖨 Print Waybill</button>
+        <button class="print-btn" onclick="window.print()"><i class="bi bi-printer-fill"></i> Print Waybill</button>
     </div>
 
     <div class="waybill">

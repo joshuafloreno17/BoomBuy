@@ -6,6 +6,7 @@
     <title>Choose Account Type - BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -187,28 +188,28 @@
         <div class="choose-grid">
 
             <a href="{{ route('buyer.register') }}" class="choose-card">
-                <div class="choose-icon">🛍️</div>
+                <div class="choose-icon"><i class="bi bi-bag-fill"></i></div>
                 <h2>Buyer</h2>
                 <p>Shop and order products from trusted sellers.</p>
                 <span class="choose-btn">Continue as Buyer</span>
             </a>
 
             <a href="{{ route('seller.register') }}" class="choose-card">
-                <div class="choose-icon">🏬</div>
+                <div class="choose-icon"><i class="bi bi-shop"></i></div>
                 <h2>Seller</h2>
                 <p>Open your own store and sell your products.</p>
                 <span class="choose-btn">Continue as Seller</span>
             </a>
 
             <a href="{{ route('rider.apply') }}" class="choose-card">
-                <div class="choose-icon">🏍️</div>
+                <div class="choose-icon"><i class="bi bi-bicycle"></i></div>
                 <h2>Rider</h2>
                 <p>Deliver orders and earn on your own schedule.</p>
                 <span class="choose-btn">Continue as Rider</span>
             </a>
 
             <a href="{{ route('logistics.register') }}" class="choose-card">
-                <div class="choose-icon">📦</div>
+                <div class="choose-icon"><i class="bi bi-truck"></i></div>
                 <h2>Logistics / Sorting Center</h2>
                 <p>Manage parcel sorting and rider delivery assignments.</p>
                 <span class="choose-btn">Continue as Logistics</span>

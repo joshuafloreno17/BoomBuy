@@ -9,6 +9,7 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -378,7 +379,7 @@
                                     onerror="this.style.display='none';"
                                 >
                             @endif
-                            <span>📦</span>
+                            <span><i class="bi bi-box-seam-fill"></i></span>
 
                         </div>
 

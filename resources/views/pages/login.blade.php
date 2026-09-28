@@ -8,6 +8,7 @@
     <title>Login — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
 
@@ -586,7 +587,7 @@
                 <div class="login-header">
 
                     <div class="login-icon">
-                        🔐
+                        <i class="bi bi-shield-lock-fill"></i>
                     </div>
 
                     <small>

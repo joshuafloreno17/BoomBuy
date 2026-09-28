@@ -7,6 +7,7 @@
     <title>BoomBuy - Products</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -219,8 +220,12 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 21px;
+            font-size: 19px;
             flex-shrink: 0;
+        }
+
+        .category-card span i {
+            color: var(--accent);
         }
 
         .category-card strong {
@@ -498,10 +503,14 @@
             color: #977970;
             font-size: 12px;
             margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
         }
 
-        .rating span {
-            color: #f5b70b;
+        .rating i {
+            color: var(--gold);
+            font-size: 11px;
         }
 
         .bottom {
@@ -560,8 +569,9 @@
         }
 
         .empty-icon {
-            font-size: 55px;
+            font-size: 48px;
             margin-bottom: 15px;
+            color: var(--muted-2);
         }
 
         .empty h2 {
@@ -783,97 +793,97 @@
 
             <a href="{{ route('products', ['category' => 'electronics']) }}"
                class="category-card {{ request('category') === 'electronics' ? 'active' : '' }}">
-                <span>📱</span>
+                <span><i class="bi bi-phone"></i></span>
                 <strong>Electronics</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'womens-fashion']) }}"
                class="category-card {{ request('category') === 'womens-fashion' ? 'active' : '' }}">
-                <span>👗</span>
+                <span><i class="bi bi-handbag"></i></span>
                 <strong>Women's Fashion</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'mens-fashion']) }}"
                class="category-card {{ request('category') === 'mens-fashion' ? 'active' : '' }}">
-                <span>👕</span>
+                <span><i class="bi bi-bag-fill"></i></span>
                 <strong>Men's Fashion</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'kids-baby']) }}"
                class="category-card {{ request('category') === 'kids-baby' ? 'active' : '' }}">
-                <span>👶</span>
+                <span><i class="bi bi-balloon-heart-fill"></i></span>
                 <strong>Kids & Baby</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'home-living']) }}"
                class="category-card {{ request('category') === 'home-living' ? 'active' : '' }}">
-                <span>🏠</span>
+                <span><i class="bi bi-house-door-fill"></i></span>
                 <strong>Home & Living</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'sports-outdoors']) }}"
                class="category-card {{ request('category') === 'sports-outdoors' ? 'active' : '' }}">
-                <span>⚽</span>
+                <span><i class="bi bi-trophy-fill"></i></span>
                 <strong>Sports & Outdoors</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'beauty-personal-care']) }}"
                class="category-card {{ request('category') === 'beauty-personal-care' ? 'active' : '' }}">
-                <span>💄</span>
+                <span><i class="bi bi-stars"></i></span>
                 <strong>Beauty & Personal Care</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'food-beverages']) }}"
                class="category-card {{ request('category') === 'food-beverages' ? 'active' : '' }}">
-                <span>🍔</span>
+                <span><i class="bi bi-cup-hot-fill"></i></span>
                 <strong>Food & Beverages</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'automotive']) }}"
                class="category-card {{ request('category') === 'automotive' ? 'active' : '' }}">
-                <span>🚗</span>
+                <span><i class="bi bi-car-front-fill"></i></span>
                 <strong>Automotive</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'office-school']) }}"
                class="category-card {{ request('category') === 'office-school' ? 'active' : '' }}">
-                <span>📚</span>
+                <span><i class="bi bi-backpack2-fill"></i></span>
                 <strong>Office & School</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'pet-supplies']) }}"
                class="category-card {{ request('category') === 'pet-supplies' ? 'active' : '' }}">
-                <span>🐶</span>
+                <span><i class="bi bi-heart-fill"></i></span>
                 <strong>Pet Supplies</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'toys-games-hobbies']) }}"
                class="category-card {{ request('category') === 'toys-games-hobbies' ? 'active' : '' }}">
-                <span>🎮</span>
+                <span><i class="bi bi-controller"></i></span>
                 <strong>Toys, Games & Hobbies</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'jewelry-accessories']) }}"
                class="category-card {{ request('category') === 'jewelry-accessories' ? 'active' : '' }}">
-                <span>💍</span>
+                <span><i class="bi bi-gem"></i></span>
                 <strong>Jewelry & Accessories</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'shoes']) }}"
                class="category-card {{ request('category') === 'shoes' ? 'active' : '' }}">
-                <span>👟</span>
+                <span><i class="bi bi-tag-fill"></i></span>
                 <strong>Shoes</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'tools-home-improvement']) }}"
                class="category-card {{ request('category') === 'tools-home-improvement' ? 'active' : '' }}">
-                <span>🧰</span>
+                <span><i class="bi bi-tools"></i></span>
                 <strong>Tools & Home Improvement</strong>
             </a>
 
             <a href="{{ route('products', ['category' => 'garden-outdoor']) }}"
                class="category-card {{ request('category') === 'garden-outdoor' ? 'active' : '' }}">
-                <span>🌱</span>
+                <span><i class="bi bi-flower1"></i></span>
                 <strong>Garden & Outdoor</strong>
             </a>
 
@@ -1099,7 +1109,7 @@
 
                     $image =
                         $product['image']
-                        ?? '📦';
+                        ?? null;
 
                     $stock =
                         (int) ($product['stock'] ?? 0);
@@ -1216,7 +1226,7 @@
                             onclick="event.preventDefault(); toggleWishlist(this);"
                         >@if($isWishlisted)<svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@else<svg viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@endif</button>
 
-                        @if($image && $image !== '📦')
+                        @if($image)
 
                             <img
                                 src="{{ str_starts_with($image, 'http')
@@ -1238,9 +1248,10 @@
                                 align-items: center;
                                 justify-content: center;
                                 font-size: 82px;
+                                color: var(--accent);
                             "
                         >
-                            📦
+                            <i class="bi bi-box-seam-fill"></i>
                         </div>
 
                     </div>
@@ -1262,7 +1273,7 @@
                         </div>
 
                         <div class="rating">
-                            <span>★</span>
+                            <span><i class="bi bi-star-fill"></i></span>
 
                             {{ number_format(
                                 (float) ($product['rating'] ?? 0),
@@ -1354,7 +1365,7 @@
         <div class="empty" id="empty">
 
             <div class="empty-icon">
-                🔎
+                <i class="bi bi-search"></i>
             </div>
 
             <h2>
@@ -1748,8 +1759,8 @@
                                 );
                             }
 
-                            button.textContent =
-                                "✓ Added!";
+                            button.innerHTML =
+                                '<i class="bi bi-check-circle-fill"></i> Added!';
 
                             button.classList.add(
                                 "added"

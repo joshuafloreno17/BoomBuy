@@ -8,6 +8,7 @@
     <title>Seller Dashboard — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/pages/seller-dashboard.css') }}">
 </head>
@@ -41,7 +42,7 @@
         </small>
 
         <h1>
-            Welcome, {{ $user['name'] ?? 'Seller' }}! 🏪
+            Welcome, {{ $user['name'] ?? 'Seller' }}!
         </h1>
 
         <p>
@@ -56,7 +57,7 @@
     @if(session('success'))
 
         <div class="alert-success">
-            ✓ {{ session('success') }}
+            <i class="bi bi-check-circle-fill"></i> {{ session('success') }}
         </div>
 
     @endif
@@ -67,7 +68,7 @@
     @if(session('error'))
 
         <div class="alert-error">
-            ✕ {{ session('error') }}
+            <i class="bi bi-x-circle-fill"></i> {{ session('error') }}
         </div>
 
     @endif
@@ -80,7 +81,7 @@
         <div class="stat-card">
 
             <div class="stat-icon">
-                📦
+                <i class="bi bi-box-seam-fill"></i>
             </div>
 
             <div>
@@ -101,7 +102,7 @@
         <div class="stat-card">
 
             <div class="stat-icon">
-                🧾
+                <i class="bi bi-receipt"></i>
             </div>
 
             <div>
@@ -122,7 +123,7 @@
         <div class="stat-card">
 
             <div class="stat-icon">
-                ⏳
+                <i class="bi bi-hourglass-split"></i>
             </div>
 
             <div>
@@ -143,7 +144,7 @@
         <div class="stat-card">
 
             <div class="stat-icon">
-                💰
+                <i class="bi bi-cash-stack"></i>
             </div>
 
             <div>
@@ -257,9 +258,9 @@
                                         @endphp
                                         @if($pIsImg)
                                             <img src="{{ str_starts_with($pImg, 'http') ? $pImg : asset('storage/' . ltrim($pImg, '/')) }}" alt="{{ $product->name }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
-                                            <span>📦</span>
+                                            <span><i class="bi bi-box-seam-fill"></i></span>
                                         @else
-                                            {{ $pImg ?? '📦' }}
+                                            <i class="bi bi-box-seam-fill"></i>
                                         @endif
                                     </div>
 
@@ -324,7 +325,7 @@
                             <td>
 
                                 <span class="rating">
-                                    ★ {{ number_format($product->reviews_avg_rating ?? 0, 1) }}
+                                    <i class="bi bi-star-fill"></i> {{ number_format($product->reviews_avg_rating ?? 0, 1) }}
                                 </span>
 
                                 <span class="reviews">
@@ -344,20 +345,20 @@
                                         href="{{ route('seller.products.edit', ['id' => $product->id]) }}"
                                         class="edit-btn"
                                     >
-                                        ✏ Edit
+                                        <i class="bi bi-pencil-square"></i> Edit
                                     </a>
 
                                     <a
                                         href="{{ route('seller.products.variations', ['id' => $product->id]) }}"
                                         class="edit-btn"
                                     >
-                                        🎨 Variations
+                                        <i class="bi bi-palette"></i> Variations
                                     </a>
 
                                     <form
                                         action="{{ route('seller.products.archive', ['id' => $product->id]) }}"
                                         method="POST"
-                                        onsubmit="return confirm('Archive this product? It will be hidden from the storefront but you can restore it anytime.');"
+                                        data-confirm="Archive this product? It will be hidden from the storefront but you can restore it anytime." data-confirm-ok="Archive"
                                     >
 
                                         @csrf
@@ -366,7 +367,7 @@
                                             type="submit"
                                             class="edit-btn"
                                         >
-                                            🗄 Archive
+                                            <i class="bi bi-archive"></i> Archive
                                         </button>
 
                                     </form>
@@ -374,7 +375,7 @@
                                     <form
                                         action="{{ route('seller.products.delete', ['id' => $product->id]) }}"
                                         method="POST"
-                                        onsubmit="return confirm('Are you sure you want to delete this product?');"
+                                        data-confirm="Are you sure you want to delete this product?" data-confirm-ok="Delete" data-confirm-danger
                                     >
 
                                         @csrf
@@ -385,7 +386,7 @@
                                             type="submit"
                                             class="delete-btn"
                                         >
-                                            🗑 Delete
+                                            <i class="bi bi-trash-fill"></i> Delete
                                         </button>
 
                                     </form>
@@ -409,7 +410,7 @@
         <div class="empty">
 
             <div class="empty-icon">
-                📦
+                <i class="bi bi-box-seam-fill"></i>
             </div>
 
             <h3>
@@ -475,7 +476,7 @@
                                 >
                                     @csrf
                                     <button type="submit" class="edit-btn">
-                                        ↩ Restore
+                                        <i class="bi bi-arrow-counterclockwise"></i> Restore
                                     </button>
                                 </form>
                             </td>

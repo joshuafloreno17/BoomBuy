@@ -7,6 +7,7 @@
     <title>Notifications — BoomBuy Logistics</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/logistics-notifications.css') }}">
@@ -33,11 +34,11 @@
 
                         @php
                             $icon = match($notification->type) {
-                                'rider' => '🛵',
-                                'parcel' => '📦',
-                                'return_refund' => '🔄',
-                                'logistics' => '🚚',
-                                default => '🔔',
+                                'rider' => 'bi-bicycle',
+                                'parcel' => 'bi-box-seam-fill',
+                                'return_refund' => 'bi-arrow-repeat',
+                                'logistics' => 'bi-truck',
+                                default => 'bi-bell-fill',
                             };
                         @endphp
 

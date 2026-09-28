@@ -7,6 +7,7 @@
     <title>Logistics Overview — BoomBuy Admin</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-logistics.css') }}">
@@ -31,7 +32,7 @@
         </div>
 
         <div class="readonly-note">
-            👁️ This is a read-only view — approving riders, assigning parcels, and rescheduling deliveries are handled by Logistics staff.
+            <i class="bi bi-eye-fill"></i> This is a read-only view — approving riders, assigning parcels, and rescheduling deliveries are handled by Logistics staff.
         </div>
 
         <div class="stats">
@@ -57,7 +58,7 @@
              RIDER APPLICATIONS
         ========================== --}}
 
-        <h2 class="section-heading">🛵 Rider Applications ({{ count($riderApplications) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-bicycle"></i> Rider Applications ({{ count($riderApplications) }})</h2>
 
         @forelse ($riderApplications as $app)
 
@@ -127,7 +128,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon">🛵</div>
+                <div class="empty-icon"><i class="bi bi-bicycle"></i></div>
                 <h3>No Rider Applications</h3>
                 <p>Rider applications will appear here once submitted.</p>
             </div>
@@ -138,7 +139,7 @@
              AWAITING CONFIRMATION
         ========================== --}}
 
-        <h2 class="section-heading">📥 Awaiting Sorting Center Confirmation ({{ count($awaitingConfirmation) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-envelope-paper-fill"></i> Awaiting Sorting Center Confirmation ({{ count($awaitingConfirmation) }})</h2>
 
         @forelse ($awaitingConfirmation as $order)
 
@@ -155,7 +156,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon">📦</div>
+                <div class="empty-icon"><i class="bi bi-box-seam-fill"></i></div>
                 <h3>No Parcels In Transit</h3>
                 <p>Parcels picked up by riders from sellers will appear here.</p>
             </div>
@@ -166,7 +167,7 @@
              AWAITING ASSIGNMENT
         ========================== --}}
 
-        <h2 class="section-heading">🗂️ Awaiting Rider Assignment ({{ count($awaitingAssignment) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-inbox-fill"></i> Awaiting Rider Assignment ({{ count($awaitingAssignment) }})</h2>
 
         @forelse ($awaitingAssignment as $order)
 
@@ -183,7 +184,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon">🗂️</div>
+                <div class="empty-icon"><i class="bi bi-inbox-fill"></i></div>
                 <h3>No Parcels Awaiting Assignment</h3>
                 <p>Confirmed parcels ready for rider assignment will appear here.</p>
             </div>
@@ -194,7 +195,7 @@
              FAILED DELIVERIES
         ========================== --}}
 
-        <h2 class="section-heading">⚠️ Failed Deliveries ({{ count($failedDeliveries) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-exclamation-triangle-fill"></i> Failed Deliveries ({{ count($failedDeliveries) }})</h2>
 
         @forelse ($failedDeliveries as $order)
 
@@ -214,7 +215,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon">⚠️</div>
+                <div class="empty-icon"><i class="bi bi-exclamation-triangle-fill"></i></div>
                 <h3>No Failed Deliveries</h3>
                 <p>Parcels that couldn't be delivered will appear here.</p>
             </div>
@@ -225,7 +226,7 @@
              RETURNED TO SELLER
         ========================== --}}
 
-        <h2 class="section-heading">↩ Returned to Seller ({{ count($returnedToSeller) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-arrow-return-left"></i> Returned to Seller ({{ count($returnedToSeller) }})</h2>
 
         @forelse ($returnedToSeller as $order)
 
@@ -244,7 +245,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon">↩</div>
+                <div class="empty-icon"><i class="bi bi-arrow-return-left"></i></div>
                 <h3>No Returned Parcels</h3>
                 <p>Orders returned to sellers after failed delivery attempts will appear here.</p>
             </div>

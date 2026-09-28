@@ -15,6 +15,7 @@
     </title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -461,7 +462,7 @@
         }
 
         .review-stars {
-            color: #e8420f;
+            color: var(--gold);
             font-size: 12px;
             white-space: nowrap;
         }
@@ -521,6 +522,7 @@
             justify-content: center;
 
             font-size: 46px;
+            color: var(--accent);
 
             overflow: hidden;
         }
@@ -704,8 +706,9 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             align-items: center;
             justify-content: center;
             font-size: 120px;
+            color: var(--accent);
         ">
-            📦
+            <i class="bi bi-box-seam-fill"></i>
         </div>
 
     </div>
@@ -774,7 +777,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                 @if($reviewCount > 0)
 
-                    ⭐ {{ $averageRating }}
+                    <i class="bi bi-star-fill" style="color: var(--gold);"></i> {{ $averageRating }}
 
                     <span style="color:#977970;">
                         ({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})
@@ -893,7 +896,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         class="btn cart-btn"
                         style="width:100%;"
                     >
-                        🛒 Add to Cart
+                        <i class="bi bi-cart-fill"></i> Add to Cart
                     </button>
 
                 </form>
@@ -924,7 +927,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                         class="btn buy-btn"
                         style="width:100%;"
                     >
-                        ⚡ Buy Now
+                        <i class="bi bi-lightning-fill"></i> Buy Now
                     </button>
 
                 </form>
@@ -939,7 +942,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     href="{{ route('messages.thread', $product->seller_id) }}"
                     style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; color:#e8420f; font-size:13px; font-weight:700;"
                 >
-                    💬 Message Seller
+                    <i class="bi bi-chat-dots-fill"></i> Message Seller
                 </a>
 
             @endif
@@ -968,7 +971,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     <div class="review-top">
                         <span class="review-name">{{ $review->buyer_name }}</span>
-                        <span class="review-stars">{{ str_repeat('⭐', (int) $review->rating) }}</span>
+                        <span class="review-stars">{!! str_repeat('<i class="bi bi-star-fill"></i>', (int) $review->rating) !!}</span>
                     </div>
 
                     <div class="review-date">
@@ -1027,7 +1030,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                     onerror="this.style.display='none';"
                                 >
                             @endif
-                            <span>📦</span>
+                            <span><i class="bi bi-box-seam-fill"></i></span>
                         </div>
 
                         <div class="related-info">

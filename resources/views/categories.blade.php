@@ -6,6 +6,7 @@
     <title>BoomBuy - Categories</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -255,34 +256,42 @@
 
         .blue {
             background: linear-gradient(145deg, #eaf4ff, #dcecff);
+            color: #2f6fb0;
         }
 
         .pink {
             background: linear-gradient(145deg, #fff0f6, #ffe1ec);
+            color: #c94f7c;
         }
 
         .yellow {
             background: linear-gradient(145deg, #fffbea, #fff0bd);
+            color: #a67c00;
         }
 
         .orange {
             background: linear-gradient(145deg, #fff2e9, #ffe0cf);
+            color: var(--accent-dark);
         }
 
         .green {
             background: linear-gradient(145deg, #ecfdf5, #d5f7e4);
+            color: var(--teal-dark);
         }
 
         .purple {
             background: linear-gradient(145deg, #f3efff, #e6ddff);
+            color: #7c5cbf;
         }
 
         .cyan {
             background: linear-gradient(145deg, #e9fbff, #d6f5fb);
+            color: #1a8fa3;
         }
 
         .lavender {
             background: linear-gradient(145deg, #f7f0ff, #eadfff);
+            color: #8a6fc9;
         }
 
         .category-title {
@@ -562,7 +571,7 @@
             >
 
             <a href="{{ route('cart') }}" class="cart">
-                🛒 Cart
+                <i class="bi bi-cart-fill"></i> Cart
 
                 @php
                     $cartCount = array_sum(session('cart', []));
@@ -609,7 +618,7 @@
     <div class="category-search-box">
 
         <span class="category-search-icon">
-            🔎
+            <i class="bi bi-search"></i>
         </span>
 
         <input
@@ -638,7 +647,7 @@
                 <div class="category-top">
 
                     <div class="icon-box green">
-                        🐶
+                        <i class="bi bi-heart-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -697,7 +706,7 @@
                 <div class="category-top">
 
                     <div class="icon-box blue">
-                        📱
+                        <i class="bi bi-phone"></i>
                     </div>
 
                     <div class="category-title">
@@ -756,7 +765,7 @@
                 <div class="category-top">
 
                     <div class="icon-box pink">
-                        👗
+                        <i class="bi bi-handbag"></i>
                     </div>
 
                     <div class="category-title">
@@ -815,7 +824,7 @@
                 <div class="category-top">
 
                     <div class="icon-box blue">
-                        👕
+                        <i class="bi bi-bag-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -874,7 +883,7 @@
                 <div class="category-top">
 
                     <div class="icon-box yellow">
-                        🧸
+                        <i class="bi bi-balloon-heart-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -933,7 +942,7 @@
                 <div class="category-top">
 
                     <div class="icon-box orange">
-                        🏠
+                        <i class="bi bi-house-door-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -992,7 +1001,7 @@
                 <div class="category-top">
 
                     <div class="icon-box green">
-                        ⚽
+                        <i class="bi bi-trophy-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -1051,7 +1060,7 @@
                 <div class="category-top">
 
                     <div class="icon-box pink">
-                        💄
+                        <i class="bi bi-stars"></i>
                     </div>
 
                     <div class="category-title">
@@ -1110,7 +1119,7 @@
                 <div class="category-top">
 
                     <div class="icon-box purple">
-                        📚
+                        <i class="bi bi-book"></i>
                     </div>
 
                     <div class="category-title">
@@ -1169,7 +1178,7 @@
                 <div class="category-top">
 
                     <div class="icon-box orange">
-                        🍔
+                        <i class="bi bi-cup-hot-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -1228,7 +1237,7 @@
                 <div class="category-top">
 
                     <div class="icon-box blue">
-                        🚗
+                        <i class="bi bi-car-front-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -1287,7 +1296,7 @@
                 <div class="category-top">
 
                     <div class="icon-box lavender">
-                        🪑
+                        <i class="bi bi-lamp"></i>
                     </div>
 
                     <div class="category-title">
@@ -1346,7 +1355,7 @@
                 <div class="category-top">
 
                     <div class="icon-box yellow">
-                        💎
+                        <i class="bi bi-gem"></i>
                     </div>
 
                     <div class="category-title">
@@ -1405,7 +1414,7 @@
                 <div class="category-top">
 
                     <div class="icon-box cyan">
-                        ✏️
+                        <i class="bi bi-pencil-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -1464,7 +1473,7 @@
                 <div class="category-top">
 
                     <div class="icon-box purple">
-                        🎮
+                        <i class="bi bi-controller"></i>
                     </div>
 
                     <div class="category-title">
@@ -1523,7 +1532,7 @@
                 <div class="category-top">
 
                     <div class="icon-box pink">
-                        👟
+                        <i class="bi bi-tag-fill"></i>
                     </div>
 
                     <div class="category-title">
@@ -1582,7 +1591,7 @@
                 <div class="category-top">
 
                     <div class="icon-box orange">
-                        🧰
+                        <i class="bi bi-tools"></i>
                     </div>
 
                     <div class="category-title">
@@ -1641,7 +1650,7 @@
                 <div class="category-top">
 
                     <div class="icon-box green">
-                        🌱
+                        <i class="bi bi-flower1"></i>
                     </div>
 
                     <div class="category-title">
@@ -1701,7 +1710,7 @@
         <div class="empty-search" id="emptySearch">
 
             <div class="empty-search-icon">
-                🔎
+                <i class="bi bi-search"></i>
             </div>
 
             <h3>

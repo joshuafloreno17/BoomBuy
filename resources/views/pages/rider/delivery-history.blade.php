@@ -7,6 +7,7 @@
     <title>Delivery History — BoomBuy Rider</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/rider-delivery-history.css') }}">
@@ -60,7 +61,7 @@
                     </div>
 
                     <div class="history-info">
-                        👤 {{ $order['buyer_name'] }} &nbsp;·&nbsp; 📍 {{ $order['address'] }}
+                        <i class="bi bi-person-fill"></i> {{ $order['buyer_name'] }} &nbsp;·&nbsp; <i class="bi bi-geo-alt-fill"></i> {{ $order['address'] }}
                     </div>
 
                     <div class="history-items">
@@ -72,7 +73,7 @@
             @empty
 
                 <div class="empty">
-                    <div class="empty-icon">📜</div>
+                    <div class="empty-icon"><i class="bi bi-clock-history"></i></div>
                     <h3>No Completed Deliveries Yet</h3>
                     <p>Your delivery history will appear here once you complete deliveries.</p>
                 </div>

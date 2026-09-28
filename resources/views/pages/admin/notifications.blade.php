@@ -8,6 +8,7 @@
     <title>Notifications — BoomBuy</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
 
@@ -369,13 +370,13 @@
                             <div class="notification-icon">
 
                                 @if($notification->type === 'seller')
-                                    🏪
+                                    <i class="bi bi-shop"></i>
                                 @elseif($notification->type === 'rider')
-                                    🛵
+                                    <i class="bi bi-bicycle"></i>
                                 @elseif($notification->type === 'order')
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
                                 @else
-                                    🔔
+                                    <i class="bi bi-bell-fill"></i>
                                 @endif
 
                             </div>
@@ -409,7 +410,7 @@
 
                                     @if($notification->read_at)
                                         <span class="read-label">
-                                            ✓ Read
+                                            <i class="bi bi-check2"></i> Read
                                         </span>
                                     @endif
 

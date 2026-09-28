@@ -7,6 +7,7 @@
     <title>Rider Management — BoomBuy Logistics</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/logistics-riders.css') }}">
@@ -108,13 +109,13 @@
 
                             <form class="approve-form" method="POST" action="{{ route('logistics.riders.approve', $app->id) }}">
                                 @csrf
-                                <button type="submit" class="approve-btn">✓ Approve</button>
+                                <button type="submit" class="approve-btn"><i class="bi bi-check-circle-fill"></i> Approve</button>
                             </form>
 
                             <form class="reject-form" method="POST" action="{{ route('logistics.riders.reject', $app->id) }}">
                                 @csrf
                                 <input type="text" name="admin_remarks" placeholder="Reason (optional)">
-                                <button type="submit" class="reject-btn">✕ Reject</button>
+                                <button type="submit" class="reject-btn"><i class="bi bi-x-circle-fill"></i> Reject</button>
                             </form>
 
                         </div>
@@ -154,7 +155,7 @@
                                         {{ $area->city_municipality }}, {{ $area->province }}
                                         <form method="POST" action="{{ route('logistics.riders.areas.delete', $area->id) }}" style="display:inline;">
                                             @csrf
-                                            <button type="submit" class="area-chip-remove" title="Remove">✕</button>
+                                            <button type="submit" class="area-chip-remove" title="Remove"><i class="bi bi-x-lg"></i></button>
                                         </form>
                                     </span>
                                 @empty
@@ -182,7 +183,7 @@
             @empty
 
                 <div class="empty">
-                    <div class="empty-icon">🛵</div>
+                    <div class="empty-icon"><i class="bi bi-bicycle"></i></div>
                     <h3>No Rider Applications</h3>
                     <p>Rider applications will appear here for verification.</p>
                 </div>

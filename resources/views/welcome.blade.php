@@ -21,6 +21,7 @@
     <meta name="twitter:image" content="{{ asset('images/boombuy-logo.png') }}">
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -43,6 +44,13 @@
 
         a {
             text-decoration: none;
+        }
+
+        .category-icon i,
+        .story-icon i,
+        .product-image i,
+        .nav-search button i {
+            color: var(--accent);
         }
 
         /* =========================
@@ -681,79 +689,6 @@
         }
 
         /* =========================
-           FEATURES
-        ========================= */
-
-        .features {
-            padding: 27px 7%;
-
-            background: white;
-
-            border-top: 1px solid #f8efed;
-            border-bottom: 1px solid #f8efed;
-
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-
-            gap: 20px;
-        }
-
-        .feature {
-            display: flex;
-            align-items: center;
-
-            gap: 13px;
-            padding: 9px;
-
-            transition: transform 0.25s ease;
-        }
-        .feature:hover { transform: translateX(4px); }
-        .feature:hover .feature-icon {
-            transform: scale(1.1) rotate(-6deg);
-            background: #ffe4dc;
-        }
-
-        .feature-icon {
-            width: 46px;
-            height: 46px;
-
-            min-width: 46px;
-
-            border-radius: 13px;
-
-            background: #fff1ed;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            transition: transform 0.3s cubic-bezier(.3,1.6,.4,1), background 0.22s ease;
-            overflow: hidden;
-
-            font-size: 21px;
-        }
-
-        .feature-icon img {
-            display: none;
-
-            width: 100%;
-            height: 100%;
-
-            object-fit: cover;
-        }
-
-        .feature h4 {
-            font-size: 13px;
-            margin-bottom: 4px;
-        }
-
-        .feature p {
-            color: #977970;
-            font-size: 11px;
-            line-height: 1.5;
-        }
-
-        /* =========================
            SECTIONS
         ========================= */
 
@@ -956,6 +891,19 @@
             margin: 6px 0 12px;
         }
 
+        .product-rating {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        .product-rating i {
+            color: var(--gold);
+            font-size: 11px;
+        }
+
         .product-bottom {
             display: flex;
             justify-content: space-between;
@@ -1045,6 +993,229 @@
             background: #fff3f0;
             transform: translateY(-1px);
         }
+
+        /* =========================
+           TRUST STRIP
+        ========================= */
+
+        .trust-strip {
+            background: var(--paper);
+            border-block: 1px solid var(--line);
+        }
+
+        .trust-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            padding-block: 18px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .trust-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: #fff0eb;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+        }
+
+        .trust-icon-teal { background: var(--teal-bg); color: var(--teal-dark); }
+
+        .trust-item strong { display: block; font-size: 12.5px; }
+        .trust-item span { font-size: 11px; color: var(--muted); }
+
+        @media (max-width: 760px) {
+            .trust-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        /* =========================
+           PROMO PAIR
+        ========================= */
+
+        .promo-pair {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .promo-card {
+            border-radius: 18px;
+            padding: 26px 28px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            min-height: 150px;
+            transition: transform 0.25s cubic-bezier(.2,.8,.3,1), box-shadow 0.25s ease;
+        }
+
+        .promo-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 18px 34px -20px rgba(23, 32, 51, 0.28);
+        }
+
+        .promo-card.a { background: #eef1fb; }
+        .promo-card.b { background: var(--teal-bg); }
+        .promo-card.b .promo-link { color: var(--teal-dark); }
+
+        .promo-card .eyebrow {
+            font-size: 10.5px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--muted);
+            margin-bottom: 6px;
+        }
+
+        .promo-card h3 { font-size: 21px; font-weight: 700; max-width: 20ch; margin-bottom: 6px; color: var(--ink); }
+        .promo-card p { font-size: 12.5px; color: var(--muted); max-width: 30ch; margin: 0 0 14px; }
+        .promo-card .promo-link { font-size: 12px; font-weight: 800; color: var(--accent); }
+
+        @media (max-width: 700px) {
+            .promo-pair { grid-template-columns: 1fr; }
+        }
+
+        /* =========================
+           TESTIMONIALS
+        ========================= */
+
+        .testimonial-wrap {
+            max-width: 720px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .testimonial-track {
+            position: relative;
+            min-height: 210px;
+        }
+
+        .testimonial-card {
+            position: absolute;
+            inset: 0;
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 32px clamp(20px, 4vw, 40px);
+            text-align: center;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            pointer-events: none;
+        }
+
+        .testimonial-card.is-active {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            position: relative;
+        }
+
+        .testimonial-stars {
+            color: var(--gold);
+            font-size: 15px;
+            margin-bottom: 14px;
+        }
+
+        .testimonial-quote {
+            font-size: 15px;
+            line-height: 1.65;
+            color: var(--ink);
+            max-width: 52ch;
+            margin: 0 auto 18px;
+        }
+
+        .testimonial-person {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .testimonial-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+            font-family: var(--font-display);
+            flex-shrink: 0;
+        }
+
+        .testimonial-person div { text-align: left; }
+        .testimonial-name { font-size: 12.5px; font-weight: 700; }
+        .testimonial-meta { font-size: 11px; color: var(--muted); }
+        .verified-tag { color: var(--teal-dark); font-weight: 700; }
+        .verified-tag i { margin-right: 3px; }
+
+        .testimonial-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 22px;
+        }
+
+        .testimonial-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            background: var(--line);
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .testimonial-dot.is-active { width: 22px; background: var(--accent); }
+
+        /* =========================
+           BACK TO TOP
+        ========================= */
+
+        .back-to-top {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 12px 26px -10px rgba(232, 66, 15, 0.5);
+            opacity: 0;
+            transform: translateY(12px);
+            pointer-events: none;
+            transition: opacity 0.25s ease, transform 0.25s ease, background 0.2s ease;
+            z-index: 200;
+        }
+
+        .back-to-top.is-visible {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .back-to-top:hover { background: var(--accent-dark); }
 
         /* =========================
            FOOTER
@@ -1320,7 +1491,7 @@
                 aria-label="Search products"
             >
             <button type="submit" aria-label="Search">
-                🔍
+                <i class="bi bi-search"></i>
             </button>
         </form>
 
@@ -1376,7 +1547,7 @@
                 aria-label="Search products"
             >
             <button type="submit" aria-label="Search">
-                🔍
+                <i class="bi bi-search"></i>
             </button>
         </form>
 
@@ -1451,7 +1622,7 @@
                             onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='';"
                         >
-                        <span class="story-icon">📱</span>
+                        <span class="story-icon"><i class="bi bi-phone"></i></span>
                     </div>
 
                     <h3 class="story-title">
@@ -1474,7 +1645,7 @@
                             onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                             onerror="this.style.display='none'; this.nextElementSibling.style.display='';"
                         >
-                        <span class="story-icon">👗</span>
+                        <span class="story-icon"><i class="bi bi-handbag"></i></span>
                     </div>
 
                     <h3 class="story-title">
@@ -1495,92 +1666,46 @@
 
 
     <!-- =========================
-         FEATURES
+         TRUST STRIP
     ========================= -->
 
-    <section class="features">
+    <div class="trust-strip">
+        <div class="wrap trust-grid" style="max-width:1180px; margin:0 auto; padding-inline:5%;">
 
-        <div class="feature bb-reveal">
-
-            <div class="feature-icon">
-                <img
-                    src="{{ asset('images/features/fast-delivery.jpg') }}"
-                    alt="Fast Delivery"
-                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                    onerror="this.style.display='none';"
-                >
-                <span>🚚</span>
+            <div class="trust-item">
+                <div class="trust-icon"><i class="bi bi-truck"></i></div>
+                <div>
+                    <strong>Free Shipping</strong>
+                    <span>On orders ₱999 and up</span>
+                </div>
             </div>
 
-            <div>
-
-                <h4>
-                    Fast Delivery
-                </h4>
-
-                <p>
-                    Get your orders delivered quickly.
-                </p>
-
+            <div class="trust-item">
+                <div class="trust-icon"><i class="bi bi-cash-coin"></i></div>
+                <div>
+                    <strong>Cash on Delivery</strong>
+                    <span>Pay when it arrives</span>
+                </div>
             </div>
 
-        </div>
-
-
-        <div class="feature bb-reveal">
-
-            <div class="feature-icon">
-                <img
-                    src="{{ asset('images/features/secure-shopping.jpg') }}"
-                    alt="Secure Shopping"
-                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                    onerror="this.style.display='none';"
-                >
-                <span>🔒</span>
+            <div class="trust-item">
+                <div class="trust-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+                <div>
+                    <strong>Easy Returns</strong>
+                    <span>7-day return window</span>
+                </div>
             </div>
 
-            <div>
-
-                <h4>
-                    Secure Shopping
-                </h4>
-
-                <p>
-                    Your shopping experience stays protected.
-                </p>
-
+            <div class="trust-item">
+                <div class="trust-icon trust-icon-teal"><i class="bi bi-shield-check"></i></div>
+                <div>
+                    <strong>Verified Sellers</strong>
+                    <span>Every shop reviewed</span>
+                </div>
             </div>
 
         </div>
-
-
-        <div class="feature bb-reveal">
-
-            <div class="feature-icon">
-                <img
-                    src="{{ asset('images/features/multiple-sellers.jpg') }}"
-                    alt="Multiple Sellers"
-                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                    onerror="this.style.display='none';"
-                >
-                <span>🛍️</span>
-            </div>
-
-            <div>
-
-                <h4>
-                    Multiple Sellers
-                </h4>
-
-                <p>
-                    Explore products from different sellers.
-                </p>
-
-            </div>
-
-        </div>
-
-    </section>
+    </div>
 
 
     <!-- =========================
@@ -1622,7 +1747,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>📱</span>
+                    <span><i class="bi bi-phone"></i></span>
                 </div>
 
                 <h3>
@@ -1650,7 +1775,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>👗</span>
+                    <span><i class="bi bi-handbag"></i></span>
                 </div>
 
                 <h3>
@@ -1678,7 +1803,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>👕</span>
+                    <span><i class="bi bi-bag-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1706,7 +1831,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>👶</span>
+                    <span><i class="bi bi-balloon-heart-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1734,7 +1859,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🏠</span>
+                    <span><i class="bi bi-house-door-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1762,7 +1887,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>⚽</span>
+                    <span><i class="bi bi-trophy-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1790,7 +1915,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>💄</span>
+                    <span><i class="bi bi-stars"></i></span>
                 </div>
 
                 <h3>
@@ -1818,7 +1943,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🍔</span>
+                    <span><i class="bi bi-cup-hot-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1846,7 +1971,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🚗</span>
+                    <span><i class="bi bi-car-front-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1874,7 +1999,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>📚</span>
+                    <span><i class="bi bi-backpack2-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1902,7 +2027,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🐶</span>
+                    <span><i class="bi bi-heart-fill"></i></span>
                 </div>
 
                 <h3>
@@ -1930,7 +2055,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🎮</span>
+                    <span><i class="bi bi-controller"></i></span>
                 </div>
 
                 <h3>
@@ -1958,7 +2083,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>💍</span>
+                    <span><i class="bi bi-gem"></i></span>
                 </div>
 
                 <h3>
@@ -1986,7 +2111,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>👟</span>
+                    <span><i class="bi bi-tag-fill"></i></span>
                 </div>
 
                 <h3>
@@ -2014,7 +2139,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🧰</span>
+                    <span><i class="bi bi-tools"></i></span>
                 </div>
 
                 <h3>
@@ -2042,7 +2167,7 @@
                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
                         onerror="this.style.display='none';"
                     >
-                    <span>🌱</span>
+                    <span><i class="bi bi-flower1"></i></span>
                 </div>
 
                 <h3>
@@ -2053,6 +2178,33 @@
                     Outdoor essentials
                 </p>
 
+            </a>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         PROMO PAIR
+    ========================= -->
+
+    <section class="section" style="padding-top:0;">
+
+        <div class="promo-pair">
+
+            <a href="{{ route('seller.register') }}" class="promo-card a bb-reveal">
+                <div class="eyebrow">For Sellers</div>
+                <h3>Grow your shop with BoomBuy</h3>
+                <p>Get your products in front of thousands of daily shoppers.</p>
+                <span class="promo-link">Become a seller →</span>
+            </a>
+
+            <a href="{{ route('rider.apply') }}" class="promo-card b bb-reveal">
+                <div class="eyebrow">BoomBuy Rider</div>
+                <h3>Deliver on your own schedule</h3>
+                <p>Flexible hours, weekly payouts, city-wide coverage.</p>
+                <span class="promo-link">Apply as a rider →</span>
             </a>
 
         </div>
@@ -2099,7 +2251,7 @@
                                 onerror="this.style.display='none';"
                             >
                         @endif
-                        <span>📦</span>
+                        <span><i class="bi bi-box-seam-fill"></i></span>
                     </div>
 
                     <div class="product-info">
@@ -2111,6 +2263,16 @@
                         <h3>
                             {{ $product->name }}
                         </h3>
+
+                        <div class="product-rating">
+                            @if ($product->reviews_count > 0)
+                                <i class="bi bi-star-fill"></i>
+                                {{ number_format($product->reviews_avg_rating, 1) }}
+                                <span>({{ $product->reviews_count }})</span>
+                            @else
+                                <span>No reviews yet</span>
+                            @endif
+                        </div>
 
                         <div class="product-bottom">
 
@@ -2138,6 +2300,87 @@
                 </p>
 
             @endforelse
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         TESTIMONIALS
+    ========================= -->
+
+    <section class="section">
+
+        <div class="section-header">
+
+            <small>
+                Community
+            </small>
+
+            <h2>
+                What Shoppers Are Saying
+            </h2>
+
+            <p>
+                Real feedback from the BoomBuy community.
+            </p>
+
+        </div>
+
+        <div class="testimonial-wrap bb-reveal">
+
+            <div class="testimonial-track" id="testimonialTrack">
+
+                <div class="testimonial-card is-active">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-quote">"Sobrang bilis ng delivery at yung seller mismo ang sumagot sa tanong ko bago ako bumili. Legit na legit yung mga review dito."</p>
+                    <div class="testimonial-person">
+                        <div class="testimonial-avatar">MC</div>
+                        <div>
+                            <div class="testimonial-name">Maria Cruz</div>
+                            <div class="testimonial-meta"><span class="verified-tag"><i class="bi bi-patch-check-fill"></i>Verified Buyer</span> • Quezon City</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <p class="testimonial-quote">"I switched my whole shop to BoomBuy — mas madali i-manage yung orders and yung buyer protection nakakatuwang panalo din para sa customers ko."</p>
+                    <div class="testimonial-person">
+                        <div class="testimonial-avatar">RS</div>
+                        <div>
+                            <div class="testimonial-name">Ramon Santos</div>
+                            <div class="testimonial-meta"><span class="verified-tag"><i class="bi bi-patch-check-fill"></i>Verified Seller</span> • Cebu City</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="testimonial-card">
+                    <div class="testimonial-stars">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star"></i>
+                    </div>
+                    <p class="testimonial-quote">"Sulit yung flash sale, nakakuha ako ng earbuds na almost half price. Cash on delivery pa, walang gulo."</p>
+                    <div class="testimonial-person">
+                        <div class="testimonial-avatar">JD</div>
+                        <div>
+                            <div class="testimonial-name">Juan Dela Cruz</div>
+                            <div class="testimonial-meta"><span class="verified-tag"><i class="bi bi-patch-check-fill"></i>Verified Buyer</span> • Davao City</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="testimonial-dots" id="testimonialDots">
+                <button class="testimonial-dot is-active" data-index="0" aria-label="Testimonial 1"></button>
+                <button class="testimonial-dot" data-index="1" aria-label="Testimonial 2"></button>
+                <button class="testimonial-dot" data-index="2" aria-label="Testimonial 3"></button>
+            </div>
 
         </div>
 
@@ -2296,6 +2539,10 @@
 
     </footer>
 
+    <button class="back-to-top" id="backToTop" aria-label="Back to top" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+        <i class="bi bi-arrow-up"></i>
+    </button>
+
 
     <!-- =========================
          SCROLL EFFECTS SCRIPT
@@ -2329,6 +2576,56 @@
 
             } else {
                 revealEls.forEach(function (el) { el.classList.add('bb-in-view'); });
+            }
+
+        })();
+    </script>
+
+
+    <!-- =========================
+         BACK TO TOP + TESTIMONIALS SCRIPT
+    ========================= -->
+
+    <script>
+        (function () {
+
+            var backToTop = document.getElementById('backToTop');
+
+            if (backToTop) {
+                window.addEventListener('scroll', function () {
+                    backToTop.classList.toggle('is-visible', window.scrollY > 500);
+                }, { passive: true });
+            }
+
+            var tCards = document.querySelectorAll('.testimonial-card');
+            var tDots = document.querySelectorAll('.testimonial-dot');
+            var tCurrent = 0;
+            var tTimer = null;
+
+            function showTestimonial(index) {
+                tCards.forEach(function (c, i) { c.classList.toggle('is-active', i === index); });
+                tDots.forEach(function (d, i) { d.classList.toggle('is-active', i === index); });
+                tCurrent = index;
+            }
+
+            function nextTestimonial() {
+                showTestimonial((tCurrent + 1) % tCards.length);
+            }
+
+            function restartTestimonialTimer() {
+                if (tTimer) clearInterval(tTimer);
+                tTimer = setInterval(nextTestimonial, 5000);
+            }
+
+            if (tCards.length) {
+                tDots.forEach(function (dot) {
+                    dot.addEventListener('click', function () {
+                        showTestimonial(parseInt(dot.dataset.index, 10));
+                        restartTestimonialTimer();
+                    });
+                });
+
+                restartTestimonialTimer();
             }
 
         })();
@@ -2378,22 +2675,22 @@
             var IMAGE_BASE = "{{ asset('images/categories') }}";
 
             var stories = [
-                { slug: 'electronics', icon: '📱', title: 'Electronics', subtitle: 'Gadgets & devices' },
-                { slug: 'womens-fashion', icon: '👗', title: "Women's Fashion", subtitle: 'Style & clothing' },
-                { slug: 'mens-fashion', icon: '👕', title: "Men's Fashion", subtitle: 'Everyday style' },
-                { slug: 'kids-baby', icon: '👶', title: 'Kids & Baby', subtitle: 'For little ones' },
-                { slug: 'home-living', icon: '🏠', title: 'Home & Living', subtitle: 'Home essentials' },
-                { slug: 'sports-outdoors', icon: '⚽', title: 'Sports & Outdoors', subtitle: 'Active lifestyle' },
-                { slug: 'beauty-personal-care', icon: '💄', title: 'Beauty & Personal Care', subtitle: 'Beauty & care' },
-                { slug: 'food-beverages', icon: '🍔', title: 'Food & Beverages', subtitle: 'Food & drinks' },
-                { slug: 'automotive', icon: '🚗', title: 'Automotive', subtitle: 'Auto essentials' },
-                { slug: 'office-school', icon: '📚', title: 'Office & School', subtitle: 'Study & work' },
-                { slug: 'pet-supplies', icon: '🐶', title: 'Pet Supplies', subtitle: 'For your pets' },
-                { slug: 'toys-games-hobbies', icon: '🎮', title: 'Toys, Games & Hobbies', subtitle: 'Fun & entertainment' },
-                { slug: 'jewelry-accessories', icon: '💍', title: 'Jewelry & Accessories', subtitle: 'Everyday accessories' },
-                { slug: 'shoes', icon: '👟', title: 'Shoes', subtitle: 'Step in style' },
-                { slug: 'tools-home-improvement', icon: '🧰', title: 'Tools & Home Improvement', subtitle: 'Build & improve' },
-                { slug: 'garden-outdoor', icon: '🌱', title: 'Garden & Outdoor', subtitle: 'Outdoor essentials' }
+                { slug: 'electronics', icon: 'bi-phone', title: 'Electronics', subtitle: 'Gadgets & devices' },
+                { slug: 'womens-fashion', icon: 'bi-handbag', title: "Women's Fashion", subtitle: 'Style & clothing' },
+                { slug: 'mens-fashion', icon: 'bi-bag-fill', title: "Men's Fashion", subtitle: 'Everyday style' },
+                { slug: 'kids-baby', icon: 'bi-balloon-heart-fill', title: 'Kids & Baby', subtitle: 'For little ones' },
+                { slug: 'home-living', icon: 'bi-house-door-fill', title: 'Home & Living', subtitle: 'Home essentials' },
+                { slug: 'sports-outdoors', icon: 'bi-trophy-fill', title: 'Sports & Outdoors', subtitle: 'Active lifestyle' },
+                { slug: 'beauty-personal-care', icon: 'bi-stars', title: 'Beauty & Personal Care', subtitle: 'Beauty & care' },
+                { slug: 'food-beverages', icon: 'bi-cup-hot-fill', title: 'Food & Beverages', subtitle: 'Food & drinks' },
+                { slug: 'automotive', icon: 'bi-car-front-fill', title: 'Automotive', subtitle: 'Auto essentials' },
+                { slug: 'office-school', icon: 'bi-backpack2-fill', title: 'Office & School', subtitle: 'Study & work' },
+                { slug: 'pet-supplies', icon: 'bi-heart-fill', title: 'Pet Supplies', subtitle: 'For your pets' },
+                { slug: 'toys-games-hobbies', icon: 'bi-controller', title: 'Toys, Games & Hobbies', subtitle: 'Fun & entertainment' },
+                { slug: 'jewelry-accessories', icon: 'bi-gem', title: 'Jewelry & Accessories', subtitle: 'Everyday accessories' },
+                { slug: 'shoes', icon: 'bi-tag-fill', title: 'Shoes', subtitle: 'Step in style' },
+                { slug: 'tools-home-improvement', icon: 'bi-tools', title: 'Tools & Home Improvement', subtitle: 'Build & improve' },
+                { slug: 'garden-outdoor', icon: 'bi-flower1', title: 'Garden & Outdoor', subtitle: 'Outdoor essentials' }
             ];
 
             var DURATION = 3500;
@@ -2411,7 +2708,7 @@
                 var title = card.querySelector('.story-title');
                 var subtitle = card.querySelector('.story-subtitle');
 
-                icon.textContent = s.icon;
+                icon.innerHTML = '<i class="bi ' + s.icon + '"></i>';
                 icon.style.display = '';
                 image.style.display = 'none';
                 image.alt = s.title;

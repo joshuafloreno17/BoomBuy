@@ -8,6 +8,7 @@
     <title>BoomBuy — Rider Dashboard</title>
 
     @include('partials.pwa-head')
+    @include('partials.design-tokens')
 
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -978,7 +979,7 @@
             >
 
                 <div class="rider-brand-icon">
-                    🛍️
+                    <i class="bi bi-bicycle"></i>
                 </div>
 
                 <div>
@@ -1006,7 +1007,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🏠
+                        <i class="bi bi-house-door-fill"></i>
                     </span>
 
                     <span>
@@ -1022,7 +1023,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </span>
 
                     <span>
@@ -1038,7 +1039,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        💰
+                        <i class="bi bi-cash-stack"></i>
                     </span>
 
                     <span>
@@ -1054,7 +1055,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        👤
+                        <i class="bi bi-person-fill"></i>
                     </span>
 
                     <span>
@@ -1072,7 +1073,11 @@
                 >
 
                     <span class="sidebar-icon">
-                        🔔
+                        <i class="bi bi-bell-fill"></i>
+                    </span>
+
+                    <span>
+                        Notifications
                     </span>
 
                     @if(($riderUnreadNotifications ?? 0) > 0)
@@ -1092,7 +1097,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        ⚠️
+                        <i class="bi bi-exclamation-triangle-fill"></i>
                     </span>
 
                     <span>
@@ -1108,7 +1113,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        💬
+                        <i class="bi bi-chat-dots-fill"></i>
                     </span>
 
                     <span>
@@ -1124,7 +1129,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🛒
+                        <i class="bi bi-shop"></i>
                     </span>
 
                     <span>
@@ -1147,7 +1152,7 @@
             <form
                 action="{{ route('logout') }}"
                 method="POST"
-                onsubmit="return confirm('Are you sure you want to log out?');"
+                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
             >
 
                 @csrf
@@ -1158,7 +1163,7 @@
                 >
 
                     <span class="sidebar-icon">
-                        🚪
+                        <i class="bi bi-box-arrow-right"></i>
                     </span>
 
                     <span>
@@ -1235,7 +1240,7 @@
 
                 <h1>
                     Welcome,
-                    {{ $user['name'] ?? 'Rider' }}! 🛵
+                    {{ $user['name'] ?? 'Rider' }}!
                 </h1>
 
                 <p>
@@ -1258,7 +1263,7 @@
                 >
 
                     <div class="quick-card-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </div>
 
                     <strong>
@@ -1278,7 +1283,7 @@
                 >
 
                     <div class="quick-card-icon">
-                        👤
+                        <i class="bi bi-person-fill"></i>
                     </div>
 
                     <strong>
@@ -1298,7 +1303,7 @@
                 >
 
                     <div class="quick-card-icon">
-                        🔔
+                        <i class="bi bi-bell-fill"></i>
                     </div>
 
                     <strong>
@@ -1323,7 +1328,7 @@
                 <div class="stat-card">
 
                     <div class="stat-icon">
-                        📦
+                        <i class="bi bi-box-seam-fill"></i>
                     </div>
 
                     <div class="stat-title">
@@ -1340,7 +1345,7 @@
                 <div class="stat-card">
 
                     <div class="stat-icon">
-                        🟢
+                        <i class="bi bi-circle-fill" style="color:var(--teal);"></i>
                     </div>
 
                     <div class="stat-title">
@@ -1357,7 +1362,7 @@
                 <div class="stat-card">
 
                     <div class="stat-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </div>
 
                     <div class="stat-title">
@@ -1374,7 +1379,7 @@
                 <div class="stat-card">
 
                     <div class="stat-icon">
-                        ✅
+                        <i class="bi bi-check-circle-fill"></i>
                     </div>
 
                     <div class="stat-title">
@@ -1433,22 +1438,20 @@
 
                                 <div class="delivery-id">
 
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
 
                                     Order #{{ $delivery['id'] ?? 'N/A' }}
 
                                 </div>
 
-                                <div class="status status-available">
-                                    Ready for Pickup
-                                </div>
+                                <x-status-pill status="Ready for Pickup" />
 
                             </div>
 
 
                             <div class="available-label">
 
-                                🚚 This order is available for pickup.
+                                <i class="bi bi-truck"></i> This order is available for pickup.
 
                             </div>
 
@@ -1457,7 +1460,7 @@
 
                                 <div>
 
-                                    👤
+                                    <i class="bi bi-person-fill"></i>
 
                                     <strong>
                                         Customer:
@@ -1470,7 +1473,7 @@
 
                                 <div>
 
-                                    📍
+                                    <i class="bi bi-geo-alt-fill"></i>
 
                                     <strong>
                                         Address:
@@ -1483,7 +1486,7 @@
 
                                 <div>
 
-                                    📞
+                                    <i class="bi bi-telephone-fill"></i>
 
                                     <strong>
                                         Phone:
@@ -1496,7 +1499,7 @@
 
                                 <div>
 
-                                    💰
+                                    <i class="bi bi-cash-stack"></i>
 
                                     <strong>
                                         Total:
@@ -1509,7 +1512,7 @@
 
                                 <div>
 
-                                    💳
+                                    <i class="bi bi-credit-card-fill"></i>
 
                                     <strong>
                                         Payment:
@@ -1522,7 +1525,7 @@
 
                                 <div>
 
-                                    🛒
+                                    <i class="bi bi-shop"></i>
 
                                     <strong>
                                         Items:
@@ -1551,7 +1554,7 @@
                                         type="submit"
                                         class="claim-btn"
                                     >
-                                        🚚 Claim Delivery
+                                        <i class="bi bi-truck"></i> Claim Delivery
                                     </button>
 
                                 </form>
@@ -1564,7 +1567,7 @@
                                     ) }}"
                                     class="view-btn"
                                 >
-                                    👁 View Details
+                                    <i class="bi bi-eye-fill"></i> View Details
                                 </a>
 
                             </div>
@@ -1580,7 +1583,7 @@
                 <div class="empty">
 
                     <div class="empty-icon">
-                        📦
+                        <i class="bi bi-box-seam-fill"></i>
                     </div>
 
                     <div class="empty-title">
@@ -1613,7 +1616,7 @@
                 <div>
 
                     <h2>
-                        📥 Items for Pickup
+                        <i class="bi bi-envelope-paper-fill"></i> Items for Pickup
                     </h2>
 
                     <p>
@@ -1647,11 +1650,6 @@
                                 $delivery['status']
                                 ?? 'Picked Up';
 
-                            $statusClass =
-                                $status === 'Out for Delivery'
-                                ? 'status-way'
-                                : 'status-picked';
-
                         @endphp
 
 
@@ -1661,22 +1659,20 @@
 
                                 <div class="delivery-id">
 
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
 
                                     Order #{{ $delivery['id'] ?? 'N/A' }}
 
                                 </div>
 
-                                <div class="status {{ $statusClass }}">
-                                    {{ $status }}
-                                </div>
+                                <x-status-pill :status="$status" />
 
                             </div>
 
 
                             <div class="active-label">
 
-                                🚚 This order is assigned to you.
+                                <i class="bi bi-truck"></i> This order is assigned to you.
 
                                 @if($status === 'Assigned')
 
@@ -1699,7 +1695,7 @@
 
                                 <div>
 
-                                    👤
+                                    <i class="bi bi-person-fill"></i>
 
                                     <strong>
                                         Customer:
@@ -1712,7 +1708,7 @@
 
                                 <div>
 
-                                    📍
+                                    <i class="bi bi-geo-alt-fill"></i>
 
                                     <strong>
                                         Address:
@@ -1725,7 +1721,7 @@
 
                                 <div>
 
-                                    📞
+                                    <i class="bi bi-telephone-fill"></i>
 
                                     <strong>
                                         Phone:
@@ -1738,7 +1734,7 @@
 
                                 <div>
 
-                                    💰
+                                    <i class="bi bi-cash-stack"></i>
 
                                     <strong>
                                         Total:
@@ -1751,7 +1747,7 @@
 
                                 <div>
 
-                                    💳
+                                    <i class="bi bi-credit-card-fill"></i>
 
                                     <strong>
                                         Payment:
@@ -1764,7 +1760,7 @@
 
                                 <div>
 
-                                    🛒
+                                    <i class="bi bi-shop"></i>
 
                                     <strong>
                                         Items:
@@ -1786,7 +1782,7 @@
                                     ) }}"
                                     class="view-btn"
                                 >
-                                    👁 View Details
+                                    <i class="bi bi-eye-fill"></i> View Details
                                 </a>
 
 
@@ -1797,7 +1793,7 @@
                                     ) }}"
                                     class="status-btn"
                                 >
-                                    🔄 Update Status
+                                    <i class="bi bi-arrow-repeat"></i> Update Status
                                 </a>
 
                             </div>
@@ -1813,7 +1809,7 @@
                 <div class="empty">
 
                     <div class="empty-icon">
-                        🚚
+                        <i class="bi bi-truck"></i>
                     </div>
 
                     <div class="empty-title">
@@ -1838,7 +1834,7 @@
                 <div>
 
                     <h2>
-                        📦 Items for Delivery
+                        <i class="bi bi-box-seam-fill"></i> Items for Delivery
                     </h2>
 
                     <p>
@@ -1864,18 +1860,16 @@
                             <div class="delivery-header">
 
                                 <div class="delivery-id">
-                                    📦
+                                    <i class="bi bi-box-seam-fill"></i>
                                     Order #{{ $delivery['id'] ?? 'N/A' }}
                                 </div>
 
-                                <div class="status status-way">
-                                    {{ $deliveryStatus }}
-                                </div>
+                                <x-status-pill :status="$deliveryStatus" />
 
                             </div>
 
                             <div class="active-label">
-                                🚚
+                                <i class="bi bi-truck"></i>
                                 @if($deliveryStatus === 'Assigned for Delivery')
                                     Pick up this parcel from the Sorting Center.
                                 @else
@@ -1886,19 +1880,19 @@
                             <div class="delivery-info">
 
                                 <div>
-                                    👤
+                                    <i class="bi bi-person-fill"></i>
                                     <strong>Customer:</strong>
                                     {{ $delivery['buyer_name'] ?? 'Customer' }}
                                 </div>
 
                                 <div>
-                                    📍
+                                    <i class="bi bi-geo-alt-fill"></i>
                                     <strong>Address:</strong>
                                     {{ $delivery['address'] ?? 'No address provided' }}
                                 </div>
 
                                 <div>
-                                    💰
+                                    <i class="bi bi-cash-stack"></i>
                                     <strong>Total:</strong>
                                     ₱{{ number_format($delivery['total'] ?? 0, 2) }}
                                 </div>
@@ -1908,11 +1902,11 @@
                             <div class="delivery-actions">
 
                                 <a href="{{ route('rider.delivery.details', $delivery['id']) }}" class="view-btn">
-                                    👁 View Details
+                                    <i class="bi bi-eye-fill"></i> View Details
                                 </a>
 
                                 <a href="{{ route('rider.delivery.details', $delivery['id']) }}" class="status-btn">
-                                    🔄 Update Status
+                                    <i class="bi bi-arrow-repeat"></i> Update Status
                                 </a>
 
                             </div>
@@ -1927,7 +1921,7 @@
 
                 <div class="empty">
 
-                    <div class="empty-icon">📦</div>
+                    <div class="empty-icon"><i class="bi bi-box-seam-fill"></i></div>
 
                     <div class="empty-title">
                         No Delivery Assignments
@@ -1949,7 +1943,7 @@
             <div class="rider-tip">
 
                 <div class="rider-tip-title">
-                    💡 Rider Tip
+                    <i class="bi bi-lightbulb-fill"></i> Rider Tip
                 </div>
 
                 <div class="rider-tip-text">
@@ -1996,6 +1990,7 @@
 
 
     @include('partials.pwa-register')
+    @include('partials.confirm-modal')
 
 </body>
 
