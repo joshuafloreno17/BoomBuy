@@ -963,8 +963,14 @@ class AdminController extends Controller
         ];
 
         if ($type === 'seller') {
-            $approvalData['business_category'] = request('business_category')
-                ?: $application->business_category;
+            $category = request('business_category') ?: $application->business_category;
+
+            // The category decides what this seller may list, so it must be a real one.
+            if (!is_string($category) || !array_key_exists($category, Categories::LIST)) {
+                return back()->with('error', 'Please choose a valid line of business before approving.');
+            }
+
+            $approvalData['business_category'] = $category;
         }
 
         $updated = DB::table($table)

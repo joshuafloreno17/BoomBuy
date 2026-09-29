@@ -461,7 +461,7 @@ class RiderController extends Controller
             (int) $id
         );
 
-        return back()->with('success', 'Pickup confirmed! You can now mark the order Out for Delivery.');
+        return back()->with('success', 'Pickup confirmed! Please bring the parcel to the Sorting Center.');
     }
 
     public function deliveryDetails($id)

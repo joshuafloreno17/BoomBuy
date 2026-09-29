@@ -509,7 +509,7 @@ class LogisticsController extends Controller
             return back()->with('error', 'This parcel is not awaiting assignment.');
         }
 
-        $rider = DB::table('users')->where('id', $riderId)->where('role', 'rider')->where('status', 'Active')->first();
+        $rider = $this->assignableRider($riderId);
 
         if (!$rider) {
             return back()->with('error', 'Selected rider not found or no longer active.');
@@ -576,7 +576,7 @@ class LogisticsController extends Controller
             return back()->with('error', 'This parcel has reached the maximum delivery attempts. Please return it to the seller instead.');
         }
 
-        $rider = DB::table('users')->where('id', $riderId)->where('role', 'rider')->where('status', 'Active')->first();
+        $rider = $this->assignableRider($riderId);
 
         if (!$rider) {
             return back()->with('error', 'Selected rider not found or no longer active.');
@@ -671,6 +671,19 @@ class LogisticsController extends Controller
         }
 
         return back()->with('success', 'Parcel #' . $id . ' has been returned to the seller.');
+    }
+
+    // Same riders the parcels page offers: active and with an approved application.
+    private function assignableRider($riderId)
+    {
+        return DB::table('users')
+            ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
+            ->where('users.id', $riderId)
+            ->where('users.role', 'rider')
+            ->where('users.status', 'Active')
+            ->where('rider_applications.status', 'Approved')
+            ->select('users.id', 'users.name')
+            ->first();
     }
 
     public function approveRider($id)

@@ -49,6 +49,86 @@ trait BuildsBoomBuyData
         return $seller;
     }
 
+    protected function makeRider(string $status = 'Approved'): User
+    {
+        $rider = $this->makeUser('rider');
+
+        DB::table('rider_applications')->insert([
+            'user_id' => $rider->id,
+            'full_name' => $rider->name,
+            'phone' => $rider->phone,
+            'address' => $rider->address,
+            'vehicle_type' => 'Motorcycle',
+            'vehicle_model' => 'Honda Click',
+            'plate_number' => 'ABC ' . random_int(1000, 9999),
+            'status' => $status,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $rider;
+    }
+
+    protected function makeLogistics(): User
+    {
+        $user = $this->makeUser('logistics');
+
+        DB::table('logistics_applications')->insert([
+            'user_id' => $user->id,
+            'full_name' => $user->name,
+            'business_name' => 'Metro Sorting Center',
+            'status' => 'Approved',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $user;
+    }
+
+    /** An order with one line, already at the given status. */
+    protected function makeOrder(User $buyer, Product $product, string $status = 'Pending', array $overrides = []): int
+    {
+        $orderId = DB::table('orders')->insertGetId(array_merge([
+            'buyer_id' => $buyer->id,
+            'total_amount' => $product->price,
+            'status' => $status,
+            'shipping_name' => $buyer->name,
+            'shipping_phone' => $buyer->phone,
+            'shipping_address' => '1 Rizal St, Cebu City',
+            'payment_method' => 'Cash on Delivery',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ], $overrides));
+
+        DB::table('order_items')->insert([
+            'order_id' => $orderId,
+            'product_id' => $product->id,
+            'seller_id' => $product->seller_id,
+            'product_name' => $product->name,
+            'price' => $product->price,
+            'quantity' => 1,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        return $orderId;
+    }
+
+    protected function actingAsAdmin(): static
+    {
+        User::firstOrCreate(
+            ['email' => 'admin@boombuy.com'],
+            ['name' => 'Admin', 'password' => bcrypt(Str::random(32)), 'role' => 'admin']
+        );
+
+        return $this->withSession(['admin_logged_in' => true]);
+    }
+
+    protected function orderStatus(int $orderId): ?string
+    {
+        return DB::table('orders')->where('id', $orderId)->value('status');
+    }
+
     protected function makeProduct(User $seller, array $overrides = []): Product
     {
         return Product::create(array_merge([

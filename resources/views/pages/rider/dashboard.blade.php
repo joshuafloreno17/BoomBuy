@@ -1680,7 +1680,7 @@
 
                                 @elseif($status === 'Picked Up')
 
-                                    Continue the delivery process.
+                                    Bring the parcel to the Sorting Center.
 
                                 @elseif($status === 'Out for Delivery')
 
