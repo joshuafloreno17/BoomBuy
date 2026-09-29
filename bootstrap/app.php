@@ -16,6 +16,12 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // boombuy.store reaches this app through a Cloudflare Tunnel running on
+        // the same machine, so requests arrive from localhost as plain http.
+        // Trust the tunnel's X-Forwarded-* headers so links and redirects use
+        // https://boombuy.store instead of http:// or localhost.
+        $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
         $middleware->web(append: [
             RestoreRememberedLogin::class,
             EnsureAccountActive::class,
