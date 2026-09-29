@@ -59,37 +59,6 @@ if (!function_exists('productImageUrl')) {
     }
 }
 
-if (!function_exists('createAdminNotification')) {
-
-    function createAdminNotification(
-        string $title,
-        string $message,
-        ?string $type = null,
-        ?int $referenceId = null
-    ): void {
-
-        $notifications = session()->get(
-            'admin_notifications',
-            []
-        );
-
-        $notifications[] = [
-            'id' => uniqid(),
-            'title' => $title,
-            'message' => $message,
-            'type' => $type,
-            'reference_id' => $referenceId,
-            'read_at' => null,
-            'created_at' => now()->toDateTimeString(),
-        ];
-
-        session()->put(
-            'admin_notifications',
-            $notifications
-        );
-    }
-}
-
 if (!function_exists('notifyLogisticsUsers')) {
 
     function notifyLogisticsUsers(

@@ -339,6 +339,9 @@ Route::get('/seller/profile', [SellerController::class, 'profile'])->name('selle
 
 Route::post('/seller/profile', [SellerController::class, 'updateProfile'])->name('seller.profile.update');
 
+// Shop name + "about this shop" shown on /shop/{seller}
+Route::post('/seller/shop', [SellerController::class, 'updateShop'])->name('seller.shop.update');
+
 
 Route::post('/seller/profile/photo', [SellerController::class, 'updatePhoto'])->name('seller.profile.photo');
 

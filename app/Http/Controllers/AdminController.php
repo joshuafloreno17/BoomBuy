@@ -39,11 +39,6 @@ class AdminController extends Controller
             session()->regenerate();
             session()->put('admin_logged_in', true);
 
-            // Initialize Admin notifications
-            if (!session()->has('admin_notifications')) {
-                session()->put('admin_notifications', []);
-            }
-
             // Make sure a real `users` row exists for the admin account —
             // notifications and messaging both need a real user_id to attach to.
             User::firstOrCreate(
@@ -1025,17 +1020,20 @@ class AdminController extends Controller
 
         if ($applicant) {
 
-            try {
-                Mail::to($applicant->email)->send(
-                    new ApplicationStatusMail(
-                        $application->full_name ?? $applicant->name,
-                        $type,
-                        'Approved'
-                    )
-                );
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            // Emailed after the response, so the page doesn't wait on the mail server.
+            \Illuminate\Support\defer(function () use ($applicant, $application, $type) {
+                try {
+                    Mail::to($applicant->email)->send(
+                        new ApplicationStatusMail(
+                            $application->full_name ?? $applicant->name,
+                            $type,
+                            'Approved'
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            });
         }
 
         return back()->with(
@@ -1143,18 +1141,21 @@ class AdminController extends Controller
 
         if ($applicant) {
 
-            try {
-                Mail::to($applicant->email)->send(
-                    new ApplicationStatusMail(
-                        $application->full_name ?? $applicant->name,
-                        $type,
-                        'Rejected',
-                        $remarks !== '' ? $remarks : null
-                    )
-                );
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            // Emailed after the response, so the page doesn't wait on the mail server.
+            \Illuminate\Support\defer(function () use ($applicant, $application, $type, $remarks) {
+                try {
+                    Mail::to($applicant->email)->send(
+                        new ApplicationStatusMail(
+                            $application->full_name ?? $applicant->name,
+                            $type,
+                            'Rejected',
+                            $remarks !== '' ? $remarks : null
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            });
         }
 
         return back()->with(

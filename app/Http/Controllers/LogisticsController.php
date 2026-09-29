@@ -706,17 +706,20 @@ class LogisticsController extends Controller
         $applicant = DB::table('users')->where('id', $application->user_id)->first();
 
         if ($applicant) {
-            try {
-                Mail::to($applicant->email)->send(
-                    new \App\Mail\ApplicationStatusMail(
-                        $application->full_name ?? $applicant->name,
-                        'rider',
-                        'Approved'
-                    )
-                );
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            // Emailed after the response, so the page doesn't wait on the mail server.
+            \Illuminate\Support\defer(function () use ($applicant, $application) {
+                try {
+                    Mail::to($applicant->email)->send(
+                        new \App\Mail\ApplicationStatusMail(
+                            $application->full_name ?? $applicant->name,
+                            'rider',
+                            'Approved'
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            });
         }
 
         return back()->with('success', 'Rider application approved.');
@@ -761,18 +764,21 @@ class LogisticsController extends Controller
         $applicant = DB::table('users')->where('id', $application->user_id)->first();
 
         if ($applicant) {
-            try {
-                Mail::to($applicant->email)->send(
-                    new \App\Mail\ApplicationStatusMail(
-                        $application->full_name ?? $applicant->name,
-                        'rider',
-                        'Rejected',
-                        $remarks !== '' ? $remarks : null
-                    )
-                );
-            } catch (\Throwable $e) {
-                report($e);
-            }
+            // Emailed after the response, so the page doesn't wait on the mail server.
+            \Illuminate\Support\defer(function () use ($applicant, $application, $remarks) {
+                try {
+                    Mail::to($applicant->email)->send(
+                        new \App\Mail\ApplicationStatusMail(
+                            $application->full_name ?? $applicant->name,
+                            'rider',
+                            'Rejected',
+                            $remarks !== '' ? $remarks : null
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    report($e);
+                }
+            });
         }
 
         return back()->with('success', 'Rider application rejected.');

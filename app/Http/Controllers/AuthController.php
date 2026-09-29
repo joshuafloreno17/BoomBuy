@@ -42,10 +42,6 @@ class AuthController extends Controller
             session()->regenerate();
             session()->put('admin_logged_in', true);
 
-            if (!session()->has('admin_notifications')) {
-                session()->put('admin_notifications', []);
-            }
-
             \App\Models\User::firstOrCreate(
                 ['email' => 'admin@boombuy.com'],
                 [

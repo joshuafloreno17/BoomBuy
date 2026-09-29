@@ -170,6 +170,15 @@
             overflow-wrap: anywhere;
         }
 
+        .seller-hero-about {
+            max-width: 720px;
+            font-size: 14px;
+            line-height: 1.55;
+            color: #5b4a44;
+            white-space: pre-line;
+            overflow-wrap: anywhere;
+        }
+
         .seller-hero-meta {
             display: flex;
             flex-wrap: wrap;
@@ -1328,6 +1337,9 @@
                         <a href="{{ route('products') }}">Shop</a> / <span>{{ $shop['name'] }}</span>
                     </nav>
                     <h1>{{ $shop['name'] }}</h1>
+                    @if($shop['description'])
+                        <p class="seller-hero-about">{{ $shop['description'] }}</p>
+                    @endif
                     <div class="seller-hero-meta">
                         @if($shop['rating'])
                             <span><i class="bi bi-star-fill"></i> {{ $shop['rating'] }} ({{ $shop['reviews'] }} {{ \Illuminate\Support\Str::plural('review', $shop['reviews']) }})</span>

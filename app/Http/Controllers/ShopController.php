@@ -258,7 +258,7 @@ class ShopController extends Controller
             ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
             ->when($max !== null, fn ($q) => $q->where('price', '<=', $max))
             ->when($inStock, fn ($q) => $q->where('stock', '>', 0))
-            ->when($rating, fn ($q) => $q->having('reviews_avg_rating', '>=', $rating));
+            ->when($rating, fn ($q) => $q->whereRaw('(select avg(rating) from product_reviews where product_reviews.product_id = products.id) >= ?', [$rating]));
 
         match ($sort) {
             'price_low' => $query->orderBy('price'),

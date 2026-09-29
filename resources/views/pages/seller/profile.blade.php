@@ -126,21 +126,39 @@
             </div>
 
             @if($application)
-                <!-- BUSINESS INFORMATION (read-only, declared at registration) -->
-                <div class="card">
-                    <h3>Business Information</h3>
-                    <p class="card-sub">Declared during registration. Contact support to change your business details.</p>
+                <!-- SHOP PROFILE: name + about text shown on the shop page; category stays as registered -->
+                <div class="card" id="shop">
+                    <h3>Shop Profile</h3>
+                    <p class="card-sub">
+                        This is what buyers see on your shop page.
+                        <a href="{{ route('shop.seller', $user['id']) }}" style="color:#c43408; font-weight:700;">View my shop →</a>
+                    </p>
 
-                    <div class="form-grid">
-                        <div class="field">
-                            <label>Business Name</label>
-                            <input type="text" value="{{ $application->business_name ?? '—' }}" disabled>
+                    <form method="POST" action="{{ route('seller.shop.update') }}">
+                        @csrf
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="business_name">Shop Name</label>
+                                <input type="text" id="business_name" name="business_name" minlength="3" maxlength="60" required
+                                       value="{{ old('business_name', $application->business_name ?? '') }}">
+                            </div>
+                            <div class="field">
+                                <label>Line of Business</label>
+                                <input type="text" value="{{ \App\Support\Categories::LIST[\App\Support\Categories::slug($application->business_category) ?? ''] ?? ($application->business_category ?? '—') }}" disabled>
+                                <span class="field-hint">You can only sell in this category. Contact support to change it.</span>
+                            </div>
+                            <div class="field" style="grid-column: 1 / -1;">
+                                <label for="shop_description">About Your Shop <span class="field-hint" style="display:inline;">(optional)</span></label>
+                                <textarea id="shop_description" name="shop_description" rows="3" maxlength="500"
+                                          placeholder="What do you sell, and why should buyers choose your shop?"
+                                          style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #f0d9d1; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('shop_description', $application->shop_description ?? '') }}</textarea>
+                                <span class="field-hint">Up to 500 characters. Shown at the top of your shop page.</span>
+                            </div>
                         </div>
-                        <div class="field">
-                            <label>Line of Business</label>
-                            <input type="text" value="{{ $application->business_category ?? '—' }}" disabled>
-                        </div>
-                    </div>
+
+                        <button type="submit" class="save-btn">Save Shop Details</button>
+                    </form>
                 </div>
             @endif
 

@@ -295,6 +295,55 @@ class SellerController extends Controller
         return back()->with('success', 'Profile updated successfully.');
     }
 
+    /**
+     * Shop name and "about this shop", shown on the seller's shop page.
+     * The category stays as registered — it's what the category lock uses.
+     */
+    public function updateShop(Request $request)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $data = $request->validate([
+            'business_name' => 'required|string|min:3|max:60',
+            'shop_description' => 'nullable|string|max:500',
+        ], [
+            'business_name.required' => 'Please enter your shop name.',
+            'business_name.min' => 'Your shop name needs at least 3 characters.',
+        ]);
+
+        $shopName = trim($data['business_name']);
+
+        // Two shops with the same name would confuse buyers.
+        $taken = DB::table('seller_applications')
+            ->where('user_id', '!=', $user['id'])
+            ->whereRaw('LOWER(business_name) = ?', [mb_strtolower($shopName)])
+            ->exists();
+
+        if ($taken) {
+            return back()
+                ->withInput()
+                ->with('error', 'Another shop already uses that name. Please choose a different one.');
+        }
+
+        $updated = DB::table('seller_applications')
+            ->where('user_id', $user['id'])
+            ->update([
+                'business_name' => $shopName,
+                'shop_description' => trim((string) ($data['shop_description'] ?? '')) ?: null,
+                'updated_at' => now(),
+            ]);
+
+        if (!$updated) {
+            return back()->with('error', 'We could not find your seller application.');
+        }
+
+        return back()->with('success', 'Shop details updated.');
+    }
+
     public function updatePhoto(Request $request)
     {
         $user = requireUserRole('seller');

@@ -141,7 +141,7 @@ class BuyerController extends Controller
             'latest' => $toCards($visible()->latest()->take(6)->get()),
             'top' => $toCards(
                 $visible()
-                    ->having('reviews_count', '>', 0)
+                    ->has('reviews')
                     ->orderByDesc('reviews_avg_rating')
                     ->orderByDesc('reviews_count')
                     ->take(6)

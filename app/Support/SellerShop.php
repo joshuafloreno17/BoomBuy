@@ -30,14 +30,17 @@ class SellerShop
             ->get(['id', 'name', 'profile_photo', 'city_municipality', 'province', 'created_at'])
             ->keyBy('id');
 
-        $businessNames = DB::table('seller_applications')
+        $applications = DB::table('seller_applications')
             ->whereIn('user_id', $ids)
             ->where('status', 'Approved')
-            ->pluck('business_name', 'user_id');
+            ->get(['user_id', 'business_name', 'shop_description'])
+            ->keyBy('user_id');
+
+        $businessNames = $applications->pluck('business_name', 'user_id');
 
         $stats = $withStats ? self::stats($ids) : collect();
 
-        return $ids->mapWithKeys(function ($id) use ($users, $businessNames, $stats) {
+        return $ids->mapWithKeys(function ($id) use ($users, $businessNames, $applications, $stats) {
             $user = $users->get($id);
             $stat = $stats->get($id);
 
@@ -51,6 +54,7 @@ class SellerShop
                     : null,
                 'location' => collect([$user->city_municipality ?? null, $user->province ?? null])->filter()->implode(', ') ?: null,
                 'since' => $user?->created_at?->format('M Y'),
+                'description' => $applications->get($id)?->shop_description,
                 'url' => route('shop.seller', $id),
                 'products' => (int) ($stat->products ?? 0),
                 'rating' => ($stat->reviews ?? 0) > 0 ? round((float) $stat->rating, 1) : null,

@@ -26,82 +26,82 @@ class SellerShopsSeeder extends Seeder
 {
     private const SHOPS = [
         'electronics' => [
-            'email' => 'technest@boombuy.test', 'shop' => 'TechNest PH',
+            'email' => 'voltique@boombuy.test', 'shop' => 'Voltique Electronics',
             'first' => 'Carlo', 'last' => 'Mendoza', 'sex' => 'Male', 'birthdate' => '1992-02-14',
             'street' => '21 Jupiter St', 'barangay' => 'Bel-Air', 'city' => 'Makati City', 'province' => 'Metro Manila (NCR)',
         ],
         'womens-fashion' => [
-            'email' => 'modamanila@boombuy.test', 'shop' => 'Moda Manila',
+            'email' => 'maisonbelle@boombuy.test', 'shop' => 'Maison Belle',
             'first' => 'Andrea', 'last' => 'Villanueva', 'sex' => 'Female', 'birthdate' => '1996-07-02',
             'street' => '8 Tomas Morato Ave', 'barangay' => 'South Triangle', 'city' => 'Quezon City', 'province' => 'Metro Manila (NCR)',
         ],
         'mens-fashion' => [
-            'email' => 'kalyemenswear@boombuy.test', 'shop' => 'Kalye Menswear',
+            'email' => 'gentryandco@boombuy.test', 'shop' => 'Gentry & Co. Menswear',
             'first' => 'Miguel', 'last' => 'Ramos', 'sex' => 'Male', 'birthdate' => '1994-10-21',
             'street' => '45 Shaw Blvd', 'barangay' => 'Kapitolyo', 'city' => 'Pasig City', 'province' => 'Metro Manila (NCR)',
         ],
         'kids-baby' => [
-            'email' => 'muntingmundo@boombuy.test', 'shop' => 'Munting Mundo Kids',
+            'email' => 'littlehaven@boombuy.test', 'shop' => 'Little Haven Baby & Kids',
             'first' => 'Liza', 'last' => 'Bautista', 'sex' => 'Female', 'birthdate' => '1990-04-09',
             'street' => '12 Quimpo Blvd', 'barangay' => 'Matina', 'city' => 'Davao City', 'province' => 'Davao del Sur',
         ],
         'home-living' => [
-            'email' => 'tahanan@boombuy.test', 'shop' => 'Tahanan Home Goods',
+            'email' => 'hearthstone@boombuy.test', 'shop' => 'Hearthstone Home & Living',
             'first' => 'Ramon', 'last' => 'Aquino', 'sex' => 'Male', 'birthdate' => '1988-12-01',
             'street' => '77 A.S. Fortuna St', 'barangay' => 'Banilad', 'city' => 'Mandaue City', 'province' => 'Cebu',
         ],
         'sports-outdoors' => [
-            'email' => 'galawsports@boombuy.test', 'shop' => 'Galaw Sports & Outdoors',
+            'email' => 'summitactive@boombuy.test', 'shop' => 'Summit Active Gear',
             'first' => 'Paolo', 'last' => 'Cruz', 'sex' => 'Male', 'birthdate' => '1997-06-18',
             'street' => '3 Session Rd', 'barangay' => 'Session Road Area', 'city' => 'Baguio City', 'province' => 'Benguet',
         ],
         'beauty-personal-care' => [
-            'email' => 'gandabeauty@boombuy.test', 'shop' => 'Ganda Beauty Co.',
+            'email' => 'lumierebeauty@boombuy.test', 'shop' => 'Lumière Beauty',
             'first' => 'Bea', 'last' => 'Santiago', 'sex' => 'Female', 'birthdate' => '1999-01-27',
             'street' => '15 Diversion Rd', 'barangay' => 'Mandurriao', 'city' => 'Iloilo City', 'province' => 'Iloilo',
         ],
         'food-beverages' => [
-            'email' => 'busogpantry@boombuy.test', 'shop' => 'Busog Pantry',
+            'email' => 'harvesttable@boombuy.test', 'shop' => 'Harvest Table Pantry',
             'first' => 'Nina', 'last' => 'Gonzales', 'sex' => 'Female', 'birthdate' => '1993-09-05',
             'street' => '30 Lacson St', 'barangay' => 'Mandalagan', 'city' => 'Bacolod City', 'province' => 'Negros Occidental',
         ],
         'automotive' => [
-            'email' => 'arangkada@boombuy.test', 'shop' => 'Arangkada Auto Parts',
+            'email' => 'torqueauto@boombuy.test', 'shop' => 'Torque Auto Supply',
             'first' => 'Jomar', 'last' => 'Dizon', 'sex' => 'Male', 'birthdate' => '1991-03-30',
             'street' => '9 P. Burgos St', 'barangay' => 'Kumintang Ibaba', 'city' => 'Batangas City', 'province' => 'Batangas',
         ],
         'office-school' => [
-            'email' => 'eskwela@boombuy.test', 'shop' => 'Eskwela Supplies',
+            'email' => 'inkwell@boombuy.test', 'shop' => 'Inkwell Office & School',
             'first' => 'Grace', 'last' => 'Tan', 'sex' => 'Female', 'birthdate' => '1995-08-12',
             'street' => '101 España Blvd', 'barangay' => 'Sampaloc', 'city' => 'Manila', 'province' => 'Metro Manila (NCR)',
         ],
         'pet-supplies' => [
-            'email' => 'pawsome@boombuy.test', 'shop' => 'Pawsome Pet Shop',
+            'email' => 'pawsandwhiskers@boombuy.test', 'shop' => 'Paws & Whiskers Pet Co.',
             'first' => 'Ivy', 'last' => 'Navarro', 'sex' => 'Female', 'birthdate' => '1998-05-23',
             'street' => '6 Sumulong Hwy', 'barangay' => 'Dela Paz', 'city' => 'Antipolo City', 'province' => 'Rizal',
         ],
         'toys-games-hobbies' => [
-            'email' => 'larotsaya@boombuy.test', 'shop' => "Laro't Saya Toys",
+            'email' => 'wonderbox@boombuy.test', 'shop' => 'Wonderbox Toys & Hobbies',
             'first' => 'Kevin', 'last' => 'Lim', 'sex' => 'Male', 'birthdate' => '1993-11-03',
             'street' => '18 Corrales Ave', 'barangay' => 'Carmen', 'city' => 'Cagayan de Oro City', 'province' => 'Misamis Oriental',
         ],
         'jewelry-accessories' => [
-            'email' => 'kislap@boombuy.test', 'shop' => 'Kislap Accessories',
+            'email' => 'aurelia@boombuy.test', 'shop' => 'Aurelia Jewelry & Accessories',
             'first' => 'Carmina', 'last' => 'Reyes', 'sex' => 'Female', 'birthdate' => '1997-02-19',
             'street' => '5th Ave cor. 26th St', 'barangay' => 'Bonifacio Global City', 'city' => 'Taguig City', 'province' => 'Metro Manila (NCR)',
         ],
         'shoes' => [
-            'email' => 'lakad@boombuy.test', 'shop' => 'Lakad Footwear',
+            'email' => 'stridefootwear@boombuy.test', 'shop' => 'Stride Footwear Co.',
             'first' => 'Dennis', 'last' => 'Flores', 'sex' => 'Male', 'birthdate' => '1989-07-07',
             'street' => '40 J.P. Rizal St', 'barangay' => 'Concepcion Uno', 'city' => 'Marikina City', 'province' => 'Metro Manila (NCR)',
         ],
         'tools-home-improvement' => [
-            'email' => 'pandayan@boombuy.test', 'shop' => 'Pandayan Hardware',
+            'email' => 'ironclad@boombuy.test', 'shop' => 'Ironclad Hardware & Tools',
             'first' => 'Arnel', 'last' => 'Garcia', 'sex' => 'Male', 'birthdate' => '1987-04-15',
             'street' => '22 MacArthur Hwy', 'barangay' => 'Balibago', 'city' => 'Angeles City', 'province' => 'Pampanga',
         ],
         'garden-outdoor' => [
-            'email' => 'halaman@boombuy.test', 'shop' => 'Halaman Garden Co.',
+            'email' => 'evergreen@boombuy.test', 'shop' => 'Evergreen Garden Supply',
             'first' => 'Rosa', 'last' => 'Mercado', 'sex' => 'Female', 'birthdate' => '1991-10-10',
             'street' => '14 Aguinaldo Hwy', 'barangay' => 'Maharlika East', 'city' => 'Tagaytay City', 'province' => 'Cavite',
         ],
