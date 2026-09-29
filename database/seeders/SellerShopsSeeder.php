@@ -14,10 +14,10 @@ use Illuminate\Support\Facades\Hash;
  * seller picks one category when registering and may only sell that one
  * (Admin → Compliance flags anything else as a category mismatch).
  *
- * Each catalogue product goes to the shop for its category when it has no
- * real seller (the seed products used to belong to a buyer account) or sits
- * in one of these shops under the wrong category. Products of other sellers
- * (e.g. Maria's Store) are left alone.
+ * No products are seeded — each seller adds their own, with photos, from the
+ * Seller Panel. As a safety net, a product with no real seller (or sitting in
+ * one of these shops under the wrong category) is moved to the shop for its
+ * category; products of other sellers (e.g. Maria's Store) are left alone.
  *
  * Safe to re-run: accounts use firstOrCreate, applications are upserted, and
  * a second run moves nothing. Password for every shop: password123

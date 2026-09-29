@@ -22,11 +22,10 @@ class DatabaseSeeder extends Seeder
             'email' => 'test@example.com',
         ]);
 
-        // --- Dagdag na seeder para sa products (may kasamang category text field) ---
+        // Accounts only — sellers add their own products (with photos) from the Seller Panel.
         $this->call([
-            ProductSeeder::class,
             TestAccountsSeeder::class,
-            // Real shops for the catalogue: gives every seed product a seller.
+            // One approved seller account per category (no products).
             SellerShopsSeeder::class,
         ]);
     }
