@@ -66,7 +66,27 @@
 }
 
 .notification-card.read {
-    cursor: default;
+    cursor: pointer;
+}
+
+/* Every notification is a link to what it's about. */
+.notification-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.notification-go {
+    align-self: center;
+    margin-left: auto;
+    color: #c9aaa0;
+    font-size: 14px;
+    transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.notification-link:hover .notification-go {
+    color: #e8420f;
+    transform: translateX(3px);
 }
 
 
@@ -619,6 +639,12 @@
          NAVBAR
     ========================= -->
 
+    @if((session('user.role') ?? null) === 'buyer')
+
+        @include('partials.buyer-navbar', ['activeNav' => 'notifications'])
+
+    @else
+
     <nav class="notification-navbar">
 
         <a href="{{ route('buyer.dashboard') }}" class="brand">
@@ -633,6 +659,8 @@
         </a>
 
     </nav>
+
+    @endif
 
 
     <!-- =========================
@@ -672,51 +700,14 @@
 
                 @foreach ($notifications as $notification)
 
-                    @php
-
-                        $icon = match($notification->type) {
-
-                            'order' => 'bi-box-seam-fill',
-
-                            'delivery' => 'bi-truck',
-
-                            'payment' => 'bi-credit-card-fill',
-
-                            'return_refund' => 'bi-arrow-return-left',
-
-                            'seller' => 'bi-shop',
-
-                            'rider' => 'bi-bicycle',
-
-                            'system' => 'bi-bell-fill',
-
-                            default => 'bi-bell-fill',
-
-                        };
-
-                    @endphp
-
-
-                   <form
-    action="{{ !$notification->read_at
-        ? route('notifications.read', $notification->id)
-        : '#'
-    }}"
-    method="{{ !$notification->read_at ? 'POST' : 'GET' }}"
-    class="notification-form"
->
-    @if(!$notification->read_at)
-        @csrf
-    @endif
-
-    <button
-        type="{{ !$notification->read_at ? 'submit' : 'button' }}"
-        class="notification-card {{ $notification->read_at ? 'read' : 'unread' }}"
-        {{ $notification->read_at ? 'disabled' : '' }}
+    {{-- Opens what the notification is about (and marks it read). --}}
+    <a
+        href="{{ route('notifications.open', $notification->id) }}"
+        class="notification-card notification-link {{ $notification->read_at ? 'read' : 'unread' }}"
     >
 
         <div class="notification-icon">
-            <i class="bi {{ $icon }}"></i>
+            <i class="bi {{ $notification->iconClass() }}"></i>
         </div>
 
         <div class="notification-content">
@@ -759,9 +750,9 @@
 
         </div>
 
-    </button>
+        <i class="bi bi-chevron-right notification-go"></i>
 
-</form>
+    </a>
                 @endforeach
 
             </div>
@@ -787,11 +778,9 @@
         @endif
 
 
-        <div class="footer">
-            © 2026 <strong>BoomBuy</strong> — Your Marketplace for Everything
-        </div>
-
     </main>
+
+    @include('partials.buyer-footer')
 
 </body>
 </html>

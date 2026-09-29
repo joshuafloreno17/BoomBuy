@@ -66,39 +66,6 @@
             margin-top: 7px;
         }
 
-        .admin-profile {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            background: #ffffff;
-            border: 1px solid #f7e5e0;
-            padding: 9px 13px;
-            border-radius: 10px;
-            flex-shrink: 0;
-        }
-
-        .profile-icon {
-            width: 35px;
-            height: 35px;
-            background: #ffefea;
-            color: #e8420f;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .profile-name {
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .profile-role {
-            color: #b99c93;
-            font-size: 10px;
-            margin-top: 2px;
-        }
-
         /* =========================
            SUMMARY CARDS
         ========================= */
@@ -425,14 +392,6 @@
 
             .report-grid {
                 grid-template-columns: 1fr;
-            }
-        }
-
-        @media (max-width: 750px) {
-
-            .profile-name,
-            .profile-role {
-                display: none;
             }
         }
 
@@ -778,26 +737,6 @@
                 <h1>
                     Reports
                 </h1>
-
-            </div>
-
-            <div class="admin-profile">
-
-                <div class="profile-icon">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                </div>
-
-                <div>
-
-                    <div class="profile-name">
-                        Administrator
-                    </div>
-
-                    <div class="profile-role">
-                        Store Manager
-                    </div>
-
-                </div>
 
             </div>
 

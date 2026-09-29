@@ -359,12 +359,169 @@
         .save-btn:hover {
             background: #c43408;
         }
+
+        /* =========================
+           ADDRESS BOOK
+        ========================= */
+
+        .addr-empty {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 16px;
+            border: 1px dashed #f0d9d1;
+            border-radius: 12px;
+            font-size: 13px;
+            color: #6f5a53;
+        }
+
+        .addr-empty i {
+            color: #c43408;
+            font-size: 18px;
+        }
+
+        .addr-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .addr-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 14px;
+            padding: 14px 16px;
+            border: 1px solid #f7e5e0;
+            border-radius: 14px;
+            background: #fff;
+        }
+
+        .addr-item.is-default {
+            border-color: #172033;
+        }
+
+        .addr-text {
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            font-size: 13px;
+            color: #5b4a44;
+            overflow-wrap: anywhere;
+        }
+
+        .addr-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #172033;
+            font-size: 14px;
+        }
+
+        .addr-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: #172033;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 800;
+        }
+
+        .addr-phone {
+            color: #6f5a53;
+            font-size: 12.5px;
+        }
+
+        .addr-actions {
+            flex-shrink: 0;
+            display: flex;
+            gap: 8px;
+        }
+
+        .addr-actions form {
+            margin: 0;
+        }
+
+        .addr-btn {
+            min-height: 38px;
+            padding: 0 12px;
+            border: 1px solid #f0d9d1;
+            border-radius: 10px;
+            background: #fff;
+            color: #172033;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .addr-btn:hover {
+            background: #fff7f4;
+        }
+
+        .addr-btn.is-danger {
+            color: #b42318;
+        }
+
+        .addr-add {
+            margin-top: 14px;
+        }
+
+        .addr-add summary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 40px;
+            font-size: 13.5px;
+            font-weight: 800;
+            color: #c43408;
+            cursor: pointer;
+            list-style: none;
+        }
+
+        .addr-add summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .addr-add form {
+            margin-top: 10px;
+        }
+
+        .addr-default-check {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin: 4px 0 14px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #5b4a44;
+        }
+
+        .addr-default-check input {
+            width: 17px;
+            height: 17px;
+            accent-color: #c43408;
+        }
+
+        @media (max-width: 600px) {
+            .addr-item {
+                flex-direction: column;
+                align-items: stretch;
+            }
+        }
     </style>
 </head>
 
 <body>
 
-    @include('partials.buyer-navbar')
+    @include('partials.buyer-navbar', ['activeNav' => 'profile'])
 
     <div class="container">
 
@@ -512,7 +669,7 @@
                             value="{{ old('address', $dbUser->address ?? '') }}"
                             required
                         >
-                        <span class="field-hint">This address will be used as your default shipping address.</span>
+                        <span class="field-hint">Used at checkout until you save addresses below.</span>
                     </div>
 
                 </div>
@@ -522,6 +679,81 @@
                 </button>
 
             </form>
+
+        </div>
+
+        <!-- ADDRESS BOOK -->
+
+        <div class="card" id="addresses">
+
+            <h3>My Addresses</h3>
+            <p class="card-sub">Save the places you ship to, then pick one at checkout instead of typing it again.</p>
+
+            @if($addresses->isEmpty())
+                <div class="addr-empty">
+                    <i class="bi bi-geo-alt"></i>
+                    No saved addresses yet. Checkout uses your profile address above until you add one.
+                </div>
+            @else
+                <ul class="addr-list">
+                    @foreach($addresses as $addr)
+                        <li class="addr-item {{ $addr->is_default ? 'is-default' : '' }}">
+                            <div class="addr-text">
+                                <div class="addr-top">
+                                    <strong>{{ $addr->label ?: 'Address' }}</strong>
+                                    @if($addr->is_default)
+                                        <span class="addr-badge"><i class="bi bi-check-lg"></i> Default</span>
+                                    @endif
+                                </div>
+                                <span>{{ $addr->address }}</span>
+                                <span class="addr-phone"><i class="bi bi-telephone"></i> {{ $addr->phone }}</span>
+                            </div>
+                            <div class="addr-actions">
+                                @unless($addr->is_default)
+                                    <form method="POST" action="{{ route('buyer.addresses.default', $addr->id) }}">
+                                        @csrf
+                                        <button type="submit" class="addr-btn">Set as default</button>
+                                    </form>
+                                @endunless
+                                <form method="POST" action="{{ route('buyer.addresses.delete', $addr->id) }}" data-confirm="Delete this address?" data-confirm-danger data-confirm-ok="Delete">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="addr-btn is-danger" aria-label="Delete {{ $addr->label ?: 'address' }}"><i class="bi bi-trash3"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            @if($addresses->count() < 10)
+                <details class="addr-add" @if($addresses->isEmpty() || $errors->has('address') || $errors->has('phone')) open @endif>
+                    <summary><i class="bi bi-plus-lg"></i> Add a new address</summary>
+
+                    <form method="POST" action="{{ route('buyer.addresses.store') }}">
+                        @csrf
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="addr_label">Label <span class="field-hint" style="display:inline;">(optional)</span></label>
+                                <input type="text" id="addr_label" name="label" maxlength="40" placeholder="Home, Work…" value="{{ old('label') }}">
+                            </div>
+                            <div class="field">
+                                <label for="addr_phone">Phone Number</label>
+                                <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XX XXX XXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
+                            </div>
+                            <div class="field" style="grid-column: 1 / -1;">
+                                <label for="addr_address">Complete Address</label>
+                                <input type="text" id="addr_address" name="address" maxlength="255" placeholder="House No., Street, Barangay, City, Province" value="{{ old('address') }}" required>
+                            </div>
+                        </div>
+                        <label class="addr-default-check">
+                            <input type="checkbox" name="is_default" value="1" @checked($addresses->isEmpty())>
+                            Use as my default address
+                        </label>
+                        <button type="submit" class="save-btn">Save Address</button>
+                    </form>
+                </details>
+            @endif
 
         </div>
 
@@ -651,6 +883,8 @@
             }
         })();
     </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

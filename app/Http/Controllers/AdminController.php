@@ -1496,6 +1496,12 @@ class AdminController extends Controller
             (int) $id
         );
 
+        notifyOrderSellers(
+            (int) $id,
+            $status === 'Cancelled' ? 'Order Cancelled by Admin' : 'Order Status Updated by Admin',
+            'Order #' . $id . ' status was updated to "' . $status . '" by an administrator.'
+        );
+
         /*
         |--------------------------------------------------------------------------
         | KEEP SESSION ORDERS SYNCED IF THEY EXIST

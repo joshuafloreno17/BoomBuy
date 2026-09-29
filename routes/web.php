@@ -94,6 +94,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/buyer', [BuyerController::class, 'dashboard'])->name('buyer.dashboard');
 
+// Mobile "Me" screen: the dashboard's account sidebar as its own page.
+Route::get('/buyer/account', [BuyerController::class, 'account'])->name('buyer.account');
+
 /*
 |--------------------------------------------------------------------------
 | BUYER PROFILE
@@ -110,6 +113,11 @@ Route::post('/buyer/profile/photo', [BuyerController::class, 'updatePhoto'])->na
 
 
 Route::post('/buyer/profile/password', [BuyerController::class, 'updatePassword'])->name('buyer.profile.password');
+
+// Address book
+Route::post('/buyer/addresses', [BuyerController::class, 'storeAddress'])->name('buyer.addresses.store');
+Route::post('/buyer/addresses/{id}/default', [BuyerController::class, 'setDefaultAddress'])->whereNumber('id')->name('buyer.addresses.default');
+Route::delete('/buyer/addresses/{id}', [BuyerController::class, 'deleteAddress'])->whereNumber('id')->name('buyer.addresses.delete');
 
 /*
 |--------------------------------------------------------------------------
@@ -183,6 +191,12 @@ Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.lo
 */
 
 Route::get('/products', [ShopController::class, 'products'])->name('products');
+
+// A seller's shop: the shop listing narrowed to one seller, with the shop's header.
+Route::get('/shop/{seller}', [ShopController::class, 'sellerShop'])->whereNumber('seller')->name('shop.seller');
+
+// Live suggestions for the navbar search box (JSON).
+Route::get('/search/suggestions', [ShopController::class, 'searchSuggestions'])->middleware('throttle:120,1')->name('search.suggestions');
 
 
 /*
@@ -536,6 +550,9 @@ Route::post('/cart/remove/{key}', [CartController::class, 'remove'])->name('cart
 // Cart page
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
 
+// Fresh contents for the navbar cart hover panel (HTML fragment).
+Route::get('/cart/preview', [CartController::class, 'preview'])->name('cart.preview');
+
 
 Route::post('/cart/voucher/apply', [CartController::class, 'applyVoucher'])->name('cart.voucher.apply');
 
@@ -774,6 +791,11 @@ Route::get('/notifications', [NotificationController::class, 'index'])->name('no
 
 
 Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead'])->name('notifications.read');
+
+// Clicking a notification: mark it read and jump to what it's about.
+Route::get('/notifications/{id}/open', [NotificationController::class, 'open'])->name('notifications.open');
+
+Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead'])->name('notifications.read-all');
 
 
 // =========================

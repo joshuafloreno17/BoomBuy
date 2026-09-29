@@ -369,6 +369,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 </div>
 
+    @include('partials.buyer-footer')
+
     @include('partials.pwa-register')
 
 </body>

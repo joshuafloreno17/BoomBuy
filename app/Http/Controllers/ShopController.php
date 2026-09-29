@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Support\Categories;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -46,17 +47,10 @@ class ShopController extends Controller
         return view('welcome', compact('featuredProducts'));
     }
 
-    public function products()
+    // Category slug => every stored category name that belongs to it (old names included).
+    private static function categoryMap(): array
     {
-        $category = request('category');
-
-        /*
-        |--------------------------------------------------------------------------
-        | BOOMBUY CATEGORY MAP
-        |--------------------------------------------------------------------------
-        */
-
-        $categoryMap = [
+        return [
 
             'electronics' => [
                 'Electronics',
@@ -188,89 +182,94 @@ class ShopController extends Controller
             ],
 
         ];
+    }
 
+    private const SHOP_PER_PAGE = 24;
+
+    private const SHOP_SORTS = ['newest', 'price_low', 'price_high', 'rating'];
+
+    public function sellerShop(int $seller)
+    {
+        $hasShop = Product::where('seller_id', $seller)->exists()
+            || \App\Models\User::where('id', $seller)->where('role', 'seller')->exists();
+
+        abort_unless($hasShop, 404);
+
+        return $this->products($seller);
+    }
+
+    public function products(?int $sellerId = null)
+    {
+        $categoryMap = self::categoryMap();
 
         /*
         |--------------------------------------------------------------------------
-        | GET PRODUCTS
+        | FILTERS — read from the URL so they survive refresh / back and can be shared
         |--------------------------------------------------------------------------
         */
 
-        $search = trim((string) request('search'));
+        $category = (string) request('category');
+        $category = isset($categoryMap[$category]) ? $category : '';
 
-        $databaseProducts = Product::latest()
-            ->where('is_flagged', false)
+        $search = trim(mb_substr((string) request('search'), 0, 100));
+
+        $min = is_numeric(request('min')) ? max(0, (float) request('min')) : null;
+        $max = is_numeric(request('max')) ? max(0, (float) request('max')) : null;
+
+        if ($min !== null && $max !== null && $min > $max) {
+            [$min, $max] = [$max, $min];
+        }
+
+        $rating = in_array((int) request('rating'), [3, 4], true) ? (int) request('rating') : 0;
+        $inStock = request()->boolean('in_stock');
+        $sort = in_array(request('sort'), self::SHOP_SORTS, true) ? request('sort') : 'newest';
+
+        // Each word must appear somewhere in the name, category or
+        // description — so "iphone pro" finds "iPhone 18 Pro Max" and
+        // "electronics" finds every Electronics product.
+        $searchTerms = preg_split('/\s+/', $search, -1, PREG_SPLIT_NO_EMPTY);
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET PRODUCTS (one page at a time)
+        |--------------------------------------------------------------------------
+        */
+
+        $query = Product::where('is_flagged', false)
             ->where('is_archived', false)
-            ->when(
-                $category && isset($categoryMap[$category]),
-                function ($query) use ($category, $categoryMap) {
+            ->when($sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->withCount(['reviews', 'variations'])
+            ->withAvg('reviews', 'rating')
+            // For the card's quick "choose a color/size" popup.
+            ->with('variations:id,product_id,variation_type,variation_value,price_adjustment,stock')
+            ->when($category, fn ($q) => $q->whereIn('category', $categoryMap[$category]))
+            ->when(!empty($searchTerms), function ($q) use ($searchTerms) {
+                foreach ($searchTerms as $term) {
+                    // Treat % and _ typed by the buyer as literal text.
+                    $like = '%' . addcslashes($term, '%_\\') . '%';
 
-                    $query->whereIn(
-                        'category',
-                        $categoryMap[$category]
-                    );
-
+                    $q->where(function ($match) use ($like) {
+                        $match->where('name', 'like', $like)
+                            ->orWhere('category', 'like', $like)
+                            ->orWhere('description', 'like', $like);
+                    });
                 }
-            )
-            ->when(
-                $search !== '',
-                function ($query) use ($search) {
+            })
+            ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
+            ->when($max !== null, fn ($q) => $q->where('price', '<=', $max))
+            ->when($inStock, fn ($q) => $q->where('stock', '>', 0))
+            ->when($rating, fn ($q) => $q->having('reviews_avg_rating', '>=', $rating));
 
-                    $query->where(
-                        'name',
-                        'like',
-                        '%' . $search . '%'
-                    );
+        match ($sort) {
+            'price_low' => $query->orderBy('price'),
+            'price_high' => $query->orderByDesc('price'),
+            'rating' => $query->orderByDesc('reviews_avg_rating')->orderByDesc('reviews_count'),
+            default => $query->orderByDesc('created_at'),
+        };
 
-                }
-            )
-            ->get();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | FORMAT PRODUCTS + REAL REVIEWS
-        |--------------------------------------------------------------------------
-        */
-
-        $products = $databaseProducts->map(function ($product) {
-
-            // Get actual reviews for this product
-            $reviewData = DB::table('product_reviews')
-                ->where('product_id', $product->id)
-                ->selectRaw('COUNT(*) as review_count, AVG(rating) as average_rating')
-                ->first();
-
-            $reviewCount = (int) ($reviewData->review_count ?? 0);
-
-            $averageRating = $reviewCount > 0
-                ? round((float) $reviewData->average_rating, 1)
-                : 0;
-
-
-            return [
-
-                'id' => $product->id,
-                'slug' => Str::slug($product->name) . '-' . $product->id,
-                'name' => $product->name,
-                'category' => $product->category,
-                'price' => (float) $product->price,
-                'stock' => (int) $product->stock,
-                'description' => $product->description,
-                'image' => $product->image,
-                'icon' => $product->image ?? null,
-                'seller_id' => $product->seller_id,
-
-                // REAL rating from product_reviews
-                'rating' => $averageRating,
-
-                // REAL review count from product_reviews
-                'reviews' => $reviewCount,
-
-            ];
-
-        })->toArray();
-
+        $paginator = $query->orderByDesc('id')
+            ->paginate(self::SHOP_PER_PAGE)
+            ->withQueryString();
 
         /*
         |--------------------------------------------------------------------------
@@ -287,17 +286,204 @@ class ShopController extends Controller
                 ->toArray()
             : [];
 
+        $products = $paginator->getCollection()
+            ->map(fn ($product) => [
+                'id' => $product->id,
+                'slug' => Str::slug($product->name) . '-' . $product->id,
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'image' => productImageUrl($product->image),
+                'icon' => Categories::icon($product->category),
+                'rating' => (int) $product->reviews_count > 0 ? round((float) $product->reviews_avg_rating, 1) : null,
+                'reviews' => (int) $product->reviews_count,
+                'has_variations' => (int) $product->variations_count > 0,
+                'variation_type' => $product->variations->first()->variation_type ?? null,
+                'variations' => $product->variations
+                    ->map(fn ($v) => [
+                        'id' => $v->id,
+                        'label' => $v->variation_value,
+                        'price' => (float) $product->price + (float) $v->price_adjustment,
+                        'stock' => (int) $v->stock,
+                    ])
+                    ->values()
+                    ->all(),
+                'in_wishlist' => in_array($product->id, $wishlistedIds),
+            ])
+            ->all();
+
+        // "Load more": just the next page's cards.
+        if (request()->ajax() && request()->boolean('partial')) {
+            // The next link must open a normal page if JavaScript ever falls back to it.
+            $paginator->appends(['partial' => null]);
+
+            return response()->json([
+                'html' => view('partials.shop-product-cards', ['products' => $products, 'showCategory' => $category === ''])->render(),
+                'next' => $paginator->nextPageUrl(),
+                'shown' => $paginator->lastItem() ?? 0,
+                'total' => $paginator->total(),
+            ]);
+        }
 
         /*
         |--------------------------------------------------------------------------
-        | RETURN SHOP PAGE
+        | CATEGORY CHIPS — only categories that actually have products
         |--------------------------------------------------------------------------
         */
 
-        return view(
-            'pages.products',
-            compact('products', 'wishlistedIds')
-        );
+        $categoryCounts = Product::where('is_flagged', false)
+            ->where('is_archived', false)
+            ->when($sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->select('category', DB::raw('COUNT(*) as total'))
+            ->groupBy('category')
+            ->get()
+            ->groupBy(fn ($row) => Categories::slug($row->category))
+            ->map(fn ($rows) => (int) $rows->sum('total'));
+
+        $categories = collect(Categories::LIST)
+            ->map(fn ($label, $slug) => [
+                'slug' => $slug,
+                'label' => $label,
+                'icon' => Categories::icon($slug),
+                'count' => $categoryCounts[$slug] ?? 0,
+            ])
+            ->filter(fn ($c) => $c['count'] > 0 || $c['slug'] === $category)
+            ->values()
+            ->all();
+
+        $filters = [
+            'category' => $category,
+            'category_label' => $category ? Categories::LIST[$category] : null,
+            'search' => $search,
+            'min' => $min,
+            'max' => $max,
+            'rating' => $rating,
+            'in_stock' => $inStock,
+            'sort' => $sort,
+        ];
+
+        return view('pages.products', [
+            'products' => $products,
+            'paginator' => $paginator,
+            'filters' => $filters,
+            'categories' => $categories,
+            'totalProducts' => array_sum($categoryCounts->all()),
+            // On /shop/{seller}: that shop's header instead of "All products".
+            'shop' => $sellerId ? \App\Support\SellerShop::one($sellerId) : null,
+        ]);
+    }
+
+    /**
+     * Live suggestions for the navbar search box (JSON).
+     *   ?q=        → just the popular categories (shown before typing)
+     *   ?q=iph     → matching products (names starting with it first) and
+     *                matching categories
+     * Same visibility and word rules as the shop's full search.
+     */
+    public function searchSuggestions()
+    {
+        $q = trim(mb_substr((string) request('q'), 0, 60));
+        $terms = preg_split('/\s+/', $q, -1, PREG_SPLIT_NO_EMPTY);
+
+        // A category picked in the search box's dropdown narrows everything to it.
+        $categoryNames = self::categoryMap()[(string) request('category')] ?? null;
+
+        $categoryLink = fn (string $slug) => [
+            'label' => Categories::LIST[$slug],
+            'icon' => Categories::icon($slug),
+            'url' => route('products', ['category' => $slug]),
+        ];
+
+        $toSuggestion = fn ($product) => [
+            'name' => $product->name,
+            'price' => '₱' . number_format((float) $product->price, 2),
+            'category' => $product->category,
+            // Shown when there's no photo (or it fails to load).
+            'icon' => Categories::icon($product->category),
+            'image' => $product->image
+                ? (str_starts_with($product->image, 'http') ? $product->image : asset('storage/' . ltrim($product->image, '/')))
+                : null,
+            'url' => route('product.details', Str::slug($product->name) . '-' . $product->id),
+        ];
+
+        // Nothing typed yet, but a category is chosen: its newest products.
+        if (empty($terms) && $categoryNames) {
+            return response()->json([
+                'products' => Product::where('is_flagged', false)
+                    ->where('is_archived', false)
+                    ->whereIn('category', $categoryNames)
+                    ->latest()
+                    ->limit(5)
+                    ->get(['id', 'name', 'price', 'image', 'category'])
+                    ->map($toSuggestion),
+                'categories' => [],
+            ]);
+        }
+
+        if (empty($terms)) {
+
+            // Categories with the most products first, topped up from the
+            // full list so there are always a few to show.
+            $bySize = Product::where('is_flagged', false)
+                ->where('is_archived', false)
+                ->select('category', DB::raw('COUNT(*) as total'))
+                ->groupBy('category')
+                ->get()
+                ->groupBy(fn ($row) => Categories::slug($row->category))
+                ->map(fn ($rows) => $rows->sum('total'))
+                ->filter(fn ($total, $slug) => $slug !== '')
+                ->sortDesc()
+                ->keys();
+
+            $popular = $bySize->merge(array_keys(Categories::LIST))->unique()->take(8);
+
+            return response()->json([
+                'products' => [],
+                'categories' => $popular->map($categoryLink)->values(),
+            ]);
+        }
+
+        $query = Product::where('is_flagged', false)
+            ->where('is_archived', false)
+            ->when($categoryNames, fn ($inCategory) => $inCategory->whereIn('category', $categoryNames));
+
+        foreach ($terms as $term) {
+            $like = '%' . addcslashes($term, '%_\\') . '%';
+
+            $query->where(function ($match) use ($like) {
+                $match->where('name', 'like', $like)
+                    ->orWhere('category', 'like', $like)
+                    ->orWhere('description', 'like', $like);
+            });
+        }
+
+        $products = $query
+            // Names that start with what was typed, then names containing
+            // it, then category/description-only matches.
+            ->orderByRaw(
+                'CASE WHEN name LIKE ? THEN 0 WHEN name LIKE ? THEN 1 ELSE 2 END',
+                [addcslashes($q, '%_\\') . '%', '%' . addcslashes($terms[0], '%_\\') . '%']
+            )
+            ->orderBy('name')
+            ->limit(5)
+            ->get(['id', 'name', 'price', 'image', 'category'])
+            ->map($toSuggestion);
+
+        $needle = mb_strtolower($q);
+
+        // With a category already chosen, suggesting other categories would only get in the way.
+        $categories = $categoryNames ? collect() : collect(Categories::LIST)
+            ->filter(fn ($label, $slug) => str_contains(mb_strtolower($label), $needle) || str_contains($slug, $needle))
+            ->keys()
+            ->take(3)
+            ->map($categoryLink)
+            ->values();
+
+        return response()->json([
+            'products' => $products,
+            'categories' => $categories,
+        ]);
     }
 
     public function productDetails($id)
@@ -369,12 +555,32 @@ class ShopController extends Controller
             ? round($reviews->avg('rating'), 1)
             : 0;
 
-        // A handful of other products from the same category
-        $relatedProducts = Product::where('category', $product->category)
-            ->where('id', '!=', $product->id)
+        // How many buyers gave each star rating (5 → 1), for the breakdown bars.
+        $ratingCounts = collect([5, 4, 3, 2, 1])
+            ->mapWithKeys(fn ($stars) => [$stars => $reviews->where('rating', $stars)->count()])
+            ->all();
+
+        $visible = fn () => Product::where('is_flagged', false)
+            ->where('is_archived', false)
+            ->where('id', '!=', $product->id);
+
+        // Similar products: same category (old category names included), any seller.
+        $categorySlug = Categories::slug($product->category);
+        $relatedProducts = $visible()
+            ->whereIn('category', self::categoryMap()[$categorySlug] ?? [$product->category])
             ->latest()
             ->take(4)
             ->get();
+
+        // The seller's card and more of their products.
+        $shop = $product->seller_id ? \App\Support\SellerShop::one((int) $product->seller_id) : null;
+
+        $moreFromSeller = $product->seller_id
+            ? $visible()->where('seller_id', $product->seller_id)->latest()->take(4)->get()
+            : collect();
+
+        $deliveryFee = \App\Support\DeliveryFee::baseFee();
+        $freeDeliveryMin = \App\Support\DeliveryFee::FREE_SHIPPING_MIN;
 
         // Wishlist state (false for guests)
         $sessionUser = session()->get('user');
@@ -406,7 +612,12 @@ class ShopController extends Controller
                 'relatedProducts',
                 'isWishlisted',
                 'variations',
-                'canMessageSeller'
+                'canMessageSeller',
+                'ratingCounts',
+                'shop',
+                'moreFromSeller',
+                'deliveryFee',
+                'freeDeliveryMin'
             )
         );
     }

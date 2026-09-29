@@ -23,6 +23,42 @@ if (!function_exists('createNotification')) {
     }
 }
 
+if (!function_exists('notifyOrderSellers')) {
+
+    // Notify every seller who has items in the given order.
+    function notifyOrderSellers(
+        int $orderId,
+        string $title,
+        string $message,
+        string $type = 'order_status'
+    ): void {
+
+        $sellerIds = \Illuminate\Support\Facades\DB::table('order_items')
+            ->where('order_id', $orderId)
+            ->distinct()
+            ->pluck('seller_id');
+
+        foreach ($sellerIds as $sellerId) {
+            createNotification((int) $sellerId, $title, $message, $type, $orderId);
+        }
+    }
+}
+
+if (!function_exists('productImageUrl')) {
+
+    // Public URL for a stored product image (or an external one), null when there is none.
+    function productImageUrl(?string $image): ?string
+    {
+        if (empty($image)) {
+            return null;
+        }
+
+        return str_starts_with($image, 'http')
+            ? $image
+            : asset('storage/' . ltrim($image, '/'));
+    }
+}
+
 if (!function_exists('createAdminNotification')) {
 
     function createAdminNotification(

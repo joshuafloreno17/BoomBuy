@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\PersistBuyerCart;
 use App\Http\Middleware\PreventBackHistoryCache;
 use App\Http\Middleware\RestoreRememberedLogin;
 use Illuminate\Foundation\Application;
@@ -18,6 +19,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             RestoreRememberedLogin::class,
             EnsureAccountActive::class,
+            // After the login is restored: bring the saved cart back, save changes to it.
+            PersistBuyerCart::class,
             PreventBackHistoryCache::class,
         ]);
     })

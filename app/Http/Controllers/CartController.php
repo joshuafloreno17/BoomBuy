@@ -16,7 +16,10 @@ class CartController extends Controller
         $user = requireUserRole('buyer');
 
         if (!is_array($user)) {
-            return $user;
+            // The shop's AJAX "Add to cart" needs to know to send a guest to log in.
+            return request()->expectsJson()
+                ? response()->json(['ok' => false, 'message' => 'Please log in to add items to your cart.', 'login' => route('login')], 401)
+                : $user;
         }
 
         /*
@@ -28,17 +31,11 @@ class CartController extends Controller
         $product = Product::find($id);
 
         if (!$product) {
-            return back()->with(
-                'error',
-                'Product not found.'
-            );
+            return $this->addResult(false, 'Product not found.');
         }
 
         if (!$product->isPurchasable()) {
-            return back()->with(
-                'error',
-                'This product is no longer available.'
-            );
+            return $this->addResult(false, 'This product is no longer available.');
         }
 
         /*
@@ -56,7 +53,7 @@ class CartController extends Controller
         [$variation, $variationError] = $product->resolveVariation((int) request('variation_id', 0));
 
         if ($variationError) {
-            return back()->with('error', $variationError);
+            return $this->addResult(false, $variationError);
         }
 
         $variationId = $variation->id ?? 0;
@@ -70,10 +67,7 @@ class CartController extends Controller
         */
 
         if ($effectiveStock <= 0) {
-            return back()->with(
-                'error',
-                'This product is currently out of stock.'
-            );
+            return $this->addResult(false, 'This product is currently out of stock.');
         }
 
         /*
@@ -100,10 +94,7 @@ class CartController extends Controller
         */
 
         if ($currentQuantity >= $effectiveStock) {
-            return back()->with(
-                'error',
-                'You cannot add more than the available stock.'
-            );
+            return $this->addResult(false, 'You cannot add more than the available stock.');
         }
 
         /*
@@ -125,10 +116,23 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        return back()->with(
-            'success',
-            '✓ Added to cart!'
-        );
+        return $this->addResult(true, 'Added to cart.', array_sum($cart));
+    }
+
+    /*
+    | Answer for add(): JSON for the shop's AJAX "Add to cart" (so it never shows
+    | "Added" for a request that failed), a redirect with a flash message otherwise.
+    */
+    private function addResult(bool $ok, string $message, int $cartCount = 0)
+    {
+        if (request()->expectsJson()) {
+            return response()->json(
+                ['ok' => $ok, 'message' => $message, 'cart_count' => $cartCount],
+                $ok ? 200 : 422
+            );
+        }
+
+        return back()->with($ok ? 'success' : 'error', $ok ? '✓ Added to cart!' : $message);
     }
 
     /*
@@ -303,6 +307,12 @@ class CartController extends Controller
     }
 
     // Cart page
+    /** The navbar cart hover panel, re-fetched on hover so it's never stale. */
+    public function preview()
+    {
+        return view('partials.navbar-cart-preview');
+    }
+
     public function index()
     {
         $cart =
@@ -575,6 +585,15 @@ class CartController extends Controller
         $savedAddress = $savedBuyer->address ?? '';
         $savedPhone = $savedBuyer->phone ?? '';
 
+        // The address book's default wins over the profile address.
+        $addresses = \App\Models\BuyerAddress::forUser((int) $user['id']);
+        $defaultAddress = $addresses->firstWhere('is_default', true);
+
+        if ($defaultAddress) {
+            $savedAddress = $defaultAddress->address;
+            $savedPhone = $defaultAddress->phone;
+        }
+
         $codStatus = CodPolicy::status((int) $user['id']);
         $freeShippingMin = DeliveryFee::FREE_SHIPPING_MIN;
 
@@ -607,6 +626,7 @@ class CartController extends Controller
                 'voucherSubtotal',
                 'savedAddress',
                 'savedPhone',
+                'addresses',
                 'codStatus',
                 'freeShippingMin',
                 'checkoutPlan'

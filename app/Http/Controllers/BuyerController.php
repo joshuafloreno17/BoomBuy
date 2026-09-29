@@ -13,6 +13,23 @@ use Illuminate\Support\Str;
 
 class BuyerController extends Controller
 {
+    // Order status → how far along the 5-step tracker it is, and a short note.
+    private const ORDER_PROGRESS = [
+        'Pending' => [1, 'Waiting for the seller to confirm.'],
+        'Processing' => [2, 'Seller is packing your order.'],
+        'Ready for Pickup' => [2, 'Packed and waiting for a rider.'],
+        'Assigned' => [2, 'A rider is on the way to the seller.'],
+        'Picked Up' => [3, 'Picked up — heading to the Sorting Center.'],
+        'At Sorting Center' => [3, 'At the Sorting Center.'],
+        'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
+        'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
+        'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
+    ];
+
+    private const TO_SHIP_STATUSES = ['Pending', 'Processing', 'Ready for Pickup'];
+
+    private const TO_RECEIVE_STATUSES = ['Assigned', 'Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery'];
+
     public function dashboard()
     {
         $user = requireUserRole('buyer');
@@ -21,60 +38,295 @@ class BuyerController extends Controller
             return $user;
         }
 
+        $buyerId = (int) $user['id'];
+
         /*
         |--------------------------------------------------------------------------
-        | PRODUCTS FROM DATABASE ONLY
+        | ACTIVE ORDERS (not yet delivered, cancelled or returned)
         |--------------------------------------------------------------------------
         */
 
-        // Same visibility rules as the shop page — hide flagged/archived
-        // products, and only load the 8 the dashboard actually shows.
-        $databaseProducts = Product::latest()
-            ->where('is_flagged', false)
-            ->where('is_archived', false)
-            ->withCount('reviews')
-            ->withAvg('reviews', 'rating')
-            ->take(8)
+        $activeOrderRows = DB::table('orders')
+            ->where('buyer_id', $buyerId)
+            ->whereIn('status', array_keys(self::ORDER_PROGRESS))
+            // A refused parcel is on its way back to the seller, not to the buyer.
+            ->whereNull('buyer_refused_at')
+            ->orderByDesc('created_at')
+            ->limit(3)
             ->get();
 
-        $products = $databaseProducts->map(function ($product) {
+        $activeItems = DB::table('order_items')
+            ->whereIn('order_id', $activeOrderRows->pluck('id'))
+            ->orderBy('id')
+            ->get()
+            ->groupBy('order_id');
 
-            // The id keeps the link unique when two sellers use the same name.
-            $slug = Str::slug($product->name) . '-' . $product->id;
+        $activeProducts = Product::whereIn(
+            'id',
+            $activeItems->flatten()->pluck('product_id')->unique()
+        )->get(['id', 'image', 'category'])->keyBy('id');
 
-            $reviewCount = (int) $product->reviews_count;
+        $activeOrders = $activeOrderRows->map(function ($order) use ($activeItems, $activeProducts) {
+
+            $items = $activeItems->get($order->id, collect());
+            $first = $items->first();
+            $product = $first ? $activeProducts->get($first->product_id) : null;
+
+            [$step, $note] = self::ORDER_PROGRESS[$order->status];
 
             return [
-
-                'id' => $product->id,
-                'slug' => $slug,
-                'name' => $product->name,
-                'category' => $product->category,
-                'price' => (float) $product->price,
-                'stock' => (int) $product->stock,
-                'description' => $product->description,
-                'image' => $product->image,
-                'icon' => $product->image ?? null,
-                'seller_id' => $product->seller_id,
-                'rating' => $reviewCount > 0
-                    ? round((float) $product->reviews_avg_rating, 1)
-                    : 0,
-                'reviews' => $reviewCount,
-
+                'id' => $order->id,
+                'status' => $order->status,
+                'total' => (float) $order->total_amount,
+                'name' => $first
+                    ? $first->product_name . ($items->count() > 1 ? ' + ' . ($items->count() - 1) . ' more' : '')
+                    : 'Order #' . $order->id,
+                'step' => $step,
+                'note' => $note,
+                'seller_id' => $first->seller_id ?? null,
+                'image' => productImageUrl($product->image ?? null),
+                'icon' => \App\Support\Categories::icon($product->category ?? null),
             ];
+        })->all();
 
-        })->toArray();
+        /*
+        |--------------------------------------------------------------------------
+        | BUY AGAIN — products from delivered orders that can still be bought
+        |--------------------------------------------------------------------------
+        */
 
-        $newestProducts = $products;
+        $boughtIds = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.buyer_id', $buyerId)
+            ->where('orders.status', 'Delivered')
+            ->orderByDesc('orders.created_at')
+            ->pluck('order_items.product_id')
+            ->unique()
+            ->values();
+
+        $buyAgain = Product::whereIn('id', $boughtIds)
+            ->withCount(['reviews', 'variations'])
+            ->withAvg('reviews', 'rating')
+            ->where('is_flagged', false)
+            ->where('is_archived', false)
+            ->get()
+            ->sortBy(fn ($p) => $boughtIds->search($p->id))
+            ->take(4)
+            ->map(fn ($p) => $this->dashboardProductCard($p))
+            ->values()
+            ->all();
+
+        /*
+        |--------------------------------------------------------------------------
+        | DISCOVER — Latest / Top rated / Under ₱1,000
+        |--------------------------------------------------------------------------
+        */
+
+        $visible = fn () => Product::where('is_flagged', false)
+            ->where('is_archived', false)
+            ->withCount(['reviews', 'variations'])
+            ->withAvg('reviews', 'rating');
+
+        $wishlistIds = DB::table('wishlists')
+            ->where('user_id', $buyerId)
+            ->pluck('product_id')
+            ->all();
+
+        $toCards = fn ($products) => $products
+            ->map(fn ($p) => $this->dashboardProductCard($p, $wishlistIds))
+            ->values()
+            ->all();
+
+        $discover = [
+            'latest' => $toCards($visible()->latest()->take(6)->get()),
+            'top' => $toCards(
+                $visible()
+                    ->having('reviews_count', '>', 0)
+                    ->orderByDesc('reviews_avg_rating')
+                    ->orderByDesc('reviews_count')
+                    ->take(6)
+                    ->get()
+            ),
+            'budget' => $toCards($visible()->where('price', '<', 1000)->latest()->take(6)->get()),
+        ];
+
+        $panel = $this->accountPanelData($user);
 
         return view(
             'pages.buyer.dashboard',
-            compact(
-                'user',
-                'products',
-                'newestProducts'
-            )
+            compact('user', 'activeOrders', 'buyAgain', 'discover', 'panel')
         );
+    }
+
+    // The mobile "Me" screen — the dashboard's desktop sidebar as a page.
+    public function account()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $panel = $this->accountPanelData($user);
+
+        return view('pages.buyer.account', compact('user', 'panel'));
+    }
+
+    // Everything the account sidebar / Me screen shows.
+    private function accountPanelData(array $user): array
+    {
+        $buyerId = (int) $user['id'];
+
+        $counts = DB::table('orders')
+            ->where('buyer_id', $buyerId)
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $sumOf = fn (array $statuses) => (int) collect($statuses)->sum(fn ($s) => $counts[$s] ?? 0);
+
+        // Delivered orders with at least one item the buyer hasn't reviewed yet.
+        $toReview = DB::table('orders')
+            ->join('order_items', 'order_items.order_id', '=', 'orders.id')
+            ->leftJoin('product_reviews', function ($join) use ($buyerId) {
+                $join->on('product_reviews.order_id', '=', 'orders.id')
+                    ->on('product_reviews.product_id', '=', 'order_items.product_id')
+                    ->where('product_reviews.buyer_id', '=', $buyerId);
+            })
+            ->where('orders.buyer_id', $buyerId)
+            ->where('orders.status', 'Delivered')
+            ->whereNull('product_reviews.id')
+            ->distinct()
+            ->count('orders.id');
+
+        $dbUser = User::find($buyerId);
+
+        return [
+            'name' => $user['name'] ?? 'Buyer',
+            'email' => $user['email'] ?? '',
+            'photo' => !empty($dbUser?->profile_photo)
+                ? asset('storage/profile-photos/' . $dbUser->profile_photo)
+                : null,
+            'since' => $dbUser?->created_at?->format('M Y'),
+            'to_ship' => $sumOf(self::TO_SHIP_STATUSES),
+            'to_receive' => $sumOf(self::TO_RECEIVE_STATUSES),
+            'to_review' => $toReview,
+            'active_orders' => $sumOf(self::TO_SHIP_STATUSES) + $sumOf(self::TO_RECEIVE_STATUSES),
+            'unread_messages' => \App\Models\Message::where('recipient_id', $buyerId)->whereNull('read_at')->count(),
+            'unread_notifications' => \App\Models\Notification::where('user_id', $buyerId)->whereNull('read_at')->count(),
+            'cod' => CodPolicy::status($buyerId),
+        ];
+    }
+
+    private function dashboardProductCard(Product $product, array $wishlistIds = []): array
+    {
+        $reviewCount = (int) ($product->reviews_count ?? 0);
+
+        return [
+            'id' => $product->id,
+            'slug' => Str::slug($product->name) . '-' . $product->id,
+            'name' => $product->name,
+            'category' => $product->category,
+            'price' => (float) $product->price,
+            'stock' => (int) $product->stock,
+            'image' => productImageUrl($product->image),
+            'icon' => \App\Support\Categories::icon($product->category),
+            'rating' => $reviewCount > 0 ? round((float) $product->reviews_avg_rating, 1) : null,
+            'reviews' => $reviewCount,
+            // Products with options have to be picked on the product page.
+            'has_variations' => (int) ($product->variations_count ?? 0) > 0,
+            'in_wishlist' => in_array($product->id, $wishlistIds),
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ADDRESS BOOK
+    |--------------------------------------------------------------------------
+    */
+
+    public function storeAddress()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $data = request()->validate([
+            'label' => 'nullable|string|max:40',
+            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s]{7,20}$/'],
+            'address' => 'required|string|max:255',
+        ], [
+            'phone.regex' => 'Enter a valid phone number (numbers only).',
+        ]);
+
+        $userId = (int) $user['id'];
+
+        if (\App\Models\BuyerAddress::where('user_id', $userId)->count() >= 10) {
+            return back()->with('error', 'You can save up to 10 addresses. Delete one first.');
+        }
+
+        // The first address, or one marked "make default", becomes the default.
+        $makeDefault = request()->boolean('is_default')
+            || !\App\Models\BuyerAddress::where('user_id', $userId)->exists();
+
+        DB::transaction(function () use ($data, $userId, $makeDefault) {
+            if ($makeDefault) {
+                \App\Models\BuyerAddress::where('user_id', $userId)->update(['is_default' => false]);
+            }
+
+            \App\Models\BuyerAddress::create([
+                'user_id' => $userId,
+                'label' => trim((string) ($data['label'] ?? '')) ?: null,
+                'phone' => trim($data['phone']),
+                'address' => trim($data['address']),
+                'is_default' => $makeDefault,
+            ]);
+        });
+
+        return back()->with('success', 'Address saved.');
+    }
+
+    public function setDefaultAddress($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $address = \App\Models\BuyerAddress::where('user_id', $user['id'])->findOrFail($id);
+
+        DB::transaction(function () use ($address) {
+            \App\Models\BuyerAddress::where('user_id', $address->user_id)->update(['is_default' => false]);
+            $address->update(['is_default' => true]);
+        });
+
+        return back()->with('success', 'Default address updated.');
+    }
+
+    public function deleteAddress($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $address = \App\Models\BuyerAddress::where('user_id', $user['id'])->findOrFail($id);
+        $wasDefault = $address->is_default;
+        $address->delete();
+
+        // Keep one default while any address is left.
+        if ($wasDefault) {
+            \App\Models\BuyerAddress::where('user_id', $user['id'])
+                ->latest('updated_at')
+                ->first()
+                ?->update(['is_default' => true]);
+        }
+
+        return back()->with('success', 'Address deleted.');
     }
 
     public function profile()
@@ -98,7 +350,9 @@ class BuyerController extends Controller
 
         return view(
             'pages.buyer.profile',
-            compact('user', 'dbUser', 'totalOrders', 'totalSpent')
+            compact('user', 'dbUser', 'totalOrders', 'totalSpent') + [
+                'addresses' => \App\Models\BuyerAddress::forUser((int) $user['id']),
+            ]
         );
     }
 
@@ -301,18 +555,36 @@ class BuyerController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
-        $orders = $orders->map(function ($order) use ($user) {
+        // Everything the cards need, loaded once for all orders.
+        $allItems = DB::table('order_items')
+            ->whereIn('order_id', $orders->pluck('id'))
+            ->orderBy('id')
+            ->get()
+            ->groupBy('order_id');
+
+        $itemProducts = Product::whereIn('id', $allItems->flatten()->pluck('product_id')->filter()->unique())
+            ->get(['id', 'name', 'image', 'category'])
+            ->keyBy('id');
+
+        $itemShops = \App\Support\SellerShop::many($allItems->flatten()->pluck('seller_id'));
+
+        // Has this buyer already reviewed this product for this order?
+        // Without this, the "already rated" badge could never show and
+        // the Rate Product form would keep reappearing after rating.
+        $buyerReviews = DB::table('product_reviews')
+            ->where('buyer_id', $user['id'])
+            ->get()
+            ->keyBy(fn ($review) => $review->order_id . ':' . $review->product_id);
+
+        $orders = $orders->map(function ($order) use ($allItems, $itemProducts, $itemShops, $buyerReviews) {
 
             $order = (array) $order;
 
-            // Get order items
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
-
-            $order['items'] = $items->map(function ($item) use ($order, $user) {
+            $order['items'] = $allItems->get($order['id'], collect())->map(function ($item) use ($order, $itemProducts, $itemShops, $buyerReviews) {
 
                 $item = (array) $item;
+                $product = $itemProducts->get($item['product_id'] ?? 0);
+                $shop = $itemShops->get((int) ($item['seller_id'] ?? 0));
 
                 $item['name'] =
                     $item['product_name'] ?? 'Product';
@@ -321,40 +593,28 @@ class BuyerController extends Controller
                     (float) ($item['price'] ?? 0) *
                     (int) ($item['quantity'] ?? 1);
 
-                // Get seller name if seller_id exists
-                if (!empty($item['seller_id'])) {
+                $item['image'] = $product->image ?? null;
+                $item['category'] = $product->category ?? null;
+                $item['slug'] = $product ? Str::slug($product->name) . '-' . $product->id : null;
 
-                    $seller = DB::table('users')
-                        ->where('id', $item['seller_id'])
-                        ->first();
+                $item['seller_name'] = $shop['name'] ?? null;
+                $item['shop_url'] = $shop['url'] ?? null;
 
-                    $item['seller_name'] =
-                        $seller->name ?? null;
-                } else {
-                    $item['seller_name'] = null;
-                }
-
-                // Has this buyer already reviewed this product for this order?
-                // Without this, the "already rated" badge could never show and
-                // the Rate Product form would keep reappearing after rating.
-                $item['review'] = null;
-
-                if (!empty($item['product_id'])) {
-
-                    $review = DB::table('product_reviews')
-                        ->where('buyer_id', $user['id'])
-                        ->where('order_id', $order['id'])
-                        ->where('product_id', $item['product_id'])
-                        ->first();
-
-                    if ($review) {
-                        $item['review'] = (array) $review;
-                    }
-                }
+                $review = $buyerReviews->get($order['id'] . ':' . ($item['product_id'] ?? 0));
+                $item['review'] = $review ? (array) $review : null;
 
                 return $item;
 
             })->toArray();
+
+            // Friendly date, and where the parcel is on the 5-step tracker.
+            $order['date_label'] = !empty($order['created_at'])
+                ? \Illuminate\Support\Carbon::parse($order['created_at'])->format('M j, Y · g:i A')
+                : null;
+
+            [$order['step'], $order['step_note']] = $order['status'] === 'Delivered'
+                ? [5, null]
+                : (empty($order['buyer_refused_at']) ? (self::ORDER_PROGRESS[$order['status']] ?? [0, null]) : [0, null]);
 
             // Basic order information
             $order['total'] =

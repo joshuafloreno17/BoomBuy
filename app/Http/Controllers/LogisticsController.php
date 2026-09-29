@@ -476,6 +476,12 @@ class LogisticsController extends Controller
             (int) $id
         );
 
+        notifyOrderSellers(
+            (int) $id,
+            'Parcel at Sorting Center',
+            'Order #' . $id . ' has arrived at the Sorting Center and will be assigned to a rider for delivery.'
+        );
+
         return back()->with('success', 'Parcel #' . $id . ' confirmed as received.');
     }
 

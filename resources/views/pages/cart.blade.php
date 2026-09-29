@@ -123,6 +123,79 @@
             border-bottom: 1px solid #f7efed;
         }
 
+        /* One block per seller — each ships and charges delivery separately. */
+        .cart-shop {
+            border-bottom: 8px solid #fff7f4;
+        }
+
+        .cart-shop:last-child {
+            border-bottom: none;
+        }
+
+        .cart-shop-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-bottom: 1px solid #f7efed;
+            background: #fffaf8;
+        }
+
+        .cart-shop-head input {
+            width: 18px;
+            height: 18px;
+            accent-color: #e8420f;
+        }
+
+        .cart-shop-head .bi-shop {
+            color: #c43408;
+        }
+
+        .cart-shop-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #172033;
+            text-decoration: none;
+        }
+
+        a.cart-shop-name:hover {
+            color: #c43408;
+        }
+
+        .cart-shop-chat {
+            margin-left: auto;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #c43408;
+            text-decoration: none;
+        }
+
+        .cart-shop-delivery {
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .cart-shop-delivery:empty {
+            display: none;
+        }
+
+        .cart-shop-delivery i {
+            color: #c43408;
+        }
+
+        .cart-shop-delivery.is-free {
+            color: #0a6f66;
+        }
+
+        .cart-shop-delivery.is-free i {
+            color: #0a6f66;
+        }
+
         .cart-item.item-deselected {
             opacity: 0.5;
         }
@@ -472,6 +545,16 @@
 
         $subtotal = 0;
         $totalItems = 0;
+
+        // Grouped by seller: each seller ships, and charges delivery, separately.
+        $cartGroups = [];
+        foreach ($cart as $groupKey => $groupQty) {
+            $groupProduct = $databaseProducts->get(parseCartKey($groupKey)[0]);
+            if ($groupProduct) {
+                $cartGroups[(int) $groupProduct->seller_id][$groupKey] = $groupQty;
+            }
+        }
+        $cartShops = \App\Support\SellerShop::many(array_keys($cartGroups));
     @endphp
 
     @if(empty($cart))
@@ -509,7 +592,24 @@
                     </label>
                 </div>
 
-                @foreach($cart as $cartKey => $quantity)
+                @foreach($cartGroups as $groupSellerId => $groupItems)
+
+                @php $groupShop = $cartShops->get($groupSellerId); @endphp
+
+                <section class="cart-shop" data-shop="{{ $groupSellerId }}">
+
+                    <div class="cart-shop-head">
+                        <input type="checkbox" class="shop-checkbox" checked aria-label="Select all items from {{ $groupShop['name'] ?? 'this shop' }}">
+                        <i class="bi bi-shop" aria-hidden="true"></i>
+                        @if($groupShop)
+                            <a href="{{ $groupShop['url'] }}" class="cart-shop-name">{{ $groupShop['name'] }}</a>
+                            <a href="{{ route('messages.thread', $groupSellerId) }}" class="cart-shop-chat"><i class="bi bi-chat-dots"></i> Chat</a>
+                        @else
+                            <span class="cart-shop-name">BoomBuy</span>
+                        @endif
+                    </div>
+
+                @foreach($groupItems as $cartKey => $quantity)
 
                     @php
                         [$productId, $variationId] = parseCartKey($cartKey);
@@ -547,20 +647,7 @@
                             >
 
                             <div class="product-image">
-
-                                @if($product->image)
-
-                                    <img
-                                        src="{{ asset('storage/' . ltrim($product->image, '/')) }}"
-                                        alt="{{ $product->name }}"
-                                    >
-
-                                @else
-
-                                    <i class="bi bi-box-seam-fill"></i>
-
-                                @endif
-
+                                <x-product-thumb :image="$product->image" :category="$product->category" size="90" style="width:100%; height:100%; border-radius:13px;" />
                             </div>
 
                             <div class="product-info">
@@ -667,6 +754,12 @@
                         </div>
 
                     @endif
+
+                @endforeach
+
+                    <div class="cart-shop-delivery" data-shop-delivery aria-live="polite"></div>
+
+                </section>
 
                 @endforeach
 
@@ -796,17 +889,6 @@
 
 </div>
 
-<footer>
-
-    <div>
-        © 2026 <strong>BoomBuy</strong>
-    </div>
-
-    <div>
-        Quality products. Better everyday.
-    </div>
-
-</footer>
 
     <script>
         (function () {
@@ -971,7 +1053,62 @@
                     selectAllBox.checked = checkedCount === boxes.length;
                     selectAllBox.indeterminate = checkedCount > 0 && checkedCount < boxes.length;
                 }
+
+                updateShops();
             }
+
+            /* =========================
+               PER-SHOP: select all + delivery fee
+               ========================= */
+
+            var deliveryFee = @json(\App\Support\DeliveryFee::baseFee());
+            var freeDeliveryMin = @json(\App\Support\DeliveryFee::FREE_SHIPPING_MIN);
+            var peso = function (n) {
+                return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+            };
+
+            function updateShops() {
+                document.querySelectorAll('.cart-shop').forEach(function (shop) {
+                    var boxes = Array.prototype.slice.call(shop.querySelectorAll('.item-checkbox'));
+
+                    // A shop whose last item was removed disappears.
+                    if (boxes.length === 0) {
+                        shop.remove();
+                        return;
+                    }
+
+                    var checked = boxes.filter(function (b) { return b.checked; });
+                    var shopBox = shop.querySelector('.shop-checkbox');
+                    shopBox.checked = checked.length === boxes.length;
+                    shopBox.indeterminate = checked.length > 0 && checked.length < boxes.length;
+
+                    var subtotal = checked.reduce(function (sum, b) {
+                        return sum + (parseInt(b.dataset.quantity, 10) || 0) * (parseFloat(b.dataset.unitPrice) || 0);
+                    }, 0);
+
+                    var line = shop.querySelector('[data-shop-delivery]');
+                    line.classList.remove('is-free');
+
+                    if (checked.length === 0) {
+                        line.innerHTML = '<i class="bi bi-info-circle"></i> No items selected from this shop';
+                    } else if (subtotal >= freeDeliveryMin) {
+                        line.classList.add('is-free');
+                        line.innerHTML = '<i class="bi bi-truck"></i> Free delivery from this shop';
+                    } else {
+                        line.innerHTML = '<i class="bi bi-truck"></i> Delivery ' + peso(deliveryFee)
+                            + ' — add ' + peso(freeDeliveryMin - subtotal) + ' more from this shop for free delivery';
+                    }
+                });
+            }
+
+            document.querySelectorAll('.shop-checkbox').forEach(function (shopBox) {
+                shopBox.addEventListener('change', function () {
+                    shopBox.closest('.cart-shop').querySelectorAll('.item-checkbox').forEach(function (box) {
+                        box.checked = shopBox.checked;
+                    });
+                    recomputeSelection();
+                });
+            });
 
             getCheckboxes().forEach(function (box) {
                 box.addEventListener('change', recomputeSelection);
@@ -985,6 +1122,8 @@
                     recomputeSelection();
                 });
             }
+
+            updateShops();
 
             if (checkoutBtn) {
                 checkoutBtn.addEventListener('click', function (e) {
@@ -1005,6 +1144,8 @@
             }
         })();
     </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

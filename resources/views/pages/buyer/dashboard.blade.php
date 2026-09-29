@@ -3,19 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>BoomBuy — Buyer Home</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-        /* =========================
-           RESET
-        ========================= */
-
         * {
             margin: 0;
             padding: 0;
@@ -26,14 +24,13 @@
         body {
             width: 100%;
             max-width: 100%;
-            min-height: 100%;
             overflow-x: hidden;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background: #fff7f4;
-            color: #172033;
+            font-family: var(--font-body);
+            background: var(--cream);
+            color: var(--ink);
         }
 
         a {
@@ -45,513 +42,852 @@
             max-width: 100%;
         }
 
-        /* =========================
-           MAIN CONTENT (full width, no sidebar)
-        ========================= */
-
-        .main-content {
-            width: 100%;
-            max-width: 100%;
-
-            min-height: calc(100vh - 72px);
-
-            overflow-x: hidden;
+        button {
+            font-family: inherit;
         }
 
         /* =========================
-           CONTAINER
+           LAYOUT: sidebar + main
         ========================= */
 
-        .container {
+        .dash {
             width: calc(100% - 40px);
-            max-width: 1200px;
-
-            margin: 45px auto 80px;
-
-            min-width: 0;
-
-            box-sizing: border-box;
-        }
-
-        /* =========================
-           WELCOME
-        ========================= */
-
-        .welcome {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-
-            background: white;
-
-            border: 1px solid #f7e5e0;
-            border-radius: 16px;
-
-            padding: 30px;
-
-            margin-bottom: 30px;
-
-            overflow: hidden;
-        }
-
-        .welcome small {
-            color: #db5a33;
-
-            text-transform: uppercase;
-            letter-spacing: 2px;
-
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .welcome h1 {
-            font-family: 'Baloo 2', sans-serif;
-
-            font-size: 34px;
-
-            margin-top: 8px;
-
-            overflow-wrap: anywhere;
-        }
-
-        .welcome p {
-            color: #977970;
-
-            font-size: 14px;
-
-            margin-top: 8px;
-
-            overflow-wrap: anywhere;
-        }
-
-        /* =========================
-           QUICK ACTIONS
-        ========================= */
-
-        .quick-actions {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
+            max-width: 1320px;
+            margin: 32px auto 64px;
 
             display: grid;
-
-            grid-template-columns: repeat(3, minmax(0, 1fr));
-
-            gap: 15px;
-
-            margin-bottom: 35px;
+            grid-template-columns: 280px minmax(0, 1fr);
+            gap: 32px;
+            align-items: start;
         }
 
-        .quick-card {
-            min-width: 0;
-            max-width: 100%;
-
-            background: white;
-
-            border: 1px solid #f7e5e0;
-            border-radius: 14px;
-
-            padding: 18px;
-
-            transition: 0.2s;
-
-            overflow: hidden;
+        .dash-side {
+            position: sticky;
+            top: 96px;
         }
 
-        .quick-card:hover {
-            transform: translateY(-2px);
-
-            box-shadow: 0 8px 25px rgba(232, 66, 15, 0.08);
-        }
-
-        .quick-card strong {
-            display: block;
-
-            color: #172033;
-
-            font-size: 14px;
-
-            margin-bottom: 5px;
-
-            overflow-wrap: anywhere;
-        }
-
-        .quick-card span {
-            color: #977970;
-
-            font-size: 12px;
-
-            overflow-wrap: anywhere;
-        }
-
-        /* =========================
-           SECTION TITLE
-        ========================= */
-
-        .section-title {
-            width: 100%;
-            max-width: 100%;
-
+        .dash-main {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
+            gap: 40px;
+            min-width: 0;
+        }
+
+        .dash-section {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            min-width: 0;
+        }
+
+        .dash-section-head {
+            display: flex;
+            align-items: flex-end;
             justify-content: space-between;
             gap: 16px;
-
-            margin-bottom: 18px;
+            flex-wrap: wrap;
         }
 
-        .section-title h2 {
-            font-family: 'Baloo 2', sans-serif;
-
-            font-size: 23px;
+        .dash-section-head h2 {
+            font-family: var(--font-display);
+            font-size: 26px;
+            font-weight: 800;
+            line-height: 1.15;
         }
 
-        .section-title p {
-            color: #977970;
-
-            font-size: 13px;
-
-            margin-top: 5px;
+        .dash-section-head p {
+            margin-top: 2px;
+            font-size: 13.5px;
+            color: #6f5a53;
         }
 
-        .view-all-link {
-            flex-shrink: 0;
-
-            color: #e8420f;
-            font-size: 13px;
+        .dash-link {
+            font-size: 13.5px;
             font-weight: 700;
-
+            color: var(--accent-dark);
             white-space: nowrap;
-
-            padding-top: 4px;
-
-            transition: 0.2s ease;
         }
 
-        .view-all-link:hover {
-            color: #c43408;
+        .dash-link:hover {
+            color: #9e2a06;
         }
 
         /* =========================
-           PRODUCTS
+           MOBILE GREETING (sidebar is hidden there)
         ========================= */
 
-        .products {
-            width: 100%;
-            max-width: 100%;
-            min-width: 0;
-
-            display: grid;
-
-            grid-template-columns: repeat(4, minmax(0, 1fr));
-
-            gap: 18px;
+        .dash-greet {
+            display: none;
+            align-items: center;
+            gap: 12px;
         }
 
-        .product-card {
-            display: block;
-
-            min-width: 0;
-            max-width: 100%;
-
-            background: white;
-
-            border: 1px solid #f7e5e0;
-            border-radius: 14px;
-
-            padding: 18px;
-
-            transition: 0.2s;
-
+        .dash-greet-avatar {
+            width: 46px;
+            height: 46px;
+            flex-shrink: 0;
+            border-radius: 50%;
             overflow: hidden;
-        }
-
-        .product-card:hover {
-            transform: translateY(-3px);
-
-            box-shadow: 0 8px 25px rgba(232, 66, 15, 0.08);
-        }
-
-        .product-icon {
-            width: 100%;
-            max-width: 100%;
-
-            height: 130px;
-
-            border-radius: 10px;
-
-            background: #ffefea;
-
-            overflow: hidden;
-
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
             display: flex;
             align-items: center;
             justify-content: center;
-
-            font-size: 55px;
-            color: var(--accent);
-
-            margin-bottom: 15px;
         }
 
-        .product-icon img {
-            display: block;
-
+        .dash-greet-avatar img {
             width: 100%;
             height: 100%;
-
             object-fit: cover;
-
-            border-radius: inherit;
         }
 
-        .category {
-            color: #db5a33;
+        .dash-greet-text {
+            flex: 1;
+            min-width: 0;
+        }
 
-            font-size: 10px;
+        .dash-greet-text strong {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 22px;
+            font-weight: 800;
+            line-height: 1.1;
+        }
 
-            text-transform: uppercase;
+        .dash-greet-text span {
+            font-size: 12px;
+            color: #6f5a53;
+        }
 
-            font-weight: 700;
-
-            letter-spacing: 1px;
-
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .dash-cod-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 999px;
+            font-size: 11.5px;
+            font-weight: 800;
             white-space: nowrap;
         }
 
-        .product-name {
-            font-family: 'Baloo 2', sans-serif;
+        .dash-cod-chip.is-good { background: var(--teal-bg); color: var(--teal-dark); }
+        .dash-cod-chip.is-warn { background: #fff4d6; color: #7a5600; }
+        .dash-cod-chip.is-blocked { background: #fdecea; color: #b42318; }
 
-            font-size: 16px;
+        /* =========================
+           HERO BANNER
+        ========================= */
+
+        .dash-hero {
+            position: relative;
+            min-height: 250px;
+            border-radius: 24px;
+            background: #ffe7de;
+            overflow: hidden;
+
+            display: grid;
+            grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+        }
+
+        .dash-hero-text {
+            position: relative;
+            z-index: 1;
+            padding: 36px 40px;
+
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .dash-hero-eyebrow {
+            font-size: 11.5px;
+            font-weight: 800;
+            letter-spacing: 0.14em;
+            color: #a32c06;
+            text-transform: uppercase;
+        }
+
+        .dash-hero h1 {
+            font-family: var(--font-display);
+            font-size: 44px;
+            font-weight: 800;
+            line-height: 1.02;
+        }
+
+        .dash-hero p {
+            font-size: 14.5px;
+            color: #5b4a44;
+            max-width: 440px;
+            line-height: 1.55;
+        }
+
+        .dash-hero-cta {
+            align-self: flex-start;
+            margin-top: 6px;
+            min-height: 44px;
+            padding: 0 22px;
+            border-radius: 12px;
+            background: var(--ink);
+            color: #fff;
+            font-size: 13.5px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.2s ease;
+        }
+
+        .dash-hero-cta:hover {
+            background: #2a3550;
+        }
+
+        .dash-hero-art {
+            position: relative;
+        }
+
+        .dash-hero-tile {
+            position: absolute;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 16px 30px -18px rgba(23, 32, 51, 0.45);
+        }
+
+        .dash-hero-tile.t1 { left: 8%; top: 40px; width: 150px; height: 180px; background: #fff; color: #3b4aa8; font-size: 50px; transform: rotate(-7deg); }
+        .dash-hero-tile.t2 { left: 36%; top: 24px; width: 160px; height: 200px; background: var(--ink); color: #ff9a76; font-size: 54px; transform: rotate(4deg); }
+        .dash-hero-tile.t3 { left: 66%; top: 70px; width: 130px; height: 150px; background: #fff4d6; color: #8a6300; font-size: 44px; transform: rotate(-3deg); }
+
+        /* =========================
+           ACTIVE ORDERS
+        ========================= */
+
+        .order-row {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 18px 22px;
+
+            display: grid;
+            grid-template-columns: 64px minmax(0, 1.1fr) minmax(0, 1.5fr) auto;
+            align-items: center;
+            gap: 22px;
+        }
+
+        .order-thumb {
+            width: 64px;
+            height: 64px;
+            border-radius: 16px;
+            background: #ffefea;
+            color: var(--accent-dark);
+            font-size: 26px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .order-thumb,
+        .again-thumb {
+            position: relative;
+        }
+
+        .order-thumb img,
+        .again-thumb img {
+            position: absolute;
+            inset: 0;
+        }
+
+        .order-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .order-info {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 5px;
+            min-width: 0;
+        }
+
+        .order-meta {
+            font-size: 12px;
             font-weight: 700;
+            color: #6f5a53;
+        }
 
-            margin-top: 5px;
-
+        .order-name {
+            font-size: 15px;
+            font-weight: 800;
+            line-height: 1.3;
             overflow-wrap: anywhere;
         }
 
-        .price {
-            font-family: 'Baloo 2', sans-serif;
-
-            color: #e8420f;
-
-            font-size: 17px;
-            font-weight: 700;
-
-            margin-top: 8px;
+        .order-progress {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            min-width: 0;
         }
 
-        .view-btn {
-            display: block;
+        .order-steps {
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            gap: 5px;
+        }
 
-            width: 100%;
-            max-width: 100%;
+        .order-steps span {
+            height: 6px;
+            border-radius: 999px;
+            background: #f3e6e1;
+        }
 
-            background: #e8420f;
+        .order-steps span.is-on {
+            background: var(--accent);
+        }
 
-            color: white;
-
-            text-align: center;
-
-            padding: 10px;
-
-            border-radius: 8px;
-
+        .order-note {
             font-size: 12px;
-            font-weight: 700;
-
-            margin-top: 13px;
-
-            white-space: nowrap;
-
-            overflow: hidden;
-            text-overflow: ellipsis;
+            color: #6f5a53;
         }
 
-        .view-btn:hover {
-            background: #c43408;
+        .order-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            min-height: 42px;
+            padding: 0 16px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            cursor: pointer;
+            transition: background 0.2s ease, border-color 0.2s ease;
+        }
+
+        .btn-primary {
+            border: none;
+            background: var(--accent-dark);
+            color: #fff;
+        }
+
+        .btn-primary:hover {
+            background: #9e2a06;
+        }
+
+        .btn-ghost {
+            border: 1px solid #f0d9d1;
+            background: #fff;
+            color: #5b4a44;
+            font-weight: 700;
+        }
+
+        .btn-ghost:hover {
+            background: #fff7f4;
+        }
+
+        .btn-dark {
+            border: none;
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .btn-dark:hover {
+            background: #2a3550;
+        }
+
+        .btn[disabled] {
+            background: #ece4e1;
+            color: #8d7c77;
+            cursor: not-allowed;
         }
 
         /* =========================
-           EMPTY
+           BUY AGAIN
         ========================= */
 
-        .empty {
-            width: 100%;
-            max-width: 100%;
+        .again-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 14px;
+        }
 
-            background: white;
+        .again-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            min-width: 0;
+        }
 
-            border: 1px solid #f7e5e0;
+        .again-top {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            min-width: 0;
+        }
 
+        .again-thumb {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
             border-radius: 14px;
+            background: #fff4d6;
+            color: #8a6300;
+            font-size: 22px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
 
-            padding: 50px;
+        .again-thumb img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
 
+        .again-name {
+            font-size: 13px;
+            font-weight: 800;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .again-price {
+            display: block;
+            font-family: var(--font-display);
+            font-size: 16px;
+            font-weight: 800;
+            color: var(--accent-dark);
+        }
+
+        .again-btn {
+            min-height: 40px;
+            border: 1px solid #f0d9d1;
+            border-radius: 10px;
+            background: #fff7f4;
+            color: var(--accent-dark);
+            font-size: 12.5px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .again-btn:hover {
+            background: #fff1ec;
+        }
+
+        /* =========================
+           DISCOVER
+        ========================= */
+
+        .discover-tabs {
+            display: flex;
+            gap: 4px;
+            padding: 4px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .discover-tabs::-webkit-scrollbar {
+            display: none;
+        }
+
+        .discover-tab {
+            flex-shrink: 0;
+            min-height: 36px;
+            padding: 0 14px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: #5b4a44;
+            font-size: 12.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .discover-tab:hover {
+            background: #fff7f4;
+        }
+
+        .discover-tab[aria-selected="true"] {
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .discover-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .discover-empty {
+            padding: 40px 20px;
+            border: 1px dashed #f0d9d1;
+            border-radius: 18px;
             text-align: center;
+            font-size: 13.5px;
+            color: #6f5a53;
+        }
 
-            color: #977970;
+        .p-card {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .p-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -20px rgba(23, 32, 51, 0.35);
+        }
+
+        .p-media {
+            position: relative;
+            height: 250px;
+            background: #fff4f0;
+            color: #e2a08a;
+            font-size: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .p-media img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .p-cat {
+            position: absolute;
+            left: 12px;
+            bottom: 12px;
+            max-width: calc(100% - 24px);
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.94);
+            color: var(--ink);
+            font-size: 11px;
+            font-weight: 800;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .p-heart {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 40px;
+            height: 40px;
+            border: none;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--accent-dark);
+            font-size: 17px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(23, 32, 51, 0.1);
+        }
+
+        .p-body {
+            flex: 1;
+            padding: 16px 18px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .p-name {
+            font-size: 16px;
+            font-weight: 800;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .p-name:hover {
+            color: var(--accent-dark);
+        }
+
+        .p-sub {
+            margin-top: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .p-sub .bi-star-fill {
+            color: var(--gold);
+        }
+
+        .p-sub .is-low {
+            color: #8a4b00;
+            font-weight: 800;
+        }
+
+        .p-bottom {
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .p-price {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-dark);
+            white-space: nowrap;
+        }
+
+        .p-bottom form {
+            margin: 0;
         }
 
         /* =========================
            FOOTER
         ========================= */
 
-        footer {
-            width: 100%;
-            max-width: 100%;
-
-            background: white;
-
-            border-top: 1px solid #f7e5e0;
-
-            padding: 30px 7%;
-
+        .dash-footer {
+            border-top: 1px solid var(--line);
+            background: #fff;
+            padding: 26px 20px;
             display: flex;
-
+            align-items: center;
             justify-content: space-between;
-
-            color: #977970;
-
-            font-size: 12px;
-
-            box-sizing: border-box;
-
-            overflow: hidden;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #6f5a53;
         }
 
-        footer strong {
-            color: #e8420f;
+        .dash-footer > * {
+            max-width: 1320px;
         }
 
         /* =========================
-           MOBILE NAV TOGGLE
+           RESPONSIVE
         ========================= */
 
-        .nav-toggle {
-            display: none;
-
-            background: none;
-            border: none;
-
-            font-size: 22px;
-
-            color: #172033;
-
-            cursor: pointer;
-        }
-
-        /* =========================
-           TABLET
-        ========================= */
-
-        @media (max-width: 1100px) {
-
-            .container {
-                width: calc(100% - 32px);
+        @media (max-width: 1180px) {
+            .order-row {
+                grid-template-columns: 64px minmax(0, 1fr) auto;
             }
 
-            .products {
-                grid-template-columns: repeat(3, minmax(0, 1fr));
-            }
-        }
-
-        /* =========================
-           SMALL TABLET
-        ========================= */
-
-        @media (max-width: 900px) {
-
-            .container {
-                width: calc(100% - 30px);
+            .order-progress {
+                grid-column: 2 / -1;
+                grid-row: 2;
             }
 
-            .products {
+            .again-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .discover-grid {
                 grid-template-columns: repeat(2, minmax(0, 1fr));
             }
         }
 
-        /* =========================
-           MOBILE
-        ========================= */
-
-        @media (max-width: 700px) {
-
-            .section-title {
-                flex-wrap: wrap;
+        /* Sidebar moves to the Me page (bottom tab bar). */
+        @media (max-width: 900px) {
+            .dash {
+                grid-template-columns: minmax(0, 1fr);
+                margin-top: 18px;
+                width: calc(100% - 32px);
             }
 
-            .container {
-                width: calc(100% - 24px);
-
-                max-width: none;
-
-                margin-top: 25px;
-
-                margin-bottom: 50px;
+            .dash-side {
+                display: none;
             }
 
-            .welcome {
-                padding: 22px;
+            .dash-main {
+                gap: 28px;
             }
 
-            .welcome h1 {
-                font-size: 27px;
+            .dash-greet {
+                display: flex;
             }
 
-            .welcome p {
+            .dash-section-head h2 {
+                font-size: 21px;
+            }
+
+            .dash-hero {
+                grid-template-columns: minmax(0, 1fr);
+                min-height: 0;
+                border-radius: 20px;
+            }
+
+            .dash-hero-text {
+                padding: 24px 22px;
+                max-width: 64%;
+            }
+
+            .dash-hero h1 {
+                font-size: 30px;
+            }
+
+            .dash-hero p {
+                font-size: 12.5px;
+            }
+
+            .dash-hero-art {
+                position: absolute;
+                inset: 0;
+            }
+
+            .dash-hero-tile.t1 { display: none; }
+            .dash-hero-tile.t2 { left: auto; right: -18px; top: 34px; width: 110px; height: 136px; font-size: 40px; }
+            .dash-hero-tile.t3 { left: auto; right: 70px; top: 90px; width: 72px; height: 88px; font-size: 28px; border-radius: 14px; }
+
+            .order-row {
+                grid-template-columns: 52px minmax(0, 1fr);
+                gap: 12px 12px;
+                padding: 16px;
+            }
+
+            .order-thumb {
+                width: 52px;
+                height: 52px;
+                font-size: 22px;
+                border-radius: 14px;
+            }
+
+            .order-progress,
+            .order-actions {
+                grid-column: 1 / -1;
+            }
+
+            .order-progress {
+                grid-row: auto;
+            }
+
+            .order-actions .btn {
+                flex: 1;
+            }
+
+            /* Buy again scrolls sideways */
+            .again-grid {
+                display: flex;
+                overflow-x: auto;
+                margin-right: -16px;
+                padding-right: 16px;
+                scrollbar-width: none;
+            }
+
+            .again-grid::-webkit-scrollbar {
+                display: none;
+            }
+
+            .again-card {
+                flex: 0 0 150px;
+            }
+
+            .again-top {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .again-thumb {
+                width: 100%;
+                height: 86px;
+                font-size: 28px;
+            }
+
+            .discover-grid {
+                gap: 12px;
+            }
+
+            .p-card {
+                border-radius: 18px;
+            }
+
+            .p-media {
+                height: 170px;
+                font-size: 46px;
+            }
+
+            .p-cat {
+                display: none;
+            }
+
+            .p-heart {
+                top: 6px;
+                right: 6px;
+            }
+
+            .p-body {
+                padding: 10px 12px 12px;
+                gap: 6px;
+            }
+
+            .p-name {
                 font-size: 13px;
             }
 
-            .quick-actions {
-                grid-template-columns: minmax(0, 1fr);
+            .p-sub {
+                font-size: 11px;
             }
 
-            .products {
-                grid-template-columns: minmax(0, 1fr);
+            .p-price {
+                font-size: 18px;
             }
 
-            .product-card {
-                padding: 15px;
+            .p-bottom .btn {
+                min-width: 42px;
+                padding: 0 12px;
             }
 
-            .product-icon {
-                height: 180px;
-            }
-
-            footer {
-                flex-direction: column;
-
-                gap: 8px;
-
-                text-align: center;
-
-                padding: 25px 15px;
+            .p-bottom .btn-label {
+                display: none;
             }
         }
 
-        /* =========================
-           VERY SMALL MOBILE
-        ========================= */
-
-        @media (max-width: 450px) {
-
-            .container {
-                width: calc(100% - 16px);
+        @media (max-width: 380px) {
+            .dash-hero-text {
+                max-width: 72%;
             }
 
-            .welcome {
-                padding: 18px;
-            }
-
-            .welcome h1 {
-                font-size: 24px;
-            }
-
-            .product-icon {
-                height: 150px;
+            .p-media {
+                height: 140px;
             }
         }
     </style>
@@ -561,270 +897,366 @@
 
     @include('partials.buyer-navbar', ['activeNav' => 'home'])
 
+    @php
+        $cod = $panel['cod'];
+        $codClass = $cod['blocked'] ? 'is-blocked' : ($cod['strikes'] > 0 ? 'is-warn' : 'is-good');
+        $codLabel = $cod['blocked'] ? 'COD paused' : ($cod['strikes'] > 0 ? 'COD ' . $cod['strikes'] . '/' . $cod['limit'] : 'COD OK');
 
-    <!-- =========================
-         MAIN (full width, no sidebar)
-    ========================= -->
+        $announcement = \App\Models\PlatformAnnouncement::where('is_active', true)
+            ->orderByDesc('created_at')
+            ->first();
 
-    <main class="main-content">
+        $discoverTabs = [
+            'latest' => ['label' => 'Latest', 'empty' => 'No products yet.'],
+            'top' => ['label' => 'Top rated', 'empty' => 'No rated products yet — reviews show up here once buyers rate their orders.'],
+            'budget' => ['label' => 'Under ₱1,000', 'empty' => 'No products under ₱1,000 right now.'],
+        ];
+    @endphp
 
-        <div class="container">
+    <main class="dash">
 
-            @include('partials.announcement-banner')
+        {{-- SIDEBAR (desktop) --}}
+        <aside class="dash-side">
+            @include('partials.buyer-account-panel', ['panel' => $panel])
+        </aside>
 
-            <!-- =========================
-                 WELCOME
-            ========================= -->
+        <div class="dash-main">
 
-            <section class="welcome">
-
-                <small>
-                    Welcome to BoomBuy
-                </small>
-
-                <h1>
-                    Welcome,
-                    {{ $user['name'] ?? 'Buyer' }}!
-                </h1>
-
-                <p>
-                    Browse products, manage your orders,
-                    and shop from BoomBuy.
-                </p>
-
+            {{-- GREETING (mobile) --}}
+            <section class="dash-greet">
+                <span class="dash-greet-avatar">
+                    @if($panel['photo'])
+                        <img src="{{ $panel['photo'] }}" alt="">
+                    @else
+                        {{ strtoupper(substr($panel['name'], 0, 1)) }}
+                    @endif
+                </span>
+                <div class="dash-greet-text">
+                    <strong>Hi, {{ \Illuminate\Support\Str::of($panel['name'])->before(' ') }}!</strong>
+                    <span>
+                        @if($panel['active_orders'] > 0)
+                            {{ $panel['active_orders'] }} active {{ \Illuminate\Support\Str::plural('order', $panel['active_orders']) }}
+                        @else
+                            Welcome back to BoomBuy
+                        @endif
+                    </span>
+                </div>
+                <a href="{{ route('buyer.account') }}" class="dash-cod-chip {{ $codClass }}" aria-label="Cash on Delivery standing: {{ $codLabel }}">
+                    <i class="bi {{ $cod['blocked'] ? 'bi-slash-circle' : ($cod['strikes'] > 0 ? 'bi-exclamation-circle' : 'bi-check-lg') }}"></i>{{ $codLabel }}
+                </a>
             </section>
 
-
-            <!-- =========================
-                 QUICK ACTIONS
-            ========================= -->
-
-            <div class="quick-actions">
-
-                <a
-                    href="{{ route('products') }}"
-                    class="quick-card"
-                >
-
-                    <strong>
-                        Continue Shopping
-                    </strong>
-
-                    <span>
-                        Browse all available products.
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('buyer.orders') }}"
-                    class="quick-card"
-                >
-
-                    <strong>
-                        My Orders
-                    </strong>
-
-                    <span>
-                        View your previous and current orders.
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('cart') }}"
-                    class="quick-card"
-                >
-
-                    <strong>
-                        My Cart
-                    </strong>
-
-                    <span>
-                        Review the products you want to purchase.
-                    </span>
-
-                </a>
-
-            </div>
-
-
-            <!-- =========================
-                 PRODUCTS
-            ========================= -->
-
-            <div class="section-title">
-
-                <div>
-
-                    <h2>
-                        Available Products
-                    </h2>
-
-                    <p>
-                        Explore the latest products available on BoomBuy.
-                    </p>
-
+            {{-- HERO: latest platform announcement, else the COD message --}}
+            <section class="dash-hero">
+                <div class="dash-hero-text">
+                    @if($announcement)
+                        <span class="dash-hero-eyebrow"><i class="bi bi-megaphone-fill"></i> Announcement</span>
+                        <h1>{{ $announcement->title }}</h1>
+                        <p>{{ $announcement->message }}</p>
+                    @else
+                        <span class="dash-hero-eyebrow">From BoomBuy</span>
+                        <h1>Pay when it arrives.</h1>
+                        <p>Every order supports Cash on Delivery. Pay the rider when your parcel reaches your door.</p>
+                    @endif
+                    <a href="{{ route('products') }}" class="dash-hero-cta">Start shopping <i class="bi bi-arrow-right"></i></a>
                 </div>
+                <div class="dash-hero-art" aria-hidden="true">
+                    <span class="dash-hero-tile t1"><i class="bi bi-headphones"></i></span>
+                    <span class="dash-hero-tile t2"><i class="bi bi-phone"></i></span>
+                    <span class="dash-hero-tile t3"><i class="bi bi-lightning-charge"></i></span>
+                </div>
+            </section>
 
-                <a href="{{ route('products') }}" class="view-all-link">
-                    View All Products →
-                </a>
+            {{-- YOUR ORDERS --}}
+            @if(count($activeOrders) > 0)
+                <section class="dash-section">
+                    <div class="dash-section-head">
+                        <h2>Your orders</h2>
+                        <a href="{{ route('buyer.orders') }}" class="dash-link">All orders →</a>
+                    </div>
 
-            </div>
-
-
-            @if(count($newestProducts) > 0)
-
-                <div class="products">
-
-                    @foreach($newestProducts as $product)
-
-                        <a
-                            href="{{
-                                route(
-                                    'product.details',
-                                    $product['slug']
-                                )
-                            }}"
-                            class="product-card"
-                        >
-
-                            <div class="product-icon">
-
-                                @php
-
-                                    $pIcon =
-                                        $product['icon'] ?? null;
-
-                                    $pIsImg =
-                                        is_string($pIcon) &&
-                                        (
-                                            str_contains(
-                                                $pIcon,
-                                                '.jpg'
-                                            ) ||
-                                            str_contains(
-                                                $pIcon,
-                                                '.jpeg'
-                                            ) ||
-                                            str_contains(
-                                                $pIcon,
-                                                '.png'
-                                            ) ||
-                                            str_contains(
-                                                $pIcon,
-                                                '.webp'
-                                            ) ||
-                                            str_contains(
-                                                $pIcon,
-                                                '/'
-                                            )
-                                        );
-
-                                @endphp
-
-
-                                @if($pIsImg)
-
-                                    <img
-                                        src="{{
-                                            str_starts_with(
-                                                $pIcon,
-                                                'http'
-                                            )
-                                                ? $pIcon
-                                                : asset(
-                                                    'storage/' .
-                                                    ltrim(
-                                                        $pIcon,
-                                                        '/'
-                                                    )
-                                                )
-                                        }}"
-                                        alt="{{
-                                            $product['name']
-                                            ?? 'Product'
-                                        }}"
-                                        style="display:none;"
-                                        onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                                        onerror="this.style.display='none';"
-                                    >
-                                    <span><i class="bi bi-box-seam-fill"></i></span>
-
-                                @else
-
-                                    <i class="bi bi-box-seam-fill"></i>
-
+                    @foreach($activeOrders as $order)
+                        <article class="order-row">
+                            <span class="order-thumb">
+                                @if($order['image'])
+                                    <img src="{{ $order['image'] }}" alt="" onerror="this.remove()">
                                 @endif
-
-                            </div>
-
-
-                            <div class="category">
-                                {{ $product['category'] ?? 'Other' }}
-                            </div>
-
-
-                            <div class="product-name">
-                                {{ $product['name'] }}
-                            </div>
-
-
-                            <div class="price">
-                                ₱{{ number_format($product['price'] ?? 0) }}
-                            </div>
-
-
-                            <span class="view-btn">
-                                View Product
+                                <i class="bi {{ $order['icon'] }}"></i>
                             </span>
 
-                        </a>
+                            <div class="order-info">
+                                <span class="order-meta">Order #{{ $order['id'] }} · ₱{{ number_format($order['total'], 2) }}</span>
+                                <span class="order-name">{{ $order['name'] }}</span>
+                                <x-status-pill :status="$order['status']" />
+                            </div>
 
+                            <div class="order-progress">
+                                <div class="order-steps" role="img" aria-label="Step {{ $order['step'] }} of 5">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <span class="{{ $i <= $order['step'] ? 'is-on' : '' }}"></span>
+                                    @endfor
+                                </div>
+                                <span class="order-note">{{ $order['note'] }}</span>
+                            </div>
+
+                            <div class="order-actions">
+                                @if($order['seller_id'])
+                                    <a href="{{ route('messages.thread', $order['seller_id']) }}" class="btn btn-ghost">
+                                        <i class="bi bi-chat-dots"></i> Chat seller
+                                    </a>
+                                @endif
+                                <a href="{{ route('buyer.orders') }}#order-{{ $order['id'] }}" class="btn btn-primary">Track order</a>
+                            </div>
+                        </article>
                     @endforeach
-
-                </div>
-
-            @else
-
-                <div class="empty">
-
-                    <h3>
-                        No Products Available
-                    </h3>
-
-                    <p>
-                        There are currently no products available.
-                    </p>
-
-                </div>
-
+                </section>
             @endif
+
+            {{-- BUY AGAIN --}}
+            @if(count($buyAgain) > 0)
+                <section class="dash-section">
+                    <div class="dash-section-head">
+                        <div>
+                            <h2>Buy again</h2>
+                            <p>From your delivered orders.</p>
+                        </div>
+                    </div>
+
+                    <div class="again-grid">
+                        @foreach($buyAgain as $product)
+                            <div class="again-card">
+                                <div class="again-top">
+                                    <span class="again-thumb">
+                                        @if($product['image'])
+                                            <img src="{{ $product['image'] }}" alt="" onerror="this.remove()">
+                                        @endif
+                                        <i class="bi {{ $product['icon'] }}"></i>
+                                    </span>
+                                    <span style="min-width:0;">
+                                        <span class="again-name">{{ $product['name'] }}</span>
+                                        <span class="again-price">₱{{ number_format($product['price'], 2) }}</span>
+                                    </span>
+                                </div>
+                                <a href="{{ route('product.details', $product['slug']) }}" class="again-btn">
+                                    <i class="bi bi-arrow-repeat"></i> Buy again
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
+            {{-- DISCOVER --}}
+            <section class="dash-section">
+                <div class="dash-section-head">
+                    <h2>Discover</h2>
+                    <div class="discover-tabs" role="tablist" aria-label="Discover products">
+                        @foreach($discoverTabs as $key => $tab)
+                            <button
+                                type="button"
+                                class="discover-tab"
+                                role="tab"
+                                id="discover-tab-{{ $key }}"
+                                aria-controls="discover-{{ $key }}"
+                                aria-selected="{{ $loop->first ? 'true' : 'false' }}"
+                                tabindex="{{ $loop->first ? '0' : '-1' }}"
+                                data-discover-tab="{{ $key }}"
+                            >{{ $tab['label'] }}</button>
+                        @endforeach
+                    </div>
+                </div>
+
+                @foreach($discoverTabs as $key => $tab)
+                    <div
+                        id="discover-{{ $key }}"
+                        role="tabpanel"
+                        aria-labelledby="discover-tab-{{ $key }}"
+                        @unless($loop->first) hidden @endunless
+                    >
+                        @if(count($discover[$key]) === 0)
+                            <div class="discover-empty">{{ $tab['empty'] }}</div>
+                        @else
+                            <div class="discover-grid">
+                                @foreach($discover[$key] as $product)
+                                    <article class="p-card">
+                                        <div class="p-media">
+                                            @if($product['image'])
+                                                <img src="{{ $product['image'] }}" alt="{{ $product['name'] }}" loading="lazy" onerror="this.remove()">
+                                            @endif
+                                                <i class="bi {{ $product['icon'] }}"></i>
+
+                                            <button
+                                                type="button"
+                                                class="p-heart"
+                                                data-wishlist="{{ $product['id'] }}"
+                                                aria-pressed="{{ $product['in_wishlist'] ? 'true' : 'false' }}"
+                                                aria-label="{{ $product['in_wishlist'] ? 'Remove from wishlist' : 'Add to wishlist' }}"
+                                            >
+                                                <i class="bi {{ $product['in_wishlist'] ? 'bi-heart-fill' : 'bi-heart' }}"></i>
+                                            </button>
+
+                                            <span class="p-cat">{{ $product['category'] }}</span>
+                                        </div>
+
+                                        <div class="p-body">
+                                            <div>
+                                                <a href="{{ route('product.details', $product['slug']) }}" class="p-name">{{ $product['name'] }}</a>
+                                                <div class="p-sub">
+                                                    @if($product['rating'])
+                                                        <i class="bi bi-star-fill"></i> {{ $product['rating'] }} ({{ $product['reviews'] }})
+                                                    @else
+                                                        New
+                                                    @endif
+                                                    ·
+                                                    @if($product['stock'] <= 0)
+                                                        <span class="is-low">Sold out</span>
+                                                    @elseif($product['stock'] <= 10)
+                                                        <span class="is-low">Only {{ $product['stock'] }} left</span>
+                                                    @else
+                                                        {{ $product['stock'] }} in stock
+                                                    @endif
+                                                </div>
+                                            </div>
+
+                                            <div class="p-bottom">
+                                                <span class="p-price">₱{{ number_format($product['price']) }}</span>
+
+                                                @if($product['stock'] <= 0)
+                                                    <button type="button" class="btn" disabled>Sold out</button>
+                                                @elseif($product['has_variations'])
+                                                    <a href="{{ route('product.details', $product['slug']) }}" class="btn btn-dark" aria-label="Choose options for {{ $product['name'] }}">
+                                                        <i class="bi bi-sliders"></i><span class="btn-label">Options</span>
+                                                    </a>
+                                                @else
+                                                    <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart>
+                                                        @csrf
+                                                        <button type="submit" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart">
+                                                            <i class="bi bi-plus-lg"></i><span class="btn-label">Add</span>
+                                                        </button>
+                                                    </form>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </article>
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+                @endforeach
+
+                <div style="text-align:center;">
+                    <a href="{{ route('products') }}" class="dash-link">Browse all products →</a>
+                </div>
+            </section>
 
         </div>
 
     </main>
 
 
-    <!-- =========================
-         FOOTER
-    ========================= -->
+    <script>
+    (function () {
+        var token = document.querySelector('meta[name="csrf-token"]').content;
 
-    <footer>
+        /* Discover tabs */
+        var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-discover-tab]'));
 
-        <div>
-            © 2026
-            <strong>BoomBuy</strong>
-        </div>
+        function select(tab) {
+            tabs.forEach(function (t) {
+                var on = t === tab;
+                t.setAttribute('aria-selected', on ? 'true' : 'false');
+                t.tabIndex = on ? 0 : -1;
+                document.getElementById('discover-' + t.dataset.discoverTab).hidden = !on;
+            });
+        }
 
-        <div>
-            Your Marketplace for Everything
-        </div>
+        tabs.forEach(function (tab, i) {
+            tab.addEventListener('click', function () { select(tab); });
+            tab.addEventListener('keydown', function (e) {
+                var next = e.key === 'ArrowRight' ? i + 1 : e.key === 'ArrowLeft' ? i - 1 : null;
+                if (next === null) return;
+                e.preventDefault();
+                var target = tabs[(next + tabs.length) % tabs.length];
+                select(target);
+                target.focus();
+            });
+        });
 
-    </footer>
+        /* Wishlist hearts */
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-wishlist]');
+            if (!btn) return;
+
+            var body = new FormData();
+            body.append('_token', token);
+
+            fetch('/wishlist/toggle/' + btn.dataset.wishlist, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: body
+            })
+                .then(function (res) { if (!res.ok) throw new Error(); return res.json(); })
+                .then(function (data) {
+                    // The same product can appear under several tabs.
+                    document.querySelectorAll('[data-wishlist="' + btn.dataset.wishlist + '"]').forEach(function (b) {
+                        b.setAttribute('aria-pressed', data.in_wishlist ? 'true' : 'false');
+                        b.setAttribute('aria-label', data.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist');
+                        b.querySelector('i').className = 'bi ' + (data.in_wishlist ? 'bi-heart-fill' : 'bi-heart');
+                    });
+                })
+                .catch(function () {
+                    if (window.bbAlert) bbAlert('Could not update your wishlist. Please try again.');
+                });
+        });
+
+        /* Add to cart without leaving the page */
+        document.querySelectorAll('[data-add-cart]').forEach(function (form) {
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+
+                var button = form.querySelector('button');
+                var original = button.innerHTML;
+                button.disabled = true;
+
+                fetch(form.action, {
+                    method: 'POST',
+                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                    body: new FormData(form)
+                })
+                    .then(function (res) { return res.json(); })
+                    .then(function (data) {
+                        // Only say "Added" when the server actually added it.
+                        if (!data.ok) {
+                            button.innerHTML = original;
+                            button.disabled = false;
+                            if (window.bbAlert) bbAlert(data.message || 'Could not add this item to your cart.');
+                            return;
+                        }
+
+                        button.innerHTML = '<i class="bi bi-check-lg"></i><span class="btn-label">Added</span>';
+
+                        var badge = document.getElementById('cartCount');
+                        if (badge && data.cart_count) {
+                            badge.textContent = data.cart_count;
+                            badge.style.display = '';
+                        }
+
+                        setTimeout(function () {
+                            button.innerHTML = original;
+                            button.disabled = false;
+                        }, 1400);
+                    })
+                    .catch(function () {
+                        button.innerHTML = original;
+                        button.disabled = false;
+                        if (window.bbAlert) bbAlert('Could not add this item to your cart. Please try again.');
+                    });
+            });
+        });
+    })();
+    </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

@@ -356,6 +356,40 @@
             padding: 10px 7% 20px;
         }
 
+        /* Room for the search suggestions while the search box is in use. */
+        .mobile-menu.is-open:focus-within {
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+
+        /* Inside the (clipped) mobile menu the suggestions sit in the flow,
+           right under the search box, instead of floating over the page. */
+        .mobile-search {
+            flex-wrap: wrap;
+        }
+
+        .mobile-search .bb-suggest {
+            position: static;
+            flex-basis: 100%;
+            margin: 6px -4px 8px -14px;
+            box-shadow: none;
+        }
+
+        /* Undo the big menu-link styling (.mobile-menu a) for the links
+           inside the suggestions. */
+        .mobile-menu .bb-suggest a {
+            font-size: 13px;
+            font-weight: 400;
+            padding: 6px 10px;
+            border-bottom: none;
+        }
+
+        .mobile-menu .bb-suggest a.bb-suggest-chip {
+            font-size: 12px;
+            font-weight: 600;
+            padding: 5px 11px;
+        }
+
         .mobile-menu a {
             color: #33241f;
             font-size: 14px;
@@ -1483,7 +1517,7 @@
 
         </div>
 
-        <form class="nav-search" action="{{ route('products') }}" method="GET">
+        <form class="nav-search" action="{{ route('products') }}" method="GET" data-search-suggest>
             <input
                 type="text"
                 name="search"
@@ -1539,7 +1573,7 @@
             Shop
         </a>
 
-        <form class="mobile-search" action="{{ route('products') }}" method="GET">
+        <form class="mobile-search" action="{{ route('products') }}" method="GET" data-search-suggest>
             <input
                 type="text"
                 name="search"
@@ -2742,6 +2776,8 @@
             }, DURATION);
         })();
     </script>
+
+    @include('partials.search-suggest')
 
     @include('partials.pwa-register')
 

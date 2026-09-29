@@ -28,6 +28,32 @@ class Categories
         'garden-outdoor' => 'Garden & Outdoor',
     ];
 
+    /** Bootstrap Icons per category — the same mapping as the landing page. */
+    public const ICONS = [
+        'electronics' => 'bi-phone',
+        'womens-fashion' => 'bi-handbag',
+        'mens-fashion' => 'bi-bag-fill',
+        'kids-baby' => 'bi-balloon-heart-fill',
+        'home-living' => 'bi-house-door-fill',
+        'sports-outdoors' => 'bi-trophy-fill',
+        'beauty-personal-care' => 'bi-stars',
+        'food-beverages' => 'bi-cup-hot-fill',
+        'automotive' => 'bi-car-front-fill',
+        'office-school' => 'bi-backpack2-fill',
+        'pet-supplies' => 'bi-heart-fill',
+        'toys-games-hobbies' => 'bi-controller',
+        'jewelry-accessories' => 'bi-gem',
+        'shoes' => 'bi-tag-fill',
+        'tools-home-improvement' => 'bi-tools',
+        'garden-outdoor' => 'bi-flower1',
+    ];
+
+    /** Icon for a slug, label or old category; a box when unknown. */
+    public static function icon(?string $value): string
+    {
+        return self::ICONS[self::slug($value) ?? ''] ?? 'bi-box-seam-fill';
+    }
+
     /** Categories from before the 16-category system, mapped to their new slug. */
     private const OLD_ALIASES = [
         'smartphone' => 'electronics',

@@ -448,6 +448,12 @@ class RiderController extends Controller
             (int) $id
         );
 
+        notifyOrderSellers(
+            (int) $id,
+            'Order Picked Up by Rider',
+            'Order #' . $id . ' has been picked up by the rider and is on its way to the Sorting Center.'
+        );
+
         notifyLogisticsUsers(
             'Parcel En Route',
             'Order #' . $id . ' has been picked up by a rider and is on its way to the Sorting Center.',
@@ -642,6 +648,12 @@ class RiderController extends Controller
                         (int) $id
                     );
 
+                    notifyOrderSellers(
+                        (int) $id,
+                        'Parcel Refused by Buyer',
+                        'The buyer refused order #' . $id . ' on delivery. The parcel will be brought back to the Sorting Center and returned to you.'
+                    );
+
                     return back()->with('success', 'Marked as refused by the buyer. Please bring the parcel back to the Sorting Center — it will be returned to the seller.');
                 }
 
@@ -651,6 +663,12 @@ class RiderController extends Controller
                     'We were unable to deliver your order #' . $id . '. Reason: ' . $reason . '. It will be rescheduled shortly.',
                     'order',
                     (int) $id
+                );
+
+                notifyOrderSellers(
+                    (int) $id,
+                    'Delivery Attempt Failed',
+                    'The rider could not deliver order #' . $id . '. Reason: ' . $reason . '. The Sorting Center will reschedule or return it.'
                 );
 
                 return back()->with('success', 'Delivery marked as failed. The Sorting Center will reschedule or return this parcel.');
@@ -707,6 +725,12 @@ class RiderController extends Controller
                 ' has been delivered successfully.',
                 'order',
                 (int) $id
+            );
+
+            notifyOrderSellers(
+                (int) $id,
+                'Order Delivered',
+                'Order #' . $id . ' has been delivered to the buyer.'
             );
         }
 

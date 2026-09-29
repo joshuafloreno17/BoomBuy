@@ -334,6 +334,75 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+    /* Saved addresses */
+    .addr-pick {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .addr-pick-option {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 12px 14px;
+        border: 1px solid #f0d9d1;
+        border-radius: 12px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.15s ease, background 0.15s ease;
+    }
+
+    .addr-pick-option:has(input:checked) {
+        border-color: #172033;
+        background: #fffaf8;
+    }
+
+    .addr-pick-option input {
+        margin-top: 3px;
+        accent-color: #c43408;
+    }
+
+    .addr-pick-option span {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .addr-pick-option strong {
+        font-size: 13.5px;
+        color: #172033;
+    }
+
+    .addr-pick-option em {
+        margin-left: 6px;
+        padding: 1px 7px;
+        border-radius: 999px;
+        background: #172033;
+        color: #fff;
+        font-size: 10.5px;
+        font-style: normal;
+    }
+
+    .addr-pick-option small {
+        font-size: 12px;
+        color: #6f5a53;
+        overflow-wrap: anywhere;
+    }
+
+    .addr-manage {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 16px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #c43408;
+        text-decoration: none;
+    }
 </style>
 
 </head>
@@ -383,6 +452,37 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <h2>
                     <i class="bi bi-geo-alt-fill"></i> Shipping Information
                 </h2>
+
+                {{-- ADDRESS BOOK: pick a saved address instead of retyping it --}}
+                @if(!empty($addresses) && $addresses->count() > 0)
+                    <div class="addr-pick" role="radiogroup" aria-label="Saved addresses">
+                        @foreach($addresses as $addr)
+                            <label class="addr-pick-option">
+                                <input
+                                    type="radio"
+                                    name="saved_address"
+                                    value="{{ $addr->id }}"
+                                    data-address="{{ $addr->address }}"
+                                    data-phone="{{ $addr->phone }}"
+                                    @checked(!old('address') && $addr->is_default)
+                                >
+                                <span>
+                                    <strong>
+                                        {{ $addr->label ?: 'Address' }}
+                                        @if($addr->is_default)
+                                            <em>Default</em>
+                                        @endif
+                                    </strong>
+                                    <small>{{ $addr->address }}</small>
+                                    <small>{{ $addr->phone }}</small>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+                    <a href="{{ route('buyer.profile') }}#addresses" class="addr-manage"><i class="bi bi-pencil"></i> Manage addresses</a>
+                @else
+                    <a href="{{ route('buyer.profile') }}#addresses" class="addr-manage"><i class="bi bi-plus-lg"></i> Save addresses for faster checkout</a>
+                @endif
 
 
                 <div class="form-group">
@@ -584,18 +684,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                             <div class="product-info">
 
                                 <div class="product-icon">
-
-                                    @php
-                                        $pIcon = $product['icon'] ?? null;
-                                        $pIsImg = is_string($pIcon) && (str_contains($pIcon, '.jpg') || str_contains($pIcon, '.jpeg') || str_contains($pIcon, '.png') || str_contains($pIcon, '.webp') || str_contains($pIcon, '/'));
-                                    @endphp
-                                    @if($pIsImg)
-                                        <img src="{{ str_starts_with($pIcon, 'http') ? $pIcon : asset('storage/' . ltrim($pIcon, '/')) }}" alt="{{ $product['name'] ?? 'Product' }}" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;" onload="this.style.display='block'; this.nextElementSibling.style.display='none';" onerror="this.style.display='none';">
-                                        <span><i class="bi bi-box-seam-fill"></i></span>
-                                    @else
-                                        <i class="bi bi-box-seam-fill"></i>
-                                    @endif
-
+                                    <x-product-thumb :image="$product['image']" :category="$product['category']" size="48" style="width:100%; height:100%; border-radius:inherit;" />
                                 </div>
 
 
@@ -714,6 +803,34 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </form>
 
 </div>
+
+    <script>
+    (function () {
+        // Picking a saved address fills the delivery fields below.
+        var address = document.querySelector('input[name="address"]');
+        var phone = document.querySelector('input[name="phone"]');
+        if (!address || !phone) return;
+
+        document.querySelectorAll('input[name="saved_address"]').forEach(function (radio) {
+            radio.addEventListener('change', function () {
+                address.value = radio.dataset.address;
+                phone.value = radio.dataset.phone;
+            });
+        });
+
+        // Typing a different address un-picks the saved one.
+        [address, phone].forEach(function (input) {
+            input.addEventListener('input', function () {
+                document.querySelectorAll('input[name="saved_address"]:checked').forEach(function (radio) {
+                    if (radio.dataset.address !== address.value || radio.dataset.phone !== phone.value) {
+                        radio.checked = false;
+                    }
+                });
+            });
+        });
+    })();
+    </script>
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

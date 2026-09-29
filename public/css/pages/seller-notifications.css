@@ -171,10 +171,6 @@ a {
     gap: 12px;
 }
 
-.notification-form {
-    margin: 0;
-}
-
 .notification-card {
     width: 100%;
     border: 1px solid #f7e5e0;
@@ -197,7 +193,6 @@ a {
 }
 
 .notification-card.read {
-    cursor: default;
     opacity: 0.82;
 }
 

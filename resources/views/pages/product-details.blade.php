@@ -75,7 +75,8 @@
             padding: 35px;
 
             display: grid;
-            grid-template-columns: 45% 55%;
+            /* Fractions, not 45% + 55% — those plus the gap overflowed the card. */
+            grid-template-columns: minmax(0, 45fr) minmax(0, 55fr);
 
             gap: 40px;
         }
@@ -613,7 +614,7 @@
 
         }
 
-    
+
 /* ===== BoomBuy Vibrant Design System Overrides ===== */
 h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
 .product-title, .price, .cta, .cta-title, .brand, .checkout-title,
@@ -638,6 +639,355 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffd7c2;
     color: #7c1a00;
 }
+
+        /* =========================
+           BREADCRUMB
+        ========================= */
+
+        .pd-crumbs {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .pd-crumbs a {
+            color: #6f5a53;
+        }
+
+        .pd-crumbs a:hover {
+            color: #c43408;
+        }
+
+        .pd-crumbs span {
+            color: #172033;
+        }
+
+        /* =========================
+           VARIATION PICKER (next to price)
+        ========================= */
+
+        .variation-picker {
+            margin-bottom: 18px;
+        }
+
+        .variation-picker .variation-swatches {
+            margin-top: 8px;
+            gap: 8px;
+        }
+
+        /* Text options become pills; photo options stay square. */
+        .variation-picker .variation-swatch:not(:has(img)) {
+            width: auto;
+            min-width: 52px;
+            height: 42px;
+            padding: 0 16px;
+            border-radius: 12px;
+            background: #fff;
+        }
+
+        .variation-picker .variation-swatch .swatch-fallback {
+            font-size: 13px;
+            color: #172033;
+            padding: 0;
+        }
+
+        .variation-picker .variation-swatch.active:not(:has(img)) {
+            border-color: #172033;
+            background: #172033;
+        }
+
+        .variation-picker .variation-swatch.active .swatch-fallback {
+            color: #fff;
+        }
+
+        /* =========================
+           DELIVERY / RETURNS
+        ========================= */
+
+        .pd-perks {
+            list-style: none;
+            margin: 20px 0 0;
+            padding: 14px 16px;
+            border: 1px solid #f7e5e0;
+            border-radius: 14px;
+            background: #fffaf8;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .pd-perks li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            line-height: 1.5;
+            color: #6f5a53;
+        }
+
+        .pd-perks i {
+            margin-top: 1px;
+            font-size: 16px;
+            color: #c43408;
+        }
+
+        .pd-perks strong {
+            color: #172033;
+        }
+
+        /* =========================
+           SELLER CARD
+        ========================= */
+
+        .pd-seller {
+            margin-top: 14px;
+            padding: 14px 16px;
+            border: 1px solid #f7e5e0;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .pd-seller-avatar {
+            width: 48px;
+            height: 48px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            background: #e8420f;
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .pd-seller-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .pd-seller-info {
+            flex: 1;
+            min-width: 140px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .pd-seller-name {
+            font-size: 15px;
+            font-weight: 800;
+            color: #172033;
+        }
+
+        .pd-seller-name:hover {
+            color: #c43408;
+        }
+
+        .pd-seller-meta {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .pd-seller-meta .bi-star-fill {
+            color: #f5b70b;
+        }
+
+        .pd-seller-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .pd-seller-btn {
+            min-height: 40px;
+            padding: 0 14px;
+            border: 1px solid #f0d9d1;
+            border-radius: 10px;
+            background: #fff;
+            color: #172033;
+            font-size: 12.5px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pd-seller-btn:hover {
+            background: #fff7f4;
+        }
+
+        .pd-seller-btn.is-dark {
+            border-color: #172033;
+            background: #172033;
+            color: #fff;
+        }
+
+        .pd-seller-btn.is-dark:hover {
+            background: #2a3550;
+        }
+
+        /* =========================
+           REVIEW SUMMARY
+        ========================= */
+
+        .rv-summary {
+            display: grid;
+            grid-template-columns: 180px minmax(0, 1fr);
+            gap: 24px;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 18px 20px;
+            border: 1px solid #f7e5e0;
+            border-radius: 16px;
+            background: #fff;
+        }
+
+        .rv-average {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .rv-average strong {
+            font-family: var(--font-display);
+            font-size: 44px;
+            font-weight: 800;
+            line-height: 1;
+        }
+
+        .rv-stars {
+            color: #f5b70b;
+            font-size: 15px;
+            letter-spacing: 2px;
+        }
+
+        .rv-count {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .rv-bars {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .rv-bar {
+            display: grid;
+            grid-template-columns: 42px minmax(0, 1fr) 32px;
+            align-items: center;
+            gap: 10px;
+            min-height: 28px;
+            padding: 0 6px;
+            border: none;
+            border-radius: 8px;
+            background: transparent;
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: #172033;
+            cursor: pointer;
+        }
+
+        .rv-bar:hover:not(:disabled),
+        .rv-bar[aria-pressed="true"] {
+            background: #fff4f0;
+        }
+
+        .rv-bar:disabled {
+            cursor: default;
+            opacity: 0.5;
+        }
+
+        .rv-bar-label i {
+            color: #f5b70b;
+            font-size: 11px;
+        }
+
+        .rv-bar-track {
+            height: 8px;
+            border-radius: 999px;
+            background: #f3e6e1;
+            overflow: hidden;
+        }
+
+        .rv-bar-track span {
+            display: block;
+            height: 100%;
+            background: #f5b70b;
+        }
+
+        .rv-bar-count {
+            text-align: right;
+            color: #6f5a53;
+        }
+
+        .rv-filter-note[hidden],
+        .review-card[hidden] {
+            display: none;
+        }
+
+        .rv-filter-note {
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .rv-filter-note button {
+            border: none;
+            background: none;
+            color: #c43408;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        /* =========================
+           PRODUCT RAILS
+        ========================= */
+
+        .related-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .related-head a {
+            font-size: 13.5px;
+            font-weight: 700;
+            color: #c43408;
+        }
+
+        @media (max-width: 640px) {
+            .rv-summary {
+                grid-template-columns: minmax(0, 1fr);
+                gap: 14px;
+            }
+
+            .pd-seller-actions {
+                width: 100%;
+            }
+
+            .pd-seller-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
 </style>
 
 </head>
@@ -651,12 +1001,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <main class="container">
 
-    <a
-        href="{{ route('products') }}"
-        class="back-link"
-    >
-        ← Back to Shop
-    </a>
+    @php $pdCategorySlug = \App\Support\Categories::slug($product->category); @endphp
+    <nav class="back-link pd-crumbs" aria-label="Breadcrumb">
+        <a href="{{ route('products') }}">Shop</a>
+        @if($pdCategorySlug)
+            / <a href="{{ route('products', ['category' => $pdCategorySlug]) }}">{{ \App\Support\Categories::LIST[$pdCategorySlug] }}</a>
+        @endif
+        / <span>{{ $product->name }}</span>
+    </nav>
 
 
     <section class="product-detail">
@@ -713,44 +1065,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     </div>
 
-    @if($variations->count() > 0)
-
-        <div class="variation-swatches" id="variationSwatches">
-
-            @foreach($variations as $index => $variation)
-
-                @php
-                    $variationImageUrl = $variation->image
-                        ? asset('storage/' . ltrim($variation->image, '/'))
-                        : '';
-                @endphp
-
-                <button
-                    type="button"
-                    class="variation-swatch {{ $index === 0 ? 'active' : '' }}"
-                    data-index="{{ $index }}"
-                    data-id="{{ $variation->id }}"
-                    data-adjustment="{{ $variation->price_adjustment }}"
-                    data-stock="{{ $variation->stock }}"
-                    data-label="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
-                    data-image="{{ $variationImageUrl }}"
-                    onclick="selectVariation({{ $index }})"
-                    title="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
-                >
-                    @if($variationImageUrl)
-                        <img src="{{ $variationImageUrl }}" alt="{{ $variation->variation_value }}">
-                    @else
-                        <span class="swatch-fallback">{{ $variation->variation_value }}</span>
-                    @endif
-                </button>
-
-            @endforeach
-
-        </div>
-
-        <div class="variation-info" id="variationInfo"></div>
-
-    @endif
 
 </div>
 
@@ -808,7 +1122,48 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
-            <!-- VARIATIONS: selected via the swatches next to the product photo -->
+            <!-- VARIATIONS: next to the price and quantity, before the buttons -->
+            @if($variations->count() > 0)
+                <div class="variation-picker">
+                    <span class="quantity-label">Choose a {{ strtolower($variations->first()->variation_type) }}</span>
+
+                <div class="variation-swatches" id="variationSwatches">
+
+                    @foreach($variations as $index => $variation)
+
+                        @php
+                            $variationImageUrl = $variation->image
+                                ? asset('storage/' . ltrim($variation->image, '/'))
+                                : '';
+                        @endphp
+
+                        <button
+                            type="button"
+                            class="variation-swatch {{ $index === 0 ? 'active' : '' }}"
+                            data-index="{{ $index }}"
+                            data-id="{{ $variation->id }}"
+                            data-adjustment="{{ $variation->price_adjustment }}"
+                            data-stock="{{ $variation->stock }}"
+                            data-label="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                            data-image="{{ $variationImageUrl }}"
+                            onclick="selectVariation({{ $index }})"
+                            title="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                        >
+                            @if($variationImageUrl)
+                                <img src="{{ $variationImageUrl }}" alt="{{ $variation->variation_value }}">
+                            @else
+                                <span class="swatch-fallback">{{ $variation->variation_value }}</span>
+                            @endif
+                        </button>
+
+                    @endforeach
+
+                </div>
+
+                <div class="variation-info" id="variationInfo"></div>
+
+                </div>
+            @endif
 
 
             <!-- QUANTITY -->
@@ -936,15 +1291,54 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             </div>
 
 
-            @if($canMessageSeller)
+            {{-- DELIVERY & RETURNS: what buyers check before they buy --}}
+            <ul class="pd-perks">
+                <li>
+                    <i class="bi bi-truck"></i>
+                    <span>
+                        <strong>Delivery ₱{{ number_format($deliveryFee) }}</strong>
+                        — free on orders of ₱{{ number_format($freeDeliveryMin) }} and up from this shop
+                    </span>
+                </li>
+                <li>
+                    <i class="bi bi-cash-coin"></i>
+                    <span><strong>Cash on Delivery</strong> — pay the rider when your parcel arrives</span>
+                </li>
+                <li>
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                    <span><strong>7-day returns</strong> — request a return or refund within 7 days of receiving it</span>
+                </li>
+            </ul>
 
-                <a
-                    href="{{ route('messages.thread', $product->seller_id) }}"
-                    style="display:inline-flex; align-items:center; gap:6px; margin-top:14px; color:#e8420f; font-size:13px; font-weight:700;"
-                >
-                    <i class="bi bi-chat-dots-fill"></i> Message Seller
-                </a>
-
+            {{-- SELLER --}}
+            @if($shop)
+                <div class="pd-seller">
+                    <a href="{{ $shop['url'] }}" class="pd-seller-avatar" aria-hidden="true" tabindex="-1">
+                        @if($shop['photo'])
+                            <img src="{{ $shop['photo'] }}" alt="">
+                        @else
+                            {{ $shop['initial'] }}
+                        @endif
+                    </a>
+                    <div class="pd-seller-info">
+                        <a href="{{ $shop['url'] }}" class="pd-seller-name">{{ $shop['name'] }}</a>
+                        <span class="pd-seller-meta">
+                            @if($shop['rating'])
+                                <i class="bi bi-star-fill"></i> {{ $shop['rating'] }} ·
+                            @endif
+                            {{ $shop['products'] }} {{ \Illuminate\Support\Str::plural('product', $shop['products']) }}
+                            @if($shop['location'])
+                                · {{ $shop['location'] }}
+                            @endif
+                        </span>
+                    </div>
+                    <div class="pd-seller-actions">
+                        @if($canMessageSeller)
+                            <a href="{{ route('messages.thread', $product->seller_id) }}" class="pd-seller-btn"><i class="bi bi-chat-dots"></i> Chat</a>
+                        @endif
+                        <a href="{{ $shop['url'] }}" class="pd-seller-btn is-dark">View shop</a>
+                    </div>
+                </div>
             @endif
 
         </div>
@@ -954,7 +1348,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <!-- REVIEWS -->
 
-    <section class="reviews-section">
+    <section class="reviews-section" id="reviews">
 
         <h2>
             Customer Reviews
@@ -965,13 +1359,41 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         @if($reviewCount > 0)
 
+            {{-- Average + how the ratings are spread, with a filter per star --}}
+            <div class="rv-summary">
+                <div class="rv-average">
+                    <strong>{{ $averageRating }}</strong>
+                    <span class="rv-stars" aria-hidden="true">
+                        @for($i = 1; $i <= 5; $i++)
+                            <i class="bi {{ $averageRating >= $i ? 'bi-star-fill' : ($averageRating >= $i - 0.5 ? 'bi-star-half' : 'bi-star') }}"></i>
+                        @endfor
+                    </span>
+                    <span class="rv-count">{{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }}</span>
+                </div>
+
+                <div class="rv-bars">
+                    @foreach($ratingCounts as $stars => $count)
+                        <button type="button" class="rv-bar" data-review-filter="{{ $stars }}" @disabled($count === 0) aria-pressed="false" aria-label="Show {{ $stars }}-star reviews ({{ $count }})">
+                            <span class="rv-bar-label">{{ $stars }} <i class="bi bi-star-fill"></i></span>
+                            <span class="rv-bar-track"><span style="width: {{ $reviewCount ? round($count / $reviewCount * 100) : 0 }}%;"></span></span>
+                            <span class="rv-bar-count">{{ $count }}</span>
+                        </button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="rv-filter-note" id="reviewFilterNote" hidden>
+                <span id="reviewFilterText"></span>
+                <button type="button" data-review-filter="all">Show all reviews</button>
+            </div>
+
             @foreach($reviews as $review)
 
-                <div class="review-card">
+                <div class="review-card" data-stars="{{ (int) $review->rating }}">
 
                     <div class="review-top">
                         <span class="review-name">{{ $review->buyer_name }}</span>
-                        <span class="review-stars">{!! str_repeat('<i class="bi bi-star-fill"></i>', (int) $review->rating) !!}</span>
+                        <span class="review-stars" aria-label="{{ (int) $review->rating }} out of 5 stars">{!! str_repeat('<i class="bi bi-star-fill"></i>', (int) $review->rating) !!}</span>
                     </div>
 
                     <div class="review-date">
@@ -984,7 +1406,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
                     @if(!empty($review->seller_reply))
                         <div class="seller-reply-box" style="background:#fff7f4; border:1px solid #f4e2dc; border-radius:10px; padding:10px 12px; margin-top:8px;">
-                            <div style="font-size:11px; font-weight:800; color:#e8420f; margin-bottom:3px;">Seller Reply</div>
+                            <div style="font-size:11px; font-weight:800; color:#c43408; margin-bottom:3px;">Seller Reply</div>
                             <div style="font-size:13px; color:#563a32;">{{ $review->seller_reply }}</div>
                         </div>
                     @endif
@@ -1004,49 +1426,50 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     </section>
 
 
-    <!-- RELATED PRODUCTS -->
+    <!-- MORE FROM THIS SHOP + SIMILAR PRODUCTS -->
 
-    @if($relatedProducts->count() > 0)
+    @foreach([
+        ['title' => $shop ? 'More from ' . $shop['name'] : null, 'items' => $moreFromSeller, 'link' => $shop['url'] ?? null, 'linkText' => 'View shop'],
+        ['title' => 'Similar products', 'items' => $relatedProducts, 'link' => $pdCategorySlug ? route('products', ['category' => $pdCategorySlug]) : null, 'linkText' => 'See all'],
+    ] as $rail)
 
-        <section class="related-section">
+        @if($rail['title'] && $rail['items']->count() > 0)
 
-            <h2>
-                You Might Also Like
-            </h2>
+            <section class="related-section">
 
-            <div class="related-grid">
+                <div class="related-head">
+                    <h2>{{ $rail['title'] }}</h2>
+                    @if($rail['link'])
+                        <a href="{{ $rail['link'] }}">{{ $rail['linkText'] }} →</a>
+                    @endif
+                </div>
 
-                @foreach($relatedProducts as $related)
+                <div class="related-grid">
 
-                    <a href="{{ route('product.details', $related->id) }}" class="related-card">
+                    @foreach($rail['items'] as $related)
 
-                        <div class="related-image">
-                            @if($related->image)
-                                <img
-                                    src="{{ str_starts_with($related->image, 'http') ? $related->image : asset('storage/' . ltrim($related->image, '/')) }}"
-                                    alt="{{ $related->name }}"
-                                    style="display:none;"
-                                    onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                                    onerror="this.style.display='none';"
-                                >
-                            @endif
-                            <span><i class="bi bi-box-seam-fill"></i></span>
-                        </div>
+                        <a href="{{ route('product.details', \Illuminate\Support\Str::slug($related->name) . '-' . $related->id) }}" class="related-card">
 
-                        <div class="related-info">
-                            <div class="related-name">{{ $related->name }}</div>
-                            <div class="related-price">₱{{ number_format($related->price, 2) }}</div>
-                        </div>
+                            <div class="related-image">
+                                <x-product-thumb :image="$related->image" :category="$related->category" size="200" style="width:100%; height:100%; border-radius:0;" />
+                            </div>
 
-                    </a>
+                            <div class="related-info">
+                                <div class="related-name">{{ $related->name }}</div>
+                                <div class="related-price">₱{{ number_format($related->price) }}</div>
+                            </div>
 
-                @endforeach
+                        </a>
 
-            </div>
+                    @endforeach
 
-        </section>
+                </div>
 
-    @endif
+            </section>
+
+        @endif
+
+    @endforeach
 
 </main>
 
@@ -1262,6 +1685,40 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     })();
 
 </script>
+
+    <script>
+    (function () {
+        // Review filter: click a star bar to see only those reviews.
+        var cards = document.querySelectorAll('.review-card[data-stars]');
+        var note = document.getElementById('reviewFilterNote');
+        if (!cards.length || !note) return;
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-review-filter]');
+            if (!btn) return;
+
+            var stars = btn.dataset.reviewFilter;
+            var showAll = stars === 'all' || btn.getAttribute('aria-pressed') === 'true';
+
+            document.querySelectorAll('.rv-bar').forEach(function (bar) {
+                bar.setAttribute('aria-pressed', !showAll && bar === btn ? 'true' : 'false');
+            });
+
+            var shown = 0;
+            cards.forEach(function (card) {
+                var visible = showAll || card.dataset.stars === stars;
+                card.hidden = !visible;
+                if (visible) shown++;
+            });
+
+            note.hidden = showAll;
+            document.getElementById('reviewFilterText').textContent =
+                'Showing ' + shown + ' ' + stars + '-star ' + (shown === 1 ? 'review' : 'reviews');
+        });
+    })();
+    </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

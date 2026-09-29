@@ -72,6 +72,8 @@
 
 @endif
 
+    @include('partials.buyer-footer')
+
     @include('partials.pwa-register')
 
 </body>

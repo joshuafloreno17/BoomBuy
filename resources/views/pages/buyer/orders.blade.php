@@ -171,6 +171,16 @@
         padding: 24px;
         box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
         border: 1px solid #ebe6e5;
+
+        /* Keeps the card clear of the sticky navbar when scrolled to. */
+        scroll-margin-top: 96px;
+        transition: box-shadow 0.4s ease, border-color 0.4s ease;
+    }
+
+    /* The order a notification pointed to. */
+    .order-card.is-highlighted {
+        border-color: #f3a58c;
+        box-shadow: 0 0 0 4px rgba(232, 66, 15, 0.18), 0 5px 20px rgba(0, 0, 0, 0.05);
     }
 
     .order-header {
@@ -847,6 +857,106 @@
             grid-template-columns: 1fr;
         }
     }
+
+    /* Tracker bar on in-progress orders */
+    .order-track {
+        margin: 4px 0 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+
+    .order-track-steps {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+    }
+
+    .order-track-steps span {
+        height: 6px;
+        border-radius: 999px;
+        background: #f3e6e1;
+    }
+
+    .order-track-steps span.is-on {
+        background: #e8420f;
+    }
+
+    .order-track-labels {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 5px;
+        font-size: 11px;
+        font-weight: 600;
+        color: #8d7c77;
+    }
+
+    .order-track-note {
+        font-size: 12.5px;
+        font-weight: 600;
+        color: #5b4a44;
+    }
+
+    .order-track-note i {
+        color: #c43408;
+    }
+
+    /* Photo + name on each item */
+    .item-main {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+
+    .item-shop {
+        color: #c43408;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .item-shop:hover {
+        text-decoration: underline;
+    }
+
+    /* Delivery & payment details, folded */
+    .order-more {
+        margin-top: 4px;
+    }
+
+    .order-more summary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        min-height: 36px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: #6f5a53;
+        cursor: pointer;
+        list-style: none;
+    }
+
+    .order-more summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .order-more summary i {
+        transition: transform 0.2s ease;
+    }
+
+    .order-more[open] summary i {
+        transform: rotate(180deg);
+    }
+
+    .order-more .order-info {
+        margin-top: 8px;
+    }
+
+    @media (max-width: 640px) {
+        .order-track-labels {
+            display: none;
+        }
+    }
 </style>
 
 
@@ -1027,6 +1137,7 @@
 
                         <div
                             class="order-card"
+                            id="order-{{ $order['id'] }}"
                             data-order-group="{{ $orderGroup }}"
                             data-order-search="{{ $orderSearchText }}"
                         >
@@ -1042,7 +1153,7 @@
                                     </div>
 
                                     <div class="date">
-                                        {{ $order['date'] ?? 'N/A' }}
+                                        {{ $order['date_label'] ?? 'N/A' }}
                                     </div>
 
                                 </div>
@@ -1050,6 +1161,20 @@
                                 <x-status-pill :status="$order['status'] ?? 'Pending'" />
 
                             </div>
+
+                            @if(($order['step'] ?? 0) > 0 && ($order['step'] ?? 0) < 5)
+                                <div class="order-track">
+                                    <div class="order-track-steps" role="img" aria-label="Step {{ $order['step'] }} of 5: {{ $order['step_note'] }}">
+                                        @for($trackStep = 1; $trackStep <= 5; $trackStep++)
+                                            <span class="{{ $trackStep <= $order['step'] ? 'is-on' : '' }}"></span>
+                                        @endfor
+                                    </div>
+                                    <div class="order-track-labels" aria-hidden="true">
+                                        <span>Placed</span><span>Packed</span><span>Picked up</span><span>On the way</span><span>Delivered</span>
+                                    </div>
+                                    <div class="order-track-note"><i class="bi bi-info-circle"></i> {{ $order['step_note'] }}</div>
+                                </div>
+                            @endif
 
                             <!-- ITEMS -->
 
@@ -1063,6 +1188,16 @@
                                     @endphp
 
                                     <div class="item">
+
+                                        <div class="item-main">
+
+                                        @if(!empty($item['slug']))
+                                            <a href="{{ route('product.details', $item['slug']) }}" tabindex="-1" aria-hidden="true">
+                                                <x-product-thumb :image="$item['image'] ?? null" :category="$item['category'] ?? null" size="60" />
+                                            </a>
+                                        @else
+                                            <x-product-thumb :image="null" :category="$item['category'] ?? null" size="60" />
+                                        @endif
 
                                         <div>
 
@@ -1080,12 +1215,18 @@
 
                                                 @if(!empty($item['seller_name']))
 
-                                                    • Seller:
-                                                    {{ $item['seller_name'] }}
+                                                    •
+                                                    @if(!empty($item['shop_url']))
+                                                        <a href="{{ $item['shop_url'] }}" class="item-shop"><i class="bi bi-shop"></i> {{ $item['seller_name'] }}</a>
+                                                    @else
+                                                        {{ $item['seller_name'] }}
+                                                    @endif
 
                                                 @endif
 
                                             </div>
+
+                                        </div>
 
                                         </div>
 
@@ -1290,6 +1431,10 @@
                                  ORDER INFO
                             ========================= -->
 
+                            <details class="order-more">
+
+                            <summary><i class="bi bi-chevron-down"></i> Delivery &amp; payment details</summary>
+
                             <div class="order-info">
 
                                 <div class="info-box">
@@ -1329,6 +1474,8 @@
                                 </div>
 
                             </div>
+
+                            </details>
 
                             <!-- =========================
                                  ORDER FOOTER
@@ -2232,6 +2379,55 @@
             });
         });
 
+        // Opened from a dashboard shortcut (?tab=to-ship etc.): start on that tab.
+        var initialTab = new URLSearchParams(window.location.search).get('tab');
+        var initialButton = initialTab
+            ? document.querySelector('.order-tab[data-group="' + CSS.escape(initialTab) + '"]')
+            : null;
+
+        if (initialButton) {
+            initialButton.click();
+        }
+
+    })();
+
+    /* =========================
+       OPENED FROM A NOTIFICATION (#order-123)
+       Scroll to that order, open its tracking and flash it.
+    ========================= */
+
+    (function () {
+
+        var match = window.location.hash.match(/^#order-(\d+)$/);
+
+        if (!match) {
+            return;
+        }
+
+        var card = document.getElementById('order-' + match[1]);
+
+        if (!card) {
+            return;
+        }
+
+        card.style.display = '';
+
+        var panel = document.getElementById('tracking-' + match[1]);
+
+        if (panel) {
+            panel.classList.add('active');
+        }
+
+        card.classList.add('is-highlighted');
+
+        setTimeout(function () {
+            card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 150);
+
+        setTimeout(function () {
+            card.classList.remove('is-highlighted');
+        }, 3200);
+
     })();
 
 </script>
@@ -2331,6 +2527,8 @@
             radio.addEventListener('change', syncCancelDetails);
         });
     </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 

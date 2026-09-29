@@ -1,31 +1,34 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BoomBuy - Products</title>
+    <title>{{ $filters['category_label'] ?? 'Shop' }} — BoomBuy</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
+    <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
-        html {
-            scroll-behavior: smooth;
+        html,
+        body {
+            max-width: 100%;
+            overflow-x: hidden;
         }
 
         body {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            background: #fff7f4;
-            color: #172033;
+            font-family: var(--font-body);
+            background: var(--cream);
+            color: var(--ink);
         }
 
         a {
@@ -33,705 +36,1246 @@
             color: inherit;
         }
 
-        h1,
-        h2,
-        h3,
-        .logo,
-        .page-title,
-        .product-name,
-        .price {
-            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-            letter-spacing: -0.01em;
-        }
-
         button,
-        .btn,
-        [class*="btn-"],
-        .add-to-cart,
-        .buy-now,
-        .checkout-btn,
-        .register-btn,
-        .login-btn,
-        .submit-btn,
-        .primary-btn {
-            border-radius: 12px !important;
-            transition:
-                transform 0.15s ease,
-                box-shadow 0.15s ease,
-                background 0.15s ease;
-        }
-
-        button:hover,
-        .btn:hover,
-        [class*="btn-"]:hover,
-        .add-to-cart:hover,
-        .buy-now:hover,
-        .primary-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        .card,
-        [class*="-card"],
-        .product-card {
-            border-radius: 16px !important;
-        }
-
-        ::selection {
-            background: #ffd7c2;
-            color: #7c1a00;
-        }
-
-        /* =========================
-           PRODUCT ACTIONS
-        ========================= */
-
-        .product-actions {
-            display: flex;
-            align-items: center;
-            gap: 7px;
-            width: 100%;
-        }
-
-        .product-actions form {
-            margin: 0;
-            flex: 1;
-            min-width: 0;
-        }
-
-        .product-actions button {
-            width: 100%;
-            min-height: 38px;
-            min-width: 0;
-            padding: 9px 8px;
-            white-space: nowrap;
-        }
-
-        .buy-now {
-            background: #2563eb;
-            color: #ffffff;
-            border: 1px solid #2563eb;
-            padding: 9px 12px;
-            border-radius: 7px;
-            cursor: pointer;
-            font-size: 12px;
-            font-weight: 600;
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            white-space: nowrap;
-            transition: 0.2s ease;
-        }
-
-        .buy-now:hover {
-            background: #1d4ed8;
-            border-color: #1d4ed8;
-        }
-
-        .buy-now:active {
-            transform: translateY(1px);
-        }
-
-        /* =========================
-           PAGE HEADER
-        ========================= */
-
-        .page-header {
-            width: 86%;
-            margin: 55px auto 30px;
-        }
-
-        .page-header small {
-            color: #db5a33;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            font-size: 11px;
-            font-weight: 700;
-        }
-
-        .page-header h1 {
-            font-size: 45px;
-            letter-spacing: -1.5px;
-            margin-top: 10px;
-            margin-bottom: 12px;
-        }
-
-        .page-header p {
-            color: #977970;
-            font-size: 15px;
-            line-height: 1.6;
-        }
-
-        /* =========================
-           CATEGORIES
-        ========================= */
-
-        .category-section {
-            width: 86%;
-            margin: 0 auto 35px;
-        }
-
-        .category-heading {
-            display: flex;
-            align-items: flex-end;
-            justify-content: space-between;
-            gap: 20px;
-            margin-bottom: 18px;
-        }
-
-        .category-heading small {
-            color: #db5a33;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 1.5px;
-        }
-
-        .category-heading h2 {
-            margin-top: 5px;
-            font-size: 24px;
-        }
-
-        .all-products {
-            color: #e8420f;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .category-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-        }
-
-        .category-card {
-            min-height: 82px;
-            padding: 14px;
-            background: #ffffff;
-            border: 1px solid #f7e5e0;
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            gap: 11px;
-            transition: 0.2s ease;
-        }
-
-        .category-card span {
-            width: 42px;
-            height: 42px;
-            border-radius: 12px;
-            background: #fff1ec;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 19px;
-            flex-shrink: 0;
-        }
-
-        .category-card span i {
-            color: var(--accent);
-        }
-
-        .category-card strong {
-            font-size: 12px;
-            line-height: 1.3;
-        }
-
-        .category-card:hover {
-            transform: translateY(-2px);
-            border-color: #f5c8ba;
-            box-shadow: 0 8px 20px rgba(39, 84, 150, 0.08);
-        }
-
-        .category-card.active {
-            border-color: #e8420f;
-            background: #fff7f4;
-        }
-
-        .category-card.active span {
-            background: #ffe1d7;
-        }
-
-        /* =========================
-           SORT BAR
-        ========================= */
-
-        .filter-bar {
-            width: 86%;
-            margin: 0 auto 35px;
-            background: #ffffff;
-            border: 1px solid #f9e5df;
-            border-radius: 14px;
-            padding: 15px 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
-        }
-
-        .filter-search {
-            flex: 1;
-            max-width: 320px;
-
-            border: 1px solid #fbe2db;
-            padding: 9px 12px;
-            border-radius: 8px;
-            color: #172033;
-            background: #fff7f5;
-            outline: none;
+        input,
+        select {
             font-family: inherit;
-            font-size: 13px;
         }
 
-        .filter-search::placeholder {
-            color: #a78b84;
-        }
-
-        .price-range {
+        .shop {
+            width: calc(100% - 40px);
+            max-width: 1320px;
+            margin: 28px auto 64px;
             display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        /* =========================
+           HEADER
+        ========================= */
+
+        .shop-crumbs {
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .shop-crumbs a:hover {
+            color: var(--accent-dark);
+        }
+
+        .shop-crumbs span {
+            color: var(--ink);
+        }
+
+        .shop-title {
+            margin-top: 6px;
+            display: flex;
+            align-items: baseline;
+            flex-wrap: wrap;
+            gap: 10px 12px;
+        }
+
+        .shop-title h1 {
+            font-family: var(--font-display);
+            font-size: 34px;
+            font-weight: 800;
+            line-height: 1.1;
+            overflow-wrap: anywhere;
+        }
+
+        .shop-count {
+            font-size: 14px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .scope-chip {
+            display: inline-flex;
             align-items: center;
             gap: 6px;
-
-            color: #a78b84;
+            min-height: 30px;
+            padding: 0 6px 0 12px;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
             font-size: 12px;
-
-            flex-shrink: 0;
-        }
-
-        .price-input {
-            width: 78px;
-
-            border: 1px solid #fbe2db;
-            padding: 9px 10px;
-            border-radius: 8px;
-            color: #172033;
-            background: #fff7f5;
-            outline: none;
-            font-family: inherit;
-            font-size: 13px;
-        }
-
-        .price-input::placeholder {
-            color: #a78b84;
-        }
-
-        .price-input:focus {
-            border-color: #ff7044;
-            background: #ffffff;
-        }
-
-        .filter-search:focus {
-            border-color: #ff7044;
-            background: #ffffff;
-        }
-
-        .sort {
-            border: 1px solid #fbe2db;
-            padding: 9px 12px;
-            border-radius: 8px;
-            color: #7c5a50;
-            background: #ffffff;
-            outline: none;
-            cursor: pointer;
-            font-family: inherit;
-        }
-
-        /* =========================
-           PRODUCTS
-        ========================= */
-
-        .products {
-            width: 86%;
-            margin: 0 auto 80px;
-        }
-
-        .results {
-            color: #977970;
-            font-size: 13px;
-            margin-bottom: 18px;
-        }
-
-        .product-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-        }
-
-        .product-card {
-            background: #ffffff;
-            border: 1px solid #f7e5e0;
-            border-radius: 15px;
-            overflow: hidden;
-            transition: 0.25s;
-            cursor: default;
-        }
-
-        .product-card:hover {
-            transform: translateY(-6px);
-            box-shadow: 0 18px 35px rgba(39, 84, 150, 0.12);
-            border-color: #fad3c7;
-        }
-
-        /* =========================
-           PRODUCT IMAGE
-        ========================= */
-
-        .product-image {
-            height: 220px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .wishlist-toggle {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 2;
-
-            width: 32px;
-            height: 32px;
-
-            border: none;
-            border-radius: 50%;
-
-            background: rgba(255, 255, 255, 0.9);
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            font-size: 15px;
-
-            cursor: pointer;
-
-            box-shadow: 0 4px 10px rgba(72, 45, 35, 0.12);
-
-            transition: 0.2s ease;
-        }
-
-        .wishlist-toggle:hover {
-            background: #fff;
-            transform: scale(1.08);
-        }
-
-        .wishlist-toggle svg {
-            width: 16px;
-            height: 16px;
-        }
-
-        .product-image::after {
-            content: "BOOMBUY";
-            position: absolute;
-            bottom: 13px;
-            right: 15px;
-            font-size: 9px;
             font-weight: 700;
-            letter-spacing: 1px;
-            color: rgba(23, 105, 224, 0.25);
-            pointer-events: none;
         }
 
-        .product-image img {
+        .scope-chip a {
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+        }
+
+        .scope-chip a:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        /* =========================
+           SHOP HEADER (/shop/{seller})
+        ========================= */
+
+        .seller-hero {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            padding: 22px 24px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+        }
+
+        .seller-hero-avatar {
+            width: 76px;
+            height: 76px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            overflow: hidden;
+            background: var(--accent);
+            color: #fff;
+            font-family: var(--font-display);
+            font-size: 32px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .seller-hero-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
-            display: block;
         }
 
-        .blue {
-            background: linear-gradient(145deg, #ffede8, #ffdfd5);
-        }
-
-        .purple {
-            background: linear-gradient(145deg, #f0efff, #e1e3ff);
-        }
-
-        .cyan {
-            background: linear-gradient(145deg, #e7fbff, #ffdfd5);
-        }
-
-        .lavender {
-            background: linear-gradient(145deg, #f3edff, #e9ddff);
-        }
-
-        .pink {
-            background: linear-gradient(145deg, #fff0f6, #ffe0ec);
-        }
-
-        .green {
-            background: linear-gradient(145deg, #ecfdf5, #d1fae5);
-        }
-
-        .orange {
-            background: linear-gradient(145deg, #fffaed, #fee8aa);
-        }
-
-        .yellow {
-            background: linear-gradient(145deg, #fffbeb, #fef3c7);
-        }
-
-        /* =========================
-           PRODUCT INFO
-        ========================= */
-
-        .product-info {
-            padding: 19px;
-        }
-
-        .category {
-            color: #e47452;
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-
-        .product-name {
-            font-size: 16px;
-            font-weight: 700;
-            margin-bottom: 9px;
-        }
-
-        .description {
-            color: #9a817a;
-            font-size: 12px;
-            line-height: 1.5;
-            margin-bottom: 12px;
-        }
-
-        .rating {
-            color: #977970;
-            font-size: 12px;
-            margin-bottom: 16px;
+        .seller-hero-info {
+            flex: 1;
+            min-width: 0;
             display: flex;
-            align-items: center;
+            flex-direction: column;
             gap: 4px;
         }
 
-        .rating i {
-            color: var(--gold);
-            font-size: 11px;
+        .seller-hero-info h1 {
+            font-family: var(--font-display);
+            font-size: 30px;
+            font-weight: 800;
+            line-height: 1.1;
+            overflow-wrap: anywhere;
         }
 
-        .bottom {
+        .seller-hero-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .seller-hero-meta .bi-star-fill {
+            color: var(--gold);
+        }
+
+        .seller-hero-chat {
+            flex-shrink: 0;
+        }
+
+        @media (max-width: 700px) {
+            .seller-hero {
+                flex-wrap: wrap;
+                padding: 18px;
+            }
+
+            .seller-hero-avatar {
+                width: 60px;
+                height: 60px;
+                font-size: 26px;
+            }
+
+            .seller-hero-info h1 {
+                font-size: 24px;
+            }
+
+            .seller-hero-chat {
+                width: 100%;
+            }
+        }
+
+        /* =========================
+           CATEGORY CHIPS
+        ========================= */
+
+        .cat-row {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+
+        .cat-chip {
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 42px;
+            padding: 0 16px 0 13px;
+            border-radius: 999px;
+            border: 1px solid #f0d9d1;
+            background: #fff;
+            color: var(--ink);
+            font-size: 13px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: background 0.15s ease, border-color 0.15s ease;
+        }
+
+        .cat-chip:hover {
+            border-color: #e8b5a4;
+            background: #fffaf8;
+        }
+
+        .cat-chip i {
+            color: var(--accent-dark);
+        }
+
+        .cat-chip small {
+            font-size: 11.5px;
+            font-weight: 700;
+            opacity: 0.65;
+        }
+
+        .cat-chip.active {
+            background: var(--ink);
+            border-color: var(--ink);
+            color: #fff;
+        }
+
+        .cat-chip.active i {
+            color: #fff;
+        }
+
+        /* =========================
+           LAYOUT
+        ========================= */
+
+        .shop-layout {
+            display: grid;
+            grid-template-columns: 250px minmax(0, 1fr);
+            gap: 28px;
+            align-items: start;
+        }
+
+        .shop-results {
             display: flex;
             flex-direction: column;
-            align-items: stretch;
+            gap: 16px;
+            min-width: 0;
+        }
+
+        .shop-toolbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .active-filters {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .filter-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 32px;
+            padding: 0 10px 0 12px;
+            border-radius: 999px;
+            background: var(--ink);
+            color: #fff;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .filter-chip:hover {
+            background: #2a3550;
+        }
+
+        .clear-link {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .sort-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            font-size: 13px;
+            font-weight: 700;
+            color: #5b4a44;
+        }
+
+        .sort-control select {
+            min-height: 42px;
+            padding: 0 12px;
+            border: 1px solid #f0d9d1;
+            border-radius: 12px;
+            background: #fff;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--ink);
+            cursor: pointer;
+        }
+
+        .filter-open {
+            display: none;
+        }
+
+        /* =========================
+           FILTER PANEL (sheet on phones)
+        ========================= */
+
+        .filters {
+            position: sticky;
+            top: 96px;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 22px;
+        }
+
+        .filters-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .filters-head h2 {
+            font-size: 15px;
+            font-weight: 800;
+        }
+
+        .filters-close {
+            display: none;
+        }
+
+        .filter-group {
+            border: none;
+            display: flex;
+            flex-direction: column;
             gap: 10px;
         }
 
-        .bottom .price {
-            width: 100%;
-        }
-
-        .price {
-            color: #e8420f;
-            font-size: 17px;
-            font-weight: 700;
-        }
-
-        .add {
-            background: #e8420f;
-            color: white;
-            border: none;
-            padding: 9px 12px;
-            border-radius: 7px;
-            cursor: pointer;
+        .filter-group legend,
+        .filter-label {
+            margin-bottom: 10px;
             font-size: 12px;
-            font-weight: 600;
-            transition: 0.2s;
-            white-space: nowrap;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: #6f5a53;
+            text-transform: uppercase;
         }
 
-        .add:hover {
-            background: #c43408;
+        .price-inputs {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+            align-items: center;
+            gap: 6px;
+            color: #6f5a53;
         }
 
-        .add:disabled {
-            opacity: 0.7;
-            cursor: not-allowed;
-        }
-
-        .add.added {
-            background: #16a34a;
-            pointer-events: none;
-        }
-
-        /* =========================
-           EMPTY
-        ========================= */
-
-        .empty {
-            display: none;
-            text-align: center;
-            padding: 60px 20px;
-            color: #977970;
-        }
-
-        .empty-icon {
-            font-size: 48px;
-            margin-bottom: 15px;
-            color: var(--muted-2);
-        }
-
-        .empty h2 {
-            color: #172033;
-            margin-bottom: 8px;
-        }
-
-        /* =========================
-           ABOUT
-        ========================= */
-
-        .about-section {
-            width: 86%;
-            margin: 20px auto 80px;
-            padding: 60px;
-            background: #ffffff;
-            border: 1px solid #f7e5e0;
-            border-radius: 18px;
-            text-align: center;
-            scroll-margin-top: 100px;
-        }
-
-        .about-content {
-            max-width: 750px;
-            margin: auto;
-        }
-
-        .about-content small {
-            color: #e8420f;
-            font-size: 11px;
-            font-weight: 700;
-            letter-spacing: 2px;
-        }
-
-        .about-content h2 {
-            font-size: 32px;
-            margin: 12px 0 18px;
-        }
-
-        .about-content p {
-            color: #977970;
-            font-size: 15px;
-            line-height: 1.7;
-            margin-bottom: 12px;
-        }
-
-        /* =========================
-           FOOTER
-        ========================= */
-
-        footer {
-            background: #ffffff;
-            border-top: 1px solid #f7e5e0;
-            padding: 35px 7%;
-            display: flex;
-            justify-content: space-between;
-            color: #977970;
+        .price-inputs input {
+            min-width: 0;
+            min-height: 40px;
+            padding: 0 10px;
+            border: 1px solid #f0d9d1;
+            border-radius: 10px;
             font-size: 13px;
         }
 
-        footer div:first-child {
-            color: #e8420f;
+        .price-picks {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+        }
+
+        .price-picks a {
+            min-height: 32px;
+            padding: 0 11px;
+            border-radius: 999px;
+            border: 1px solid #f0d9d1;
+            background: #fff7f4;
+            font-size: 12px;
+            font-weight: 700;
+            color: #5b4a44;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        .price-picks a:hover,
+        .price-picks a.active {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .filter-apply {
+            min-height: 38px;
+            border: 1px solid var(--ink);
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 12.5px;
+            font-weight: 800;
+            cursor: pointer;
+        }
+
+        .filter-apply:hover {
+            background: #f6f1ee;
+        }
+
+        .filter-option {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 28px;
+            font-size: 13px;
             font-weight: 600;
+            cursor: pointer;
+        }
+
+        .filter-option input {
+            width: 17px;
+            height: 17px;
+            accent-color: var(--accent-dark);
+        }
+
+        .filter-option .stars {
+            color: #c98a00;
+            letter-spacing: 1px;
+        }
+
+        .filters-foot {
+            display: none;
+        }
+
+        .sheet-backdrop {
+            display: none;
+        }
+
+        /* =========================
+           PRODUCT CARDS
+        ========================= */
+
+        .sp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 18px;
+        }
+
+        .sp-card {
+            position: relative;
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+
+        .sp-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px -20px rgba(23, 32, 51, 0.35);
+        }
+
+        .sp-media {
+            position: relative;
+            height: 190px;
+            background: #fff4f0;
+            color: #e2a08a;
+            font-size: 52px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sp-media img {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .sp-heart {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 38px;
+            height: 38px;
+            border: none;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--accent-dark);
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(23, 32, 51, 0.1);
+        }
+
+        .sp-body {
+            flex: 1;
+            padding: 14px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sp-cat {
+            font-size: 11px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            color: var(--accent-dark);
+            text-transform: uppercase;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .sp-name {
+            font-size: 14.5px;
+            font-weight: 800;
+            line-height: 1.3;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .sp-name:hover {
+            color: var(--accent-dark);
+        }
+
+        .sp-meta {
+            font-size: 12px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .sp-meta .bi-star-fill {
+            color: var(--gold);
+        }
+
+        .sp-meta .is-low {
+            color: #8a4b00;
+            font-weight: 800;
+        }
+
+        .sp-price {
+            margin-top: auto;
+            padding-top: 6px;
+            font-family: var(--font-display);
+            font-size: 21px;
+            font-weight: 800;
+            color: var(--accent-dark);
+            white-space: nowrap;
+        }
+
+        /* Add to cart + Buy now, side by side */
+        .sp-actions {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 8px;
+        }
+
+        .sp-actions form {
+            margin: 0;
+            display: flex;
+        }
+
+        .sp-actions .sp-btn {
+            width: 100%;
+        }
+
+        .sp-btn-full {
+            grid-column: 1 / -1;
+        }
+
+        .sp-btn.sp-btn-buy {
+            background: var(--accent-dark);
+            color: #fff;
+        }
+
+        .sp-btn.sp-btn-buy:hover {
+            background: #9e2a06;
+        }
+
+        .sp-btn {
+            min-height: 40px;
+            padding: 0 13px;
+            border-radius: 10px;
+            border: none;
+            background: #ece4e1;
+            color: #8d7c77;
+            font-size: 12.5px;
+            font-weight: 800;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .sp-btn[disabled] {
+            cursor: not-allowed;
+        }
+
+        .sp-btn-dark {
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .sp-btn-dark:hover {
+            background: #2a3550;
+        }
+
+        .sp-btn-outline {
+            border: 1px solid var(--ink);
+            background: #fff;
+            color: var(--ink);
+        }
+
+        .sp-btn-outline:hover {
+            background: #f6f1ee;
+        }
+
+        .sp-btn.is-added {
+            background: var(--teal-bg);
+            color: var(--teal-dark);
+        }
+
+        /* =========================
+           EMPTY / LOAD MORE
+        ========================= */
+
+        .shop-empty {
+            background: #fff;
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 48px 28px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            text-align: center;
+        }
+
+        .shop-empty-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #fff1ec;
+            color: var(--accent-dark);
+            font-size: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shop-empty h2 {
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            overflow-wrap: anywhere;
+        }
+
+        .shop-empty p {
+            max-width: 460px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #6f5a53;
+        }
+
+        .shop-empty-actions {
+            margin-top: 6px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .btn-main,
+        .btn-soft {
+            min-height: 46px;
+            padding: 0 20px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-main {
+            background: var(--accent-dark);
+            color: #fff;
+        }
+
+        .btn-main:hover {
+            background: #9e2a06;
+        }
+
+        .btn-soft {
+            border: 1px solid #f0d9d1;
+            background: #fff;
+            color: #5b4a44;
+            font-weight: 700;
+        }
+
+        .btn-soft:hover {
+            background: #fff7f4;
+        }
+
+        .load-more {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 0 4px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .load-bar {
+            width: 240px;
+            height: 5px;
+            border-radius: 999px;
+            background: #f3e6e1;
+            overflow: hidden;
+        }
+
+        .load-bar span {
+            display: block;
+            height: 100%;
+            background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .load-more .btn-soft {
+            border-color: var(--ink);
+            color: var(--ink);
+            font-weight: 800;
+            padding: 0 28px;
+        }
+
+        /* =========================
+           TOAST
+        ========================= */
+
+        .shop-toast {
+            position: fixed;
+            top: 88px;
+            right: 24px;
+            z-index: 950;
+            width: min(340px, calc(100% - 32px));
+            padding: 14px 16px;
+            border-radius: 16px;
+            background: var(--ink);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 18px 40px -16px rgba(23, 32, 51, 0.55);
+
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .shop-toast.is-shown {
+            opacity: 1;
+            transform: none;
+            pointer-events: auto;
+        }
+
+        .shop-toast-icon {
+            width: 36px;
+            height: 36px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: var(--teal);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .shop-toast.is-error .shop-toast-icon {
+            background: #c62828;
+        }
+
+        .shop-toast-text {
+            flex: 1;
+            min-width: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .shop-toast-text strong {
+            font-size: 13.5px;
+        }
+
+        .shop-toast-text span {
+            font-size: 12px;
+            color: #cfd4df;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .shop-toast a {
+            min-height: 36px;
+            padding: 0 12px;
+            border-radius: 10px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 12.5px;
+            font-weight: 800;
+            display: inline-flex;
+            align-items: center;
+            white-space: nowrap;
+        }
+
+        /* =========================
+           QUICK PICK POPUP (products with a color/size)
+        ========================= */
+
+        .pick-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 1100;
+            background: rgba(23, 32, 51, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .pick-overlay.is-open {
+            display: flex;
+        }
+
+        .pick-box {
+            position: relative;
+            width: 100%;
+            max-width: 420px;
+            max-height: calc(100vh - 40px);
+            overflow-y: auto;
+            background: #fff;
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: 0 30px 60px -20px rgba(23, 32, 51, 0.35);
+            animation: pickPop 0.2s cubic-bezier(.3, 1.4, .5, 1);
+        }
+
+        @keyframes pickPop {
+            from { transform: scale(0.95); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .pick-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            width: 36px;
+            height: 36px;
+            border: none;
+            border-radius: 50%;
+            background: #f3ede9;
+            color: var(--ink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .pick-name {
+            padding-right: 40px;
+            font-family: var(--font-display);
+            font-size: 20px;
+            font-weight: 800;
+            line-height: 1.25;
+        }
+
+        .pick-price {
+            margin-top: 4px;
+            font-family: var(--font-display);
+            font-size: 24px;
+            font-weight: 800;
+            color: var(--accent-dark);
+        }
+
+        .pick-label {
+            margin: 18px 0 10px;
+            font-size: 12px;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #6f5a53;
+        }
+
+        .pick-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .pick-option {
+            min-height: 42px;
+            padding: 0 16px;
+            border: 1px solid #f0d9d1;
+            border-radius: 12px;
+            background: #fff;
+            color: var(--ink);
+            font-size: 13.5px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .pick-option:hover {
+            border-color: #e8b5a4;
+        }
+
+        .pick-option[aria-pressed="true"] {
+            border-color: var(--ink);
+            background: var(--ink);
+            color: #fff;
+        }
+
+        .pick-option:disabled {
+            background: #f6f1ee;
+            color: #b3a29c;
+            text-decoration: line-through;
+            cursor: not-allowed;
+        }
+
+        .pick-stock {
+            margin-top: 10px;
+            min-height: 18px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: #6f5a53;
+        }
+
+        .pick-stock.is-error {
+            color: #b42318;
+            font-weight: 700;
+        }
+
+        .pick-actions {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .pick-actions .sp-btn {
+            min-height: 48px;
+            font-size: 14px;
+        }
+
+        .pick-more {
+            display: block;
+            margin-top: 14px;
+            text-align: center;
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--accent-dark);
+        }
+
+        .shop-footer {
+            border-top: 1px solid var(--line);
+            background: #fff;
+            padding: 26px 20px;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 13px;
+            color: #6f5a53;
         }
 
         /* =========================
            RESPONSIVE
         ========================= */
 
-        @media (max-width: 1100px) {
-            .product-grid {
-                grid-template-columns: repeat(3, 1fr);
-            }
-
-            .category-grid {
-                grid-template-columns: repeat(3, 1fr);
+        @media (max-width: 1180px) {
+            .sp-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
             }
         }
 
-        @media (max-width: 700px) {
-            .product-grid {
-                grid-template-columns: repeat(2, 1fr);
+        @media (max-width: 900px) {
+            .shop {
+                width: calc(100% - 32px);
+                margin-top: 16px;
+                gap: 14px;
             }
 
-            .category-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-
-        @media (max-width: 650px) {
-            .page-header,
-            .products,
-            .filter-bar,
-            .about-section,
-            .category-section {
-                width: 92%;
+            .shop-crumbs {
+                display: none;
             }
 
-            .page-header h1 {
-                font-size: 35px;
+            .shop-title h1 {
+                font-size: 25px;
             }
 
-            .filter-bar {
-                justify-content: stretch;
-                flex-wrap: wrap;
+            .cat-row {
+                margin-right: -16px;
+                padding-right: 16px;
+                scrollbar-width: none;
             }
 
-            .filter-search {
-                max-width: none;
+            .cat-row::-webkit-scrollbar {
+                display: none;
+            }
+
+            .cat-chip {
+                min-height: 38px;
+                font-size: 12.5px;
+            }
+
+            .shop-layout {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .filter-open {
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+                min-height: 44px;
+                padding: 0 16px;
+                border-radius: 12px;
+                border: 1px solid var(--ink);
+                background: #fff;
+                color: var(--ink);
+                font-size: 13px;
+                font-weight: 800;
+                cursor: pointer;
+            }
+
+            .filter-open b {
+                min-width: 20px;
+                height: 20px;
+                padding: 0 6px;
+                border-radius: 999px;
+                background: var(--accent-dark);
+                color: #fff;
+                font-size: 11px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .shop-toolbar {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .sort-control {
+                margin-left: 0;
+            }
+
+            .sort-control span {
+                display: none;
+            }
+
+            .sort-control select {
                 width: 100%;
+                min-height: 44px;
             }
 
-            .price-range {
-                width: 100%;
-                justify-content: space-between;
+            .active-filters {
+                grid-column: 1 / -1;
+                grid-row: 2;
             }
 
-            .price-input {
-                width: 100%;
+            /* Filter panel becomes a bottom sheet */
+            .filters {
+                position: fixed;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                top: auto;
+                z-index: 1001;
+                max-height: 86vh;
+                overflow-y: auto;
+                border-radius: 24px 24px 0 0;
+                padding: 18px 20px 0;
+                transform: translateY(105%);
+                transition: transform 0.25s ease;
+                visibility: hidden;
             }
 
-            .sort {
-                width: 100%;
+            .filters.is-open {
+                transform: none;
+                visibility: visible;
             }
 
-            .about-section {
-                padding: 40px 25px;
+            .filters-close {
+                width: 40px;
+                height: 40px;
+                border: none;
+                border-radius: 50%;
+                background: #f3ede9;
+                color: var(--ink);
+                font-size: 15px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                cursor: pointer;
             }
 
-            .category-heading {
-                align-items: flex-start;
-                flex-direction: column;
+            .filters-head h2 {
+                font-family: var(--font-display);
+                font-size: 22px;
             }
 
-            footer {
-                flex-direction: column;
+            .filters-head .clear-link {
+                display: none;
+            }
+
+            .filter-apply-desktop {
+                display: none;
+            }
+
+            .filters-foot {
+                position: sticky;
+                bottom: 0;
+                display: grid;
+                grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
                 gap: 10px;
-                text-align: center;
+                margin: 0 -20px;
+                padding: 14px 20px calc(18px + env(safe-area-inset-bottom));
+                border-top: 1px solid var(--line);
+                background: #fff;
+            }
+
+            .filters-foot .btn-main,
+            .filters-foot .btn-soft {
+                min-height: 50px;
+                border: 1px solid #f0d9d1;
+            }
+
+            .filters-foot .btn-main {
+                border: none;
+                cursor: pointer;
+            }
+
+            .sheet-backdrop {
+                position: fixed;
+                inset: 0;
+                z-index: 1000;
+                background: rgba(23, 32, 51, 0.5);
+            }
+
+            .sheet-backdrop.is-open {
+                display: block;
+            }
+
+            .sp-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 12px;
+            }
+
+            .sp-card {
+                border-radius: 16px;
+            }
+
+            .sp-media {
+                height: 150px;
+                font-size: 42px;
+            }
+
+            .sp-heart {
+                top: 6px;
+                right: 6px;
+                width: 36px;
+                height: 36px;
+            }
+
+            .sp-body {
+                padding: 10px 12px 12px;
+                gap: 4px;
+            }
+
+            .sp-cat {
+                display: none;
+            }
+
+            .sp-name {
+                font-size: 13px;
+            }
+
+            .sp-meta {
+                font-size: 11px;
+            }
+
+            .sp-price {
+                font-size: 18px;
+            }
+
+            .sp-btn {
+                min-width: 40px;
+                min-height: 42px;
+                padding: 0 8px;
+                font-size: 12px;
+            }
+
+            /* Phones: cart icon + a wide "Buy now". */
+            .sp-actions {
+                grid-template-columns: 42px minmax(0, 1fr);
+                gap: 6px;
+            }
+
+            .sp-btn-label {
+                display: none;
+            }
+
+            .shop-toast {
+                top: auto;
+                right: 16px;
+                bottom: calc(84px + env(safe-area-inset-bottom));
             }
         }
-
-        @media (max-width: 600px) {
-            .product-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .product-actions form {
-                width: 100%;
-            }
-
-            .product-grid {
-                grid-template-columns: 1fr;
-            }
-
-            .category-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
     </style>
 </head>
 
@@ -739,1094 +1283,670 @@
 
     @include('partials.buyer-navbar', ['activeNav' => 'shop'])
 
-    <!-- =========================
-         PAGE HEADER
-    ========================= -->
-
-    <section class="page-header">
-
-        <small>
-            BoomBuy Marketplace
-        </small>
-
-        <h1>
-            Shop everything you need.
-        </h1>
-
-        <p>
-            Discover products from different categories and sellers,
-            all in one convenient marketplace.
-        </p>
-
-    </section>
-
-    <!-- =========================
-         CATEGORIES
-    ========================= -->
-
-    <section class="category-section">
-
-        <div class="category-heading">
-
-            <div>
-                <small>
-                    SHOP BY CATEGORY
-                </small>
-
-                <h2>
-                    Find what you need faster.
-                </h2>
-            </div>
-
-            @if(request('category'))
-                <a
-                    href="{{ route('products') }}"
-                    class="all-products"
-                >
-                    View All Products
-                </a>
-            @endif
-
-        </div>
-
-        <div class="category-grid">
-
-            <a href="{{ route('products', ['category' => 'electronics']) }}"
-               class="category-card {{ request('category') === 'electronics' ? 'active' : '' }}">
-                <span><i class="bi bi-phone"></i></span>
-                <strong>Electronics</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'womens-fashion']) }}"
-               class="category-card {{ request('category') === 'womens-fashion' ? 'active' : '' }}">
-                <span><i class="bi bi-handbag"></i></span>
-                <strong>Women's Fashion</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'mens-fashion']) }}"
-               class="category-card {{ request('category') === 'mens-fashion' ? 'active' : '' }}">
-                <span><i class="bi bi-bag-fill"></i></span>
-                <strong>Men's Fashion</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'kids-baby']) }}"
-               class="category-card {{ request('category') === 'kids-baby' ? 'active' : '' }}">
-                <span><i class="bi bi-balloon-heart-fill"></i></span>
-                <strong>Kids & Baby</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'home-living']) }}"
-               class="category-card {{ request('category') === 'home-living' ? 'active' : '' }}">
-                <span><i class="bi bi-house-door-fill"></i></span>
-                <strong>Home & Living</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'sports-outdoors']) }}"
-               class="category-card {{ request('category') === 'sports-outdoors' ? 'active' : '' }}">
-                <span><i class="bi bi-trophy-fill"></i></span>
-                <strong>Sports & Outdoors</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'beauty-personal-care']) }}"
-               class="category-card {{ request('category') === 'beauty-personal-care' ? 'active' : '' }}">
-                <span><i class="bi bi-stars"></i></span>
-                <strong>Beauty & Personal Care</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'food-beverages']) }}"
-               class="category-card {{ request('category') === 'food-beverages' ? 'active' : '' }}">
-                <span><i class="bi bi-cup-hot-fill"></i></span>
-                <strong>Food & Beverages</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'automotive']) }}"
-               class="category-card {{ request('category') === 'automotive' ? 'active' : '' }}">
-                <span><i class="bi bi-car-front-fill"></i></span>
-                <strong>Automotive</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'office-school']) }}"
-               class="category-card {{ request('category') === 'office-school' ? 'active' : '' }}">
-                <span><i class="bi bi-backpack2-fill"></i></span>
-                <strong>Office & School</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'pet-supplies']) }}"
-               class="category-card {{ request('category') === 'pet-supplies' ? 'active' : '' }}">
-                <span><i class="bi bi-heart-fill"></i></span>
-                <strong>Pet Supplies</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'toys-games-hobbies']) }}"
-               class="category-card {{ request('category') === 'toys-games-hobbies' ? 'active' : '' }}">
-                <span><i class="bi bi-controller"></i></span>
-                <strong>Toys, Games & Hobbies</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'jewelry-accessories']) }}"
-               class="category-card {{ request('category') === 'jewelry-accessories' ? 'active' : '' }}">
-                <span><i class="bi bi-gem"></i></span>
-                <strong>Jewelry & Accessories</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'shoes']) }}"
-               class="category-card {{ request('category') === 'shoes' ? 'active' : '' }}">
-                <span><i class="bi bi-tag-fill"></i></span>
-                <strong>Shoes</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'tools-home-improvement']) }}"
-               class="category-card {{ request('category') === 'tools-home-improvement' ? 'active' : '' }}">
-                <span><i class="bi bi-tools"></i></span>
-                <strong>Tools & Home Improvement</strong>
-            </a>
-
-            <a href="{{ route('products', ['category' => 'garden-outdoor']) }}"
-               class="category-card {{ request('category') === 'garden-outdoor' ? 'active' : '' }}">
-                <span><i class="bi bi-flower1"></i></span>
-                <strong>Garden & Outdoor</strong>
-            </a>
-
-        </div>
-    </section>
-
-    <!-- =========================
-         SORT BAR
-    ========================= -->
-
-    <div class="filter-bar">
-
-        <input
-            type="text"
-            class="filter-search"
-            id="searchInput"
-            placeholder="Search these products..."
-        >
-
-        <div class="price-range">
-            <input type="number" class="price-input" id="minPrice" placeholder="Min ₱" min="0">
-            <span>–</span>
-            <input type="number" class="price-input" id="maxPrice" placeholder="Max ₱" min="0">
-        </div>
-
-        <select class="sort" id="ratingSelect">
-            <option value="0">Any Rating</option>
-            <option value="4">4★ &amp; up</option>
-            <option value="3">3★ &amp; up</option>
-            <option value="2">2★ &amp; up</option>
-            <option value="1">1★ &amp; up</option>
-        </select>
-
-        <select class="sort" id="sortSelect">
-            <option value="default">Sort by</option>
-            <option value="low">Price: Low to High</option>
-            <option value="high">Price: High to Low</option>
-            <option value="rating">Rating: Highest</option>
-        </select>
-
-    </div>
-
-    <!-- =========================
-         PRODUCTS
-    ========================= -->
-
-    <section class="products">
-
-        <div class="results" id="results">
-            Showing {{ count($products) }} products
-        </div>
-
-        <div class="product-grid" id="productGrid">
-
-            @php
-                $backgrounds = [
-                    'blue',
-                    'purple',
-                    'cyan',
-                    'lavender',
-                    'pink',
-                    'green',
-                    'orange',
-                    'yellow',
-                ];
-
-                $categoryMap = [
-                    'electronics' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-                    'electronics & gadgets' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-                    'smartphone' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-                    'laptop' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-                    'audio' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-                    'wearable' => [
-                        'slug' => 'electronics',
-                        'name' => 'Electronics',
-                    ],
-
-                    "women's fashion" => [
-                        'slug' => 'womens-fashion',
-                        'name' => "Women's Fashion",
-                    ],
-                    "women's apparel" => [
-                        'slug' => 'womens-fashion',
-                        'name' => "Women's Fashion",
-                    ],
-                    'womens fashion' => [
-                        'slug' => 'womens-fashion',
-                        'name' => "Women's Fashion",
-                    ],
-
-                    "men's fashion" => [
-                        'slug' => 'mens-fashion',
-                        'name' => "Men's Fashion",
-                    ],
-                    "men's apparel" => [
-                        'slug' => 'mens-fashion',
-                        'name' => "Men's Fashion",
-                    ],
-                    'mens fashion' => [
-                        'slug' => 'mens-fashion',
-                        'name' => "Men's Fashion",
-                    ],
-
-                    'kids & baby' => [
-                        'slug' => 'kids-baby',
-                        'name' => 'Kids & Baby',
-                    ],
-
-                    'home & living' => [
-                        'slug' => 'home-living',
-                        'name' => 'Home & Living',
-                    ],
-                    'home & garden' => [
-                        'slug' => 'home-living',
-                        'name' => 'Home & Living',
-                    ],
-
-                    'sports & outdoors' => [
-                        'slug' => 'sports-outdoors',
-                        'name' => 'Sports & Outdoors',
-                    ],
-
-                    'beauty & personal care' => [
-                        'slug' => 'beauty-personal-care',
-                        'name' => 'Beauty & Personal Care',
-                    ],
-                    'health & beauty' => [
-                        'slug' => 'beauty-personal-care',
-                        'name' => 'Beauty & Personal Care',
-                    ],
-
-                    'food & beverages' => [
-                        'slug' => 'food-beverages',
-                        'name' => 'Food & Beverages',
-                    ],
-                    'food & gourmet' => [
-                        'slug' => 'food-beverages',
-                        'name' => 'Food & Beverages',
-                    ],
-
-                    'automotive' => [
-                        'slug' => 'automotive',
-                        'name' => 'Automotive',
-                    ],
-                    'automotive & motorcycle' => [
-                        'slug' => 'automotive',
-                        'name' => 'Automotive',
-                    ],
-
-                    'office & school' => [
-                        'slug' => 'office-school',
-                        'name' => 'Office & School',
-                    ],
-                    'office & school supplies' => [
-                        'slug' => 'office-school',
-                        'name' => 'Office & School',
-                    ],
-
-                    'pet supplies' => [
-                        'slug' => 'pet-supplies',
-                        'name' => 'Pet Supplies',
-                    ],
-
-                    'toys, games & hobbies' => [
-                        'slug' => 'toys-games-hobbies',
-                        'name' => 'Toys, Games & Hobbies',
-                    ],
-
-                    'jewelry & accessories' => [
-                        'slug' => 'jewelry-accessories',
-                        'name' => 'Jewelry & Accessories',
-                    ],
-                    'accessories' => [
-                        'slug' => 'jewelry-accessories',
-                        'name' => 'Jewelry & Accessories',
-                    ],
-
-                    'shoes' => [
-                        'slug' => 'shoes',
-                        'name' => 'Shoes',
-                    ],
-
-                    'tools & home improvement' => [
-                        'slug' => 'tools-home-improvement',
-                        'name' => 'Tools & Home Improvement',
-                    ],
-
-                    'garden & outdoor' => [
-                        'slug' => 'garden-outdoor',
-                        'name' => 'Garden & Outdoor',
-                    ],
-                ];
-            @endphp
-
-            @foreach($products as $index => $product)
-
-                @php
-                    $name = $product['name'] ?? 'Unnamed Product';
-
-                    $slug = $product['slug']
-                        ?? \Illuminate\Support\Str::slug($name);
-
-                    $price = (float) ($product['price'] ?? 0);
-
-                    $description =
-                        $product['description']
-                        ?? 'No description available.';
-
-                    $image =
-                        $product['image']
-                        ?? null;
-
-                    $stock =
-                        (int) ($product['stock'] ?? 0);
-
-                    $rawCategory = trim(
-                        strtolower(
-                            $product['category'] ?? ''
-                        )
-                    );
-
-                    if (isset($categoryMap[$rawCategory])) {
-
-                        $normalizedCategory =
-                            $categoryMap[$rawCategory];
-
-                    } elseif (
-                        in_array(
-                            $rawCategory,
-                            [
-                                'electronics',
-                                'womens-fashion',
-                                'mens-fashion',
-                                'kids-baby',
-                                'home-living',
-                                'sports-outdoors',
-                                'beauty-personal-care',
-                                'food-beverages',
-                                'automotive',
-                                'office-school',
-                                'pet-supplies',
-                                'toys-games-hobbies',
-                                'jewelry-accessories',
-                                'shoes',
-                                'tools-home-improvement',
-                                'garden-outdoor',
-                            ],
-                            true
-                        )
-                    ) {
-
-                        $canonicalNames = [
-                            'electronics' => 'Electronics',
-                            'womens-fashion' => "Women's Fashion",
-                            'mens-fashion' => "Men's Fashion",
-                            'kids-baby' => 'Kids & Baby',
-                            'home-living' => 'Home & Living',
-                            'sports-outdoors' => 'Sports & Outdoors',
-                            'beauty-personal-care' => 'Beauty & Personal Care',
-                            'food-beverages' => 'Food & Beverages',
-                            'automotive' => 'Automotive',
-                            'office-school' => 'Office & School',
-                            'pet-supplies' => 'Pet Supplies',
-                            'toys-games-hobbies' => 'Toys, Games & Hobbies',
-                            'jewelry-accessories' => 'Jewelry & Accessories',
-                            'shoes' => 'Shoes',
-                            'tools-home-improvement' => 'Tools & Home Improvement',
-                            'garden-outdoor' => 'Garden & Outdoor',
-                        ];
-
-                        $normalizedCategory = [
-                            'slug' => $rawCategory,
-                            'name' => $canonicalNames[$rawCategory],
-                        ];
-
-                    } else {
-
-                        $normalizedCategory = [
-                            'slug' => \Illuminate\Support\Str::slug(
-                                $rawCategory ?: 'other'
-                            ),
-                            'name' => $rawCategory
-                                ? ucwords($rawCategory)
-                                : 'Other',
-                        ];
-                    }
-
-                    $filterCategory =
-                        $normalizedCategory['slug'];
-
-                    $displayCategory =
-                        $normalizedCategory['name'];
-
-                    $background =
-                        $backgrounds[
-                            $index % count($backgrounds)
-                        ];
-                @endphp
-
-                <div
-                    class="product-card"
-                    data-category="{{ $filterCategory }}"
-                    data-price="{{ $price }}"
-                    data-rating="{{ (float) ($product['rating'] ?? 0) }}"
-                    data-url="/product-details/{{ $slug }}"
-                    data-product-id="{{ $product['id'] ?? '' }}"
-                >
-
-                    <!-- PRODUCT IMAGE -->
-
-                    <div class="product-image {{ $background }}">
-
-                        @php
-                            $isWishlisted = in_array(
-                                $product['id'] ?? null,
-                                $wishlistedIds ?? []
-                            );
-                        @endphp
-
-                        <button
-                            type="button"
-                            class="wishlist-toggle {{ $isWishlisted ? 'active' : '' }}"
-                            data-product-id="{{ $product['id'] ?? '' }}"
-                            aria-label="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}"
-                            onclick="event.preventDefault(); toggleWishlist(this);"
-                        >@if($isWishlisted)<svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@else<svg viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>@endif</button>
-
-                        @if($image)
-
-                            <img
-                                src="{{ str_starts_with($image, 'http')
-                                    ? $image
-                                    : asset('storage/' . ltrim($image, '/')) }}"
-                                alt="{{ $name }}"
-                                style="display:none;"
-                                onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                                onerror="this.style.display='none';"
-                            >
-
+    @php
+        $total = $paginator->total();
+        $hasFilters = $filters['min'] !== null || $filters['max'] !== null || $filters['rating'] || $filters['in_stock'];
+        $filterCount = (int) ($filters['min'] !== null || $filters['max'] !== null) + (int) (bool) $filters['rating'] + (int) $filters['in_stock'];
+        $peso = fn ($n) => '₱' . number_format($n);
+
+        // Links that change one thing and keep the rest (always back to page 1).
+        $with = fn (array $changes) => request()->fullUrlWithQuery(array_merge(['page' => null], $changes));
+        $clearFilters = $with(['min' => null, 'max' => null, 'rating' => null, 'in_stock' => null]);
+
+        $priceLabel = match (true) {
+            $filters['min'] !== null && $filters['max'] !== null => $peso($filters['min']) . '–' . $peso($filters['max']),
+            $filters['min'] !== null => $peso($filters['min']) . ' and up',
+            $filters['max'] !== null => 'Up to ' . $peso($filters['max']),
+            default => null,
+        };
+
+        $pricePicks = [
+            ['label' => 'Under ₱500', 'min' => null, 'max' => 500],
+            ['label' => '₱500–₱1,000', 'min' => 500, 'max' => 1000],
+            ['label' => '₱1,000–₱3,000', 'min' => 1000, 'max' => 3000],
+        ];
+
+        $heading = $filters['search'] !== ''
+            ? 'Results for “' . $filters['search'] . '”'
+            : ($filters['category_label'] ?? 'All products');
+    @endphp
+
+    <main class="shop">
+
+        {{-- SHOP HEADER (on /shop/{seller}) --}}
+        @if($shop)
+            <section class="seller-hero" aria-label="Shop">
+                <span class="seller-hero-avatar">
+                    @if($shop['photo'])
+                        <img src="{{ $shop['photo'] }}" alt="">
+                    @else
+                        {{ $shop['initial'] }}
+                    @endif
+                </span>
+                <div class="seller-hero-info">
+                    <nav class="shop-crumbs" aria-label="Breadcrumb">
+                        <a href="{{ route('products') }}">Shop</a> / <span>{{ $shop['name'] }}</span>
+                    </nav>
+                    <h1>{{ $shop['name'] }}</h1>
+                    <div class="seller-hero-meta">
+                        @if($shop['rating'])
+                            <span><i class="bi bi-star-fill"></i> {{ $shop['rating'] }} ({{ $shop['reviews'] }} {{ \Illuminate\Support\Str::plural('review', $shop['reviews']) }})</span>
+                        @else
+                            <span>No reviews yet</span>
                         @endif
-
-                        <div
-                            style="
-                                width: 100%;
-                                height: 100%;
-                                display: flex;
-                                align-items: center;
-                                justify-content: center;
-                                font-size: 82px;
-                                color: var(--accent);
-                            "
-                        >
-                            <i class="bi bi-box-seam-fill"></i>
-                        </div>
-
+                        <span><i class="bi bi-box-seam"></i> {{ $shop['products'] }} {{ \Illuminate\Support\Str::plural('product', $shop['products']) }}</span>
+                        @if($shop['location'])
+                            <span><i class="bi bi-geo-alt"></i> {{ $shop['location'] }}</span>
+                        @endif
+                        @if($shop['since'])
+                            <span><i class="bi bi-calendar3"></i> On BoomBuy since {{ $shop['since'] }}</span>
+                        @endif
                     </div>
+                </div>
+                @if(session('user') && (int) session('user')['id'] !== $shop['id'])
+                    <a href="{{ route('messages.thread', $shop['id']) }}" class="btn-soft seller-hero-chat"><i class="bi bi-chat-dots"></i> Message seller</a>
+                @endif
+            </section>
+        @endif
 
-                    <!-- PRODUCT INFO -->
+        {{-- HEADER --}}
+        <header>
+            <nav class="shop-crumbs" aria-label="Breadcrumb" @if($shop) hidden @endif>
+                <a href="{{ session('user') ? route('buyer.dashboard') : route('home') }}">Home</a> /
+                @if($filters['category'] || $filters['search'] !== '')
+                    <a href="{{ route('products') }}">Shop</a> /
+                    <span>{{ $filters['search'] !== '' ? 'Search' : $filters['category_label'] }}</span>
+                @else
+                    <span>Shop</span>
+                @endif
+            </nav>
 
-                    <div class="product-info">
+            <div class="shop-title">
+                <h1>{{ $heading }}</h1>
 
-                        <div class="category">
-                            {{ $displayCategory }}
-                        </div>
+                @if($filters['search'] !== '' && $filters['category'])
+                    <span class="scope-chip">
+                        in {{ $filters['category_label'] }}
+                        <a href="{{ $with(['category' => null]) }}" aria-label="Search all categories instead"><i class="bi bi-x-lg"></i></a>
+                    </span>
+                @endif
 
-                        <div class="product-name">
-                            {{ $name }}
-                        </div>
+                <span class="shop-count">{{ number_format($total) }} {{ \Illuminate\Support\Str::plural('product', $total) }}</span>
+            </div>
+        </header>
 
-                        <div class="description">
-                            {{ $description }}
-                        </div>
+        {{-- CATEGORY CHIPS --}}
+        <nav class="cat-row" aria-label="Categories">
+            <a href="{{ $with(['category' => null]) }}" class="cat-chip {{ $filters['category'] ? '' : 'active' }}" @unless($filters['category']) aria-current="true" @endunless>
+                <i class="bi bi-grid-fill"></i> All <small>{{ $totalProducts }}</small>
+            </a>
+            @foreach($categories as $cat)
+                <a href="{{ $with(['category' => $cat['slug']]) }}" class="cat-chip {{ $filters['category'] === $cat['slug'] ? 'active' : '' }}" @if($filters['category'] === $cat['slug']) aria-current="true" @endif>
+                    <i class="bi {{ $cat['icon'] }}"></i> {{ $cat['label'] }} <small>{{ $cat['count'] }}</small>
+                </a>
+            @endforeach
+        </nav>
 
-                        <div class="rating">
-                            <span><i class="bi bi-star-fill"></i></span>
+        <div class="shop-layout">
 
-                            {{ number_format(
-                                (float) ($product['rating'] ?? 0),
-                                1
-                            ) }}
+            {{-- FILTERS (bottom sheet on phones) --}}
+            <form class="filters" id="shopFilters" action="{{ url()->current() }}" method="GET" aria-labelledby="filtersTitle">
+                @if($filters['category'])
+                    <input type="hidden" name="category" value="{{ $filters['category'] }}">
+                @endif
+                @if($filters['search'] !== '')
+                    <input type="hidden" name="search" value="{{ $filters['search'] }}">
+                @endif
 
-                            ·
-
-                            {{ (int) ($product['reviews'] ?? 0) }}
-
-                            {{
-                                (int) ($product['reviews'] ?? 0) === 1
-                                    ? 'review'
-                                    : 'reviews'
-                            }}
-                        </div>
-
-                        <div class="bottom">
-
-                            <div class="price">
-                                ₱{{ number_format($price, 2) }}
-                            </div>
-
-                            @if($stock > 0)
-
-                                <div class="product-actions">
-
-                                    <!-- ADD TO CART -->
-
-                                    <form
-                                        action="{{ route('cart.add', $product['id']) }}"
-                                        method="POST"
-                                        class="add-to-cart-form"
-                                    >
-                                        @csrf
-
-                                        <button
-                                            type="submit"
-                                            class="add"
-                                        >
-                                            Add to cart
-                                        </button>
-                                    </form>
-
-                                    <!-- BUY NOW -->
-
-                                    <form
-                                        action="{{ route('buy.now', $product['id']) }}"
-                                        method="POST"
-                                        class="buy-now-form"
-                                    >
-                                        @csrf
-
-                                        <button
-                                            type="submit"
-                                            class="buy-now"
-                                        >
-                                            Buy Now
-                                        </button>
-                                    </form>
-
-                                </div>
-
-                            @else
-
-                                <button
-                                    type="button"
-                                    class="add"
-                                    disabled
-                                    title="Out of stock"
-                                >
-                                    Out of stock
-                                </button>
-
-                            @endif
-
-                        </div>
-
-                    </div>
-
+                <div class="filters-head">
+                    <h2 id="filtersTitle">Filters</h2>
+                    @if($hasFilters)
+                        <a href="{{ $clearFilters }}" class="clear-link">Clear all</a>
+                    @endif
+                    <button type="button" class="filters-close" data-sheet-close aria-label="Close filters"><i class="bi bi-x-lg"></i></button>
                 </div>
 
-            @endforeach
+                <div class="filter-group">
+                    <span class="filter-label">Price</span>
+                    <div class="price-inputs">
+                        <input type="number" name="min" min="0" step="1" inputmode="numeric" placeholder="Min ₱" aria-label="Minimum price" value="{{ $filters['min'] !== null ? (int) $filters['min'] : '' }}">
+                        <span>–</span>
+                        <input type="number" name="max" min="0" step="1" inputmode="numeric" placeholder="Max ₱" aria-label="Maximum price" value="{{ $filters['max'] !== null ? (int) $filters['max'] : '' }}">
+                    </div>
+                    <div class="price-picks">
+                        @foreach($pricePicks as $pick)
+                            @php $isPick = $filters['min'] == $pick['min'] && $filters['max'] == $pick['max']; @endphp
+                            <a href="{{ $with(['min' => $pick['min'], 'max' => $pick['max']]) }}" class="{{ $isPick ? 'active' : '' }}">{{ $pick['label'] }}</a>
+                        @endforeach
+                    </div>
+                    <button type="submit" class="filter-apply filter-apply-desktop">Apply price</button>
+                </div>
 
+                <fieldset class="filter-group">
+                    <legend>Rating</legend>
+                    <label class="filter-option"><input type="radio" name="rating" value="" @checked(!$filters['rating']) data-autosubmit> Any rating</label>
+                    <label class="filter-option"><input type="radio" name="rating" value="4" @checked($filters['rating'] === 4) data-autosubmit> <span class="stars" aria-hidden="true">★★★★</span> 4 &amp; up</label>
+                    <label class="filter-option"><input type="radio" name="rating" value="3" @checked($filters['rating'] === 3) data-autosubmit> <span class="stars" aria-hidden="true">★★★</span> 3 &amp; up</label>
+                </fieldset>
+
+                <div class="filter-group">
+                    <span class="filter-label">Availability</span>
+                    <label class="filter-option"><input type="checkbox" name="in_stock" value="1" @checked($filters['in_stock']) data-autosubmit> In stock only</label>
+                </div>
+
+                <div class="filters-foot">
+                    <a href="{{ $clearFilters }}" class="btn-soft">Clear all</a>
+                    <button type="submit" class="btn-main">Show results</button>
+                </div>
+            </form>
+
+            <div class="sheet-backdrop" data-sheet-close></div>
+
+            {{-- RESULTS --}}
+            <section class="shop-results" aria-label="Products">
+
+                <div class="shop-toolbar">
+                    <button type="button" class="filter-open" data-sheet-open aria-controls="shopFilters">
+                        <i class="bi bi-sliders"></i> Filter
+                        @if($filterCount > 0)
+                            <b>{{ $filterCount }}</b>
+                        @endif
+                    </button>
+
+                    @if($hasFilters)
+                        <div class="active-filters">
+                            <span>Active:</span>
+                            @if($priceLabel)
+                                <a href="{{ $with(['min' => null, 'max' => null]) }}" class="filter-chip" aria-label="Remove filter: {{ $priceLabel }}">{{ $priceLabel }} <i class="bi bi-x-lg"></i></a>
+                            @endif
+                            @if($filters['rating'])
+                                <a href="{{ $with(['rating' => null]) }}" class="filter-chip" aria-label="Remove filter: {{ $filters['rating'] }} stars and up">{{ $filters['rating'] }}★ &amp; up <i class="bi bi-x-lg"></i></a>
+                            @endif
+                            @if($filters['in_stock'])
+                                <a href="{{ $with(['in_stock' => null]) }}" class="filter-chip" aria-label="Remove filter: In stock only">In stock only <i class="bi bi-x-lg"></i></a>
+                            @endif
+                            <a href="{{ $clearFilters }}" class="clear-link">Clear all</a>
+                        </div>
+                    @endif
+
+                    <label class="sort-control">
+                        <span>Sort by</span>
+                        <select name="sort" form="shopFilters" aria-label="Sort products" data-autosubmit>
+                            <option value="newest" @selected($filters['sort'] === 'newest')>Newest</option>
+                            <option value="price_low" @selected($filters['sort'] === 'price_low')>Price: Low to High</option>
+                            <option value="price_high" @selected($filters['sort'] === 'price_high')>Price: High to Low</option>
+                            <option value="rating" @selected($filters['sort'] === 'rating')>Top rated</option>
+                        </select>
+                    </label>
+                </div>
+
+                @if($total === 0)
+
+                    {{-- EMPTY STATES --}}
+                    <div class="shop-empty">
+                        <span class="shop-empty-icon"><i class="bi bi-search"></i></span>
+
+                        @if($filters['search'] !== '')
+                            <h2>No “{{ $filters['search'] }}”{{ $filters['category'] ? ' in ' . $filters['category_label'] : '' }}</h2>
+                            <p>
+                                @if($hasFilters)
+                                    Some filters are on — try clearing them, or use a different word.
+                                @else
+                                    Try a different word, check the spelling{{ $filters['category'] ? ', or look for it in every category' : '' }}.
+                                @endif
+                            </p>
+                            <div class="shop-empty-actions">
+                                @if($hasFilters)
+                                    <a href="{{ $clearFilters }}" class="btn-main">Clear filters</a>
+                                @elseif($filters['category'])
+                                    <a href="{{ $with(['category' => null]) }}" class="btn-main"><i class="bi bi-search"></i> Search “{{ $filters['search'] }}” in all categories</a>
+                                @endif
+                                <a href="{{ $filters['category'] ? route('products', ['category' => $filters['category']]) : route('products') }}" class="btn-soft">
+                                    Browse {{ $filters['category_label'] ?? 'all products' }}
+                                </a>
+                            </div>
+                        @elseif($hasFilters)
+                            <h2>No products match these filters</h2>
+                            <p>Try a wider price range or fewer filters.</p>
+                            <div class="shop-empty-actions">
+                                <a href="{{ $clearFilters }}" class="btn-main">Clear filters</a>
+                            </div>
+                        @else
+                            <h2>No products here yet</h2>
+                            <p>Sellers haven't listed anything{{ $filters['category'] ? ' in ' . $filters['category_label'] : '' }} yet. Check back soon.</p>
+                            <div class="shop-empty-actions">
+                                <a href="{{ route('products') }}" class="btn-soft">Browse all products</a>
+                            </div>
+                        @endif
+                    </div>
+
+                @else
+
+                    <div class="sp-grid" id="productGrid">
+                        @include('partials.shop-product-cards', ['products' => $products, 'showCategory' => !$filters['category']])
+                    </div>
+
+                    @if($paginator->hasMorePages())
+                        <div class="load-more" id="loadMore">
+                            <span id="loadCount">Showing {{ $paginator->lastItem() }} of {{ number_format($total) }} products</span>
+                            <div class="load-bar" aria-hidden="true"><span id="loadBar" style="width: {{ round($paginator->lastItem() / $total * 100) }}%;"></span></div>
+                            {{-- Works without JavaScript too (opens the next page). --}}
+                            <a href="{{ $paginator->nextPageUrl() }}" class="btn-soft" id="loadMoreBtn">Load more products</a>
+                        </div>
+                    @elseif($paginator->currentPage() > 1)
+                        <div class="load-more">
+                            <a href="{{ $with([]) }}" class="clear-link">Back to the first page</a>
+                        </div>
+                    @elseif($total > 4)
+                        <div class="load-more">That's all {{ number_format($total) }} products{{ $filters['category'] ? ' in ' . $filters['category_label'] : '' }}.</div>
+                    @endif
+
+                @endif
+
+            </section>
         </div>
 
-        <!-- EMPTY RESULT -->
+    </main>
 
-        <div class="empty" id="empty">
 
-            <div class="empty-icon">
-                <i class="bi bi-search"></i>
+    <div class="shop-toast" id="shopToast" role="status" aria-live="polite">
+        <span class="shop-toast-icon"><i class="bi bi-check-lg" id="shopToastIcon"></i></span>
+        <span class="shop-toast-text">
+            <strong id="shopToastTitle"></strong>
+            <span id="shopToastSub"></span>
+        </span>
+        <a href="{{ route('cart') }}" id="shopToastLink">View cart</a>
+    </div>
+
+    {{-- Quick pick: choose a color/size right from the card --}}
+    <div class="pick-overlay" id="pickOverlay">
+        <div class="pick-box" role="dialog" aria-modal="true" aria-labelledby="pickName">
+            <button type="button" class="pick-close" data-pick-close aria-label="Close"><i class="bi bi-x-lg"></i></button>
+            <div class="pick-name" id="pickName"></div>
+            <div class="pick-price" id="pickPrice"></div>
+            <div class="pick-label" id="pickLabel"></div>
+            <div class="pick-options" id="pickOptions" role="group" aria-labelledby="pickLabel"></div>
+            <div class="pick-stock" id="pickStock" aria-live="polite"></div>
+            <div class="pick-actions">
+                <button type="button" class="sp-btn sp-btn-outline" id="pickCart"><i class="bi bi-cart-plus"></i> Add to cart</button>
+                <button type="button" class="sp-btn sp-btn-buy" id="pickBuy">Buy now</button>
             </div>
-
-            <h2>
-                No products found
-            </h2>
-
-            <p>
-                Try another search or category.
-            </p>
-
+            <a href="#" class="pick-more" id="pickMore">See full product details</a>
         </div>
+    </div>
 
-    </section>
-
-    <!-- =========================
-         ABOUT SECTION
-    ========================= -->
-
-    <section
-        id="about"
-        class="about-section"
-    >
-
-        <div class="about-content">
-
-            <small>
-                ABOUT BOOMBUY
-            </small>
-
-            <h2>
-                Your Marketplace for Everything
-            </h2>
-
-            <p>
-                BoomBuy is an online marketplace where buyers can
-                discover products from different categories and sellers
-                in one convenient platform.
-            </p>
-
-            <p>
-                From electronics and fashion to home essentials,
-                sports, beauty, food, and more — BoomBuy makes shopping
-                simple, convenient, and accessible.
-            </p>
-
-        </div>
-
-    </section>
-
-    <!-- =========================
-         FOOTER
-    ========================= -->
-
-    <footer>
-
-        <div>
-            © 2026 BoomBuy
-        </div>
-
-        <div>
-            Your Marketplace for Everything.
-        </div>
-
-    </footer>
-
-    <!-- =========================
-         JAVASCRIPT
-    ========================= -->
+    <form id="pickBuyForm" method="POST" hidden>
+        @csrf
+        <input type="hidden" name="variation_id" value="">
+        <input type="hidden" name="quantity" value="1">
+    </form>
 
     <script>
+    (function () {
+        var token = document.querySelector('meta[name="csrf-token"]').content;
+        var filters = document.getElementById('shopFilters');
+        var mobile = window.matchMedia('(max-width: 900px)');
 
-        var HEART_FILLED = '<svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-        var HEART_OUTLINE = '<svg viewBox="0 0 24 24" fill="none" stroke="#8d6c62" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        /* ---------- keep the chosen category chip in view (phones scroll the row) ---------- */
 
-        function toggleWishlist(btn) {
-            var productId = btn.dataset.productId;
-            var token = document.querySelector('meta[name="csrf-token"]')
-                ? document.querySelector('meta[name="csrf-token"]').content
-                : '';
+        var activeChip = document.querySelector('.cat-chip.active');
+        if (activeChip && activeChip.previousElementSibling) {
+            var row = activeChip.parentElement;
+            row.scrollLeft += activeChip.getBoundingClientRect().left - row.getBoundingClientRect().left
+                - (row.clientWidth - activeChip.offsetWidth) / 2;
+        }
 
-            var form = new FormData();
-            form.append('_token', token);
+        /* ---------- filters: apply right away on desktop ---------- */
 
-            fetch('/wishlist/toggle/' + productId, {
+        document.querySelectorAll('[data-autosubmit]').forEach(function (input) {
+            input.addEventListener('change', function () {
+                // In the phone sheet, wait for "Show results" — except the sort menu, which lives outside it.
+                if (mobile.matches && input.name !== 'sort') return;
+                filters.requestSubmit ? filters.requestSubmit() : filters.submit();
+            });
+        });
+
+        // Leave empty fields out of the URL.
+        filters.addEventListener('submit', function () {
+            filters.querySelectorAll('input[name="min"], input[name="max"]').forEach(function (input) {
+                if (input.value === '') input.disabled = true;
+            });
+            var anyRating = filters.querySelector('input[name="rating"][value=""]');
+            if (anyRating && anyRating.checked) anyRating.disabled = true;
+        });
+
+        // Re-enable them if the page comes back from the back/forward cache.
+        window.addEventListener('pageshow', function () {
+            filters.querySelectorAll('input:disabled').forEach(function (input) { input.disabled = false; });
+        });
+
+        /* ---------- phone filter sheet ---------- */
+
+        var backdrop = document.querySelector('.sheet-backdrop');
+        var opener = document.querySelector('[data-sheet-open]');
+
+        function setSheet(open) {
+            filters.classList.toggle('is-open', open);
+            backdrop.classList.toggle('is-open', open);
+            document.body.style.overflow = open ? 'hidden' : '';
+            if (open) {
+                filters.setAttribute('role', 'dialog');
+                filters.setAttribute('aria-modal', 'true');
+                filters.querySelector('[data-sheet-close]').focus();
+            } else {
+                filters.removeAttribute('role');
+                filters.removeAttribute('aria-modal');
+                if (opener) opener.focus();
+            }
+        }
+
+        if (opener) opener.addEventListener('click', function () { setSheet(true); });
+
+        document.querySelectorAll('[data-sheet-close]').forEach(function (el) {
+            el.addEventListener('click', function () { setSheet(false); });
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && filters.classList.contains('is-open')) setSheet(false);
+        });
+
+        /* ---------- toast ---------- */
+
+        var toast = document.getElementById('shopToast');
+        var toastTimer = null;
+
+        function showToast(ok, title, sub) {
+            toast.classList.toggle('is-error', !ok);
+            document.getElementById('shopToastIcon').className = 'bi ' + (ok ? 'bi-check-lg' : 'bi-exclamation-lg');
+            document.getElementById('shopToastTitle').textContent = title;
+            document.getElementById('shopToastSub').textContent = sub || '';
+            document.getElementById('shopToastLink').hidden = !ok;
+            toast.classList.add('is-shown');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function () { toast.classList.remove('is-shown'); }, 3500);
+        }
+
+        /* ---------- add to cart (only reports success when the server says so) ---------- */
+
+        document.addEventListener('submit', function (e) {
+            var form = e.target.closest('[data-add-cart]');
+            if (!form) return;
+            e.preventDefault();
+
+            var button = form.querySelector('button');
+            var original = button.innerHTML;
+            button.disabled = true;
+
+            fetch(form.action, {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                body: form
+                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: new FormData(form)
             })
                 .then(function (res) {
-                    if (!res.ok) throw new Error('not ok');
-                    return res.json();
+                    return res.json().then(function (data) { return { status: res.status, data: data }; });
                 })
-                .then(function (data) {
-                    btn.classList.toggle('active', data.in_wishlist);
-                    btn.innerHTML = data.in_wishlist ? HEART_FILLED : HEART_OUTLINE;
-                    btn.setAttribute(
-                        'aria-label',
-                        data.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist'
-                    );
+                .then(function (result) {
+                    if (result.status === 401 && result.data.login) {
+                        window.location.href = result.data.login;
+                        return;
+                    }
+
+                    if (!result.data.ok) {
+                        button.innerHTML = original;
+                        button.disabled = false;
+                        showToast(false, 'Could not add to cart', result.data.message);
+                        return;
+                    }
+
+                    button.classList.add('is-added');
+                    button.innerHTML = '<i class="bi bi-check-lg"></i><span class="sp-btn-label">Added</span>';
+                    showToast(true, 'Added to cart', form.dataset.name + ' · ' + form.dataset.price);
+
+                    var badge = document.getElementById('cartCount');
+                    if (badge && result.data.cart_count) {
+                        badge.textContent = result.data.cart_count;
+                        badge.style.display = '';
+                    }
+
+                    setTimeout(function () {
+                        button.classList.remove('is-added');
+                        button.innerHTML = original;
+                        button.disabled = false;
+                    }, 1800);
                 })
                 .catch(function () {
-                    // Likely a guest — send them to log in
-                    window.location.href = '/login';
+                    button.innerHTML = original;
+                    button.disabled = false;
+                    showToast(false, 'Could not add to cart', 'Please check your connection and try again.');
                 });
+        });
+
+        /* ---------- quick pick popup for products with a color/size ---------- */
+
+        var pick = {
+            overlay: document.getElementById('pickOverlay'),
+            options: document.getElementById('pickOptions'),
+            stock: document.getElementById('pickStock'),
+            product: null,
+            chosen: null,
+            opener: null
+        };
+        var buyUrl = @json(route('buy.now', ['id' => '__ID__']));
+        var addUrl = @json(route('cart.add', ['id' => '__ID__']));
+        var peso = function (n) { return '₱' + Math.round(n).toLocaleString(); };
+
+        function pickPrice() {
+            var prices = pick.product.variations.map(function (v) { return v.price; });
+            var low = Math.min.apply(null, prices);
+            var high = Math.max.apply(null, prices);
+            document.getElementById('pickPrice').textContent = pick.chosen
+                ? peso(pick.chosen.price)
+                : (low === high ? peso(low) : peso(low) + ' – ' + peso(high));
         }
 
-        const products =
-            Array.from(
-                document.querySelectorAll(
-                    ".product-card"
-                )
-            );
-
-        const searchInput =
-            document.getElementById(
-                "searchInput"
-            );
-
-        const sortSelect =
-            document.getElementById(
-                "sortSelect"
-            );
-
-        const minPriceInput =
-            document.getElementById(
-                "minPrice"
-            );
-
-        const maxPriceInput =
-            document.getElementById(
-                "maxPrice"
-            );
-
-        const ratingSelect =
-            document.getElementById(
-                "ratingSelect"
-            );
-
-        const results =
-            document.getElementById(
-                "results"
-            );
-
-        const empty =
-            document.getElementById(
-                "empty"
-            );
-
-        const productGrid =
-            document.getElementById(
-                "productGrid"
-            );
-
-        const currentCategory =
-            @json(request('category'));
-
-        function updateProducts() {
-
-            const search =
-                searchInput.value
-                    .toLowerCase()
-                    .trim();
-
-            let visibleProducts =
-                products.filter(product => {
-
-                    const productCategory =
-                        (
-                            product.dataset.category
-                            || ""
-                        ).toLowerCase();
-
-                    const matchesCategory =
-                        !currentCategory
-                        ||
-                        productCategory ===
-                            currentCategory.toLowerCase();
-
-                    if (!matchesCategory) {
-                        return false;
-                    }
-
-                    const price =
-                        Number(product.dataset.price) || 0;
-
-                    const minPrice =
-                        minPriceInput.value !== ""
-                            ? Number(minPriceInput.value)
-                            : null;
-
-                    const maxPrice =
-                        maxPriceInput.value !== ""
-                            ? Number(maxPriceInput.value)
-                            : null;
-
-                    if (minPrice !== null && price < minPrice) {
-                        return false;
-                    }
-
-                    if (maxPrice !== null && price > maxPrice) {
-                        return false;
-                    }
-
-                    const minRating =
-                        Number(ratingSelect.value) || 0;
-
-                    if (
-                        minRating > 0 &&
-                        Number(product.dataset.rating) < minRating
-                    ) {
-                        return false;
-                    }
-
-                    const name =
-                        product
-                            .querySelector(
-                                ".product-name"
-                            )
-                            .textContent
-                            .toLowerCase();
-
-                    const categoryText =
-                        product
-                            .querySelector(
-                                ".category"
-                            )
-                            .textContent
-                            .toLowerCase();
-
-                    const description =
-                        product
-                            .querySelector(
-                                ".description"
-                            )
-                            .textContent
-                            .toLowerCase();
-
-                    return (
-                        name.includes(search) ||
-                        categoryText.includes(search) ||
-                        description.includes(search)
-                    );
-                });
-
-            const sort =
-                sortSelect.value;
-
-            if (sort === "low") {
-
-                visibleProducts.sort(
-                    (a, b) =>
-                        Number(a.dataset.price) -
-                        Number(b.dataset.price)
-                );
-            }
-
-            if (sort === "high") {
-
-                visibleProducts.sort(
-                    (a, b) =>
-                        Number(b.dataset.price) -
-                        Number(a.dataset.price)
-                );
-            }
-
-            if (sort === "rating") {
-
-                visibleProducts.sort(
-                    (a, b) =>
-                        Number(b.dataset.rating) -
-                        Number(a.dataset.rating)
-                );
-            }
-
-            products.forEach(product => {
-                product.style.display = "none";
+        function choose(variation, button) {
+            pick.chosen = variation;
+            pick.options.querySelectorAll('.pick-option').forEach(function (b) {
+                b.setAttribute('aria-pressed', b === button ? 'true' : 'false');
             });
-
-            visibleProducts.forEach(product => {
-
-                product.style.display = "block";
-
-                productGrid.appendChild(
-                    product
-                );
-            });
-
-            results.textContent =
-                `Showing ${visibleProducts.length} product${
-                    visibleProducts.length !== 1
-                        ? "s"
-                        : ""
-                }`;
-
-            empty.style.display =
-                visibleProducts.length === 0
-                    ? "block"
-                    : "none";
+            pick.stock.classList.remove('is-error');
+            pick.stock.textContent = variation.stock <= 10 ? 'Only ' + variation.stock + ' left' : variation.stock + ' in stock';
+            pickPrice();
         }
 
-        searchInput.addEventListener(
-            "input",
-            updateProducts
-        );
+        function openPick(product, wants, opener) {
+            pick.product = product;
+            pick.chosen = null;
+            pick.opener = opener;
 
-        sortSelect.addEventListener(
-            "change",
-            updateProducts
-        );
+            var type = (product.type || 'option').toLowerCase();
+            document.getElementById('pickName').textContent = product.name;
+            document.getElementById('pickLabel').textContent = 'Choose a ' + type;
+            document.getElementById('pickMore').href = product.url;
+            pick.stock.textContent = '';
+            pick.stock.classList.remove('is-error');
+            pick.options.textContent = '';
 
-        minPriceInput.addEventListener(
-            "input",
-            updateProducts
-        );
+            var available = product.variations.filter(function (v) { return v.stock > 0; });
 
-        maxPriceInput.addEventListener(
-            "input",
-            updateProducts
-        );
-
-        ratingSelect.addEventListener(
-            "change",
-            updateProducts
-        );
-
-        document
-            .querySelectorAll(
-                ".add-to-cart-form"
-            )
-            .forEach(form => {
-
-                form.addEventListener(
-                    "submit",
-                    async function(event) {
-
-                        event.preventDefault();
-
-                        const button =
-                            form.querySelector(
-                                ".add"
-                            );
-
-                        if (!button) {
-                            return;
-                        }
-
-                        const originalText =
-                            button.textContent;
-
-                        button.disabled = true;
-                        button.textContent = "Adding...";
-
-                        try {
-
-                            const response =
-                                await fetch(
-                                    form.action,
-                                    {
-                                        method: "POST",
-
-                                        headers: {
-                                            "X-CSRF-TOKEN":
-                                                document
-                                                    .querySelector(
-                                                        'meta[name="csrf-token"]'
-                                                    )
-                                                    .getAttribute(
-                                                        "content"
-                                                    ),
-
-                                            "Accept":
-                                                "application/json",
-
-                                            "X-Requested-With":
-                                                "XMLHttpRequest"
-                                        },
-
-                                        body:
-                                            new FormData(
-                                                form
-                                            )
-                                    }
-                                );
-
-                            if (!response.ok) {
-                                throw new Error(
-                                    "Failed to add product."
-                                );
-                            }
-
-                            button.innerHTML =
-                                '<i class="bi bi-check-circle-fill"></i> Added!';
-
-                            button.classList.add(
-                                "added"
-                            );
-
-                            const cartBadge =
-                                document.getElementById(
-                                    "cartCount"
-                                );
-
-                            if (cartBadge) {
-
-                                let currentCount =
-                                    parseInt(
-                                        cartBadge.textContent
-                                    ) || 0;
-
-                                currentCount++;
-
-                                cartBadge.textContent =
-                                    currentCount;
-
-                                cartBadge.style.display =
-                                    "inline-flex";
-                            }
-
-                            setTimeout(() => {
-
-                                button.textContent =
-                                    originalText;
-
-                                button.classList.remove(
-                                    "added"
-                                );
-
-                                button.disabled =
-                                    false;
-
-                            }, 1500);
-
-                        } catch (error) {
-
-                            console.error(
-                                error
-                            );
-
-                            button.textContent =
-                                "Try again";
-
-                            button.disabled =
-                                false;
-
-                            setTimeout(() => {
-
-                                button.textContent =
-                                    originalText;
-
-                            }, 1500);
-                        }
-                    }
-                );
+            product.variations.forEach(function (v) {
+                var b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'pick-option';
+                b.textContent = v.label;
+                b.setAttribute('aria-pressed', 'false');
+                if (v.stock <= 0) {
+                    b.disabled = true;
+                    b.title = 'Sold out';
+                }
+                b.addEventListener('click', function () { choose(v, b); });
+                pick.options.appendChild(b);
             });
 
-        updateProducts();
+            pickPrice();
 
+            // Only one option left? Pick it for them.
+            if (available.length === 1) {
+                var only = pick.options.children[product.variations.indexOf(available[0])];
+                choose(available[0], only);
+            }
+
+            // Highlight the action they clicked on the card.
+            document.getElementById('pickCart').className = 'sp-btn ' + (wants === 'cart' ? 'sp-btn-dark' : 'sp-btn-outline');
+            document.getElementById('pickBuy').className = 'sp-btn ' + (wants === 'buy' ? 'sp-btn-buy' : 'sp-btn-outline');
+
+            pick.overlay.classList.add('is-open');
+            (pick.options.querySelector('.pick-option:not(:disabled)') || document.getElementById('pickCart')).focus();
+        }
+
+        function closePick() {
+            pick.overlay.classList.remove('is-open');
+            if (pick.opener) pick.opener.focus();
+        }
+
+        function needChoice() {
+            if (pick.chosen) return false;
+            pick.stock.classList.add('is-error');
+            pick.stock.textContent = 'Please choose a ' + (pick.product.type || 'option').toLowerCase() + ' first.';
+            return true;
+        }
+
+        document.addEventListener('click', function (e) {
+            var trigger = e.target.closest('[data-pick]');
+            if (!trigger) return;
+            var source = trigger.closest('.sp-actions').querySelector('[data-product]');
+            openPick(JSON.parse(source.dataset.product), trigger.dataset.pick, trigger);
+        });
+
+        pick.overlay.addEventListener('click', function (e) {
+            if (e.target === pick.overlay || e.target.closest('[data-pick-close]')) closePick();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && pick.overlay.classList.contains('is-open')) closePick();
+        });
+
+        document.getElementById('pickCart').addEventListener('click', function () {
+            if (needChoice()) return;
+
+            var button = this;
+            var body = new FormData();
+            body.append('_token', token);
+            body.append('variation_id', pick.chosen.id);
+            button.disabled = true;
+
+            fetch(addUrl.replace('__ID__', pick.product.id), {
+                method: 'POST',
+                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: body
+            })
+                .then(function (res) {
+                    return res.json().then(function (data) { return { status: res.status, data: data }; });
+                })
+                .then(function (result) {
+                    button.disabled = false;
+
+                    if (result.status === 401 && result.data.login) {
+                        window.location.href = result.data.login;
+                        return;
+                    }
+
+                    if (!result.data.ok) {
+                        pick.stock.classList.add('is-error');
+                        pick.stock.textContent = result.data.message;
+                        return;
+                    }
+
+                    var badge = document.getElementById('cartCount');
+                    if (badge && result.data.cart_count) {
+                        badge.textContent = result.data.cart_count;
+                        badge.style.display = '';
+                    }
+
+                    closePick();
+                    showToast(true, 'Added to cart', pick.product.name + ' (' + pick.chosen.label + ') · ' + peso(pick.chosen.price));
+                })
+                .catch(function () {
+                    button.disabled = false;
+                    pick.stock.classList.add('is-error');
+                    pick.stock.textContent = 'Could not add to cart. Please try again.';
+                });
+        });
+
+        document.getElementById('pickBuy').addEventListener('click', function () {
+            if (needChoice()) return;
+            var form = document.getElementById('pickBuyForm');
+            form.action = buyUrl.replace('__ID__', pick.product.id);
+            form.querySelector('[name="variation_id"]').value = pick.chosen.id;
+            form.submit();
+        });
+
+        /* ---------- wishlist hearts ---------- */
+
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-wishlist]');
+            if (!btn) return;
+
+            var body = new FormData();
+            body.append('_token', token);
+
+            fetch('/wishlist/toggle/' + btn.dataset.wishlist, {
+                method: 'POST',
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
+                body: body
+            })
+                .then(function (res) { if (!res.ok) throw new Error(); return res.json(); })
+                .then(function (data) {
+                    btn.setAttribute('aria-pressed', data.in_wishlist ? 'true' : 'false');
+                    btn.setAttribute('aria-label', data.in_wishlist ? 'Remove from wishlist' : 'Add to wishlist');
+                    btn.querySelector('i').className = 'bi ' + (data.in_wishlist ? 'bi-heart-fill' : 'bi-heart');
+                })
+                .catch(function () {
+                    // Most likely a guest — the wishlist needs an account.
+                    window.location.href = @json(route('login'));
+                });
+        });
+
+        /* ---------- load more ---------- */
+
+        var loadBtn = document.getElementById('loadMoreBtn');
+
+        if (loadBtn) {
+            loadBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                if (loadBtn.getAttribute('aria-busy') === 'true') return;
+
+                var url = new URL(loadBtn.href);
+                url.searchParams.set('partial', '1');
+
+                loadBtn.setAttribute('aria-busy', 'true');
+                loadBtn.textContent = 'Loading…';
+
+                fetch(url, { headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (res) { if (!res.ok) throw new Error(); return res.json(); })
+                    .then(function (data) {
+                        document.getElementById('productGrid').insertAdjacentHTML('beforeend', data.html);
+                        document.getElementById('loadCount').textContent = 'Showing ' + data.shown + ' of ' + data.total.toLocaleString() + ' products';
+                        document.getElementById('loadBar').style.width = Math.round(data.shown / data.total * 100) + '%';
+
+                        if (data.next) {
+                            loadBtn.href = data.next;
+                            loadBtn.textContent = 'Load more products';
+                            loadBtn.removeAttribute('aria-busy');
+                        } else {
+                            document.getElementById('loadMore').innerHTML = 'That’s all ' + data.total.toLocaleString() + ' products.';
+                        }
+                    })
+                    .catch(function () {
+                        // Fall back to opening the next page normally.
+                        window.location.href = loadBtn.href;
+                    });
+            });
+        }
+    })();
     </script>
+
+    @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
 
