@@ -688,12 +688,29 @@ class SellerController extends Controller
             return $user;
         }
 
-        return view('pages.seller.add-product', compact('user'));
+        $registeredCategory = $this->registeredCategory((int) $user['id']);
+
+        return view('pages.seller.add-product', compact('user', 'registeredCategory'));
     }
 
     public function redirectLegacyAddProduct()
     {
         return redirect()->route('seller.products.create');
+    }
+
+    /**
+     * The one category this seller registered for (slug). Sellers may only
+     * list products there. Null for older accounts that never declared one —
+     * those keep the full category list.
+     */
+    private function registeredCategory(int $sellerId): ?string
+    {
+        $declared = DB::table('seller_applications')
+            ->where('user_id', $sellerId)
+            ->orderByDesc('id')
+            ->value('business_category');
+
+        return Categories::slug($declared);
     }
 
     public function storeProduct()
@@ -706,6 +723,22 @@ class SellerController extends Controller
 
         $name = trim(request('name'));
         $category = trim(request('category'));
+
+        // Sellers may only sell in the category they registered for.
+        $registeredCategory = $this->registeredCategory((int) $user['id']);
+
+        if ($registeredCategory) {
+            if ($category !== '' && Categories::slug($category) !== $registeredCategory) {
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'You can only sell ' . Categories::LIST[$registeredCategory] . ' products — the category your shop is registered for.'
+                    );
+            }
+
+            $category = $registeredCategory;
+        }
         $price = (float) request('price');
         $stock = (int) request('stock');
         $description = trim(request('description'));
@@ -1332,9 +1365,11 @@ class SellerController extends Controller
             abort(404);
         }
 
+        $registeredCategory = $this->registeredCategory((int) $user['id']);
+
         return view(
             'pages.seller.edit-product',
-            compact('user', 'product')
+            compact('user', 'product', 'registeredCategory')
         );
     }
 
@@ -1359,6 +1394,22 @@ class SellerController extends Controller
 
         $name = trim(request('name'));
         $category = trim(request('category'));
+
+        // Sellers may only sell in the category they registered for.
+        $registeredCategory = $this->registeredCategory((int) $user['id']);
+
+        if ($registeredCategory) {
+            if ($category !== '' && Categories::slug($category) !== $registeredCategory) {
+                return back()
+                    ->withInput()
+                    ->with(
+                        'error',
+                        'You can only sell ' . Categories::LIST[$registeredCategory] . ' products — the category your shop is registered for.'
+                    );
+            }
+
+            $category = $registeredCategory;
+        }
         $price = (float) request('price');
         $stock = (int) request('stock');
         $description = trim(request('description'));

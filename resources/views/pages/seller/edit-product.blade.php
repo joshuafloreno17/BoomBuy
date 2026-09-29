@@ -186,7 +186,24 @@
                             @endphp
 
 
-                            <select
+                            @if(!empty($registeredCategory))
+    {{-- Locked: a seller only sells in the category they registered for. --}}
+    <input type="hidden" name="category" value="{{ $registeredCategory }}">
+    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #f0d9d1; border-radius:10px; background:#fff7f4; font-weight:700; color:#172033;">
+        <i class="bi bi-lock-fill" style="color:#c43408;"></i>
+        {{ \App\Support\Categories::LIST[$registeredCategory] }}
+    </div>
+    <small style="display:block; margin-top:6px; font-size:12px; color:#6f5a53;">
+        Your shop is registered for this category, so all your products go here.
+    </small>
+    @if(\App\Support\Categories::slug($product->category) !== $registeredCategory)
+        <small style="display:block; margin-top:6px; font-size:12px; font-weight:700; color:#8a4b00;">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            This product is listed under {{ $product->category }}. Saving moves it to {{ \App\Support\Categories::LIST[$registeredCategory] }}.
+        </small>
+    @endif
+@else
+<select
                                 id="category"
                                 name="category"
                                 required
@@ -325,6 +342,7 @@
                                 </option>
 
                             </select>
+@endif
 
                         </div>
 

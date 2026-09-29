@@ -10,8 +10,10 @@ class ProductSeeder extends Seeder
 {
     public function run(): void
     {
-        // Seller ID ni Jairo Banaag sa users table
-        $sellerId = 12;
+        // No seller yet: SellerShopsSeeder hands each product to the shop for
+        // its category (a fixed id here broke seeding on a fresh database,
+        // because products.seller_id must point at an existing user).
+        $sellerId = null;
 
         $productsByCategory = [
             'Electronics' => [
@@ -171,9 +173,9 @@ class ProductSeeder extends Seeder
                         'description' => $productName . ' - quality product available at BoomBuy.',
                         'price' => rand(99, 2999) + 0.00,
                         'stock' => rand(10, 100),
-                        // Placeholder path lang ito. Palitan/upload actual image
-                        // dito o sa admin panel pagkatapos mag-seed.
-                        'image' => 'products/placeholder.jpg',
+                        // No photo yet: the shop shows the category icon. Sellers
+                        // upload real photos from their product page.
+                        'image' => null,
                     ]
                 );
 

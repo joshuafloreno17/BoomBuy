@@ -26,6 +26,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ProductSeeder::class,
             TestAccountsSeeder::class,
+            // Real shops for the catalogue: gives every seed product a seller.
+            SellerShopsSeeder::class,
         ]);
     }
 }
