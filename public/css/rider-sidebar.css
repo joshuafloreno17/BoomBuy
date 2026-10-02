@@ -264,3 +264,8 @@
         margin-left: 64px;
     }
 }
+
+/* Own reset, so the sidebar looks the same whatever the page CSS does. */
+.rider-sidebar a {
+    text-decoration: none;
+}

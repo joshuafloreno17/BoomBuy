@@ -733,44 +733,100 @@
            TRUST STRIP
         ========================= */
 
+        /* One card, as wide as the category grid below it, four equal parts. */
         .trust-strip {
-            background: var(--paper);
-            border-block: 1px solid var(--line);
+            padding: 34px 7% 0;
         }
 
         .trust-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 14px;
-            padding-block: 18px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            background: var(--paper);
+            border: 1px solid var(--line);
+            border-radius: 22px;
+            box-shadow: 0 14px 36px rgba(232, 66, 15, 0.07);
+            overflow: hidden;
         }
 
         .trust-item {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 14px;
+            min-width: 0;
+            padding: 22px 24px;
+            transition: background 0.2s ease;
+        }
+
+        .trust-item + .trust-item {
+            border-left: 1px solid var(--line);
+        }
+
+        .trust-item:hover {
+            background: #fffaf8;
         }
 
         .trust-icon {
-            width: 40px;
-            height: 40px;
-            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            border-radius: 14px;
             background: #fff0eb;
             color: var(--accent);
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 18px;
+            font-size: 21px;
             flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .trust-item:hover .trust-icon {
+            transform: translateY(-2px);
         }
 
         .trust-icon-teal { background: var(--teal-bg); color: var(--teal-dark); }
 
-        .trust-item strong { display: block; font-size: 12.5px; }
-        .trust-item span { font-size: 11px; color: var(--muted); }
+        .trust-item strong {
+            display: block;
+            font-size: 14.5px;
+            font-weight: 800;
+            color: var(--ink);
+        }
 
-        @media (max-width: 760px) {
-            .trust-grid { grid-template-columns: repeat(2, 1fr); }
+        .trust-item span {
+            display: block;
+            margin-top: 2px;
+            font-size: 12.5px;
+            line-height: 1.4;
+            color: var(--muted);
+        }
+
+        @media (max-width: 960px) {
+            .trust-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+
+            /* 2 x 2: dividers between the columns and between the rows. */
+            .trust-item + .trust-item { border-left: none; }
+            .trust-item:nth-child(even) { border-left: 1px solid var(--line); }
+            .trust-item:nth-child(n+3) { border-top: 1px solid var(--line); }
+        }
+
+        @media (max-width: 560px) {
+            .trust-strip { padding: 22px 16px 0; }
+
+            .trust-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+                padding: 16px;
+            }
+
+            .trust-icon {
+                width: 40px;
+                height: 40px;
+                font-size: 18px;
+            }
+
+            .trust-item strong { font-size: 13.5px; }
+            .trust-item span { font-size: 12px; }
         }
 
         /* =========================
@@ -1195,7 +1251,7 @@
     ========================= -->
 
     <div class="trust-strip">
-        <div class="wrap trust-grid" style="max-width:1180px; margin:0 auto; padding-inline:5%;">
+        <div class="trust-grid">
 
             <div class="trust-item">
                 <div class="trust-icon"><i class="bi bi-truck"></i></div>

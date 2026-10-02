@@ -522,6 +522,11 @@ class RiderController extends Controller
 
         $delivery['payment'] = $delivery['payment_method'];
 
+        // The page shows "Order Date"; the row only has created_at.
+        $delivery['date'] = !empty($delivery['created_at'])
+            ? \Illuminate\Support\Carbon::parse($delivery['created_at'])->format('M j, Y · g:i A')
+            : null;
+
         return view(
             'pages.rider.delivery-details',
             compact('user', 'delivery')

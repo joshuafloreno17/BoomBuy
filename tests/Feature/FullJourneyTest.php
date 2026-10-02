@@ -62,7 +62,10 @@ class FullJourneyTest extends TestCase
         if ($rider) {
             $this->flushSession();
             $user = $rider == $this->pickupRider->id ? $this->pickupRider : $this->deliveryRider;
-            $this->actingAsUser($user)->get(route('rider.delivery.details', $id))->assertOk();
+            $this->actingAsUser($user)->get(route('rider.delivery.details', $id))
+                ->assertOk()
+                // The order date, not "N/A".
+                ->assertSee(\Illuminate\Support\Carbon::parse(DB::table('orders')->where('id', $id)->value('created_at'))->format('M j, Y'));
         }
 
         $this->flushSession();

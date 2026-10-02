@@ -176,8 +176,8 @@
            MAIN
         ========================= */
 
+        /* The sidebar offset comes from .main-content (css/rider-sidebar.css). */
         .main {
-            margin-left: 245px;
             min-height: 100vh;
             padding: 44px 34px;
         }
@@ -594,7 +594,6 @@
             }
 
             .main {
-                margin-left: 0;
                 padding: 25px 18px;
             }
 
@@ -654,7 +653,7 @@
          MAIN
     ========================= --}}
 
-    <main class="main">
+    <main class="main main-content">
 
         <div class="content">
 

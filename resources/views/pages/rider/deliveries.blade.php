@@ -11,6 +11,8 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+
     <style>
 
         @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
@@ -45,264 +47,49 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
         }
 
-
         /* =========================================================
            RIDER SIDEBAR
         ========================================================= */
 
-        .rider-sidebar {
-
-            position: fixed;
-
-            left: 0;
-            top: 0;
-
-            width: 250px;
-            height: 100vh;
-
-            background: #ffffff;
-
-            border-right: 1px solid #f7e5e0;
-
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-
-            padding: 26px 16px;
-
-            z-index: 1000;
-        }
-
-
-        .rider-sidebar-top {
-            width: 100%;
-        }
-
+        
 
         /* =========================================================
            BRAND
         ========================================================= */
 
-        .rider-brand {
+        
 
-            display: flex;
-            align-items: center;
+        
 
-            gap: 11px;
-
-            padding: 0 10px;
-
-            margin-bottom: 30px;
-
-            color: #172033;
-        }
-
-
-        .rider-brand-icon {
-
-            width: 42px;
-            height: 42px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: #fff0eb;
-
-            border-radius: 12px;
-
-            font-size: 21px;
-        }
-
-
-        .rider-brand-name {
-
-            font-family: 'Baloo 2', sans-serif;
-
-            font-size: 25px;
-            font-weight: 800;
-
-            line-height: 1;
-        }
-
-
-        .rider-brand-role {
-
-            margin-top: 4px;
-
-            color: #c47a66;
-
-            font-size: 10px;
-            font-weight: 600;
-        }
-
+        
 
         /* =========================================================
            SIDEBAR NAVIGATION
         ========================================================= */
 
-        .rider-sidebar-nav {
+        
 
-            display: flex;
-            flex-direction: column;
+        
 
-            gap: 6px;
-        }
+        
 
+        
 
-        .rider-sidebar-link {
+        
 
-            position: relative;
-
-            display: flex;
-            align-items: center;
-
-            gap: 12px;
-
-            width: 100%;
-
-            padding: 12px 14px;
-
-            border-radius: 11px;
-
-            color: #6f5d58;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            transition: .2s ease;
-        }
-
-
-        .rider-sidebar-link:hover {
-
-            background: #fff4f0;
-
-            color: #e8420f;
-
-            transform: translateX(2px);
-        }
-
-
-        .rider-sidebar-link.active {
-
-            background: #ef4715;
-
-            color: #ffffff;
-
-            box-shadow: 0 7px 18px rgba(232, 66, 15, .18);
-        }
-
-
-        .sidebar-icon {
-
-            width: 22px;
-
-            display: inline-flex;
-
-            align-items: center;
-            justify-content: center;
-
-            flex-shrink: 0;
-
-            font-size: 16px;
-        }
-
-
-        .sidebar-notification-badge {
-
-            margin-left: auto;
-
-            min-width: 19px;
-            height: 19px;
-
-            padding: 0 5px;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            background: #ef4715;
-
-            color: #ffffff;
-
-            border-radius: 999px;
-
-            font-size: 9px;
-            font-weight: 800;
-        }
-
-
-        .rider-sidebar-link.active .sidebar-notification-badge {
-
-            background: #ffffff;
-
-            color: #ef4715;
-        }
-
+        
 
         /* =========================================================
            SIDEBAR BOTTOM
         ========================================================= */
 
-        .rider-sidebar-bottom {
+        
 
-            width: 100%;
-        }
+        
 
+        
 
-        .rider-sidebar-divider {
-
-            width: 100%;
-
-            height: 1px;
-
-            background: #f7e5e0;
-
-            margin-bottom: 14px;
-        }
-
-
-        .rider-sidebar-bottom form {
-            width: 100%;
-        }
-
-
-        .rider-sidebar-logout {
-
-            width: 100%;
-
-            display: flex;
-            align-items: center;
-
-            gap: 12px;
-
-            padding: 12px 14px;
-
-            border: none;
-
-            background: transparent;
-
-            color: #e8420f;
-
-            border-radius: 11px;
-
-            font-size: 12px;
-            font-weight: 700;
-
-            cursor: pointer;
-
-            text-align: left;
-
-            transition: .2s ease;
-        }
-
-
-        .rider-sidebar-logout:hover {
-
-            background: #fff0eb;
-        }
-
+        
 
         /* =========================================================
            MAIN
@@ -310,15 +97,10 @@
 
         .main {
 
-            width: calc(100% - 250px);
-
             min-height: 100vh;
-
-            margin-left: 250px;
 
             padding: 38px 40px 70px;
         }
-
 
         .content-wrapper {
 
@@ -328,7 +110,6 @@
 
             margin: 0 auto;
         }
-
 
         /* =========================================================
            TOPBAR
@@ -346,7 +127,6 @@
             margin-bottom: 28px;
         }
 
-
         .topbar h1 {
 
             font-family: 'Baloo 2', sans-serif;
@@ -359,7 +139,6 @@
             line-height: 1.15;
         }
 
-
         .subtitle {
 
             margin-top: 5px;
@@ -370,7 +149,6 @@
 
             line-height: 1.5;
         }
-
 
         .profile {
 
@@ -394,14 +172,12 @@
             flex-shrink: 0;
         }
 
-
         .profile strong {
 
             color: #172033;
 
             font-weight: 800;
         }
-
 
         /* =========================================================
            ALERTS
@@ -421,7 +197,6 @@
             border: 1px solid transparent;
         }
 
-
         .success {
 
             background: #ecfdf5;
@@ -431,7 +206,6 @@
             border-color: #bbf7d0;
         }
 
-
         .error {
 
             background: #fff1f2;
@@ -440,7 +214,6 @@
 
             border-color: #fecdd3;
         }
-
 
         /* =========================================================
            FILTER
@@ -464,7 +237,6 @@
             margin-bottom: 25px;
         }
 
-
         .filter-box label {
 
             color: #977970;
@@ -472,7 +244,6 @@
             font-size: 12px;
             font-weight: 700;
         }
-
 
         .filter-box select {
 
@@ -495,14 +266,12 @@
             cursor: pointer;
         }
 
-
         .filter-box select:focus {
 
             border-color: #ef4715;
 
             box-shadow: 0 0 0 3px rgba(232, 66, 15, .08);
         }
-
 
         /* =========================================================
            DELIVERY GRID
@@ -517,7 +286,6 @@
 
             gap: 18px;
         }
-
 
         /* =========================================================
            DELIVERY CARD
@@ -538,7 +306,6 @@
             overflow: hidden;
         }
 
-
         .delivery-card:hover {
 
             transform: translateY(-2px);
@@ -546,7 +313,6 @@
             box-shadow:
                 0 10px 28px rgba(232, 66, 15, .08);
         }
-
 
         .delivery-header {
 
@@ -560,7 +326,6 @@
             margin-bottom: 17px;
         }
 
-
         .order-id {
 
             color: #172033;
@@ -570,7 +335,6 @@
             font-size: 19px;
             font-weight: 800;
         }
-
 
         /* =========================================================
            STATUS
@@ -588,14 +352,12 @@
             white-space: nowrap;
         }
 
-
         .status.delivered {
 
             background: #ecfdf5;
 
             color: #059669;
         }
-
 
         .status.transit {
 
@@ -604,7 +366,6 @@
             color: #e8420f;
         }
 
-
         .status.pending {
 
             background: #fff8ed;
@@ -612,14 +373,12 @@
             color: #b77900;
         }
 
-
         .status.ready {
 
             background: #fff0eb;
 
             color: #e8420f;
         }
-
 
         /* =========================================================
            INFO
@@ -631,7 +390,6 @@
 
             padding-top: 13px;
         }
-
 
         .info-row {
 
@@ -648,14 +406,12 @@
             font-size: 12px;
         }
 
-
         .info-label {
 
             color: #977970;
 
             flex-shrink: 0;
         }
-
 
         .info-value {
 
@@ -667,7 +423,6 @@
 
             word-break: break-word;
         }
-
 
         /* =========================================================
            BUTTONS
@@ -683,7 +438,6 @@
 
             flex-wrap: wrap;
         }
-
 
         .btn {
 
@@ -712,12 +466,10 @@
             transition: .2s ease;
         }
 
-
         .btn:hover {
 
             transform: translateY(-1px);
         }
-
 
         /* VIEW */
 
@@ -730,12 +482,10 @@
             flex: 1;
         }
 
-
         .view-btn:hover {
 
             background: #cf370b;
         }
-
 
         /* CLAIM */
 
@@ -743,7 +493,6 @@
 
             flex: 1;
         }
-
 
         .claim-btn {
 
@@ -756,12 +505,10 @@
             font-weight: 800;
         }
 
-
         .claim-btn:hover {
 
             background: #15803d;
         }
-
 
         /* UPDATE */
 
@@ -776,12 +523,10 @@
             flex: 1;
         }
 
-
         .status-btn:hover {
 
             background: #ffe3da;
         }
-
 
         /* =========================================================
            EMPTY
@@ -802,7 +547,6 @@
             box-shadow: 0 6px 20px rgba(232, 66, 15, .04);
         }
 
-
         .empty-icon {
 
             width: 60px;
@@ -822,7 +566,6 @@
             font-size: 27px;
         }
 
-
         .empty h2 {
 
             color: #172033;
@@ -835,14 +578,12 @@
             margin-bottom: 5px;
         }
 
-
         .empty p {
 
             color: #977970;
 
             font-size: 12px;
         }
-
 
         /* =========================================================
            FOOTER
@@ -867,12 +608,10 @@
             font-size: 11px;
         }
 
-
         .page-footer strong {
 
             color: #e8420f;
         }
-
 
         /* =========================================================
            RESPONSIVE
@@ -887,208 +626,63 @@
 
         }
 
-
         @media (max-width: 760px) {
 
-            .rider-sidebar {
+            
 
-                width: 78px;
+            
 
-                padding: 22px 10px;
-            }
+            
 
+            
 
-            .rider-brand {
+            
 
-                justify-content: center;
+            
 
-                padding: 0;
+            
 
-                margin-bottom: 25px;
-            }
+            
 
+            
 
-            .rider-brand-icon {
-
-                width: 42px;
-                height: 42px;
-            }
-
-
-            .rider-brand > div:last-child {
-
-                display: none;
-            }
-
-
-            .rider-sidebar-link {
-
-                justify-content: center;
-
-                padding: 12px 8px;
-            }
-
-
-            .rider-sidebar-link > span:not(.sidebar-icon):not(.sidebar-notification-badge) {
-
-                display: none;
-            }
-
-
-            .sidebar-icon {
-
-                font-size: 17px;
-            }
-
-
-            .sidebar-notification-badge {
-
-                position: absolute;
-
-                top: 4px;
-                right: 5px;
-            }
-
-
-            .rider-sidebar-bottom .rider-sidebar-logout {
-
-                justify-content: center;
-
-                padding: 12px 8px;
-            }
-
-
-            .rider-sidebar-logout > span:not(.sidebar-icon) {
-
-                display: none;
-            }
-
+            
 
             .main {
-
-                width: calc(100% - 78px);
-
-                margin-left: 78px;
 
                 padding: 28px 22px 55px;
             }
 
         }
 
-
         @media (max-width: 560px) {
 
-            .rider-sidebar {
+            
 
-                position: relative;
+            
 
-                width: 100%;
+            
 
-                height: auto;
+            
 
-                min-height: auto;
+            
 
-                padding: 12px;
+            
 
-                border-right: none;
+            
 
-                border-bottom: 1px solid #f7e5e0;
-            }
+            
 
+            
 
-            .rider-brand {
+            
 
-                justify-content: flex-start;
-
-                margin-bottom: 12px;
-
-                padding: 0 5px;
-            }
-
-
-            .rider-brand > div:last-child {
-
-                display: block;
-            }
-
-
-            .rider-sidebar-nav {
-
-                flex-direction: row;
-
-                overflow-x: auto;
-
-                padding-bottom: 3px;
-
-                gap: 5px;
-            }
-
-
-            .rider-sidebar-link {
-
-                width: auto;
-
-                flex-shrink: 0;
-
-                justify-content: flex-start;
-
-                padding: 9px 11px;
-
-                gap: 7px;
-
-                font-size: 11px;
-            }
-
-
-            .rider-sidebar-link > span:not(.sidebar-icon):not(.sidebar-notification-badge) {
-
-                display: inline;
-            }
-
-
-            .rider-sidebar-bottom {
-
-                margin-top: 8px;
-            }
-
-
-            .rider-sidebar-divider {
-
-                display: none;
-            }
-
-
-            .rider-sidebar-bottom form {
-
-                display: flex;
-            }
-
-
-            .rider-sidebar-logout {
-
-                width: auto;
-
-                padding: 8px 11px;
-
-                font-size: 11px;
-            }
-
-
-            .rider-sidebar-logout > span:not(.sidebar-icon) {
-
-                display: inline;
-            }
-
+            
 
             .main {
 
-                width: 100%;
-
-                margin-left: 0;
-
                 padding: 22px 14px 45px;
             }
-
 
             .topbar {
 
@@ -1099,12 +693,10 @@
                 margin-bottom: 22px;
             }
 
-
             .topbar h1 {
 
                 font-size: 28px;
             }
-
 
             .profile {
 
@@ -1113,7 +705,6 @@
                 justify-content: center;
             }
 
-
             .filter-box {
 
                 flex-direction: column;
@@ -1121,12 +712,10 @@
                 align-items: flex-start;
             }
 
-
             .filter-box select {
 
                 width: 100%;
             }
-
 
             .delivery-header {
 
@@ -1135,12 +724,10 @@
                 flex-direction: column;
             }
 
-
             .buttons {
 
                 flex-direction: column;
             }
-
 
             .buttons .btn,
             .claim-form {
@@ -1149,7 +736,6 @@
 
                 flex: none;
             }
-
 
             .page-footer {
 
@@ -1172,242 +758,7 @@
          RIDER SIDEBAR
     ========================================================= -->
 
-    <aside class="rider-sidebar">
-
-
-        <div class="rider-sidebar-top">
-
-
-            <!-- BRAND -->
-
-            <a
-                href="{{ route('rider.dashboard') }}"
-                class="rider-brand"
-            >
-
-                <div class="rider-brand-icon">
-                    <i class="bi bi-bicycle"></i>
-                </div>
-
-                <div>
-
-                    <div class="rider-brand-name">
-                        BoomBuy
-                    </div>
-
-                    <div class="rider-brand-role">
-                        Rider Center
-                    </div>
-
-                </div>
-
-            </a>
-
-
-            <!-- NAVIGATION -->
-
-            <nav class="rider-sidebar-nav">
-
-
-                <a
-                    href="{{ route('rider.dashboard') }}"
-                    class="rider-sidebar-link
-                        {{ request()->routeIs('rider.dashboard') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-house-door-fill"></i>
-                    </span>
-
-                    <span>
-                        Dashboard
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('rider.deliveries') }}"
-                    class="rider-sidebar-link
-                        {{ request()->routeIs('rider.deliveries') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-truck"></i>
-                    </span>
-
-                    <span>
-                        My Deliveries
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('rider.profit') }}"
-                    class="rider-sidebar-link {{ request()->routeIs('rider.profit') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-cash-stack"></i>
-                    </span>
-
-                    <span>
-                        Profit
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('rider.profile') }}"
-                    class="rider-sidebar-link
-                        {{ request()->routeIs('rider.profile') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-person-fill"></i>
-                    </span>
-
-                    <span>
-                        My Profile
-                    </span>
-
-                </a>
-
-
-                @php
-
-                    $riderUnreadNotifications =
-                        \App\Models\Notification::where(
-                            'user_id',
-                            $user['id']
-                        )
-                        ->whereNull('read_at')
-                        ->count();
-
-                @endphp
-
-
-                <a
-                    href="{{ route('rider.notifications') }}"
-                    class="rider-sidebar-link
-                        {{ request()->routeIs('rider.notifications') ? 'active' : '' }}"
-                    aria-label="Notifications"
-                    title="Notifications"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-bell-fill"></i>
-                    </span>
-
-                    <span>
-                        Notifications
-                    </span>
-
-                    @if($riderUnreadNotifications > 0)
-
-                        <span class="sidebar-notification-badge">
-                            {{ $riderUnreadNotifications }}
-                        </span>
-
-                    @endif
-
-                </a>
-
-
-                <a
-                    href="{{ route('complaints.index') }}"
-                    class="rider-sidebar-link {{ request()->routeIs('complaints.index') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-exclamation-triangle-fill"></i>
-                    </span>
-
-                    <span>
-                        Complaints
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ route('messages.index') }}"
-                    class="rider-sidebar-link {{ request()->routeIs('messages.*') ? 'active' : '' }}"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-chat-dots-fill"></i>
-                    </span>
-
-                    <span>
-                        Messages
-                    </span>
-
-                </a>
-
-
-                <a
-                    href="{{ url('/') }}"
-                    class="rider-sidebar-link"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-shop"></i>
-                    </span>
-
-                    <span>
-                        Store
-                    </span>
-
-                </a>
-
-
-            </nav>
-
-        </div>
-
-
-        <!-- =====================================================
-             SIDEBAR BOTTOM
-        ===================================================== -->
-
-        <div class="rider-sidebar-bottom">
-
-
-            <div class="rider-sidebar-divider"></div>
-
-
-            <form
-                action="{{ route('logout') }}"
-                method="POST"
-                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
-            >
-
-                @csrf
-
-                <button
-                    type="submit"
-                    class="rider-sidebar-logout"
-                >
-
-                    <span class="sidebar-icon">
-                        <i class="bi bi-box-arrow-right"></i>
-                    </span>
-
-                    <span>
-                        Logout
-                    </span>
-
-                </button>
-
-            </form>
-
-
-        </div>
-
-    </aside>
+    <x-layout.rider-sidebar active="deliveries" :user="$user" />
 
 
 
@@ -1415,7 +766,7 @@
          MAIN
     ========================================================= -->
 
-    <main class="main">
+    <main class="main main-content">
 
 
         <div class="content-wrapper">
