@@ -45,102 +45,6 @@ body {
    SIDEBAR
 ========================= */
 
-.sidebar {
-    width: 240px;
-    background: #ffffff;
-    border-right: 1px solid #f3e4df;
-
-    padding: 28px 18px;
-
-    display: flex;
-    flex-direction: column;
-
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-
-    z-index: 1000;
-}
-
-.logo {
-    text-decoration: none;
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 30px;
-    font-weight: 800;
-    color: #25201f;
-
-    padding: 0 10px;
-    margin-bottom: 5px;
-}
-
-.logo span {
-    color: #f45b2a;
-}
-
-.sidebar-label {
-    font-size: 10px;
-    font-weight: 800;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-
-    color: #b9a39c;
-
-    padding: 0 10px;
-    margin-top: 25px;
-    margin-bottom: 8px;
-}
-
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.menu a {
-    text-decoration: none;
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    padding: 13px 14px;
-
-    border-radius: 13px;
-
-    color: #816f69;
-
-    font-size: 13px;
-    font-weight: 700;
-
-    transition: 0.2s ease;
-}
-
-.menu a:hover {
-    background: #fff4ef;
-    color: #ef571f;
-    transform: translateX(2px);
-}
-
-.menu a.active {
-    background: #fff0e9;
-    color: #ef571f;
-}
-
-.menu-icon {
-    width: 24px;
-    text-align: center;
-    font-size: 17px;
-}
-
-.sidebar-footer {
-    margin-top: auto;
-
-    padding-top: 18px;
-
-    border-top: 1px solid #f3e4df;
-}
-
 .seller-info,
 .sidebar-footer .user {
     padding: 0 10px;
@@ -154,55 +58,6 @@ body {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-}
-
-.notification-link {
-    position: relative;
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-}
-
-.notification-badge {
-    margin-left: auto;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: #f45b2a;
-    color: white;
-    font-size: 10px;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-.logout {
-    width: 100%;
-
-    border: none;
-
-    background: #fff0ed;
-    color: #e4472a;
-
-    padding: 12px;
-
-    border-radius: 12px;
-
-    font-family: inherit;
-    font-size: 13px;
-    font-weight: 800;
-
-    cursor: pointer;
-
-    transition: 0.2s ease;
-}
-
-.logout:hover {
-    background: #ffe1d9;
-    transform: translateY(-1px);
 }
 
 /* =========================
@@ -1022,35 +877,11 @@ h1 {
 
 @media (max-width: 900px) {
 
-    .sidebar {
-        width: 75px;
-        padding: 24px 8px;
-    }
-
-    .logo {
-        font-size: 21px;
-        text-align: center;
-        padding: 0;
-    }
-
-    .logo span {
-        display: none;
-    }
-
     .sidebar-label,
     .label-text,
     .seller-info,
     .sidebar-footer .user {
         display: none;
-    }
-
-    .menu a {
-        justify-content: center;
-        padding: 13px 8px;
-    }
-
-    .menu-icon {
-        width: auto;
     }
 
     .main-content {

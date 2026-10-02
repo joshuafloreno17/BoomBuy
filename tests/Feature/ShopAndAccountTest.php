@@ -73,7 +73,10 @@ class ShopAndAccountTest extends TestCase
             ->assertSee('Only 7 left')
             ->assertSee('Stride Footwear Co.')
             ->assertSee('1 sold')
-            ->assertDontSee('Gone Galoshes');
+            ->assertDontSee('Gone Galoshes')
+            // Buy now on a product with options goes to its page to choose one.
+            ->assertDontSee('data-pick="buy"', false)
+            ->assertSee('?choose=1', false);
     }
 
     public function test_shop_lists_every_category_but_a_seller_shop_only_its_own(): void
@@ -186,11 +189,13 @@ class ShopAndAccountTest extends TestCase
     {
         // Buyers get the shop-style header with a breadcrumb; panel roles keep their own.
         $this->actingAsUser($this->makeUser())->get(route('complaints.index'))
-            ->assertOk()->assertSee('bb-page-crumbs', false)->assertSee('bb-file-input', false);
+            ->assertOk()->assertSee('bb-page-crumbs', false)->assertSee('bb-file-input', false)->assertSee('bb-footer', false);
 
         foreach ([$this->makeSeller(), $this->makeRider(), $this->makeLogistics()] as $user) {
             $this->actingAsUser($user)->get(route('complaints.index'))
-                ->assertOk()->assertDontSee('bb-page-crumbs', false)->assertSee('bb-file-input', false);
+                ->assertOk()->assertDontSee('bb-page-crumbs', false)->assertSee('bb-file-input', false)
+                // The shop footer is for buyers; panels have their sidebar.
+                ->assertDontSee('class="bb-footer"', false);
         }
     }
 

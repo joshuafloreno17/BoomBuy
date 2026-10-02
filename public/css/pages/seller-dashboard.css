@@ -28,16 +28,6 @@ a {
     justify-content: space-between;
 }
 
-.logo {
-    font-size: 23px;
-    font-weight: 700;
-    color: #e8420f;
-}
-
-.logo span {
-    color: #172033;
-}
-
 .nav-right {
     display: flex;
     align-items: center;
@@ -49,63 +39,7 @@ a {
     font-size: 13px;
 }
 
-.logout {
-    border: none;
-    background: #fff3f0;
-    color: #dc2626;
-    padding: 8px 12px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
-}
-
-.logout:hover {
-    background: #ffe0e0;
-}
-
 /* ===== SELLER NOTIFICATION ===== */
-
-.notification-link {
-    position: relative;
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-}
-
-.notification-badge {
-    margin-left: auto;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: #e8420f;
-    color: white;
-    font-size: 10px;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    line-height: 1;
-}
-
-@media (max-width: 900px) {
-
-    .notification-link {
-        justify-content: center;
-    }
-
-    .notification-badge {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        min-width: 17px;
-        height: 17px;
-        padding: 0 4px;
-        font-size: 9px;
-    }
-}
-
 
 /* CONTAINER */
 
@@ -516,61 +450,16 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 /* ===== Sidebar layout ===== */
 .layout { display: flex; }
-.sidebar {
-    width: 230px;
-    background: #ffffff;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0; top: 0; bottom: 0;
-    z-index: 1000;
-    overflow-y: auto;
-}
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
-}
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-.sidebar .menu a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
+
 .sidebar .menu a:hover,
-.sidebar .menu a.active {
-    background: #fff4f1;
-    color: #e8420f;
-}
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #ffe9e2;
-}
+
 .main-content {
     margin-left: 230px;
     width: calc(100% - 230px);
     min-width: 0;
 }
 @media (max-width: 900px) {
-    .sidebar { width: 72px; padding: 20px 8px; }
-    .sidebar .label-text, .sidebar-label { display: none; }
-    .sidebar .menu a { text-align: center; }
+
     .main-content { margin-left: 72px; width: calc(100% - 72px); }
 }
 
@@ -628,4 +517,90 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 @media (max-width: 600px) {
     .product-search { max-width: none; order: 3; flex-basis: 100%; }
+}
+
+/* "across 4 options" under a product's stock */
+.stock-note {
+    display: block;
+    margin-top: 2px;
+    font-size: 11px;
+    color: #a0847b;
+}
+
+/* Charts: a fixed height so they don't grow with the page width. */
+.chart-box {
+    position: relative;
+    height: 220px;
+}
+
+.chart-empty {
+    display: grid;
+    place-items: center;
+    height: 100%;
+    min-height: 120px;
+    font-size: 12.5px;
+    color: #b99c93;
+}
+
+/* Phones: each product is a card instead of a table row cut off at the edge. */
+@media (max-width: 700px) {
+    .products-box {
+        overflow: visible;
+    }
+
+    .products-table.is-live {
+        min-width: 0;
+    }
+
+    .products-table.is-live thead {
+        display: none;
+    }
+
+    .products-table.is-live,
+    .products-table.is-live tbody,
+    .products-table.is-live tr,
+    .products-table.is-live td {
+        display: block;
+        width: 100%;
+    }
+
+    .products-table.is-live tr {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px 12px;
+        padding: 14px;
+        border-bottom: 1px solid #f7efed;
+    }
+
+    .products-table.is-live td {
+        padding: 0;
+        border: none;
+    }
+
+    /* Product (photo + name) and the buttons take the full width. */
+    .products-table.is-live td:nth-child(1),
+    .products-table.is-live td:nth-child(6) {
+        grid-column: 1 / -1;
+    }
+
+    .products-table.is-live td:nth-child(n+2):nth-child(-n+5)::before {
+        display: block;
+        margin-bottom: 2px;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: #b99c93;
+    }
+
+    .products-table.is-live td:nth-child(2)::before { content: 'Category'; }
+    .products-table.is-live td:nth-child(3)::before { content: 'Price'; }
+    .products-table.is-live td:nth-child(4)::before { content: 'Stock'; }
+    .products-table.is-live td:nth-child(5)::before { content: 'Rating'; }
+
+    .products-table.is-live .actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
 }

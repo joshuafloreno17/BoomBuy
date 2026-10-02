@@ -70,9 +70,10 @@
 
     </div>
 
-@endif
-
+    {{-- Shop footer for buyers only; the panels have their own sidebar. --}}
     @include('partials.buyer-footer')
+
+@endif
 
     @include('partials.pwa-register')
 

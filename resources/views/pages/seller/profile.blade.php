@@ -23,11 +23,7 @@
 
         <div class="container">
 
-            <div class="page-header">
-                <small>Seller Panel</small>
-                <h1>My Profile</h1>
-                <p>Manage your account information and password.</p>
-            </div>
+            <x-seller-page-head title="My Profile" subtitle="Manage your shop details, account information and password." />
 
             @if (session('success'))
                 <div class="success-box">{{ session('success') }}</div>

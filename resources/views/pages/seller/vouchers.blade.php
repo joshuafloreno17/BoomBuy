@@ -23,10 +23,7 @@
 
         <div class="container">
 
-            <div class="page-header">
-                <small>Seller Panel</small>
-                <h1>Vouchers &amp; Discounts</h1>
-            </div>
+            <x-seller-page-head title="Vouchers & Discounts" subtitle="Codes buyers can use at checkout on your products. You cover the discount." />
 
             @if(session('success'))
                 <div class="success-box">{{ session('success') }}</div>

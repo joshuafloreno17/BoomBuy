@@ -23,84 +23,6 @@ a {
 
 /* ===== SIDEBAR ===== */
 
-.sidebar {
-    width: 230px;
-    background: #ffffff;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    overflow-y: auto;
-}
-
-.logo {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 23px;
-    font-weight: 800;
-    color: #e8420f;
-}
-
-.logo span {
-    color: #172033;
-}
-
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
-}
-
-.sidebar .menu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-
-.sidebar .menu a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
-
-.sidebar .menu a:hover {
-    background: #fff4f1;
-    color: #e8420f;
-}
-
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #ffe9e2;
-}
-
-.sidebar-footer a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.sidebar-footer a:hover {
-    background: #fff4f1;
-    color: #e8420f;
-}
-
 /* ===== MAIN ===== */
 
 .main-content {
@@ -290,19 +212,7 @@ footer strong {
 
 @media (max-width: 900px) {
 
-    .sidebar {
-        width: 72px;
-        padding: 20px 8px;
-    }
-
     .sidebar .label-text,
-    .sidebar-label {
-        display: none;
-    }
-
-    .sidebar .menu a {
-        text-align: center;
-    }
 
     .main-content {
         margin-left: 72px;
@@ -349,4 +259,33 @@ footer strong {
         gap: 8px;
         text-align: center;
     }
+}
+
+/* Stock of a product with options: shown, edited on the Variations page. */
+.stock-by-option {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 4px 8px;
+    padding: 12px 14px;
+    border: 1px solid #f0ddd6;
+    border-radius: 10px;
+    background: #fffaf8;
+    font-size: 12.5px;
+    color: #816f6a;
+}
+
+.stock-by-option strong {
+    font-size: 18px;
+    color: #172033;
+}
+
+.stock-by-option a {
+    flex-basis: 100%;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 700;
+    color: #c43408;
+    text-decoration: none;
 }

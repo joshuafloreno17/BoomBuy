@@ -13,6 +13,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-orders.css') }}">
 
 </head>
@@ -38,28 +39,7 @@
 
             {{-- PAGE HEADER --}}
 
-            <div class="page-top">
-
-                <div class="page-heading">
-
-                    <small>Seller Panel</small>
-
-                    <h1>Orders</h1>
-
-                    <p class="subtitle">
-                        View and manage orders containing your products.
-                    </p>
-
-                </div>
-
-                <a
-                    href="{{ route('seller.dashboard') }}"
-                    class="back-btn"
-                >
-                    ← Back to Dashboard
-                </a>
-
-            </div>
+            <x-seller-page-head title="Orders" subtitle="View and manage orders containing your products." />
 
 
             {{-- ALERTS --}}

@@ -10,6 +10,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-edit-product.css') }}">
 </head>
 
@@ -18,10 +19,8 @@
 <div class="layout">
 
     <x-layout.seller-sidebar
+        active="dashboard"
         :user="$user"
-        logo-href="/"
-        :show-notifications="false"
-        footer="back"
     />
 
 
@@ -30,23 +29,13 @@
 
         <div class="container">
 
+            <x-seller-page-head
+                title="Edit Product"
+                subtitle="Update your product information below."
+                :crumbs="['My Products' => route('seller.dashboard')]"
+            />
+
             <div class="card">
-
-                <div class="header">
-
-                    <small>
-                        Seller Dashboard
-                    </small>
-
-                    <h1>
-                        Edit Product
-                    </h1>
-
-                    <p>
-                        Update your product information below.
-                    </p>
-
-                </div>
 
 
                 {{-- ERROR MESSAGE --}}
@@ -388,16 +377,13 @@
                                 </div>
                             @endif
 
-                            <input
-                                type="file"
-                                id="image"
-                                name="image"
-                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                            >
-
-                            <span style="display:block; font-size:11px; color:#b99c93; margin-top:5px;">
-                                Leave blank to keep the current image. JPG, PNG, or WEBP, max 5MB.
-                            </span>
+                            @include('partials.file-picker', [
+                                'id' => 'image',
+                                'name' => 'image',
+                                'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
+                                'label' => !empty($product->image) ? 'Replace the photo' : 'Upload a product photo',
+                                'hint' => 'Leave empty to keep the current one · JPG, PNG or WEBP · up to 5 MB',
+                            ])
 
                         </div>
 
@@ -408,14 +394,24 @@
                                 Stock
                             </label>
 
-                            <input
-                                type="number"
-                                id="stock"
-                                name="stock"
-                                min="0"
-                                value="{{ old('stock', $product->stock ?? 0) }}"
-                                required
-                            >
+                            @if($variationCount > 0)
+                                {{-- Buyers order an option, so the stock that counts is each option's. --}}
+                                <input type="hidden" name="stock" value="{{ $product->stock ?? 0 }}">
+                                <div class="stock-by-option">
+                                    <strong>{{ number_format($variationStock) }}</strong>
+                                    <span>across {{ $variationCount }} {{ \Illuminate\Support\Str::plural('option', $variationCount) }} — stock is set per option.</span>
+                                    <a href="{{ route('seller.products.variations', $product->id) }}"><i class="bi bi-sliders"></i> Edit stock per option</a>
+                                </div>
+                            @else
+                                <input
+                                    type="number"
+                                    id="stock"
+                                    name="stock"
+                                    min="0"
+                                    value="{{ old('stock', $product->stock ?? 0) }}"
+                                    required
+                                >
+                            @endif
 
                         </div>
 
@@ -470,18 +466,7 @@
 </div>
 
 
-{{-- FOOTER --}}
-<footer>
 
-    <div>
-        © 2026 <strong>BoomBuy</strong>
-    </div>
-
-    <div>
-        Seller Dashboard
-    </div>
-
-</footer>
 
     @include('partials.pwa-register')
 

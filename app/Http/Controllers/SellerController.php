@@ -38,7 +38,9 @@ class SellerController extends Controller
             $user['id']
         )->where('is_archived', false)
             ->withAvg('reviews', 'rating')
-            ->withCount('reviews')
+            ->withCount(['reviews', 'variations'])
+            // With options, the stock is theirs added up (what buyers can actually order).
+            ->withSellableStock()
             ->latest()
             ->get();
 
@@ -108,6 +110,9 @@ class SellerController extends Controller
             ->groupBy('day')
             ->orderBy('day')
             ->get();
+
+        // Every one of the 7 days, ₱0 where nothing sold, so the chart has a line.
+        $salesTrend = $this->everyDay($salesTrend, now()->subDays(6)->toDateString(), now()->toDateString());
 
 
         /*
@@ -443,6 +448,9 @@ class SellerController extends Controller
             ->orderBy('day')
             ->get();
 
+        // The chart gets every day of the range (₱0 included); the table keeps only days with sales.
+        $trendDays = $this->everyDay($dailySales, $from, $to);
+
         return view(
             'pages.seller.reports',
             compact(
@@ -458,9 +466,37 @@ class SellerController extends Controller
                 'netEarnings',
                 'voucherDiscounts',
                 'productSales',
-                'dailySales'
+                'dailySales',
+                'trendDays'
             )
         );
+    }
+
+    /**
+     * One row per day from $from to $to, ₱0 where nothing sold — so a sales
+     * chart draws a line instead of a lone dot. Long ranges keep only the
+     * days with sales (a year of zeros helps nobody).
+     */
+    private function everyDay($rows, string $from, string $to)
+    {
+        $start = \Illuminate\Support\Carbon::parse($from)->startOfDay();
+        $end = \Illuminate\Support\Carbon::parse($to)->startOfDay();
+
+        if ($end->lt($start) || $start->diffInDays($end) > 92) {
+            return collect($rows)->values();
+        }
+
+        $byDay = collect($rows)->keyBy(fn ($row) => \Illuminate\Support\Carbon::parse($row->day)->toDateString());
+
+        $days = collect();
+        for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+            $days->push((object) [
+                'day' => $day->toDateString(),
+                'revenue' => (float) ($byDay[$day->toDateString()]->revenue ?? 0),
+            ]);
+        }
+
+        return $days;
     }
 
     public function vouchers()
@@ -623,6 +659,73 @@ class SellerController extends Controller
         ]);
 
         return back()->with('success', 'Variation added successfully.');
+    }
+
+    /**
+     * Restock / reprice existing options in one go (and swap a photo):
+     * variations[{id}][stock], variations[{id}][price_adjustment], images[{id}].
+     */
+    public function updateVariations($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$product) {
+            abort(404);
+        }
+
+        request()->validate([
+            'variations' => 'required|array',
+            'variations.*.stock' => 'required|integer|min:0',
+            // The final price (base + adjustment) must stay above ₱0.
+            'variations.*.price_adjustment' => 'required|numeric|gt:' . (0 - (float) $product->price),
+            'images' => 'nullable|array',
+            'images.*' => 'nullable|image|max:4096',
+        ], [
+            'variations.*.stock.min' => 'Stock can’t be below 0.',
+            'variations.*.price_adjustment.gt' => 'An option can’t end up costing ₱0 or less.',
+        ]);
+
+        $changed = 0;
+
+        // Only this product's options; ids from anywhere else are ignored.
+        $variations = ProductVariation::where('product_id', $product->id)
+            ->whereIn('id', array_keys(request('variations')))
+            ->get();
+
+        foreach ($variations as $variation) {
+            $input = request('variations')[$variation->id];
+            $stock = (int) $input['stock'];
+            $price = round((float) $input['price_adjustment'], 2);
+            $photo = request()->file("images.{$variation->id}");
+
+            // Compare the numbers themselves: the decimal cast makes "0.00" vs 0 look changed.
+            if ($stock === (int) $variation->stock && $price === round((float) $variation->price_adjustment, 2) && !$photo) {
+                continue;
+            }
+
+            $variation->stock = $stock;
+            $variation->price_adjustment = $price;
+
+            if ($photo) {
+                if ($variation->image) {
+                    Storage::disk('public')->delete($variation->image);
+                }
+                $variation->image = $photo->store('variations', 'public');
+            }
+
+            $variation->save();
+            $changed++;
+        }
+
+        return back()->with('success', $changed
+            ? 'Saved changes to ' . $changed . ' ' . Str::plural('option', $changed) . '.'
+            : 'Nothing changed.');
     }
 
     public function deleteVariation($id, $variationId)
@@ -1458,9 +1561,13 @@ class SellerController extends Controller
 
         $registeredCategory = $this->registeredCategory((int) $user['id']);
 
+        // With options, stock is kept per option (on the Variations page).
+        $variationCount = $product->variations()->count();
+        $variationStock = (int) $product->variations()->sum('stock');
+
         return view(
             'pages.seller.edit-product',
-            compact('user', 'product', 'registeredCategory')
+            compact('user', 'product', 'registeredCategory', 'variationCount', 'variationStock')
         );
     }
 

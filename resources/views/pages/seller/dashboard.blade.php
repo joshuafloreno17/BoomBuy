@@ -10,6 +10,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-dashboard.css') }}">
 </head>
 
@@ -20,8 +21,6 @@
 <x-layout.seller-sidebar
     active="dashboard"
     :user="$user"
-    logo-href="/"
-    :notif-link-fix="true"
 />
 
 
@@ -170,12 +169,18 @@
 
         <div class="stat-card" style="display:block;">
             <div class="stat-title" style="margin-bottom:12px;">Sales Trend (Last 7 Days)</div>
-            <canvas id="sellerSalesTrendChart" height="110"></canvas>
+            <div class="chart-box"><canvas id="sellerSalesTrendChart"></canvas></div>
         </div>
 
         <div class="stat-card" style="display:block;">
             <div class="stat-title" style="margin-bottom:12px;">Orders by Status</div>
-            <canvas id="sellerOrderStatusChart" height="110"></canvas>
+            <div class="chart-box">
+                @if($orderStatusBreakdown->isEmpty())
+                    <p class="chart-empty">No orders yet.</p>
+                @else
+                    <canvas id="sellerOrderStatusChart"></canvas>
+                @endif
+            </div>
         </div>
 
     </section>
@@ -212,7 +217,7 @@
 
         <div class="products-box">
 
-            <table class="products-table">
+            <table class="products-table is-live">
 
                 <thead>
 
@@ -315,14 +320,19 @@
                             <td>
 
                                 @php
-                                    $stockClass = $product->stock <= 0
+                                    $sellable = (int) ($product->sellable_stock ?? $product->stock);
+                                    $stockClass = $sellable <= 0
                                         ? 'out'
-                                        : ($product->stock <= 5 ? 'low' : '');
+                                        : ($sellable <= 5 ? 'low' : '');
                                 @endphp
 
                                 <span class="stock-count {{ $stockClass }}">
-                                    {{ $product->stock > 0 ? $product->stock : 'Out of stock' }}
+                                    {{ $sellable > 0 ? $sellable : 'Out of stock' }}
                                 </span>
+
+                                @if($product->variations_count > 0)
+                                    <small class="stock-note">across {{ $product->variations_count }} {{ \Illuminate\Support\Str::plural('option', $product->variations_count) }}</small>
+                                @endif
 
                             </td>
 
@@ -511,19 +521,7 @@
 </div><!-- /.layout -->
 
 
-<!-- FOOTER -->
 
-<footer>
-
-    <div>
-        © 2026 <strong>BoomBuy</strong>
-    </div>
-
-    <div>
-        Seller Dashboard
-    </div>
-
-</footer>
 
     <script>
         // Instant filter over the seller's own product rows (all already on the page).
@@ -552,6 +550,7 @@
     @include('partials.pwa-register')
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    @include('partials.chart-defaults')
     <script>
         var trendLabels = @json($salesTrend->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('M d')));
         var trendRevenue = @json($salesTrend->map(fn($r) => (float) $r->revenue));
@@ -559,7 +558,7 @@
         var statusLabels = @json($orderStatusBreakdown->pluck('status'));
         var statusCounts = @json($orderStatusBreakdown->pluck('total'));
 
-        if (window.Chart) {
+        bbCharts(function () {
             new Chart(document.getElementById('sellerSalesTrendChart'), {
                 type: 'line',
                 data: {
@@ -571,16 +570,20 @@
                         backgroundColor: 'rgba(232,66,15,0.1)',
                         tension: 0.3,
                         fill: true,
+                        pointRadius: 3,
+                        pointBackgroundColor: '#e8420f',
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: { tooltip: { callbacks: { label: function (c) { return bbPeso(c.parsed.y); } } } },
+                    scales: {
+                        y: { beginAtZero: true, suggestedMax: 1000, ticks: { callback: bbPesoAxis, maxTicksLimit: 5 } },
+                        x: { grid: { display: false } }
+                    }
                 }
             });
 
-            new Chart(document.getElementById('sellerOrderStatusChart'), {
+            if (document.getElementById('sellerOrderStatusChart')) new Chart(document.getElementById('sellerOrderStatusChart'), {
                 type: 'doughnut',
                 data: {
                     labels: statusLabels,
@@ -590,11 +593,11 @@
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 10 } } } }
+                    cutout: '62%',
+                    plugins: { legend: { display: true, position: 'right', labels: { boxWidth: 10, padding: 12 } } }
                 }
             });
-        }
+        });
     </script>
 
 </body>

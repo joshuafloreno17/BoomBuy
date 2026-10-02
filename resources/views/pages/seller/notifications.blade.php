@@ -15,6 +15,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-notifications.css') }}">
 
 </head>
@@ -31,21 +32,7 @@
 
         <div class="container">
 
-            <section class="page-header">
-
-                <small>
-                    Seller Panel
-                </small>
-
-                <h1>
-                    Notifications
-                </h1>
-
-                <p>
-                    Stay updated with your orders, returns, and application status.
-                </p>
-
-            </section>
+            <x-seller-page-head title="Notifications" subtitle="Stay updated with your orders, returns, and application status." />
 
 
             @if(($unreadCount ?? 0) > 0)

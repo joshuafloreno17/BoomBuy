@@ -1,10 +1,6 @@
 @props([
     'active' => null,
     'user' => [],
-    'logoHref' => null,
-    'notifLinkFix' => false,
-    'showNotifications' => true,
-    'footer' => 'account',
 ])
 
 @php
@@ -21,7 +17,7 @@
 
 <aside class="sidebar">
 
-    <a href="{{ $logoHref ?? route('seller.dashboard') }}" class="logo">
+    <a href="{{ route('seller.dashboard') }}" class="logo">
         Boom<span>Buy</span>
     </a>
 
@@ -91,13 +87,10 @@
             </span>
         </a>
 
-        @if($showNotifications)
-
             <a
                 href="{{ route('seller.notifications') }}"
                 @class([
                     'active' => $active === 'notifications',
-                    'notification-link' => $notifLinkFix,
                 ])
                 aria-label="Notifications"
                 title="Notifications"
@@ -118,8 +111,6 @@
                 @endif
 
             </a>
-
-        @endif
 
         <a
             href="{{ route('complaints.index') }}"
@@ -166,14 +157,6 @@
 
     <div class="sidebar-footer">
 
-        @if($footer === 'back')
-
-            <a href="{{ route('seller.dashboard') }}">
-                ← <span class="label-text">Back to Dashboard</span>
-            </a>
-
-        @else
-
             <div
                 class="user"
                 style="padding:0 4px; margin-bottom:8px;"
@@ -199,8 +182,6 @@
 
             </form>
 
-        @endif
-
     </div>
 
 </aside>
@@ -210,8 +191,7 @@
 @once
     <style>
         /* Narrow icon rail (every seller page collapses the sidebar at 900px):
-           only the "B" of the logo fits. Lives here because several seller
-           pages carry their own copy of the sidebar CSS. */
+           only the "B" of the logo fits. */
         @media (max-width: 900px) {
             aside.sidebar .logo {
                 font-size: 0;

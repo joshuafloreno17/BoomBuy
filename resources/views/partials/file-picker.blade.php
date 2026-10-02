@@ -103,6 +103,13 @@
             font-size: 12px;
             font-weight: 700;
         }
+
+        /* Narrow boxes: the whole box is the button anyway. */
+        @media (max-width: 420px) {
+            .bb-file-btn {
+                display: none;
+            }
+        }
     </style>
 
     <script>
@@ -137,6 +144,7 @@
         id="{{ $id }}"
         name="{{ $name }}"
         @if(!empty($accept)) accept="{{ $accept }}" @endif
+        @if(!empty($required)) required @endif
     >
     <span class="bb-file-icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
     <span class="bb-file-text">

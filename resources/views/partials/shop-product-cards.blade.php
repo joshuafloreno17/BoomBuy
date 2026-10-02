@@ -77,7 +77,8 @@
                     >
                         <i class="bi bi-cart-plus"></i><span class="sp-btn-label">Add to cart</span>
                     </button>
-                    <button type="button" class="sp-btn sp-btn-buy" data-pick="buy" aria-label="Buy {{ $product['name'] }} now">Buy now</button>
+                    {{-- Buying needs a color/size: straight to the product page to choose it. --}}
+                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" class="sp-btn sp-btn-buy" aria-label="Buy {{ $product['name'] }} now">Buy now</a>
                 @else
                     <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart data-name="{{ $product['name'] }}" data-price="₱{{ number_format($product['price']) }}">
                         @csrf

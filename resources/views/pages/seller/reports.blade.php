@@ -23,13 +23,7 @@
 
         <div class="container">
 
-            <div class="page-header">
-
-                <div>
-                    <small>Seller Panel</small>
-                    <h1>Reports</h1>
-                </div>
-
+            <x-seller-page-head title="Reports" subtitle="Your delivered sales, commission and earnings for the dates you pick.">
                 <form method="GET" action="{{ route('seller.reports') }}" class="filter-form">
 
                     <div>
@@ -45,8 +39,7 @@
                     <button type="submit" class="filter-btn">Apply</button>
 
                 </form>
-
-            </div>
+            </x-seller-page-head>
 
             <div class="stats">
 
@@ -79,12 +72,17 @@
 
             <div class="panel">
                 <h2>Sales Trend</h2>
-                <canvas id="salesTrendChart" height="90"></canvas>
+                <div class="chart-box"><canvas id="salesTrendChart"></canvas></div>
             </div>
 
             <div class="panel">
                 <h2>Top Products by Revenue</h2>
-                <canvas id="topProductsChart" height="90"></canvas>
+                @if($productSales->isEmpty())
+                    <p class="chart-empty">No delivered sales in this range yet.</p>
+                @else
+                    {{-- Horizontal bars: room for product names; height grows with the list. --}}
+                    <div class="chart-box" style="height: {{ 60 + min(5, $productSales->count()) * 44 }}px;"><canvas id="topProductsChart"></canvas></div>
+                @endif
             </div>
 
             <div class="panel">
@@ -148,14 +146,15 @@
     @include('partials.pwa-register')
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    @include('partials.chart-defaults')
     <script>
-        var dailyLabels = @json($dailySales->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('M d')));
-        var dailyRevenue = @json($dailySales->map(fn($r) => (float) $r->revenue));
+        var dailyLabels = @json($trendDays->map(fn($r) => \Carbon\Carbon::parse($r->day)->format('M d')));
+        var dailyRevenue = @json($trendDays->map(fn($r) => (float) $r->revenue));
 
         var productLabels = @json($productSales->take(5)->map(fn($r) => $r->product_name));
         var productRevenue = @json($productSales->take(5)->map(fn($r) => (float) $r->revenue));
 
-        if (window.Chart) {
+        bbCharts(function () {
             new Chart(document.getElementById('salesTrendChart'), {
                 type: 'line',
                 data: {
@@ -167,16 +166,20 @@
                         backgroundColor: 'rgba(232,66,15,0.1)',
                         tension: 0.3,
                         fill: true,
+                        pointRadius: dailyLabels.length > 45 ? 0 : 3,
+                        pointBackgroundColor: '#e8420f',
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    plugins: { tooltip: { callbacks: { label: function (c) { return bbPeso(c.parsed.y); } } } },
+                    scales: {
+                        y: { beginAtZero: true, suggestedMax: 1000, ticks: { callback: bbPesoAxis, maxTicksLimit: 6 } },
+                        x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+                    }
                 }
             });
 
-            new Chart(document.getElementById('topProductsChart'), {
+            if (document.getElementById('topProductsChart')) new Chart(document.getElementById('topProductsChart'), {
                 type: 'bar',
                 data: {
                     labels: productLabels,
@@ -184,15 +187,21 @@
                         label: 'Revenue (₱)',
                         data: productRevenue,
                         backgroundColor: '#f4a582',
+                        hoverBackgroundColor: '#e8420f',
+                        borderRadius: 6,
+                        maxBarThickness: 28,
                     }]
                 },
                 options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: { y: { beginAtZero: true } }
+                    indexAxis: 'y',
+                    plugins: { tooltip: { callbacks: { label: function (c) { return bbPeso(c.parsed.x); } } } },
+                    scales: {
+                        x: { beginAtZero: true, ticks: { callback: bbPesoAxis, maxTicksLimit: 5 } },
+                        y: { grid: { display: false }, ticks: { callback: function (v) { return bbShortLabel(this.getLabelForValue(v)); } } }
+                    }
                 }
             });
-        }
+        });
     </script>
 
 </body>

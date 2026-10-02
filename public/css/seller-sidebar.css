@@ -71,6 +71,11 @@
     margin-top: 8px;
 }
 
+/* Own resets, so the sidebar looks the same whatever the page CSS does. */
+.sidebar a {
+    text-decoration: none;
+}
+
 .sidebar .menu a {
     display: flex;
     align-items: center;
@@ -91,13 +96,15 @@
 
 .sidebar-footer {
     margin-top: auto;
-    padding-top: 16px;
+    padding: 16px 0 0;
     border-top: 1px solid #ffe9e2;
+    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
 }
 
 .sidebar-footer .user {
     color: #8d6c62;
     font-size: 13px;
+    font-weight: 500;
 }
 
 .sidebar-footer .logout {
@@ -129,8 +136,9 @@
     }
 
     .sidebar .label-text,
-    .sidebar-label {
-        display: none;
+    .sidebar-label,
+    .sidebar-footer .user {
+        display: none !important;
     }
 
     .sidebar .menu a {

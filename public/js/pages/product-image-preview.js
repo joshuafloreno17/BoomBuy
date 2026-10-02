@@ -27,6 +27,8 @@ imageInput.addEventListener('change', function () {
         );
 
         this.value = '';
+        // Let the upload box go back to "Upload your product image".
+        this.dispatchEvent(new Event('change', { bubbles: true }));
 
         previewBox.style.display = 'none';
         previewImage.src = '';
@@ -41,6 +43,8 @@ imageInput.addEventListener('change', function () {
         );
 
         this.value = '';
+        // Let the upload box go back to "Upload your product image".
+        this.dispatchEvent(new Event('change', { bubbles: true }));
 
         previewBox.style.display = 'none';
         previewImage.src = '';

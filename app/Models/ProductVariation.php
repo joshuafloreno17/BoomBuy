@@ -15,9 +15,6 @@ class ProductVariation extends Model
         'image',
     ];
 
-    /** Suggested types for the seller's form (free text is still allowed). */
-    public const COMMON_TYPES = ['Color', 'Size', 'Style', 'Material', 'Storage', 'Flavor'];
-
     private const TYPE_ALIASES = [
         'colour' => 'Color',
         'coloer' => 'Color',

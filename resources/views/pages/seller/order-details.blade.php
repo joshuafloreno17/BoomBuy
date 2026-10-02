@@ -10,6 +10,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-order-details.css') }}">
 
 </head>
@@ -29,20 +30,15 @@
 
         <div class="container">
 
-            <!-- BACK -->
-
-            <a href="{{ route('seller.orders') }}" class="back">
-                ← Back to Seller Orders
-            </a>
-
-            <a
-                href="{{ route('seller.order.waybill', $order['id']) }}"
-                target="_blank"
-                class="back"
-                style="float:right;"
+            <x-seller-page-head
+                :title="'Order #' . ($order['id'] ?? '')"
+                :subtitle="'Placed ' . (!empty($order['date']) ? \Illuminate\Support\Carbon::parse($order['date'])->format('M j, Y · g:i A') : '—')"
+                :crumbs="['Orders' => route('seller.orders')]"
             >
-                <i class="bi bi-printer-fill"></i> Print Waybill
-            </a>
+                <a href="{{ route('seller.order.waybill', $order['id']) }}" target="_blank" class="waybill-btn">
+                    <i class="bi bi-printer-fill"></i> Print Waybill
+                </a>
+            </x-seller-page-head>
 
 
             <!-- ALERTS -->
@@ -70,14 +66,6 @@
             ========================================== -->
 
             <div class="card">
-
-                <h1>
-                    Seller Order Details
-                </h1>
-
-                <div class="order-id">
-                    Order #{{ $order['id'] ?? 'N/A' }}
-                </div>
 
                 <x-status-pill :status="$order['status'] ?? 'Pending'" />
 
@@ -108,7 +96,7 @@
                         </div>
 
                         <div class="value">
-                            {{ $order['date'] ?? 'N/A' }}
+                            {{ !empty($order['date']) ? \Illuminate\Support\Carbon::parse($order['date'])->format('M j, Y · g:i A') : 'N/A' }}
                         </div>
 
                     </div>
@@ -414,15 +402,7 @@
         </div>
 
 
-        <!-- FOOTER -->
 
-        <footer>
-
-            © 2026 <strong>BoomBuy</strong>
-            <br>
-            Seller Order Management
-
-        </footer>
 
     </main>
 

@@ -30,6 +30,24 @@ class RestoreRememberedLogin
             }
         }
 
-        return $next($request);
+        // Was logged in on this browser, but the session ran out (and no
+        // "Remember me" brought it back): say so once, on whatever page this is.
+        $expired = !$request->session()->has('user')
+            && !$request->session()->get('admin_logged_in')
+            && $request->cookie(LoginGate::SIGNED_IN_COOKIE);
+
+        if ($expired) {
+            $request->session()->flash('bb_notice', 'You were logged out after being inactive for a while. Please log in again.');
+            LoginGate::signedOut();
+        }
+
+        $response = $next($request);
+
+        // Shown on this page already — don't repeat it on the next one.
+        if ($expired && !$response->isRedirection()) {
+            $request->session()->forget('bb_notice');
+        }
+
+        return $response;
     }
 }

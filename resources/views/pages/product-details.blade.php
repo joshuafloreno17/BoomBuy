@@ -681,6 +681,36 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             margin-bottom: 18px;
         }
 
+        /* Arrived from a "Buy now" button: point at the choice to make first. */
+        .variation-picker.is-asking {
+            margin: -12px -12px 6px;
+            padding: 12px;
+            border-radius: 16px;
+            animation: bb-ask 1.3s ease-in-out 3;
+        }
+
+        @keyframes bb-ask {
+            0%, 100% { background: transparent; box-shadow: 0 0 0 0 rgba(232, 66, 15, 0); }
+            50% { background: #fff4f0; box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.22); }
+        }
+
+        .pick-hint {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            margin-top: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #c43408;
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .variation-picker.is-asking {
+                animation: none;
+                background: #fff4f0;
+            }
+        }
+
         .variation-picker .variation-swatches {
             margin-top: 8px;
             gap: 8px;
@@ -1730,6 +1760,32 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             note.hidden = showAll;
             document.getElementById('reviewFilterText').textContent =
                 'Showing ' + shown + ' ' + stars + '-star ' + (shown === 1 ? 'review' : 'reviews');
+        });
+    })();
+    </script>
+
+    <script>
+    // Opened from a "Buy now" button (?choose=1): bring the color/size choice into view.
+    (function () {
+        var params = new URLSearchParams(location.search);
+        var picker = document.querySelector('.variation-picker');
+        if (!params.has('choose') || !picker) return;
+
+        // Keep the address clean for sharing and refreshing.
+        params.delete('choose');
+        history.replaceState(history.state, '', location.pathname + (params.toString() ? '?' + params : '') + location.hash);
+
+        var label = picker.querySelector('.quantity-label');
+        var hint = document.createElement('p');
+        hint.className = 'pick-hint';
+        hint.innerHTML = '<i class="bi bi-hand-index-thumb"></i><span></span>';
+        hint.querySelector('span').textContent = 'Pick the ' + (label ? label.textContent.replace(/^Choose an? /i, '') : 'option')
+            + ' you want, then tap Buy Now.';
+        picker.appendChild(hint);
+        picker.classList.add('is-asking');
+
+        requestAnimationFrame(function () {
+            picker.scrollIntoView({ block: 'center', behavior: 'smooth' });
         });
     })();
     </script>

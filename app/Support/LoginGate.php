@@ -15,6 +15,12 @@ class LoginGate
 {
     public const REMEMBER_COOKIE = 'bb_remember';
 
+    /**
+     * Set while this browser is logged in, so a visit after the session ran
+     * out can say "you were logged out" instead of quietly showing guest pages.
+     */
+    public const SIGNED_IN_COOKIE = 'bb_signed_in';
+
     public const REMEMBER_DAYS = 30;
 
     /** Why this user may not be logged in, or null if they may. */
@@ -80,6 +86,14 @@ class LoginGate
             'role' => $user->role,
             'profile_photo' => $user->profile_photo ?? null,
         ]);
+
+        Cookie::queue(self::SIGNED_IN_COOKIE, '1', 60 * 24 * self::REMEMBER_DAYS);
+    }
+
+    /** A deliberate log-out: no "your session expired" notice afterwards. */
+    public static function signedOut(): void
+    {
+        Cookie::queue(Cookie::forget(self::SIGNED_IN_COOKIE));
     }
 
     /** Issue a fresh remember-me token (only its hash is stored). */
@@ -140,5 +154,6 @@ class LoginGate
         }
 
         Cookie::queue(Cookie::forget(self::REMEMBER_COOKIE));
+        self::signedOut();
     }
 }

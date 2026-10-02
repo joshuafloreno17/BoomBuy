@@ -140,4 +140,72 @@ class SellerTest extends TestCase
 
         $this->assertDatabaseHas('seller_applications', ['user_id' => $seller->id, 'business_name' => 'Stride Footwear Co.']);
     }
+
+    public function test_seller_restocks_and_reprices_options_in_one_save(): void
+    {
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['price' => 1000]);
+        $red = $this->addVariation($product, 'Red', 2);
+        $blue = $this->addVariation($product, 'Blue', 5);
+
+        // Someone else's option slipped into the form is ignored.
+        $other = $this->addVariation($this->makeProduct($this->makeSeller()), 'Green', 3);
+
+        $this->actingAsUser($seller)
+            ->put(route('seller.products.variations.update', $product->id), [
+                'variations' => [
+                    $red->id => ['stock' => 20, 'price_adjustment' => 150],
+                    $blue->id => ['stock' => 5, 'price_adjustment' => 0],
+                    $other->id => ['stock' => 999, 'price_adjustment' => 0],
+                ],
+            ])
+            ->assertSessionHas('success', 'Saved changes to 1 option.');
+
+        $this->assertSame(20, $red->fresh()->stock);
+        $this->assertEquals(150, $red->fresh()->price_adjustment);
+        $this->assertSame(3, $other->fresh()->stock);
+    }
+
+    public function test_stock_of_a_product_with_options_is_theirs_added_up(): void
+    {
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['name' => 'Option Tee', 'stock' => 40]);
+        $this->addVariation($product, 'Red', 9);
+        $this->addVariation($product, 'Blue', 30);
+
+        // 9 + 30, not the old base stock of 40.
+        $this->actingAsUser($seller)->get(route('seller.dashboard'))
+            ->assertOk()
+            ->assertSee('across 2 options')
+            ->assertViewHas('products', fn ($products) => (int) $products->first()->sellable_stock === 39);
+
+        // Edit page explains instead of offering a stock box that does nothing.
+        $this->actingAsUser($seller)->get(route('seller.products.edit', $product->id))
+            ->assertOk()
+            ->assertSee('stock is set per option')
+            ->assertDontSee('id="stock"', false);
+    }
+
+    public function test_option_edits_are_checked(): void
+    {
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['price' => 1000]);
+        $red = $this->addVariation($product, 'Red', 2);
+
+        $this->actingAsUser($seller)
+            ->put(route('seller.products.variations.update', $product->id), [
+                'variations' => [$red->id => ['stock' => -1, 'price_adjustment' => -1000]],
+            ])
+            ->assertSessionHasErrors(["variations.{$red->id}.stock", "variations.{$red->id}.price_adjustment"]);
+
+        $this->assertSame(2, $red->fresh()->stock);
+
+        // Another seller cannot edit it at all.
+        $this->flushSession();
+        $this->actingAsUser($this->makeSeller())
+            ->put(route('seller.products.variations.update', $product->id), [
+                'variations' => [$red->id => ['stock' => 50, 'price_adjustment' => 0]],
+            ])
+            ->assertNotFound();
+    }
 }

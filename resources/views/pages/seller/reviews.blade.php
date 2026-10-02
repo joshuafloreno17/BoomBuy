@@ -23,10 +23,7 @@
 
         <div class="container">
 
-            <div class="page-header">
-                <small>Seller Panel</small>
-                <h1>Customer Feedback</h1>
-            </div>
+            <x-seller-page-head title="Customer Feedback" subtitle="Reviews buyers left on your products. Reply to thank them or to sort out a problem." />
 
             @if (session('success'))
                 <div class="success-box">{{ session('success') }}</div>

@@ -117,6 +117,7 @@ class AuthController extends Controller
 
             default:
                 session()->forget('user');
+                LoginGate::signedOut();
 
                 return redirect('/login')
                     ->with('error', 'Invalid account role.');

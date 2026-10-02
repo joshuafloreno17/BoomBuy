@@ -26,84 +26,7 @@ a {
     min-height: 100vh;
 }
 
-.sidebar {
-    width: 230px;
-    background: #ffffff;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-    overflow-y: auto;
-}
-
-.logo {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 23px;
-    font-weight: 800;
-    color: #e8420f;
-}
-
-.logo span {
-    color: #172033;
-}
-
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
-}
-
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-
-.menu a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
-
 .menu a:hover,
-.menu a.active {
-    background: #fff4f1;
-    color: #e8420f;
-}
-
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #ffe9e2;
-}
-
-.sidebar-footer a {
-    display: block;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-}
-
-.sidebar-footer a:hover {
-    background: #fff4f1;
-    color: #e8420f;
-}
 
 /* =========================
    MAIN
@@ -331,19 +254,7 @@ textarea {
 
 @media (max-width: 900px) {
 
-    .sidebar {
-        width: 72px;
-        padding: 20px 8px;
-    }
-
     .sidebar .label-text,
-    .sidebar-label {
-        display: none;
-    }
-
-    .menu a {
-        text-align: center;
-    }
 
     .main-content {
         margin-left: 72px;
@@ -379,5 +290,115 @@ textarea {
     .image-preview img {
         width: 130px;
         height: 130px;
+    }
+}
+
+/* =========================
+   VARIATION ROWS
+========================= */
+
+.var-head,
+.var-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr 38px;
+    gap: 8px;
+    align-items: center;
+}
+
+.var-head {
+    margin-bottom: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #6f5a53;
+}
+
+.var-head[hidden] {
+    display: none;
+}
+
+.var-head small {
+    font-weight: 500;
+    color: #a0847b;
+}
+
+.var-row {
+    margin-bottom: 8px;
+}
+
+.var-field {
+    display: block;
+    min-width: 0;
+    margin: 0;
+}
+
+/* The header names the columns on wider screens. */
+.var-field > span {
+    display: none;
+}
+
+.var-field input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #f0ddd6;
+    border-radius: 8px;
+    font-size: 12px;
+    font-family: inherit;
+    outline: none;
+}
+
+.var-field input:focus {
+    border-color: #e8420f;
+}
+
+.remove-variation-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 38px;
+    border: none;
+    border-radius: 8px;
+    background: #fff1f1;
+    color: #dc2626;
+    font-family: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.remove-variation-btn span {
+    display: none;
+}
+
+/* Phones: each variation is a small card, two fields per line, each with its label. */
+@media (max-width: 600px) {
+    .var-head {
+        display: none;
+    }
+
+    .var-row {
+        grid-template-columns: 1fr 1fr;
+        align-items: end;
+        gap: 10px;
+        padding: 12px;
+        border: 1px solid #f3e3dd;
+        border-radius: 12px;
+        margin-bottom: 10px;
+    }
+
+    .var-field > span {
+        display: block;
+        margin-bottom: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6f5a53;
+    }
+
+    .remove-variation-btn {
+        grid-column: 1 / -1;
+    }
+
+    .remove-variation-btn span {
+        display: inline;
     }
 }

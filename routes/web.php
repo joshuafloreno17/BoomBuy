@@ -381,6 +381,8 @@ Route::get('/seller/products/{id}/variations', [SellerController::class, 'variat
 Route::post('/seller/products/{id}/variations', [SellerController::class, 'storeVariation'])->name('seller.products.variations.store');
 
 
+Route::put('/seller/products/{id}/variations', [SellerController::class, 'updateVariations'])->name('seller.products.variations.update');
+
 Route::delete('/seller/products/{id}/variations/{variationId}', [SellerController::class, 'deleteVariation'])->name('seller.products.variations.delete');
 
 /*

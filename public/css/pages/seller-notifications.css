@@ -23,102 +23,11 @@ a {
 
 /* SIDEBAR */
 
-.sidebar {
-    width: 230px;
-    background: white;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
-    display: flex;
-    flex-direction: column;
-    position: fixed;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    z-index: 1000;
-}
-
-.logo {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 23px;
-    font-weight: 800;
-    color: #e8420f;
-}
-
-.logo span {
-    color: #172033;
-}
-
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
-}
-
-.menu {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
-}
-
-.menu a {
-    position: relative;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 12px;
-    border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 600;
-    transition: 0.2s;
-}
-
 .menu a:hover,
-.menu a.active {
-    background: #fff4f1;
-    color: #e8420f;
-}
-
-.notification-badge {
-    margin-left: auto;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: #e8420f;
-    color: white;
-    font-size: 10px;
-    font-weight: 800;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.sidebar-footer {
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid #ffe9e2;
-}
 
 .user {
     color: #8d6c62;
     font-size: 12px;
-}
-
-.logout {
-    border: none;
-    background: #fff3f0;
-    color: #dc2626;
-    padding: 8px 12px;
-    border-radius: 7px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
 }
 
 /* MAIN */
@@ -321,29 +230,7 @@ footer strong {
 
 @media (max-width: 900px) {
 
-    .sidebar {
-        width: 72px;
-        padding: 20px 8px;
-    }
-
     .sidebar .label-text,
-    .sidebar-label {
-        display: none;
-    }
-
-    .menu a {
-        justify-content: center;
-    }
-
-    .notification-badge {
-        position: absolute;
-        top: 5px;
-        right: 5px;
-        min-width: 17px;
-        height: 17px;
-        padding: 0 4px;
-        font-size: 9px;
-    }
 
     .main-content {
         margin-left: 72px;

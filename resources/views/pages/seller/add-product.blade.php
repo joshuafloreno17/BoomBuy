@@ -9,6 +9,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
+    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/seller-add-product.css') }}">
 </head>
 
@@ -19,9 +20,6 @@
     <x-layout.seller-sidebar
         active="products"
         :user="$user"
-        logo-href="/"
-        :show-notifications="false"
-        footer="back"
     />
 
 
@@ -30,20 +28,7 @@
 
         <div class="container">
 
-            <!-- HEADER -->
-            <div class="header">
-
-                <small>Seller</small>
-
-                <h1>
-                    Add Product
-                </h1>
-
-                <p>
-                    Add a new product to your BoomBuy store.
-                </p>
-
-            </div>
+            <x-seller-page-head title="Add Product" subtitle="Add a new product to your BoomBuy store." />
 
 
             <!-- ERROR -->
@@ -116,7 +101,7 @@
                             color: #a0847b;
                             font-size: 11px;
                         ">
-                            Enter the number of units available for sale.
+                            Enter the number of units available for sale. If you add variations below, each one keeps its own stock instead.
                         </div>
                     </div>
 
@@ -260,27 +245,16 @@
                             Product Image
                         </label>
 
-                        <div class="image-upload">
+                        <div class="image-upload-box">
 
-                            <div class="image-upload-icon">
-                                                            </div>
-
-                            <div class="image-upload-title">
-                                Upload your product image
-                            </div>
-
-                            <div class="image-upload-text">
-                                JPG, JPEG, PNG, or WEBP • Maximum 5MB
-                            </div>
-
-                            <input
-                                type="file"
-                                id="image"
-                                name="image"
-                                class="file-input"
-                                accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp"
-                                required
-                            >
+                            @include('partials.file-picker', [
+                                'id' => 'image',
+                                'name' => 'image',
+                                'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
+                                'label' => 'Upload your product image',
+                                'hint' => 'JPG, PNG or WEBP · up to 5 MB · square photos look best',
+                                'required' => true,
+                            ])
 
                             <div
                                 id="image-preview"
@@ -332,12 +306,15 @@
                             Does this product come in different colors, sizes, etc.? Add them here.
                         </div>
 
+                        {{-- Column names for the rows below; shown once there is a row. --}}
+                        <div id="variationHead" class="var-head" hidden>
+                            <span>Type</span>
+                            <span>Value</span>
+                            <span>Extra price (₱) <small>· 0 = same</small></span>
+                            <span>Stock</span>
+                            <span></span>
+                        </div>
                         <div id="variationRows"></div>
-                        <datalist id="variation-type-options">
-                            @foreach(\App\Models\ProductVariation::COMMON_TYPES as $typeOption)
-                                <option value="{{ $typeOption }}"></option>
-                            @endforeach
-                        </datalist>
 
                         <button
                             type="button"
@@ -392,30 +369,34 @@
 <script>
     (function () {
         var rowsContainer = document.getElementById('variationRows');
+        var head = document.getElementById('variationHead');
         var addBtn = document.getElementById('addVariationBtn');
         var index = 0;
 
+        function syncHead() {
+            head.hidden = rowsContainer.children.length === 0;
+        }
+
         function addRow() {
             var row = document.createElement('div');
-            row.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap:8px; margin-bottom:8px; align-items:center;';
+            row.className = 'var-row';
 
+            // Each field carries its own label too: phones stack them instead of showing the header.
             row.innerHTML =
-                '<input type="text" name="variations[' + index + '][type]" placeholder="Type (e.g. Color)" list="variation-type-options" autocomplete="off">' +
-                '<input type="text" name="variations[' + index + '][value]" placeholder="Value (e.g. Red)">' +
-                '<input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" placeholder="Extra Price (₱)" value="0">' +
-                '<input type="number" min="0" name="variations[' + index + '][stock]" placeholder="Stock" value="0">' +
-                '<button type="button" class="remove-variation-btn" style="background:#fff1f1; color:#dc2626; border:none; border-radius:6px; padding:10px 12px; font-size:11px; font-weight:700; cursor:pointer;"><i class="bi bi-x-lg"></i></button>';
-
-            row.querySelectorAll('input').forEach(function (input) {
-                input.style.cssText = 'width:100%; padding:10px 12px; border:1px solid #f0ddd6; border-radius:8px; font-size:12px; font-family:inherit; outline:none;';
-            });
+                '<label class="var-field"><span>Type</span><input type="text" name="variations[' + index + '][type]" placeholder="e.g. Color" autocomplete="off"></label>' +
+                '<label class="var-field"><span>Value</span><input type="text" name="variations[' + index + '][value]" placeholder="e.g. Red"></label>' +
+                '<label class="var-field"><span>Extra price (₱) · 0 = same</span><input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" placeholder="0" value="0"></label>' +
+                '<label class="var-field"><span>Stock</span><input type="number" min="0" name="variations[' + index + '][stock]" placeholder="0" value="0"></label>' +
+                '<button type="button" class="remove-variation-btn" aria-label="Remove this variation"><i class="bi bi-x-lg"></i><span>Remove</span></button>';
 
             row.querySelector('.remove-variation-btn').addEventListener('click', function () {
                 row.remove();
+                syncHead();
             });
 
             rowsContainer.appendChild(row);
             index++;
+            syncHead();
         }
 
         addBtn.addEventListener('click', addRow);
