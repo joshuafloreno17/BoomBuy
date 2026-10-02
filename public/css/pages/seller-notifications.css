@@ -23,7 +23,6 @@ a {
 
 /* SIDEBAR */
 
-.menu a:hover,
 
 .user {
     color: #8d6c62;
@@ -230,7 +229,6 @@ footer strong {
 
 @media (max-width: 900px) {
 
-    .sidebar .label-text,
 
     .main-content {
         margin-left: 72px;

@@ -451,7 +451,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 /* ===== Sidebar layout ===== */
 .layout { display: flex; }
 
-.sidebar .menu a:hover,
 
 .main-content {
     margin-left: 230px;

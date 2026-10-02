@@ -26,7 +26,6 @@ a {
     min-height: 100vh;
 }
 
-.menu a:hover,
 
 /* =========================
    MAIN
@@ -254,7 +253,6 @@ textarea {
 
 @media (max-width: 900px) {
 
-    .sidebar .label-text,
 
     .main-content {
         margin-left: 72px;
