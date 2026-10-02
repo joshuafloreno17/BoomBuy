@@ -76,6 +76,23 @@ class ShopAndAccountTest extends TestCase
             ->assertDontSee('Gone Galoshes');
     }
 
+    public function test_shop_lists_every_category_but_a_seller_shop_only_its_own(): void
+    {
+        $tech = $this->makeSeller('electronics');
+        $this->makeProduct($tech, ['name' => 'USB Charger', 'category' => 'Electronics']);
+
+        // Empty categories still show on the Shop, marked as coming soon.
+        $this->get(route('products'))->assertOk()
+            ->assertSee('Pet Supplies')
+            ->assertSee('is-empty', false);
+
+        $this->get(route('products', ['category' => 'pet-supplies']))->assertOk()
+            ->assertSee('No products have been uploaded in Pet Supplies yet');
+
+        $this->get(route('shop.seller', $tech->id))->assertOk()
+            ->assertDontSee('Pet Supplies');
+    }
+
     public function test_shop_page_shows_only_that_sellers_products(): void
     {
         $shoes = $this->makeSeller('shoes', 'Stride Footwear Co.');

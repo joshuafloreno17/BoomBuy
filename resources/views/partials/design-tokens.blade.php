@@ -1,4 +1,67 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+{{-- Site-wide notice (e.g. "your session timed out") shown as a toast on whatever page comes next. --}}
+@if(session('bb_notice'))
+    <style>
+        .bb-notice {
+            position: fixed;
+            left: 50%;
+            top: 18px;
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: max-content;
+            max-width: calc(100% - 32px);
+            padding: 12px 14px 12px 16px;
+            border-radius: 14px;
+            background: #172033;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-size: 13.5px;
+            font-weight: 600;
+            line-height: 1.4;
+            box-shadow: 0 16px 40px rgba(23, 32, 51, 0.25);
+            transform: translateX(-50%);
+            animation: bb-notice-in 0.25s ease;
+        }
+
+        .bb-notice i {
+            color: #f5b70b;
+            font-size: 16px;
+        }
+
+        .bb-notice button i {
+            color: inherit;
+            font-size: 13px;
+        }
+
+        .bb-notice button {
+            margin-left: 4px;
+            border: none;
+            background: transparent;
+            color: #c9cfdb;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        @keyframes bb-notice-in {
+            from { opacity: 0; transform: translate(-50%, -8px); }
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var box = document.createElement('div');
+            box.className = 'bb-notice';
+            box.setAttribute('role', 'status');
+            box.innerHTML = '<i class="bi bi-hourglass-split"></i><span></span><button type="button" aria-label="Dismiss"><i class="bi bi-x-lg"></i></button>';
+            box.querySelector('span').textContent = @json(session('bb_notice'));
+            box.querySelector('button').addEventListener('click', function () { box.remove(); });
+            document.body.appendChild(box);
+            setTimeout(function () { box.remove(); }, 8000);
+        });
+    </script>
+@endif
 <style>
     :root {
         --ink: #172033;

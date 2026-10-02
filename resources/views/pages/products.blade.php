@@ -271,6 +271,86 @@
             color: #fff;
         }
 
+        /* ‹ › for the category row: shown only while there is more to scroll to. */
+        .cat-scroller {
+            position: relative;
+            min-width: 0;
+        }
+
+        .cat-scroller::before,
+        .cat-scroller::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 4px;
+            width: 72px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.15s ease;
+            z-index: 1;
+        }
+
+        .cat-scroller::before {
+            left: 0;
+            background: linear-gradient(to right, var(--cream), transparent);
+        }
+
+        .cat-scroller::after {
+            right: 0;
+            background: linear-gradient(to left, var(--cream), transparent);
+        }
+
+        .cat-scroller.can-prev::before,
+        .cat-scroller.can-next::after {
+            opacity: 1;
+        }
+
+        .cat-arrow {
+            position: absolute;
+            top: 0;
+            z-index: 2;
+            display: none;
+            place-items: center;
+            width: 42px;
+            height: 42px;
+            border: 1px solid #f0d9d1;
+            border-radius: 50%;
+            background: #fff;
+            color: var(--ink);
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 6px 16px rgba(23, 32, 51, 0.12);
+        }
+
+        .cat-arrow:hover {
+            border-color: #e8b5a4;
+            color: var(--accent-dark);
+        }
+
+        .cat-arrow.is-prev {
+            left: 0;
+        }
+
+        .cat-arrow.is-next {
+            right: 0;
+        }
+
+        .cat-scroller.can-prev .cat-arrow.is-prev,
+        .cat-scroller.can-next .cat-arrow.is-next {
+            display: grid;
+        }
+
+        /* Categories nobody has uploaded to yet: still there, just quieter. */
+        .cat-chip.is-empty:not(.active) {
+            border-style: dashed;
+            background: transparent;
+            color: #8d6c62;
+        }
+
+        .cat-chip.is-empty:not(.active) i {
+            color: #c9aaa0;
+        }
+
         /* =========================
            LAYOUT
         ========================= */
@@ -1120,6 +1200,12 @@
                 display: none;
             }
 
+            .cat-arrow,
+            .cat-scroller::before,
+            .cat-scroller::after {
+                display: none !important;
+            }
+
             .cat-chip {
                 min-height: 38px;
                 font-size: 12.5px;
@@ -1431,17 +1517,21 @@
             </div>
         </header>
 
-        {{-- CATEGORY CHIPS --}}
+        {{-- CATEGORY CHIPS (‹ › buttons on desktop, where the row doesn't fit) --}}
+        <div class="cat-scroller">
+        <button type="button" class="cat-arrow is-prev" data-cat-scroll="-1" aria-label="Scroll categories left"><i class="bi bi-chevron-left"></i></button>
         <nav class="cat-row" aria-label="Categories">
             <a href="{{ $with(['category' => null]) }}" class="cat-chip {{ $filters['category'] ? '' : 'active' }}" @unless($filters['category']) aria-current="true" @endunless>
                 <i class="bi bi-grid-fill"></i> All <small>{{ $totalProducts }}</small>
             </a>
             @foreach($categories as $cat)
-                <a href="{{ $with(['category' => $cat['slug']]) }}" class="cat-chip {{ $filters['category'] === $cat['slug'] ? 'active' : '' }}" @if($filters['category'] === $cat['slug']) aria-current="true" @endif>
-                    <i class="bi {{ $cat['icon'] }}"></i> {{ $cat['label'] }} <small>{{ $cat['count'] }}</small>
+                <a href="{{ $with(['category' => $cat['slug']]) }}" class="cat-chip {{ $filters['category'] === $cat['slug'] ? 'active' : '' }} {{ $cat['count'] ? '' : 'is-empty' }}" @if($filters['category'] === $cat['slug']) aria-current="true" @endif @unless($cat['count']) title="No products uploaded yet" @endunless>
+                    <i class="bi {{ $cat['icon'] }}"></i> {{ $cat['label'] }} <small>{{ $cat['count'] ?: 'Soon' }}</small>
                 </a>
             @endforeach
         </nav>
+        <button type="button" class="cat-arrow is-next" data-cat-scroll="1" aria-label="Scroll categories right"><i class="bi bi-chevron-right"></i></button>
+        </div>
 
         <div class="shop-layout">
 
@@ -1540,7 +1630,7 @@
 
                     {{-- EMPTY STATES --}}
                     <div class="shop-empty">
-                        <span class="shop-empty-icon"><i class="bi bi-search"></i></span>
+                        <span class="shop-empty-icon"><i class="bi {{ $filters['category'] && $filters['search'] === '' ? \App\Support\Categories::icon($filters['category']) : 'bi-search' }}"></i></span>
 
                         @if($filters['search'] !== '')
                             <h2>No “{{ $filters['search'] }}”{{ $filters['category'] ? ' in ' . $filters['category_label'] : '' }}</h2>
@@ -1566,6 +1656,12 @@
                             <p>Try a wider price range or fewer filters.</p>
                             <div class="shop-empty-actions">
                                 <a href="{{ $clearFilters }}" class="btn-main">Clear filters</a>
+                            </div>
+                        @elseif($filters['category'] && !$shop)
+                            <h2>No {{ $filters['category_label'] }} yet</h2>
+                            <p>No products have been uploaded in {{ $filters['category_label'] }} yet. Sellers are still setting up — check back soon.</p>
+                            <div class="shop-empty-actions">
+                                <a href="{{ route('products') }}" class="btn-soft">Browse all products</a>
                             </div>
                         @else
                             <h2>No products here yet</h2>
@@ -1653,6 +1749,30 @@
         }
 
 
+        /* ---------- ‹ › on the category row (desktop) ---------- */
+
+        var catScroller = document.querySelector('.cat-scroller');
+        var catRow = catScroller && catScroller.querySelector('.cat-row');
+
+        function updateCatArrows() {
+            if (!catRow) return;
+            catScroller.classList.toggle('can-prev', catRow.scrollLeft > 4);
+            catScroller.classList.toggle('can-next', catRow.scrollLeft + catRow.clientWidth < catRow.scrollWidth - 4);
+        }
+
+        if (catRow) {
+            catRow.addEventListener('scroll', updateCatArrows, { passive: true });
+            window.addEventListener('resize', updateCatArrows);
+            document.addEventListener('bb:shop-updated', updateCatArrows);
+            catScroller.querySelectorAll('[data-cat-scroll]').forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    catRow.scrollBy({ left: Number(btn.dataset.catScroll) * catRow.clientWidth * 0.7, behavior: 'smooth' });
+                });
+            });
+            updateCatArrows();
+        }
+
+
         /* ---------- phone filter sheet ---------- */
 
         var backdrop = document.querySelector('.sheet-backdrop');
@@ -1734,6 +1854,7 @@
                     }
 
                     if (push !== false) history.pushState({ shop: true }, '', url);
+                    document.dispatchEvent(new CustomEvent('bb:shop-updated'));
                 })
                 .catch(function (err) {
                     if (err && err.name === 'AbortError') return;

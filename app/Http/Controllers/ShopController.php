@@ -342,7 +342,8 @@ class ShopController extends Controller
 
         /*
         |--------------------------------------------------------------------------
-        | CATEGORY CHIPS — only categories that actually have products
+        | CATEGORY CHIPS — the Shop lists every category (empty ones last);
+        | a seller's shop only the categories it actually sells in
         |--------------------------------------------------------------------------
         */
 
@@ -361,7 +362,8 @@ class ShopController extends Controller
                 'icon' => Categories::icon($slug),
                 'count' => $categoryCounts[$slug] ?? 0,
             ])
-            ->filter(fn ($c) => $c['count'] > 0 || $c['slug'] === $category)
+            ->filter(fn ($c) => !$sellerId || $c['count'] > 0 || $c['slug'] === $category)
+            ->sortBy(fn ($c) => $c['count'] > 0 ? 0 : 1)
             ->values()
             ->all();
 

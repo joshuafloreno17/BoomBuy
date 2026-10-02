@@ -1062,7 +1062,7 @@ class BuyerController extends Controller
 
         // Matches the platform's stated return window — an unlimited-time
         // return/refund window is unusual and hard to honor for a seller.
-        $returnWindowDays = 7;
+        $returnWindowDays = \App\Support\AutoReceive::RETURN_WINDOW_DAYS;
 
         $returnDeadline = \Illuminate\Support\Carbon::parse($order->buyer_received_at)
             ->addDays($returnWindowDays);

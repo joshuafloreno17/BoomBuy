@@ -1602,6 +1602,14 @@
                                 </div>
                             @endif
 
+                            {{-- Delivered but not confirmed yet: say when it confirms itself. --}}
+                            @if(($order['status'] ?? '') === 'Delivered' && empty($order['buyer_received_at']) && ($autoReceiveAt = \App\Support\AutoReceive::dueAt($order)))
+                                <div class="cancel-note">
+                                    <i class="bi bi-info-circle-fill"></i>
+                                    <span>Got your parcel? Tap <strong>Order Received</strong>. If you don't, it will be confirmed for you on {{ $autoReceiveAt->format('M j') }}, and your {{ \App\Support\AutoReceive::RETURN_WINDOW_DAYS }}-day return window starts then.</span>
+                                </div>
+                            @endif
+
                             <!-- =========================
                                  TRACKING PANEL
                             ========================= -->
