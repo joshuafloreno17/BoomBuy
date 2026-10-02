@@ -95,7 +95,7 @@
                 </div>
 
                 @if($complaint->evidence)
-                    <a href="{{ asset('storage/' . $complaint->evidence) }}" target="_blank" class="evidence-link">
+                    <a href="{{ route('complaints.evidence', $complaint->id) }}" target="_blank" class="evidence-link">
                         <i class="bi bi-paperclip"></i> View Evidence
                     </a>
                 @endif

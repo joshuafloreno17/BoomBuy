@@ -303,16 +303,22 @@
 
         /* BUTTONS */
 
+        /* Heart · Add to cart · Buy now (each sits in its own form). */
         .buttons {
-            display: flex;
+            display: grid;
+            grid-template-columns: 46px 1fr 1fr;
             align-items: stretch;
             gap: 10px;
         }
 
-        .wishlist-btn {
-            flex: 0 0 46px;
+        .buttons > form {
+            display: flex;
+            min-width: 0;
+        }
 
-            width: 46px;
+        .wishlist-btn {
+            width: 100%;
+            min-height: 46px;
 
             border: 1px solid #f3ddd6;
             background: white;
@@ -604,8 +610,13 @@
                 font-size: 28px;
             }
 
+            /* Heart + Add to cart on one row, Buy now full width below. */
             .buttons {
-                flex-direction: column;
+                grid-template-columns: 46px 1fr;
+            }
+
+            .buttons > form:last-child {
+                grid-column: 1 / -1;
             }
 
             .spec-grid {
@@ -1296,8 +1307,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <li>
                     <i class="bi bi-truck"></i>
                     <span>
-                        <strong>Delivery ₱{{ number_format($deliveryFee) }}</strong>
-                        — free on orders of ₱{{ number_format($freeDeliveryMin) }} and up from this shop
+                        @if(($product['price'] ?? 0) >= $freeDeliveryMin)
+                            <strong>Free delivery</strong>
+                            — this item alone already reaches ₱{{ number_format($freeDeliveryMin) }}
+                        @else
+                            <strong>Delivery ₱{{ number_format($deliveryFee) }}</strong>
+                            — free on orders of ₱{{ number_format($freeDeliveryMin) }} and up from this shop
+                        @endif
                     </span>
                 </li>
                 <li>
@@ -1306,7 +1322,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 </li>
                 <li>
                     <i class="bi bi-arrow-counterclockwise"></i>
-                    <span><strong>7-day returns</strong> — request a return or refund within 7 days of receiving it</span>
+                    <span><strong>7-day returns</strong> — request a return or refund within 7 days of receiving it · <a href="{{ route('policies') }}#returns" style="color:var(--accent);font-weight:700;">Return policy</a></span>
                 </li>
             </ul>
 

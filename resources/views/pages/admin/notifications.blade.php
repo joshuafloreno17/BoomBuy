@@ -456,6 +456,7 @@
                     </div>
 
                 @endforelse
+                @include('partials.simple-pager', ['paginator' => $notifications])
 
             </div>
 

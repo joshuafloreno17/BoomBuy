@@ -323,7 +323,7 @@
                             {{ \Illuminate\Support\Carbon::parse($order['seller_confirmed_pickup_at'])->format('M d, Y • h:i A') }}.
                         </div>
 
-                    @else
+                    @elseif(in_array($order['status'] ?? '', ['Assigned', 'Picked Up'], true))
 
                         <form method="POST" action="{{ route('seller.order.confirm-pickup', $order['id']) }}" style="margin-top:16px;">
                             @csrf
@@ -349,6 +349,22 @@
                     Update Order Status
                 </h2>
 
+                @php $currentStatus = $order['status'] ?? ''; @endphp
+
+                @if(!in_array($currentStatus, ['Pending', 'Processing'], true))
+
+                    <p style="color:#8d6c62; font-size:13px; line-height:1.6;">
+                        <i class="bi bi-info-circle"></i>
+                        This order is <strong>{{ $currentStatus }}</strong>.
+                        @if(in_array($currentStatus, ['Ready for Pickup', 'Assigned'], true))
+                            Keep the parcel ready — a rider will collect it. There's nothing more for you to update.
+                        @else
+                            From here the rider, Sorting Center or buyer moves it along — there's nothing for you to update.
+                        @endif
+                    </p>
+
+                @else
+
                 <form
                     method="POST"
                     action="{{ route('seller.order.status', $order['id']) }}"
@@ -362,13 +378,15 @@
                             Select Status
                         </option>
 
-                        <option value="Processing">
-                            Processing
-                        </option>
-
-                        <option value="Ready for Pickup">
-                            Ready for Pickup
-                        </option>
+                        @if($currentStatus === 'Pending')
+                            <option value="Processing">
+                                Processing
+                            </option>
+                        @else
+                            <option value="Ready for Pickup">
+                                Ready for Pickup
+                            </option>
+                        @endif
 
                         <option value="Cancelled">
                             Cancelled (e.g. out of stock)
@@ -388,6 +406,8 @@
                     </button>
 
                 </form>
+
+                @endif
 
             </div>
 

@@ -10,6 +10,9 @@
             @if($product['image'])
                 <img src="{{ $product['image'] }}" alt="" loading="lazy" onerror="this.remove()">
             @endif
+            @if($product['free_shipping'] ?? false)
+                <span class="sp-free"><i class="bi bi-truck"></i> Free shipping</span>
+            @endif
         </a>
 
         <button
@@ -29,19 +32,26 @@
 
             <a href="{{ route('product.details', $product['slug']) }}" class="sp-name">{{ $product['name'] }}</a>
 
+            @if(!empty($product['shop_name']))
+                <a href="{{ $product['shop_url'] }}" class="sp-shop"><i class="bi bi-shop"></i> {{ $product['shop_name'] }}</a>
+            @endif
+
+            {{-- Rating · sold · stock (stock only when it's worth knowing). --}}
             <span class="sp-meta">
                 @if($product['rating'])
                     <i class="bi bi-star-fill"></i> {{ $product['rating'] }} ({{ $product['reviews'] }})
                 @else
                     New
                 @endif
-                ·
+                @if(($product['sold'] ?? 0) > 0)
+                    · {{ $product['sold'] >= 1000 ? number_format($product['sold'] / 1000, 1) . 'k' : $product['sold'] }} sold
+                @endif
                 @if($product['stock'] <= 0)
-                    <span class="is-low">Sold out</span>
+                    · <span class="is-low">Sold out</span>
                 @elseif($product['stock'] <= 10)
-                    <span class="is-low">Only {{ $product['stock'] }} left</span>
-                @else
-                    {{ $product['stock'] }} in stock
+                    · <span class="is-low">Only {{ $product['stock'] }} left</span>
+                @elseif(($product['sold'] ?? 0) === 0)
+                    · {{ $product['stock'] }} in stock
                 @endif
             </span>
 

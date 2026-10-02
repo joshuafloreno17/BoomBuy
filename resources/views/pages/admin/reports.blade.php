@@ -430,288 +430,6 @@
 
 <body>
 
-@php
-
-    /*
-    |--------------------------------------------------------------------------
-    | REAL DATABASE REPORT DATA
-    |--------------------------------------------------------------------------
-    */
-
-    $sellerProducts = \App\Models\Product::query()
-        ->whereNotNull('seller_id')
-        ->orderByDesc('created_at')
-        ->get();
-
-    $allOrders = \Illuminate\Support\Facades\DB::table('orders')
-        ->orderByDesc('created_at')
-        ->get();
-
-    /*
-    |--------------------------------------------------------------------------
-    | TOTAL ORDERS
-    |--------------------------------------------------------------------------
-    */
-
-    $totalOrders = $allOrders->count();
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMPLETED ORDERS
-    |--------------------------------------------------------------------------
-    */
-
-    $completedOrders = $allOrders
-        ->where('status', 'Delivered')
-        ->count();
-
-    /*
-    |--------------------------------------------------------------------------
-    | TOTAL REVENUE
-    |--------------------------------------------------------------------------
-    |
-    | Only Delivered orders count as real revenue — same definition the
-    | Admin Dashboard's Total Sales stat uses, so the two pages never show
-    | two different numbers for what looks like the same figure.
-    |
-    */
-
-    $totalRevenue = $allOrders
-        ->filter(function ($order) {
-            return ($order->status ?? '') === 'Delivered';
-        })
-        ->sum(function ($order) {
-            return (float) ($order->total_amount ?? 0);
-        });
-
-    /*
-    |--------------------------------------------------------------------------
-    | AVERAGE ORDER
-    |--------------------------------------------------------------------------
-    */
-
-    $successfulOrderCount = $allOrders
-        ->filter(function ($order) {
-            return ($order->status ?? '') === 'Delivered';
-        })
-        ->count();
-
-    $averageOrder = $successfulOrderCount > 0
-        ? $totalRevenue / $successfulOrderCount
-        : 0;
-
-    /*
-    |--------------------------------------------------------------------------
-    | COMMISSION REPORT
-    |--------------------------------------------------------------------------
-    |
-    | BoomBuy takes a configurable cut (default 10%) of every seller's
-    | sales. Computed straight from order_items (which already records
-    | which seller each line item belongs to and its own selling price),
-    | filtered to non-cancelled orders — the same rule used for revenue.
-    |
-    */
-
-    $commissionRate = (float) \App\Models\PlatformSetting::get('commission_rate', '10');
-
-    $sellerSales = \Illuminate\Support\Facades\DB::table('order_items')
-        ->join('orders', 'orders.id', '=', 'order_items.order_id')
-        ->join('users', 'users.id', '=', 'order_items.seller_id')
-        ->where('orders.status', '!=', 'Cancelled')
-        ->selectRaw('order_items.seller_id, users.name as seller_name, SUM(order_items.price * order_items.quantity) as sales')
-        ->groupBy('order_items.seller_id', 'users.name')
-        ->orderByDesc('sales')
-        ->get()
-        ->map(function ($row) use ($commissionRate) {
-
-            $sales = (float) $row->sales;
-            $commission = $sales * ($commissionRate / 100);
-
-            return [
-                'seller_id' => $row->seller_id,
-                'seller_name' => $row->seller_name,
-                'sales' => $sales,
-                'commission' => $commission,
-                'payout' => $sales - $commission,
-            ];
-        });
-
-    $totalSellerSales = $sellerSales->sum('sales');
-    $totalCommission = $sellerSales->sum('commission');
-    $totalPayouts = $sellerSales->sum('payout');
-
-    /*
-    |--------------------------------------------------------------------------
-    | SELLER PRODUCT PERFORMANCE
-    |--------------------------------------------------------------------------
-    */
-
-    $productPerformance = $sellerProducts->map(function ($product) {
-
-        $unitsSold = \Illuminate\Support\Facades\DB::table('order_items')
-            ->where('product_id', $product->id)
-            ->join(
-                'orders',
-                'orders.id',
-                '=',
-                'order_items.order_id'
-            )
-            ->where('orders.status', '!=', 'Cancelled')
-            ->sum('order_items.quantity');
-
-        return [
-            'id' => $product->id,
-            'name' => $product->name,
-            'category' => $product->category,
-            'price' => (float) $product->price,
-            'units_sold' => (int) $unitsSold,
-            'seller_id' => $product->seller_id,
-        ];
-    });
-
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY PERFORMANCE
-    |--------------------------------------------------------------------------
-    */
-
-    $categorySales = [];
-
-    foreach ($productPerformance as $product) {
-
-        $category = $product['category'] ?: 'Other';
-
-        if (!isset($categorySales[$category])) {
-            $categorySales[$category] = 0;
-        }
-
-        $categorySales[$category] += $product['units_sold'];
-    }
-
-    arsort($categorySales);
-
-    $totalCategoryUnits = array_sum($categorySales);
-
-    /*
-    |--------------------------------------------------------------------------
-    | MONTHLY SALES
-    |--------------------------------------------------------------------------
-    |
-    | Successful orders are counted immediately.
-    | Cancelled orders are excluded.
-    |
-    */
-
-    $monthlySales = [];
-
-    for ($month = 1; $month <= 12; $month++) {
-        $monthlySales[$month] = 0;
-    }
-
-    foreach ($allOrders as $order) {
-
-        if (($order->status ?? '') === 'Cancelled') {
-            continue;
-        }
-
-        if (empty($order->created_at)) {
-            continue;
-        }
-
-        $month = (int) date(
-            'n',
-            strtotime($order->created_at)
-        );
-
-        if ($month >= 1 && $month <= 12) {
-
-            $monthlySales[$month] += (float) (
-                $order->total_amount ?? 0
-            );
-        }
-    }
-
-    /*
-    |--------------------------------------------------------------------------
-    | IMPORTANT
-    |--------------------------------------------------------------------------
-    | Used by the Sales Overview bar height.
-    */
-
-    $maxMonthlySales = max($monthlySales ?: [0]);
-
-    /*
-    |--------------------------------------------------------------------------
-    | RECENT ORDERS
-    |--------------------------------------------------------------------------
-    */
-
-    $recentOrders = $allOrders->take(5);
-
-    /*
-    |--------------------------------------------------------------------------
-    | HELPER FOR ORDER ITEM NAMES
-    |--------------------------------------------------------------------------
-    */
-
-    $getOrderProductNames = function ($orderId) {
-
-        return \Illuminate\Support\Facades\DB::table('order_items')
-            ->join(
-                'products',
-                'products.id',
-                '=',
-                'order_items.product_id'
-            )
-            ->where('order_items.order_id', $orderId)
-            ->pluck('products.name')
-            ->toArray();
-    };
-
-    /*
-    |--------------------------------------------------------------------------
-    | CATEGORY ICONS
-    |--------------------------------------------------------------------------
-    */
-
-    $categoryIcons = [
-
-        'Smartphone' => 'bi-phone',
-        'Smartphones' => 'bi-phone',
-
-        'Laptop' => 'bi-laptop',
-        'Laptops' => 'bi-laptop',
-
-        'Audio' => 'bi-headphones',
-
-        'Wearable' => 'bi-smartwatch',
-        'Wearables' => 'bi-smartwatch',
-
-        'Accessories' => 'bi-controller',
-        'Gaming' => 'bi-controller',
-
-        'Women’s' => 'bi-handbag',
-        "Women's" => 'bi-handbag',
-
-        'Men’s' => 'bi-bag-fill',
-        "Men's" => 'bi-bag-fill',
-
-        'Kids & Baby' => 'bi-balloon-heart-fill',
-
-        'Home' => 'bi-house-door-fill',
-
-        'Sports' => 'bi-trophy-fill',
-
-        'Beauty' => 'bi-stars',
-
-        'Food' => 'bi-cup-hot-fill',
-
-        'Automotive' => 'bi-car-front-fill',
-
-        'Office & School' => 'bi-backpack2-fill',
-    ];
-
-@endphp
 
 <div class="layout">
 
@@ -870,7 +588,7 @@
                     </h2>
 
                     <p class="panel-description">
-                        BoomBuy's platform commission ({{ number_format($commissionRate, 1) }}%) across all sellers
+                        BoomBuy's platform commission ({{ number_format($commissionRate, 1) }}%) on delivered orders, after each seller's own vouchers — same figures sellers see on their Reports page
                     </p>
 
                 </div>
@@ -954,7 +672,7 @@
                         </h2>
 
                         <p class="panel-description">
-                            Actual monthly sales performance
+                            Monthly sales for {{ $year }} (excluding cancelled and returned orders, without delivery fees)
                         </p>
 
                     </div>
@@ -962,7 +680,7 @@
                 </div>
 
 
-                @if($successfulOrderCount > 0)
+                @if($maxMonthlySales > 0)
 
                     <div class="sales-chart">
 
@@ -1070,7 +788,7 @@
                                 )
                                 : 0;
 
-                            $icon = $categoryIcons[$category] ?? 'bi-box-seam-fill';
+                            $icon = \App\Support\Categories::icon($category);
 
                         @endphp
 
@@ -1175,8 +893,7 @@
 
                             @php
 
-                                $productNames =
-                                    $getOrderProductNames($order->id);
+                                $productNames = $order->product_names;
 
                                 $status =
                                     $order->status ?? 'Pending';
@@ -1192,8 +909,7 @@
                                     'Picked Up',
                                     'At Sorting Center',
                                     'Assigned for Delivery',
-                                    'Out for Delivery',
-                                    'On the Way' =>
+                                    'Out for Delivery' =>
                                         'processing',
 
                                     'Cancelled',
@@ -1336,10 +1052,7 @@
 
                             @php
 
-                                $icon =
-                                    $categoryIcons[
-                                        $product['category']
-                                    ] ?? 'bi-box-seam-fill';
+                                $icon = \App\Support\Categories::icon($product['category']);
 
                                 $filledStar = '<i class="bi bi-star-fill"></i>';
 
@@ -1366,24 +1079,7 @@
                                 }
 
 
-                                $sellerName = null;
-
-
-                                if (!empty($product['seller_id'])) {
-
-                                    $seller =
-                                        \Illuminate\Support\Facades\DB::table('users')
-                                            ->where(
-                                                'id',
-                                                $product['seller_id']
-                                            )
-                                            ->first();
-
-                                    if ($seller) {
-                                        $sellerName = $seller->name;
-                                    }
-
-                                }
+                                $sellerName = $product['seller_name'];
 
                             @endphp
 

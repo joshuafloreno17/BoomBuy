@@ -37,19 +37,6 @@
             margin: 40px auto;
         }
 
-        .page-title {
-            margin-bottom: 25px;
-        }
-
-        .page-title h1 {
-            font-size: 30px;
-            margin-bottom: 8px;
-        }
-
-        .page-title p {
-            color: #977970;
-            font-size: 13px;
-        }
 
         .checkout-grid {
             display: grid;
@@ -414,15 +401,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 <div class="container">
 
-    <div class="page-title">
-
-        <h1>Checkout</h1>
-
-        <p>
-            Complete your information to place your order.
-        </p>
-
-    </div>
+    @include('partials.page-head', ['title' => 'Checkout', 'crumbs' => ['Cart' => route('cart')]])
 
 
     @if(session('error'))
@@ -570,7 +549,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                                 name="payment"
                                 id="payment-cod"
                                 value="Cash on Delivery"
-                                {{ !$codBlocked && old('payment') === 'Cash on Delivery' ? 'checked' : '' }}
+                                {{ !$codBlocked && old('payment', 'Cash on Delivery') === 'Cash on Delivery' ? 'checked' : '' }}
                                 {{ $codBlocked ? 'disabled' : '' }}
                                 required
                             >

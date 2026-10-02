@@ -152,7 +152,7 @@
 
         <div class="card">
             <h2><i class="bi bi-file-earmark-text-fill"></i> Platform Policies</h2>
-            <p class="desc">Update the Terms &amp; Conditions, Privacy Policy, and Return Policy text shown to users.</p>
+            <p class="desc">Shown on the public <a href="{{ route('policies') }}" target="_blank" rel="noopener">Policies page</a> and in the Terms/Privacy pop-ups on login and sign-up. Leave a box empty to use BoomBuy's built-in text; a blank line starts a new paragraph.</p>
 
             <form method="POST" action="{{ route('admin.settings.policies.update') }}">
                 @csrf

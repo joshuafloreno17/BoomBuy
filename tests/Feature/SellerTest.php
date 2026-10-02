@@ -110,6 +110,25 @@ class SellerTest extends TestCase
             ->assertSee('value="Stride Footwear Co."', false);
     }
 
+    public function test_seller_dashboard_counts_real_orders_and_sales(): void
+    {
+        $seller = $this->makeSeller();
+        $other = $this->makeSeller('electronics', 'Other Shop');
+        $product = $this->makeProduct($seller, ['price' => 300]);
+        $buyer = $this->makeUser();
+
+        $this->makeOrder($buyer, $product, 'Pending');
+        $this->makeOrder($buyer, $product, 'Delivered');
+        $this->makeOrder($buyer, $this->makeProduct($other), 'Delivered');
+
+        $this->actingAsUser($seller)
+            ->get(route('seller.dashboard'))
+            ->assertOk()
+            ->assertViewHas('totalOrders', 2)
+            ->assertViewHas('pendingOrders', 1)
+            ->assertViewHas('totalSales', 300.0);
+    }
+
     public function test_two_shops_cannot_share_a_name(): void
     {
         $this->makeSeller('electronics', 'Voltique Electronics');

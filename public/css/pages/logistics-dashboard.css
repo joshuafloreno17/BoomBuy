@@ -73,7 +73,7 @@ a { text-decoration: none; }
 
 .stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: 14px;
     margin-bottom: 20px;
 }
@@ -114,24 +114,212 @@ a { text-decoration: none; }
     color: #e8420f;
 }
 
-.coming-soon-card {
-    background: white;
-    border: 1px dashed #f0ddd6;
-    border-radius: 16px;
-    padding: 26px;
+a.stat-card {
+    display: block;
+    color: inherit;
+    transition: border-color .15s ease;
 }
 
-.coming-soon-card h3 {
+a.stat-card:hover {
+    border-color: #f3c3b3;
+}
+
+.stat-note {
+    display: block;
+    margin-top: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: #b45309;
+}
+
+.muted-sm {
+    color: #8d6c62;
+    font-size: 12px;
+    margin-top: 4px;
+}
+
+.section-title {
     font-family: 'Baloo 2', sans-serif;
-    font-size: 17px;
+    font-size: 19px;
+    margin: 6px 0 12px;
+}
+
+/* To-do cards */
+
+.todo-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 14px;
+    margin-bottom: 24px;
+}
+
+.todo-card {
+    display: block;
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 14px;
+    padding: 16px 18px;
+    color: inherit;
+    transition: border-color .15s ease, transform .15s ease;
+}
+
+.todo-card:hover {
+    border-color: #f3c3b3;
+    transform: translateY(-1px);
+}
+
+.todo-card.has-work {
+    border-color: #f6b9a5;
+    background: #fffaf8;
+}
+
+.todo-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
     margin-bottom: 10px;
 }
 
-.coming-soon-card ul {
-    margin-left: 18px;
-    color: #6a4e46;
+.todo-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    background: #f6f0ee;
+    color: #9a7f77;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.todo-card.has-work .todo-icon {
+    background: #fff0eb;
+    color: var(--accent, #e8420f);
+}
+
+.todo-count {
+    font-family: 'Baloo 2', sans-serif;
+    font-size: 26px;
+    color: #b8a19a;
+}
+
+.todo-card.has-work .todo-count {
+    color: var(--accent, #e8420f);
+}
+
+.todo-label {
+    font-weight: 800;
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+
+.todo-label i {
+    font-size: 11px;
+}
+
+.todo-hint {
+    color: #8d6c62;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+/* Pipeline + recent */
+
+.dash-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.panel {
+    background: white;
+    border: 1px solid #f7e5e0;
+    border-radius: 16px;
+    padding: 20px 22px;
+}
+
+.panel .section-title {
+    margin-top: 0;
+}
+
+.pipeline {
+    list-style: none;
+}
+
+.pipeline li {
+    padding: 9px 0;
+    border-bottom: 1px solid #f8efec;
+}
+
+.pipeline li:last-child {
+    border-bottom: none;
+}
+
+.pipeline-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.pipeline-bar {
+    height: 6px;
+    background: #f8efec;
+    border-radius: 999px;
+    margin: 8px 0 5px;
+    overflow: hidden;
+}
+
+.pipeline-bar span {
+    display: block;
+    height: 100%;
+    background: var(--accent, #e8420f);
+    border-radius: 999px;
+}
+
+.pipeline-hint,
+.recent-sub {
+    color: #977970;
+    font-size: 12px;
+}
+
+.recent-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid #f8efec;
     font-size: 13px;
-    line-height: 1.9;
+}
+
+.recent-main {
+    min-width: 0;
+    word-break: break-word;
+}
+
+.recent-side {
+    text-align: right;
+    flex-shrink: 0;
+}
+
+.empty-note {
+    color: #977970;
+    font-size: 13px;
+    padding: 18px 0;
+}
+
+.panel-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 14px;
+    color: var(--accent, #e8420f);
+    font-weight: 800;
+    font-size: 13px;
+}
+
+@media (max-width: 1000px) {
+    .todo-grid { grid-template-columns: 1fr 1fr; }
+    .dash-grid { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
@@ -139,5 +327,9 @@ a { text-decoration: none; }
 }
 
 @media (max-width: 600px) {
-    .stats-row { grid-template-columns: 1fr; }
+    .container { width: 92%; margin-top: 24px; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+    .todo-grid { grid-template-columns: 1fr; }
+    .recent-row { flex-direction: column; }
+    .recent-side { text-align: left; }
 }

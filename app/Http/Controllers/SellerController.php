@@ -47,126 +47,38 @@ class SellerController extends Controller
             $user['id']
         )->where('is_archived', true)->latest()->get();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ALL ORDERS
-        |--------------------------------------------------------------------------
-        */
-
-        $allOrders = session()->get('orders', []);
-
-        $sellerOrders = [];
-
-        /*
-        |--------------------------------------------------------------------------
-        | FIND ORDERS THAT CONTAIN THIS SELLER'S PRODUCTS
-        |--------------------------------------------------------------------------
-        */
-
-        foreach ($allOrders as $order) {
-
-            $sellerItems = [];
-
-            foreach (($order['items'] ?? []) as $item) {
-
-                if (
-                    ($item['seller_id'] ?? null) ===
-                    ($user['id'] ?? null)
-                ) {
-
-                    $sellerItems[] = $item;
-                }
-            }
-
-            /*
-            | If this order contains the seller's products,
-            | include it in the seller's orders.
-            */
-
-            if (!empty($sellerItems)) {
-
-                $sellerOrder = $order;
-
-                // Only show this seller's items
-                $sellerOrder['items'] = $sellerItems;
-
-                // Calculate seller's portion of the order
-                $sellerOrder['seller_total'] =
-                    array_sum(
-                        array_column(
-                            $sellerItems,
-                            'subtotal'
-                        )
-                    );
-
-                $sellerOrders[] = $sellerOrder;
-            }
-        }
-
-
         /*
         |--------------------------------------------------------------------------
         | SELLER STATISTICS
         |--------------------------------------------------------------------------
+        |
+        | Straight from the database (orders that contain this seller's items).
+        | Sales count only this seller's own items on delivered orders, net of
+        | the vouchers the seller funds.
+        |
         */
 
-        // Total Products
         $totalProducts = count($products);
 
-        // Total Orders
-        $totalOrders = count($sellerOrders);
+        $sellerOrderStatuses = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.seller_id', $user['id'])
+            ->select('orders.id', 'orders.status')
+            ->distinct()
+            ->get();
 
-        // Pending Orders
-        $pendingOrders = 0;
+        $totalOrders = $sellerOrderStatuses->count();
 
-        // Total Sales
-        $totalSales = 0;
+        $pendingOrders = $sellerOrderStatuses
+            ->whereIn('status', ['Pending', 'Processing'])
+            ->count();
 
+        $totalSales = (float) DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.seller_id', $user['id'])
+            ->where('orders.status', 'Delivered')
+            ->sum(DB::raw('order_items.price * order_items.quantity'));
 
-        foreach ($sellerOrders as $order) {
-
-            $status =
-                $order['status'] ?? 'Pending';
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | PENDING / PROCESSING
-            |--------------------------------------------------------------------------
-            */
-
-            if (
-                $status === 'Pending' ||
-                $status === 'Processing'
-            ) {
-
-                $pendingOrders++;
-            }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | DELIVERED SALES ONLY
-            |--------------------------------------------------------------------------
-            |
-            | IMPORTANT:
-            | Use seller_total instead of order['total']
-            | because order['total'] may include products
-            | belonging to other sellers.
-            |
-            */
-
-            if ($status === 'Delivered') {
-
-                $totalSales +=
-                    (float) (
-                        $order['seller_total'] ?? 0
-                    );
-            }
-        }
-
-        // The seller funds their own vouchers, so those discounts aren't sales.
         $totalSales = max(0, $totalSales - $this->voucherDiscounts((int) $user['id']));
 
 
@@ -210,7 +122,6 @@ class SellerController extends Controller
                 'user',
                 'products',
                 'archivedProducts',
-                'sellerOrders',
                 'totalProducts',
                 'totalOrders',
                 'pendingOrders',
@@ -408,6 +319,8 @@ class SellerController extends Controller
 
         $dbUser->password = Hash::make($new);
         $dbUser->save();
+
+        \App\Support\LoginGate::passwordChanged($dbUser, true);
 
         return back()->with('success', 'Password changed successfully.');
     }
@@ -681,6 +594,19 @@ class SellerController extends Controller
             'image' => 'nullable|image|max:4096',
         ]);
 
+        // The same option twice ("Color: Red" + "Color: Red") would show up
+        // twice in the buyer's picker with separate stock.
+        $duplicate = ProductVariation::where('product_id', $product->id)
+            ->where('variation_type', ProductVariation::normalizeType((string) request('variation_type')))
+            ->where('variation_value', ProductVariation::normalizeValue((string) request('variation_value')))
+            ->exists();
+
+        if ($duplicate) {
+            return back()
+                ->withInput()
+                ->with('error', 'This product already has that option. Edit its stock instead of adding it again.');
+        }
+
         $imagePath = null;
 
         if (request()->hasFile('image')) {
@@ -904,6 +830,7 @@ class SellerController extends Controller
 
         // Optional variations submitted inline on this form
         $submittedVariations = request('variations', []);
+        $seenOptions = [];
 
         foreach ($submittedVariations as $variation) {
 
@@ -914,12 +841,21 @@ class SellerController extends Controller
                 continue;
             }
 
+            // The same option typed twice on the form is only saved once.
+            $optionKey = strtolower(ProductVariation::normalizeType($type) . '|' . ProductVariation::normalizeValue($value));
+
+            if (isset($seenOptions[$optionKey])) {
+                continue;
+            }
+
+            $seenOptions[$optionKey] = true;
+
             ProductVariation::create([
                 'product_id' => $product->id,
                 'variation_type' => $type,
                 'variation_value' => $value,
                 'price_adjustment' => (float) ($variation['price_adjustment'] ?? 0),
-                'stock' => (int) ($variation['stock'] ?? 0),
+                'stock' => max(0, (int) ($variation['stock'] ?? 0)),
             ]);
         }
 
@@ -931,6 +867,17 @@ class SellerController extends Controller
             );
     }
 
+    // Tabs on the seller's Orders page => the order statuses each one shows.
+    public const ORDER_TABS = [
+        'all' => ['label' => 'All', 'statuses' => null],
+        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
+        'to-ship' => ['label' => 'To Ship', 'statuses' => ['Ready for Pickup', 'Assigned']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
+        'completed' => ['label' => 'Completed', 'statuses' => ['Delivered']],
+        'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
+        'returns' => ['label' => 'Return Requests', 'statuses' => null],
+    ];
+
     public function orders()
     {
         $user = requireUserRole('seller');
@@ -939,72 +886,161 @@ class SellerController extends Controller
             return $user;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET ORDERS THAT CONTAIN THIS SELLER'S PRODUCTS
-        |--------------------------------------------------------------------------
-        */
+        $sellerId = (int) $user['id'];
 
-        $orders = DB::table('orders')
-            ->join(
-                'order_items',
-                'orders.id',
-                '=',
-                'order_items.order_id'
-            )
-            ->where('order_items.seller_id', $user['id'])
-            ->select(
-                'orders.id',
-                'orders.buyer_id',
-                'orders.total_amount',
-                'orders.status',
-                'orders.buyer_received_at',
-                'orders.restocked_at',
-                'orders.shipping_name',
-                'orders.shipping_phone',
-                'orders.shipping_address',
-                'orders.payment_method',
-                'orders.created_at'
-            )
-            ->distinct()
-            ->orderByDesc('orders.created_at')
-            ->get();
+        $tab = array_key_exists((string) request('tab'), self::ORDER_TABS) ? request('tab') : 'all';
+        $search = trim((string) request('q', ''));
 
-        /*
-        |--------------------------------------------------------------------------
-        | ADD SELLER ITEMS TO EACH ORDER
-        |--------------------------------------------------------------------------
-        */
+        // Orders that contain at least one of this seller's items.
+        $mine = function () use ($sellerId) {
+            return DB::table('orders')->whereExists(function ($q) use ($sellerId) {
+                $q->select(DB::raw(1))
+                    ->from('order_items')
+                    ->whereColumn('order_items.order_id', 'orders.id')
+                    ->where('order_items.seller_id', $sellerId);
+            });
+        };
 
-        foreach ($orders as $order) {
+        // Order #, buyer name/phone, or one of the product names.
+        $searched = function () use ($mine, $search, $sellerId) {
+            return $mine()->when($search !== '', function ($query) use ($search, $sellerId) {
+                $number = ltrim($search, '#');
+                $like = '%' . $search . '%';
 
-            $order->items = DB::table('order_items')
-                ->where('order_id', $order->id)
-                ->where('seller_id', $user['id'])
+                $query->where(function ($q) use ($number, $like, $sellerId) {
+                    if (ctype_digit($number)) {
+                        $q->orWhere('orders.id', (int) $number);
+                    }
+
+                    $q->orWhere('orders.shipping_name', 'like', $like)
+                        ->orWhere('orders.shipping_phone', 'like', $like)
+                        ->orWhereExists(function ($items) use ($like, $sellerId) {
+                            $items->select(DB::raw(1))
+                                ->from('order_items')
+                                ->whereColumn('order_items.order_id', 'orders.id')
+                                ->where('order_items.seller_id', $sellerId)
+                                ->where('order_items.product_name', 'like', $like);
+                        });
+                });
+            });
+        };
+
+        $statusCounts = $searched()
+            ->select('orders.status', DB::raw('COUNT(*) as total'))
+            ->groupBy('orders.status')
+            ->pluck('total', 'status');
+
+        $pendingReturns = DB::table('return_refund_requests')
+            ->where('seller_id', $sellerId)
+            ->where('status', 'pending')
+            ->count();
+
+        $tabCounts = [];
+
+        foreach (self::ORDER_TABS as $key => $definition) {
+            $tabCounts[$key] = match (true) {
+                $key === 'returns' => $pendingReturns,
+                $definition['statuses'] === null => (int) $statusCounts->sum(),
+                default => (int) collect($definition['statuses'])->sum(fn ($s) => $statusCounts[$s] ?? 0),
+            };
+        }
+
+        // Summary cards: the seller's whole shop, not just this search/tab.
+        $allStatuses = $mine()
+            ->select('orders.status', DB::raw('COUNT(*) as total'))
+            ->groupBy('orders.status')
+            ->pluck('total', 'status');
+
+        $deliveredSales = (float) DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.seller_id', $sellerId)
+            ->where('orders.status', 'Delivered')
+            ->sum(DB::raw('order_items.price * order_items.quantity'));
+
+        $summary = [
+            'total' => (int) $allStatuses->sum(),
+            'to_process' => (int) (($allStatuses['Pending'] ?? 0) + ($allStatuses['Processing'] ?? 0)),
+            'sales' => max(0, $deliveredSales - $this->voucherDiscounts($sellerId)),
+        ];
+
+        $orders = null;
+        $returnRequests = collect();
+
+        if ($tab === 'returns') {
+
+            $returnRequests = DB::table('return_refund_requests')
+                ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
+                ->join('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+                ->where('return_refund_requests.seller_id', $sellerId)
+                ->when($search !== '', function ($query) use ($search) {
+                    $number = ltrim($search, '#');
+                    $like = '%' . $search . '%';
+
+                    $query->where(function ($q) use ($number, $like) {
+                        if (ctype_digit($number)) {
+                            $q->orWhere('return_refund_requests.order_id', (int) $number);
+                        }
+
+                        $q->orWhere('orders.shipping_name', 'like', $like)
+                            ->orWhere('order_items.product_name', 'like', $like);
+                    });
+                })
+                ->select(
+                    'return_refund_requests.*',
+                    'orders.shipping_name',
+                    'orders.shipping_phone',
+                    'order_items.product_name'
+                )
+                // Requests still waiting on the seller first.
+                ->orderByRaw("CASE WHEN return_refund_requests.status = 'pending' THEN 0 ELSE 1 END")
+                ->orderByDesc('return_refund_requests.created_at')
                 ->get();
 
-            $order->seller_total = $order->items->sum(function ($item) {
-                return $item->price * $item->quantity;
+        } else {
+
+            $orders = $searched()
+                ->when(self::ORDER_TABS[$tab]['statuses'], fn ($q, $statuses) => $q->whereIn('orders.status', $statuses))
+                ->select(
+                    'orders.id',
+                    'orders.buyer_id',
+                    'orders.total_amount',
+                    'orders.status',
+                    'orders.buyer_received_at',
+                    'orders.restocked_at',
+                    'orders.shipping_name',
+                    'orders.shipping_phone',
+                    'orders.shipping_address',
+                    'orders.payment_method',
+                    'orders.created_at'
+                )
+                ->orderByDesc('orders.created_at')
+                ->orderByDesc('orders.id')
+                ->paginate(15)
+                ->withQueryString();
+
+            // This seller's lines for the whole page in one query.
+            $itemsByOrder = DB::table('order_items')
+                ->whereIn('order_id', $orders->pluck('id'))
+                ->where('seller_id', $sellerId)
+                ->get()
+                ->groupBy('order_id');
+
+            $orders->getCollection()->each(function ($order) use ($itemsByOrder) {
+                $order->items = $itemsByOrder->get($order->id, collect());
+                $order->seller_total = $order->items->sum(fn ($item) => $item->price * $item->quantity);
             });
         }
 
-        $returnRequests = DB::table('return_refund_requests')
-            ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
-            ->join('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
-            ->where('return_refund_requests.seller_id', $user['id'])
-            ->select(
-                'return_refund_requests.*',
-                'orders.shipping_name',
-                'orders.shipping_phone',
-                'order_items.product_name'
-            )
-            ->orderByDesc('return_refund_requests.created_at')
-            ->get();
-
-        return view(
-            'pages.seller.orders',
-            compact('user', 'orders', 'returnRequests')
-        );
+        return view('pages.seller.orders', [
+            'user' => $user,
+            'orders' => $orders,
+            'returnRequests' => $returnRequests,
+            'tabs' => self::ORDER_TABS,
+            'tab' => $tab,
+            'tabCounts' => $tabCounts,
+            'search' => $search,
+            'summary' => $summary,
+        ]);
     }
 
     public function orderDetails($id)
@@ -1221,6 +1257,19 @@ class SellerController extends Controller
         // ENFORCE SELLER STATUS FLOW
         // ==============================
 
+        // The seller only owns an order while it's still with them. Anything
+        // past that (rider, Sorting Center, delivered, cancelled, returned)
+        // belongs to its own flow and must not be cancelled or rewound here.
+        if (!in_array($order->status, ['Pending', 'Processing'], true)) {
+
+            return back()->with(
+                'error',
+                $order->status === 'Ready for Pickup'
+                    ? 'This order is already Ready for Pickup and can no longer be updated by the seller.'
+                    : 'This order is already ' . $order->status . ' and can no longer be updated by the seller.'
+            );
+        }
+
         // Pending → Processing or Cancelled
         if (
             $order->status === 'Pending' &&
@@ -1252,24 +1301,6 @@ class SellerController extends Controller
             if (empty($reason)) {
                 return back()->with('error', 'Please provide a reason for cancelling this order.');
             }
-        }
-
-        // Once Ready for Pickup, seller can no longer update it
-        if ($order->status === 'Ready for Pickup') {
-
-            return back()->with(
-                'error',
-                'This order is already Ready for Pickup and can no longer be updated by the seller.'
-            );
-        }
-
-        // Delivered orders cannot be updated by seller
-        if ($order->status === 'Delivered') {
-
-            return back()->with(
-                'error',
-                'Delivered orders cannot be updated by the seller.'
-            );
         }
 
         // ==============================
@@ -1391,9 +1422,20 @@ class SellerController extends Controller
             return back()->with('error', 'No rider has picked up this order yet.');
         }
 
-        DB::table('orders')->where('id', $id)->update([
-            'seller_confirmed_pickup_at' => now(),
-        ]);
+        // Only while the hand-over is happening, and only once — the time
+        // recorded is when the parcel actually left the seller.
+        if (!in_array($order->status, ['Assigned', 'Picked Up'], true)) {
+            return back()->with('error', 'This order is not waiting for a rider pickup.');
+        }
+
+        if (!empty($order->seller_confirmed_pickup_at)) {
+            return back()->with('error', 'You already confirmed this pickup.');
+        }
+
+        DB::table('orders')
+            ->where('id', $id)
+            ->whereNull('seller_confirmed_pickup_at')
+            ->update(['seller_confirmed_pickup_at' => now()]);
 
         return back()->with('success', 'Rider pickup confirmed.');
     }
@@ -1525,6 +1567,19 @@ class SellerController extends Controller
                 );
         }
 
+        // A cheaper option (negative extra price) must still cost more than ₱0
+        // at the new base price.
+        $lowestAdjustment = (float) $product->variations()->min('price_adjustment');
+
+        if ($product->variations()->exists() && $price + $lowestAdjustment <= 0) {
+            return back()
+                ->withInput()
+                ->with(
+                    'error',
+                    'At this price one of your options would cost ₱0 or less. Raise the price or change that option\'s extra price first.'
+                );
+        }
+
         /*
         |--------------------------------------------------------------------------
         | Keep existing image
@@ -1532,6 +1587,7 @@ class SellerController extends Controller
         */
 
         $imagePath = $product->image;
+        $oldImage = $product->image;
 
         /*
         |--------------------------------------------------------------------------
@@ -1585,6 +1641,11 @@ class SellerController extends Controller
             'description' => $description,
 
         ]);
+
+        // The replaced photo is no longer used anywhere.
+        if ($oldImage && $oldImage !== $imagePath && !str_starts_with($oldImage, 'http')) {
+            Storage::disk('public')->delete($oldImage);
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -2182,11 +2243,13 @@ class SellerController extends Controller
             $user['id']
         )
         ->orderByDesc('created_at')
-        ->get();
+        ->paginate(20);
+
+        $unreadCount = Notification::where('user_id', $user['id'])->whereNull('read_at')->count();
 
         return view(
             'pages.seller.notifications',
-            compact('user', 'notifications')
+            compact('user', 'notifications', 'unreadCount')
         );
     }
 

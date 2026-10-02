@@ -112,14 +112,6 @@
             color: white;
         }
 
-        .tab-panel {
-            display: none;
-        }
-
-        .tab-panel.active {
-            display: block;
-        }
-
         /* APPLICATION CARD */
 
         .app-card {
@@ -324,6 +316,110 @@
                 width: 140px;
             }
         }
+
+        /* TYPE TABS, STATUS CHIPS, SEARCH */
+
+        a.tab-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            text-decoration: none;
+        }
+
+        .tab-btn .pending-dot {
+            min-width: 20px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: #e8420f;
+            color: #fff;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        .tab-btn.active .pending-dot {
+            background: #fff;
+            color: #e8420f;
+        }
+
+        .filter-row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+            margin-bottom: 18px;
+        }
+
+        .status-chips {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .status-chip {
+            padding: 7px 13px;
+            border-radius: 999px;
+            border: 1px solid #f0ddd6;
+            background: #fff;
+            color: #6a4e46;
+            font-size: 12px;
+            font-weight: 700;
+            text-decoration: none;
+        }
+
+        .status-chip.active {
+            background: #fff0eb;
+            border-color: #e8420f;
+            color: #c43408;
+        }
+
+        /* Pending with something waiting: solid, so it can't be missed. */
+        .status-chip.has-work {
+            background: #e8420f;
+            border-color: #e8420f;
+            color: #fff;
+        }
+
+        .app-search {
+            flex: 1;
+            min-width: 220px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .app-search input {
+            flex: 1;
+            padding: 10px 13px;
+            border: 1px solid #f0ddd6;
+            border-radius: 10px;
+            font-size: 13px;
+            font-family: inherit;
+        }
+
+        .app-search button,
+        .app-search a {
+            padding: 10px 14px;
+            border: none;
+            border-radius: 10px;
+            background: #e8420f;
+            color: #fff;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: inherit;
+            cursor: pointer;
+            text-decoration: none;
+        }
+
+        .app-search a {
+            background: #f7f0ee;
+            color: #553b33;
+        }
+
+        @media (max-width: 640px) {
+            .tabs { flex-wrap: wrap; }
+            .app-search { min-width: 100%; }
+            .approve-form, .reject-form { width: 100%; flex-wrap: wrap; }
+            .approve-form select, .reject-form input[type="text"] { flex: 1; min-width: 0; width: auto; }
+        }
     </style>
 </head>
 
@@ -344,321 +440,200 @@
         </div>
 
         @if (session('success'))
-            <div class="success-box"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg> {{ session('success') }}</div>
+            <div class="success-box"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
         @endif
 
         @if (session('error'))
-            <div class="error-box"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> {{ session('error') }}</div>
+            <div class="error-box"><i class="bi bi-x-circle-fill"></i> {{ session('error') }}</div>
         @endif
 
-        <div class="tabs">
-            <button type="button" class="tab-btn active" data-tab="sellers">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg>
-                Sellers ({{ count($sellerApplications) }})
-            </button>
-            <button type="button" class="tab-btn" data-tab="buyers">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-                Buyers ({{ count($buyerApplications) }})
-            </button>
-            <button type="button" class="tab-btn" data-tab="logistics">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
-                Logistics ({{ count($logisticsApplications) }})
-            </button>
+        @php
+            $typeIcons = ['seller' => 'bi-shop', 'buyer' => 'bi-bag', 'logistics' => 'bi-box-seam'];
+            $typeNouns = ['seller' => 'seller', 'buyer' => 'buyer', 'logistics' => 'logistics'];
+            $docLabels = [
+                'seller' => ['national_id' => 'Valid Government ID', 'business_permit' => 'Proof of Business'],
+                'buyer' => ['id_photo' => 'Valid ID'],
+                'logistics' => ['id_photo' => 'Valid ID', 'business_permit' => 'Business/DTI Permit'],
+            ];
+        @endphp
+
+        {{-- TYPE TABS (badge = waiting for review) --}}
+        <div class="tabs" id="liveTabs">
+            @foreach ($types as $key => $label)
+                <a href="{{ route('admin.applications', ['type' => $key]) }}" class="tab-btn {{ $type === $key ? 'active' : '' }}">
+                    <i class="bi {{ $typeIcons[$key] }}"></i> {{ $label }}
+                    @if ($pendingCounts[$key] > 0)
+                        <span class="pending-dot" title="Waiting for review">{{ $pendingCounts[$key] }}</span>
+                    @endif
+                </a>
+            @endforeach
         </div>
 
-        <!-- SELLERS -->
-        <div class="tab-panel active" id="tab-sellers">
+        {{-- STATUS + SEARCH --}}
+        <div class="filter-row">
+            <div class="status-chips" id="liveChips">
+                @foreach ($statuses as $key => $definition)
+                    @php
+                        $chipCount = $definition['status'] === null
+                            ? $statusCounts->sum()
+                            : ($statusCounts[$definition['status']] ?? 0);
+                    @endphp
+                    <a
+                        href="{{ route('admin.applications', array_filter(['type' => $type, 'status' => $key, 'q' => $search])) }}"
+                        class="status-chip {{ $statusKey === $key ? 'active' : '' }} {{ $key === 'pending' && $chipCount > 0 ? 'has-work' : '' }}"
+                    >
+                        {{ $definition['label'] }} ({{ $chipCount }})
+                    </a>
+                @endforeach
+            </div>
 
-            @forelse ($sellerApplications as $app)
+            <form method="GET" action="{{ route('admin.applications') }}" class="app-search" data-live-search data-live-target="#liveTabs, #liveChips, #liveClear, #liveResults">
+                <input type="hidden" name="type" value="{{ $type }}">
+                <input type="hidden" name="status" value="{{ $statusKey }}">
+                <input type="search" name="q" value="{{ $search }}" placeholder="Search name, email, phone{{ $type !== 'buyer' ? ' or business' : '' }}" aria-label="Search applications">
+                <button type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+                <span id="liveClear" style="display:contents;">
+                @if ($search !== '')
+                    <a href="{{ route('admin.applications', ['type' => $type, 'status' => $statusKey]) }}" title="Clear search"><i class="bi bi-x-lg"></i></a>
+                @endif
+                </span>
+            </form>
+        </div>
 
-                @php
-                    $statusClass = 'status-' . strtolower(str_replace(' ', '-', $app->status));
-                @endphp
+        <div id="liveResults">
 
-                <div class="app-card">
+        @forelse ($applications as $app)
 
-                    <div class="app-card-top">
-                        <div>
-                            <div class="app-name">{{ $app->full_name }}</div>
-                            <div class="app-email">{{ $app->user_email }}</div>
-                        </div>
-                        <span class="status-badge {{ $statusClass }}">{{ $app->status }}</span>
+            @php
+                $statusClass = 'status-' . strtolower(str_replace(' ', '-', $app->status));
+            @endphp
+
+            <div class="app-card">
+
+                <div class="app-card-top">
+                    <div>
+                        <div class="app-name">{{ $app->full_name }}</div>
+                        <div class="app-email">{{ $app->user_email }}</div>
                     </div>
+                    <span class="status-badge {{ $statusClass }}">{{ $app->status }}</span>
+                </div>
 
-                    <div class="app-details">
-                        @if (!empty($app->business_name))
-                            <div>
-                                <strong>Business Name</strong>
-                                {{ $app->business_name }}
-                            </div>
-                        @endif
+                <div class="app-details">
+                    @if (!empty($app->business_name))
                         <div>
-                            <strong>Phone</strong>
-                            {{ $app->phone }}
-                        </div>
-                        <div>
-                            <strong>Address</strong>
-                            {{ $app->address }}
-                        </div>
-                        <div>
-                            <strong>Applied</strong>
-                            {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
-                        </div>
-                    </div>
-
-                    <div class="documents">
-                        @if ($app->national_id)
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => 'seller', 'id' => $app->id, 'field' => 'national_id']) }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                Valid Government ID
-                            </a>
-                        @endif
-                        @if ($app->business_permit)
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => 'seller', 'id' => $app->id, 'field' => 'business_permit']) }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Proof of Business
-                            </a>
-                        @endif
-                    </div>
-
-                    @if ($app->status === 'Rejected' && $app->admin_remarks)
-                        <div class="remarks-note">
-                            Rejection reason: {{ $app->admin_remarks }}
+                            <strong>Business Name</strong>
+                            {{ $app->business_name }}
                         </div>
                     @endif
+                    @if ($type === 'seller' && !empty($app->business_category))
+                        <div>
+                            <strong>Category</strong>
+                            {{ $categories[$app->business_category] ?? $app->business_category }}
+                        </div>
+                    @endif
+                    <div>
+                        <strong>Phone</strong>
+                        {{ $app->phone }}
+                    </div>
+                    <div>
+                        <strong>Address</strong>
+                        {{ $app->address }}
+                    </div>
+                    <div>
+                        <strong>Applied</strong>
+                        {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
+                        <span style="color:#a88d85;">({{ \Illuminate\Support\Carbon::parse($app->created_at)->diffForHumans() }})</span>
+                    </div>
+                    @if ($app->reviewed_at)
+                        <div>
+                            <strong>Reviewed</strong>
+                            {{ \Illuminate\Support\Carbon::parse($app->reviewed_at)->format('M d, Y') }}
+                        </div>
+                    @endif
+                </div>
 
-                    @if ($app->status === 'Pending Verification')
-                        <div class="app-actions">
+                <div class="documents">
+                    @foreach ($docLabels[$type] as $field => $label)
+                        @if (!empty($app->$field))
+                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}">
+                                <i class="bi bi-file-earmark-text"></i> {{ $label }}
+                            </a>
+                        @else
+                            <span class="doc-link" style="opacity:.55;"><i class="bi bi-file-earmark-x"></i> No {{ $label }}</span>
+                        @endif
+                    @endforeach
+                </div>
 
-                            <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => 'seller', 'id' => $app->id]) }}">
-                                @csrf
-                                @php
-                                    $categoryOptions = [
-                                        'electronics' => 'Electronics',
-                                        'womens-fashion' => "Women's Fashion",
-                                        'mens-fashion' => "Men's Fashion",
-                                        'kids-baby' => 'Kids & Baby',
-                                        'home-living' => 'Home & Living',
-                                        'sports-outdoors' => 'Sports & Outdoors',
-                                        'beauty-personal-care' => 'Beauty & Personal Care',
-                                        'food-beverages' => 'Food & Beverages',
-                                        'automotive' => 'Automotive',
-                                        'office-school' => 'Office & School',
-                                        'pet-supplies' => 'Pet Supplies',
-                                        'toys-games-hobbies' => 'Toys, Games & Hobbies',
-                                        'jewelry-accessories' => 'Jewelry & Accessories',
-                                        'shoes' => 'Shoes',
-                                        'tools-home-improvement' => 'Tools & Home Improvement',
-                                        'garden-outdoor' => 'Garden & Outdoor',
-                                    ];
-                                @endphp
+                @if ($app->status === 'Rejected' && $app->admin_remarks)
+                    <div class="remarks-note">
+                        Rejection reason: {{ $app->admin_remarks }}
+                    </div>
+                @endif
+
+                @if ($app->status === 'Pending Verification')
+                    <div class="app-actions">
+
+                        <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => $type, 'id' => $app->id]) }}">
+                            @csrf
+                            @if ($type === 'seller')
                                 <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid #f0ddd6; border-radius:8px; font-size:11px; font-family:inherit;">
                                     <option value="">
                                         {{ empty($app->business_category) ? 'Registered Category…' : 'Change category…' }}
                                     </option>
-                                    @foreach ($categoryOptions as $value => $label)
+                                    @foreach ($categories as $value => $label)
                                         <option value="{{ $value }}" {{ $app->business_category === $value ? 'selected' : '' }}>
-                                            {{ $label }}
-                                            {{ $app->business_category === $value ? ' (declared by seller)' : '' }}
+                                            {{ $label }}{{ $app->business_category === $value ? ' (declared by seller)' : '' }}
                                         </option>
                                     @endforeach
                                 </select>
-                                <button type="submit" class="approve-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg> Approve</button>
-                            </form>
+                            @endif
+                            <button type="submit" class="approve-btn"><i class="bi bi-check-circle"></i> Approve</button>
+                        </form>
 
-                            <form class="reject-form" method="POST" action="{{ route('admin.applications.reject', ['type' => 'seller', 'id' => $app->id]) }}">
-                                @csrf
-                                <input type="text" name="admin_remarks" placeholder="Reason (optional)">
-                                <button type="submit" class="reject-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Reject</button>
-                            </form>
+                        <form
+                            class="reject-form"
+                            method="POST"
+                            action="{{ route('admin.applications.reject', ['type' => $type, 'id' => $app->id]) }}"
+                            data-confirm="Reject the application of {{ $app->full_name }}? They will be notified by email."
+                            data-confirm-ok="Reject"
+                            data-confirm-danger
+                        >
+                            @csrf
+                            <input type="text" name="admin_remarks" placeholder="Reason (shown to the applicant)">
+                            <button type="submit" class="reject-btn"><i class="bi bi-x-circle"></i> Reject</button>
+                        </form>
 
-                        </div>
+                    </div>
+                @endif
+
+            </div>
+
+        @empty
+
+            <div class="empty">
+                <div class="empty-icon"><i class="bi {{ $typeIcons[$type] }}" style="font-size:40px; color:#e5c8bf;"></i></div>
+                <h3>
+                    No {{ $statusKey === 'all' ? '' : strtolower($statuses[$statusKey]['label']) }} {{ $typeNouns[$type] }} applications
+                </h3>
+                <p>
+                    @if ($search !== '')
+                        Nothing matches "{{ $search }}".
+                    @elseif ($statusKey === 'pending')
+                        All caught up — nothing is waiting for review.
+                    @else
+                        Registrations will appear here once submitted.
                     @endif
+                </p>
+            </div>
 
-                </div>
+        @endforelse
 
-            @empty
-
-                <div class="empty">
-                    <div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e5c8bf" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg></div>
-                    <h3>No Seller Applications</h3>
-                    <p>Seller registrations will appear here for verification.</p>
-                </div>
-
-            @endforelse
-
-        </div>
-
-        <!-- BUYERS -->
-        <div class="tab-panel" id="tab-buyers">
-
-            @forelse ($buyerApplications as $app)
-
-                @php
-                    $statusClass = 'status-' . strtolower(str_replace(' ', '-', $app->status));
-                @endphp
-
-                <div class="app-card">
-
-                    <div class="app-card-top">
-                        <div>
-                            <div class="app-name">{{ $app->full_name }}</div>
-                            <div class="app-email">{{ $app->user_email }}</div>
-                        </div>
-                        <span class="status-badge {{ $statusClass }}">{{ $app->status }}</span>
-                    </div>
-
-                    <div class="app-details">
-                        <div>
-                            <strong>Phone</strong>
-                            {{ $app->phone }}
-                        </div>
-                        <div>
-                            <strong>Address</strong>
-                            {{ $app->address }}
-                        </div>
-                        <div>
-                            <strong>Applied</strong>
-                            {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
-                        </div>
-                    </div>
-
-                    <div class="documents">
-                        @if ($app->id_photo)
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => 'buyer', 'id' => $app->id, 'field' => 'id_photo']) }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Valid ID
-                            </a>
-                        @endif
-                    </div>
-
-                    @if ($app->status === 'Rejected' && $app->admin_remarks)
-                        <div class="remarks-note">
-                            Rejection reason: {{ $app->admin_remarks }}
-                        </div>
-                    @endif
-
-                    @if ($app->status === 'Pending Verification')
-                        <div class="app-actions">
-
-                            <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => 'buyer', 'id' => $app->id]) }}">
-                                @csrf
-                                <button type="submit" class="approve-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg> Approve</button>
-                            </form>
-
-                            <form class="reject-form" method="POST" action="{{ route('admin.applications.reject', ['type' => 'buyer', 'id' => $app->id]) }}">
-                                @csrf
-                                <input type="text" name="admin_remarks" placeholder="Reason (optional)">
-                                <button type="submit" class="reject-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Reject</button>
-                            </form>
-
-                        </div>
-                    @endif
-
-                </div>
-
-            @empty
-
-                <div class="empty">
-                    <div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e5c8bf" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
-                    <h3>No Buyer Applications</h3>
-                    <p>Buyer registrations will appear here for verification.</p>
-                </div>
-
-            @endforelse
-
-        </div>
-
-        <!-- LOGISTICS -->
-        <div class="tab-panel" id="tab-logistics">
-
-            @forelse ($logisticsApplications as $app)
-
-                @php
-                    $statusClass = 'status-' . strtolower(str_replace(' ', '-', $app->status));
-                @endphp
-
-                <div class="app-card">
-
-                    <div class="app-card-top">
-                        <div>
-                            <div class="app-name">{{ $app->full_name }}</div>
-                            <div class="app-email">{{ $app->user_email }}</div>
-                        </div>
-                        <span class="status-badge {{ $statusClass }}">{{ $app->status }}</span>
-                    </div>
-
-                    <div class="app-details">
-                        @if (!empty($app->business_name))
-                            <div>
-                                <strong>Business Name</strong>
-                                {{ $app->business_name }}
-                            </div>
-                        @endif
-                        <div>
-                            <strong>Phone</strong>
-                            {{ $app->phone }}
-                        </div>
-                        <div>
-                            <strong>Address</strong>
-                            {{ $app->address }}
-                        </div>
-                        <div>
-                            <strong>Applied</strong>
-                            {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
-                        </div>
-                    </div>
-
-                    <div class="documents">
-                        @if ($app->id_photo)
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => 'logistics', 'id' => $app->id, 'field' => 'id_photo']) }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Valid ID
-                            </a>
-                        @endif
-                        @if ($app->business_permit)
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => 'logistics', 'id' => $app->id, 'field' => 'business_permit']) }}">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Business/DTI Permit
-                            </a>
-                        @endif
-                    </div>
-
-                    @if ($app->status === 'Rejected' && $app->admin_remarks)
-                        <div class="remarks-note">
-                            Rejection reason: {{ $app->admin_remarks }}
-                        </div>
-                    @endif
-
-                    @if ($app->status === 'Pending Verification')
-                        <div class="app-actions">
-
-                            <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => 'logistics', 'id' => $app->id]) }}">
-                                @csrf
-                                <button type="submit" class="approve-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><polyline points="16 9 11 14 8 11"/></svg> Approve</button>
-                            </form>
-
-                            <form class="reject-form" method="POST" action="{{ route('admin.applications.reject', ['type' => 'logistics', 'id' => $app->id]) }}">
-                                @csrf
-                                <input type="text" name="admin_remarks" placeholder="Reason (optional)">
-                                <button type="submit" class="reject-btn"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg> Reject</button>
-                            </form>
-
-                        </div>
-                    @endif
-
-                </div>
-
-            @empty
-
-                <div class="empty">
-                    <div class="empty-icon"><svg xmlns="http://www.w3.org/2000/svg" width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="#e5c8bf" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg></div>
-                    <h3>No Logistics Applications</h3>
-                    <p>Logistics/sorting center registrations will appear here for verification.</p>
-                </div>
-
-            @endforelse
+        @include('partials.simple-pager', ['paginator' => $applications])
 
         </div>
 
         <div class="footer">
-            © 2026 BoomBuy · Admin Verification
+            © {{ date('Y') }} BoomBuy · Admin Verification
         </div>
 
     </div>
@@ -667,22 +642,7 @@
 
 </div>
 
-    <script>
-        document.querySelectorAll('.tab-btn').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                document.querySelectorAll('.tab-btn').forEach(function (b) {
-                    b.classList.remove('active');
-                });
-                document.querySelectorAll('.tab-panel').forEach(function (p) {
-                    p.classList.remove('active');
-                });
-
-                btn.classList.add('active');
-                document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
-            });
-        });
-    </script>
-
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

@@ -330,3 +330,95 @@ a { text-decoration: none; }
     .app-card-top { flex-direction: column; }
     .reject-form input[type="text"] { width: 140px; }
 }
+
+/* Status chips + search */
+
+.rider-filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.status-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.status-chip {
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid #f0ddd6;
+    background: #fff;
+    color: #6a4e46;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.status-chip.has-work {
+    border-color: #f6b9a5;
+    color: #c43408;
+}
+
+.status-chip.active {
+    background: #fff0eb;
+    border-color: var(--accent, #e8420f);
+    color: #c43408;
+}
+
+.rider-search {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    gap: 8px;
+}
+
+.rider-search input {
+    flex: 1;
+    padding: 10px 13px;
+    border: 1px solid #f0ddd6;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.rider-search button,
+.rider-search a {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent, #e8420f);
+    color: #fff;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.rider-search a {
+    background: #f7f0ee;
+    color: #553b33;
+}
+
+@media (max-width: 640px) {
+    .rider-search { min-width: 100%; }
+}
+
+@media (max-width: 640px) {
+    .app-actions > form { width: 100%; }
+    .assign-form,
+    .reject-form,
+    .approve-form { flex-wrap: wrap; }
+    .assign-form select,
+    .reject-form input[type="text"] { flex: 1; min-width: 0; width: auto; }
+}
+
+/* Same as admin Applications: Pending with something waiting is solid. */
+.status-chip.has-work,
+.status-chip.has-work.active {
+    background: var(--accent, #e8420f);
+    border-color: var(--accent, #e8420f);
+    color: #fff;
+}

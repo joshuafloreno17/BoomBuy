@@ -82,24 +82,9 @@
             @endif
 
 
-            {{-- SUMMARY --}}
+            {{-- SUMMARY (whole shop, not just the current search/tab) --}}
 
-            @if(!$orders->isEmpty())
-
-                @php
-                    $totalOrders = $orders->count();
-
-                    $pendingOrders = $orders->filter(function ($order) {
-                        return in_array(
-                            strtolower($order->status),
-                            ['pending', 'processing']
-                        );
-                    })->count();
-
-                    $totalSales = $orders->sum(function ($order) {
-                        return (float) $order->seller_total;
-                    });
-                @endphp
+            @if($summary['total'] > 0)
 
                 <div class="summary-grid">
 
@@ -109,27 +94,27 @@
                         </div>
 
                         <div class="summary-value">
-                            {{ $totalOrders }}
+                            {{ $summary['total'] }}
                         </div>
                     </div>
 
                     <div class="summary-card orange">
                         <div class="summary-label">
-                            Pending Orders
+                            To Process
                         </div>
 
                         <div class="summary-value">
-                            {{ $pendingOrders }}
+                            {{ $summary['to_process'] }}
                         </div>
                     </div>
 
                     <div class="summary-card green">
                         <div class="summary-label">
-                            Your Sales
+                            Your Sales (delivered)
                         </div>
 
                         <div class="summary-value">
-                            ₱{{ number_format($totalSales, 2) }}
+                            ₱{{ number_format($summary['sales'], 2) }}
                         </div>
                     </div>
 
@@ -137,6 +122,44 @@
 
             @endif
 
+
+            {{-- SEARCH --}}
+
+            <form method="GET" action="{{ route('seller.orders') }}" class="orders-toolbar" data-live-search data-live-target="#liveClear, #liveTabs, #liveResults">
+                <input type="hidden" name="tab" value="{{ $tab }}">
+
+                <div class="orders-search">
+                    <i class="bi bi-search"></i>
+                    <input type="search" name="q" value="{{ $search }}" placeholder="Search order #, buyer name, phone or product" aria-label="Search orders">
+                </div>
+
+                <button type="submit" class="orders-search-btn"><i class="bi bi-search"></i> Search</button>
+
+                <span id="liveClear" style="display:contents;">
+                @if($search !== '')
+                    <a href="{{ route('seller.orders', ['tab' => $tab]) }}" class="orders-search-btn light"><i class="bi bi-x-lg"></i> Clear</a>
+                @endif
+                </span>
+            </form>
+
+
+            {{-- TABS --}}
+
+            <div class="order-tabs" id="liveTabs">
+                @foreach($tabs as $key => $definition)
+                    <a
+                        href="{{ route('seller.orders', array_filter(['tab' => $key, 'q' => $search])) }}"
+                        class="order-tab {{ $tab === $key ? 'active' : '' }} {{ in_array($key, ['to-process', 'returns'], true) && $tabCounts[$key] > 0 ? 'has-work' : '' }}"
+                    >
+                        {{ $definition['label'] }}<span class="count">{{ $tabCounts[$key] }}</span>
+                    </a>
+                @endforeach
+            </div>
+
+
+            <div id="liveResults">
+
+            @if($tab !== 'returns')
 
             {{-- =========================
                  NO ORDERS
@@ -150,10 +173,16 @@
                         <i class="bi bi-cart-fill"></i>
                     </div>
 
-                    <h2>No Orders Yet</h2>
+                    <h2>{{ $search !== '' ? 'No matching orders' : ($summary['total'] > 0 ? 'Nothing here' : 'No Orders Yet') }}</h2>
 
                     <p>
-                        Orders containing your products will appear here.
+                        @if($search !== '')
+                            Nothing matches "{{ $search }}" in this tab.
+                        @elseif($summary['total'] > 0)
+                            There are no orders in this tab right now.
+                        @else
+                            Orders containing your products will appear here.
+                        @endif
                     </p>
 
                 </div>
@@ -292,7 +321,7 @@
                             <div>
 
                                 <div class="total-label">
-                                    Your Sales
+                                    {{ in_array($order->status, ['Cancelled', 'Returned to Seller'], true) ? 'Order Value (not a sale)' : ($order->status === 'Delivered' ? 'Your Sales' : 'Order Value') }}
                                 </div>
 
                                 <div class="total">
@@ -303,16 +332,12 @@
 
                            <div style="display:flex; align-items:center; gap:10px;">
 
-@if(empty($order->buyer_received_at))
-
     <a
         href="{{ route('seller.order.details', ['id' => $order->id]) }}"
         class="view-btn"
     >
         View Order →
     </a>
-
-@endif
 
 @if($order->status === 'Returned to Seller' && empty($order->restocked_at))
 
@@ -333,14 +358,25 @@
 
                 @endforeach
 
+                @include('partials.simple-pager', ['paginator' => $orders])
+
             @endif
 
+            @else
 
             {{-- =========================
-                 RETURN / REFUND REQUESTS
+                 RETURN / REFUND REQUESTS (own tab)
             ========================== --}}
 
-            @if(isset($returnRequests) && !$returnRequests->isEmpty())
+            @if($returnRequests->isEmpty())
+
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-arrow-counterclockwise"></i></div>
+                    <h2>{{ $search !== '' ? 'No matching requests' : 'No Return Requests' }}</h2>
+                    <p>Return and refund requests from buyers will appear here.</p>
+                </div>
+
+            @else
 
                 @php
                     $pendingReturns = $returnRequests->filter(function ($r) {
@@ -464,8 +500,8 @@
                                         Photo Evidence
                                     </div>
 
-                                    <a href="{{ asset('storage/' . ltrim($request->evidence, '/')) }}" target="_blank">
-                                        <img src="{{ asset('storage/' . ltrim($request->evidence, '/')) }}" alt="Return evidence" style="max-width:160px; border-radius:8px; margin-top:6px;">
+                                    <a href="{{ route('return-refund.evidence', $request->id) }}" target="_blank">
+                                        <img src="{{ route('return-refund.evidence', $request->id) }}" alt="Return evidence" style="max-width:160px; border-radius:8px; margin-top:6px;">
                                     </a>
 
                                 </div>
@@ -584,6 +620,10 @@
 
             @endif
 
+            @endif
+
+            </div>{{-- #liveResults --}}
+
         </div>
 
     </main>
@@ -647,6 +687,7 @@
 
 <script src="{{ asset('js/pages/seller-orders.js') }}"></script>
 
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

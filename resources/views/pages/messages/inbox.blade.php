@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Messages — BoomBuy</title>
+    <title>{{ $partner ? $partner['name'] . ' — ' : '' }}Messages — BoomBuy</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
@@ -26,68 +26,49 @@
     <link rel="stylesheet" href="{{ asset('css/pages/messages.css') }}">
 </head>
 
-<body>
+<body class="chat-role-{{ $role === 'buyer' ? 'buyer' : 'panel' }}{{ $partner ? ' chat-open' : '' }}">
 
 @if($role === 'seller')
 
     <div class="layout">
-
         <x-layout.seller-sidebar active="messages" :user="$me" />
-
         <main class="main-content">
-            <div class="container">
-                @include('pages.partials.messages-inbox-body')
-            </div>
+            @include('pages.partials.messages-body')
         </main>
-
     </div>
 
 @elseif($role === 'rider')
 
     <x-layout.rider-sidebar active="messages" :user="$me" />
-
     <main class="main-content">
-        <div class="container">
-            @include('pages.partials.messages-inbox-body')
-        </div>
+        @include('pages.partials.messages-body')
     </main>
 
 @elseif($role === 'logistics')
 
     <x-layout.logistics-sidebar active="messages" :user="$me" />
-
     <main class="main-content">
-        <div class="container">
-            @include('pages.partials.messages-inbox-body')
-        </div>
+        @include('pages.partials.messages-body')
     </main>
 
 @elseif($role === 'admin')
 
     <div class="layout">
-
         <x-layout.admin-sidebar active="messages" />
-
         <main class="main">
-            <div class="container">
-                @include('pages.partials.messages-inbox-body')
-            </div>
+            @include('pages.partials.messages-body')
         </main>
-
     </div>
 
 @else
 
     @include('partials.buyer-navbar', ['activeNav' => 'messages'])
-
-    <div class="container">
-
-        @include('pages.partials.messages-inbox-body')
-
-    </div>
+    @include('pages.partials.messages-body')
+    @include('partials.buyer-footer')
 
 @endif
 
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

@@ -206,3 +206,22 @@
 </aside>
 
 @include('partials.confirm-modal')
+
+@once
+    <style>
+        /* Narrow icon rail (every seller page collapses the sidebar at 900px):
+           only the "B" of the logo fits. Lives here because several seller
+           pages carry their own copy of the sidebar CSS. */
+        @media (max-width: 900px) {
+            aside.sidebar .logo {
+                font-size: 0;
+                text-align: center;
+            }
+
+            aside.sidebar .logo::before {
+                content: "B";
+                font-size: 25px;
+            }
+        }
+    </style>
+@endonce

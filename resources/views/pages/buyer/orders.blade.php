@@ -65,18 +65,6 @@
         margin: 40px auto;
     }
 
-    .page-header {
-        margin-bottom: 25px;
-    }
-
-    .page-header h1 {
-        font-size: 32px;
-        margin-bottom: 8px;
-    }
-
-    .page-header p {
-        color: #816f6a;
-    }
 
     /* =========================
        ORDER FILTERS
@@ -103,31 +91,49 @@
         border-color: #e8420f;
     }
 
+    /* Chips like the Shop and Notifications pages; one scrolling row on phones. */
     .order-tabs {
         display: flex;
-        flex-wrap: wrap;
         gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        scrollbar-width: thin;
     }
 
     .order-tab {
-        border: 1px solid #f0ddd5;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        min-height: 40px;
+        padding: 0 15px;
+        border: 1px solid #f0d9d1;
         background: #ffffff;
-        color: #6f5d58;
-        padding: 8px 14px;
+        color: #172033;
         border-radius: 999px;
-        font-size: 12px;
+        font-family: inherit;
+        font-size: 13px;
         font-weight: 700;
+        white-space: nowrap;
         cursor: pointer;
-        transition: 0.15s ease;
+        transition: background 0.15s ease, border-color 0.15s ease;
+    }
+
+    .order-tab small {
+        font-size: 11.5px;
+        font-weight: 700;
+        opacity: 0.65;
     }
 
     .order-tab:hover {
-        background: #fff4f0;
+        border-color: #e8b5a4;
+        background: #fffaf8;
+        transform: none;
     }
 
     .order-tab.active {
-        background: #e8420f;
-        border-color: #e8420f;
+        background: #172033;
+        border-color: #172033;
         color: #ffffff;
     }
 
@@ -563,6 +569,17 @@
         background: #df4516;
     }
 
+    /* Secondary action: one filled button per order is enough. */
+    .track-btn.is-ghost {
+        background: #ffffff;
+        color: #c43408;
+        border: 1px solid #f0cfc4;
+    }
+
+    .track-btn.is-ghost:hover {
+        background: #fff4f0;
+    }
+
     /* =========================
        RECEIVED BUTTON
     ========================= */
@@ -599,16 +616,15 @@
         background: #ffe1de;
     }
 
+    /* A status, not a button. */
     .received-badge {
         display: inline-flex;
         align-items: center;
-        padding: 10px 14px;
-        border-radius: 12px;
-        background: #eafaf0;
+        gap: 6px;
+        padding: 0 4px;
         color: #24733e;
-        border: 1px solid #ccefd9;
-        font-size: 12px;
-        font-weight: 800;
+        font-size: 12.5px;
+        font-weight: 700;
     }
 
     .return-btn{border:1px solid #f3c6ba;background:#fff5f1;color:#d9471c;padding:11px 16px;border-radius:12px;font-family:inherit;font-size:12px;font-weight:800;cursor:pointer}
@@ -971,17 +987,10 @@
 
         <div class="container">
 
-            <div class="page-header">
-
-                <h1>
-                    My Orders
-                </h1>
-
-                <p>
-                    View and track all your BoomBuy orders.
-                </p>
-
-            </div>
+            @include('partials.page-head', [
+                'title' => 'My Orders',
+                'note' => count($orders ?? []) . ' ' . \Illuminate\Support\Str::plural('order', count($orders ?? [])),
+            ])
 
             <!-- SUCCESS -->
 
@@ -1041,12 +1050,29 @@
                         placeholder="Search by order # or product name..."
                     >
 
+                    @php
+                        // How many orders each tab holds (same grouping as the cards below).
+                        $tabGroups = [
+                            'to-ship' => ['pending', 'processing', 'ready for pickup'],
+                            'to-receive' => ['assigned', 'picked up', 'at sorting center', 'assigned for delivery', 'out for delivery'],
+                            'delivered' => ['delivered'],
+                            'cancelled' => ['cancelled', 'delivery failed', 'returned to seller'],
+                        ];
+                        $tabCounts = ['all' => count($orders), 'to-ship' => 0, 'to-receive' => 0, 'delivered' => 0, 'cancelled' => 0];
+                        foreach ($orders as $o) {
+                            $s = strtolower($o['status'] ?? 'pending');
+                            $g = collect($tabGroups)->search(fn ($list) => in_array($s, $list)) ?: 'to-ship';
+                            $tabCounts[$g]++;
+                        }
+                        $tabLabels = ['all' => 'All', 'to-ship' => 'To Ship', 'to-receive' => 'To Receive', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled / Returned'];
+                    @endphp
+
                     <div class="order-tabs" id="orderTabs">
-                        <button type="button" class="order-tab active" data-group="all">All</button>
-                        <button type="button" class="order-tab" data-group="to-ship">To Ship</button>
-                        <button type="button" class="order-tab" data-group="to-receive">To Receive</button>
-                        <button type="button" class="order-tab" data-group="delivered">Delivered</button>
-                        <button type="button" class="order-tab" data-group="cancelled">Cancelled/Returned</button>
+                        @foreach($tabLabels as $key => $label)
+                            <button type="button" class="order-tab {{ $key === 'all' ? 'active' : '' }}" data-group="{{ $key }}">
+                                {{ $label }} <small>{{ $tabCounts[$key] }}</small>
+                            </button>
+                        @endforeach
                     </div>
 
                 </div>
@@ -1506,7 +1532,7 @@
 
                                         <button
                                             type="button"
-                                            class="track-btn"
+                                            class="track-btn is-ghost"
                                             onclick="toggleTracking('{{ $trackingId }}')"
                                         >
                                             @if($isClosed)
@@ -1560,7 +1586,7 @@
 
                                     <form method="POST" action="{{ route('buyer.order.reorder', $order['id']) }}">
                                         @csrf
-                                        <button type="submit" class="track-btn">
+                                        <button type="submit" class="track-btn {{ ($order['status'] ?? '') === 'Delivered' && empty($order['buyer_received_at']) ? 'is-ghost' : '' }}">
                                             <i class="bi bi-arrow-repeat"></i> Buy Again
                                         </button>
                                     </form>
@@ -1667,12 +1693,13 @@
 
                                         <div class="return-form-group">
                                             <label for="return-evidence-{{ $order['id'] }}">Photo Evidence (optional)</label>
-                                            <input
-                                                type="file"
-                                                id="return-evidence-{{ $order['id'] }}"
-                                                name="evidence"
-                                                accept="image/*"
-                                            >
+                                            @include('partials.file-picker', [
+                                                'id' => 'return-evidence-' . $order['id'],
+                                                'name' => 'evidence',
+                                                'accept' => 'image/*',
+                                                'label' => 'Attach a photo',
+                                                'hint' => 'JPG or PNG · up to 4 MB',
+                                            ])
                                         </div>
 
                                         <div class="return-actions">

@@ -56,7 +56,7 @@ class ComplaintController extends Controller
         $evidencePath = null;
 
         if (request()->hasFile('evidence')) {
-            $evidencePath = request()->file('evidence')->store('complaints', 'public');
+            $evidencePath = request()->file('evidence')->store('complaints', 'local');
         }
 
         Complaint::create([

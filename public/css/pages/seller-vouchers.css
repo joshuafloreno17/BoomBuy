@@ -195,3 +195,17 @@ tr:last-child td { border-bottom: none; }
 @media (max-width: 600px) {
     .form-row { grid-template-columns: 1fr; }
 }
+
+/* Phones: let wide tables scroll sideways instead of stretching the page */
+@media (max-width: 760px) {
+    table {
+        display: block;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    th,
+    td {
+        white-space: nowrap;
+    }
+}

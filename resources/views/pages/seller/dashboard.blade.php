@@ -166,7 +166,7 @@
 
     <!-- CHARTS -->
 
-    <section class="stats" style="grid-template-columns: 1.4fr 1fr; margin-bottom:20px;">
+    <section class="stats charts-row">
 
         <div class="stat-card" style="display:block;">
             <div class="stat-title" style="margin-bottom:12px;">Sales Trend (Last 7 Days)</div>
@@ -188,6 +188,13 @@
         <h2>
             My Products
         </h2>
+
+        @if(count($products ?? []) + count($archivedProducts ?? []) > 0)
+            <div class="product-search">
+                <i class="bi bi-search"></i>
+                <input type="search" id="productSearch" placeholder="Search your products" aria-label="Search your products" autocomplete="off">
+            </div>
+        @endif
 
         <a
             href="{{ route('seller.products.create') }}"
@@ -243,7 +250,7 @@
 
                     @foreach($products as $product)
 
-                        <tr>
+                        <tr data-product-search="{{ strtolower($product->name . ' ' . $product->category . ' #' . $product->id) }}">
 
                             <!-- PRODUCT -->
 
@@ -449,7 +456,7 @@
 
                     @foreach($archivedProducts as $product)
 
-                        <tr style="opacity:0.65;">
+                        <tr style="opacity:0.65;" data-product-search="{{ strtolower($product->name . ' ' . $product->category . ' #' . $product->id) }}">
 
                             <td>
                                 <div class="product-name">
@@ -493,6 +500,10 @@
 
     @endif
 
+    <p id="productSearchEmpty" style="display:none; text-align:center; color:#977970; font-size:13px; margin:10px 0 24px;">
+        No products match your search.
+    </p>
+
 </div>
 
 </main>
@@ -513,6 +524,30 @@
     </div>
 
 </footer>
+
+    <script>
+        // Instant filter over the seller's own product rows (all already on the page).
+        (function () {
+            var input = document.getElementById('productSearch');
+            if (!input) return;
+
+            var rows = Array.prototype.slice.call(document.querySelectorAll('tr[data-product-search]'));
+            var empty = document.getElementById('productSearchEmpty');
+
+            input.addEventListener('input', function () {
+                var term = input.value.trim().toLowerCase();
+                var shown = 0;
+
+                rows.forEach(function (row) {
+                    var match = term === '' || row.getAttribute('data-product-search').indexOf(term) !== -1;
+                    row.style.display = match ? '' : 'none';
+                    if (match) shown++;
+                });
+
+                empty.style.display = shown === 0 && term !== '' ? 'block' : 'none';
+            });
+        })();
+    </script>
 
     @include('partials.pwa-register')
 

@@ -33,4 +33,33 @@
     .status-pill i {
         font-size: 11px;
     }
+
+    /* "Mark all as read" bar on the notifications pages */
+    .bb-mark-all {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin: 0 0 14px;
+        padding: 10px 14px;
+        background: #fff;
+        border: 1px solid #f6e1db;
+        border-radius: 12px;
+        font-size: 13px;
+        color: #6a4e46;
+    }
+    .bb-mark-all button {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border: none;
+        background: #fff0eb;
+        color: var(--accent-dark, #c43408);
+        font-weight: 700;
+        font-size: 13px;
+        font-family: inherit;
+        padding: 8px 12px;
+        border-radius: 10px;
+        cursor: pointer;
+    }
 </style>

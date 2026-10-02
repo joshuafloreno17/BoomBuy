@@ -915,7 +915,7 @@ button:hover {
                             $firstItem = $order['items'][0] ?? null;
 
                             $productName =
-                                $firstItem['name']
+                                $firstItem['product_name']
                                 ?? 'Order #' . ($order['id'] ?? 'N/A');
 
                             $orderId =
@@ -946,7 +946,6 @@ button:hover {
                                 'At Sorting Center',
                                 'Assigned for Delivery',
                                 'Out for Delivery',
-                                'On the Way'
                                     => 'processing',
 
                                 default
@@ -1268,7 +1267,7 @@ button:hover {
                     </h2>
 
                     <p class="accounts-description">
-                        Buyer, Seller and Rider accounts
+                        Newest sign-ups · all roles
                     </p>
 
                 </div>

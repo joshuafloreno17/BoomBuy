@@ -137,3 +137,25 @@ a { text-decoration: none; }
 .empty-icon { font-size: 40px; margin-bottom: 12px; }
 .empty h3 { font-family: 'Baloo 2', sans-serif; margin-bottom: 6px; }
 .empty p { color: #977970; font-size: 13px; }
+
+/* Phones: the From / To / Filter row wraps instead of running off-screen */
+.filter-form {
+    flex-wrap: wrap;
+    max-width: 100%;
+}
+
+@media (max-width: 600px) {
+    .filter-form > div {
+        flex: 1 1 130px;
+        min-width: 0;
+    }
+
+    .filter-form input[type="date"] {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .filter-form .filter-btn {
+        flex: 1 1 100%;
+    }
+}

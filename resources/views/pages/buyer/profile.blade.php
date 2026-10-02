@@ -43,20 +43,6 @@
             margin: 45px auto 80px;
         }
 
-        .page-header {
-            margin-bottom: 25px;
-        }
-
-        .page-header h1 {
-            font-family: 'Baloo 2', sans-serif;
-            font-size: 30px;
-        }
-
-        .page-header p {
-            color: #977970;
-            font-size: 13px;
-            margin-top: 6px;
-        }
 
         .success-box {
             background: #f0fdf4;
@@ -525,10 +511,7 @@
 
     <div class="container">
 
-        <div class="page-header">
-            <h1>My Profile</h1>
-            <p>Manage your account information and password.</p>
-        </div>
+        @include('partials.page-head', ['title' => 'My Profile', 'crumbs' => ['My account' => route('buyer.account')]])
 
         @if (session('success'))
             <div class="success-box">{{ session('success') }}</div>
@@ -727,7 +710,7 @@
             @endif
 
             @if($addresses->count() < 10)
-                <details class="addr-add" @if($addresses->isEmpty() || $errors->has('address') || $errors->has('phone')) open @endif>
+                <details class="addr-add" @if($errors->has('address') || $errors->has('phone') || $errors->has('label')) open @endif>
                     <summary><i class="bi bi-plus-lg"></i> Add a new address</summary>
 
                     <form method="POST" action="{{ route('buyer.addresses.store') }}">

@@ -12,6 +12,7 @@ use App\Models\RiderArea;
 use App\Models\User;
 use App\Support\Categories;
 use App\Support\OrderStock;
+use App\Support\RiderRelease;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -69,217 +70,94 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACCOUNTS - DATABASE
-        |--------------------------------------------------------------------------
-        */
+        // Counts come straight from the database — nothing here loads whole
+        // tables into memory.
+        $roleCounts = DB::table('users')
+            ->whereIn('role', ['buyer', 'seller', 'rider', 'logistics'])
+            ->select('role', DB::raw('COUNT(*) as total'))
+            ->groupBy('role')
+            ->pluck('total', 'role');
 
+        $totalUsers = (int) $roleCounts->sum();
+        $buyerCount = (int) ($roleCounts['buyer'] ?? 0);
+        $sellerCount = (int) ($roleCounts['seller'] ?? 0);
+        $riderCount = (int) ($roleCounts['rider'] ?? 0);
+        $logisticsCount = (int) ($roleCounts['logistics'] ?? 0);
+
+        // Newest accounts only; the full list is on Manage Accounts.
         $users = DB::table('users')
-            ->select(
-                'id',
-                'name',
-                'email',
-                'role',
-                'created_at'
-            )
-            ->whereIn('role', [
-                'buyer',
-                'seller',
-                'rider',
-                'logistics'
-            ])
+            ->whereIn('role', ['buyer', 'seller', 'rider', 'logistics'])
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($user) {
-
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'created_at' => $user->created_at,
-                ];
-
-            })
+            ->orderByDesc('id')
+            ->limit(8)
+            ->get(['id', 'name', 'email', 'role', 'created_at'])
+            ->map(fn ($user) => (array) $user)
             ->toArray();
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACCOUNT COUNTS
-        |--------------------------------------------------------------------------
-        */
+        $statusCounts = DB::table('orders')
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
 
-        $totalUsers = count($users);
-
-        $buyerCount = count(array_filter($users, function ($user) {
-            return ($user['role'] ?? '') === 'buyer';
-        }));
-
-        $sellerCount = count(array_filter($users, function ($user) {
-            return ($user['role'] ?? '') === 'seller';
-        }));
-
-        $riderCount = count(array_filter($users, function ($user) {
-            return ($user['role'] ?? '') === 'rider';
-        }));
-
-        $logisticsCount = count(array_filter($users, function ($user) {
-            return ($user['role'] ?? '') === 'logistics';
-        }));
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | ORDERS - DATABASE
-        |--------------------------------------------------------------------------
-        */
-
-        $dbOrders = DB::table('orders')
-            ->orderByDesc('created_at')
-            ->get();
-
-        $totalOrders = $dbOrders->count();
-
-        $pendingCount = DB::table('orders')
-            ->where('status', 'Pending')
-            ->count();
-
-        $processingCount = DB::table('orders')
-            ->where('status', 'Processing')
-            ->count();
-
-        $deliveredCount = DB::table('orders')
-            ->where('status', 'Delivered')
-            ->count();
-
-        $cancelledCount = DB::table('orders')
-            ->where('status', 'Cancelled')
-            ->count();
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | TOTAL SALES
-        |--------------------------------------------------------------------------
-        */
+        $totalOrders = (int) $statusCounts->sum();
+        $pendingCount = (int) ($statusCounts['Pending'] ?? 0);
+        $processingCount = (int) ($statusCounts['Processing'] ?? 0);
+        $deliveredCount = (int) ($statusCounts['Delivered'] ?? 0);
+        $cancelledCount = (int) ($statusCounts['Cancelled'] ?? 0);
 
         // Product sales only — the delivery fee is passed on to the rider.
         $totalSales = DB::table('orders')
             ->where('status', 'Delivered')
             ->sum(DB::raw('total_amount - delivery_fee'));
 
+        $totalProducts = Product::count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | PRODUCTS
-        |--------------------------------------------------------------------------
-        |
-        | Seller products are stored in the database.
-        | Admin products are still stored in session.
-        |
-        */
+        $recentOrders = DB::table('orders')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
 
-        $sellerProducts = Product::latest()
+        $itemsByOrder = DB::table('order_items')
+            ->whereIn('order_id', $recentOrders->pluck('id'))
             ->get()
-            ->map(function ($product) {
+            ->groupBy('order_id');
 
-                return [
-                    'id' => $product->id,
-                    'slug' => Str::slug($product->name) . '-' . $product->id,
-                    'name' => $product->name,
-                    'category' => $product->category,
-                    'price' => (float) $product->price,
-                    'stock' => (int) $product->stock,
-                    'description' => $product->description,
-                    'image' => $product->image,
-                    'seller_id' => $product->seller_id,
-                ];
-
-            })
-            ->toArray();
-
-        $adminProducts = session()->get(
-            'admin_products',
-            []
-        );
-
-        $products = array_merge(
-            $sellerProducts,
-            $adminProducts
-        );
-
-        $totalProducts = count($products);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RECENT ORDERS
-        |--------------------------------------------------------------------------
-        */
-
-        $orders = $dbOrders
-            ->take(5)
-            ->map(function ($order) {
-
+        $orders = $recentOrders
+            ->map(function ($order) use ($itemsByOrder) {
                 $order = (array) $order;
 
-                $items = DB::table('order_items')
-                    ->where('order_id', $order['id'])
-                    ->get();
-
-                $order['items'] = $items
-                    ->map(function ($item) {
-
-                        $item = (array) $item;
-
-                        $item['subtotal'] =
-                            (float) ($item['price'] ?? 0) *
-                            (int) ($item['quantity'] ?? 1);
-
-                        return $item;
-
-                    })
+                $order['items'] = $itemsByOrder
+                    ->get($order['id'], collect())
+                    ->map(fn ($item) => (array) $item)
                     ->toArray();
 
-                $order['total'] =
-                    (float) ($order['total_amount'] ?? 0);
-
-                $order['buyer_name'] =
-                    $order['shipping_name']
-                    ?? 'Unknown Buyer';
+                $order['total'] = (float) ($order['total_amount'] ?? 0);
+                $order['buyer_name'] = $order['shipping_name'] ?? 'Unknown Buyer';
 
                 return $order;
-
             })
             ->toArray();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SELLER PRODUCTS FOR DASHBOARD
-        |--------------------------------------------------------------------------
-        */
-
-        $sellerProductsForDashboard = array_slice(
-            $sellerProducts,
-            0,
-            5
-        );
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN ADMIN DASHBOARD
-        |--------------------------------------------------------------------------
-        */
+        $sellerProductsForDashboard = Product::latest()
+            ->limit(5)
+            ->get()
+            ->map(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->stock,
+                'image' => $product->image,
+                'seller_id' => $product->seller_id,
+            ])
+            ->toArray();
 
         return view(
             'pages.admin.dashboard',
             compact(
                 'users',
                 'orders',
-                'products',
                 'sellerProductsForDashboard',
 
                 'totalUsers',
@@ -312,31 +190,96 @@ class AdminController extends Controller
             ->with('success', 'Admin logged out successfully.');
     }
 
+    // Filter cards on the admin Products page.
+    public const PRODUCT_STATES = [
+        'all' => 'All Products',
+        'active' => 'Active',
+        'out' => 'Out of Stock',
+        'archived' => 'Archived',
+        'flagged' => 'Flagged',
+    ];
+
     public function products()
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        $products = Product::latest()
-            ->get()
-            ->map(function ($product) {
+        $search = trim((string) request('q', ''));
+        $category = in_array(request('category'), Categories::LIST, true) ? request('category') : 'all';
+        $state = array_key_exists((string) request('state'), self::PRODUCT_STATES) ? request('state') : 'all';
 
-                return [
-                    'id' => $product->id,
-                    'slug' => Str::slug($product->name) . '-' . $product->id,
-                    'name' => $product->name,
-                    'category' => $product->category,
-                    'price' => (float) $product->price,
-                    'stock' => (int) $product->stock,
-                    'icon' => $product->image,
-                    'is_archived' => (bool) $product->is_archived,
-                ];
+        // What a buyer can actually buy: the variations' stock when the
+        // product has options, otherwise the product's own stock.
+        $sellable = Product::SELLABLE_STOCK_SQL;
 
-            })
-            ->toArray();
+        $filtered = function () use ($search, $category) {
+            return Product::query()
+                ->leftJoin('users as sellers', 'sellers.id', '=', 'products.seller_id')
+                ->when($search !== '', function ($query) use ($search) {
+                    $like = '%' . $search . '%';
 
-        return view('pages.admin-products', compact('products'));
+                    $query->where(function ($q) use ($like, $search) {
+                        $q->where('products.name', 'like', $like)
+                            ->orWhere('sellers.name', 'like', $like);
+
+                        if (ctype_digit(ltrim($search, '#'))) {
+                            $q->orWhere('products.id', (int) ltrim($search, '#'));
+                        }
+                    });
+                })
+                ->when($category !== 'all', fn ($q) => $q->where('products.category', $category));
+        };
+
+        $applyState = function ($query, string $state) use ($sellable) {
+            return match ($state) {
+                'active' => $query->where('products.is_archived', false)->where('products.is_flagged', false),
+                'out' => $query->where('products.is_archived', false)->where('products.is_flagged', false)->whereRaw($sellable . ' <= 0'),
+                'archived' => $query->where('products.is_archived', true),
+                'flagged' => $query->where('products.is_flagged', true),
+                default => $query,
+            };
+        };
+
+        // Card counts follow the current search and category.
+        $stateCounts = [];
+
+        foreach (array_keys(self::PRODUCT_STATES) as $key) {
+            $stateCounts[$key] = $applyState($filtered(), $key)->count();
+        }
+
+        $products = $applyState($filtered(), $state)
+            ->select('products.*', 'sellers.name as seller_name')
+            ->selectRaw($sellable . ' as sellable_stock')
+            ->withCount('variations')
+            ->orderByDesc('products.created_at')
+            ->orderByDesc('products.id')
+            ->paginate(20)
+            ->withQueryString()
+            ->through(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'stock' => (int) $product->sellable_stock,
+                'options' => (int) $product->variations_count,
+                'image' => $product->image,
+                'is_archived' => (bool) $product->is_archived,
+                'is_flagged' => (bool) $product->is_flagged,
+                'flag_reason' => $product->flag_reason,
+                'seller_name' => $product->seller_name,
+                'seller_id' => $product->seller_id,
+            ]);
+
+        return view('pages.admin-products', [
+            'products' => $products,
+            'search' => $search,
+            'category' => $category,
+            'state' => $state,
+            'states' => self::PRODUCT_STATES,
+            'stateCounts' => $stateCounts,
+            'categories' => Categories::LIST,
+        ]);
     }
 
     // No "Add Product" for the admin: every product must belong to a seller
@@ -410,6 +353,13 @@ class AdminController extends Controller
                     'error',
                     'This seller already has a product with this name.'
                 );
+        }
+
+        // Every option has to stay above ₱0 at the new base price.
+        if ($product->variations()->exists() && $price + (float) $product->variations()->min('price_adjustment') <= 0) {
+            return back()
+                ->withInput()
+                ->with('error', 'At this price one of the product\'s options would cost ₱0 or less.');
         }
 
         $updateData = [
@@ -536,97 +486,64 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ADMIN MANAGE ACCOUNTS
-        |--------------------------------------------------------------------------
-        |
-        | Buyer and Rider accounts are shown normally.
-        |
-        | Seller accounts are shown ONLY when their seller application
-        | has been approved by the admin.
-        |
-        */
+        $roles = ['buyer', 'seller', 'rider', 'logistics'];
 
-        $users = DB::table('users')
-            ->select(
-                'id',
-                'name',
-                'email',
-                'role',
-                'status',
-                'created_at'
-            )
+        $role = in_array(request('role'), $roles) ? request('role') : 'all';
+        $status = in_array(request('status'), ['Active', 'Suspended', 'Deactivated']) ? request('status') : 'all';
+        $search = trim((string) request('q', ''));
+
+        // Buyers and riders show up right away; sellers and logistics only
+        // once their application is approved (pending ones live under
+        // Applications).
+        $visible = DB::table('users')
             ->where(function ($query) {
+                $query->whereIn('role', ['buyer', 'rider']);
 
-                // Buyers and Riders can appear normally
-                $query->whereIn('role', [
-                    'buyer',
-                    'rider'
-                ]);
+                foreach (['seller', 'logistics'] as $approvedRole) {
+                    $query->orWhere(function ($roleQuery) use ($approvedRole) {
+                        $roleQuery
+                            ->where('role', $approvedRole)
+                            ->whereExists(function ($applicationQuery) use ($approvedRole) {
+                                $applicationQuery
+                                    ->select(DB::raw(1))
+                                    ->from($approvedRole . '_applications')
+                                    ->whereColumn($approvedRole . '_applications.user_id', 'users.id')
+                                    ->where($approvedRole . '_applications.status', 'Approved');
+                            });
+                    });
+                }
+            });
 
-                // Sellers appear only after admin approval
-                $query->orWhere(function ($sellerQuery) {
+        $roleCounts = (clone $visible)
+            ->select('role', DB::raw('COUNT(*) as total'))
+            ->groupBy('role')
+            ->pluck('total', 'role');
 
-                    $sellerQuery
-                        ->where('role', 'seller')
-                        ->whereExists(function ($applicationQuery) {
+        $users = (clone $visible)
+            ->when($role !== 'all', fn ($q) => $q->where('role', $role))
+            ->when($status !== 'all', fn ($q) => $q->where(DB::raw("COALESCE(status, 'Active')"), $status))
+            ->when($search !== '', function ($q) use ($search) {
+                $like = '%' . $search . '%';
 
-                            $applicationQuery
-                                ->select(DB::raw(1))
-                                ->from('seller_applications')
-                                ->whereColumn(
-                                    'seller_applications.user_id',
-                                    'users.id'
-                                )
-                                ->where(
-                                    'seller_applications.status',
-                                    'Approved'
-                                );
-                        });
+                $q->where(function ($inner) use ($like, $search) {
+                    $inner->where('name', 'like', $like)
+                        ->orWhere('email', 'like', $like)
+                        ->orWhere('phone', 'like', $like);
+
+                    if (ctype_digit($search)) {
+                        $inner->orWhere('id', (int) $search);
+                    }
                 });
-
-                // Logistics accounts appear only after admin approval, same as sellers
-                $query->orWhere(function ($logisticsQuery) {
-
-                    $logisticsQuery
-                        ->where('role', 'logistics')
-                        ->whereExists(function ($applicationQuery) {
-
-                            $applicationQuery
-                                ->select(DB::raw(1))
-                                ->from('logistics_applications')
-                                ->whereColumn(
-                                    'logistics_applications.user_id',
-                                    'users.id'
-                                )
-                                ->where(
-                                    'logistics_applications.status',
-                                    'Approved'
-                                );
-                        });
-                });
-
             })
+            ->select('id', 'name', 'email', 'phone', 'role', 'status', 'created_at')
             ->orderByDesc('created_at')
-            ->get()
-            ->map(function ($user) {
-
-                return [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
-                    'status' => $user->status ?? 'Active',
-                    'created_at' => $user->created_at,
-                ];
-
-            })
-            ->toArray();
+            ->orderByDesc('id')
+            ->paginate(25)
+            ->withQueryString();
 
         return view(
             'pages.admin.accounts',
-            compact('users')
+            compact('users', 'roleCounts', 'role', 'status', 'search')
         );
     }
 
@@ -737,48 +654,17 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        PlatformSetting::set('terms_policy', request('terms_policy', ''));
-        PlatformSetting::set('privacy_policy', request('privacy_policy', ''));
-        PlatformSetting::set('return_policy', request('return_policy', ''));
+        request()->validate([
+            'terms_policy' => 'nullable|string|max:20000',
+            'privacy_policy' => 'nullable|string|max:20000',
+            'return_policy' => 'nullable|string|max:20000',
+        ]);
+
+        PlatformSetting::set('terms_policy', trim((string) request('terms_policy', '')));
+        PlatformSetting::set('privacy_policy', trim((string) request('privacy_policy', '')));
+        PlatformSetting::set('return_policy', trim((string) request('return_policy', '')));
 
         return back()->with('success', 'Platform policies updated successfully.');
-    }
-
-    public function deleteAccount($id)
-    {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        $user = DB::table('users')
-            ->where('id', $id)
-            ->whereIn('role', ['buyer', 'seller', 'rider', 'logistics'])
-            ->first();
-
-        if (!$user) {
-            return back()->with('error', 'Account not found.');
-        }
-
-        // A hard delete here cascades through orders, order_items, reviews,
-        // and messages (all foreign keys to users are cascadeOnDelete) — it
-        // would silently wipe out other people's transaction history too, not
-        // just this account's. Deactivating achieves the real intent (this
-        // person can no longer use BoomBuy) without destroying shared records.
-        DB::table('users')
-            ->where('id', $id)
-            ->update(['status' => 'Deactivated']);
-
-        createNotification(
-            $user->id,
-            'Account Deactivated',
-            'Your BoomBuy account has been deactivated by an administrator.',
-            'account_status'
-        );
-
-        return back()->with(
-            'success',
-            $user->name . '\'s account has been deactivated.'
-        );
     }
 
     public function updateAccountStatus($id)
@@ -813,9 +699,35 @@ class AdminController extends Controller
             'account_status'
         );
 
+        $note = '';
+
+        if ($status !== 'Active' && $user->role === 'rider') {
+            // Hand their parcels to other riders instead of leaving them stuck.
+            $note = RiderRelease::summary(RiderRelease::release((int) $user->id));
+        }
+
+        if ($status !== 'Active' && $user->role === 'seller') {
+            // Their listings leave the shop automatically; orders they still
+            // have to pack can't move until they're back or are cancelled.
+            $openOrders = DB::table('orders')
+                ->whereIn('status', ['Pending', 'Processing', 'Ready for Pickup'])
+                ->whereExists(function ($q) use ($user) {
+                    $q->select(DB::raw(1))
+                        ->from('order_items')
+                        ->whereColumn('order_items.order_id', 'orders.id')
+                        ->where('order_items.seller_id', $user->id);
+                })
+                ->count();
+
+            $note = ' Their products are hidden from the shop.'
+                . ($openOrders > 0
+                    ? ' They still have ' . $openOrders . ' open order(s) — cancel those from Orders if the seller will not be back soon.'
+                    : '');
+        }
+
         return back()->with(
             'success',
-            $user->name . '\'s account status has been set to ' . $status . '.'
+            $user->name . '\'s account status has been set to ' . $status . '.' . $note
         );
     }
 
@@ -825,10 +737,164 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        // The view computes all of its report figures itself, straight from
-        // the database (see its top @php block) — nothing extra to pass here.
-        return view('pages.admin.reports');
+        $statusCounts = DB::table('orders')
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $totalOrders = (int) $statusCounts->sum();
+        $completedOrders = (int) ($statusCounts['Delivered'] ?? 0);
+
+        // Delivered orders only, without the delivery fee (that goes to the
+        // rider) — the same figure as the dashboard's Total Sales.
+        $totalRevenue = (float) DB::table('orders')
+            ->where('status', 'Delivered')
+            ->sum(DB::raw('total_amount - delivery_fee'));
+
+        $averageOrder = $completedOrders > 0 ? $totalRevenue / $completedOrders : 0;
+
+        /*
+        | Commission: same rule as the seller's own Reports page — delivered
+        | items only, minus the vouchers each seller funds, times the rate.
+        */
+        $commissionRate = (float) PlatformSetting::get('commission_rate', '10');
+
+        $voucherDiscountsBySeller = DB::table('orders')
+            ->join('vouchers', 'vouchers.code', '=', 'orders.voucher_code')
+            ->where('orders.status', 'Delivered')
+            ->whereNotNull('vouchers.seller_id')
+            ->select('vouchers.seller_id', DB::raw('SUM(orders.discount_amount) as discounts'))
+            ->groupBy('vouchers.seller_id')
+            ->pluck('discounts', 'seller_id');
+
+        $sellerSales = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->join('users', 'users.id', '=', 'order_items.seller_id')
+            ->where('orders.status', 'Delivered')
+            ->selectRaw('order_items.seller_id, users.name as seller_name, SUM(order_items.price * order_items.quantity) as sales')
+            ->groupBy('order_items.seller_id', 'users.name')
+            ->get()
+            ->map(function ($row) use ($commissionRate, $voucherDiscountsBySeller) {
+                $sales = max(0, (float) $row->sales - (float) ($voucherDiscountsBySeller[$row->seller_id] ?? 0));
+                $commission = $sales * ($commissionRate / 100);
+
+                return [
+                    'seller_id' => $row->seller_id,
+                    'seller_name' => $row->seller_name,
+                    'sales' => $sales,
+                    'commission' => $commission,
+                    'payout' => $sales - $commission,
+                ];
+            })
+            ->sortByDesc('sales')
+            ->values();
+
+        $totalSellerSales = $sellerSales->sum('sales');
+        $totalCommission = $sellerSales->sum('commission');
+        $totalPayouts = $sellerSales->sum('payout');
+
+        // Units sold per product (orders that weren't cancelled or sent back),
+        // in one grouped query instead of one per product.
+        $unitsByProduct = DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->whereNotIn('orders.status', ['Cancelled', 'Returned to Seller'])
+            ->select('order_items.product_id', DB::raw('SUM(order_items.quantity) as units'))
+            ->groupBy('order_items.product_id')
+            ->pluck('units', 'product_id');
+
+        $sellerNames = DB::table('users')->where('role', 'seller')->pluck('name', 'id');
+
+        $productPerformance = Product::query()
+            ->whereNotNull('seller_id')
+            ->orderByDesc('created_at')
+            ->get(['id', 'name', 'category', 'price', 'seller_id'])
+            ->map(fn ($product) => [
+                'id' => $product->id,
+                'name' => $product->name,
+                'category' => $product->category,
+                'price' => (float) $product->price,
+                'units_sold' => (int) ($unitsByProduct[$product->id] ?? 0),
+                'seller_id' => $product->seller_id,
+                'seller_name' => $sellerNames[$product->seller_id] ?? null,
+            ])
+            ->sortByDesc('units_sold')
+            ->values();
+
+        $categorySales = [];
+
+        foreach ($productPerformance as $product) {
+            $category = $product['category'] ?: 'Other';
+            $categorySales[$category] = ($categorySales[$category] ?? 0) + $product['units_sold'];
+        }
+
+        arsort($categorySales);
+
+        $totalCategoryUnits = array_sum($categorySales);
+
+        // This year's sales by month (cancelled/returned orders left out).
+        $year = (int) now()->year;
+        $monthlySales = array_fill(1, 12, 0.0);
+
+        DB::table('orders')
+            ->whereNotIn('status', ['Cancelled', 'Returned to Seller'])
+            ->whereYear('created_at', $year)
+            ->get(['created_at', 'total_amount', 'delivery_fee'])
+            ->each(function ($order) use (&$monthlySales) {
+                $month = (int) date('n', strtotime($order->created_at));
+                $monthlySales[$month] += (float) $order->total_amount - (float) $order->delivery_fee;
+            });
+
+        $maxMonthlySales = max($monthlySales);
+
+        $recentOrders = DB::table('orders')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->limit(5)
+            ->get();
+
+        $namesByOrder = DB::table('order_items')
+            ->whereIn('order_id', $recentOrders->pluck('id'))
+            ->get(['order_id', 'product_name'])
+            ->groupBy('order_id');
+
+        $recentOrders->each(function ($order) use ($namesByOrder) {
+            $order->product_names = $namesByOrder->get($order->id, collect())->pluck('product_name')->all();
+        });
+
+        return view('pages.admin.reports', compact(
+            'totalOrders',
+            'completedOrders',
+            'totalRevenue',
+            'averageOrder',
+            'commissionRate',
+            'sellerSales',
+            'totalSellerSales',
+            'totalCommission',
+            'totalPayouts',
+            'productPerformance',
+            'categorySales',
+            'totalCategoryUnits',
+            'year',
+            'monthlySales',
+            'maxMonthlySales',
+            'recentOrders'
+        ));
     }
+
+    // Registration types the admin reviews (riders are reviewed by Logistics).
+    public const APPLICATION_TYPES = [
+        'seller' => 'Sellers',
+        'buyer' => 'Buyers',
+        'logistics' => 'Logistics',
+    ];
+
+    // Chip order: All, then the queue that needs action, then decided ones.
+    public const APPLICATION_STATUSES = [
+        'all' => ['label' => 'All', 'status' => null],
+        'pending' => ['label' => 'Pending', 'status' => 'Pending Verification'],
+        'approved' => ['label' => 'Approved', 'status' => 'Approved'],
+        'rejected' => ['label' => 'Rejected', 'status' => 'Rejected'],
+    ];
 
     public function applications()
     {
@@ -836,28 +902,73 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $sellerApplications = DB::table('seller_applications')
-            ->join('users', 'users.id', '=', 'seller_applications.user_id')
-            ->select('seller_applications.*', 'users.email as user_email')
-            ->orderByDesc('seller_applications.created_at')
-            ->get();
+        // Pending counts per type, so the admin sees where work is waiting.
+        $pendingCounts = [];
 
-        $buyerApplications = DB::table('buyer_applications')
-            ->join('users', 'users.id', '=', 'buyer_applications.user_id')
-            ->select('buyer_applications.*', 'users.email as user_email')
-            ->orderByDesc('buyer_applications.created_at')
-            ->get();
+        foreach (array_keys(self::APPLICATION_TYPES) as $key) {
+            $pendingCounts[$key] = DB::table($key . '_applications')
+                ->where('status', 'Pending Verification')
+                ->count();
+        }
 
-        $logisticsApplications = DB::table('logistics_applications')
-            ->join('users', 'users.id', '=', 'logistics_applications.user_id')
-            ->select('logistics_applications.*', 'users.email as user_email')
-            ->orderByDesc('logistics_applications.created_at')
-            ->get();
+        // Default to the first type that has something to review.
+        $type = request('type');
 
-        return view(
-            'pages.admin.applications',
-            compact('sellerApplications', 'buyerApplications', 'logisticsApplications')
-        );
+        if (!array_key_exists((string) $type, self::APPLICATION_TYPES)) {
+            $type = collect($pendingCounts)->filter()->keys()->first() ?? 'seller';
+        }
+
+        // Opens on Pending while something is waiting for review, else All.
+        $statusKey = array_key_exists((string) request('status'), self::APPLICATION_STATUSES)
+            ? request('status')
+            : ($pendingCounts[$type] > 0 ? 'pending' : 'all');
+
+        $search = trim((string) request('q', ''));
+        $table = $type . '_applications';
+
+        $base = DB::table($table)
+            ->join('users', 'users.id', '=', $table . '.user_id')
+            ->when($search !== '', function ($query) use ($search, $table, $type) {
+                $like = '%' . $search . '%';
+
+                $query->where(function ($q) use ($like, $table, $type) {
+                    $q->where($table . '.full_name', 'like', $like)
+                        ->orWhere('users.email', 'like', $like)
+                        ->orWhere($table . '.phone', 'like', $like);
+
+                    if ($type !== 'buyer') {
+                        $q->orWhere($table . '.business_name', 'like', $like);
+                    }
+                });
+            });
+
+        $statusCounts = (clone $base)
+            ->select($table . '.status', DB::raw('COUNT(*) as total'))
+            ->groupBy($table . '.status')
+            ->pluck('total', 'status');
+
+        $applications = (clone $base)
+            ->when(
+                self::APPLICATION_STATUSES[$statusKey]['status'],
+                fn ($q, $status) => $q->where($table . '.status', $status)
+            )
+            ->select($table . '.*', 'users.email as user_email')
+            // Oldest pending first (first come, first served); newest first otherwise.
+            ->orderBy($table . '.created_at', $statusKey === 'pending' ? 'asc' : 'desc')
+            ->paginate(15)
+            ->withQueryString();
+
+        return view('pages.admin.applications', [
+            'applications' => $applications,
+            'type' => $type,
+            'types' => self::APPLICATION_TYPES,
+            'statusKey' => $statusKey,
+            'statuses' => self::APPLICATION_STATUSES,
+            'statusCounts' => $statusCounts,
+            'pendingCounts' => $pendingCounts,
+            'search' => $search,
+            'categories' => Categories::LIST,
+        ]);
     }
 
     public function logistics()
@@ -907,7 +1018,7 @@ class AdminController extends Controller
 
         $deliveredToday = DB::table('orders')
             ->where('status', 'Delivered')
-            ->whereDate('updated_at', now()->toDateString())
+            ->whereDate('delivered_at', now()->toDateString())
             ->count();
 
         return view(
@@ -954,6 +1065,10 @@ class AdminController extends Controller
             );
         }
 
+        if ($application->status !== 'Pending Verification') {
+            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
+        }
+
         // Approve application
         $approvalData = [
             'status' => 'Approved',
@@ -973,8 +1088,10 @@ class AdminController extends Controller
             $approvalData['business_category'] = $category;
         }
 
+        // Only while still pending, so a double-click can't email twice.
         $updated = DB::table($table)
             ->where('id', $id)
+            ->where('status', 'Pending Verification')
             ->update($approvalData);
 
         if (!$updated) {
@@ -1075,9 +1192,15 @@ class AdminController extends Controller
             return back()->with('error', 'Application not found.');
         }
 
-        // Reject application
+        if ($application->status !== 'Pending Verification') {
+            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
+        }
+
+        // Reject application — only while still pending, so a double-click
+        // can't email the applicant twice.
         $updated = DB::table($table)
             ->where('id', $id)
+            ->where('status', 'Pending Verification')
             ->update([
                 'status' => 'Rejected',
                 'admin_remarks' => $remarks !== ''
@@ -1209,111 +1332,103 @@ class AdminController extends Controller
         return Storage::disk('local')->response($application->$field);
     }
 
+    // Tabs on the admin Orders page => the order statuses each one shows.
+    public const ORDER_TABS = [
+        'all' => ['label' => 'All', 'statuses' => null],
+        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
+        'to-pickup' => ['label' => 'For Pickup', 'statuses' => ['Ready for Pickup', 'Assigned']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery']],
+        'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
+        'delivered' => ['label' => 'Delivered', 'statuses' => ['Delivered']],
+        'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
+    ];
+
+    // The admin may only cancel while the items are still with the seller —
+    // after pickup the parcel goes back through the Logistics return flow.
+    public const ADMIN_CANCELLABLE = ['Pending', 'Processing', 'Ready for Pickup'];
+
     public function orders()
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET ALL ORDERS FROM DATABASE
-        |--------------------------------------------------------------------------
-        */
+        $tab = request('tab', 'all');
 
-        $dbOrders = DB::table('orders')
-            ->orderByDesc('created_at')
-            ->get();
+        if (!array_key_exists($tab, self::ORDER_TABS)) {
+            $tab = 'all';
+        }
 
-        $orders = $dbOrders->map(function ($order) {
+        $search = trim((string) request('q', ''));
 
-            $order = (array) $order;
+        // Search matches the order number, the buyer's name/phone on the
+        // order, or the buyer's account email.
+        $searched = DB::table('orders')
+            ->leftJoin('users as buyers', 'buyers.id', '=', 'orders.buyer_id')
+            ->when($search !== '', function ($query) use ($search) {
+                $number = ltrim($search, '#');
+                $like = '%' . $search . '%';
 
-            /*
-            |--------------------------------------------------------------------------
-            | GET ORDER ITEMS
-            |--------------------------------------------------------------------------
-            */
+                $query->where(function ($q) use ($number, $like) {
+                    if (ctype_digit($number)) {
+                        $q->orWhere('orders.id', (int) $number);
+                    }
 
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
+                    $q->orWhere('orders.shipping_name', 'like', $like)
+                        ->orWhere('orders.shipping_phone', 'like', $like)
+                        ->orWhere('buyers.email', 'like', $like);
+                });
+            });
 
-            $order['items'] = $items->map(function ($item) {
+        // Per-tab counts for the current search.
+        $statusCounts = (clone $searched)
+            ->select('orders.status', DB::raw('COUNT(*) as total'))
+            ->groupBy('orders.status')
+            ->pluck('total', 'orders.status');
 
-                $item = (array) $item;
+        $tabCounts = [];
 
-                $item['subtotal'] =
-                    (float) ($item['price'] ?? 0) *
-                    (int) ($item['quantity'] ?? 1);
+        foreach (self::ORDER_TABS as $key => $definition) {
+            $tabCounts[$key] = $definition['statuses'] === null
+                ? (int) $statusCounts->sum()
+                : (int) collect($definition['statuses'])->sum(fn ($s) => $statusCounts[$s] ?? 0);
+        }
 
-                return $item;
+        $orders = (clone $searched)
+            ->when(self::ORDER_TABS[$tab]['statuses'], fn ($q, $statuses) => $q->whereIn('orders.status', $statuses))
+            ->select('orders.*', 'buyers.email as buyer_email')
+            ->orderByDesc('orders.created_at')
+            ->orderByDesc('orders.id')
+            ->paginate(20)
+            ->withQueryString();
 
-            })->toArray();
+        // One query each for the page's items and riders, instead of per order.
+        $orderIds = $orders->pluck('id');
 
-            /*
-            |--------------------------------------------------------------------------
-            | ADMIN DISPLAY FIELDS
-            |--------------------------------------------------------------------------
-            */
+        $itemsByOrder = DB::table('order_items')
+            ->whereIn('order_id', $orderIds)
+            ->get()
+            ->groupBy('order_id');
 
-            $order['total'] =
-                (float) ($order['total_amount'] ?? 0);
+        $riderNames = DB::table('users')
+            ->whereIn('id', $orders->pluck('rider_id')->merge($orders->pluck('delivery_rider_id'))->filter()->unique())
+            ->pluck('name', 'id');
 
-            $order['date'] =
-                $order['created_at'] ?? null;
-
-            $order['buyer_name'] =
-                $order['shipping_name'] ?? 'Unknown Buyer';
-
-            $order['buyer_email'] =
-                optional(DB::table('users')->where('id', $order['buyer_id'] ?? null)->first())->email;
-
-            $order['address'] =
-                $order['shipping_address'] ?? '';
-
-            $order['phone'] =
-                $order['shipping_phone'] ?? '';
-
-            $order['payment'] =
-                $order['payment_method'] ?? '';
-
-            /*
-            |--------------------------------------------------------------------------
-            | BUYER RECEIVED STATUS
-            |--------------------------------------------------------------------------
-            */
-
-            $order['buyer_received_at'] =
-                $order['buyer_received_at'] ?? null;
-
-            /*
-            |--------------------------------------------------------------------------
-            | GET RIDER NAME
-            |--------------------------------------------------------------------------
-            */
-
-            $order['rider_name'] = null;
-
-            if (!empty($order['rider_id'])) {
-
-                $rider = DB::table('users')
-                    ->where('id', $order['rider_id'])
-                    ->first();
-
-                if ($rider) {
-                    $order['rider_name'] = $rider->name;
-                }
-            }
+        $orders->getCollection()->transform(function ($order) use ($itemsByOrder, $riderNames) {
+            $order->items = $itemsByOrder->get($order->id, collect());
+            $order->pickup_rider_name = $riderNames[$order->rider_id] ?? null;
+            $order->delivery_rider_name = $riderNames[$order->delivery_rider_id] ?? null;
 
             return $order;
+        });
 
-        })->toArray();
-
-        return view(
-            'pages.admin.orders',
-            compact('orders')
-        );
+        return view('pages.admin.orders', [
+            'orders' => $orders,
+            'tabs' => self::ORDER_TABS,
+            'tab' => $tab,
+            'tabCounts' => $tabCounts,
+            'search' => $search,
+        ]);
     }
 
     public function orderDetails($id)
@@ -1323,216 +1438,103 @@ class AdminController extends Controller
         }
 
         $order = DB::table('orders')
-            ->where('id', $id)
+            ->leftJoin('users as buyers', 'buyers.id', '=', 'orders.buyer_id')
+            ->where('orders.id', $id)
+            ->select('orders.*', 'buyers.email as buyer_email')
             ->first();
 
         if (!$order) {
             abort(404);
         }
 
-        $order = (array) $order;
-
-        /*
-        |--------------------------------------------------------------------------
-        | ORDER ITEMS
-        |--------------------------------------------------------------------------
-        */
-
-        $items = DB::table('order_items')
-            ->where('order_id', $order['id'])
+        $order->items = DB::table('order_items')
+            ->where('order_id', $order->id)
             ->get();
 
-        $order['items'] = $items->map(function ($item) {
+        $riderNames = DB::table('users')
+            ->whereIn('id', array_filter([$order->rider_id, $order->delivery_rider_id]))
+            ->pluck('name', 'id');
 
-            $item = (array) $item;
+        $order->pickup_rider_name = $riderNames[$order->rider_id] ?? null;
+        $order->delivery_rider_name = $riderNames[$order->delivery_rider_id] ?? null;
 
-            $item['subtotal'] =
-                (float) ($item['price'] ?? 0) *
-                (int) ($item['quantity'] ?? 1);
+        $sellerNames = DB::table('users')
+            ->whereIn('id', $order->items->pluck('seller_id')->filter()->unique())
+            ->pluck('name', 'id');
 
-            return $item;
-
-        })->toArray();
-
-        /*
-        |--------------------------------------------------------------------------
-        | ADMIN DISPLAY FIELDS
-        |--------------------------------------------------------------------------
-        */
-
-        $order['total'] =
-            (float) ($order['total_amount'] ?? 0);
-
-        $order['buyer_name'] =
-            $order['shipping_name'] ?? 'Unknown Buyer';
-
-        $order['buyer_email'] =
-            optional(DB::table('users')->where('id', $order['buyer_id'] ?? null)->first())->email;
-
-        $order['address'] =
-            $order['shipping_address'] ?? '';
-
-        $order['phone'] =
-            $order['shipping_phone'] ?? '';
-
-        $order['payment'] =
-            $order['payment_method'] ?? '';
-
-        /*
-        |--------------------------------------------------------------------------
-        | RIDER
-        |--------------------------------------------------------------------------
-        */
-
-        $order['rider_name'] = null;
-
-        if (!empty($order['rider_id'])) {
-
-            $rider = DB::table('users')
-                ->where('id', $order['rider_id'])
-                ->first();
-
-            if ($rider) {
-                $order['rider_name'] = $rider->name;
-            }
-        }
+        $canCancel = in_array($order->status, self::ADMIN_CANCELLABLE);
 
         return view(
             'pages.admin.order-details',
-            compact('order')
+            compact('order', 'sellerNames', 'canCancel')
         );
     }
 
-    public function updateOrderStatus($id)
+    // Admins don't push orders through the pipeline by hand — each step is
+    // owned by the seller, rider or Logistics flow that records its own
+    // timestamps. What an admin can do is stop an order before it ships.
+    public function cancelOrder($id)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        $status = trim(request('status'));
+        $reason = trim((string) request('reason'));
 
-        // Matches the real statuses the seller/rider/logistics pipeline
-        // actually uses elsewhere in the app — "On the Way" was never a
-        // real status anywhere else and could never be reached again once
-        // set here.
-        $allowedStatuses = [
-            'Pending',
-            'Processing',
-            'Ready for Pickup',
-            'Assigned',
-            'Picked Up',
-            'At Sorting Center',
-            'Assigned for Delivery',
-            'Out for Delivery',
-            'Delivered',
-            'Delivery Failed',
-            'Returned to Seller',
-            'Cancelled',
-        ];
-
-        if (!in_array($status, $allowedStatuses)) {
-
-            return back()->with(
-                'error',
-                'Invalid order status.'
-            );
+        if ($reason === '') {
+            return back()->with('error', 'Please give a reason for cancelling this order.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE ACTUAL DATABASE ORDER
-        |--------------------------------------------------------------------------
-        */
+        $reason = Str::limit($reason, 500, '');
 
         $order = DB::table('orders')
             ->where('id', $id)
             ->first();
 
         if (!$order) {
-
-            return back()->with(
-                'error',
-                'Order not found.'
-            );
+            return back()->with('error', 'Order not found.');
         }
 
-        // Delivered/Cancelled/Returned to Seller are finalized outcomes owned
-        // by their own dedicated flows (buyer confirmation, cancellation
-        // reasons, the Logistics return flow) — letting this generic admin
-        // override reopen them would desync the timestamps and history those
-        // flows rely on (e.g. buyer_received_at, sorting_center_received_at).
-        if (in_array($order->status, ['Delivered', 'Cancelled', 'Returned to Seller'])) {
-
+        if (!in_array($order->status, self::ADMIN_CANCELLABLE)) {
             return back()->with(
                 'error',
-                'This order is finalized (' . $order->status . ') and can no longer be changed here.'
+                'Only orders that are still with the seller (Pending, Processing or Ready for Pickup) can be cancelled.'
             );
-        }
-
-        $update = [
-            'status' => $status,
-            'updated_at' => now(),
-        ];
-
-        if ($status === 'Cancelled') {
-            $update['cancelled_by'] = 'admin';
-            $update['cancelled_at'] = now();
-            $update['cancellation_reason'] = 'Cancelled by an administrator.';
         }
 
         $updated = DB::table('orders')
             ->where('id', $id)
             ->where('status', $order->status)
-            ->update($update);
+            ->update([
+                'status' => 'Cancelled',
+                'cancelled_by' => 'admin',
+                'cancelled_at' => now(),
+                'cancellation_reason' => 'Cancelled by an administrator: ' . $reason,
+                'updated_at' => now(),
+            ]);
 
         if (!$updated) {
             return back()->with('error', 'This order was just updated. Please refresh and try again.');
         }
 
-        // Stock only comes back here if the items were still with the seller;
-        // after pickup it returns via the Returned to Seller flow instead.
-        if ($status === 'Cancelled') {
-            OrderStock::cancelled((int) $id, $order->status);
-        }
+        OrderStock::cancelled((int) $id, $order->status);
 
         createNotification(
             (int) $order->buyer_id,
-            'Order Status Updated',
-            'Your order #' . $id . ' status was updated to "' . $status . '" by an administrator.',
+            'Order Cancelled',
+            'Your order #' . $id . ' was cancelled by BoomBuy. Reason: ' . $reason,
             'order',
             (int) $id
         );
 
         notifyOrderSellers(
             (int) $id,
-            $status === 'Cancelled' ? 'Order Cancelled by Admin' : 'Order Status Updated by Admin',
-            'Order #' . $id . ' status was updated to "' . $status . '" by an administrator.'
+            'Order Cancelled by Admin',
+            'Order #' . $id . ' was cancelled by an administrator. Reason: ' . $reason
+                . ' The items have been returned to your stock.'
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | KEEP SESSION ORDERS SYNCED IF THEY EXIST
-        |--------------------------------------------------------------------------
-        */
-
-        $orders = session()->get('orders', []);
-
-        foreach ($orders as $index => $orderData) {
-
-            if ((string) ($orderData['id'] ?? '') === (string) $id) {
-
-                $orders[$index]['status'] = $status;
-
-                break;
-            }
-        }
-
-        session()->put('orders', $orders);
-
-        return back()->with(
-            'success',
-            'Order status updated to ' . $status . '.'
-        );
+        return back()->with('success', 'Order #' . $id . ' has been cancelled.');
     }
 
     public function notifications()
@@ -1546,16 +1548,11 @@ class AdminController extends Controller
             'admin@boombuy.com'
         )->first();
 
-        $notifications = $adminUser
-            ? Notification::where(
-                'user_id',
-                $adminUser->id
-            )
+        $notifications = Notification::where('user_id', $adminUser->id ?? 0)
             ->orderByDesc('created_at')
-            ->get()
-            : collect();
+            ->paginate(20);
 
-        $unreadCount = $notifications
+        $unreadCount = Notification::where('user_id', $adminUser->id ?? 0)
             ->whereNull('read_at')
             ->count();
 
@@ -1648,7 +1645,14 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $sellers = DB::table('seller_applications')
+        $search = trim((string) request('q', ''));
+
+        // A search for a category name ("shoes") matches sellers registered for it.
+        $categoryMatches = collect(Categories::LIST)
+            ->filter(fn ($label) => $search !== '' && stripos($label, $search) !== false)
+            ->keys();
+
+        $allSellers = DB::table('seller_applications')
             ->join('users', 'users.id', '=', 'seller_applications.user_id')
             ->where('seller_applications.status', 'Approved')
             ->select(
@@ -1656,46 +1660,73 @@ class AdminController extends Controller
                 'users.name',
                 'users.email',
                 'users.status as account_status',
+                'seller_applications.business_name',
                 'seller_applications.business_category'
             )
-            ->orderBy('users.name')
+            ->get();
+
+        // Every seller's products in one query, instead of one per seller.
+        $productsBySeller = Product::whereIn('seller_id', $allSellers->pluck('user_id'))
             ->get()
-            ->map(function ($seller) {
+            ->groupBy('seller_id');
 
-                $products = Product::where('seller_id', $seller->user_id)->get();
+        $allSellers = $allSellers->map(function ($seller) use ($productsBySeller) {
 
-                // business_category is stored as a slug ("electronics") while
-                // products.category is stored as its Title Case label
-                // ("Electronics") — convert the slug to that same label before
-                // comparing, otherwise every product would always "mismatch".
-                $registeredCategoryLabel = Categories::LIST[$seller->business_category] ?? $seller->business_category;
+            $products = $productsBySeller->get($seller->user_id, collect());
 
-                $mismatches = $seller->business_category
-                    ? $products->filter(function ($product) use ($registeredCategoryLabel) {
-                        return $product->category !== $registeredCategoryLabel;
-                    })
-                    : collect();
+            // business_category is stored as a slug ("electronics") while
+            // products.category is stored as its label ("Electronics").
+            $registeredLabel = Categories::LIST[$seller->business_category] ?? $seller->business_category;
 
-                $flagged = $products->where('is_flagged', true);
+            $flagged = $products->where('is_flagged', true)->values();
 
-                return [
-                    'user_id' => $seller->user_id,
-                    'name' => $seller->name,
-                    'email' => $seller->email,
-                    'account_status' => $seller->account_status,
-                    'business_category' => $seller->business_category,
-                    'total_products' => $products->count(),
-                    'mismatches' => $mismatches,
-                    'flagged' => $flagged,
-                ];
-            });
+            // Already-flagged products are listed once, under Flagged.
+            $mismatches = $seller->business_category
+                ? $products->filter(fn ($p) => !$p->is_flagged && $p->category !== $registeredLabel)->values()
+                : collect();
 
-        $totalMismatches = $sellers->sum(fn ($s) => $s['mismatches']->count());
-        $totalFlagged = $sellers->sum(fn ($s) => $s['flagged']->count());
+            return [
+                'user_id' => $seller->user_id,
+                'name' => $seller->name,
+                'shop' => $seller->business_name ?: $seller->name,
+                'email' => $seller->email,
+                'account_status' => $seller->account_status ?? 'Active',
+                'business_category' => $seller->business_category,
+                'category_label' => $registeredLabel ?: 'Not specified',
+                'total_products' => $products->count(),
+                'mismatches' => $mismatches,
+                'flagged' => $flagged,
+                'has_issues' => $mismatches->isNotEmpty() || $flagged->isNotEmpty(),
+            ];
+        });
+
+        $totalSellers = $allSellers->count();
+        $totalMismatches = $allSellers->sum(fn ($s) => $s['mismatches']->count());
+        $totalFlagged = $allSellers->sum(fn ($s) => $s['flagged']->count());
+        $sellersWithIssues = $allSellers->where('has_issues', true)->count();
+
+        // Opens on "Needs attention" while anything needs it, else everyone.
+        $view = in_array(request('view'), ['all', 'issues'], true)
+            ? request('view')
+            : ($sellersWithIssues > 0 ? 'issues' : 'all');
+
+        $sellers = $allSellers
+            ->when($view === 'issues', fn ($c) => $c->where('has_issues', true))
+            ->when($search !== '', function ($c) use ($search, $categoryMatches) {
+                return $c->filter(function ($s) use ($search, $categoryMatches) {
+                    return stripos($s['name'], $search) !== false
+                        || stripos($s['shop'], $search) !== false
+                        || stripos($s['email'], $search) !== false
+                        || $categoryMatches->contains($s['business_category']);
+                });
+            })
+            // Problems first, then alphabetical by shop.
+            ->sortBy(fn ($s) => ($s['has_issues'] ? '0' : '1') . strtolower($s['shop']))
+            ->values();
 
         return view(
             'pages.admin.compliance',
-            compact('sellers', 'totalMismatches', 'totalFlagged')
+            compact('sellers', 'totalSellers', 'sellersWithIssues', 'totalMismatches', 'totalFlagged', 'view', 'search')
         );
     }
 

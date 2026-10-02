@@ -37,12 +37,6 @@
             margin: 24px auto 48px;
         }
 
-        .account-page h1 {
-            margin-bottom: 16px;
-            font-family: var(--font-display);
-            font-size: 26px;
-            font-weight: 800;
-        }
     </style>
 </head>
 
@@ -51,7 +45,7 @@
     @include('partials.buyer-navbar', ['activeNav' => 'account'])
 
     <main class="account-page">
-        <h1>My account</h1>
+        @include('partials.page-head', ['title' => 'My account'])
 
         @include('partials.buyer-account-panel', ['panel' => $panel, 'panelVariant' => 'page'])
     </main>

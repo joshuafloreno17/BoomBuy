@@ -368,3 +368,119 @@ a { text-decoration: none; }
     .app-card-top { flex-direction: column; }
     .reject-form input[type="text"] { width: 140px; }
 }
+
+/* Search, jump links, parcel meta */
+
+.parcel-search {
+    position: relative;
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.parcel-search > i {
+    position: absolute;
+    left: 14px;
+    top: 21px;
+    transform: translateY(-50%);
+    color: #a88d85;
+}
+
+.parcel-search input {
+    flex: 1;
+    padding: 11px 14px 11px 40px;
+    border: 1px solid #f0ddd6;
+    border-radius: 12px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+}
+
+.parcel-search input:focus {
+    outline: none;
+    border-color: var(--accent, #e8420f);
+}
+
+.parcel-search button,
+.parcel-search a {
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--accent, #e8420f);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+}
+
+.parcel-search a {
+    background: #f7f0ee;
+    color: #553b33;
+}
+
+.section-jump {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+}
+
+.section-jump a {
+    padding: 7px 12px;
+    border-radius: 999px;
+    border: 1px solid #f0ddd6;
+    background: #fff;
+    color: #6a4e46;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.section-jump a span {
+    margin-left: 4px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #f7ece8;
+}
+
+.section-jump a.has-work {
+    border-color: #f6b9a5;
+    color: #c43408;
+}
+
+.section-jump a.has-work span {
+    background: var(--accent, #e8420f);
+    color: #fff;
+}
+
+.section-heading {
+    scroll-margin-top: 20px;
+}
+
+.parcel-meta {
+    color: #8d6c62;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.app-card.compact .app-actions {
+    display: none;
+}
+
+@media (max-width: 500px) {
+    .parcel-search { flex-wrap: wrap; }
+    .parcel-search input { flex-basis: 100%; }
+    .parcel-search button, .parcel-search a { flex: 1; justify-content: center; }
+}
+
+@media (max-width: 640px) {
+    .app-actions > form { width: 100%; }
+    .assign-form,
+    .reject-form,
+    .approve-form { flex-wrap: wrap; }
+    .assign-form select,
+    .reject-form input[type="text"] { flex: 1; min-width: 0; width: auto; }
+}

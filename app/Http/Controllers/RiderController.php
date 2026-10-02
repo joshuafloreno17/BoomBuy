@@ -692,10 +692,13 @@ class RiderController extends Controller
         $updated = DB::table('orders')
             ->where('id', $id)
             ->where('status', $order->status)
-            ->update([
-                'status' => $status,
-                'updated_at' => now(),
-            ]);
+            ->update(array_merge(
+                [
+                    'status' => $status,
+                    'updated_at' => now(),
+                ],
+                $status === 'Delivered' ? ['delivered_at' => now()] : []
+            ));
 
         if (!$updated) {
             return back()->with('error', 'This delivery was just updated. Please refresh and try again.');
@@ -806,9 +809,9 @@ class RiderController extends Controller
                     });
             })
             ->where('status', 'Delivered')
-            ->whereDate('updated_at', '>=', $from)
-            ->whereDate('updated_at', '<=', $to)
-            ->orderByDesc('updated_at')
+            ->whereDate('delivered_at', '>=', $from)
+            ->whereDate('delivered_at', '<=', $to)
+            ->orderByDesc('delivered_at')
             ->get();
 
         $totalDeliveries = $completedDeliveries->count();
@@ -816,7 +819,7 @@ class RiderController extends Controller
 
         $dailyProfit = $completedDeliveries
             ->groupBy(function ($order) {
-                return Carbon::parse($order->updated_at)->format('Y-m-d');
+                return Carbon::parse($order->delivered_at)->format('Y-m-d');
             })
             ->map(function ($orders, $day) use ($deliveryFee) {
                 return [
@@ -866,9 +869,9 @@ class RiderController extends Controller
                     });
             })
             ->where('status', 'Delivered')
-            ->whereDate('updated_at', '>=', $from)
-            ->whereDate('updated_at', '<=', $to)
-            ->orderByDesc('updated_at')
+            ->whereDate('delivered_at', '>=', $from)
+            ->whereDate('delivered_at', '<=', $to)
+            ->orderByDesc('delivered_at')
             ->get();
 
         $history = $history->map(function ($order) {
@@ -1163,11 +1166,13 @@ class RiderController extends Controller
             $user['id']
         )
         ->orderByDesc('created_at')
-        ->get();
+        ->paginate(20);
+
+        $unreadCount = Notification::where('user_id', $user['id'])->whereNull('read_at')->count();
 
         return view(
             'pages.rider.notifications',
-            compact('user', 'notifications')
+            compact('user', 'notifications', 'unreadCount')
         );
     }
 

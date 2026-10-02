@@ -40,7 +40,7 @@ class ShopController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $featuredProducts = Product::withCount('reviews')->withAvg('reviews', 'rating')->latest()->take(4)->get();
+        $featuredProducts = Product::onSale()->withCount('reviews')->withAvg('reviews', 'rating')->latest()->take(4)->get();
 
 
         // Guest → Landing Page
@@ -190,8 +190,12 @@ class ShopController extends Controller
 
     public function sellerShop(int $seller)
     {
-        $hasShop = Product::where('seller_id', $seller)->exists()
-            || \App\Models\User::where('id', $seller)->where('role', 'seller')->exists();
+        // Only an Active seller has a shop page; a suspended or deactivated
+        // seller's shop is closed along with their listings.
+        $hasShop = \App\Models\User::where('id', $seller)
+            ->where('role', 'seller')
+            ->where('status', 'Active')
+            ->exists();
 
         abort_unless($hasShop, 404);
 
@@ -235,8 +239,9 @@ class ShopController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $query = Product::where('is_flagged', false)
-            ->where('is_archived', false)
+        $query = Product::onSale()
+            ->withSellableStock()
+            ->withSoldCount()
             ->when($sellerId, fn ($q) => $q->where('seller_id', $sellerId))
             ->withCount(['reviews', 'variations'])
             ->withAvg('reviews', 'rating')
@@ -257,7 +262,8 @@ class ShopController extends Controller
             })
             ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
             ->when($max !== null, fn ($q) => $q->where('price', '<=', $max))
-            ->when($inStock, fn ($q) => $q->where('stock', '>', 0))
+            // Products with options count their options' stock, not their own.
+            ->when($inStock, fn ($q) => $q->whereRaw(Product::SELLABLE_STOCK_SQL . ' > 0'))
             ->when($rating, fn ($q) => $q->whereRaw('(select avg(rating) from product_reviews where product_reviews.product_id = products.id) >= ?', [$rating]));
 
         match ($sort) {
@@ -286,6 +292,9 @@ class ShopController extends Controller
                 ->toArray()
             : [];
 
+        // Shop names for the cards, in one go.
+        $shops = \App\Support\SellerShop::many($paginator->getCollection()->pluck('seller_id'));
+
         $products = $paginator->getCollection()
             ->map(fn ($product) => [
                 'id' => $product->id,
@@ -293,7 +302,12 @@ class ShopController extends Controller
                 'name' => $product->name,
                 'category' => $product->category,
                 'price' => (float) $product->price,
-                'stock' => (int) $product->stock,
+                'stock' => (int) $product->sellable_stock,
+                'sold' => (int) $product->sold_count,
+                'shop_name' => $shops->get($product->seller_id)['name'] ?? null,
+                'shop_url' => $shops->get($product->seller_id)['url'] ?? null,
+                // One item at this price already reaches the free-delivery minimum.
+                'free_shipping' => (float) $product->price >= \App\Support\DeliveryFee::FREE_SHIPPING_MIN,
                 'image' => productImageUrl($product->image),
                 'icon' => Categories::icon($product->category),
                 'rating' => (int) $product->reviews_count > 0 ? round((float) $product->reviews_avg_rating, 1) : null,
@@ -332,8 +346,7 @@ class ShopController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $categoryCounts = Product::where('is_flagged', false)
-            ->where('is_archived', false)
+        $categoryCounts = Product::onSale()
             ->when($sellerId, fn ($q) => $q->where('seller_id', $sellerId))
             ->select('category', DB::raw('COUNT(*) as total'))
             ->groupBy('category')
@@ -410,8 +423,7 @@ class ShopController extends Controller
         // Nothing typed yet, but a category is chosen: its newest products.
         if (empty($terms) && $categoryNames) {
             return response()->json([
-                'products' => Product::where('is_flagged', false)
-                    ->where('is_archived', false)
+                'products' => Product::onSale()
                     ->whereIn('category', $categoryNames)
                     ->latest()
                     ->limit(5)
@@ -425,8 +437,7 @@ class ShopController extends Controller
 
             // Categories with the most products first, topped up from the
             // full list so there are always a few to show.
-            $bySize = Product::where('is_flagged', false)
-                ->where('is_archived', false)
+            $bySize = Product::onSale()
                 ->select('category', DB::raw('COUNT(*) as total'))
                 ->groupBy('category')
                 ->get()
@@ -444,8 +455,7 @@ class ShopController extends Controller
             ]);
         }
 
-        $query = Product::where('is_flagged', false)
-            ->where('is_archived', false)
+        $query = Product::onSale()
             ->when($categoryNames, fn ($inCategory) => $inCategory->whereIn('category', $categoryNames));
 
         foreach ($terms as $term) {
@@ -522,9 +532,10 @@ class ShopController extends Controller
             abort(404);
         }
 
-        // Archived/flagged products are off the storefront — only their own
-        // seller or the admin can still open the page.
-        if ($product->is_archived || $product->is_flagged) {
+        // Archived/flagged products, and products of suspended or deactivated
+        // sellers, are off the storefront — only their own seller or the
+        // admin can still open the page.
+        if (!$product->isPurchasable()) {
 
             $isOwner = (int) (session('user.id') ?? 0) === (int) $product->seller_id
                 && session('user.role') === 'seller';
@@ -560,8 +571,7 @@ class ShopController extends Controller
             ->mapWithKeys(fn ($stars) => [$stars => $reviews->where('rating', $stars)->count()])
             ->all();
 
-        $visible = fn () => Product::where('is_flagged', false)
-            ->where('is_archived', false)
+        $visible = fn () => Product::onSale()
             ->where('id', '!=', $product->id);
 
         // Similar products: same category (old category names included), any seller.
@@ -625,5 +635,12 @@ class ShopController extends Controller
     public function categories()
     {
         return view('categories');
+    }
+
+    // Terms, privacy and return policies — the text the admin saves in
+    // Settings, or the built-in defaults.
+    public function policies()
+    {
+        return view('pages.policies');
     }
 }

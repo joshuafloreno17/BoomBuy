@@ -573,3 +573,59 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     .sidebar .menu a { text-align: center; }
     .main-content { margin-left: 72px; width: calc(100% - 72px); }
 }
+
+/* Sales trend + orders-by-status charts */
+.stats.charts-row {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    margin-bottom: 20px;
+}
+
+.charts-row .stat-card {
+    min-width: 0;
+}
+
+@media (max-width: 900px) {
+    .stats.charts-row {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Product search next to "My Products" */
+.top {
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.product-search {
+    position: relative;
+    flex: 1;
+    max-width: 360px;
+    min-width: 180px;
+}
+
+.product-search i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a88d85;
+}
+
+.product-search input {
+    width: 100%;
+    padding: 10px 12px 10px 36px;
+    border: 1px solid #f0ddd6;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+}
+
+.product-search input:focus {
+    outline: none;
+    border-color: #e8420f;
+}
+
+@media (max-width: 600px) {
+    .product-search { max-width: none; order: 3; flex-basis: 100%; }
+}

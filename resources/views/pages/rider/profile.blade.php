@@ -933,7 +933,6 @@
                                         'Picked Up',
                                         'At Sorting Center',
                                         'Assigned for Delivery',
-                                        'On the Way',
                                         'Out for Delivery'
                                     ]
                                 )

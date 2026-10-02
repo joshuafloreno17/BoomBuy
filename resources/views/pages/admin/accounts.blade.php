@@ -40,7 +40,7 @@
             </h1>
 
             <p>
-                View and manage all registered Buyer, Seller, and Rider accounts.
+                View and manage Buyer, Seller, Rider and Logistics accounts. Pending sellers and logistics partners are under Applications.
             </p>
 
         </div>
@@ -70,94 +70,65 @@
         @endif
 
 
-        <!-- COUNT -->
+        <!-- ROLE FILTERS (each card filters the table) -->
 
         @php
-
-            $buyerCount = 0;
-            $sellerCount = 0;
-            $riderCount = 0;
-
-            foreach ($users as $user) {
-
-                if (($user['role'] ?? '') === 'buyer') {
-                    $buyerCount++;
-                }
-
-                if (($user['role'] ?? '') === 'seller') {
-                    $sellerCount++;
-                }
-
-                if (($user['role'] ?? '') === 'rider') {
-                    $riderCount++;
-                }
-
-            }
-
+            $roleCards = [
+                'all' => ['Total Accounts', $roleCounts->sum()],
+                'buyer' => ['Buyers', $roleCounts['buyer'] ?? 0],
+                'seller' => ['Sellers', $roleCounts['seller'] ?? 0],
+                'rider' => ['Riders', $roleCounts['rider'] ?? 0],
+                'logistics' => ['Logistics', $roleCounts['logistics'] ?? 0],
+            ];
         @endphp
 
+        <div class="stats" id="liveStats">
 
-        <!-- STATS -->
-
-        <div class="stats">
-
-            <div class="stat-card">
-
-                <span>
-                    Total Accounts
-                </span>
-
-                <strong>
-                    {{ count($users) }}
-                </strong>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span>
-                    Buyer Accounts
-                </span>
-
-                <strong>
-                    {{ $buyerCount }}
-                </strong>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span>
-                    Seller Accounts
-                </span>
-
-                <strong>
-                    {{ $sellerCount }}
-                </strong>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <span>
-                    Rider Accounts
-                </span>
-
-                <strong>
-                    {{ $riderCount }}
-                </strong>
-
-            </div>
+            @foreach($roleCards as $key => [$label, $count])
+                <a
+                    href="{{ route('admin.accounts', array_filter(['role' => $key === 'all' ? null : $key, 'status' => $status === 'all' ? null : $status, 'q' => $search])) }}"
+                    class="stat-card {{ $role === $key ? 'active' : '' }}"
+                >
+                    <span>{{ $label }}</span>
+                    <strong>{{ number_format($count) }}</strong>
+                </a>
+            @endforeach
 
         </div>
 
 
+        <!-- SEARCH -->
+
+        <form method="GET" action="{{ route('admin.accounts') }}" class="account-toolbar" data-live-search data-live-target="#liveStats, #liveClear, #liveResults">
+            @if($role !== 'all')
+                <input type="hidden" name="role" value="{{ $role }}">
+            @endif
+
+            <div class="account-search">
+                <i class="bi bi-search"></i>
+                <input type="search" name="q" value="{{ $search }}" placeholder="Search name, email, phone or account ID" aria-label="Search accounts">
+            </div>
+
+            <select name="status" aria-label="Filter by status">
+                <option value="all" {{ $status === 'all' ? 'selected' : '' }}>Any status</option>
+                <option value="Active" {{ $status === 'Active' ? 'selected' : '' }}>Active</option>
+                <option value="Suspended" {{ $status === 'Suspended' ? 'selected' : '' }}>Suspended</option>
+                <option value="Deactivated" {{ $status === 'Deactivated' ? 'selected' : '' }}>Deactivated</option>
+            </select>
+
+            <button type="submit" class="toolbar-btn"><i class="bi bi-search"></i> Search</button>
+
+            <span id="liveClear" style="display:contents;">
+            @if($search !== '' || $status !== 'all' || $role !== 'all')
+                <a href="{{ route('admin.accounts') }}" class="toolbar-btn light"><i class="bi bi-x-lg"></i> Clear</a>
+            @endif
+            </span>
+        </form>
+
+
         <!-- TABLE -->
 
-        <div class="table-card">
+        <div class="table-card" id="liveResults">
 
             <div class="table-header">
 
@@ -166,13 +137,13 @@
                 </h2>
 
                 <span>
-                    {{ count($users) }} account(s)
+                    {{ number_format($users->total()) }} account(s)
                 </span>
 
             </div>
 
 
-            @if(count($users) > 0)
+            @if($users->isNotEmpty())
 
                 <div class="table-wrapper">
 
@@ -217,11 +188,11 @@
 
                                 @php
 
-                                    $role = strtolower(
-                                        $user['role'] ?? ''
+                                    $accountRole = strtolower(
+                                        $user->role ?? ''
                                     );
 
-                                    $status = $user['status'] ?? 'Active';
+                                    $accountStatus = $user->status ?? 'Active';
 
                                 @endphp
 
@@ -236,13 +207,13 @@
 
                                             <div class="avatar">
 
-                                                @if($role === 'buyer')
+                                                @if($accountRole === 'buyer')
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                                                @elseif($role === 'seller')
+                                                @elseif($accountRole === 'seller')
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg>
-                                                @elseif($role === 'rider')
+                                                @elseif($accountRole === 'rider')
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18h6l3-6h4"/><path d="M10 12h3l2-4h3"/><circle cx="17" cy="7" r="1.3"/></svg>
-                                                @elseif($role === 'logistics')
+                                                @elseif($accountRole === 'logistics')
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
                                                 @else
                                                     <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -255,7 +226,7 @@
 
                                                 <div class="user-name">
 
-                                                    {{ $user['name'] ?? 'Unknown User' }}
+                                                    {{ $user->name ?? 'Unknown User' }}
 
                                                 </div>
 
@@ -274,7 +245,7 @@
 
                                     <td>
 
-                                        {{ $user['email'] ?? 'N/A' }}
+                                        {{ $user->email ?? 'N/A' }}
 
                                     </td>
 
@@ -283,28 +254,28 @@
 
                                     <td>
 
-                                        @if($role === 'buyer')
+                                        @if($accountRole === 'buyer')
 
                                             <span class="role buyer">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
                                                 Buyer
                                             </span>
 
-                                        @elseif($role === 'seller')
+                                        @elseif($accountRole === 'seller')
 
                                             <span class="role seller">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg>
                                                 Seller
                                             </span>
 
-                                        @elseif($role === 'rider')
+                                        @elseif($accountRole === 'rider')
 
                                             <span class="role rider">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18h6l3-6h4"/><path d="M10 12h3l2-4h3"/><circle cx="17" cy="7" r="1.3"/></svg>
                                                 Rider
                                             </span>
 
-                                        @elseif($role === 'logistics')
+                                        @elseif($accountRole === 'logistics')
 
                                             <span class="role logistics">
                                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
@@ -326,8 +297,8 @@
 
                                     <td>
 
-                                        <span class="status-badge status-{{ strtolower($status) }}">
-                                            {{ $status }}
+                                        <span class="status-badge status-{{ strtolower($accountStatus) }}">
+                                            {{ $accountStatus }}
                                         </span>
 
                                     </td>
@@ -343,7 +314,7 @@
                                                 font-size:11px;
                                             "
                                         >
-                                            {{ $user['id'] ?? 'N/A' }}
+                                            {{ $user->id ?? 'N/A' }}
                                         </span>
 
                                     </td>
@@ -355,11 +326,15 @@
 
                                         <div class="actions-cell">
 
+                                            <a href="{{ route('messages.thread', $user->id) }}" class="message-btn" title="Message {{ $user->name }}" aria-label="Message {{ $user->name }}">
+                                                <i class="bi bi-chat-dots"></i>
+                                            </a>
+
                                             <form
                                                 method="POST"
-                                                action="{{ route('admin.accounts.status', ['id' => $user['id']]) }}"
+                                                action="{{ route('admin.accounts.status', ['id' => $user->id]) }}"
                                                 class="status-form"
-                                                onsubmit="return confirmStatusChange(event, this, '{{ addslashes($user['name'] ?? 'this account') }}');"
+                                                onsubmit="return confirmStatusChange(event, this, '{{ addslashes($user->name ?? 'this account') }}');"
                                             >
 
                                                 @csrf
@@ -369,31 +344,10 @@
                                                     class="status-select"
                                                     onchange="this.form.requestSubmit()"
                                                 >
-                                                    <option value="Active" {{ $status === 'Active' ? 'selected' : '' }}>Active</option>
-                                                    <option value="Suspended" {{ $status === 'Suspended' ? 'selected' : '' }}>Suspended</option>
-                                                    <option value="Deactivated" {{ $status === 'Deactivated' ? 'selected' : '' }}>Deactivated</option>
+                                                    <option value="Active" {{ $accountStatus === 'Active' ? 'selected' : '' }}>Active</option>
+                                                    <option value="Suspended" {{ $accountStatus === 'Suspended' ? 'selected' : '' }}>Suspended</option>
+                                                    <option value="Deactivated" {{ $accountStatus === 'Deactivated' ? 'selected' : '' }}>Deactivated</option>
                                                 </select>
-
-                                            </form>
-
-                                            <form
-                                                method="POST"
-                                                action="{{ route('admin.accounts.delete', ['id' => $user['id']]) }}"
-                                                class="delete-form"
-                                                onsubmit="return confirmDelete(event, this, '{{ addslashes($user['name'] ?? 'this account') }}');"
-                                            >
-
-                                                @csrf
-
-                                                @method('DELETE')
-
-                                                <button
-                                                    type="submit"
-                                                    class="delete-btn"
-                                                >
-                                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-                                                    Deactivate
-                                                </button>
 
                                             </form>
 
@@ -411,6 +365,8 @@
 
                 </div>
 
+                @include('partials.simple-pager', ['paginator' => $users])
+
             @else
 
                 <!-- EMPTY -->
@@ -422,12 +378,11 @@
                     </div>
 
                     <h3>
-                        No Registered Accounts
+                        No Accounts Found
                     </h3>
 
                     <p>
-                        Buyer, Seller, and Rider accounts
-                        will appear here after registration.
+                        {{ $search !== "" || $status !== "all" || $role !== "all" ? "No accounts match these filters." : "Accounts will appear here after registration." }}
                     </p>
 
                 </div>
@@ -448,22 +403,6 @@
 
     <script>
 
-        function confirmDelete(event, form, name) {
-
-            return bbConfirmSubmit(
-                event,
-                form,
-                'Are you sure you want to deactivate "' + name + '"?\n\n' +
-                'This account will no longer be able to log in. Their existing orders, reviews, and messages are kept.',
-                {
-                    title: 'Deactivate Account',
-                    okText: 'Deactivate',
-                    danger: true
-                }
-            );
-
-        }
-
         function confirmStatusChange(event, form, name) {
 
             var select = form.querySelector('select[name="status"]');
@@ -472,7 +411,10 @@
             return bbConfirmSubmit(
                 event,
                 form,
-                'Set "' + name + '"\'s account status to "' + newStatus + '"?',
+                'Set "' + name + '"\'s account status to "' + newStatus + '"?' +
+                    (newStatus === 'Active'
+                        ? ''
+                        : '\n\nThey will be logged out and cannot log in until set back to Active. Their orders, reviews and messages are kept.'),
                 {
                     title: 'Change Account Status',
                     okText: 'Set to ' + newStatus,
@@ -488,6 +430,7 @@
 
     </script>
 
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

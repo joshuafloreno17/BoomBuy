@@ -495,6 +495,13 @@
            PRODUCT CARDS
         ========================= */
 
+        /* While new results load after a filter change. */
+        .shop-results.is-loading {
+            opacity: .5;
+            pointer-events: none;
+            transition: opacity .15s ease;
+        }
+
         .sp-grid {
             display: grid;
             grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -586,6 +593,42 @@
 
         .sp-name:hover {
             color: var(--accent-dark);
+        }
+
+        /* Which shop sells it */
+        .sp-shop {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            max-width: 100%;
+            color: #8d6c62;
+            font-size: 11.5px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .sp-shop:hover {
+            color: var(--accent-dark);
+        }
+
+        /* "Free shipping" on the photo (one item already reaches the minimum) */
+        .sp-free {
+            position: absolute;
+            left: 10px;
+            bottom: 10px;
+            z-index: 1;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 9px;
+            border-radius: 999px;
+            background: #e3f7ee;
+            color: #0f7a4a;
+            font-size: 11px;
+            font-weight: 800;
+            box-shadow: 0 4px 10px -6px rgba(15, 122, 74, .5);
         }
 
         .sp-meta {
@@ -1313,6 +1356,7 @@
             ['label' => 'Under ₱500', 'min' => null, 'max' => 500],
             ['label' => '₱500–₱1,000', 'min' => 500, 'max' => 1000],
             ['label' => '₱1,000–₱3,000', 'min' => 1000, 'max' => 3000],
+            ['label' => '₱3,000 & up', 'min' => 3000, 'max' => null],
         ];
 
         $heading = $filters['search'] !== ''
@@ -1608,34 +1652,10 @@
                 - (row.clientWidth - activeChip.offsetWidth) / 2;
         }
 
-        /* ---------- filters: apply right away on desktop ---------- */
-
-        document.querySelectorAll('[data-autosubmit]').forEach(function (input) {
-            input.addEventListener('change', function () {
-                // In the phone sheet, wait for "Show results" — except the sort menu, which lives outside it.
-                if (mobile.matches && input.name !== 'sort') return;
-                filters.requestSubmit ? filters.requestSubmit() : filters.submit();
-            });
-        });
-
-        // Leave empty fields out of the URL.
-        filters.addEventListener('submit', function () {
-            filters.querySelectorAll('input[name="min"], input[name="max"]').forEach(function (input) {
-                if (input.value === '') input.disabled = true;
-            });
-            var anyRating = filters.querySelector('input[name="rating"][value=""]');
-            if (anyRating && anyRating.checked) anyRating.disabled = true;
-        });
-
-        // Re-enable them if the page comes back from the back/forward cache.
-        window.addEventListener('pageshow', function () {
-            filters.querySelectorAll('input:disabled').forEach(function (input) { input.disabled = false; });
-        });
 
         /* ---------- phone filter sheet ---------- */
 
         var backdrop = document.querySelector('.sheet-backdrop');
-        var opener = document.querySelector('[data-sheet-open]');
 
         function setSheet(open) {
             filters.classList.toggle('is-open', open);
@@ -1648,18 +1668,117 @@
             } else {
                 filters.removeAttribute('role');
                 filters.removeAttribute('aria-modal');
-                if (opener) opener.focus();
+                var openBtn = document.querySelector('[data-sheet-open]');
+                if (openBtn) openBtn.focus();
             }
         }
 
-        if (opener) opener.addEventListener('click', function () { setSheet(true); });
-
-        document.querySelectorAll('[data-sheet-close]').forEach(function (el) {
-            el.addEventListener('click', function () { setSheet(false); });
+        // Delegated: the Filter button and the close button are re-rendered by live filtering.
+        document.addEventListener('click', function (e) {
+            if (e.target.closest('[data-sheet-open]')) setSheet(true);
+            else if (e.target.closest('[data-sheet-close]')) setSheet(false);
         });
 
         document.addEventListener('keydown', function (e) {
             if (e.key === 'Escape' && filters.classList.contains('is-open')) setSheet(false);
+        });
+
+        /* ---------- filters: update the results in place (no page reload) ---------- */
+
+        var results = document.querySelector('.shop-results');
+        var loadController = null;
+
+        // The URL for the form's current state: empty price/rating left out, back to page 1.
+        function filtersUrl() {
+            var params = new URLSearchParams(new FormData(filters));
+            ['min', 'max', 'rating'].forEach(function (key) {
+                if (params.get(key) === '') params.delete(key);
+            });
+            params.delete('page');
+            var query = params.toString();
+            return filters.getAttribute('action') + (query ? '?' + query : '');
+        }
+
+        // Fetch the page for `url` and swap in the parts that depend on the filters.
+        function liveLoad(url, push) {
+            if (loadController) loadController.abort();
+            loadController = new AbortController();
+            results.classList.add('is-loading');
+
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, signal: loadController.signal })
+                .then(function (res) { if (!res.ok) throw new Error(); return res.text(); })
+                .then(function (html) {
+                    var doc = new DOMParser().parseFromString(html, 'text/html');
+
+                    ['.shop-results', '.shop-title', '.cat-row', '#shopFilters .filters-head', '#shopFilters .price-picks'].forEach(function (sel) {
+                        var now = document.querySelector(sel);
+                        var fresh = doc.querySelector(sel);
+                        if (now && fresh) now.innerHTML = fresh.innerHTML;
+                    });
+
+                    // Keep the inputs in step (e.g. after removing a filter chip),
+                    // without touching the box the buyer is typing in.
+                    var freshForm = doc.getElementById('shopFilters');
+                    if (freshForm) {
+                        filters.querySelectorAll('input[name]').forEach(function (input) {
+                            if (input.type === 'hidden') return;
+                            // Back/forward resets everything; otherwise leave the box being typed in alone.
+                            if (push !== false && input === document.activeElement) return;
+                            var match = input.type === 'radio' || input.type === 'checkbox'
+                                ? freshForm.querySelector('input[name="' + input.name + '"][value="' + input.value + '"]')
+                                : freshForm.querySelector('input[name="' + input.name + '"]');
+                            if (!match) return;
+                            if (input.type === 'radio' || input.type === 'checkbox') input.checked = match.checked;
+                            else input.value = match.value;
+                        });
+                    }
+
+                    if (push !== false) history.pushState({ shop: true }, '', url);
+                })
+                .catch(function (err) {
+                    if (err && err.name === 'AbortError') return;
+                    window.location.href = url;
+                })
+                .finally(function () { results.classList.remove('is-loading'); });
+        }
+
+        // Rating, stock and sort apply right away (in the phone sheet, filters wait for "Show results").
+        document.addEventListener('change', function (e) {
+            var input = e.target.closest('[data-autosubmit]');
+            if (!input) return;
+            if (mobile.matches && input.name !== 'sort') return;
+            liveLoad(filtersUrl());
+        });
+
+        // Typing a price applies it after a short pause (desktop).
+        var priceTimer = null;
+        filters.querySelectorAll('input[name="min"], input[name="max"]').forEach(function (input) {
+            input.addEventListener('input', function () {
+                if (mobile.matches) return;
+                clearTimeout(priceTimer);
+                priceTimer = setTimeout(function () { liveLoad(filtersUrl()); }, 700);
+            });
+        });
+
+        // "Apply price" / "Show results".
+        filters.addEventListener('submit', function (e) {
+            e.preventDefault();
+            clearTimeout(priceTimer);
+            liveLoad(filtersUrl());
+            if (filters.classList.contains('is-open')) setSheet(false);
+        });
+
+        // Price picks, filter chips and "Clear all" links update in place too.
+        document.addEventListener('click', function (e) {
+            var link = e.target.closest('.price-picks a, .active-filters a, a.clear-link, .filters-foot a.btn-soft, .shop-empty-actions a');
+            if (!link || e.metaKey || e.ctrlKey || e.shiftKey) return;
+            if (new URL(link.href, location.href).pathname !== location.pathname) return;
+            e.preventDefault();
+            liveLoad(link.href);
+        });
+
+        window.addEventListener('popstate', function () {
+            liveLoad(location.href, false);
         });
 
         /* ---------- toast ---------- */
@@ -1921,10 +2040,10 @@
 
         /* ---------- load more ---------- */
 
-        var loadBtn = document.getElementById('loadMoreBtn');
-
-        if (loadBtn) {
-            loadBtn.addEventListener('click', function (e) {
+        // Delegated: the button is re-rendered whenever the filters change.
+        document.addEventListener('click', function (e) {
+            var loadBtn = e.target.closest('#loadMoreBtn');
+            if (!loadBtn) return;
                 e.preventDefault();
                 if (loadBtn.getAttribute('aria-busy') === 'true') return;
 
@@ -1953,8 +2072,7 @@
                         // Fall back to opening the next page normally.
                         window.location.href = loadBtn.href;
                     });
-            });
-        }
+        });
     })();
     </script>
 

@@ -14,35 +14,13 @@
     <style>
 @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
-.received-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    margin-top: 8px;
-
-    padding: 7px 11px;
-
-    border-radius: 999px;
-
-    background: #e9f8ef;
-    color: #087a3d;
-
-    border: 1px solid #ccefd9;
-
-    font-size: 11px;
-    font-weight: 800;
-
-    white-space: nowrap;
-}
-
         * {
             box-sizing: border-box;
         }
 
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
+            font-family: 'Plus Jakarta Sans', Arial, sans-serif;
             background: #fff7f4;
             color: #172033;
         }
@@ -54,12 +32,13 @@
         }
 
         h1 {
-            margin-bottom: 8px;
+            margin: 0 0 6px;
+            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
         }
 
         .subtitle {
             color: #8e7067;
-            margin-bottom: 28px;
+            margin-bottom: 24px;
         }
 
         .alert {
@@ -70,153 +49,251 @@
             color: #087a3d;
         }
 
+        .alert.error {
+            background: #fdecec;
+            color: #b42318;
+        }
+
+        /* Search */
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 220px;
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a88d85;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 14px 12px 40px;
+            border: 1px solid #ecd7d0;
+            border-radius: 12px;
+            font-size: 14px;
+            background: #fff;
+            font-family: inherit;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent, #f13f09);
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 18px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 14px;
+            font-family: inherit;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-primary {
+            background: var(--accent, #f13f09);
+            color: #fff;
+        }
+
+        .btn-light {
+            background: #f7f0ee;
+            color: #553b33;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 6px;
+            margin-bottom: 20px;
+            scrollbar-width: thin;
+        }
+
+        .tab {
+            flex: 0 0 auto;
+            padding: 9px 14px;
+            border-radius: 999px;
+            border: 1px solid #f0dcd5;
+            background: #fff;
+            color: #6f5850;
+            font-weight: 700;
+            font-size: 13px;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .tab .count {
+            display: inline-block;
+            min-width: 22px;
+            margin-left: 6px;
+            padding: 1px 7px;
+            border-radius: 999px;
+            background: #f7ece8;
+            color: #8e7067;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .tab.active {
+            background: var(--accent, #f13f09);
+            border-color: var(--accent, #f13f09);
+            color: #fff;
+        }
+
+        .tab.active .count {
+            background: rgba(255, 255, 255, .25);
+            color: #fff;
+        }
+
+        /* Order cards */
         .empty {
             background: white;
             border: 1px solid #f6e1db;
-            border-radius: 14px;
-            padding: 50px;
+            border-radius: 16px;
+            padding: 50px 20px;
             text-align: center;
             color: #8e7067;
+        }
+
+        .empty i {
+            font-size: 34px;
+            color: #e8b9aa;
         }
 
         .order-card {
             background: white;
             border: 1px solid #f6e1db;
-            border-radius: 14px;
-            padding: 22px;
-            margin-bottom: 18px;
+            border-radius: 16px;
+            padding: 18px 20px;
+            margin-bottom: 14px;
         }
 
         .order-header {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            gap: 20px;
-            margin-bottom: 15px;
+            align-items: flex-start;
+            gap: 14px;
+            flex-wrap: wrap;
         }
 
         .order-id {
             font-weight: 800;
-            font-size: 18px;
+            font-size: 17px;
         }
 
-        .status {
-            display: inline-block;
-            padding: 7px 12px;
-            border-radius: 20px;
-            background: #fff4d6;
-            color: #9a6700;
+        .order-date {
+            color: #977970;
             font-size: 13px;
-            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .badges {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .mini-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: 800;
+            background: #e9f8ef;
+            color: #087a3d;
+        }
+
+        .order-body {
+            display: grid;
+            grid-template-columns: 1.1fr 1.4fr auto;
+            gap: 18px;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid #f6efed;
+            align-items: start;
+        }
+
+        .label {
+            color: #a88d85;
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+            margin-bottom: 4px;
         }
 
         .info {
-            color: #7c5f57;
-            line-height: 1.7;
+            color: #5f4a43;
+            font-size: 14px;
+            line-height: 1.6;
+            word-break: break-word;
         }
 
-        .items {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f6efed;
+        .info .muted {
+            color: #977970;
         }
 
-        .item {
+        .item-line {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-        }
-
-        .total {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #f6efed;
-            font-size: 18px;
-            font-weight: 800;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .actions {
-            margin-top: 20px;
-            display: flex;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
-        .btn {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-weight: 700;
+        .item-line > span:last-child {
+            white-space: nowrap;
         }
 
-        .btn-blue {
-            background: #f13f09;
-            color: white;
+        .order-total {
+            text-align: right;
+            white-space: nowrap;
         }
 
-        .btn-green {
-            background: #198754;
-            color: white;
+        .order-total .amount {
+            font-size: 19px;
+            font-weight: 800;
+            color: #172033;
         }
 
-        .btn-gray {
-            background: #f7f0ee;
-            color: #553b33;
+        .order-total .btn {
+            margin-top: 10px;
         }
 
-        select {
-            padding: 10px 12px;
-            border: 1px solid #e6d1cb;
-            border-radius: 8px;
-            background: white;
+        @media (max-width: 860px) {
+            .order-body {
+                grid-template-columns: 1fr;
+            }
+
+            .order-total {
+                text-align: left;
+            }
         }
 
-        .details {
-            text-decoration: none;
-            padding: 10px 15px;
-            border-radius: 8px;
-            background: #fff2ee;
-            color: #f13f09;
-            font-weight: 700;
+        @media (max-width: 640px) {
+            .container { width: 92%; margin: 24px auto; }
+            .order-card { padding: 16px; }
+            .toolbar .btn { flex: 1; justify-content: center; }
+            h1 { font-size: 24px; }
         }
-    
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-
-@media (max-width: 640px) {
-    .container { width: 92%; margin: 24px auto; }
-    .order-header { flex-wrap: wrap; gap: 8px; }
-    .order-card { padding: 16px; }
-    .actions { flex-direction: column; align-items: stretch; }
-    .actions .btn, .actions select, .actions .details { width: 100%; text-align: center; }
-    h1 { font-size: 22px; }
-}
-</style>
+    </style>
 </head>
 
 <body>
@@ -231,28 +308,65 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     <h1>Orders</h1>
     <div class="subtitle">
-        Manage all BoomBuy customer orders.
+        Track every BoomBuy order. Orders move forward through the seller, rider and Logistics flows; open an order to cancel it while it is still with the seller.
     </div>
 
     @if(session('success'))
-        <div class="alert">
-            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
-            {{ session('success') }}
-        </div>
+        <div class="alert"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
     @endif
 
     @if(session('error'))
-        <div class="alert" style="background:#fdecec;color:#b42318;">
-            {{ session('error') }}
-        </div>
+        <div class="alert error"><i class="bi bi-exclamation-circle-fill"></i> {{ session('error') }}</div>
     @endif
 
+    <form method="GET" action="{{ route('admin.orders') }}" class="toolbar" data-live-search data-live-target="#liveClear, #liveTabs, #liveResults">
+        <input type="hidden" name="tab" value="{{ $tab }}">
 
-    @if(empty($orders))
+        <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input
+                type="search"
+                name="q"
+                value="{{ $search }}"
+                placeholder="Search order #, buyer name, phone or email"
+                aria-label="Search orders"
+            >
+        </div>
+
+        <button type="submit" class="btn btn-primary"><i class="bi bi-search"></i> Search</button>
+
+        <span id="liveClear" style="display:contents;">
+        @if($search !== '')
+            <a href="{{ route('admin.orders', ['tab' => $tab]) }}" class="btn btn-light"><i class="bi bi-x-lg"></i> Clear</a>
+        @endif
+        </span>
+    </form>
+
+    <div class="tabs" id="liveTabs">
+        @foreach($tabs as $key => $definition)
+            <a
+                href="{{ route('admin.orders', array_filter(['tab' => $key, 'q' => $search])) }}"
+                class="tab {{ $tab === $key ? 'active' : '' }}"
+            >
+                {{ $definition['label'] }}<span class="count">{{ $tabCounts[$key] }}</span>
+            </a>
+        @endforeach
+    </div>
+
+    <div id="liveResults">
+
+    @if($orders->isEmpty())
 
         <div class="empty">
-            <h2>No Orders Yet</h2>
-            <p>There are currently no orders in BoomBuy.</p>
+            <i class="bi bi-inbox"></i>
+            <h2>No orders found</h2>
+            <p>
+                @if($search !== '')
+                    Nothing matches "{{ $search }}" here. Try another search or tab.
+                @else
+                    There are no orders in this tab yet.
+                @endif
+            </p>
         </div>
 
     @else
@@ -262,177 +376,70 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             <div class="order-card">
 
                 <div class="order-header">
-
                     <div>
-                        <div class="order-id">
-                            {{ $order['id'] ?? 'Unknown Order' }}
-                        </div>
-
-                        <div class="info">
-                            {{ $order['date'] ?? '' }}
+                        <div class="order-id">Order #{{ $order->id }}</div>
+                        <div class="order-date">
+                            {{ \Carbon\Carbon::parse($order->created_at)->format('M d, Y · g:i A') }}
                         </div>
                     </div>
 
-                <div>
+                    <div class="badges">
+                        <x-status-pill :status="$order->status" />
 
-    <x-status-pill :status="$order['status'] ?? 'Pending'" />
-
-    @if(!empty($order['buyer_received_at']))
-
-        <div class="received-badge">
-            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
-            Received by Buyer
-        </div>
-
-    @endif
-
-</div>
-
+                        @if(!empty($order->buyer_received_at))
+                            <span class="mini-badge"><i class="bi bi-check2-circle"></i> Received by Buyer</span>
+                        @endif
+                    </div>
                 </div>
 
+                <div class="order-body">
 
-                <div class="info">
+                    <div class="info">
+                        <div class="label">Buyer</div>
+                        <strong>{{ $order->shipping_name ?: 'Unknown Buyer' }}</strong><br>
+                        <span class="muted">{{ $order->buyer_email ?? 'No account email' }}</span><br>
+                        <span class="muted">{{ $order->shipping_phone ?: 'No phone' }}</span><br>
+                        <span class="muted">{{ $order->payment_method ?: 'N/A' }}</span>
 
-                    <strong>Buyer:</strong>
-                    {{ $order['buyer_name'] ?? 'Buyer' }}
-
-                    <br>
-
-                    <strong>Email:</strong>
-                    {{ $order['buyer_email'] ?? 'N/A' }}
-
-                    <br>
-
-                    <strong>Phone:</strong>
-                    {{ $order['phone'] ?? 'N/A' }}
-
-                    <br>
-
-                    <strong>Address:</strong>
-                    {{ $order['address'] ?? 'N/A' }}
-
-                    <br>
-
-                    <strong>Payment:</strong>
-                    {{ $order['payment'] ?? 'N/A' }}
-
-                </div>
-
-
-                <div class="items">
-
-                    <strong>Order Items</strong>
-
-                    @foreach(($order['items'] ?? []) as $item)
-
-                        <div class="item">
-
-                            <span>
-                                {{ $item['product_name'] ?? 'Product' }}
-                                × {{ $item['quantity'] ?? 1 }}
-                            </span>
-
-                            <span>
-                                ₱{{ number_format($item['subtotal'] ?? 0, 2) }}
-                            </span>
-
-                        </div>
-
-                    @endforeach
-
-                </div>
-
-
-                <div class="total">
-
-                    <span>Total</span>
-
-                    <span>
-                        ₱{{ number_format($order['total'] ?? 0, 2) }}
-                    </span>
-
-                </div>
-
-
-                @if(!empty($order['rider_name']))
-
-                    <div class="info" style="margin-top:15px;">
-                        <strong>Rider:</strong>
-                        {{ $order['rider_name'] }}
+                        @if($order->pickup_rider_name || $order->delivery_rider_name)
+                            <div class="label" style="margin-top:10px;">Rider</div>
+                            @if($order->pickup_rider_name)
+                                Pickup: {{ $order->pickup_rider_name }}<br>
+                            @endif
+                            @if($order->delivery_rider_name)
+                                Delivery: {{ $order->delivery_rider_name }}
+                            @endif
+                        @endif
                     </div>
 
-                @endif
+                    <div class="info">
+                        <div class="label">Items ({{ $order->items->sum('quantity') }})</div>
 
+                        @foreach($order->items->take(3) as $item)
+                            <div class="item-line">
+                                <span>
+                                    {{ $item->product_name }}
+                                    @if(!empty($item->variation_label))
+                                        <span class="muted">({{ $item->variation_label }})</span>
+                                    @endif
+                                    × {{ $item->quantity }}
+                                </span>
+                                <span>₱{{ number_format($item->price * $item->quantity, 2) }}</span>
+                            </div>
+                        @endforeach
 
-                <div class="actions">
+                        @if($order->items->count() > 3)
+                            <div class="muted">+ {{ $order->items->count() - 3 }} more item(s)</div>
+                        @endif
+                    </div>
 
-                    <a
-                        href="{{ route('admin.order.details', $order['id']) }}"
-                        class="details"
-                    >
-                        View Details
-                    </a>
-
-
-                    <form
-                        method="POST"
-                        action="{{ route('admin.order.status', $order['id']) }}"
-                    >
-
-                        @csrf
-
-                        <select name="status">
-
-                            <option value="Pending"
-                                {{ ($order['status'] ?? '') === 'Pending' ? 'selected' : '' }}>
-                                Pending
-                            </option>
-
-                            <option value="Processing"
-                                {{ ($order['status'] ?? '') === 'Processing' ? 'selected' : '' }}>
-                                Processing
-                            </option>
-
-                            <option value="Ready for Pickup"
-                                {{ ($order['status'] ?? '') === 'Ready for Pickup' ? 'selected' : '' }}>
-                                Ready for Pickup
-                            </option>
-
-                            <option value="Assigned"
-                                {{ ($order['status'] ?? '') === 'Assigned' ? 'selected' : '' }}>
-                                Assigned to Courier
-                            </option>
-
-                            <option value="Picked Up"
-                                {{ ($order['status'] ?? '') === 'Picked Up' ? 'selected' : '' }}>
-                                Picked Up
-                            </option>
-
-                            <option value="On the Way"
-                                {{ ($order['status'] ?? '') === 'On the Way' ? 'selected' : '' }}>
-                                On the Way
-                            </option>
-
-                            <option value="Delivered"
-                                {{ ($order['status'] ?? '') === 'Delivered' ? 'selected' : '' }}>
-                                Delivered
-                            </option>
-
-                            <option value="Cancelled"
-                                {{ ($order['status'] ?? '') === 'Cancelled' ? 'selected' : '' }}>
-                                Cancelled
-                            </option>
-
-                        </select>
-
-                        <button
-                            type="submit"
-                            class="btn btn-blue"
-                        >
-                            Update Status
-                        </button>
-
-                    </form>
+                    <div class="order-total">
+                        <div class="label">Total</div>
+                        <div class="amount">₱{{ number_format($order->total_amount, 2) }}</div>
+                        <a href="{{ route('admin.order.details', $order->id) }}" class="btn btn-light">
+                            View Details <i class="bi bi-chevron-right"></i>
+                        </a>
+                    </div>
 
                 </div>
 
@@ -440,7 +447,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         @endforeach
 
+        @include('partials.simple-pager', ['paginator' => $orders])
+
     @endif
+
+    </div>
 
 </div>
 
@@ -448,6 +459,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 </div>
 
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

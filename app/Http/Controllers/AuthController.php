@@ -87,6 +87,10 @@ class AuthController extends Controller
             LoginGate::remember($user);
         }
 
+        // Where a guest was before being asked to log in (cart, a product).
+        // Taken out on every login so it can't linger for someone else.
+        $afterLogin = session()->pull('after_login');
+
         switch ($user->role) {
 
             case 'seller':
@@ -100,8 +104,10 @@ class AuthController extends Controller
                     ->with('success', 'Welcome to BoomBuy Rider!');
 
             case 'buyer':
+                // Back to where a guest was sent from (e.g. their cart),
+                // else the buyer home. Only paths we stored ourselves.
                 return redirect()
-                    ->route('buyer.dashboard')
+                    ->to($afterLogin ?: route('buyer.dashboard'))
                     ->with('success', 'Welcome to BoomBuy!');
 
             case 'logistics':
@@ -168,13 +174,23 @@ class AuthController extends Controller
 
         $user = User::where('email', $email)->first();
 
+        // Same answer whether or not the email has an account, so this form
+        // can't be used to find out who is registered. With no account there
+        // is simply no email, and no code will ever match.
         if (!$user) {
 
-            return back()
-                ->withInput()
+            session([
+                'password_reset_user_id' => -1,
+                'password_reset_otp' => bin2hex(random_bytes(16)),
+                'password_reset_expires_at' => now()->addMinutes(10),
+                'password_reset_attempts' => 0,
+            ]);
+
+            return redirect()
+                ->route('password.reset')
                 ->with(
-                    'error',
-                    'No account was found with that email address.'
+                    'success',
+                    'If that email has a BoomBuy account, we sent a 6-digit code to it. Enter it below along with your new password.'
                 );
         }
 
@@ -211,7 +227,7 @@ class AuthController extends Controller
             ->route('password.reset')
             ->with(
                 'success',
-                'We sent a 6-digit code to your email. Enter it below along with your new password.'
+                'If that email has a BoomBuy account, we sent a 6-digit code to it. Enter it below along with your new password.'
             );
     }
 
@@ -325,6 +341,9 @@ class AuthController extends Controller
         $user->password = Hash::make($password);
         $user->save();
 
+        // Signs out every "Remember me" browser that used the old password.
+        LoginGate::passwordChanged($user);
+
         /*
         |--------------------------------------------------------------------------
         | CLEAR RESET SESSION
@@ -425,6 +444,13 @@ class AuthController extends Controller
                 ->route('login')
                 ->with('error', 'This email is already registered. Please log in instead.');
         }
+
+        // The account and its application are created together or not at
+        // all — a half-made account (no application) could never log in, and
+        // its email would be taken so the person couldn't register again.
+        DB::beginTransaction();
+
+        try {
 
         $user = User::create([
             'name' => $pending['name'] ?? $pending['full_name'],
@@ -597,6 +623,33 @@ class AuthController extends Controller
         }
 
 
+        if ($role === 'buyer') {
+
+            DB::table('buyer_applications')->insert([
+                'user_id' => $user->id,
+                'full_name' => $pending['name'] ?? $user->name,
+                'phone' => $pending['phone'] ?? null,
+                'address' => $pending['address'] ?? null,
+                'id_photo' => $pending['id_photo'] ?? null,
+                'status' => 'Pending Verification',
+                'admin_remarks' => null,
+                'reviewed_at' => null,
+                'reviewed_by' => null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+
+        DB::commit();
+
+        } catch (\Throwable $e) {
+
+            DB::rollBack();
+            report($e);
+
+            return back()->with('error', 'We could not finish creating your account. Please try the code again in a moment.');
+        }
+
         /*
         |--------------------------------------------------------------------------
         | CLEAR OTP SESSION
@@ -669,22 +722,6 @@ class AuthController extends Controller
         */
 
         if ($user->role === 'buyer') {
-
-            DB::table('buyer_applications')->insert([
-
-                'user_id' => $user->id,
-                'full_name' => $pending['name'] ?? $user->name,
-                'phone' => $pending['phone'] ?? null,
-                'address' => $pending['address'] ?? null,
-                'id_photo' => $pending['id_photo'] ?? null,
-                'status' => 'Pending Verification',
-                'admin_remarks' => null,
-                'reviewed_at' => null,
-                'reviewed_by' => null,
-                'created_at' => now(),
-                'updated_at' => now(),
-
-            ]);
 
             return redirect()
                 ->route('login')

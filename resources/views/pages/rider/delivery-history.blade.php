@@ -54,7 +54,7 @@
                         <div>
                             <div class="history-id">Order #{{ $order['id'] }}</div>
                             <div class="history-date">
-                                Delivered {{ \Carbon\Carbon::parse($order['updated_at'])->format('M d, Y • h:i A') }}
+                                Delivered {{ \Carbon\Carbon::parse($order['delivered_at'] ?? $order['updated_at'])->format('M d, Y • h:i A') }}
                             </div>
                         </div>
                         <span class="history-badge">Delivered</span>

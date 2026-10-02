@@ -6,6 +6,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
+use App\Http\Controllers\EvidenceController;
 use App\Http\Controllers\MessageController;
 use App\Http\Controllers\RiderController;
 use App\Http\Controllers\LogisticsController;
@@ -259,7 +260,6 @@ Route::delete('/admin/settings/announcements/{id}', [AdminController::class, 'de
 Route::post('/admin/settings/policies', [AdminController::class, 'updatePolicies'])->name('admin.settings.policies.update');
 
 
-Route::delete('/admin/accounts/{id}', [AdminController::class, 'deleteAccount'])->name('admin.accounts.delete');
 
 
 Route::post('/admin/accounts/{id}/status', [AdminController::class, 'updateAccountStatus'])->name('admin.accounts.status');
@@ -316,7 +316,7 @@ Route::get('/admin/orders', [AdminController::class, 'orders'])->name('admin.ord
 
 Route::get('/admin/order/{id}', [AdminController::class, 'orderDetails'])->name('admin.order.details');
 
-Route::post('/admin/order/{id}/status', [AdminController::class, 'updateOrderStatus'])->name('admin.order.status');
+Route::post('/admin/order/{id}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.order.cancel');
 
 
 
@@ -628,6 +628,8 @@ Route::post('/seller/products/{id}/unarchive', [SellerController::class, 'unarch
 
 Route::get('/categories', [ShopController::class, 'categories'])->name('categories');
 
+Route::get('/policies', [ShopController::class, 'policies'])->name('policies');
+
 
 Route::post('/buyer/order/{orderId}/return-refund', [BuyerController::class, 'requestReturnRefund'])->name('buyer.return-refund.store');
 
@@ -841,6 +843,10 @@ Route::post('/rider/notifications/{id}/read', [RiderController::class, 'markNoti
 
 Route::get('/complaints', [ComplaintController::class, 'index'])->name('complaints.index');
 
+// Private evidence photos — only the people involved and the admin.
+Route::get('/complaints/{id}/evidence', [EvidenceController::class, 'complaint'])->whereNumber('id')->name('complaints.evidence');
+Route::get('/return-refund/{id}/evidence', [EvidenceController::class, 'returnRequest'])->whereNumber('id')->name('return-refund.evidence');
+
 
 Route::post('/complaints', [ComplaintController::class, 'store'])->name('complaints.store');
 
@@ -863,6 +869,9 @@ Route::post('/admin/complaints/{id}/status', [AdminController::class, 'updateCom
 */
 
 Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
+
+// Admin's "New message" search — must stay above /messages/{userId}.
+Route::get('/messages/recipients', [MessageController::class, 'recipients'])->middleware('throttle:60,1')->name('messages.recipients');
 
 
 Route::get('/messages/{userId}', [MessageController::class, 'thread'])->name('messages.thread');

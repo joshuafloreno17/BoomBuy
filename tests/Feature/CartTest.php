@@ -99,4 +99,22 @@ class CartTest extends TestCase
             ->assertSee('Stride Footwear Co.')
             ->assertSee('Voltique Electronics');
     }
+
+    public function test_guests_have_no_cart_and_come_back_to_it_after_logging_in(): void
+    {
+        // No cart icon for guests — they can't add to a cart anyway.
+        $this->get(route('home'))->assertOk()->assertDontSee('id="cartCount"', false);
+
+        $this->get(route('cart'))
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('after_login', route('cart'));
+
+        $buyer = $this->makeUser('buyer', ['email' => 'back-to-cart@example.com']);
+
+        $this->post(route('login.submit'), ['email' => 'back-to-cart@example.com', 'password' => 'password123'])
+            ->assertRedirect(route('cart'));
+
+        $this->get(route('cart'))->assertOk()->assertSee('id="cartCount"', false);
+        $this->assertNotNull($buyer);
+    }
 }

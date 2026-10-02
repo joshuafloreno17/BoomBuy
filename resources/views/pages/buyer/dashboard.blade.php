@@ -946,26 +946,8 @@
                 </a>
             </section>
 
-            {{-- HERO: latest platform announcement, else the COD message --}}
-            <section class="dash-hero">
-                <div class="dash-hero-text">
-                    @if($announcement)
-                        <span class="dash-hero-eyebrow"><i class="bi bi-megaphone-fill"></i> Announcement</span>
-                        <h1>{{ $announcement->title }}</h1>
-                        <p>{{ $announcement->message }}</p>
-                    @else
-                        <span class="dash-hero-eyebrow">From BoomBuy</span>
-                        <h1>Pay when it arrives.</h1>
-                        <p>Every order supports Cash on Delivery. Pay the rider when your parcel reaches your door.</p>
-                    @endif
-                    <a href="{{ route('products') }}" class="dash-hero-cta">Start shopping <i class="bi bi-arrow-right"></i></a>
-                </div>
-                <div class="dash-hero-art" aria-hidden="true">
-                    <span class="dash-hero-tile t1"><i class="bi bi-headphones"></i></span>
-                    <span class="dash-hero-tile t2"><i class="bi bi-phone"></i></span>
-                    <span class="dash-hero-tile t3"><i class="bi bi-lightning-charge"></i></span>
-                </div>
-            </section>
+            {{-- HERO: rotating highlights (announcement, new arrivals, free shipping, COD) --}}
+            @include('partials.buyer-hero-carousel', ['announcement' => $announcement, 'latest' => $discover['latest'] ?? []])
 
             {{-- YOUR ORDERS --}}
             @if(count($activeOrders) > 0)

@@ -35,24 +35,6 @@
             margin: 45px auto 80px;
         }
 
-        .back {
-            display: inline-block;
-            color: #db5a33;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 20px;
-        }
-
-        h1 {
-            font-size: 34px;
-            margin-bottom: 8px;
-        }
-
-        .subtitle {
-            color: #977970;
-            font-size: 14px;
-            margin-bottom: 30px;
-        }
 
         .success {
             background: #ecfdf3;
@@ -198,6 +180,19 @@
 
         .cart-item.item-deselected {
             opacity: 0.5;
+        }
+
+        .cart-item.is-unavailable .product-image,
+        .cart-item.is-unavailable .unit-price,
+        .cart-item.is-unavailable .item-total {
+            opacity: .45;
+        }
+
+        .unavailable-note {
+            margin: 4px 0 6px;
+            color: #b42318;
+            font-size: 12px;
+            font-weight: 700;
         }
 
         .item-checkbox {
@@ -412,20 +407,6 @@
             font-weight: 600;
         }
 
-        footer {
-            background: #fff;
-            border-top: 1px solid #f7e5e0;
-            padding: 30px 7%;
-            display: flex;
-            justify-content: space-between;
-            color: #977970;
-            font-size: 12px;
-        }
-
-        footer strong {
-            color: #e8420f;
-        }
-
         h1, h2, h3, .logo {
             font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
             letter-spacing: -0.01em;
@@ -480,12 +461,6 @@
                 grid-column: 3;
                 text-align: left;
             }
-
-            footer {
-                flex-direction: column;
-                gap: 8px;
-                text-align: center;
-            }
         }
     </style>
 </head>
@@ -496,15 +471,11 @@
 
 <div class="container">
 
-    <a href="/products" class="back">
-        ← Continue Shopping
-    </a>
-
-    <h1>Shopping Cart</h1>
-
-    <p class="subtitle">
-        Review your items before checkout.
-    </p>
+    @php $cartUnits = array_sum(array_map('intval', $cart ?? [])); @endphp
+    @include('partials.page-head', [
+        'title' => 'Shopping Cart',
+        'note' => $cartUnits ? $cartUnits . ' ' . \Illuminate\Support\Str::plural('item', $cartUnits) : null,
+    ])
 
     @if(session('success'))
         <div class="success">
@@ -542,6 +513,13 @@
             'id',
             array_unique($cartProductIds)
         )->get()->keyBy('id');
+
+        // Archived/flagged items and items of suspended sellers stay visible
+        // (so the buyer knows what happened) but can't be selected or paid for.
+        $onSaleIds = \App\Models\Product::onSale()
+            ->whereIn('products.id', array_unique($cartProductIds))
+            ->pluck('products.id')
+            ->flip();
 
         $subtotal = 0;
         $totalItems = 0;
@@ -630,21 +608,29 @@
                             $itemTotal =
                                 $itemUnitPrice * $quantity;
 
-                            $subtotal += $itemTotal;
+                            $itemAvailable = $onSaleIds->has($product->id);
 
-                            $totalItems += $quantity;
+                            if ($itemAvailable) {
+                                $subtotal += $itemTotal;
+                                $totalItems += $quantity;
+                            }
                         @endphp
 
-                        <div class="cart-item" id="cart-item-{{ $cartKey }}" data-cart-key="{{ $cartKey }}">
+                        <div class="cart-item {{ $itemAvailable ? '' : 'is-unavailable' }}" id="cart-item-{{ $cartKey }}" data-cart-key="{{ $cartKey }}">
 
-                            <input
-                                type="checkbox"
-                                class="item-checkbox"
-                                data-cart-key="{{ $cartKey }}"
-                                data-unit-price="{{ $itemUnitPrice }}"
-                                data-quantity="{{ $quantity }}"
-                                checked
-                            >
+                            @if($itemAvailable)
+                                <input
+                                    type="checkbox"
+                                    class="item-checkbox"
+                                    data-cart-key="{{ $cartKey }}"
+                                    data-unit-price="{{ $itemUnitPrice }}"
+                                    data-quantity="{{ $quantity }}"
+                                    checked
+                                >
+                            @else
+                                {{-- Not an .item-checkbox, so select-all and the totals skip it. --}}
+                                <input type="checkbox" disabled aria-label="Unavailable item" style="width:18px;height:18px;flex-shrink:0;">
+                            @endif
 
                             <div class="product-image">
                                 <x-product-thumb :image="$product->image" :category="$product->category" size="90" style="width:100%; height:100%; border-radius:13px;" />
@@ -659,6 +645,12 @@
                                 <h3>
                                     {{ $product->name }}
                                 </h3>
+
+                                @if(!$itemAvailable)
+                                    <div class="unavailable-note">
+                                        <i class="bi bi-exclamation-circle"></i> No longer available — please remove it from your cart.
+                                    </div>
+                                @endif
 
                                 <div class="unit-price">
                                     ₱{{ number_format($itemUnitPrice, 2) }} each

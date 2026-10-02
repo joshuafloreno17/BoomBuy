@@ -116,6 +116,22 @@ class LoginGate
         return hash_equals($user->remember_token, hash('sha256', $token)) ? $user : null;
     }
 
+    /**
+     * After a password change or reset, no browser may stay signed in through
+     * an old "Remember me" cookie (someone who knew the old password could
+     * otherwise keep access for 30 days). When the person changed it from
+     * their own logged-in, remembered browser, that browser gets a fresh
+     * token so only the other devices are signed out.
+     */
+    public static function passwordChanged(object $user, bool $keepThisBrowser = false): void
+    {
+        DB::table('users')->where('id', $user->id)->update(['remember_token' => null]);
+
+        if ($keepThisBrowser && request()->hasCookie(self::REMEMBER_COOKIE)) {
+            self::remember($user);
+        }
+    }
+
     /** Invalidate every remembered browser for this user and drop the cookie. */
     public static function forget(?int $userId): void
     {

@@ -34,6 +34,38 @@
                 <div class="error-box">{{ session('error') }}</div>
             @endif
 
+            {{-- STATUS + SEARCH --}}
+            <div class="rider-filters">
+                <div class="status-chips" id="liveChips">
+                    @foreach ($statuses as $key => $definition)
+                        @php
+                            $chipCount = $definition['status'] === null
+                                ? $statusCounts->sum()
+                                : ($statusCounts[$definition['status']] ?? 0);
+                        @endphp
+                        <a
+                            href="{{ route('logistics.riders', array_filter(['status' => $key, 'q' => $search])) }}"
+                            class="status-chip {{ $statusKey === $key ? 'active' : '' }} {{ $key === 'pending' && $chipCount > 0 ? 'has-work' : '' }}"
+                        >
+                            {{ $definition['label'] }} ({{ $chipCount }})
+                        </a>
+                    @endforeach
+                </div>
+
+                <form method="GET" action="{{ route('logistics.riders') }}" class="rider-search" data-live-search data-live-target="#liveChips, #liveClear, #liveResults">
+                    <input type="hidden" name="status" value="{{ $statusKey }}">
+                    <input type="search" name="q" value="{{ $search }}" placeholder="Search name, email, phone or plate" aria-label="Search riders">
+                    <button type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
+                    <span id="liveClear" style="display:contents;">
+                    @if ($search !== '')
+                        <a href="{{ route('logistics.riders', ['status' => $statusKey]) }}" title="Clear search"><i class="bi bi-x-lg"></i></a>
+                    @endif
+                    </span>
+                </form>
+            </div>
+
+            <div id="liveResults">
+
             @forelse ($riderApplications as $app)
 
                 @php
@@ -77,6 +109,12 @@
                             <strong>Applied</strong>
                             {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
                         </div>
+                        @if ($app->status === 'Approved')
+                            <div>
+                                <strong>Current Load</strong>
+                                {{ $pickupLoad[$app->user_id] ?? 0 }} pickup(s) · {{ $deliveryLoad[$app->user_id] ?? 0 }} delivery(ies)
+                            </div>
+                        @endif
                     </div>
 
                     <div class="documents">
@@ -112,9 +150,9 @@
                                 <button type="submit" class="approve-btn"><i class="bi bi-check-circle-fill"></i> Approve</button>
                             </form>
 
-                            <form class="reject-form" method="POST" action="{{ route('logistics.riders.reject', $app->id) }}">
+                            <form class="reject-form" method="POST" action="{{ route('logistics.riders.reject', $app->id) }}" data-confirm="Reject this rider application? The applicant will be notified by email." data-confirm-ok="Reject" data-confirm-danger>
                                 @csrf
-                                <input type="text" name="admin_remarks" placeholder="Reason (optional)">
+                                <input type="text" name="admin_remarks" placeholder="Reason (shown to the applicant)">
                                 <button type="submit" class="reject-btn"><i class="bi bi-x-circle-fill"></i> Reject</button>
                             </form>
 
@@ -126,7 +164,7 @@
 
                             @if (($app->account_status ?? 'Active') === 'Active')
 
-                                <form class="status-form" method="POST" action="{{ route('logistics.riders.toggle-status', $app->user_id) }}">
+                                <form class="status-form" method="POST" action="{{ route('logistics.riders.toggle-status', $app->user_id) }}" data-confirm="Deactivate {{ $app->full_name }}? They will be logged out and can no longer receive parcels." data-confirm-ok="Deactivate" data-confirm-danger>
                                     @csrf
                                     <input type="hidden" name="status" value="Deactivated">
                                     <button type="submit" class="deactivate-btn">Deactivate Account</button>
@@ -184,11 +222,14 @@
 
                 <div class="empty">
                     <div class="empty-icon"><i class="bi bi-bicycle"></i></div>
-                    <h3>No Rider Applications</h3>
-                    <p>Rider applications will appear here for verification.</p>
+                    <h3>{{ $search !== '' ? 'No riders match your search' : ($statusKey === 'pending' ? 'No applications waiting' : 'No riders here yet') }}</h3>
+                    <p>{{ $statusKey === 'pending' ? 'All caught up — new rider applications will appear here.' : 'Rider applications will appear here for verification.' }}</p>
                 </div>
 
             @endforelse
+            @include('partials.simple-pager', ['paginator' => $riderApplications])
+
+            </div>
 
         </div>
 
@@ -197,13 +238,21 @@
     <script src="{{ asset('js/data/psgc-data.js') }}"></script>
     <script src="{{ asset('js/pages/registration-fields.js') }}"></script>
     <script>
-        @foreach ($riderApplications as $app)
-            @if($app->status === 'Approved')
-                initAddressCascade('province-{{ $app->user_id }}', 'city-{{ $app->user_id }}');
-            @endif
-        @endforeach
+        // Fill each approved rider's Province/City pickers — on load, and
+        // again whenever live search swaps in a new list of riders.
+        function initRiderAreaPickers() {
+            document.querySelectorAll('select[id^="province-"]').forEach(function (province) {
+                if (province.dataset.ready) return;
+                province.dataset.ready = '1';
+                initAddressCascade(province.id, 'city-' + province.id.slice('province-'.length));
+            });
+        }
+
+        initRiderAreaPickers();
+        document.addEventListener('bb:live-updated', initRiderAreaPickers);
     </script>
 
+    @include('partials.live-search')
     @include('partials.pwa-register')
 
 </body>

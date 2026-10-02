@@ -26,6 +26,14 @@
                 <p>Stay updated on rider applications, incoming parcels, and account status.</p>
             </div>
 
+            @if(($unreadCount ?? 0) > 0)
+                <form method="POST" action="{{ route('notifications.read-all') }}" class="bb-mark-all">
+                    @csrf
+                    <span><strong>{{ $unreadCount }}</strong> unread</span>
+                    <button type="submit"><i class="bi bi-check2-all"></i> Mark all as read</button>
+                </form>
+            @endif
+
             @if($notifications->count() > 0)
 
                 <div class="notifications-box">
@@ -49,6 +57,7 @@
                         />
 
                     @endforeach
+                @include('partials.simple-pager', ['paginator' => $notifications])
 
                 </div>
 

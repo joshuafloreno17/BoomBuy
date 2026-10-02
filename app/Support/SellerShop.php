@@ -72,8 +72,7 @@ class SellerShop
     private static function stats(Collection $ids): Collection
     {
         $products = Product::whereIn('seller_id', $ids)
-            ->where('is_flagged', false)
-            ->where('is_archived', false)
+            ->onSale()
             ->selectRaw('seller_id, COUNT(*) as products')
             ->groupBy('seller_id')
             ->pluck('products', 'seller_id');

@@ -931,34 +931,37 @@
     }
 
     @media (max-width: 900px) {
+        /* Phones: logo + actions, then the search, then the page links on
+           their own row (so they never squeeze next to Login / Register). */
         .bb-navbar {
             grid-template-columns: 1fr auto;
             grid-template-areas:
-                "left right"
-                "search search";
+                "logo right"
+                "search search"
+                "links links";
 
             height: auto;
             min-height: 72px;
 
-            row-gap: 12px;
+            row-gap: 0;
 
             padding: 15px 20px;
         }
 
         .bb-nav-left {
-            grid-area: left;
+            display: contents;
+        }
 
-            flex-direction: column;
-            align-items: flex-start;
-
-            gap: 10px;
+        .bb-logo {
+            grid-area: logo;
+            align-self: center;
         }
 
         .bb-nav-search {
             grid-area: search;
             max-width: none;
             width: 100%;
-            margin: 0;
+            margin: 12px 0 0;
         }
 
         .bb-nav-right {
@@ -970,15 +973,18 @@
         }
 
         .bb-nav-links {
+            grid-area: links;
+
             width: 100%;
 
             justify-content: flex-start;
 
-            margin-left: 0;
+            margin: 10px 0 0;
 
-            gap: 14px;
+            gap: 18px;
 
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            overflow-x: auto;
         }
 
         .bb-nav-links a {
@@ -1080,6 +1086,13 @@
         class="{{ $bbActive === 'orders' ? 'active' : '' }}"
     >
         My Orders
+    </a>
+
+@else
+
+    {{-- Guests: jump to the category grid on the landing page. --}}
+    <a href="{{ route('home') }}#categories">
+        Categories
     </a>
 
 @endif
@@ -1266,7 +1279,9 @@
 
         @endif
 
-        {{-- 🛒 Cart — hover shows what's in it (re-fetched on hover), click opens the cart --}}
+        {{-- 🛒 Cart — hover shows what's in it (re-fetched on hover), click opens the cart.
+             Logged-in only: guests can't add to a cart, so theirs would always be empty. --}}
+        @if($bbNavUser)
         <div class="bb-hover" data-hover-panel data-hover-refresh="{{ route('cart.preview') }}">
 
             <a href="{{ route('cart') }}" class="bb-cart-link {{ $bbActive === 'cart' ? 'active' : '' }}" aria-label="Cart" title="Cart">
@@ -1284,6 +1299,7 @@
             </div>
 
         </div>
+        @endif
 
         @if($bbNavUser)
 

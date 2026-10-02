@@ -49,20 +49,6 @@
             margin: 45px auto 80px;
         }
 
-        .page-header {
-            margin-bottom: 25px;
-        }
-
-        .page-header h1 {
-            font-family: 'Baloo 2', sans-serif;
-            font-size: 30px;
-        }
-
-        .page-header p {
-            color: #977970;
-            font-size: 13px;
-            margin-top: 6px;
-        }
 
         .success-box {
             background: #f0fdf4;
@@ -339,10 +325,10 @@
 
     <div class="container">
 
-        <div class="page-header">
-            <h1>My Wishlist</h1>
-            <p>Products you've saved for later.</p>
-        </div>
+        @include('partials.page-head', [
+            'title' => 'My Wishlist',
+            'note' => count($products) . ' ' . \Illuminate\Support\Str::plural('item', count($products)),
+        ])
 
         @if (session('success'))
             <div class="success-box">{{ session('success') }}</div>
@@ -397,7 +383,18 @@
 
                         <div class="card-actions">
 
-                            @if(!$product->is_archived && $product->stock > 0)
+                            @if(!$product->on_sale)
+
+                                <span class="out-of-stock-label">Unavailable</span>
+
+                            @elseif($product->has_options)
+
+                                {{-- Color/size has to be picked on the product page. --}}
+                                <a href="{{ route('product.details', $product->id) }}" class="add-cart-btn" style="display:inline-block; text-align:center; text-decoration:none;">
+                                    Choose Options
+                                </a>
+
+                            @elseif($product->stock > 0)
 
                                 <form action="{{ route('cart.add', $product->id) }}" method="POST">
                                     @csrf
@@ -408,9 +405,7 @@
 
                             @else
 
-                                <span class="out-of-stock-label">
-                                    {{ $product->is_archived ? 'Unavailable' : 'Out of Stock' }}
-                                </span>
+                                <span class="out-of-stock-label">Out of Stock</span>
 
                             @endif
 

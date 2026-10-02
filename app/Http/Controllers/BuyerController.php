@@ -105,10 +105,10 @@ class BuyerController extends Controller
             ->values();
 
         $buyAgain = Product::whereIn('id', $boughtIds)
+            ->withSellableStock()
             ->withCount(['reviews', 'variations'])
             ->withAvg('reviews', 'rating')
-            ->where('is_flagged', false)
-            ->where('is_archived', false)
+            ->onSale()
             ->get()
             ->sortBy(fn ($p) => $boughtIds->search($p->id))
             ->take(4)
@@ -122,8 +122,8 @@ class BuyerController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $visible = fn () => Product::where('is_flagged', false)
-            ->where('is_archived', false)
+        $visible = fn () => Product::onSale()
+            ->withSellableStock()
             ->withCount(['reviews', 'variations'])
             ->withAvg('reviews', 'rating');
 
@@ -228,7 +228,8 @@ class BuyerController extends Controller
             'name' => $product->name,
             'category' => $product->category,
             'price' => (float) $product->price,
-            'stock' => (int) $product->stock,
+            // The options' stock when the product has options (Product::SELLABLE_STOCK_SQL).
+            'stock' => (int) ($product->sellable_stock ?? $product->stock),
             'image' => productImageUrl($product->image),
             'icon' => \App\Support\Categories::icon($product->category),
             'rating' => $reviewCount > 0 ? round((float) $product->reviews_avg_rating, 1) : null,
@@ -469,6 +470,8 @@ class BuyerController extends Controller
         $dbUser->password = Hash::make($new);
         $dbUser->save();
 
+        \App\Support\LoginGate::passwordChanged($dbUser, true);
+
         return back()->with('success', 'Password changed successfully.');
     }
 
@@ -486,6 +489,24 @@ class BuyerController extends Controller
             ->select('products.*', 'wishlists.created_at as wishlisted_at')
             ->orderByDesc('wishlists.created_at')
             ->get();
+
+        // Which saved products can still be bought (not archived/flagged, and
+        // the seller is still active), and which need an option picked first.
+        $onSaleIds = Product::onSale()
+            ->whereIn('products.id', $products->pluck('id'))
+            ->pluck('products.id')
+            ->flip();
+
+        $withOptions = DB::table('product_variations')
+            ->whereIn('product_id', $products->pluck('id'))
+            ->distinct()
+            ->pluck('product_id')
+            ->flip();
+
+        $products->each(function ($product) use ($onSaleIds, $withOptions) {
+            $product->on_sale = $onSaleIds->has($product->id);
+            $product->has_options = $withOptions->has($product->id);
+        });
 
         return view(
             'pages.buyer.wishlist',
@@ -1105,7 +1126,7 @@ class BuyerController extends Controller
                 'evidence' => 'image|max:4096',
             ]);
 
-            $evidencePath = request()->file('evidence')->store('return-evidence', 'public');
+            $evidencePath = request()->file('evidence')->store('return-evidence', 'local');
         }
 
         /*

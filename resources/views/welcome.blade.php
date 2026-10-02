@@ -48,8 +48,7 @@
 
         .category-icon i,
         .story-icon i,
-        .product-image i,
-        .nav-search button i {
+        .product-image i {
             color: var(--accent);
         }
 
@@ -139,37 +138,6 @@
             font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
         }
 
-        /* =========================
-           NAVBAR
-        ========================= */
-
-        .navbar {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
-            width: 100%;
-
-            background: rgba(255, 255, 255, 0.96);
-            backdrop-filter: blur(12px);
-
-            border-bottom: 1px solid #f9e9e4;
-
-            padding: 17px 7%;
-
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-
-            box-shadow: 0 2px 12px rgba(70, 40, 30, 0.03);
-
-            transition: box-shadow 0.25s ease, padding 0.25s ease;
-        }
-
-        .navbar.is-scrolled {
-            padding-block: 12px;
-            box-shadow: 0 14px 30px -20px rgba(70, 40, 30, 0.28);
-        }
-
         .logo {
             font-size: 27px;
             font-weight: 800;
@@ -179,273 +147,6 @@
 
         .logo span {
             color: #172033;
-        }
-
-        .nav-links {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-        }
-
-        .nav-links a {
-            color: #6a4e46;
-            font-size: 13px;
-            font-weight: 700;
-            transition: 0.2s ease;
-        }
-
-        .nav-links a:hover {
-            color: #e8420f;
-        }
-
-        .nav-buttons {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-        }
-
-        .login-btn {
-            color: #e8420f;
-            background: #fff;
-            border: 1px solid #f7d9cf;
-
-            padding: 10px 18px;
-            border-radius: 12px;
-
-            font-size: 12px;
-            font-weight: 800;
-
-            transition: 0.2s ease;
-        }
-
-        .login-btn:hover {
-            background: #fff3f0;
-            transform: translateY(-1px);
-        }
-
-        .register-btn {
-            background: #e8420f;
-            color: white;
-
-            padding: 11px 19px;
-            border-radius: 12px;
-
-            font-size: 12px;
-            font-weight: 800;
-
-            transition: 0.2s ease;
-            box-shadow: 0 7px 18px rgba(232, 66, 15, 0.15);
-        }
-
-        .register-btn:hover {
-            background: #cf380b;
-            transform: translateY(-1px);
-            box-shadow: 0 10px 22px rgba(232, 66, 15, 0.20);
-        }
-
-        /* =========================
-           NAV SEARCH
-        ========================= */
-
-        .nav-search {
-            display: flex;
-            align-items: center;
-
-            background: #fff6f3;
-            border: 1px solid #f4ded6;
-            border-radius: 12px;
-
-            padding: 0 4px 0 14px;
-
-            width: 220px;
-        }
-
-        .nav-search input {
-            flex: 1;
-            min-width: 0;
-
-            border: none;
-            background: transparent;
-            outline: none;
-
-            padding: 9px 0;
-
-            font-family: inherit;
-            font-size: 12px;
-            color: #33241f;
-        }
-
-        .nav-search input::placeholder {
-            color: #b99c93;
-        }
-
-        .nav-search button {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-
-            padding: 8px;
-            font-size: 14px;
-        }
-
-        /* =========================
-           MOBILE MENU TOGGLE
-        ========================= */
-
-        .menu-toggle {
-            display: none;
-
-            flex-direction: column;
-            justify-content: center;
-            gap: 5px;
-
-            width: 36px;
-            height: 36px;
-
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 0;
-        }
-
-        .menu-toggle span {
-            display: block;
-            height: 2px;
-            width: 100%;
-
-            background: #33241f;
-            border-radius: 2px;
-
-            transition: 0.25s ease;
-        }
-
-        .menu-toggle.is-open span:nth-child(1) {
-            transform: translateY(7px) rotate(45deg);
-        }
-
-        .menu-toggle.is-open span:nth-child(2) {
-            opacity: 0;
-        }
-
-        .menu-toggle.is-open span:nth-child(3) {
-            transform: translateY(-7px) rotate(-45deg);
-        }
-
-        .mobile-menu {
-            display: none;
-
-            flex-direction: column;
-
-            background: white;
-            border-bottom: 1px solid #f9e9e4;
-
-            padding: 0 7%;
-
-            position: sticky;
-            top: 65px;
-            z-index: 999;
-
-            max-height: 0;
-            overflow: hidden;
-
-            transition: max-height 0.3s ease, padding 0.3s ease;
-        }
-
-        .mobile-menu.is-open {
-            max-height: 420px;
-            padding: 10px 7% 20px;
-        }
-
-        /* Room for the search suggestions while the search box is in use. */
-        .mobile-menu.is-open:focus-within {
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-
-        /* Inside the (clipped) mobile menu the suggestions sit in the flow,
-           right under the search box, instead of floating over the page. */
-        .mobile-search {
-            flex-wrap: wrap;
-        }
-
-        .mobile-search .bb-suggest {
-            position: static;
-            flex-basis: 100%;
-            margin: 6px -4px 8px -14px;
-            box-shadow: none;
-        }
-
-        /* Undo the big menu-link styling (.mobile-menu a) for the links
-           inside the suggestions. */
-        .mobile-menu .bb-suggest a {
-            font-size: 13px;
-            font-weight: 400;
-            padding: 6px 10px;
-            border-bottom: none;
-        }
-
-        .mobile-menu .bb-suggest a.bb-suggest-chip {
-            font-size: 12px;
-            font-weight: 600;
-            padding: 5px 11px;
-        }
-
-        .mobile-menu a {
-            color: #33241f;
-            font-size: 14px;
-            font-weight: 700;
-
-            padding: 12px 0;
-
-            border-bottom: 1px solid #f8efed;
-        }
-
-        .mobile-search {
-            display: flex;
-            align-items: center;
-
-            background: #fff6f3;
-            border: 1px solid #f4ded6;
-            border-radius: 12px;
-
-            padding: 0 4px 0 14px;
-            margin: 14px 0;
-        }
-
-        .mobile-search input {
-            flex: 1;
-            min-width: 0;
-
-            border: none;
-            background: transparent;
-            outline: none;
-
-            padding: 11px 0;
-
-            font-family: inherit;
-            font-size: 13px;
-        }
-
-        .mobile-search button {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-
-            padding: 8px;
-            font-size: 15px;
-        }
-
-        .mobile-menu-buttons {
-            display: flex;
-            gap: 10px;
-
-            margin-top: 4px;
-        }
-
-        .mobile-menu-buttons a {
-            flex: 1;
-            text-align: center;
-            border-bottom: none;
         }
 
         /* =========================
@@ -1251,77 +952,9 @@
 
         .back-to-top:hover { background: var(--accent-dark); }
 
-        /* =========================
-           FOOTER
-        ========================= */
-
-        footer {
-            background: #111827;
-
-            color: white;
-
-            padding: 52px 7% 24px;
-        }
-
-        .footer-grid {
-            display: grid;
-
-            grid-template-columns: 1.5fr 1fr 1fr 1fr;
-
-            gap: 38px;
-
-            padding-bottom: 38px;
-
-            border-bottom: 1px solid #263244;
-        }
-
-        .footer-brand .logo {
-            display: inline-block;
-            margin-bottom: 14px;
-        }
-
-        .footer-brand p {
-            color: #b99c93;
-
-            font-size: 11px;
-            line-height: 1.7;
-
-            max-width: 300px;
-        }
-
-        footer h4 {
-            font-size: 12px;
-            margin-bottom: 14px;
-        }
-
-        footer ul {
-            list-style: none;
-        }
-
-        footer li {
-            margin-bottom: 9px;
-        }
-
-        footer li a {
-            color: #b99c93;
-
-            font-size: 11px;
-
-            transition: 0.2s ease;
-        }
-
-        footer li a:hover {
-            color: white;
-        }
-
-        .copyright {
-            padding-top: 21px;
-
-            color: #8d6c62;
-
-            font-size: 10px;
-
-            text-align: center;
+        /* Keep the footer's last line clear of the floating back-to-top button. */
+        @media (max-width: 560px) {
+            footer.bb-footer .bb-footer-bottom { padding-right: 76px; }
         }
 
         /* =========================
@@ -1340,22 +973,6 @@
         }
 
         @media (max-width: 900px) {
-
-            .nav-links {
-                display: none;
-            }
-
-            .nav-search {
-                display: none;
-            }
-
-            .menu-toggle {
-                display: flex;
-            }
-
-            .mobile-menu {
-                display: flex;
-            }
 
             .hero {
                 grid-template-columns: 1fr;
@@ -1387,24 +1004,12 @@
                 flex-direction: column;
                 text-align: center;
             }
-
-            .footer-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
         }
 
         @media (max-width: 600px) {
 
-            .navbar {
-                padding: 14px 5%;
-            }
-
             .logo {
                 font-size: 24px;
-            }
-
-            .login-btn {
-                display: none;
             }
 
             .hero {
@@ -1477,128 +1082,14 @@
             .cta h2 {
                 font-size: 28px;
             }
-
-            .footer-grid {
-                grid-template-columns: 1fr;
-            }
         }
     </style>
 </head>
 
 <body>
 
-    <!-- =========================
-         NAVBAR
-    ========================= -->
-
-    <nav class="navbar">
-
-        <a href="/" class="logo">
-            Boom<span>Buy</span>
-        </a>
-
-        <div class="nav-links">
-
-            <a href="/">
-                Home
-            </a>
-
-            <a href="#categories">
-                Categories
-            </a>
-
-            <a href="#featured">
-                Featured
-            </a>
-
-            <a href="{{ route('login') }}">
-                Shop
-            </a>
-
-        </div>
-
-        <form class="nav-search" action="{{ route('products') }}" method="GET" data-search-suggest>
-            <input
-                type="text"
-                name="search"
-                placeholder="Search products..."
-                aria-label="Search products"
-            >
-            <button type="submit" aria-label="Search">
-                <i class="bi bi-search"></i>
-            </button>
-        </form>
-
-        <div class="nav-buttons">
-
-            <a href="{{ route('login') }}" class="login-btn">
-                Login
-            </a>
-
-            <a href="{{ route('register') }}" class="register-btn">
-                Register
-            </a>
-
-        </div>
-
-        <button
-            class="menu-toggle"
-            id="menuToggle"
-            aria-label="Toggle menu"
-            aria-expanded="false"
-            aria-controls="mobileMenu"
-        >
-            <span></span>
-            <span></span>
-            <span></span>
-        </button>
-
-    </nav>
-
-    <div class="mobile-menu" id="mobileMenu">
-
-        <a href="/">
-            Home
-        </a>
-
-        <a href="#categories">
-            Categories
-        </a>
-
-        <a href="#featured">
-            Featured
-        </a>
-
-        <a href="{{ route('login') }}">
-            Shop
-        </a>
-
-        <form class="mobile-search" action="{{ route('products') }}" method="GET" data-search-suggest>
-            <input
-                type="text"
-                name="search"
-                placeholder="Search products..."
-                aria-label="Search products"
-            >
-            <button type="submit" aria-label="Search">
-                <i class="bi bi-search"></i>
-            </button>
-        </form>
-
-        <div class="mobile-menu-buttons">
-
-            <a href="{{ route('login') }}" class="login-btn">
-                Login
-            </a>
-
-            <a href="{{ route('register') }}" class="register-btn">
-                Register
-            </a>
-
-        </div>
-
-    </div>
-
+    {{-- Same header as the rest of the shop (guest: Login / Register). --}}
+    @include('partials.buyer-navbar', ['activeNav' => 'home'])
 
     <!-- =========================
          HERO
@@ -2454,124 +1945,7 @@
          FOOTER
     ========================= -->
 
-    <footer>
-
-        <div class="footer-grid">
-
-            <div class="footer-brand">
-
-                <a href="/" class="logo">
-                    Boom<span>Buy</span>
-                </a>
-
-                <p>
-                    Your everyday online marketplace for
-                    products, sellers, and convenient shopping.
-                </p>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    Marketplace
-                </h4>
-
-                <ul>
-
-                    <li>
-                        <a href="{{ route('login') }}">
-                            Shop Products
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#categories">
-                            Categories
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="#featured">
-                            Featured
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    Account
-                </h4>
-
-                <ul>
-
-                    <li>
-                        <a href="{{ route('login') }}">
-                            Login
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('register') }}">
-                            Register
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="{{ route('login') }}">
-                            Cart
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-
-            <div>
-
-                <h4>
-                    BoomBuy
-                </h4>
-
-                <ul>
-
-                    <li>
-                        <a href="/">
-                            About Us
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="/">
-                            Contact
-                        </a>
-                    </li>
-
-                    <li>
-                        <a href="/">
-                            Help Center
-                        </a>
-                    </li>
-
-                </ul>
-
-            </div>
-
-        </div>
-
-
-        <div class="copyright">
-            © 2026 BoomBuy · Shop smarter. Live better.
-        </div>
-
-    </footer>
+    @include('partials.buyer-footer')
 
     <button class="back-to-top" id="backToTop" aria-label="Back to top" onclick="window.scrollTo({top:0, behavior:'smooth'})">
         <i class="bi bi-arrow-up"></i>
@@ -2584,14 +1958,6 @@
 
     <script>
         (function () {
-
-            var nav = document.querySelector('.navbar');
-
-            if (nav) {
-                window.addEventListener('scroll', function () {
-                    nav.classList.toggle('is-scrolled', window.scrollY > 8);
-                }, { passive: true });
-            }
 
             var revealEls = document.querySelectorAll('.bb-reveal');
 
@@ -2666,35 +2032,6 @@
     </script>
 
 
-    <!-- =========================
-         MOBILE MENU SCRIPT
-    ========================= -->
-
-    <script>
-        (function () {
-            var toggle = document.getElementById('menuToggle');
-            var menu = document.getElementById('mobileMenu');
-
-            if (!toggle || !menu) {
-                return;
-            }
-
-            toggle.addEventListener('click', function () {
-                var isOpen = menu.classList.toggle('is-open');
-
-                toggle.classList.toggle('is-open', isOpen);
-                toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-            });
-
-            menu.querySelectorAll('a').forEach(function (link) {
-                link.addEventListener('click', function () {
-                    menu.classList.remove('is-open');
-                    toggle.classList.remove('is-open');
-                    toggle.setAttribute('aria-expanded', 'false');
-                });
-            });
-        })();
-    </script>
 
 
     <!-- =========================
@@ -2777,7 +2114,6 @@
         })();
     </script>
 
-    @include('partials.search-suggest')
 
     @include('partials.pwa-register')
 

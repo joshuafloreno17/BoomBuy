@@ -16,6 +16,8 @@ class CartController extends Controller
         $user = requireUserRole('buyer');
 
         if (!is_array($user)) {
+            $this->returnHereAfterLogin();
+
             // The shop's AJAX "Add to cart" needs to know to send a guest to log in.
             return request()->expectsJson()
                 ? response()->json(['ok' => false, 'message' => 'Please log in to add items to your cart.', 'login' => route('login')], 401)
@@ -152,6 +154,8 @@ class CartController extends Controller
         $user = requireUserRole('buyer');
 
         if (!is_array($user)) {
+            $this->returnHereAfterLogin();
+
             return $user;
         }
 
@@ -198,7 +202,7 @@ class CartController extends Controller
         ]);
 
         return redirect()
-            ->route('checkout');
+            ->route('checkout', ['buy_now' => 1]);
     }
 
     public function update($key)
@@ -308,6 +312,19 @@ class CartController extends Controller
 
     // Cart page
     /** The navbar cart hover panel, re-fetched on hover so it's never stale. */
+    /**
+     * A guest who tried to buy is sent to log in; bring them back to the
+     * product they were looking at afterwards. Only same-site pages.
+     */
+    private function returnHereAfterLogin(): void
+    {
+        $previous = url()->previous();
+
+        if (!session('user') && str_starts_with($previous, url('/')) && !str_contains($previous, '/login')) {
+            session()->put('after_login', $previous);
+        }
+    }
+
     public function preview()
     {
         return view('partials.navbar-cart-preview');
@@ -315,6 +332,16 @@ class CartController extends Controller
 
     public function index()
     {
+        // Only logged-in buyers can add to a cart, so a guest's cart is
+        // always empty — send them to log in, then straight back here.
+        if (!session('user')) {
+            session()->put('after_login', route('cart'));
+
+            return redirect()
+                ->route('login')
+                ->with('success', 'Log in to see your cart.');
+        }
+
         $cart =
             session()->get('cart', []);
 
@@ -410,6 +437,14 @@ class CartController extends Controller
         | CHECK BUY NOW FIRST
         |--------------------------------------------------------------------------
         */
+
+        // A Buy Now item is only checked out when this page was opened from
+        // Buy Now itself. Arriving any other way (the cart's Checkout button)
+        // means that earlier Buy Now was abandoned — drop it, otherwise it
+        // would quietly replace the cart items the buyer chose.
+        if (!request()->boolean('buy_now')) {
+            session()->forget('buy_now');
+        }
 
         $buyNow = session()->get('buy_now', []);
 
@@ -713,6 +748,21 @@ class CartController extends Controller
                     'error',
                     'Please complete all checkout information.'
                 );
+        }
+
+        // Same rule as the address book — the rider has to be able to call it.
+        if (!preg_match('/^[0-9+\-\s]{7,20}$/', $phone)) {
+
+            return back()
+                ->withInput()
+                ->with('error', 'Please enter a valid phone number (numbers only).');
+        }
+
+        if (mb_strlen($address) > 500) {
+
+            return back()
+                ->withInput()
+                ->with('error', 'The delivery address is too long.');
         }
 
         if (!in_array($payment, CodPolicy::PAYMENT_METHODS, true)) {

@@ -71,4 +71,27 @@ class CheckoutTest extends TestCase
             ->assertOk()
             ->assertSee('value="99 IT Park, Cebu City"', false);
     }
+
+    public function test_checkout_starts_on_cash_on_delivery(): void
+    {
+        $buyer = $this->makeUser();
+        $product = $this->makeProduct($this->makeSeller());
+
+        $html = $this->actingAsUser($buyer, ['cart' => ["{$product->id}:0" => 1]])
+            ->get(route('checkout'))
+            ->assertOk()
+            ->getContent();
+
+        $this->assertMatchesRegularExpression('/id="payment-cod"\s+value="Cash on Delivery"\s+checked/', $html);
+    }
+
+    public function test_product_page_says_free_delivery_when_the_item_reaches_the_minimum(): void
+    {
+        $seller = $this->makeSeller();
+        $pricey = $this->makeProduct($seller, ['price' => 2500]);
+        $cheap = $this->makeProduct($seller, ['price' => 300]);
+
+        $this->get(route('product.details', $pricey->id))->assertOk()->assertSee('this item alone already reaches');
+        $this->get(route('product.details', $cheap->id))->assertOk()->assertDontSee('this item alone already reaches');
+    }
 }

@@ -1,7 +1,11 @@
-    <div class="header">
-        <h1>Complaints &amp; Disputes</h1>
-        <p>File a complaint about an order, another user, or a platform issue — our team will review it.</p>
-    </div>
+    @if(($role ?? null) === 'buyer')
+        @include('partials.page-head', ['title' => 'Complaints & Disputes', 'crumbs' => ['My account' => route('buyer.account')]])
+    @else
+        <div class="header">
+            <h1>Complaints &amp; Disputes</h1>
+            <p>File a complaint about an order, another user, or a platform issue — our team will review it.</p>
+        </div>
+    @endif
 
     @if(session('success'))
         <div class="success-box">{{ session('success') }}</div>
@@ -52,8 +56,14 @@
             </div>
 
             <div class="form-group">
-                <label for="evidence">Supporting Evidence (optional — image or PDF, max 5MB)</label>
-                <input type="file" id="evidence" name="evidence" accept=".jpg,.jpeg,.png,.pdf">
+                <label for="evidence">Supporting Evidence (optional)</label>
+                @include('partials.file-picker', [
+                    'id' => 'evidence',
+                    'name' => 'evidence',
+                    'accept' => '.jpg,.jpeg,.png,.pdf',
+                    'label' => 'Attach a photo or PDF',
+                    'hint' => 'JPG, PNG or PDF · up to 5 MB',
+                ])
             </div>
 
             <button type="submit" class="submit-btn">Submit Complaint</button>

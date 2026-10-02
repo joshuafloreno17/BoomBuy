@@ -1,4 +1,5 @@
-const CACHE_NAME = 'boombuy-v1';
+// Bump the version whenever this file changes — the old cache is deleted on activate.
+const CACHE_NAME = 'boombuy-v2';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
@@ -31,6 +32,15 @@ self.addEventListener('activate', (event) => {
     self.clients.claim();
 });
 
+function saveCopy(request, response) {
+    if (response.ok && new URL(request.url).origin === self.location.origin) {
+        const clone = response.clone();
+        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+    }
+
+    return response;
+}
+
 self.addEventListener('fetch', (event) => {
     const { request } = event;
 
@@ -47,26 +57,27 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Everything else (images, fonts, static files): cache first,
-    // then go to the network and store a copy for next time.
-    event.respondWith(
-        caches.match(request).then((cached) => {
-            if (cached) {
-                return cached;
-            }
+    // Stylesheets and scripts: network first, so a deploy shows up right
+    // away; the cached copy is only for when the user is offline.
+    if (request.destination === 'style' || request.destination === 'script') {
+        event.respondWith(
+            fetch(request)
+                .then((response) => saveCopy(request, response))
+                .catch(() => caches.match(request))
+        );
+        return;
+    }
 
-            return fetch(request)
-                .then((response) => {
-                    const isSameOrigin = new URL(request.url).origin === self.location.origin;
+    // Images and fonts rarely change: cache first, then the network.
+    if (request.destination === 'image' || request.destination === 'font') {
+        event.respondWith(
+            caches.match(request).then((cached) =>
+                cached || fetch(request).then((response) => saveCopy(request, response))
+            )
+        );
+        return;
+    }
 
-                    if (response.ok && isSameOrigin) {
-                        const clone = response.clone();
-                        caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
-                    }
-
-                    return response;
-                })
-                .catch(() => caches.match(request));
-        })
-    );
+    // Everything else (fetch()/AJAX data like messages, cart, search
+    // suggestions) always goes straight to the server — never cached.
 });

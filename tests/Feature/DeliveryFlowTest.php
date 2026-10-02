@@ -211,4 +211,48 @@ class DeliveryFlowTest extends TestCase
 
         $this->assertDatabaseHas('rider_applications', ['id' => $applicationId, 'status' => 'Approved']);
     }
+
+    public function test_logistics_finds_a_parcel_by_order_number_wherever_it_is(): void
+    {
+        $logistics = $this->makeLogistics();
+        $product = $this->makeProduct($this->makeSeller());
+
+        $atCenter = $this->makeOrder($this->makeUser(), $product, 'At Sorting Center');
+        $withSeller = $this->makeOrder($this->makeUser(), $product, 'Processing');
+
+        $this->actingAsUser($logistics)
+            ->get(route('logistics.parcels', ['q' => '#' . $atCenter]))
+            ->assertOk()
+            ->assertSee('Order #' . $atCenter)
+            ->assertDontSee('Order #' . $withSeller);
+
+        // Not in any logistics list yet — still shown, with where it is.
+        $this->actingAsUser($logistics)
+            ->get(route('logistics.parcels', ['q' => $withSeller]))
+            ->assertSee('Order #' . $withSeller)
+            ->assertSee('Still with the seller');
+    }
+
+    public function test_riders_page_filters_by_status_and_shows_current_load(): void
+    {
+        $logistics = $this->makeLogistics();
+        $approved = $this->makeRider('Approved');
+        $pending = $this->makeRider('Pending Verification');
+
+        $this->makeOrder($this->makeUser(), $this->makeProduct($this->makeSeller()), 'Out for Delivery', [
+            'delivery_rider_id' => $approved->id,
+        ]);
+
+        // Opens on pending applications while there are any.
+        $this->actingAsUser($logistics)
+            ->get(route('logistics.riders'))
+            ->assertOk()
+            ->assertSee($pending->email)
+            ->assertDontSee($approved->email);
+
+        $this->actingAsUser($logistics)
+            ->get(route('logistics.riders', ['status' => 'approved']))
+            ->assertSee($approved->email)
+            ->assertSee('0 pickup(s) · 1 delivery(ies)');
+    }
 }

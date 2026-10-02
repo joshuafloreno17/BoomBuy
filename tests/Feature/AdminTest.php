@@ -150,12 +150,12 @@ class AdminTest extends TestCase
         $this->assertNull(session('user'));
     }
 
-    public function test_deleting_an_account_only_deactivates_it(): void
+    public function test_deactivating_an_account_keeps_its_history(): void
     {
         $buyer = $this->makeUser();
         $orderId = $this->makeOrder($buyer, $this->makeProduct($this->makeSeller()));
 
-        $this->actingAsAdmin()->delete(route('admin.accounts.delete', $buyer->id));
+        $this->actingAsAdmin()->post(route('admin.accounts.status', $buyer->id), ['status' => 'Deactivated']);
 
         // Order history (and the seller's records) must survive.
         $this->assertSame('Deactivated', $buyer->fresh()->status);
@@ -190,5 +190,179 @@ class AdminTest extends TestCase
         $this->assertDatabaseHas('notifications', [
             'user_id' => $seller->id, 'title' => 'Compliance Warning', 'message' => 'Please fix your listings.',
         ]);
+    }
+
+    public function test_admin_orders_can_be_searched_and_filtered_by_tab(): void
+    {
+        $product = $this->makeProduct($this->makeSeller());
+        $alice = $this->makeUser('buyer', ['name' => 'Alice Reyes']);
+        $bob = $this->makeUser('buyer', ['name' => 'Bob Cruz']);
+
+        $aliceOrder = $this->makeOrder($alice, $product, 'Pending');
+        $bobOrder = $this->makeOrder($bob, $product, 'Delivered');
+
+        $this->actingAsAdmin()->get(route('admin.orders', ['q' => 'Alice']))
+            ->assertOk()
+            ->assertSee('Order #' . $aliceOrder)
+            ->assertDontSee('Order #' . $bobOrder);
+
+        $this->actingAsAdmin()->get(route('admin.orders', ['q' => '#' . $bobOrder]))
+            ->assertSee('Order #' . $bobOrder)
+            ->assertDontSee('Order #' . $aliceOrder);
+
+        $this->actingAsAdmin()->get(route('admin.orders', ['tab' => 'delivered']))
+            ->assertSee('Order #' . $bobOrder)
+            ->assertDontSee('Order #' . $aliceOrder);
+    }
+
+    public function test_admin_cancel_restocks_and_needs_a_reason(): void
+    {
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['stock' => 4]);
+        $buyer = $this->makeUser();
+        $orderId = $this->makeOrder($buyer, $product, 'Processing');
+
+        $this->actingAsAdmin()->post(route('admin.order.cancel', $orderId), ['reason' => ''])
+            ->assertSessionHas('error');
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Processing']);
+
+        $this->actingAsAdmin()->post(route('admin.order.cancel', $orderId), ['reason' => 'Suspected fraud'])
+            ->assertSessionHas('success');
+
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Cancelled', 'cancelled_by' => 'admin']);
+        $this->assertSame(5, $product->fresh()->stock);
+        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Order Cancelled']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $seller->id, 'title' => 'Order Cancelled by Admin']);
+    }
+
+    public function test_admin_cannot_cancel_once_the_parcel_left_the_seller(): void
+    {
+        $product = $this->makeProduct($this->makeSeller());
+        $orderId = $this->makeOrder($this->makeUser(), $product, 'Out for Delivery');
+
+        $this->actingAsAdmin()->post(route('admin.order.cancel', $orderId), ['reason' => 'Test'])
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Out for Delivery']);
+    }
+
+    public function test_admin_accounts_filter_by_role_and_search(): void
+    {
+        $buyer = $this->makeUser('buyer', ['name' => 'Carla Buyer']);
+        $rider = $this->makeRider();
+
+        $this->actingAsAdmin()->get(route('admin.accounts', ['role' => 'rider']))
+            ->assertOk()
+            ->assertSee($rider->email)
+            ->assertDontSee($buyer->email);
+
+        $this->actingAsAdmin()->get(route('admin.accounts', ['q' => 'Carla']))
+            ->assertSee($buyer->email)
+            ->assertDontSee($rider->email);
+    }
+
+    public function test_saved_policies_are_shown_to_users(): void
+    {
+        // Built-in text until the admin saves their own.
+        $this->get(route('policies'))->assertOk()->assertSee('Return Window');
+
+        $this->actingAsAdmin()->post(route('admin.settings.policies.update'), [
+            'terms_policy' => 'Custom terms for BoomBuy shoppers.',
+            'privacy_policy' => '',
+            'return_policy' => 'Returns accepted within 3 days.',
+        ])->assertSessionHas('success');
+
+        $this->get(route('policies'))
+            ->assertSee('Custom terms for BoomBuy shoppers.')
+            ->assertSee('Returns accepted within 3 days.')
+            ->assertSee('Information We Collect'); // privacy left empty → default
+
+        $this->get(route('login'))->assertSee('Custom terms for BoomBuy shoppers.');
+    }
+
+    public function test_applications_open_on_pending_and_can_be_searched(): void
+    {
+        [$pendingUser] = $this->pendingSellerApplication();
+        $approvedSeller = $this->makeSeller('electronics', 'Volt Shop');
+
+        $this->actingAsAdmin()->get(route('admin.applications'))
+            ->assertOk()
+            ->assertSee($pendingUser->email)
+            ->assertDontSee($approvedSeller->email);
+
+        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'seller', 'status' => 'all', 'q' => 'Volt']))
+            ->assertSee($approvedSeller->email)
+            ->assertDontSee($pendingUser->email);
+    }
+
+    public function test_admin_products_filter_by_status_and_seller(): void
+    {
+        $seller = $this->makeSeller('shoes', 'Stride Footwear');
+        $seller->update(['name' => 'Stride Owner']); // no digits, so the ID search below can't match it
+        $live = $this->makeProduct($seller, ['name' => 'Runner One']);
+        $this->makeProduct($seller, ['name' => 'Old Boot', 'is_archived' => true]);
+
+        $this->actingAsAdmin()->get(route('admin.products', ['state' => 'archived']))
+            ->assertOk()
+            ->assertSee('Old Boot')
+            ->assertDontSee('Runner One');
+
+        $this->actingAsAdmin()->get(route('admin.products', ['q' => $seller->name]))
+            ->assertSee('Runner One')
+            ->assertSee('Old Boot');
+
+        $this->actingAsAdmin()->get(route('admin.products', ['q' => (string) $live->id]))
+            ->assertSee('Runner One')
+            ->assertDontSee('Old Boot');
+    }
+
+    public function test_notifications_are_paginated(): void
+    {
+        $buyer = $this->makeUser();
+
+        foreach (range(1, 25) as $i) {
+            \App\Models\Notification::create([
+                'user_id' => $buyer->id, 'title' => "Note {$i}", 'message' => 'x', 'type' => 'order',
+            ]);
+        }
+
+        $response = $this->actingAsUser($buyer)->get(route('notifications'))->assertOk();
+
+        $this->assertSame(20, $response->viewData('notifications')->count());
+        $this->assertSame(25, $response->viewData('unreadCount'));
+    }
+
+    public function test_compliance_opens_on_sellers_that_need_attention(): void
+    {
+        $offender = $this->makeSeller('shoes', 'Mixed Bag Shop');
+        $this->makeProduct($offender, ['name' => 'Phone Case', 'category' => 'Electronics']);
+        $this->makeProduct($offender, ['name' => 'Fake Kicks', 'category' => 'Shoes', 'is_flagged' => true, 'flag_reason' => 'Counterfeit.']);
+        $tidy = $this->makeSeller('electronics', 'Tidy Tech');
+
+        $response = $this->actingAsAdmin()->get(route('admin.compliance'))->assertOk();
+
+        $this->assertSame('issues', $response->viewData('view'));
+        $this->assertSame(['Mixed Bag Shop'], $response->viewData('sellers')->pluck('shop')->all());
+
+        // A flagged product is counted once (as flagged), not also as a mismatch.
+        $this->assertSame(1, $response->viewData('totalMismatches'));
+        $this->assertSame(1, $response->viewData('totalFlagged'));
+
+        // Category names are searchable too.
+        $this->actingAsAdmin()->get(route('admin.compliance', ['view' => 'all', 'q' => 'electronics']))
+            ->assertSee('Tidy Tech')
+            ->assertDontSee('Mixed Bag Shop');
+
+        $this->assertNotNull($tidy);
+    }
+
+    public function test_compliance_shows_everyone_when_there_is_nothing_to_fix(): void
+    {
+        $this->makeSeller('shoes', 'Clean Shop');
+
+        $response = $this->actingAsAdmin()->get(route('admin.compliance'))->assertOk();
+
+        $this->assertSame('all', $response->viewData('view'));
+        $response->assertSee('Clean Shop');
     }
 }

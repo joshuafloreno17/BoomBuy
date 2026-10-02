@@ -1100,3 +1100,121 @@ h1 {
         flex-wrap: wrap;
     }
 }
+
+/* Search + status tabs */
+
+.orders-toolbar {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 14px;
+}
+
+.orders-search {
+    flex: 1;
+    min-width: 220px;
+    position: relative;
+}
+
+.orders-search i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #a88d85;
+}
+
+.orders-search input {
+    width: 100%;
+    padding: 11px 14px 11px 40px;
+    border: 1px solid #f0ddd6;
+    border-radius: 12px;
+    font-size: 13px;
+    font-family: inherit;
+    background: #fff;
+}
+
+.orders-search input:focus {
+    outline: none;
+    border-color: #e8420f;
+}
+
+.orders-search-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #e8420f;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.orders-search-btn.light {
+    background: #f7f0ee;
+    color: #553b33;
+}
+
+.order-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    margin-bottom: 18px;
+}
+
+.order-tab {
+    flex: 0 0 auto;
+    padding: 8px 13px;
+    border-radius: 999px;
+    border: 1px solid #f0ddd6;
+    background: #fff;
+    color: #6a4e46;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.order-tab .count {
+    display: inline-block;
+    min-width: 22px;
+    margin-left: 6px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #f7ece8;
+    color: #8e7067;
+    font-size: 12px;
+    text-align: center;
+}
+
+.order-tab.has-work {
+    border-color: #f6b9a5;
+    color: #c43408;
+}
+
+.order-tab.has-work .count {
+    background: #e8420f;
+    color: #fff;
+}
+
+.order-tab.active {
+    background: #e8420f;
+    border-color: #e8420f;
+    color: #fff;
+}
+
+.order-tab.active .count {
+    background: rgba(255, 255, 255, .25);
+    color: #fff;
+}
+
+@media (max-width: 600px) {
+    .orders-search { min-width: 100%; }
+    .orders-search-btn { flex: 1; justify-content: center; }
+}

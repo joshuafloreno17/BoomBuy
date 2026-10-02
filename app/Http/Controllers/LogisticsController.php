@@ -167,26 +167,113 @@ class LogisticsController extends Controller
             ->orderByDesc('created_at')
             ->first();
 
-        $parcelsForSorting = DB::table('orders')
-            ->whereIn('status', ['Picked Up', 'At Sorting Center'])
-            ->count();
+        // Every courier-side status, in pipeline order.
+        $pipelineStatuses = [
+            'Ready for Pickup' => 'Waiting for a rider at the seller',
+            'Assigned' => 'Rider heading to the seller',
+            'Picked Up' => 'On the way to the Sorting Center',
+            'At Sorting Center' => 'Waiting for a delivery rider',
+            'Assigned for Delivery' => 'Delivery rider assigned',
+            'Out for Delivery' => 'With the rider, on the way to the buyer',
+            'Delivery Failed' => 'Needs a reschedule or return',
+        ];
 
-        $activeRiders = DB::table('users')
+        $statusCounts = DB::table('orders')
+            ->whereIn('status', array_keys($pipelineStatuses))
+            ->select('status', DB::raw('COUNT(*) as total'))
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $pipeline = collect($pipelineStatuses)
+            ->map(fn ($hint, $status) => ['hint' => $hint, 'count' => (int) ($statusCounts[$status] ?? 0)]);
+
+        $activeRiderIds = DB::table('users')
             ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
             ->where('users.role', 'rider')
             ->where('users.status', 'Active')
             ->where('rider_applications.status', 'Approved')
-            ->distinct('users.id')
-            ->count('users.id');
+            ->distinct()
+            ->pluck('users.id');
+
+        $activeRiders = $activeRiderIds->count();
+
+        // Riders logistics can't suggest for any parcel yet.
+        $ridersWithoutArea = $activeRiderIds
+            ->diff(RiderArea::whereIn('rider_id', $activeRiderIds)->distinct()->pluck('rider_id'))
+            ->count();
+
+        $pendingRiderApplications = DB::table('rider_applications')
+            ->where('status', 'Pending Verification')
+            ->count();
+
+        $today = now()->toDateString();
 
         $deliveredToday = DB::table('orders')
             ->where('status', 'Delivered')
-            ->whereDate('updated_at', now()->toDateString())
+            ->whereDate('delivered_at', $today)
             ->count();
+
+        $failedToday = DB::table('orders')
+            ->whereDate('delivery_failed_at', $today)
+            ->count();
+
+        $returnedThisWeek = DB::table('orders')
+            ->where('status', 'Returned to Seller')
+            ->where('updated_at', '>=', now()->subDays(7))
+            ->count();
+
+        // What's waiting on logistics right now.
+        $todo = [
+            [
+                'icon' => 'bi-envelope-paper-fill',
+                'label' => 'Confirm arrivals',
+                'hint' => 'Parcels a rider picked up — confirm when they reach the Sorting Center.',
+                'count' => (int) ($statusCounts['Picked Up'] ?? 0),
+                'url' => route('logistics.parcels') . '#awaiting-confirmation',
+            ],
+            [
+                'icon' => 'bi-inbox-fill',
+                'label' => 'Assign riders',
+                'hint' => 'Parcels at the Sorting Center that need a delivery rider.',
+                'count' => (int) ($statusCounts['At Sorting Center'] ?? 0),
+                'url' => route('logistics.parcels') . '#awaiting-assignment',
+            ],
+            [
+                'icon' => 'bi-exclamation-triangle-fill',
+                'label' => 'Failed deliveries',
+                'hint' => 'Reschedule to a rider or return to the seller.',
+                'count' => (int) ($statusCounts['Delivery Failed'] ?? 0),
+                'url' => route('logistics.parcels') . '#failed-deliveries',
+            ],
+            [
+                'icon' => 'bi-person-vcard-fill',
+                'label' => 'Rider applications',
+                'hint' => 'New riders waiting for document review.',
+                'count' => $pendingRiderApplications,
+                'url' => route('logistics.riders'),
+            ],
+        ];
+
+        $recentParcels = DB::table('orders')
+            ->whereIn('status', array_merge(array_keys($pipelineStatuses), ['Delivered', 'Returned to Seller']))
+            ->orderByDesc('updated_at')
+            ->limit(8)
+            ->get(['id', 'status', 'shipping_name', 'shipping_address', 'updated_at']);
 
         return view(
             'pages.logistics.dashboard',
-            compact('user', 'application', 'parcelsForSorting', 'activeRiders', 'deliveredToday')
+            compact(
+                'user',
+                'application',
+                'pipeline',
+                'todo',
+                'activeRiders',
+                'ridersWithoutArea',
+                'deliveredToday',
+                'failedToday',
+                'returnedThisWeek',
+                'recentParcels'
+            )
         );
     }
 
@@ -314,6 +401,8 @@ class LogisticsController extends Controller
         $dbUser->password = Hash::make($new);
         $dbUser->save();
 
+        \App\Support\LoginGate::passwordChanged($dbUser, true);
+
         return back()->with('success', 'Password changed successfully.');
     }
 
@@ -325,18 +414,71 @@ class LogisticsController extends Controller
             return $user;
         }
 
-        $riderApplications = DB::table('rider_applications')
+        // Same chip order as the admin's Applications page.
+        $statuses = [
+            'all' => ['label' => 'All', 'status' => null],
+            'pending' => ['label' => 'Pending', 'status' => 'Pending Verification'],
+            'approved' => ['label' => 'Approved', 'status' => 'Approved'],
+            'rejected' => ['label' => 'Rejected', 'status' => 'Rejected'],
+        ];
+
+        $search = trim((string) request('q', ''));
+
+        $base = DB::table('rider_applications')
             ->join('users', 'users.id', '=', 'rider_applications.user_id')
+            ->when($search !== '', function ($query) use ($search) {
+                $like = '%' . $search . '%';
+
+                $query->where(function ($q) use ($like) {
+                    $q->where('rider_applications.full_name', 'like', $like)
+                        ->orWhere('users.email', 'like', $like)
+                        ->orWhere('rider_applications.phone', 'like', $like)
+                        ->orWhere('rider_applications.plate_number', 'like', $like);
+                });
+            });
+
+        $statusCounts = (clone $base)
+            ->select('rider_applications.status', DB::raw('COUNT(*) as total'))
+            ->groupBy('rider_applications.status')
+            ->pluck('total', 'status');
+
+        // Open on pending applications when there are any, else the approved riders.
+        $statusKey = request('status');
+
+        if (!array_key_exists((string) $statusKey, $statuses)) {
+            $statusKey = ($statusCounts['Pending Verification'] ?? 0) > 0 ? 'pending' : 'all';
+        }
+
+        $riderApplications = (clone $base)
+            ->when($statuses[$statusKey]['status'], fn ($q, $status) => $q->where('rider_applications.status', $status))
             ->select('rider_applications.*', 'users.email as user_email', 'users.status as account_status')
-            ->orderByDesc('rider_applications.created_at')
-            ->get();
+            ->orderBy('rider_applications.created_at', $statusKey === 'pending' ? 'asc' : 'desc')
+            ->paginate(15)
+            ->withQueryString();
 
-        $riderAreas = RiderArea::whereIn(
-            'rider_id',
-            $riderApplications->pluck('user_id')
-        )->get()->groupBy('rider_id');
+        $riderIds = $riderApplications->pluck('user_id');
 
-        return view('pages.logistics.riders', compact('user', 'riderApplications', 'riderAreas'));
+        $riderAreas = RiderArea::whereIn('rider_id', $riderIds)->get()->groupBy('rider_id');
+
+        // What each rider is carrying right now, so logistics can spread the work.
+        $pickupLoad = DB::table('orders')
+            ->whereIn('rider_id', $riderIds)
+            ->whereIn('status', ['Assigned', 'Picked Up'])
+            ->select('rider_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('rider_id')
+            ->pluck('total', 'rider_id');
+
+        $deliveryLoad = DB::table('orders')
+            ->whereIn('delivery_rider_id', $riderIds)
+            ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
+            ->select('delivery_rider_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('delivery_rider_id')
+            ->pluck('total', 'delivery_rider_id');
+
+        return view(
+            'pages.logistics.riders',
+            compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'pickupLoad', 'deliveryLoad')
+        );
     }
 
     public function storeRiderArea($riderId)
@@ -390,18 +532,67 @@ class LogisticsController extends Controller
             return $user;
         }
 
+        $search = trim((string) request('q', ''));
+
+        // Order # (with or without "#"), buyer name or address.
+        $matching = function () use ($search) {
+            return DB::table('orders')->when($search !== '', function ($query) use ($search) {
+                $number = ltrim($search, '#');
+                $like = '%' . $search . '%';
+
+                $query->where(function ($q) use ($number, $like) {
+                    if (ctype_digit($number)) {
+                        $q->orWhere('id', (int) $number);
+                    }
+
+                    $q->orWhere('shipping_name', 'like', $like)
+                        ->orWhere('shipping_address', 'like', $like);
+                });
+            });
+        };
+
         // Picked up by a rider from the seller, en route to this Sorting Center
-        $awaitingConfirmation = DB::table('orders')
+        $awaitingConfirmation = $matching()
             ->where('status', 'Picked Up')
             ->orderBy('updated_at')
             ->get();
 
         // Physically received at the Sorting Center, waiting to be assigned
         // to a rider for the final-mile delivery leg.
-        $awaitingAssignment = DB::table('orders')
+        $awaitingAssignment = $matching()
             ->where('status', 'At Sorting Center')
             ->orderBy('sorting_center_received_at')
             ->get();
+
+        $failedDeliveries = $matching()
+            ->where('status', 'Delivery Failed')
+            ->orderByDesc('delivery_failed_at')
+            ->get();
+
+        // Already handed to a delivery rider — read-only, so logistics can
+        // see where every parcel that left the Sorting Center is.
+        $onTheRoad = $matching()
+            ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
+            ->orderBy('updated_at')
+            ->get();
+
+        // A searched parcel that's in none of the lists above (still with
+        // the seller, delivered, cancelled…) — say where it is instead of
+        // showing nothing.
+        $elsewhere = collect();
+
+        if ($search !== '') {
+            $shownIds = $awaitingConfirmation->pluck('id')
+                ->merge($awaitingAssignment->pluck('id'))
+                ->merge($failedDeliveries->pluck('id'))
+                ->merge($onTheRoad->pluck('id'));
+
+            $elsewhere = $matching()
+                ->whereNotIn('id', $shownIds)
+                ->orderByDesc('updated_at')
+                ->limit(10)
+                ->get();
+        }
 
         $activeRiders = DB::table('users')
             ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
@@ -410,16 +601,17 @@ class LogisticsController extends Controller
             ->where('rider_applications.status', 'Approved')
             ->select('users.id', 'users.name')
             ->distinct()
+            ->orderBy('users.name')
             ->get();
 
         $riderAreas = RiderArea::whereIn('rider_id', $activeRiders->pluck('id'))->get();
 
-        // For each parcel awaiting assignment, suggest riders whose assigned
+        // For each parcel that needs a rider, suggest riders whose assigned
         // area name appears in the shipping address — a simple, honest match
         // since orders only store a single free-text shipping address string.
         $suggestedRidersByOrder = [];
 
-        foreach ($awaitingAssignment as $order) {
+        foreach ($awaitingAssignment->merge($failedDeliveries) as $order) {
 
             $matches = $riderAreas->filter(function ($area) use ($order) {
                 return stripos($order->shipping_address, $area->city_municipality) !== false
@@ -429,14 +621,25 @@ class LogisticsController extends Controller
             $suggestedRidersByOrder[$order->id] = $activeRiders->whereIn('id', $matches)->values();
         }
 
-        $failedDeliveries = DB::table('orders')
-            ->where('status', 'Delivery Failed')
-            ->orderByDesc('delivery_failed_at')
-            ->get();
+        // Names of the riders already attached to the listed parcels.
+        $riderNames = DB::table('users')
+            ->whereIn('id', $onTheRoad->pluck('delivery_rider_id')->merge($failedDeliveries->pluck('delivery_rider_id'))->filter()->unique())
+            ->pluck('name', 'id');
 
         return view(
             'pages.logistics.parcels',
-            compact('user', 'awaitingConfirmation', 'awaitingAssignment', 'activeRiders', 'suggestedRidersByOrder', 'failedDeliveries')
+            compact(
+                'user',
+                'search',
+                'awaitingConfirmation',
+                'awaitingAssignment',
+                'failedDeliveries',
+                'onTheRoad',
+                'elsewhere',
+                'activeRiders',
+                'suggestedRidersByOrder',
+                'riderNames'
+            )
         );
     }
 
@@ -700,7 +903,11 @@ class LogisticsController extends Controller
             return back()->with('error', 'Application not found.');
         }
 
-        DB::table('rider_applications')->where('id', $id)->update([
+        if ($application->status !== 'Pending Verification') {
+            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
+        }
+
+        DB::table('rider_applications')->where('id', $id)->where('status', 'Pending Verification')->update([
             'status' => 'Approved',
             'admin_remarks' => null,
             'reviewed_at' => now(),
@@ -754,7 +961,11 @@ class LogisticsController extends Controller
             return back()->with('error', 'Application not found.');
         }
 
-        DB::table('rider_applications')->where('id', $id)->update([
+        if ($application->status !== 'Pending Verification') {
+            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
+        }
+
+        DB::table('rider_applications')->where('id', $id)->where('status', 'Pending Verification')->update([
             'status' => 'Rejected',
             'admin_remarks' => $remarks !== '' ? $remarks : null,
             'reviewed_at' => now(),
@@ -853,7 +1064,12 @@ class LogisticsController extends Controller
             'account_status'
         );
 
-        return back()->with('success', $rider->name . '\'s account has been set to ' . $status . '.');
+        // Their parcels go to other riders instead of getting stuck.
+        $note = $status === 'Active'
+            ? ''
+            : \App\Support\RiderRelease::summary(\App\Support\RiderRelease::release((int) $rider->id));
+
+        return back()->with('success', $rider->name . '\'s account has been set to ' . $status . '.' . $note);
     }
 
     public function notifications()
@@ -869,11 +1085,13 @@ class LogisticsController extends Controller
             $user['id']
         )
         ->orderByDesc('created_at')
-        ->get();
+        ->paginate(20);
+
+        $unreadCount = Notification::where('user_id', $user['id'])->whereNull('read_at')->count();
 
         return view(
             'pages.logistics.notifications',
-            compact('user', 'notifications')
+            compact('user', 'notifications', 'unreadCount')
         );
     }
 
