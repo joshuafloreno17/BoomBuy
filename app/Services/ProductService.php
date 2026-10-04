@@ -19,6 +19,9 @@ class ProductService
 {
     private const BAD_IMAGE = 'Product image must be a JPG, JPEG, PNG, or WEBP image no larger than 5MB.';
 
+    /** Photos per product, cover included. */
+    public const MAX_PHOTOS = 8;
+
     /** The category slug the seller registered their shop for (null: any). */
     public function registeredCategory(int $sellerId): ?string
     {
@@ -33,10 +36,11 @@ class ProductService
     /**
      * @param  array  $input       name, category, price, stock, description
      * @param  array  $variations  [['type', 'value', 'price_adjustment', 'stock'], ...]
+     * @param  UploadedFile[]  $photos  extra photos after the cover
      *
      * @throws ActionFailed
      */
-    public function create(int $sellerId, array $input, ?UploadedFile $image, array $variations = []): Product
+    public function create(int $sellerId, array $input, ?UploadedFile $image, array $variations = [], array $photos = []): Product
     {
         [$name, $category, $price, $stock, $description] = $this->fields($sellerId, $input);
 
@@ -57,6 +61,7 @@ class ProductService
         }
 
         $this->checkImage($image);
+        $photos = $this->checkPhotos($photos, 0);
 
         // An option's extra price can be negative (a cheaper option) but must
         // never bring the final price to ₱0 or below.
@@ -79,6 +84,8 @@ class ProductService
             'description' => $description,
             'image' => $image->store('products', 'public'),
         ]);
+
+        $this->storePhotos($product, $photos);
 
         $seen = [];
 
@@ -113,10 +120,11 @@ class ProductService
 
     /**
      * @param  array  $input  name, category, price, stock, description
+     * @param  array  $gallery  'add' => UploadedFile[], 'remove' => image ids, 'cover' => image id to swap in as the cover
      *
      * @throws ActionFailed
      */
-    public function update(Product $product, int $sellerId, array $input, ?UploadedFile $image): Product
+    public function update(Product $product, int $sellerId, array $input, ?UploadedFile $image, array $gallery = []): Product
     {
         [$name, $category, $price, $stock, $description] = $this->fields($sellerId, $input);
 
@@ -140,6 +148,10 @@ class ProductService
             throw new ActionFailed('At this price one of your options would cost ₱0 or less. Raise the price or change that option\'s extra price first.');
         }
 
+        $remove = array_map('intval', (array) ($gallery['remove'] ?? []));
+        $kept = $product->images()->whereNotIn('id', $remove)->count();
+        $photos = $this->checkPhotos((array) ($gallery['add'] ?? []), $kept);
+
         $oldImage = $product->image;
         $imagePath = $oldImage;
 
@@ -161,6 +173,8 @@ class ProductService
         if ($oldImage && $oldImage !== $imagePath && !str_starts_with($oldImage, 'http')) {
             Storage::disk('public')->delete($oldImage);
         }
+
+        $this->updateGallery($product, $remove, $photos, (int) ($gallery['cover'] ?? 0));
 
         return $product;
     }
@@ -203,6 +217,64 @@ class ProductService
 
         if ($taken) {
             throw new ActionFailed('You already have a product with this name.');
+        }
+    }
+
+    /**
+     * Valid extra photos (empty slots dropped), within MAX_PHOTOS with the cover
+     * and the $existing extra photos.
+     *
+     * @return UploadedFile[]
+     *
+     * @throws ActionFailed
+     */
+    private function checkPhotos(array $photos, int $existing): array
+    {
+        $photos = array_values(array_filter($photos, fn ($p) => $p instanceof UploadedFile));
+
+        if (1 + $existing + count($photos) > self::MAX_PHOTOS) {
+            throw new ActionFailed('A product can have up to ' . self::MAX_PHOTOS . ' photos (the cover and ' . (self::MAX_PHOTOS - 1) . ' more).');
+        }
+
+        foreach ($photos as $photo) {
+            $this->checkImage($photo);
+        }
+
+        return $photos;
+    }
+
+    /** @param UploadedFile[] $photos */
+    private function storePhotos(Product $product, array $photos): void
+    {
+        $order = (int) $product->images()->max('sort_order');
+
+        foreach ($photos as $photo) {
+            $product->images()->create([
+                'path' => $photo->store('products', 'public'),
+                'sort_order' => ++$order,
+            ]);
+        }
+    }
+
+    /** Remove ticked photos, add new ones, and optionally make one of the extra photos the cover. */
+    private function updateGallery(Product $product, array $remove, array $photos, int $coverId): void
+    {
+        foreach ($product->images()->whereIn('id', $remove)->get() as $old) {
+            if (!str_starts_with($old->path, 'http')) {
+                Storage::disk('public')->delete($old->path);
+            }
+            $old->delete();
+        }
+
+        $this->storePhotos($product, $photos);
+
+        // The chosen photo and the cover swap places.
+        $chosen = $coverId ? $product->images()->whereKey($coverId)->first() : null;
+
+        if ($chosen && $product->image) {
+            [$cover, $chosen->path] = [$chosen->path, $product->image];
+            $chosen->save();
+            $product->update(['image' => $cover]);
         }
     }
 

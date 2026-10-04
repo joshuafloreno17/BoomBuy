@@ -513,11 +513,14 @@ class AdminController extends Controller
 
         $productName = $product->name;
 
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
+        // The cover, extra photos and option photos all go with it.
+        $images = $product->variations()->pluck('image')
+            ->merge($product->images()->pluck('path'))
+            ->push($product->image)->filter()->all();
 
         $product->delete();
+
+        Storage::disk('public')->delete($images);
 
         return redirect()
             ->route('admin.products')

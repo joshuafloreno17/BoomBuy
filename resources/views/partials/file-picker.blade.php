@@ -17,7 +17,8 @@
             function sync(input) {
                 var box = input.closest('.bb-file');
                 if (!box) return;
-                var name = input.files && input.files.length ? input.files[0].name : '';
+                var count = input.files ? input.files.length : 0;
+                var name = count > 1 ? count + ' photos selected' : (count ? input.files[0].name : '');
                 box.classList.toggle('has-file', !!name);
                 box.querySelector('[data-file-name]').textContent = name || box.dataset.empty;
                 box.querySelector('.bb-file-btn').textContent = name ? 'Change' : 'Browse';
@@ -44,6 +45,7 @@
         name="{{ $name }}"
         @if(!empty($accept)) accept="{{ $accept }}" @endif
         @if(!empty($required)) required @endif
+        @if(!empty($multiple)) multiple @endif
     >
     <span class="bb-file-icon"><i class="bi bi-cloud-arrow-up-fill"></i></span>
     <span class="bb-file-text">

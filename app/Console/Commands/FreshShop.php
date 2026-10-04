@@ -25,7 +25,7 @@ class FreshShop extends Command
     private const ORDER_NOTIFICATION_TYPES = ['order', 'order_status', 'delivery', 'delivery_status', 'return_refund', 'parcel'];
 
     /** Tables emptied completely, in delete order (children first). */
-    private const TABLES = ['return_refund_requests', 'product_reviews', 'order_items', 'orders', 'wishlists', 'product_variations', 'products', 'saved_carts'];
+    private const TABLES = ['return_refund_requests', 'product_reviews', 'order_items', 'orders', 'wishlists', 'product_variations', 'product_images', 'products', 'saved_carts'];
 
     public function handle(): int
     {
@@ -67,6 +67,7 @@ class FreshShop extends Command
 
         $images = DB::table('products')->whereNotNull('image')->pluck('image')
             ->merge(DB::table('product_variations')->whereNotNull('image')->pluck('image'))
+            ->merge(DB::table('product_images')->pluck('path'))
             ->filter()->unique();
 
         DB::transaction(function () use ($orderNotes, $orderMessages) {

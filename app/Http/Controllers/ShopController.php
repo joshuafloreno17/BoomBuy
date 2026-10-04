@@ -639,6 +639,16 @@ class ShopController extends Controller
 
         $variations = \App\Models\ProductVariation::where('product_id', $product->id)->get();
 
+        // Thumbnail row: the cover, the extra photos, then each option's photo.
+        $photoUrl = fn ($path) => str_starts_with($path, 'http') ? $path : asset('storage/' . ltrim($path, '/'));
+        $gallery = collect([$product->image])
+            ->merge($product->images()->pluck('path'))
+            ->filter()
+            ->map(fn ($path) => ['url' => $photoUrl($path), 'variation' => null])
+            ->merge($variations->filter(fn ($v) => $v->image)->map(fn ($v) => ['url' => $photoUrl($v->image), 'variation' => $v->id]))
+            ->unique('url')
+            ->values();
+
         return view(
             'pages.product-details',
             compact(
@@ -649,6 +659,7 @@ class ShopController extends Controller
                 'relatedProducts',
                 'isWishlisted',
                 'variations',
+                'gallery',
                 'canMessageSeller',
                 'ratingCounts',
                 'shop',

@@ -866,7 +866,8 @@ class SellerController extends Controller
                 (int) $user['id'],
                 request()->only('name', 'category', 'price', 'stock', 'description'),
                 request()->hasFile('image') ? request()->file('image') : null,
-                (array) request('variations', [])
+                (array) request('variations', []),
+                (array) request()->file('photos', [])
             );
         } catch (ActionFailed $e) {
             return back()->withInput()->with('error', $e->getMessage());
@@ -1272,7 +1273,12 @@ class SellerController extends Controller
                 $product,
                 (int) $user['id'],
                 request()->only('name', 'category', 'price', 'stock', 'description'),
-                request()->hasFile('image') ? request()->file('image') : null
+                request()->hasFile('image') ? request()->file('image') : null,
+                [
+                    'add' => (array) request()->file('photos', []),
+                    'remove' => (array) request('remove_photos', []),
+                    'cover' => (int) request('cover_photo', 0),
+                ]
             );
         } catch (ActionFailed $e) {
             return back()->withInput()->with('error', $e->getMessage());
@@ -1318,7 +1324,9 @@ class SellerController extends Controller
         $productName = $product->name;
 
         // Don't leave the product's (and its variations') images behind.
-        $images = $product->variations()->pluck('image')->push($product->image)->filter()->all();
+        $images = $product->variations()->pluck('image')
+            ->merge($product->images()->pluck('path'))
+            ->push($product->image)->filter()->all();
 
         $product->delete();
 

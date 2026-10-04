@@ -60,9 +60,9 @@
 
     <div class="product-visual" id="mainImageContainer">
 
-        @if($variations->count() > 1)
-            <button type="button" class="gallery-nav prev" onclick="galleryStep(-1)" aria-label="Previous option">‹</button>
-            <button type="button" class="gallery-nav next" onclick="galleryStep(1)" aria-label="Next option">›</button>
+        @if($gallery->count() > 1 || $variations->count() > 1)
+            <button type="button" class="gallery-nav prev" onclick="galleryStep(-1)" aria-label="Previous photo">‹</button>
+            <button type="button" class="gallery-nav next" onclick="galleryStep(1)" aria-label="Next photo">›</button>
         @endif
 
         <img
@@ -93,6 +93,22 @@
         </div>
 
     </div>
+
+    @if($gallery->count() > 1)
+        {{-- Hover (or tap) a thumbnail to show it big. --}}
+        <div class="pd-thumbs" id="pdThumbs">
+            @foreach($gallery as $photo)
+                <button
+                    type="button"
+                    class="pd-thumb {{ $loop->first ? 'is-active' : '' }}"
+                    data-src="{{ $photo['url'] }}"
+                    aria-label="Show photo {{ $loop->iteration }} of {{ $gallery->count() }}"
+                >
+                    <img src="{{ $photo['url'] }}" alt="" loading="lazy" onerror="this.closest('.pd-thumb').remove()">
+                </button>
+            @endforeach
+        </div>
+    @endif
 
 
 </div>
@@ -588,6 +604,7 @@
 
         if (imageUrl) {
             img.src = imageUrl;
+            markThumb(imageUrl);
         } else {
             img.removeAttribute('src');
             img.style.display = 'none';
@@ -613,7 +630,50 @@
 
     }
 
+    // ---- Photo thumbnails: hover (mouse) or tap shows the photo big. ----
+    // Read fresh each time: a thumbnail whose photo fails to load removes itself.
+    const allThumbs = () => Array.from(document.querySelectorAll('.pd-thumb'));
+
+    function markThumb(url) {
+        allThumbs().forEach(function (t) {
+            const on = t.dataset.src === url;
+            t.classList.toggle('is-active', on);
+            if (on) {
+                // Keep the active thumbnail in view inside the row (not the page).
+                const row = t.parentElement;
+                if (t.offsetLeft < row.scrollLeft || t.offsetLeft + t.offsetWidth > row.scrollLeft + row.clientWidth) {
+                    row.scrollLeft = t.offsetLeft - row.clientWidth / 2 + t.offsetWidth / 2;
+                }
+            }
+        });
+    }
+
+    function showPhoto(index) {
+        const thumb = allThumbs()[index];
+        if (!thumb) return;
+        const img = document.getElementById('mainProductImage');
+        img.src = thumb.dataset.src;
+        markThumb(thumb.dataset.src);
+    }
+
+    const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+    allThumbs().forEach(function (thumb) {
+        const show = function () { showPhoto(allThumbs().indexOf(thumb)); };
+        if (canHover) thumb.addEventListener('mouseenter', show);
+        thumb.addEventListener('click', show);
+        thumb.addEventListener('focus', show);
+    });
+
     function galleryStep(direction) {
+
+        // With a photo row, the arrows and swipes go through the photos.
+        const thumbs = allThumbs();
+        if (thumbs.length > 1) {
+            let current = thumbs.findIndex(function (t) { return t.classList.contains('is-active'); });
+            showPhoto(((current < 0 ? 0 : current) + direction + thumbs.length) % thumbs.length);
+            return;
+        }
 
         const swatches = document.querySelectorAll('.variation-swatch');
 

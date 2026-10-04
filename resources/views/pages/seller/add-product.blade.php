@@ -271,6 +271,9 @@
 
                     </div>
 
+                    <!-- MORE PHOTOS -->
+                    @include('partials.product-photos-field', ['product' => null])
+
 
                     <!-- DESCRIPTION -->
                     <div class="form-group">

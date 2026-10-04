@@ -411,6 +411,9 @@
 
                     </div>
 
+                    {{-- MORE PHOTOS --}}
+                    @include('partials.product-photos-field', ['product' => $product])
+
 
                     {{-- DESCRIPTION --}}
                     <div class="form-group">

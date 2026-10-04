@@ -35,6 +35,12 @@ class Product extends Model
         return $this->hasMany(ProductVariation::class);
     }
 
+    /** Extra photos after the cover (products.image), in the seller's order. */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     /**
      * Products buyers may see and buy: not archived by the seller, not
      * flagged by the admin, and sold by an account that is still Active — a
