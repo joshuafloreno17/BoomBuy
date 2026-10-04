@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Mail\ApplicationStatusMail;
 use App\Models\Complaint;
 use App\Models\Notification;
 use App\Models\PlatformAnnouncement;
@@ -15,9 +14,14 @@ use App\Support\OrderStock;
 use App\Support\RiderRelease;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\ApplicationReviewService;
+use App\Exceptions\ActionFailed;
+use App\Http\Requests\CommissionRateRequest;
+use App\Http\Requests\DeliveryFeeRequest;
+use App\Http\Requests\AnnouncementRequest;
+use App\Http\Requests\PoliciesRequest;
 
 class AdminController extends Controller
 {
@@ -153,6 +157,76 @@ class AdminController extends Controller
             ])
             ->toArray();
 
+        /*
+        | Today, people and the review queue (dashboard tiles and lists).
+        */
+
+        $today = now()->toDateString();
+
+        $ordersToday = DB::table('orders')
+            ->whereDate('created_at', $today)
+            ->selectRaw('COUNT(*) as total, COALESCE(SUM(total_amount - delivery_fee), 0) as value')
+            ->first();
+
+        $commissionRate = (float) PlatformSetting::get('commission_rate', '10');
+
+        $deliveredTodaySales = (float) DB::table('orders')
+            ->where('status', 'Delivered')
+            ->whereRaw('DATE(COALESCE(delivered_at, updated_at)) = ?', [$today])
+            ->sum(DB::raw('total_amount - delivery_fee'));
+
+        $commissionToday = round($deliveredTodaySales * $commissionRate / 100, 2);
+
+        // A seller counts once approved (same rule as the Applications page) and not suspended.
+        $activeSellers = DB::table('users')
+            ->where('role', 'seller')
+            ->where('status', 'Active')
+            ->whereExists(fn ($q) => $q->select(DB::raw(1))
+                ->from('seller_applications')
+                ->whereColumn('seller_applications.user_id', 'users.id')
+                ->where('seller_applications.status', 'Approved'))
+            ->count();
+        $activeRiders = DB::table('users')->where('role', 'rider')->where('status', 'Active')->count();
+
+        $ridersOnRoad = DB::table('orders')
+            ->where('status', 'Out for Delivery')
+            ->whereNotNull('delivery_rider_id')
+            ->distinct()
+            ->count('delivery_rider_id');
+
+        $pendingByType = [];
+        $reviewQueue = collect();
+
+        foreach (array_keys(self::APPLICATION_TYPES) as $type) {
+            $table = $type . '_applications';
+            $hasBusiness = $type !== 'buyer';
+
+            $pendingByType[$type] = DB::table($table)->where('status', 'Pending Verification')->count();
+
+            $reviewQueue = $reviewQueue->concat(
+                DB::table($table)
+                    ->where('status', 'Pending Verification')
+                    ->orderBy('created_at')
+                    ->limit(5)
+                    ->get()
+                    ->map(fn ($row) => [
+                        'type' => $type,
+                        'name' => $hasBusiness && !empty($row->business_name) ? $row->business_name : $row->full_name,
+                        'detail' => $type === 'seller' && !empty($row->business_category)
+                            ? $row->business_category
+                            : ($hasBusiness ? $row->full_name : ($row->address ?? '')),
+                        'created_at' => $row->created_at,
+                    ])
+            );
+        }
+
+        $reviewQueue = $reviewQueue->sortBy('created_at')->take(5)->values();
+        $pendingApplications = array_sum($pendingByType);
+
+        $flaggedProducts = DB::table('products')->where('is_flagged', true)->where('is_archived', false)->count();
+        $pendingComplaints = DB::table('complaints')->where('status', 'Pending')->count();
+        $suspendedSellers = DB::table('users')->where('role', 'seller')->where('status', 'Suspended')->count();
+
         return view(
             'pages.admin.dashboard',
             compact(
@@ -175,7 +249,20 @@ class AdminController extends Controller
                 'cancelledCount',
 
                 'totalProducts',
-                'totalSales'
+                'totalSales',
+
+                'ordersToday',
+                'commissionRate',
+                'commissionToday',
+                'activeSellers',
+                'activeRiders',
+                'ridersOnRoad',
+                'pendingByType',
+                'reviewQueue',
+                'pendingApplications',
+                'flaggedProducts',
+                'pendingComplaints',
+                'suspendedSellers'
             )
         );
     }
@@ -567,46 +654,37 @@ class AdminController extends Controller
         );
     }
 
-    public function updateCommission()
+    public function updateCommission(CommissionRateRequest $request)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        $rate = request()->validate([
-            'commission_rate' => 'required|numeric|min:0|max:100',
-        ])['commission_rate'];
+        $rate = $request->validated('commission_rate');
 
         PlatformSetting::set('commission_rate', (string) $rate);
 
         return back()->with('success', 'Commission rate updated to ' . $rate . '%.');
     }
 
-    public function updateDeliveryFee()
+    public function updateDeliveryFee(DeliveryFeeRequest $request)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        $fee = request()->validate([
-            'delivery_fee' => 'required|numeric|min:0',
-        ])['delivery_fee'];
+        $fee = $request->validated('delivery_fee');
 
         PlatformSetting::set('delivery_fee', (string) $fee);
 
         return back()->with('success', 'Rider delivery fee updated to ₱' . $fee . '.');
     }
 
-    public function storeAnnouncement()
+    public function storeAnnouncement(AnnouncementRequest $request)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
-
-        request()->validate([
-            'title' => 'required|string|max:150',
-            'message' => 'required|string|max:2000',
-        ]);
 
         PlatformAnnouncement::create([
             'title' => request('title'),
@@ -648,17 +726,11 @@ class AdminController extends Controller
         return back()->with('success', 'Announcement deleted.');
     }
 
-    public function updatePolicies()
+    public function updatePolicies(PoliciesRequest $request)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
-
-        request()->validate([
-            'terms_policy' => 'nullable|string|max:20000',
-            'privacy_policy' => 'nullable|string|max:20000',
-            'return_policy' => 'nullable|string|max:20000',
-        ]);
 
         PlatformSetting::set('terms_policy', trim((string) request('terms_policy', '')));
         PlatformSetting::set('privacy_policy', trim((string) request('privacy_policy', '')));
@@ -1036,261 +1108,32 @@ class AdminController extends Controller
         );
     }
 
-    public function approveApplication($type, $id)
+    public function approveApplication($type, $id, ApplicationReviewService $reviews)
     {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        if (!in_array($type, ['seller', 'buyer', 'logistics'])) {
-            abort(404);
-        }
-
-        $table = match ($type) {
-            'seller' => 'seller_applications',
-            'buyer' => 'buyer_applications',
-            'logistics' => 'logistics_applications',
-        };
-
-        // Get application before updating
-        $application = DB::table($table)
-            ->where('id', $id)
-            ->first();
-
-        if (!$application) {
-
-            return back()->with(
-                'error',
-                'Application not found.'
-            );
-        }
-
-        if ($application->status !== 'Pending Verification') {
-            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
-        }
-
-        // Approve application
-        $approvalData = [
-            'status' => 'Approved',
-            'admin_remarks' => null,
-            'reviewed_at' => now(),
-            'updated_at' => now(),
-        ];
-
-        if ($type === 'seller') {
-            $category = request('business_category') ?: $application->business_category;
-
-            // The category decides what this seller may list, so it must be a real one.
-            if (!is_string($category) || !array_key_exists($category, Categories::LIST)) {
-                return back()->with('error', 'Please choose a valid line of business before approving.');
-            }
-
-            $approvalData['business_category'] = $category;
-        }
-
-        // Only while still pending, so a double-click can't email twice.
-        $updated = DB::table($table)
-            ->where('id', $id)
-            ->where('status', 'Pending Verification')
-            ->update($approvalData);
-
-        if (!$updated) {
-
-            return back()->with(
-                'error',
-                'Application could not be approved.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEND NOTIFICATION
-        |--------------------------------------------------------------------------
-        */
-
-        if ($type === 'seller') {
-
-            createNotification(
-                (int) $application->user_id,
-                'Seller Application Approved',
-                'Congratulations! Your seller application has been approved. You can now access your seller account.',
-                'seller',
-                (int) $application->id
-            );
-
-        } elseif ($type === 'buyer') {
-
-            createNotification(
-                (int) $application->user_id,
-                'Account Approved',
-                'Congratulations! Your BoomBuy account has been approved. You can now log in.',
-                'buyer',
-                (int) $application->id
-            );
-
-        } elseif ($type === 'logistics') {
-
-            createNotification(
-                (int) $application->user_id,
-                'Logistics Application Approved',
-                'Congratulations! Your Logistics account has been approved. You can now log in.',
-                'logistics',
-                (int) $application->id
-            );
-        }
-
-        $applicant = DB::table('users')->where('id', $application->user_id)->first();
-
-        if ($applicant) {
-
-            // Emailed after the response, so the page doesn't wait on the mail server.
-            \Illuminate\Support\defer(function () use ($applicant, $application, $type) {
-                try {
-                    Mail::to($applicant->email)->send(
-                        new ApplicationStatusMail(
-                            $application->full_name ?? $applicant->name,
-                            $type,
-                            'Approved'
-                        )
-                    );
-                } catch (\Throwable $e) {
-                    report($e);
-                }
-            });
-        }
-
-        return back()->with(
-            'success',
-            ucfirst($type) . ' application approved.'
-        );
+        return $this->reviewApplication($type, fn () => $reviews->approve($type, (int) $id, request('business_category')));
     }
 
-    public function rejectApplication($type, $id)
+    public function rejectApplication($type, $id, ApplicationReviewService $reviews)
+    {
+        return $this->reviewApplication($type, fn () => $reviews->reject($type, (int) $id, (string) request('admin_remarks')));
+    }
+
+    /** Admin only; unknown application types are a 404. */
+    private function reviewApplication(string $type, callable $decide)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        if (!in_array($type, ['seller', 'buyer', 'logistics'])) {
+        if (!ApplicationReviewService::isType($type)) {
             abort(404);
         }
 
-        $table = match ($type) {
-            'seller' => 'seller_applications',
-            'buyer' => 'buyer_applications',
-            'logistics' => 'logistics_applications',
-        };
-
-        $remarks = trim((string) request('admin_remarks'));
-
-        // Kunin muna ang application bago i-update
-        $application = DB::table($table)
-            ->where('id', $id)
-            ->first();
-
-        if (!$application) {
-            return back()->with('error', 'Application not found.');
+        try {
+            return back()->with('success', $decide());
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($application->status !== 'Pending Verification') {
-            return back()->with('error', 'This application was already ' . strtolower($application->status) . '.');
-        }
-
-        // Reject application — only while still pending, so a double-click
-        // can't email the applicant twice.
-        $updated = DB::table($table)
-            ->where('id', $id)
-            ->where('status', 'Pending Verification')
-            ->update([
-                'status' => 'Rejected',
-                'admin_remarks' => $remarks !== ''
-                    ? $remarks
-                    : null,
-                'reviewed_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-        if (!$updated) {
-            return back()->with(
-                'error',
-                'Application could not be rejected.'
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEND NOTIFICATION
-        |--------------------------------------------------------------------------
-        */
-
-        if ($type === 'seller') {
-
-            $message = $remarks !== ''
-                ? 'Your seller application was rejected. Admin remarks: ' . $remarks
-                : 'Your seller application was rejected. Please review your application and try again.';
-
-            createNotification(
-                $application->user_id,
-                'Seller Application Rejected',
-                $message,
-                'seller',
-                $application->id
-            );
-
-        } elseif ($type === 'buyer') {
-
-            $message = $remarks !== ''
-                ? 'Your BoomBuy account application was rejected. Admin remarks: ' . $remarks
-                : 'Your BoomBuy account application was rejected. Please contact support for more information.';
-
-            createNotification(
-                $application->user_id,
-                'Account Application Rejected',
-                $message,
-                'buyer',
-                $application->id
-            );
-
-        } elseif ($type === 'logistics') {
-
-            $message = $remarks !== ''
-                ? 'Your Logistics application was rejected. Admin remarks: ' . $remarks
-                : 'Your Logistics application was rejected. Please review your application and try again.';
-
-            createNotification(
-                $application->user_id,
-                'Logistics Application Rejected',
-                $message,
-                'logistics',
-                $application->id
-            );
-        }
-
-        $applicant = DB::table('users')->where('id', $application->user_id)->first();
-
-        if ($applicant) {
-
-            // Emailed after the response, so the page doesn't wait on the mail server.
-            \Illuminate\Support\defer(function () use ($applicant, $application, $type, $remarks) {
-                try {
-                    Mail::to($applicant->email)->send(
-                        new ApplicationStatusMail(
-                            $application->full_name ?? $applicant->name,
-                            $type,
-                            'Rejected',
-                            $remarks !== '' ? $remarks : null
-                        )
-                    );
-                } catch (\Throwable $e) {
-                    report($e);
-                }
-            });
-        }
-
-        return back()->with(
-            'success',
-            ucfirst($type) . ' application rejected.'
-        );
     }
 
     public function applicationDocument($type, $id, $field)
@@ -1518,6 +1361,7 @@ class AdminController extends Controller
         }
 
         OrderStock::cancelled((int) $id, $order->status);
+        \App\Support\ChatAutomation::orderUpdate((int) $id, 'cancelled');
 
         createNotification(
             (int) $order->buyer_id,
@@ -1543,10 +1387,7 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $adminUser = User::where(
-            'email',
-            'admin@boombuy.com'
-        )->first();
+        $adminUser = \App\Support\SupportAccount::user();
 
         $notifications = Notification::where('user_id', $adminUser->id ?? 0)
             ->orderByDesc('created_at')
@@ -1575,7 +1416,7 @@ class AdminController extends Controller
             ->where('user_id', function ($query) {
                 $query->select('id')
                     ->from('users')
-                    ->where('email', 'admin@boombuy.com')
+                    ->where('email', \App\Support\SupportAccount::EMAIL)
                     ->limit(1);
             })
             ->whereNull('read_at')

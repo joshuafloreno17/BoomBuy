@@ -1,468 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Shopping Cart — BoomBuy'])
 
-    <title>Shopping Cart — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-            background: #fff7f4;
-            color: #172033;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .container {
-            width: 86%;
-            max-width: 1200px;
-            margin: 45px auto 80px;
-        }
-
-
-        .success {
-            background: #ecfdf3;
-            border: 1px solid #bbf7d0;
-            color: #15803d;
-            padding: 13px 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .error {
-            background: #fff1f2;
-            border: 1px solid #fecdd3;
-            color: #be123c;
-            padding: 13px 16px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            font-size: 13px;
-        }
-
-        .cart-layout {
-            display: grid;
-            grid-template-columns: 1fr 350px;
-            gap: 25px;
-            align-items: start;
-        }
-
-        .cart-box {
-            background: #fff;
-            border: 1px solid #f7e5e0;
-            border-radius: 18px;
-            overflow: hidden;
-        }
-
-        .cart-header {
-            padding: 20px 24px;
-            border-bottom: 1px solid #f9ebe7;
-            font-size: 16px;
-            font-weight: 700;
-        }
-
-        .cart-header-row {
-            display: flex;
-            align-items: center;
-        }
-
-        .select-all-label {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-
-        .select-all-label input {
-            width: 17px;
-            height: 17px;
-            accent-color: #e8420f;
-            cursor: pointer;
-        }
-
-        .cart-item {
-            padding: 22px 24px;
-            display: grid;
-            grid-template-columns: 22px 90px 1fr auto;
-            gap: 18px;
-            align-items: center;
-            border-bottom: 1px solid #f7efed;
-        }
-
-        /* One block per seller — each ships and charges delivery separately. */
-        .cart-shop {
-            border-bottom: 8px solid #fff7f4;
-        }
-
-        .cart-shop:last-child {
-            border-bottom: none;
-        }
-
-        .cart-shop-head {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 14px 24px;
-            border-bottom: 1px solid #f7efed;
-            background: #fffaf8;
-        }
-
-        .cart-shop-head input {
-            width: 18px;
-            height: 18px;
-            accent-color: #e8420f;
-        }
-
-        .cart-shop-head .bi-shop {
-            color: #c43408;
-        }
-
-        .cart-shop-name {
-            font-size: 14px;
-            font-weight: 800;
-            color: #172033;
-            text-decoration: none;
-        }
-
-        a.cart-shop-name:hover {
-            color: #c43408;
-        }
-
-        .cart-shop-chat {
-            margin-left: auto;
-            font-size: 12.5px;
-            font-weight: 700;
-            color: #c43408;
-            text-decoration: none;
-        }
-
-        .cart-shop-delivery {
-            padding: 12px 24px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #6f5a53;
-        }
-
-        .cart-shop-delivery:empty {
-            display: none;
-        }
-
-        .cart-shop-delivery i {
-            color: #c43408;
-        }
-
-        .cart-shop-delivery.is-free {
-            color: #0a6f66;
-        }
-
-        .cart-shop-delivery.is-free i {
-            color: #0a6f66;
-        }
-
-        .cart-item.item-deselected {
-            opacity: 0.5;
-        }
-
-        .cart-item.is-unavailable .product-image,
-        .cart-item.is-unavailable .unit-price,
-        .cart-item.is-unavailable .item-total {
-            opacity: .45;
-        }
-
-        .unavailable-note {
-            margin: 4px 0 6px;
-            color: #b42318;
-            font-size: 12px;
-            font-weight: 700;
-        }
-
-        .item-checkbox {
-            width: 17px;
-            height: 17px;
-            accent-color: #e8420f;
-            cursor: pointer;
-        }
-
-        .cart-item:last-child {
-            border-bottom: none;
-        }
-
-        .product-image {
-            width: 90px;
-            height: 90px;
-            border-radius: 13px;
-            background: linear-gradient(145deg, #ffede8, #ffdfd5);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 43px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .product-image img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-        .product-info h3 {
-            font-size: 16px;
-            margin-bottom: 6px;
-        }
-
-        .category {
-            display: inline-block;
-            background: #fff1ed;
-            color: #db5a33;
-            padding: 5px 8px;
-            border-radius: 6px;
-            font-size: 9px;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-
-        .unit-price {
-            color: #977970;
-            font-size: 12px;
-        }
-
-        .quantity {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-top: 12px;
-        }
-
-        .qty-btn {
-            width: 30px;
-            height: 30px;
-            border: 1px solid #fbe2db;
-            background: #fffaf8;
-            color: #e8420f;
-            border-radius: 7px;
-            cursor: pointer;
-            font-weight: 700;
-        }
-
-        .qty-btn:hover {
-            background: #ffefea;
-        }
-
-        .qty-number {
-            min-width: 25px;
-            text-align: center;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .item-right {
-            text-align: right;
-        }
-
-        .item-total {
-            color: #e8420f;
-            font-size: 17px;
-            font-weight: 700;
-            margin-bottom: 10px;
-        }
-
-        .remove-btn {
-            border: none;
-            background: transparent;
-            color: #ef4444;
-            cursor: pointer;
-            font-size: 11px;
-            font-weight: 600;
-        }
-
-        .remove-btn:hover {
-            text-decoration: underline;
-        }
-
-        .empty-cart {
-            background: #fff;
-            border: 1px solid #f7e5e0;
-            border-radius: 18px;
-            padding: 70px 25px;
-            text-align: center;
-        }
-
-        .empty-icon {
-            font-size: 65px;
-            margin-bottom: 15px;
-        }
-
-        .empty-cart h2 {
-            font-size: 22px;
-            margin-bottom: 8px;
-        }
-
-        .empty-cart p {
-            color: #977970;
-            font-size: 13px;
-            margin-bottom: 22px;
-        }
-
-        .shop-btn {
-            display: inline-block;
-            background: #e8420f;
-            color: #fff;
-            padding: 13px 22px;
-            border-radius: 9px;
-            font-size: 13px;
-            font-weight: 700;
-        }
-
-        .summary {
-            background: #fff;
-            border: 1px solid #f7e5e0;
-            border-radius: 18px;
-            padding: 25px;
-            position: sticky;
-            top: 20px;
-        }
-
-        .summary h2 {
-            font-size: 19px;
-            margin-bottom: 22px;
-        }
-
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 14px;
-            color: #8d6c62;
-            font-size: 13px;
-        }
-
-        .summary-row strong {
-            color: #172033;
-        }
-
-        .summary-total {
-            border-top: 1px solid #f6e8e4;
-            margin-top: 18px;
-            padding-top: 18px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .summary-total span {
-            font-size: 14px;
-            font-weight: 700;
-        }
-
-        .summary-total strong {
-            color: #e8420f;
-            font-size: 24px;
-        }
-
-        .checkout-btn {
-            display: block;
-            width: 100%;
-            border: none;
-            background: #e8420f;
-            color: #fff;
-            padding: 14px;
-            border-radius: 9px;
-            margin-top: 22px;
-            cursor: pointer;
-            font-size: 13px;
-            font-weight: 700;
-            text-align: center;
-        }
-
-        .checkout-btn:hover {
-            background: #c43408;
-        }
-
-        .continue {
-            display: block;
-            text-align: center;
-            margin-top: 15px;
-            color: #db5a33;
-            font-size: 12px;
-            font-weight: 600;
-        }
-
-        h1, h2, h3, .logo {
-            font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-            letter-spacing: -0.01em;
-        }
-
-        button,
-        .btn,
-        .checkout-btn,
-        .shop-btn {
-            border-radius: 12px !important;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-        }
-
-        button:hover,
-        .btn:hover,
-        .checkout-btn:hover,
-        .shop-btn:hover {
-            transform: translateY(-1px);
-        }
-
-        ::selection {
-            background: #ffd7c2;
-            color: #7c1a00;
-        }
-
-        @media (max-width: 850px) {
-            .cart-layout {
-                grid-template-columns: 1fr;
-            }
-
-            .summary {
-                position: static;
-            }
-        }
-
-        @media (max-width: 600px) {
-            .container {
-                width: 92%;
-            }
-
-            .cart-item {
-                grid-template-columns: 20px 70px 1fr;
-            }
-
-            .product-image {
-                width: 70px;
-                height: 70px;
-                font-size: 32px;
-            }
-
-            .item-right {
-                grid-column: 3;
-                text-align: left;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ vasset('css/views/cart.css') }}">
 </head>
 
 <body>
@@ -610,6 +151,9 @@
 
                             $itemAvailable = $onSaleIds->has($product->id);
 
+                            // An option has its own stock; the product's only counts without one.
+                            $itemStock = $itemVariation ? (int) $itemVariation->stock : (int) $product->stock;
+
                             if ($itemAvailable) {
                                 $subtotal += $itemTotal;
                                 $totalItems += $quantity;
@@ -659,6 +203,11 @@
                                     @endif
                                 </div>
 
+                                @if($itemAvailable)
+                                    {{-- Filled in (and kept up to date) by stockNote() below. --}}
+                                    <div class="stock-note" id="stock-{{ $cartKey }}" data-stock="{{ $itemStock }}"></div>
+                                @endif
+
                                 <div class="quantity">
 
                                     <form
@@ -706,7 +255,8 @@
 
                                         <button
                                             type="submit"
-                                            class="qty-btn"
+                                            class="qty-btn qty-plus"
+                                            aria-label="Add one more"
                                         >
                                             +
                                         </button>
@@ -837,9 +387,9 @@
                             type="text"
                             name="voucher_code"
                             placeholder="Voucher code"
-                            style="flex:1; padding:9px 11px; border:1px solid #f0ddd5; border-radius:8px; font-family:inherit; font-size:12px; text-transform:uppercase;"
+                            style="flex:1; padding:9px 11px; border:1px solid #f0e2da; border-radius:8px; font-family:inherit; font-size:12px; text-transform:uppercase;"
                         >
-                        <button type="submit" style="border:none; background:#172033; color:white; padding:9px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                        <button type="submit" style="border:none; background:#1b1a1f; color:white; padding:9px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
                             Apply
                         </button>
                     </form>
@@ -919,8 +469,39 @@
                 }
             }
 
+            // "N in stock" / "Only N left" under each line; + stops at the stock.
+            function stockNote(cartKey) {
+                var note = document.getElementById('stock-' + cartKey);
+                var qtyEl = document.getElementById('qty-' + cartKey);
+                if (!note || !qtyEl) return;
+
+                var stock = parseInt(note.dataset.stock, 10) || 0;
+                var qty = parseInt(qtyEl.textContent, 10) || 0;
+                var atLimit = qty >= stock;
+
+                note.classList.toggle('is-low', stock <= 5);
+                note.classList.toggle('is-max', atLimit);
+                note.innerHTML = atLimit
+                    ? '<i class="bi bi-exclamation-circle"></i> You have all ' + stock + ' in stock'
+                    : (stock <= 5
+                        ? '<i class="bi bi-hourglass-split"></i> Only ' + stock + ' left'
+                        : '<i class="bi bi-box-seam"></i> ' + stock + ' in stock');
+
+                var plus = document.querySelector('.qty-form[data-cart-key="' + cartKey + '"] .qty-plus');
+                if (plus) {
+                    plus.disabled = atLimit;
+                    plus.title = atLimit ? 'No more stock available' : '';
+                }
+            }
+
+            document.querySelectorAll('.stock-note').forEach(function (note) {
+                stockNote(note.id.replace(/^stock-/, ''));
+            });
+
             function submitCartForm(form) {
-                fetch(form.action, {
+                // getAttribute: these forms have an <input name="action">, which
+                // hides the form's own .action property.
+                fetch(form.getAttribute('action'), {
                     method: 'POST',
                     headers: {
                         'Accept': 'application/json',
@@ -965,6 +546,7 @@
                             if (qtyEl) qtyEl.textContent = data.quantity;
                             if (totalEl) totalEl.textContent = '₱' + data.item_total;
                             if (checkboxEl) checkboxEl.dataset.quantity = data.quantity;
+                            stockNote(cartKey);
                         }
 
                         if (document.querySelectorAll('.cart-item').length === 0) {
@@ -1115,7 +697,12 @@
                 });
             }
 
-            updateShops();
+            // The browser can bring back the boxes the buyer unticked (reload,
+            // Back button), so the summary always follows the boxes as they are
+            // — not the server's "everything selected" total.
+            recomputeSelection();
+            window.addEventListener('load', recomputeSelection);
+            window.addEventListener('pageshow', recomputeSelection);
 
             if (checkoutBtn) {
                 checkoutBtn.addEventListener('click', function (e) {

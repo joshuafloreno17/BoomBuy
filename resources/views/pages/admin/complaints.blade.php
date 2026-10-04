@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Complaints & Disputes — BoomBuy Admin'])
 
-    <title>Complaints & Disputes — BoomBuy Admin</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-complaints.css') }}">
 </head>
 

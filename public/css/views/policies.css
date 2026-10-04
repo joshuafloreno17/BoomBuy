@@ -1,0 +1,112 @@
+/* Moved out of resources/views/pages/policies.blade.php */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Figtree', -apple-system, sans-serif;
+            background: #fff8f3;
+            color: #1b1a1f;
+        }
+
+        .policies {
+            max-width: 860px;
+            margin: 36px auto;
+            padding: 0 16px;
+        }
+
+        .policies h1 {
+            font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        .policies .lead {
+            color: #6b6570;
+            margin-bottom: 22px;
+        }
+
+        .policy-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+        .policy-tabs a {
+            padding: 9px 16px;
+            border-radius: 999px;
+            border: 1px solid #f0e2da;
+            background: #fff;
+            color: #6f5850;
+            font-weight: 700;
+            font-size: 14px;
+            text-decoration: none;
+        }
+
+        .policy-tabs a:hover {
+            border-color: var(--accent, #e8420f);
+            color: var(--accent, #e8420f);
+        }
+
+        .policy-card {
+            background: #fff;
+            border: 1px solid #f0e2da;
+            border-radius: 16px;
+            padding: 26px 28px;
+            margin-bottom: 18px;
+            scroll-margin-top: 90px;
+        }
+
+        .policy-card h2 {
+            font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+            font-size: 22px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .policy-card h2 i {
+            color: var(--accent, #e8420f);
+        }
+
+        .terms-section {
+            margin-bottom: 16px;
+        }
+
+        .terms-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .terms-section h3 {
+            font-size: 15px;
+            margin-bottom: 4px;
+        }
+
+        .terms-section p,
+        .terms-section li {
+            color: #4a4449;
+            font-size: 14px;
+            line-height: 1.7;
+        }
+
+        .terms-section p + p {
+            margin-top: 10px;
+        }
+
+        .terms-section ul {
+            padding-left: 20px;
+            margin-top: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .policies { margin: 22px auto; }
+            .policies h1 { font-size: 26px; }
+            .policy-card { padding: 20px 18px; }
+        }

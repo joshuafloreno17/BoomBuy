@@ -22,6 +22,34 @@ class ShopAndAccountTest extends TestCase
         $this->get('/')->assertOk();
     }
 
+    public function test_landing_hero_shows_best_sellers_first_then_the_newest(): void
+    {
+        $seller = $this->makeSeller('shoes');
+        $buyer = $this->makeUser('buyer');
+
+        $popular = $this->makeProduct($seller, ['name' => 'Popular Sneakers']);
+        $steady = $this->makeProduct($seller, ['name' => 'Steady Sandals']);
+        $newest = $this->makeProduct($seller, ['name' => 'Brand New Boots']);
+
+        // Popular: 2 delivered; Steady: 1 delivered; a pending order doesn't count.
+        $this->makeOrder($buyer, $popular, 'Delivered');
+        $this->makeOrder($buyer, $popular, 'Delivered');
+        $this->makeOrder($buyer, $steady, 'Delivered');
+        $this->makeOrder($buyer, $newest, 'Pending');
+
+        $hero = $this->get('/')->assertOk()->viewData('heroProducts');
+
+        $this->assertSame(
+            ['Popular Sneakers', 'Steady Sandals', 'Brand New Boots'],
+            $hero->pluck('name')->all()
+        );
+
+        $this->get('/')
+            ->assertSee('Best seller · 2 sold')
+            ->assertSee('Best seller · 1 sold')
+            ->assertSee('Just listed');
+    }
+
     public function test_shop_filters_by_category_and_price(): void
     {
         $shoes = $this->makeSeller('shoes');

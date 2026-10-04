@@ -1,1464 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin Dashboard — BoomBuy</title>
+    @include('partials.head', ['title' => 'Admin Dashboard — BoomBuy'])
 
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">
+    <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/portal-dash.css') }}">
 
-    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-html,
-body {
-    width: 100%;
-    min-height: 100%;
-    overflow-x: hidden;
-}
-
-body {
-    font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #fff7f4;
-    color: #172033;
-}
-
-a {
-    text-decoration: none;
-    color: inherit;
-}
-
-button {
-    font-family: inherit;
-}
-
-.layout {
-    display: flex;
-    min-height: 100vh;
-}
-
-/* =========================
-   ADMIN NOTIFICATION
-========================= */
-
-.topbar-right {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.notification-button {
-    position: relative;
-    width: 42px;
-    height: 42px;
-    border: 1px solid #f7e5e0;
-    background: #ffffff;
-    color: #e8420f;
-    border-radius: 10px !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition: 0.2s ease;
-}
-
-.notification-button:hover {
-    background: #fff4f1;
-    transform: translateY(-1px);
-}
-
-.notification-badge {
-    position: absolute;
-    top: -5px;
-    right: -5px;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 5px;
-    border-radius: 20px;
-    background: #e8420f;
-    color: #ffffff;
-    font-size: 9px;
-    font-weight: 800;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid #ffffff;
-}
-
-
-/* =========================
-   TOPBAR
-========================= */
-
-.topbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 35px;
-    min-width: 0;
-}
-
-.topbar small {
-    color: #db5a33;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.topbar h1 {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 32px;
-    line-height: 1.1;
-    margin-top: 7px;
-}
-
-/* =========================
-   STATS
-========================= */
-
-.stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 18px;
-    margin-bottom: 25px;
-}
-
-.stat-card {
-    background: #ffffff;
-    border: 1px solid #f7e5e0;
-    border-radius: 15px;
-    padding: 22px;
-    min-width: 0;
-    transition: 0.2s ease;
-}
-
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 30px rgba(39, 84, 150, 0.08);
-}
-
-.stat-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.stat-title {
-    color: #977970;
-    font-size: 12px;
-}
-
-.stat-icon {
-    width: 38px;
-    height: 38px;
-    border-radius: 9px;
-    background: #fff1ed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-}
-
-.stat-value {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 27px;
-    font-weight: 700;
-}
-
-.stat-change {
-    color: #16a34a;
-    font-size: 10px;
-    margin-top: 7px;
-}
-
-/* =========================
-   CONTENT GRID
-========================= */
-
-.content-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
-    gap: 20px;
-    margin-bottom: 20px;
-    min-width: 0;
-}
-
-.panel {
-    background: #ffffff;
-    border: 1px solid #f7e5e0;
-    border-radius: 15px;
-    padding: 23px;
-    min-width: 0;
-    overflow: hidden;
-}
-
-.panel-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-    min-width: 0;
-}
-
-.panel-header h2 {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 17px;
-    line-height: 1.2;
-}
-
-.view-all {
-    color: #e8420f;
-    font-size: 11px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-/* =========================
-   ORDERS
-========================= */
-
-.order {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 15px;
-    width: 100%;
-    padding: 13px 0;
-    border-bottom: 1px solid #f7efed;
-    min-width: 0;
-}
-
-.order:last-child {
-    border-bottom: none;
-}
-
-.order-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 0;
-    flex: 1;
-}
-
-.order-icon {
-    width: 38px;
-    height: 38px;
-    background: #fff4f1;
-    border-radius: 9px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 17px;
-}
-
-.order-info > div:last-child {
-    min-width: 0;
-}
-
-.order-name {
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.order-id {
-    color: #b99c93;
-    font-size: 10px;
-    margin-top: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.order-right {
-    text-align: right;
-    flex-shrink: 0;
-}
-
-.order-price {
-    font-size: 12px;
-    font-weight: 700;
-}
-
-.status {
-    display: inline-block;
-    margin-top: 4px;
-    padding: 4px 7px;
-    border-radius: 5px;
-    font-size: 9px;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.completed {
-    background: #ecfdf5;
-    color: #16a34a;
-}
-
-.pending {
-    background: #fffaed;
-    color: #eaaf0c;
-}
-
-.processing {
-    background: #fff3ef;
-    color: #f34f1d;
-}
-
-.neutral-status {
-    background: #f5f5f5;
-    color: #777777;
-}
-
-.received-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    margin-top: 5px;
-    padding: 4px 7px;
-    border-radius: 5px;
-    background: #eafaf0;
-    color: #24733e;
-    font-size: 9px;
-    font-weight: 700;
-}
-
-/* =========================
-   PRODUCTS
-========================= */
-
-.product-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    width: 100%;
-    padding: 13px 0;
-    border-bottom: 1px solid #f7efed;
-    min-width: 0;
-}
-
-.product-row:last-child {
-    border-bottom: none;
-}
-
-.product-icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 9px;
-    background: #fff1ed;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    flex-shrink: 0;
-}
-
-.product-info {
-    flex: 1;
-    min-width: 0;
-}
-
-.product-name {
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.product-category {
-    color: #b99c93;
-    font-size: 10px;
-    margin-top: 4px;
-}
-
-.product-price {
-    color: #e8420f;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.empty-state {
-    text-align: center;
-    padding: 35px 15px;
-    color: #b99c93;
-    font-size: 12px;
-}
-
-.empty-state-icon {
-    font-size: 30px;
-    margin-bottom: 10px;
-}
-
-/* =========================
-   ADMIN ACTION
-========================= */
-
-.admin-action {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 20px;
-    background: #fff9f7;
-    border: 1px solid #fbe9e4;
-    border-radius: 12px;
-    padding: 18px;
-    min-width: 0;
-}
-
-.admin-action-info {
-    display: flex;
-    align-items: center;
-    gap: 13px;
-    min-width: 0;
-}
-
-.admin-action-icon {
-    width: 45px;
-    height: 45px;
-    border-radius: 11px;
-    background: #ffefea;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 21px;
-    flex-shrink: 0;
-}
-
-.admin-action-title {
-    font-size: 12px;
-    font-weight: 800;
-}
-
-.admin-action-description {
-    color: #977970;
-    font-size: 10px;
-    margin-top: 4px;
-}
-
-.manage-button {
-    display: inline-block;
-    background: #e8420f;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    white-space: nowrap;
-    transition: 0.2s ease;
-}
-
-.manage-button:hover {
-    background: #c4360b;
-    transform: translateY(-1px);
-}
-
-/* =========================
-   ACCOUNTS
-========================= */
-
-.accounts-panel {
-    margin-top: 20px;
-}
-
-.accounts-description {
-    color: #977970;
-    font-size: 12px;
-    margin-top: 5px;
-}
-
-.account-stats {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-    margin-top: 20px;
-}
-
-.account-stat {
-    background: #fffaf8;
-    border: 1px solid #f7e5e0;
-    border-radius: 12px;
-    padding: 18px;
-    min-width: 0;
-}
-
-.account-stat-title {
-    color: #8d6c62;
-    font-size: 11px;
-    margin-bottom: 7px;
-}
-
-.account-stat-value {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 25px;
-}
-
-/* =========================
-   ACCOUNT TABLE
-========================= */
-
-.account-table-wrapper {
-    width: 100%;
-    overflow-x: auto;
-    margin-top: 25px;
-}
-
-.account-table {
-    width: 100%;
-    min-width: 600px;
-    border-collapse: collapse;
-}
-
-.account-table th {
-    text-align: left;
-    padding: 12px;
-    background: #fffaf8;
-    color: #8d6c62;
-    font-size: 11px;
-}
-
-.account-table td {
-    padding: 13px 12px;
-    border-bottom: 1px solid #f7efed;
-    font-size: 13px;
-}
-
-.account-email {
-    color: #8d6c62;
-}
-
-.role-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 20px;
-    font-size: 10px;
-    font-weight: 700;
-}
-
-.role-buyer {
-    background: #ffede8;
-    color: #e8420f;
-}
-
-.role-seller {
-    background: #fffaed;
-    color: #c2910c;
-}
-
-.role-rider {
-    background: #f0fdf4;
-    color: #15803d;
-}
-
-.no-accounts {
-    text-align: center;
-    padding: 30px;
-    color: #b99c93;
-    font-size: 12px;
-}
-
-/* =========================
-   TABLET
-========================= */
-
-@media (max-width: 1100px) {
-
-    .stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .content-grid {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .account-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-/* =========================
-   MOBILE
-========================= */
-
-@media (max-width: 750px) {
-
-    .topbar {
-        align-items: flex-start;
-        margin-bottom: 25px;
-    }
-
-    .topbar h1 {
-        font-size: 27px;
-    }
-
-    .stats {
-        grid-template-columns: minmax(0, 1fr);
-        gap: 12px;
-    }
-
-    .content-grid {
-        display: grid;
-        grid-template-columns: minmax(0, 1fr);
-        gap: 15px;
-    }
-
-    .panel {
-        width: 100%;
-        padding: 18px;
-    }
-
-    .account-stats {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .admin-action {
-        align-items: flex-start;
-        flex-direction: column;
-    }
-
-    .manage-button {
-        width: 100%;
-        text-align: center;
-    }
-}
-
-/* =========================
-   SMALL MOBILE
-========================= */
-
-@media (max-width: 480px) {
-
-    .topbar {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 12px;
-    }
-
-    .topbar h1 {
-        font-size: 24px;
-    }
-
-    .panel {
-        padding: 15px;
-        border-radius: 13px;
-    }
-
-    .panel-header {
-        align-items: flex-start;
-        gap: 8px;
-    }
-
-    .panel-header h2 {
-        font-size: 16px;
-    }
-
-    .order {
-        align-items: flex-start;
-    }
-
-    .order-right {
-        text-align: right;
-    }
-
-    .order-name {
-        max-width: 85px;
-    }
-
-    .order-id {
-        max-width: 90px;
-    }
-
-    .product-name {
-        max-width: 85px;
-    }
-
-    .product-price {
-        font-size: 11px;
-    }
-
-    .account-stats {
-        grid-template-columns: minmax(0, 1fr);
-    }
-
-    .admin-action {
-        padding: 14px;
-    }
-
-    .admin-action-info {
-        align-items: flex-start;
-    }
-}
-
-/* =========================
-   BOOMBUY DESIGN SYSTEM
-========================= */
-
-h1,
-h2,
-h3,
-.logo,
-.stat-title,
-.stat-value {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-
-button {
-    border-radius: 12px !important;
-    transition:
-        transform 0.15s ease,
-        box-shadow 0.15s ease,
-        background 0.15s ease;
-}
-
-button:hover {
-    transform: translateY(-1px);
-}
-
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
+    <link rel="stylesheet" href="{{ vasset('css/views/admin-dashboard.css') }}">
 </head>
 
 <body>
 
-<div class="layout">
-
     <x-layout.admin-sidebar active="dashboard" />
 
-    <!-- =========================
-         MAIN
-    ========================= -->
-
     <main class="main">
+        <div class="pd">
 
-      <!-- TOPBAR -->
-<div class="topbar">
+            @php
+                $peso = fn ($v) => '₱' . number_format((float) $v, (float) $v == floor((float) $v) ? 0 : 2);
+                $typeLabels = ['seller' => 'Seller', 'buyer' => 'Buyer', 'logistics' => 'Logistics'];
+                $typePlurals = ['seller' => 'Sellers', 'buyer' => 'Buyers', 'logistics' => 'Logistics'];
+                $plural = fn ($n, $one, $many) => $n . ' ' . ((int) $n === 1 ? $one : $many);
+                $ordersTodayCount = (int) ($ordersToday->total ?? 0);
+            @endphp
 
-    <div>
-        <small>
-            BoomBuy Administration
-        </small>
-
-        <h1>
-            Dashboard
-        </h1>
-    </div>
-
-</div>
-        <!-- =========================
-             DASHBOARD STATS
-        ========================= -->
-
-        <section class="stats">
-
-            <div class="stat-card">
-
-                <div class="stat-top">
-
-                    <div class="stat-title">
-                        Total Products
-                    </div>
-
-                    <div class="stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                    </div>
-
+            <header class="pd-head">
+                <div class="pd-head-text">
+                    <p class="pd-eyebrow">Marketplace overview · {{ now()->format('l, F j') }}</p>
+                    <h1 class="pd-title">Dashboard</h1>
                 </div>
-
-                <div class="stat-value">
-                    {{ $totalProducts }}
-                </div>
-
-                <div class="stat-change">
-                    Actual BoomBuy products
-                </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <div class="stat-top">
-
-                    <div class="stat-title">
-                        Total Orders
-                    </div>
-
-                    <div class="stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                    </div>
-
-                </div>
-
-                <div class="stat-value">
-                    {{ $totalOrders }}
-                </div>
-
-                <div class="stat-change">
-                    Actual orders
-                </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <div class="stat-top">
-
-                    <div class="stat-title">
-                        Customers
-                    </div>
-
-                    <div class="stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </div>
-
-                </div>
-
-                <div class="stat-value">
-                    {{ $buyerCount }}
-                </div>
-
-                <div class="stat-change">
-                    Registered buyers
-                </div>
-
-            </div>
-
-
-            <div class="stat-card">
-
-                <div class="stat-top">
-
-                    <div class="stat-title">
-                        Total Sales
-                    </div>
-
-                    <div class="stat-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
-                    </div>
-
-                </div>
-
-                <div class="stat-value">
-                    ₱{{ number_format($totalSales, 2) }}
-                </div>
-
-                <div class="stat-change">
-                    Delivered order sales
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             MONITORING
-        ========================= -->
-
-        <div class="content-grid">
-
-            <!-- RECENT ORDERS -->
-
-            <section class="panel">
-
-                <div class="panel-header">
-
-                    <div>
-                        <h2>
-                            Recent Orders
-                        </h2>
-                    </div>
-
-                    <span
-                        style="
-                            color:#977970;
-                            font-size:10px;
-                            font-weight:600;
-                        "
-                    >
-                        Monitoring only
-                    </span>
-
-                </div>
-
-                @if(count($orders) > 0)
-
-                    @foreach($orders as $order)
-
-                        @php
-
-                            $firstItem = $order['items'][0] ?? null;
-
-                            $productName =
-                                $firstItem['product_name']
-                                ?? 'Order #' . ($order['id'] ?? 'N/A');
-
-                            $orderId =
-                                $order['id'] ?? 'N/A';
-
-                            $buyerName =
-                                $order['buyer_name']
-                                ?? 'Unknown Buyer';
-
-                            $orderTotal =
-                                (float) ($order['total'] ?? 0);
-
-                            $orderStatus =
-                                $order['status'] ?? 'Pending';
-
-                            $statusClass = match ($orderStatus) {
-
-                                'Delivered'
-                                    => 'completed',
-
-                                'Pending',
-                                'Ready for Pickup'
-                                    => 'pending',
-
-                                'Processing',
-                                'Assigned',
-                                'Picked Up',
-                                'At Sorting Center',
-                                'Assigned for Delivery',
-                                'Out for Delivery',
-                                    => 'processing',
-
-                                default
-                                    => 'neutral-status',
-
-                            };
-
-                        @endphp
-
-
-                        <div class="order">
-
-                            <div class="order-info">
-
-                                <div class="order-icon">
-                                    <i class="bi bi-box-seam-fill"></i>
-                                </div>
-
-                                <div>
-
-                                    <div class="order-name">
-
-                                        {{ $productName }}
-
-                                        @if(count($order['items'] ?? []) > 1)
-
-                                            + {{ count($order['items']) - 1 }}
-                                            more
-
-                                        @endif
-
-                                    </div>
-
-                                    <div class="order-id">
-
-                                        #{{ $orderId }}
-                                        ·
-                                        {{ $buyerName }}
-
-                                    </div>
-
-                                </div>
-
-                            </div>
-
-
-                            <div class="order-right">
-
-                                <div class="order-price">
-
-                                    ₱{{ number_format($orderTotal, 2) }}
-
-                                </div>
-
-                                <span class="status {{ $statusClass }}">
-
-                                    {{ $orderStatus }}
-
-                                </span>
-
-
-                                @if(!empty($order['buyer_received_at']))
-
-                                    <div class="received-badge">
-
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;"><polyline points="20 6 9 17 4 12"/></svg>
-                                        Received
-
-                                    </div>
-
-                                @endif
-
-                            </div>
-
-                        </div>
-
-                    @endforeach
-
-                @else
-
-                    <div class="empty-state">
-
-                        <div class="empty-state-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8b8ae" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                        </div>
-
-                        No orders yet.
-
-                    </div>
-
-                @endif
-
+                <form class="pd-search" action="{{ route('admin.accounts') }}" method="GET" role="search">
+                    <i class="bi bi-search" aria-hidden="true"></i>
+                    <input type="search" name="q" placeholder="Search users and shops" aria-label="Search users and shops">
+                </form>
+                <a href="{{ route('admin.settings') }}" class="pd-btn pd-btn-ghost"><i class="bi bi-megaphone"></i> Post announcement</a>
+            </header>
+
+            @if(session('success'))
+                <div class="pd-alert is-ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
+            @endif
+
+            <section class="pd-kpis" aria-label="Marketplace at a glance">
+                <a href="{{ route('admin.orders') }}" class="pd-kpi is-accent">
+                    <span class="pd-kpi-label">Orders today</span>
+                    <span class="pd-kpi-value">{{ $ordersTodayCount }}</span>
+                    <span class="pd-kpi-note">{{ $peso($ordersToday->value ?? 0) }} in products</span>
+                </a>
+                <a href="{{ route('admin.reports') }}" class="pd-kpi">
+                    <span class="pd-kpi-label">Commission today</span>
+                    <span class="pd-kpi-value">{{ $peso($commissionToday) }}</span>
+                    <span class="pd-kpi-note">{{ rtrim(rtrim(number_format($commissionRate, 2), '0'), '.') }}% of delivered sales</span>
+                </a>
+                <a href="{{ route('admin.accounts', ['role' => 'seller']) }}" class="pd-kpi">
+                    <span class="pd-kpi-label">Active sellers</span>
+                    <span class="pd-kpi-value">{{ $activeSellers }}</span>
+                    <span class="pd-kpi-note">{{ ($pendingByType['seller'] ?? 0) > 0 ? $pendingByType['seller'] . ' waiting for approval' : 'No pending sellers' }}</span>
+                </a>
+                <a href="{{ route('admin.accounts', ['role' => 'rider']) }}" class="pd-kpi">
+                    <span class="pd-kpi-label">Active riders</span>
+                    <span class="pd-kpi-value">{{ $activeRiders }}</span>
+                    <span class="pd-kpi-note">{{ $ridersOnRoad }} out on delivery now</span>
+                </a>
             </section>
 
-
-            <!-- SELLER PRODUCTS -->
-
-            <section class="panel">
-
-                <div class="panel-header">
-
-                    <div>
-                        <h2>
-                            Seller Products
-                        </h2>
+            <div class="pd-row">
+                <section class="pd-card pd-grow-2" aria-labelledby="queue-title">
+                    <div class="pd-card-head">
+                        <h2 class="pd-card-title" id="queue-title">Applications to review</h2>
+                        <div class="pd-chips" aria-label="Pending by type">
+                            <a href="{{ route('admin.applications', ['status' => 'pending']) }}" class="pd-chip is-on">All · {{ $pendingApplications }}</a>
+                            @foreach($typeLabels as $type => $label)
+                                <a href="{{ route('admin.applications', ['type' => $type, 'status' => 'pending']) }}" class="pd-chip">{{ $typePlurals[$type] }} ·{{ $pendingByType[$type] ?? 0 }}</a>
+                            @endforeach
+                        </div>
                     </div>
 
-                    <span
-                        style="
-                            color:#977970;
-                            font-size:10px;
-                            font-weight:600;
-                        "
-                    >
-                        Monitoring only
-                    </span>
+                    @if($reviewQueue->isEmpty())
+                        <div class="pd-empty"><i class="bi bi-check2-circle"></i>Nothing to review. New applications show up here.</div>
+                    @else
+                        <div class="pd-list">
+                            @foreach($reviewQueue as $application)
+                                <div class="pd-list-row">
+                                    <span class="pd-avatar">{{ mb_strtoupper(mb_substr($application['name'] ?? '?', 0, 2)) }}</span>
+                                    <span class="pd-list-main">
+                                        <strong>{{ $application['name'] }}</strong>
+                                        <span>{{ $application['detail'] ? $application['detail'] . ' · ' : '' }}submitted {{ \Carbon\Carbon::parse($application['created_at'])->diffForHumans() }}</span>
+                                    </span>
+                                    <span class="pd-tag">{{ $typeLabels[$application['type']] ?? ucfirst($application['type']) }}</span>
+                                    <a href="{{ route('admin.applications', ['type' => $application['type'], 'status' => 'pending']) }}" class="pd-btn pd-btn-primary pd-btn-sm">Review</a>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </section>
 
+                <section class="pd-card pd-grow-1" aria-labelledby="compliance-title">
+                    <div class="pd-card-head">
+                        <h2 class="pd-card-title" id="compliance-title">Keep an eye on</h2>
+                    </div>
+                    <div class="pd-todo">
+                        <a href="{{ route('admin.complaints') }}" class="pd-todo-item {{ $pendingComplaints > 0 ? 'is-hot' : 'is-done' }}">
+                            <span class="pd-todo-icon"><i class="bi bi-exclamation-triangle"></i></span>
+                            <span class="pd-todo-text"><strong>Open complaints</strong><span>Waiting for a reply</span></span>
+                            <span class="pd-todo-count">{{ $pendingComplaints }}</span>
+                        </a>
+                        <a href="{{ route('admin.products') }}" class="pd-todo-item {{ $flaggedProducts > 0 ? 'is-hot' : 'is-done' }}">
+                            <span class="pd-todo-icon"><i class="bi bi-flag"></i></span>
+                            <span class="pd-todo-text"><strong>Flagged products</strong><span>Hidden from the shop</span></span>
+                            <span class="pd-todo-count">{{ $flaggedProducts }}</span>
+                        </a>
+                        <a href="{{ route('admin.compliance') }}" class="pd-todo-item {{ $suspendedSellers > 0 ? '' : 'is-done' }}">
+                            <span class="pd-todo-icon"><i class="bi bi-shield-exclamation"></i></span>
+                            <span class="pd-todo-text"><strong>Suspended sellers</strong><span>Review in Compliance</span></span>
+                            <span class="pd-todo-count">{{ $suspendedSellers }}</span>
+                        </a>
+                        <a href="{{ route('admin.orders') }}" class="pd-todo-item {{ $pendingCount > 0 ? '' : 'is-done' }}">
+                            <span class="pd-todo-icon"><i class="bi bi-hourglass-split"></i></span>
+                            <span class="pd-todo-text"><strong>Pending orders</strong><span>Not yet accepted by sellers</span></span>
+                            <span class="pd-todo-count">{{ $pendingCount }}</span>
+                        </a>
+                    </div>
+                </section>
+            </div>
+
+            <section class="pd-kpis" aria-label="All time">
+                <div class="pd-kpi">
+                    <span class="pd-kpi-label">Delivered sales, all time</span>
+                    <span class="pd-kpi-value">{{ $peso($totalSales) }}</span>
+                    <span class="pd-kpi-note">{{ $deliveredCount }} delivered of {{ $totalOrders }} orders</span>
                 </div>
+                <a href="{{ route('admin.accounts') }}" class="pd-kpi">
+                    <span class="pd-kpi-label">Accounts</span>
+                    <span class="pd-kpi-value">{{ $totalUsers }}</span>
+                    <span class="pd-kpi-note">{{ $plural($buyerCount, 'buyer', 'buyers') }} · {{ $plural($sellerCount, 'seller', 'sellers') }} · {{ $plural($riderCount, 'rider', 'riders') }}</span>
+                </a>
+                <a href="{{ route('admin.products') }}" class="pd-kpi">
+                    <span class="pd-kpi-label">Products</span>
+                    <span class="pd-kpi-value">{{ $totalProducts }}</span>
+                    <span class="pd-kpi-note">Listed by sellers</span>
+                </a>
+            </section>
 
-
-                @if(count($sellerProductsForDashboard) > 0)
-
-                    @foreach($sellerProductsForDashboard as $product)
-
-                        @php
-
-                            $productName =
-                                $product['name']
-                                ?? $product['product_name']
-                                ?? 'Unnamed Product';
-
-                            $category =
-                                $product['category']
-                                ?? 'Product';
-
-                            $price =
-                                (float) (
-                                    $product['price']
-                                    ?? $product['selling_price']
-                                    ?? 0
-                                );
-
-
-                            $icon = match (
-                                strtolower($category)
-                            ) {
-
-                                'electronics',
-                                'gadgets',
-                                'smartphone',
-                                'phones'
-                                    => 'bi-phone',
-
-                                'laptop',
-                                'computers'
-                                    => 'bi-laptop',
-
-                                'audio',
-                                'headphones'
-                                    => 'bi-headphones',
-
-                                'wearable',
-                                'watches'
-                                    => 'bi-smartwatch',
-
-                                'accessories'
-                                    => 'bi-controller',
-
-                                'women',
-                                "women's"
-                                    => 'bi-handbag',
-
-                                'men',
-                                "men's"
-                                    => 'bi-bag-fill',
-
-                                'kids',
-                                'baby',
-                                'kids & baby'
-                                    => 'bi-balloon-heart-fill',
-
-                                'home'
-                                    => 'bi-house-door-fill',
-
-                                'sports'
-                                    => 'bi-trophy-fill',
-
-                                'beauty'
-                                    => 'bi-stars',
-
-                                'food'
-                                    => 'bi-cup-hot-fill',
-
-                                'automotive'
-                                    => 'bi-car-front-fill',
-
-                                'office',
-                                'school',
-                                'office & school'
-                                    => 'bi-backpack2-fill',
-
-                                default
-                                    => 'bi-box-seam-fill',
-
-                            };
-
-                        @endphp
-
-
-                        <div class="product-row">
-
-                            <div class="product-icon">
-                                <i class="bi {{ $icon }}"></i>
-                            </div>
-
-                            <div class="product-info">
-
-                                <div class="product-name">
-                                    {{ $productName }}
-                                </div>
-
-                                <div class="product-category">
-                                    {{ $category }}
-                                </div>
-
-                            </div>
-
-                            <div class="product-price">
-                                ₱{{ number_format($price, 2) }}
-                            </div>
-
-                        </div>
-
-                    @endforeach
-
+            <section class="pd-card" aria-labelledby="orders-title">
+                <div class="pd-card-head">
+                    <h2 class="pd-card-title" id="orders-title">Recent orders</h2>
+                    <a href="{{ route('admin.orders') }}" class="pd-link">All orders →</a>
+                </div>
+                @if(empty($orders))
+                    <div class="pd-empty"><i class="bi bi-receipt"></i>No orders yet.</div>
                 @else
-
-                    <div class="empty-state">
-
-                        <div class="empty-state-icon">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#d8b8ae" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-                        </div>
-
-                        No seller products yet.
-
+                    <div class="pd-table-wrap">
+                        <table class="pd-table pd-stack">
+                            <thead>
+                                <tr><th>Order</th><th>Buyer</th><th>Items</th><th>Total</th><th>Status</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach($orders as $order)
+                                    @php
+                                        $items = $order['items'] ?? [];
+                                        $first = $items[0]['product_name'] ?? 'Order items';
+                                        $more = count($items) - 1;
+                                    @endphp
+                                    <tr>
+                                        <td>
+                                            <a href="{{ route('admin.order.details', $order['id']) }}" class="pd-strong" style="color:#1b1a1f;">#{{ $order['id'] }}</a>
+                                            <div class="pd-sub" style="font-size:12.5px;">{{ \Carbon\Carbon::parse($order['created_at'])->format('M j, g:i A') }}</div>
+                                        </td>
+                                        <td class="pd-hide-sm">{{ $order['buyer_name'] }}</td>
+                                        <td class="pd-sub">{{ \Illuminate\Support\Str::limit($first, 34) }}{{ $more > 0 ? ' + ' . $more . ' more' : '' }}</td>
+                                        <td class="pd-strong">₱{{ number_format($order['total'], 2) }}</td>
+                                        <td><x-status-pill :status="$order['status']" /></td>
+                                    </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
                     </div>
-
                 @endif
-
             </section>
 
         </div>
-
-
-        <!-- =========================
-             ADMIN QUICK ACTION
-             ACCOUNTS ONLY
-        ========================= -->
-
-        <section class="panel">
-
-            <div class="panel-header">
-
-                <h2>
-                    Admin Management
-                </h2>
-
-            </div>
-
-
-            <div class="admin-action">
-
-                <div class="admin-action-info">
-
-                    <div class="admin-action-icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    </div>
-
-                    <div>
-
-                        <div class="admin-action-title">
-                            Manage Accounts
-                        </div>
-
-                        <div class="admin-action-description">
-                            Manage registered Buyer, Seller and Rider accounts.
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <a
-                    href="{{ route('admin.accounts') }}"
-                    class="manage-button"
-                >
-                    Manage Accounts →
-                </a>
-
-            </div>
-
-        </section>
-
-
-        <!-- =========================
-             REGISTERED ACCOUNTS
-        ========================= -->
-
-        <section class="panel accounts-panel">
-
-            <div class="panel-header">
-
-                <div>
-
-                    <h2>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                        Registered Accounts
-                    </h2>
-
-                    <p class="accounts-description">
-                        Newest sign-ups · all roles
-                    </p>
-
-                </div>
-
-
-                <a
-                    href="{{ route('admin.accounts') }}"
-                    class="manage-button"
-                >
-                    Manage Accounts →
-                </a>
-
-            </div>
-
-
-            <!-- ACCOUNT COUNTS -->
-
-            <div class="account-stats">
-
-                <div class="account-stat">
-
-                    <div class="account-stat-title">
-                        Total Accounts
-                    </div>
-
-                    <strong class="account-stat-value">
-                        {{ $totalUsers }}
-                    </strong>
-
-                </div>
-
-
-                <div class="account-stat">
-
-                    <div class="account-stat-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                        Buyers
-                    </div>
-
-                    <strong class="account-stat-value">
-                        {{ $buyerCount }}
-                    </strong>
-
-                </div>
-
-
-                <div class="account-stat">
-
-                    <div class="account-stat-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg>
-                        Sellers
-                    </div>
-
-                    <strong class="account-stat-value">
-                        {{ $sellerCount }}
-                    </strong>
-
-                </div>
-
-
-                <div class="account-stat">
-
-                    <div class="account-stat-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18h6l3-6h4"/><path d="M10 12h3l2-4h3"/><circle cx="17" cy="7" r="1.3"/></svg>
-                        Riders
-                    </div>
-
-                    <strong class="account-stat-value">
-                        {{ $riderCount }}
-                    </strong>
-
-                </div>
-
-
-                <div class="account-stat">
-
-                    <div class="account-stat-title">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/></svg>
-                        Logistics
-                    </div>
-
-                    <strong class="account-stat-value">
-                        {{ $logisticsCount }}
-                    </strong>
-
-                </div>
-
-            </div>
-
-
-            <!-- RECENT ACCOUNTS -->
-
-            @if(count($users) > 0)
-
-                <div class="account-table-wrapper">
-
-                    <table class="account-table">
-
-                        <thead>
-
-                            <tr>
-
-                                <th>
-                                    NAME
-                                </th>
-
-                                <th>
-                                    EMAIL
-                                </th>
-
-                                <th>
-                                    ROLE
-                                </th>
-
-                            </tr>
-
-                        </thead>
-
-
-                        <tbody>
-
-                            @foreach($users as $user)
-
-                                <tr>
-
-                                    <td>
-                                        {{ $user['name'] ?? 'N/A' }}
-                                    </td>
-
-                                    <td class="account-email">
-                                        {{ $user['email'] ?? 'N/A' }}
-                                    </td>
-
-                                    <td>
-
-                                        @if(($user['role'] ?? '') === 'buyer')
-
-                                            <span class="role-badge role-buyer">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
-                                                Buyer
-                                            </span>
-
-                                        @elseif(($user['role'] ?? '') === 'seller')
-
-                                            <span class="role-badge role-seller">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><path d="M3 9l1-5h16l1 5"/><path d="M3 9a2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0 2 2 0 0 0 4 0"/><path d="M4 9v9a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V9"/></svg>
-                                                Seller
-                                            </span>
-
-                                        @elseif(($user['role'] ?? '') === 'rider')
-
-                                            <span class="role-badge role-rider">
-                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px;"><circle cx="5" cy="18" r="3"/><circle cx="19" cy="18" r="3"/><path d="M5 18h6l3-6h4"/><path d="M10 12h3l2-4h3"/><circle cx="17" cy="7" r="1.3"/></svg>
-                                                Rider
-                                            </span>
-
-                                        @else
-
-                                            <span class="role-badge">
-                                                {{ ucfirst($user['role'] ?? 'Unknown') }}
-                                            </span>
-
-                                        @endif
-
-                                    </td>
-
-                                </tr>
-
-                            @endforeach
-
-                        </tbody>
-
-                    </table>
-
-                </div>
-
-            @else
-
-                <div class="no-accounts">
-                    No registered accounts yet.
-                </div>
-
-            @endif
-
-        </section>
-
     </main>
 
-</div>
-
     @include('partials.pwa-register')
-
 </body>
 </html>

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -20,8 +20,8 @@ a { text-decoration: none; }
 }
 
 .main-content {
-    margin-left: 230px;
-    width: calc(100% - 230px);
+    margin-left: 240px;
+    width: calc(100% - 240px);
     min-height: 100vh;
 }
 
@@ -44,7 +44,7 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
     margin-top: 7px;
 }
@@ -71,7 +71,7 @@ a { text-decoration: none; }
 
 .review-card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 16px;
@@ -86,12 +86,12 @@ a { text-decoration: none; }
 }
 
 .review-product {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 15px;
 }
 
 .review-buyer {
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 11px;
     margin-top: 3px;
 }
@@ -110,8 +110,8 @@ a { text-decoration: none; }
 }
 
 .reply-box {
-    background: #fff7f4;
-    border: 1px solid #f4e2dc;
+    background: #fff8f3;
+    border: 1px solid #f0e2da;
     border-radius: 10px;
     padding: 12px 14px;
     margin-top: 10px;
@@ -126,14 +126,14 @@ a { text-decoration: none; }
 
 .reply-box .reply-text {
     font-size: 13px;
-    color: #563a32;
+    color: #4a4449;
 }
 
 .reply-form textarea {
     width: 100%;
     min-height: 70px;
     padding: 10px 12px;
-    border: 1px solid #f0ddd6;
+    border: 1px solid #f0e2da;
     border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
@@ -156,21 +156,21 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.reply-form button:hover { background: #c43408; }
+.reply-form button:hover { background: #c2380f; }
 
 .empty {
     text-align: center;
     padding: 60px 20px;
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
 }
 
 .empty-icon { font-size: 40px; margin-bottom: 12px; }
 
-.empty h3 { font-family: 'Baloo 2', sans-serif; margin-bottom: 6px; }
+.empty h3 { font-family: 'Bricolage Grotesque', sans-serif; margin-bottom: 6px; }
 
-.empty p { color: #977970; font-size: 13px; }
+.empty p { color: #6b6570; font-size: 13px; }
 
 @media (max-width: 900px) {
     .main-content { margin-left: 72px; width: calc(100% - 72px); }

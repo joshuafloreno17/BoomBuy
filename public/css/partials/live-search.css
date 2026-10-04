@@ -1,0 +1,6 @@
+/* Moved out of resources/views/partials/live-search.blade.php */
+
+.bb-live-loading {
+    opacity: .55;
+    transition: opacity .15s ease;
+}

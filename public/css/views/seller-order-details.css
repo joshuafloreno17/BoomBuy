@@ -1,0 +1,6 @@
+/* Moved out of resources/views/pages/seller/order-details.blade.php */
+
+.buyer-history { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: #eefaf3; color: #1f6b3a; font-size: 13px; line-height: 1.5; }
+.buyer-history i { margin-top: 2px; }
+.buyer-history.is-risky { background: #fff4e5; color: #8a5a00; }
+.buyer-history-sub { font-size: 12px; opacity: 0.9; margin-top: 2px; }

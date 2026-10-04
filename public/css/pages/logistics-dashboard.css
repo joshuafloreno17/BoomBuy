@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -25,12 +25,12 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
 }
 
 .page-header p {
-    color: #977970;
+    color: #6b6570;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -47,7 +47,7 @@ a { text-decoration: none; }
 
 .status-card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 22px 26px;
     margin-bottom: 20px;
@@ -80,7 +80,7 @@ a { text-decoration: none; }
 
 .stat-card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 18px 20px;
 }
@@ -89,7 +89,7 @@ a { text-decoration: none; }
     width: 38px;
     height: 38px;
     border-radius: 11px;
-    background: #fff0eb;
+    background: #fff1ea;
     color: var(--accent, #e8420f);
     display: flex;
     align-items: center;
@@ -100,7 +100,7 @@ a { text-decoration: none; }
 
 .stat-label {
     display: block;
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -109,7 +109,7 @@ a { text-decoration: none; }
 }
 
 .stat-value {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
     color: #e8420f;
 }
@@ -133,13 +133,13 @@ a.stat-card:hover {
 }
 
 .muted-sm {
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 12px;
     margin-top: 4px;
 }
 
 .section-title {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 19px;
     margin: 6px 0 12px;
 }
@@ -156,7 +156,7 @@ a.stat-card:hover {
 .todo-card {
     display: block;
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 16px 18px;
     color: inherit;
@@ -170,7 +170,7 @@ a.stat-card:hover {
 
 .todo-card.has-work {
     border-color: #f6b9a5;
-    background: #fffaf8;
+    background: #fff8f3;
 }
 
 .todo-top {
@@ -192,12 +192,12 @@ a.stat-card:hover {
 }
 
 .todo-card.has-work .todo-icon {
-    background: #fff0eb;
+    background: #fff1ea;
     color: var(--accent, #e8420f);
 }
 
 .todo-count {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
     color: #b8a19a;
 }
@@ -217,7 +217,7 @@ a.stat-card:hover {
 }
 
 .todo-hint {
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -232,7 +232,7 @@ a.stat-card:hover {
 
 .panel {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 20px 22px;
 }
@@ -247,7 +247,7 @@ a.stat-card:hover {
 
 .pipeline li {
     padding: 9px 0;
-    border-bottom: 1px solid #f8efec;
+    border-bottom: 1px solid #f6eee9;
 }
 
 .pipeline li:last-child {
@@ -263,7 +263,7 @@ a.stat-card:hover {
 
 .pipeline-bar {
     height: 6px;
-    background: #f8efec;
+    background: #f6eee9;
     border-radius: 999px;
     margin: 8px 0 5px;
     overflow: hidden;
@@ -278,7 +278,7 @@ a.stat-card:hover {
 
 .pipeline-hint,
 .recent-sub {
-    color: #977970;
+    color: #6b6570;
     font-size: 12px;
 }
 
@@ -287,7 +287,7 @@ a.stat-card:hover {
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
-    border-bottom: 1px solid #f8efec;
+    border-bottom: 1px solid #f6eee9;
     font-size: 13px;
 }
 
@@ -302,7 +302,7 @@ a.stat-card:hover {
 }
 
 .empty-note {
-    color: #977970;
+    color: #6b6570;
     font-size: 13px;
     padding: 18px 0;
 }

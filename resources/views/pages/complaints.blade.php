@@ -1,24 +1,18 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Complaints & Disputes — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
+    @include('partials.head', ['title' => 'Complaints & Disputes — BoomBuy'])
 
     @php
         $role = $user['role'] ?? 'buyer';
     @endphp
 
     @if($role === 'seller')
-        <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
     @elseif($role === 'rider')
-        <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
     @elseif($role === 'logistics')
-        <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
     @endif
 
     <link rel="stylesheet" href="{{ asset('css/pages/complaints.css') }}">

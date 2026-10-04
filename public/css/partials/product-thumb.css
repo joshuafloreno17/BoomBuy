@@ -1,0 +1,21 @@
+/* Moved out of resources/views/components/product-thumb.blade.php */
+
+.bb-thumb {
+    position: relative;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 14px;
+    background: #fff1ea;
+    color: #e2a08a;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bb-thumb img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}

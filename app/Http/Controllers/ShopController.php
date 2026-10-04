@@ -42,9 +42,34 @@ class ShopController extends Controller
 
         $featuredProducts = Product::onSale()->withCount('reviews')->withAvg('reviews', 'rating')->latest()->take(4)->get();
 
+        // Hero: the best sellers (delivered units) take turns; until there are
+        // four of them, the newest products fill the remaining spots.
+        $heroProducts = Product::onSale()
+            ->withSoldCount()
+            ->orderByDesc('sold_count')
+            ->orderByDesc('id')
+            ->take(4)
+            ->get()
+            ->filter(fn ($product) => (int) $product->sold_count > 0)
+            ->values();
+
+        if ($heroProducts->count() < 4) {
+            $heroProducts = $heroProducts->concat(
+                Product::onSale()
+                    ->whereNotIn('id', $heroProducts->pluck('id'))
+                    ->latest()
+                    ->take(4 - $heroProducts->count())
+                    ->get()
+            );
+        }
+
+        $featuredShops = \App\Support\SellerShop::many(
+            $featuredProducts->pluck('seller_id')->concat($heroProducts->pluck('seller_id'))
+        );
+
 
         // Guest → Landing Page
-        return view('welcome', compact('featuredProducts'));
+        return view('welcome', compact('featuredProducts', 'featuredShops', 'heroProducts'));
     }
 
     // Category slug => every stored category name that belongs to it (old names included).
@@ -634,9 +659,11 @@ class ShopController extends Controller
         );
     }
 
+    // The old category directory listed categories the shop does not have;
+    // the Shop page has the real 16 as chips.
     public function categories()
     {
-        return view('categories');
+        return redirect()->route('products');
     }
 
     // Terms, privacy and return policies — the text the admin saves in

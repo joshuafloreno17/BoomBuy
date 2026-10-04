@@ -11,15 +11,15 @@
     <link rel="icon" href="{{ asset('images/icon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
         :root {
-            --ink: #172033;
-            --muted: #6f5a53;
-            --line: #f6e1db;
-            --cream: #fff7f4;
+            --ink: #1b1a1f;
+            --muted: #5e5759;
+            --line: #f0e2da;
+            --cream: #fff8f3;
             --accent: #e8420f;
-            --accent-dark: #c43408;
+            --accent-dark: #c2380f;
         }
 
         * {
@@ -32,7 +32,7 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--ink);
             background:
                 radial-gradient(circle at 15% 10%, rgba(232, 66, 15, 0.10), transparent 32%),
@@ -50,15 +50,15 @@
         }
 
         .err-logo {
-            font-family: 'Baloo 2', sans-serif;
+            font-family: 'Bricolage Grotesque', sans-serif;
             font-size: 26px;
             font-weight: 800;
             color: var(--accent);
         }
 
-        .err-logo span {
-            color: var(--ink);
-        }
+        .err-logo { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+        .bb-logo-mark { width: 32px; height: 32px; border-radius: 9px; }
+        .bb-logo-word { color: var(--ink); }
 
         .err-main {
             flex: 1;
@@ -85,7 +85,7 @@
             height: 76px;
             margin-bottom: 14px;
             border-radius: 22px;
-            background: #fff0eb;
+            background: #fff1ea;
             color: var(--accent);
             font-size: 34px;
         }
@@ -100,7 +100,7 @@
 
         .err-card h1 {
             margin-top: 6px;
-            font-family: 'Baloo 2', sans-serif;
+            font-family: 'Bricolage Grotesque', sans-serif;
             font-size: 32px;
             font-weight: 800;
             line-height: 1.1;
@@ -139,7 +139,7 @@
         }
 
         .err-btn:hover {
-            background: #fff4f0;
+            background: #fff1ea;
         }
 
         .err-btn.is-main {
@@ -170,7 +170,7 @@
 </head>
 <body>
     <header class="err-top">
-        <a href="{{ url('/') }}" class="err-logo">Boom<span>Buy</span></a>
+        <a href="{{ url('/') }}" class="err-logo"><img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
     </header>
 
     <main class="err-main">

@@ -1,30 +1,12 @@
 @props(['active' => null, 'user' => []])
 
-@php
-    $logisticsUnreadNotifications = \App\Models\Notification::where(
-        'user_id',
-        $user['id'] ?? null
-    )->whereNull('read_at')->count();
-
-    $logisticsUnreadMessages = \App\Models\Message::where(
-        'recipient_id',
-        $user['id'] ?? null
-    )->whereNull('read_at')->count();
-@endphp
-
-<aside class="logistics-sidebar">
+<aside class="logistics-sidebar bb-portal-side">
 
     <div class="logistics-sidebar-top">
 
-        <a href="{{ route('logistics.dashboard') }}" class="logistics-brand">
-
-            <div class="logistics-brand-icon"><i class="bi bi-truck"></i></div>
-
-            <div>
-                <div class="logistics-brand-name">BoomBuy</div>
-                <div class="logistics-brand-role">Logistics Center</div>
-            </div>
-
+        <a href="{{ route('logistics.dashboard') }}" class="bb-side-brand">
+            <img src="{{ asset('images/icon.svg') }}" alt="" width="36" height="36">
+            <span class="bb-side-name">BoomBuy <small>Logistics</small></span>
         </a>
 
         <nav class="logistics-sidebar-nav">
@@ -68,25 +50,25 @@
                     </span>
                 @endif
             </a>
-
-            <a href="{{ url('/') }}" class="logistics-sidebar-link">
-                <span class="sidebar-icon"><i class="bi bi-shop"></i></span>
-                <span>Store</span>
-            </a>
-
         </nav>
 
     </div>
 
     <div class="logistics-sidebar-bottom">
 
-        <div class="logistics-sidebar-divider"></div>
+        <div class="bb-side-user">
+            <span class="bb-side-avatar">{{ mb_strtoupper(mb_substr($user['name'] ?? 'L', 0, 1)) }}</span>
+            <span class="bb-side-who">
+                <strong>{{ $user['name'] ?? 'Logistics' }}</strong>
+                <small>Logistics staff</small>
+            </span>
+        </div>
 
         <form action="{{ route('logout') }}" method="POST" onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');">
             @csrf
             <button type="submit" class="logistics-sidebar-logout">
                 <span class="sidebar-icon"><i class="bi bi-box-arrow-right"></i></span>
-                <span>Logout</span>
+                <span>Log out</span>
             </button>
         </form>
 

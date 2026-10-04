@@ -1,0 +1,127 @@
+/* Moved out of resources/views/pages/seller/waybill.blade.php */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Figtree', sans-serif;
+    background: #f3f3f3;
+    color: #1b1a1f;
+}
+
+.no-print {
+    text-align: center;
+    padding: 20px;
+}
+
+.print-btn {
+    border: none;
+    background: #e8420f;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.print-btn:hover {
+    background: #c2380f;
+}
+
+.waybill {
+    width: 4in;
+    min-height: 6in;
+    margin: 0 auto 30px;
+    background: white;
+    border: 2px dashed #1b1a1f;
+    padding: 20px;
+}
+
+.waybill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #1b1a1f;
+    padding-bottom: 10px;
+    margin-bottom: 12px;
+}
+
+.waybill-logo {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: #e8420f;
+}
+
+.waybill-order-id {
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.waybill-section {
+    margin-bottom: 12px;
+}
+
+.waybill-label {
+    font-size: 9px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: #6b6570;
+    margin-bottom: 2px;
+}
+
+.waybill-value {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.waybill-items {
+    border-top: 1px dashed #1b1a1f;
+    border-bottom: 1px dashed #1b1a1f;
+    padding: 10px 0;
+    margin: 12px 0;
+}
+
+.waybill-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    margin-bottom: 4px;
+}
+
+.waybill-total {
+    display: flex;
+    justify-content: space-between;
+    font-size: 15px;
+    font-weight: 800;
+    margin-top: 8px;
+}
+
+.waybill-footer {
+    text-align: center;
+    font-size: 9px;
+    color: #6b6570;
+    margin-top: 15px;
+}
+
+@media print {
+    .no-print {
+        display: none;
+    }
+
+    body {
+        background: white;
+    }
+
+    .waybill {
+        border: 2px solid #1b1a1f;
+        margin: 0;
+    }
+}

@@ -8,16 +8,16 @@
     @include('partials.design-tokens')
 
 </head>
-<body style="margin:0; padding:0; background:#fff7f4; font-family: Arial, sans-serif;">
+<body style="margin:0; padding:0; background:#fff8f3; font-family: Arial, sans-serif;">
 
-    <div style="max-width:420px; margin:60px auto; background:#fff; border-radius:16px; border:1px solid #f7e5e0; padding:32px; text-align:center;">
+    <div style="max-width:420px; margin:60px auto; background:#fff; border-radius:16px; border:1px solid #f0e2da; padding:32px; text-align:center;">
 
-        <div style="font-size:22px; font-weight:800; color:#e8420f; margin-bottom:16px;">
-            Boom<span style="color:#172033;">Buy</span>
+        <div style="font-size:22px; font-weight:800; margin-bottom:16px;">
+            <img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span>
         </div>
 
-        <h1 style="font-size:20px; color:#172033;">Enter Verification Code</h1>
-        <p style="color:#977970; font-size:14px;">
+        <h1 style="font-size:20px; color:#1b1a1f;">Enter Verification Code</h1>
+        <p style="color:#6b6570; font-size:14px;">
             We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 10 minutes.
         </p>
 
@@ -36,7 +36,7 @@
         <form method="POST" action="{{ route('otp.verify') }}">
             @csrf
             <input type="text" name="otp_code" maxlength="6" placeholder="000000"
-                style="width:100%; box-sizing:border-box; font-size:28px; letter-spacing:10px; text-align:center; padding:14px; border:1px solid #f7e5e0; border-radius:10px; margin-bottom:16px;" required autofocus>
+                style="width:100%; box-sizing:border-box; font-size:28px; letter-spacing:10px; text-align:center; padding:14px; border:1px solid #f0e2da; border-radius:10px; margin-bottom:16px;" required autofocus>
 
             <button type="submit"
                 style="width:100%; background:#e8420f; color:#fff; border:none; padding:14px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;">

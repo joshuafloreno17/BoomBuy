@@ -342,6 +342,9 @@ Route::post('/seller/profile', [SellerController::class, 'updateProfile'])->name
 // Shop name + "about this shop" shown on /shop/{seller}
 Route::post('/seller/shop', [SellerController::class, 'updateShop'])->name('seller.shop.update');
 
+// Chat auto-reply sent when a buyer messages the shop
+Route::post('/seller/auto-reply', [SellerController::class, 'updateAutoReply'])->name('seller.autoreply.update');
+
 
 Route::post('/seller/profile/photo', [SellerController::class, 'updatePhoto'])->name('seller.profile.photo');
 

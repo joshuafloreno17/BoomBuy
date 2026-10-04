@@ -2,16 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Edit Product — BoomBuy'])
 
-    <title>Edit Product — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/seller-edit-product.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/seller-edit-product.css') }}">
 </head>
 
 <body>
@@ -178,11 +172,11 @@
                             @if(!empty($registeredCategory))
     {{-- Locked: a seller only sells in the category they registered for. --}}
     <input type="hidden" name="category" value="{{ $registeredCategory }}">
-    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #f0d9d1; border-radius:10px; background:#fff7f4; font-weight:700; color:#172033;">
-        <i class="bi bi-lock-fill" style="color:#c43408;"></i>
+    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #e8d6cc; border-radius:10px; background:#fff8f3; font-weight:700; color:#1b1a1f;">
+        <i class="bi bi-lock-fill" style="color:#c2380f;"></i>
         {{ \App\Support\Categories::LIST[$registeredCategory] }}
     </div>
-    <small style="display:block; margin-top:6px; font-size:12px; color:#6f5a53;">
+    <small style="display:block; margin-top:6px; font-size:12px; color:#5e5759;">
         Your shop is registered for this category, so all your products go here.
     </small>
     @if(\App\Support\Categories::slug($product->category) !== $registeredCategory)
@@ -372,7 +366,7 @@
                                     <img
                                         src="{{ asset('storage/' . $product->image) }}"
                                         alt="Current product image"
-                                        style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #f0ddd6;"
+                                        style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #f0e2da;"
                                     >
                                 </div>
                             @endif

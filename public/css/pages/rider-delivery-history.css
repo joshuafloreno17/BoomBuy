@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -30,12 +30,12 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
 }
 
 .page-header p {
-    color: #977970;
+    color: #6b6570;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -55,13 +55,13 @@ a { text-decoration: none; }
 .filter-form label {
     font-size: 10px;
     font-weight: 800;
-    color: #a28f89;
+    color: #8a7f86;
     text-transform: uppercase;
 }
 
 .filter-form input[type="date"] {
     padding: 9px 11px;
-    border: 1px solid #eee3df;
+    border: 1px solid #f0e2da;
     border-radius: 8px;
     font-family: inherit;
     font-size: 12px;
@@ -78,11 +78,11 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.filter-btn:hover { background: #c43408; }
+.filter-btn:hover { background: #c2380f; }
 
 .history-card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 18px 20px;
     margin-bottom: 14px;
@@ -96,12 +96,12 @@ a { text-decoration: none; }
 }
 
 .history-id {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 15px;
 }
 
 .history-date {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 11px;
 }
 
@@ -115,13 +115,13 @@ a { text-decoration: none; }
 }
 
 .history-info {
-    color: #6a4e46;
+    color: #5e5759;
     font-size: 12px;
     margin-top: 6px;
 }
 
 .history-items {
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 12px;
     margin-top: 8px;
 }
@@ -130,13 +130,13 @@ a { text-decoration: none; }
     text-align: center;
     padding: 60px 20px;
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
 }
 
 .empty-icon { font-size: 40px; margin-bottom: 12px; }
-.empty h3 { font-family: 'Baloo 2', sans-serif; margin-bottom: 6px; }
-.empty p { color: #977970; font-size: 13px; }
+.empty h3 { font-family: 'Bricolage Grotesque', sans-serif; margin-bottom: 6px; }
+.empty p { color: #6b6570; font-size: 13px; }
 
 /* Phones: the From / To / Filter row wraps instead of running off-screen */
 .filter-form {

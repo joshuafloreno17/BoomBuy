@@ -1,9 +1,9 @@
 {{-- Chart.js look shared by the seller charts. Include right after chart.js. --}}
 <script>
     if (window.Chart) {
-        Chart.defaults.font.family = "'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif";
+        Chart.defaults.font.family = "'Figtree', -apple-system, BlinkMacSystemFont, sans-serif";
         Chart.defaults.font.size = 11;
-        Chart.defaults.color = '#8d6c62';
+        Chart.defaults.color = '#6b6570';
         Chart.defaults.maintainAspectRatio = false;
         Chart.defaults.plugins.legend.display = false;
         Chart.defaults.plugins.tooltip.padding = 10;

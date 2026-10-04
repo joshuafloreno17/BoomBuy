@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Complaint;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\ComplaintRequest;
 
 class ComplaintController extends Controller
 {
@@ -30,20 +31,13 @@ class ComplaintController extends Controller
         );
     }
 
-    public function store()
+    public function store(ComplaintRequest $request)
     {
         $user = session()->get('user');
 
         if (!$user) {
             return redirect()->route('login');
         }
-
-        request()->validate([
-            'subject' => 'required|string|max:150',
-            'description' => 'required|string|max:2000',
-            'order_id' => 'nullable|integer',
-            'evidence' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
-        ]);
 
         $orderId = request('order_id') ?: null;
 

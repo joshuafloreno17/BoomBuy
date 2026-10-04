@@ -1,0 +1,70 @@
+/* Moved out of resources/views/components/seller-page-head.blade.php */
+
+.sp-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 14px 20px;
+    margin-bottom: 22px;
+}
+
+.sp-head-text {
+    min-width: 0;
+}
+
+.sp-head-eyebrow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--font-body);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #db5a33;
+}
+
+.sp-head-eyebrow a {
+    color: #6b6570;
+    text-decoration: none;
+}
+
+.sp-head-eyebrow a:hover {
+    color: var(--accent-dark);
+}
+
+.sp-head-eyebrow .sep {
+    color: #d9c2bb;
+}
+
+.sp-head h1 {
+    margin: 6px 0 0;
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    overflow-wrap: anywhere;
+}
+
+.sp-head p {
+    margin: 6px 0 0;
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    color: #6b6570;
+}
+
+.sp-head-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+@media (max-width: 700px) {
+    .sp-head h1 {
+        font-size: 25px;
+    }
+}

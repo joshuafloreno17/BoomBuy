@@ -23,32 +23,6 @@
     </nav>
 
     @once
-        <style>
-            .bb-pager {
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                gap: 14px;
-                margin: 26px 0 8px;
-                flex-wrap: wrap;
-            }
-            .bb-pager-btn {
-                display: inline-flex;
-                align-items: center;
-                gap: 6px;
-                padding: 9px 16px;
-                border-radius: 12px;
-                border: 1px solid #f0dcd5;
-                background: #fff;
-                color: var(--accent, #f13f09);
-                font-weight: 700;
-                font-size: 14px;
-                text-decoration: none;
-            }
-            .bb-pager-btn:hover { background: #fff2ee; }
-            .bb-pager-btn.is-disabled { color: #c9b3ac; background: #fbf7f6; cursor: default; }
-            .bb-pager-info { color: #7c5f57; font-size: 14px; font-weight: 600; }
-            .bb-pager-info small { color: #a88d85; font-weight: 500; }
-        </style>
+        <link rel="stylesheet" href="{{ vasset('css/partials/simple-pager.css') }}">
     @endonce
 @endif

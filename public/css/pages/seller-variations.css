@@ -1,11 +1,11 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -13,8 +13,8 @@ a { text-decoration: none; }
 .layout { display: flex; min-height: 100vh; }
 
 .main-content {
-    margin-left: 230px;
-    width: calc(100% - 230px);
+    margin-left: 240px;
+    width: calc(100% - 240px);
     min-height: 100vh;
 }
 
@@ -46,14 +46,14 @@ a { text-decoration: none; }
 
 .card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
 }
 
 .card h2 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 18px;
     margin-bottom: 14px;
 }
@@ -70,13 +70,13 @@ a { text-decoration: none; }
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: #43302a;
+    color: #1b1a1f;
 }
 
 .form-group input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0ddd5;
+    border: 1px solid #f0e2da;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -93,23 +93,23 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.save-btn:hover { background: #c43408; }
+.save-btn:hover { background: #c2380f; }
 
 table { width: 100%; border-collapse: collapse; }
 
 th {
-    background: #fffaf8;
-    color: #8d6c62;
+    background: #fff8f3;
+    color: #6b6570;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #f6e8e4;
+    border-bottom: 1px solid #f0e2da;
 }
 
 td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid #f7efed;
+    border-bottom: 1px solid #f6eee9;
 }
 
 tr:last-child td { border-bottom: none; }
@@ -126,7 +126,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 .empty-message {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;
@@ -169,15 +169,15 @@ tr:last-child td { border-bottom: none; }
 
 .card-head h2 small,
 .form-group label small {
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Figtree', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    color: #a0847b;
+    color: #8a7f86;
 }
 
 .card-note {
     font-size: 12.5px;
-    color: #816f6a;
+    color: #6b6570;
 }
 
 .var-tr {
@@ -186,17 +186,17 @@ tr:last-child td { border-bottom: none; }
     align-items: center;
     gap: 12px;
     padding: 10px 4px;
-    border-bottom: 1px solid #f7efed;
+    border-bottom: 1px solid #f6eee9;
 }
 
 .var-th {
     padding: 8px 4px;
-    background: #fffaf8;
-    border-bottom: 1px solid #f6e8e4;
+    background: #fff8f3;
+    border-bottom: 1px solid #f0e2da;
     border-radius: 10px 10px 0 0;
     font-size: 11px;
     font-weight: 700;
-    color: #8d6c62;
+    color: #6b6570;
 }
 
 .var-photo {
@@ -208,7 +208,7 @@ tr:last-child td { border-bottom: none; }
     overflow: hidden;
     border: 1px dashed #ecc9bd;
     border-radius: 10px;
-    background: #fffaf8;
+    background: #fff8f3;
     color: #c9a69b;
     font-size: 16px;
     cursor: pointer;
@@ -261,7 +261,7 @@ tr:last-child td { border-bottom: none; }
 
 .var-name small {
     font-size: 11.5px;
-    color: #a0847b;
+    color: #8a7f86;
 }
 
 .var-cell {
@@ -277,7 +277,7 @@ tr:last-child td { border-bottom: none; }
 .var-cell input {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #f0ddd5;
+    border: 1px solid #f0e2da;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -366,7 +366,7 @@ tr:last-child td { border-bottom: none; }
         margin-bottom: 4px;
         font-size: 11px;
         font-weight: 700;
-        color: #6f5a53;
+        color: #5e5759;
     }
 
     .delete-btn span {

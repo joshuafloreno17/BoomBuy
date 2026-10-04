@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Notification;
-use App\Models\Product;
 use App\Models\RiderArea;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -12,6 +11,10 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\SortingCenterService;
+use App\Exceptions\ActionFailed;
+use App\Http\Requests\ProfilePhotoRequest;
+use App\Services\ProfilePhotoService;
 
 class LogisticsController extends Controller
 {
@@ -260,6 +263,45 @@ class LogisticsController extends Controller
             ->limit(8)
             ->get(['id', 'status', 'shipping_name', 'shipping_address', 'updated_at']);
 
+        // At the Sorting Center and still without a delivery rider, oldest first.
+        $needsRider = DB::table('orders')
+            ->where('status', 'At Sorting Center')
+            ->orderByRaw('COALESCE(sorting_center_received_at, updated_at)')
+            ->limit(5)
+            ->get(['id', 'shipping_name', 'shipping_address', 'sorting_center_received_at', 'updated_at']);
+
+        // Active riders and what each is carrying right now.
+        $riders = DB::table('users')
+            ->whereIn('id', $activeRiderIds)
+            ->orderBy('name')
+            ->get(['id', 'name', 'profile_photo', 'city_municipality']);
+
+        $pickupLoad = DB::table('orders')
+            ->whereIn('rider_id', $activeRiderIds)
+            ->whereIn('status', ['Assigned', 'Picked Up'])
+            ->select('rider_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('rider_id')
+            ->pluck('total', 'rider_id');
+
+        $deliveryLoad = DB::table('orders')
+            ->whereIn('delivery_rider_id', $activeRiderIds)
+            ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
+            ->select('delivery_rider_id', DB::raw('COUNT(*) as total'))
+            ->groupBy('delivery_rider_id')
+            ->pluck('total', 'delivery_rider_id');
+
+        $ridersOnDuty = $riders
+            ->map(fn ($rider) => [
+                'id' => $rider->id,
+                'name' => $rider->name,
+                'photo' => $rider->profile_photo,
+                'area' => $rider->city_municipality,
+                'load' => (int) ($pickupLoad[$rider->id] ?? 0) + (int) ($deliveryLoad[$rider->id] ?? 0),
+            ])
+            ->sortByDesc('load')
+            ->take(6)
+            ->values();
+
         return view(
             'pages.logistics.dashboard',
             compact(
@@ -267,6 +309,8 @@ class LogisticsController extends Controller
                 'application',
                 'pipeline',
                 'todo',
+                'needsRider',
+                'ridersOnDuty',
                 'activeRiders',
                 'ridersWithoutArea',
                 'deliveredToday',
@@ -336,7 +380,7 @@ class LogisticsController extends Controller
         return back()->with('success', 'Profile updated successfully.');
     }
 
-    public function updatePhoto(Request $request)
+    public function updatePhoto(ProfilePhotoRequest $request, ProfilePhotoService $photos)
     {
         $user = requireUserRole('logistics');
 
@@ -344,26 +388,7 @@ class LogisticsController extends Controller
             return $user;
         }
 
-        $request->validate([
-            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        $file = $request->file('profile_photo');
-
-        // Extension from the real content, not the client filename (see BuyerController::updatePhoto).
-        $filename = 'logistics_' . $user['id'] . '_' . time() . '.' . $file->extension();
-
-        $file->storeAs('profile-photos', $filename, 'public');
-
-        DB::table('users')
-            ->where('id', $user['id'])
-            ->update([
-                'profile_photo' => $filename,
-                'updated_at' => now(),
-            ]);
-
-        $user['profile_photo'] = $filename;
-        session()->put('user', $user);
+        session()->put('user', $photos->store($user, $request->file('profile_photo')));
 
         return back()->with('success', 'Profile picture updated successfully.');
     }
@@ -643,7 +668,28 @@ class LogisticsController extends Controller
         );
     }
 
-    public function confirmParcelReceived($id)
+    public function confirmParcelReceived($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn () => $center->confirmReceived((int) $id));
+    }
+
+    public function assignParcel($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn () => $center->assign((int) $id, request('rider_id')));
+    }
+
+    public function rescheduleParcel($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn () => $center->reschedule((int) $id, request('rider_id')));
+    }
+
+    public function returnParcelToSeller($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn () => $center->returnToSeller((int) $id));
+    }
+
+    /** Runs a Sorting Center action and flashes its message (or the rule it broke). */
+    private function parcelAction(callable $action)
     {
         $user = requireUserRole('logistics');
 
@@ -651,242 +697,11 @@ class LogisticsController extends Controller
             return $user;
         }
 
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Parcel not found.');
+        try {
+            return back()->with('success', $action());
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($order->status !== 'Picked Up') {
-            return back()->with('error', 'This parcel is not awaiting Sorting Center confirmation.');
-        }
-
-        $updated = DB::table('orders')->where('id', $id)->where('status', 'Picked Up')->update([
-            'status' => 'At Sorting Center',
-            'sorting_center_received_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        if (!$updated) {
-            return back()->with('error', 'This parcel was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Parcel at Sorting Center',
-            'Your order #' . $id . ' has arrived at the sorting facility and will be assigned to a rider for delivery shortly.',
-            'order',
-            (int) $id
-        );
-
-        notifyOrderSellers(
-            (int) $id,
-            'Parcel at Sorting Center',
-            'Order #' . $id . ' has arrived at the Sorting Center and will be assigned to a rider for delivery.'
-        );
-
-        return back()->with('success', 'Parcel #' . $id . ' confirmed as received.');
-    }
-
-    public function assignParcel($id)
-    {
-        $user = requireUserRole('logistics');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $riderId = request('rider_id');
-
-        if (empty($riderId)) {
-            return back()->with('error', 'Please select a rider to assign this parcel to.');
-        }
-
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Parcel not found.');
-        }
-
-        if ($order->status !== 'At Sorting Center') {
-            return back()->with('error', 'This parcel is not awaiting assignment.');
-        }
-
-        $rider = $this->assignableRider($riderId);
-
-        if (!$rider) {
-            return back()->with('error', 'Selected rider not found or no longer active.');
-        }
-
-        $updated = DB::table('orders')->where('id', $id)->where('status', 'At Sorting Center')->update([
-            'delivery_rider_id' => $riderId,
-            'status' => 'Assigned for Delivery',
-            'updated_at' => now(),
-        ]);
-
-        if (!$updated) {
-            return back()->with('error', 'This parcel was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $riderId,
-            'New Delivery Assignment',
-            'You have been assigned to deliver Order #' . $id . '. Please pick it up from the Sorting Center.',
-            'delivery',
-            (int) $id
-        );
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Rider Assigned for Delivery',
-            'Your order #' . $id . ' has been assigned to a rider and will be out for delivery soon.',
-            'order',
-            (int) $id
-        );
-
-        return back()->with('success', 'Parcel #' . $id . ' assigned to ' . $rider->name . '.');
-    }
-
-    public function rescheduleParcel($id)
-    {
-        $user = requireUserRole('logistics');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $riderId = request('rider_id');
-
-        if (empty($riderId)) {
-            return back()->with('error', 'Please select a rider to reschedule this delivery to.');
-        }
-
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Parcel not found.');
-        }
-
-        if ($order->status !== 'Delivery Failed') {
-            return back()->with('error', 'This parcel is not marked as a failed delivery.');
-        }
-
-        if (!empty($order->buyer_refused_at)) {
-            return back()->with('error', 'The buyer refused this parcel, so it can\'t be re-delivered. Please return it to the seller.');
-        }
-
-        if ($order->delivery_attempts >= 2) {
-            return back()->with('error', 'This parcel has reached the maximum delivery attempts. Please return it to the seller instead.');
-        }
-
-        $rider = $this->assignableRider($riderId);
-
-        if (!$rider) {
-            return back()->with('error', 'Selected rider not found or no longer active.');
-        }
-
-        $updated = DB::table('orders')->where('id', $id)->where('status', 'Delivery Failed')->update([
-            'delivery_rider_id' => $riderId,
-            'status' => 'Assigned for Delivery',
-            'updated_at' => now(),
-        ]);
-
-        if (!$updated) {
-            return back()->with('error', 'This parcel was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $riderId,
-            'Delivery Rescheduled',
-            'Order #' . $id . ' has been rescheduled to you for another delivery attempt.',
-            'delivery',
-            (int) $id
-        );
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Delivery Rescheduled',
-            'We will attempt to deliver your order #' . $id . ' again shortly.',
-            'order',
-            (int) $id
-        );
-
-        return back()->with('success', 'Parcel #' . $id . ' rescheduled to ' . $rider->name . '.');
-    }
-
-    public function returnParcelToSeller($id)
-    {
-        $user = requireUserRole('logistics');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Parcel not found.');
-        }
-
-        if ($order->status !== 'Delivery Failed') {
-            return back()->with('error', 'This parcel is not marked as a failed delivery.');
-        }
-
-        $updated = DB::table('orders')
-            ->where('id', $id)
-            ->where('status', 'Delivery Failed')
-            ->update([
-                'status' => 'Returned to Seller',
-                'updated_at' => now(),
-            ]);
-
-        if (!$updated) {
-            return back()->with('error', 'This parcel was just updated. Please refresh and try again.');
-        }
-
-        $refused = !empty($order->buyer_refused_at);
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Order Returned to Seller',
-            $refused
-                ? 'Order #' . $id . ' was refused on delivery and has been returned to the seller.'
-                : 'After repeated failed delivery attempts, order #' . $id . ' has been returned to the seller.',
-            'order',
-            (int) $id
-        );
-
-        $sellerIds = DB::table('order_items')
-            ->where('order_id', $id)
-            ->distinct()
-            ->pluck('seller_id');
-
-        foreach ($sellerIds as $sellerId) {
-            createNotification(
-                (int) $sellerId,
-                'Order Returned to You',
-                $refused
-                    ? 'Order #' . $id . ' was refused by the buyer on delivery and has been returned to you. Please restock the items once received.'
-                    : 'Order #' . $id . ' could not be delivered after repeated attempts and has been returned to you. Please restock the items once received.',
-                'order',
-                (int) $id
-            );
-        }
-
-        return back()->with('success', 'Parcel #' . $id . ' has been returned to the seller.');
-    }
-
-    // Same riders the parcels page offers: active and with an approved application.
-    private function assignableRider($riderId)
-    {
-        return DB::table('users')
-            ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
-            ->where('users.id', $riderId)
-            ->where('users.role', 'rider')
-            ->where('users.status', 'Active')
-            ->where('rider_applications.status', 'Approved')
-            ->select('users.id', 'users.name')
-            ->first();
     }
 
     public function approveRider($id)

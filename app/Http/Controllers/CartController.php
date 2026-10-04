@@ -8,6 +8,8 @@ use App\Support\CheckoutPlan;
 use App\Support\CodPolicy;
 use App\Support\DeliveryFee;
 use Illuminate\Support\Facades\DB;
+use App\Services\PlaceOrderService;
+use App\Exceptions\CheckoutFailed;
 
 class CartController extends Controller
 {
@@ -669,7 +671,7 @@ class CartController extends Controller
         );
     }
 
-    public function placeOrder()
+    public function placeOrder(PlaceOrderService $orders)
     {
         $user = requireUserRole('buyer');
 
@@ -677,532 +679,58 @@ class CartController extends Controller
             return $user;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET BUY NOW OR CART
-        |--------------------------------------------------------------------------
-        */
-
+        // What is being ordered: a "Buy now" item, or the lines the buyer
+        // selected on the cart page (everything else stays in the cart).
         $buyNow = session()->get('buy_now', []);
+        $isBuyNow = !empty($buyNow);
 
-        if (!empty($buyNow)) {
-
+        if ($isBuyNow) {
             $cart = $buyNow;
-            $isBuyNow = true;
-
         } else {
-
             $cart = session()->get('cart', []);
-            $isBuyNow = false;
 
             if (empty($cart)) {
-
-                return redirect()
-                    ->route('cart')
-                    ->with(
-                        'error',
-                        'Your cart is empty.'
-                    );
+                return redirect()->route('cart')->with('error', 'Your cart is empty.');
             }
 
-            // Only place an order for the lines the buyer actually selected on
-            // the cart page — everything else stays in the cart untouched.
             if (session()->has('checkout_selection')) {
-
-                $cart = array_intersect_key(
-                    $cart,
-                    array_flip(session()->get('checkout_selection'))
-                );
+                $cart = array_intersect_key($cart, array_flip(session()->get('checkout_selection')));
 
                 if (empty($cart)) {
-
-                    return redirect()
-                        ->route('cart')
-                        ->with(
-                            'error',
-                            'Please select at least one item to check out.'
-                        );
+                    return redirect()->route('cart')->with('error', 'Please select at least one item to check out.');
                 }
             }
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | CHECKOUT INFORMATION
-        |--------------------------------------------------------------------------
-        */
-
-        $address = trim(request('address'));
-        $phone = trim(request('phone'));
-        $payment = trim(request('payment'));
-
-        if (
-            empty($address) ||
-            empty($phone) ||
-            empty($payment)
-        ) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please complete all checkout information.'
-                );
-        }
-
-        // Same rule as the address book — the rider has to be able to call it.
-        if (!preg_match('/^[0-9+\-\s]{7,20}$/', $phone)) {
-
-            return back()
-                ->withInput()
-                ->with('error', 'Please enter a valid phone number (numbers only).');
-        }
-
-        if (mb_strlen($address) > 500) {
-
-            return back()
-                ->withInput()
-                ->with('error', 'The delivery address is too long.');
-        }
-
-        if (!in_array($payment, CodPolicy::PAYMENT_METHODS, true)) {
-
-            return back()
-                ->withInput()
-                ->with('error', 'Please choose a valid payment method.');
-        }
-
-        if (CodPolicy::isCod($payment)) {
-
-            $codStatus = CodPolicy::status((int) $user['id']);
-
-            if ($codStatus['blocked']) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Cash on Delivery is paused on your account until ' .
-                        $codStatus['available_at']->format('M d, Y') .
-                        ' because of repeated cancellations or refused parcels. Please choose another payment method.'
-                    );
-            }
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | BUILD ORDER ITEMS USING PRODUCT IDs
-        |--------------------------------------------------------------------------
-        */
-
-        $orderItems = [];
-        $total = 0;
-
-        foreach ($cart as $cartKey => $quantity) {
-
-            $quantity = (int) $quantity;
-
-            if ($quantity <= 0) {
-                continue;
-            }
-
-            [$productId, $variationId] = parseCartKey($cartKey);
-
-            /*
-            |--------------------------------------------------------------------------
-            | FIND PRODUCT BY DATABASE ID
-            |--------------------------------------------------------------------------
-            */
-
-            $product = Product::find($productId);
-
-            if (!$product) {
-
-                return redirect()
-                    ->route('cart')
-                    ->with(
-                        'error',
-                        'One of the products could not be found.'
-                    );
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | RESOLVE SELECTED VARIATION (IF ANY)
-            |--------------------------------------------------------------------------
-            */
-
-            // The product may have been archived/flagged, or its variation
-            // removed, since it went into the cart — this is the last gate.
-            if (!$product->isPurchasable()) {
-
-                return redirect()
-                    ->route('cart')
-                    ->with('error', $product->name . ' is no longer available. Please remove it from your cart.');
-            }
-
-            [$variation, $variationError] = $product->resolveVariation($variationId);
-
-            if ($variationError || ($variationId && !$variation)) {
-
-                return redirect()
-                    ->route('cart')
-                    ->with('error', $variationError ?? ('The option you picked for ' . $product->name . ' is no longer available. Please remove it and add it again.'));
-            }
-
-            $variationLabel = $variation
-                ? $variation->variation_type . ': ' . $variation->variation_value
-                : null;
-
-            /*
-            |--------------------------------------------------------------------------
-            | CHECK STOCK
-            |--------------------------------------------------------------------------
-            |
-            | A variation tracks its own sellable stock (see the "N in stock"
-            | shown per color/size on the product page) — the base product's
-            | stock column only applies when there is no variation.
-            |
-            */
-
-            $effectiveStock = $variation ? (int) $variation->stock : (int) $product->stock;
-
-            if ($effectiveStock < $quantity) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        $product->name .
-                        ($variationLabel ? " ({$variationLabel})" : '') .
-                        ' does not have enough stock.'
-                    );
-            }
-
-            $unitPrice = (float) $product->price;
-
-            if ($variation) {
-                $unitPrice += (float) $variation->price_adjustment;
-            }
-
-            if ($unitPrice <= 0) {
-
-                return redirect()
-                    ->route('cart')
-                    ->with('error', $product->name . ' has an invalid price right now. Please contact the seller.');
-            }
-
-            /*
-            |--------------------------------------------------------------------------
-            | CALCULATE SUBTOTAL
-            |--------------------------------------------------------------------------
-            */
-
-            $subtotal =
-                $unitPrice * $quantity;
-
-            /*
-            |--------------------------------------------------------------------------
-            | ADD ORDER ITEM
-            |--------------------------------------------------------------------------
-            */
-
-            $orderItems[] = [
-
-                'product_id' =>
-                    $product->id,
-
-                'seller_id' =>
-                    $product->seller_id,
-
-                'product_name' =>
-                    $product->name,
-
-                // Transient — used below to decrement the right stock row,
-                // not a real order_items column.
-                'variation_id' =>
-                    $variation->id ?? null,
-
-                'variation_label' =>
-                    $variationLabel,
-
-                'price' =>
-                    $unitPrice,
-
-                'quantity' =>
-                    $quantity,
-            ];
-
-            $total += $subtotal;
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | NO VALID PRODUCTS
-        |--------------------------------------------------------------------------
-        */
-
-        if (empty($orderItems)) {
-
-            return redirect()
-                ->route('cart')
-                ->with(
-                    'error',
-                    'No valid products found.'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | APPLY VOUCHER (if one was applied on the cart page)
-        |--------------------------------------------------------------------------
-        */
-
-        $voucherCode = session()->get('applied_voucher');
-
-        $voucher = $voucherCode
-            ? \App\Models\Voucher::where('code', $voucherCode)->first()
-            : null;
-
-        // One order per seller; the voucher lands only on its own seller's
-        // order, and each order carries its own delivery fee.
-        $plan = CheckoutPlan::build($orderItems, $voucher);
-
-        $voucherUsed = collect($plan['orders'])->contains(fn ($o) => $o['voucher_code'] !== null);
-
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE ORDER + ORDER ITEMS + REDUCE STOCK (ONE TRANSACTION)
-        |--------------------------------------------------------------------------
-        |
-        | Everything below runs atomically. The stock check earlier in this
-        | route is only a fast pre-check for a friendly error message — the
-        | decrements here are the real guard: each is a conditional
-        | "UPDATE ... WHERE stock >= quantity" that MySQL applies as a single
-        | atomic row operation, so two concurrent checkouts racing for the
-        | last unit can't both succeed. If any item lost the race, the whole
-        | order (and its notifications) rolls back instead of overselling.
-        |
-        */
-
-        $orderIds = [];
 
         try {
-
-            $orderIds = DB::transaction(function () use (
+            $orderIds = $orders->place(
                 $user,
-                $plan,
-                $voucher,
-                $voucherUsed,
-                $phone,
-                $address,
-                $payment
-            ) {
-
-                if ($voucherUsed) {
-
-                    // Conditional so two simultaneous checkouts can't push a
-                    // voucher past its max_uses — the loser rolls back.
-                    $claimedUse = \App\Models\Voucher::where('id', $voucher->id)
-                        ->where(function ($q) {
-                            $q->whereNull('max_uses')->orWhereColumn('used_count', '<', 'max_uses');
-                        })
-                        ->increment('used_count');
-
-                    if (!$claimedUse) {
-                        throw new \RuntimeException('VOUCHER_USED_UP');
-                    }
-                }
-
-                $orderIds = [];
-
-                foreach ($plan['orders'] as $planned) {
-
-                    $orderId = DB::table('orders')->insertGetId([
-
-                        'buyer_id' =>
-                            $user['id'],
-
-                        'total_amount' =>
-                            $planned['total'],
-
-                        'voucher_code' =>
-                            $planned['voucher_code'],
-
-                        'discount_amount' =>
-                            $planned['discount'],
-
-                        'delivery_fee' =>
-                            $planned['delivery_fee'],
-
-                        // Seller workflow starts here
-                        'status' =>
-                            'Pending',
-
-                        'shipping_name' =>
-                            $user['name'] ?? 'Buyer',
-
-                        'shipping_phone' =>
-                            $phone,
-
-                        'shipping_address' =>
-                            $address,
-
-                        'payment_method' =>
-                            $payment,
-
-                        'created_at' =>
-                            now(),
-
-                        'updated_at' =>
-                            now(),
-
-                    ]);
-
-                    $orderIds[] = $orderId;
-
-                    createNotification(
-                        (int) $user['id'],
-                        'Order Confirmed',
-                        'Your order #' . $orderId .
-                        ' has been placed successfully and is now Pending.',
-                        'order',
-                        (int) $orderId
-                    );
-
-                    foreach ($planned['lines'] as $item) {
-
-                        DB::table('order_items')->insert([
-
-                            'order_id' =>
-                                $orderId,
-
-                            'product_id' =>
-                                $item['product_id'],
-
-                            'seller_id' =>
-                                $item['seller_id'],
-
-                            'product_name' =>
-                                $item['product_name'],
-
-                            'variation_label' =>
-                                $item['variation_label'] ?? null,
-
-                            'price' =>
-                                $item['price'],
-
-                            'quantity' =>
-                                $item['quantity'],
-
-                            'created_at' =>
-                                now(),
-
-                            'updated_at' =>
-                                now(),
-
-                        ]);
-
-                        // A variation carries its own stock — reduce that instead
-                        // of the base product's when one was selected. The WHERE
-                        // stock >= quantity clause is what actually prevents the
-                        // race: it can never take stock below zero, and it tells
-                        // us via $decremented whether we won the race.
-                        if (!empty($item['variation_id'])) {
-
-                            $decremented = \App\Models\ProductVariation::where('id', $item['variation_id'])
-                                ->where('stock', '>=', $item['quantity'])
-                                ->decrement('stock', $item['quantity']);
-
-                        } else {
-
-                            $decremented = Product::where('id', $item['product_id'])
-                                ->where('stock', '>=', $item['quantity'])
-                                ->decrement('stock', $item['quantity']);
-                        }
-
-                        if (!$decremented) {
-                            throw new \RuntimeException('OUT_OF_STOCK:' . $item['product_name']);
-                        }
-                    }
-
-                    // One "new order" notification per seller, for their order only.
-                    createNotification(
-                        (int) $planned['seller_id'],
-                        'New Order Received',
-                        'You have a new order #' . $orderId . ' that is waiting for processing.',
-                        'order',
-                        (int) $orderId
-                    );
-                }
-
-                return $orderIds;
-            });
-
-        } catch (\RuntimeException $e) {
-
-            if (str_starts_with($e->getMessage(), 'OUT_OF_STOCK:')) {
-
+                $cart,
+                request()->only('address', 'phone', 'payment'),
+                session()->get('applied_voucher')
+            );
+        } catch (CheckoutFailed $e) {
+            if ($e->voucherDropped) {
                 session()->forget('applied_voucher');
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        substr($e->getMessage(), strlen('OUT_OF_STOCK:')) .
-                        ' just sold out while you were checking out. Please adjust your cart and try again.'
-                    );
             }
 
-            if ($e->getMessage() === 'VOUCHER_USED_UP') {
-
-                session()->forget('applied_voucher');
-
-                return back()
-                    ->withInput()
-                    ->with('error', 'That voucher just reached its usage limit. It has been removed — please review your total and place the order again.');
-            }
-
-            throw $e;
+            return $e->backToCart
+                ? redirect()->route('cart')->with('error', $e->getMessage())
+                : back()->withInput()->with('error', $e->getMessage());
         }
 
         session()->forget('applied_voucher');
 
-        /*
-        |--------------------------------------------------------------------------
-        | CLEAR SOURCE
-        |--------------------------------------------------------------------------
-        */
-
         if ($isBuyNow) {
-
             session()->forget('buy_now');
-
         } else {
-
-            // Remove only the lines that were just ordered — anything the
-            // buyer left unchecked on the cart page stays there.
-            $remainingCart = session()->get('cart', []);
-
-            foreach (array_keys($cart) as $orderedKey) {
-                unset($remainingCart[$orderedKey]);
-            }
-
-            session()->put('cart', $remainingCart);
+            // Remove only the lines that were just ordered.
+            session()->put('cart', array_diff_key(session()->get('cart', []), $cart));
             session()->forget('checkout_selection');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | ORDER SUCCESS
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
-            ->route(
-                'orders.success',
-                $orderIds[0]
-            )
+            ->route('orders.success', $orderIds[0])
             ->with('checkout_order_ids', $orderIds)
             ->with(
                 'success',

@@ -2,189 +2,107 @@
    RIDER SIDEBAR (shared)
 ========================================================= */
 
+@import url('portal-sidebar.css');
+
 .rider-sidebar {
     position: fixed;
     top: 0;
     left: 0;
-
     width: 245px;
     height: 100vh;
-
     background: #ffffff;
-    border-right: 1px solid #f7e5e0;
-
+    border-right: 1px solid #f0e2da;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-
-    padding: 24px 16px;
-
+    padding: 24px 14px 16px;
+    overflow-y: auto;
     z-index: 2000;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
-.rider-sidebar-top {
+.rider-sidebar a {
+    text-decoration: none;
+}
+
+.rider-sidebar-top,
+.rider-sidebar-bottom,
+.rider-sidebar-bottom form {
     width: 100%;
 }
 
-.rider-brand {
-    display: flex;
-    align-items: center;
-    gap: 11px;
-
-    padding: 8px 10px 25px;
-
-    color: #172033;
-}
-
-.rider-brand-icon {
-    width: 42px;
-    height: 42px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    background: #fff0eb;
-    border-radius: 12px;
-
-    font-size: 20px;
-    flex-shrink: 0;
-}
-
-.rider-brand-name {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 25px;
-    font-weight: 800;
-    line-height: 1;
-}
-
-.rider-brand-role {
-    color: #977970;
-    font-size: 10px;
-    font-weight: 700;
-
-    margin-top: 4px;
+.rider-sidebar-bottom {
+    padding-top: 16px;
 }
 
 .rider-sidebar-nav {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
 }
 
-.rider-sidebar-link {
+.rider-sidebar-link,
+.rider-sidebar-logout {
     position: relative;
-
     display: flex;
     align-items: center;
     gap: 12px;
-
     width: 100%;
-
-    padding: 12px 13px;
-
+    padding: 11px 12px;
+    border: none;
     border-radius: 10px;
-
-    color: #6f5d58;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    transition: .2s ease;
+    background: transparent;
+    color: #5e5759;
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 600;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.rider-sidebar-link:hover {
-    background: #fff4f0;
-    color: #e8420f;
+.rider-sidebar-link:hover,
+.rider-sidebar-logout:hover {
+    background: #fff8f3;
+    color: #1b1a1f;
+}
+
+.rider-sidebar-logout:hover {
+    color: #c2380f;
 }
 
 .rider-sidebar-link.active {
-    background: #e8420f;
-    color: #ffffff;
-    box-shadow: 0 6px 18px rgba(232, 66, 15, .14);
+    background: #fff1ea;
+    color: #c2380f;
+    font-weight: 700;
+}
+
+.rider-sidebar-link.active .sidebar-icon {
+    color: #e8420f;
 }
 
 .sidebar-icon {
-    width: 22px;
-
+    width: 20px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-
-    font-size: 16px;
+    font-size: 17px;
     flex-shrink: 0;
 }
 
 .sidebar-notification-badge {
     margin-left: auto;
-
     min-width: 20px;
     height: 20px;
-
-    padding: 0 5px;
-
+    padding: 0 6px;
     display: flex;
     align-items: center;
     justify-content: center;
-
     background: #e8420f;
-    color: #ffffff;
-
+    color: #fff;
     border-radius: 999px;
-
-    font-size: 9px;
+    font-size: 11px;
     font-weight: 800;
-}
-
-.rider-sidebar-link.active .sidebar-notification-badge {
-    background: #ffffff;
-    color: #e8420f;
-}
-
-.rider-sidebar-bottom {
-    width: 100%;
-}
-
-.rider-sidebar-divider {
-    height: 1px;
-
-    background: #f7e5e0;
-
-    margin: 10px 0 12px;
-}
-
-.rider-sidebar-bottom form {
-    width: 100%;
-}
-
-.rider-sidebar-logout {
-    width: 100%;
-
-    display: flex;
-    align-items: center;
-    gap: 12px;
-
-    padding: 12px 13px;
-
-    border: none;
-    background: transparent;
-
-    border-radius: 10px;
-
-    color: #e8420f;
-
-    font-size: 12px;
-    font-weight: 700;
-
-    cursor: pointer;
-
-    text-align: left;
-
-    transition: .2s ease;
-}
-
-.rider-sidebar-logout:hover {
-    background: #fff0eb;
 }
 
 /* =========================================================
@@ -194,7 +112,6 @@
 .main-content {
     width: calc(100% - 245px);
     min-height: calc(100vh - 74px);
-
     margin-left: 245px;
 }
 
@@ -205,27 +122,29 @@
         padding: 18px 10px;
     }
 
-    .rider-brand {
+    .rider-sidebar .bb-side-brand {
         justify-content: center;
-        padding: 8px 0 25px;
+        padding: 2px 0 20px;
     }
 
-    .rider-brand-name,
-    .rider-brand-role,
-    .rider-sidebar-link span:not(.sidebar-icon),
+    .rider-sidebar .bb-side-name,
+    .rider-sidebar .bb-side-who,
+    .rider-sidebar-link span:not(.sidebar-icon):not(.sidebar-notification-badge),
     .rider-sidebar-logout span:not(.sidebar-icon) {
         display: none;
+    }
+
+    .rider-sidebar .bb-side-user {
+        justify-content: center;
+        padding: 8px 0;
+        background: transparent;
+        border: 0;
     }
 
     .rider-sidebar-link,
     .rider-sidebar-logout {
         justify-content: center;
-        padding: 13px 8px;
-    }
-
-    .sidebar-icon {
-        width: auto;
-        font-size: 18px;
+        padding: 12px 0;
     }
 
     .sidebar-notification-badge {
@@ -234,7 +153,8 @@
         right: 3px;
         min-width: 17px;
         height: 17px;
-        font-size: 8px;
+        padding: 0 4px;
+        font-size: 9.5px;
     }
 
     .main-content {
@@ -252,6 +172,7 @@
 
     .rider-sidebar {
         width: 64px;
+        padding: 16px 7px;
     }
 
     .main-content {
@@ -263,9 +184,4 @@
         width: calc(100% - 64px);
         margin-left: 64px;
     }
-}
-
-/* Own reset, so the sidebar looks the same whatever the page CSS does. */
-.rider-sidebar a {
-    text-decoration: none;
 }

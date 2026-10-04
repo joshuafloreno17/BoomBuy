@@ -1,16 +1,10 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Customer Reviews — BoomBuy Seller'])
 
-    <title>Customer Reviews — BoomBuy Seller</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/seller-reviews.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/seller-reviews.css') }}">
 </head>
 
 <body>

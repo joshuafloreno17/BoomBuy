@@ -1,43 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>My Account — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
+    @include('partials.head', ['title' => 'My Account — BoomBuy'])
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: var(--font-body);
-            background: var(--cream);
-            color: var(--ink);
-            overflow-x: hidden;
-        }
-
-        a {
-            text-decoration: none;
-            color: inherit;
-        }
-
-        .account-page {
-            width: calc(100% - 32px);
-            max-width: 560px;
-            margin: 24px auto 48px;
-        }
-
-    </style>
+    <link rel="stylesheet" href="{{ vasset('css/views/buyer-account.css') }}">
 </head>
 
 <body>

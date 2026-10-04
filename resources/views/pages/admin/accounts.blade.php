@@ -14,7 +14,7 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
-    <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-accounts.css') }}">
 </head>
 
@@ -310,7 +310,7 @@
 
                                         <span
                                             style="
-                                                color:#8d6c62;
+                                                color:#6b6570;
                                                 font-size:11px;
                                             "
                                         >

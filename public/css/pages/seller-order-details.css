@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -8,17 +8,17 @@
 
 :root {
     --orange: #f34f1d;
-    --orange-dark: #df4516;
-    --orange-light: #fff1eb;
-    --cream: #fbf6f5;
+    --orange-dark: #e8420f;
+    --orange-light: #fff1ea;
+    --cream: #fff8f3;
     --text: #29211f;
-    --muted: #816f6a;
-    --border: #ebe6e5;
+    --muted: #6b6570;
+    --border: #ece4df;
     --sidebar-width: 245px;
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', Arial, sans-serif;
+    font-family: 'Figtree', Arial, sans-serif;
     background: var(--cream);
     color: var(--text);
     min-height: 100vh;
@@ -64,7 +64,7 @@ h3,
 .status,
 .price,
 .total {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     letter-spacing: -0.01em;
 }
 
@@ -432,7 +432,7 @@ footer {
 ========================================= */
 
 ::selection {
-    background: #ffd7c2;
+    background: #ffe6db;
     color: #7c1a00;
 }
 
@@ -444,14 +444,14 @@ footer {
     border: 1px solid #f0cfc4;
     border-radius: 10px;
     background: #fff;
-    color: #c43408;
+    color: #c2380f;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
 }
 
 .waybill-btn:hover {
-    background: #fff4f0;
+    background: #fff1ea;
 }
 
 /* Status on top of the first card, clear of the boxes below it. */

@@ -15,8 +15,8 @@
     @include('partials.pwa-head')
     @include('partials.design-tokens')
 
-    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/seller-notifications.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/seller-notifications.css') }}">
 
 </head>
 

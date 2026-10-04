@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -25,13 +25,13 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
     margin-top: 7px;
 }
 
 .page-header p {
-    color: #977970;
+    color: #6b6570;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -46,7 +46,7 @@ a { text-decoration: none; }
 
 .notification-card {
     width: 100%;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     background: white;
     padding: 18px;
@@ -62,7 +62,7 @@ a { text-decoration: none; }
 
 .notification-card.unread {
     border-left: 4px solid #e8420f;
-    background: #fffaf8;
+    background: #fff8f3;
 }
 
 .notification-card.read {
@@ -80,7 +80,7 @@ a { text-decoration: none; }
     height: 44px;
     flex-shrink: 0;
     border-radius: 11px;
-    background: #ffefea;
+    background: #fff1ea;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,21 +93,21 @@ a { text-decoration: none; }
 }
 
 .notification-title {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 17px;
     font-weight: 700;
-    color: #172033;
+    color: #1b1a1f;
 }
 
 .notification-message {
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 12px;
     line-height: 1.6;
     margin-top: 3px;
 }
 
 .notification-time {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 10px;
     margin-top: 7px;
 }
@@ -129,7 +129,7 @@ a { text-decoration: none; }
 
 .notification-type {
     display: inline-block;
-    background: #fff2ee;
+    background: #fff1ea;
     color: #e8420f;
     padding: 5px 8px;
     border-radius: 6px;
@@ -153,13 +153,13 @@ a { text-decoration: none; }
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
 }
 
 .empty-icon { font-size: 45px; margin-bottom: 12px; }
-.empty h3 { font-family: 'Baloo 2', sans-serif; font-size: 17px; margin-bottom: 7px; }
-.empty p { color: #b99c93; font-size: 12px; }
+.empty h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; margin-bottom: 7px; }
+.empty p { color: #8a7f86; font-size: 12px; }
 
 /* MOBILE */
 

@@ -1,0 +1,100 @@
+/* =========================================================
+   Pieces shared by the admin, seller and logistics sidebars
+   ("Sunrise Market": white rail, orange-soft highlight, one orange accent).
+   Each sidebar's own file sets its width, menu and breakpoints.
+========================================================= */
+
+.bb-side-brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 2px 8px 22px;
+    color: #1b1a1f;
+    text-decoration: none;
+}
+
+.bb-side-brand img {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 10px;
+}
+
+.bb-side-name {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 21px;
+    font-weight: 800;
+    line-height: 1;
+    white-space: nowrap;
+    color: #1b1a1f;
+}
+
+.bb-side-name small {
+    margin-left: 2px;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    color: #8a7f86;
+}
+
+.bb-side-user {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: 8px;
+    border-radius: 14px;
+    background: #fff8f3;
+    border: 1px solid #f0e2da;
+}
+
+.bb-side-avatar {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ffe6db;
+    color: #c2380f;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+}
+
+.bb-side-who {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    font-family: 'Figtree', -apple-system, sans-serif;
+}
+
+.bb-side-who strong {
+    overflow: hidden;
+    color: #1b1a1f;
+    font-size: 13.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+.bb-side-who small {
+    color: #8a7f86;
+    font-size: 12px;
+}
+
+/* Thin, quiet scrollbar for tall menus on short screens. */
+.bb-portal-side {
+    scrollbar-width: thin;
+    scrollbar-color: #f0e2da transparent;
+}
+
+/* Padding inside the set width/height — otherwise, on pages without a
+   global box-sizing reset, the rail grows past the screen (Log out cut off)
+   and wider than the space the page leaves for it. */
+.sidebar,
+.sidebar *,
+.bb-portal-side,
+.bb-portal-side * {
+    box-sizing: border-box;
+}

@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'My Profile — BoomBuy Logistics'])
 
-    <title>My Profile — BoomBuy Logistics</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/logistics-profile.css') }}">
 </head>
 

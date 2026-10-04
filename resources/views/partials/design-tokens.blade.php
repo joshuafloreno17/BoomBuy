@@ -15,13 +15,13 @@
             max-width: calc(100% - 32px);
             padding: 12px 14px 12px 16px;
             border-radius: 14px;
-            background: #172033;
+            background: #1b1a1f;
             color: #fff;
-            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 13.5px;
             font-weight: 600;
             line-height: 1.4;
-            box-shadow: 0 16px 40px rgba(23, 32, 51, 0.25);
+            box-shadow: 0 16px 40px rgba(27, 26, 31, 0.25);
             transform: translateX(-50%);
             animation: bb-notice-in 0.25s ease;
         }
@@ -63,23 +63,33 @@
     </script>
 @endif
 <style>
+    /* "Sunrise Market" design system (all-light): warm cream ground, white surfaces, one orange accent. */
     :root {
-        --ink: #172033;
-        --muted: #8d6c62;
-        --muted-2: #a99088;
-        --line: #f7e5e0;
-        --cream: #fff7f4;
+        --ink: #1b1a1f;
+        --muted: #6b6570;
+        --muted-2: #8a7f86;
+        --line: #f0e2da;
+        --cream: #fff8f3;
         --paper: #ffffff;
         --accent: #e8420f;
-        --accent-dark: #c43408;
+        --accent-dark: #c2380f;
         --accent-2: #db5a33;
+        --accent-soft: #ffe6db;
+        --accent-tint: #fff1ea;
         --gold: #f5b70b;
         --teal: #0d9488;
         --teal-dark: #0a6f66;
         --teal-bg: #e3f6f4;
-        --font-display: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-        --font-body: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+        --radius-card: 18px;
+        --radius-btn: 12px;
+        --font-display: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        --font-body: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
     }
+
+    /* Logo: BB bag icon + "BoomBuy" (used on auth, error and simple pages). */
+    .bb-logo-mark { width: 32px; height: 32px; flex: none; border-radius: 9px; vertical-align: middle; }
+    :is(a, div):has(> .bb-logo-mark) { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
+    .bb-logo-word { color: #1b1a1f !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
 
     .status-pill {
         display: inline-flex;
@@ -106,18 +116,18 @@
         margin: 0 0 14px;
         padding: 10px 14px;
         background: #fff;
-        border: 1px solid #f6e1db;
+        border: 1px solid #f0e2da;
         border-radius: 12px;
         font-size: 13px;
-        color: #6a4e46;
+        color: #5e5759;
     }
     .bb-mark-all button {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         border: none;
-        background: #fff0eb;
-        color: var(--accent-dark, #c43408);
+        background: #fff1ea;
+        color: var(--accent-dark, #c2380f);
         font-weight: 700;
         font-size: 13px;
         font-family: inherit;

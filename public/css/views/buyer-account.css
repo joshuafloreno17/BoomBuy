@@ -1,0 +1,25 @@
+/* Moved out of resources/views/pages/buyer/account.blade.php */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body);
+    background: var(--cream);
+    color: var(--ink);
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.account-page {
+    width: calc(100% - 32px);
+    max-width: 560px;
+    margin: 24px auto 48px;
+}

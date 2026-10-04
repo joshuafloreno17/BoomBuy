@@ -3,10 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Message;
+use App\Models\Product;
 use App\Models\User;
+use App\Support\ChatAutomation;
 use App\Support\SellerShop;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use App\Http\Requests\MessageRequest;
 
 /**
  * One Messages page for every role: the conversation list on the left and
@@ -65,29 +68,38 @@ class MessageController extends Controller
         if (request()->wantsJson()) {
             $after = (int) request('after', 0);
 
-            $new = (clone $thread)->where('id', '>', $after)->orderBy('id')->get();
+            $new = (clone $thread)->with('product')->where('id', '>', $after)->orderBy('id')->get();
 
             $this->markRead($partner->id, $me['id']);
 
             return response()->json([
-                'messages' => $new->map(fn ($m) => $this->toJson($m, $me['id']))->values(),
+                'messages' => $new->map(fn ($m) => $this->toJson($m, $me['id'], $me['role']))->values(),
                 'seen_up_to' => $this->seenUpTo($me['id'], $partner->id),
             ]);
         }
 
-        $thread = $thread->orderBy('created_at')->orderBy('id')->get();
+        $thread = $thread->with('product')->orderBy('created_at')->orderBy('id')->get();
 
         $this->markRead($partner->id, $me['id']);
+
+        // "Chat" on a product page: the next message will carry this product.
+        $askingAbout = request('product')
+            ? $this->productCard($this->productFor((int) request('product'), $partner->id, $me['id']))
+            : null;
 
         return view('pages.messages.inbox', $this->listData($me) + [
             'me' => $me,
             'partner' => $this->person($partner),
             'thread' => $thread,
             'seenUpTo' => $this->seenUpTo($me['id'], $partner->id),
+            'askingAbout' => $askingAbout,
+            'suggestions' => $this->suggestionsFor($me, $partner, $askingAbout['id'] ?? null),
+            'orderCards' => $thread->whereNotNull('order_id')->pluck('order_id')->unique()
+                ->mapWithKeys(fn ($id) => [$id => $this->orderCard((int) $id, $me['role'])])->filter()->all(),
         ]);
     }
 
-    public function store($userId)
+    public function store(MessageRequest $request, $userId)
     {
         $me = currentMessagingUser();
 
@@ -96,10 +108,6 @@ class MessageController extends Controller
                 ? response()->json(['message' => 'Please log in again.'], 401)
                 : redirect()->route('login');
         }
-
-        request()->validate([
-            'message' => 'required|string|max:2000',
-        ]);
 
         $partner = User::find($userId);
 
@@ -111,14 +119,25 @@ class MessageController extends Controller
             return redirect()->route('messages.index')->with('error', 'You cannot send a message to yourself.');
         }
 
+        $product = $request->validated('product_id')
+            ? $this->productFor((int) $request->validated('product_id'), $partner->id, $me['id'])
+            : null;
+
         $message = Message::create([
             'sender_id' => $me['id'],
             'recipient_id' => $userId,
             'message' => trim((string) request('message')),
+            'product_id' => $product?->id,
         ]);
 
+        // A buyer writing to a shop gets its auto-reply (when on, and not replied lately).
+        $autoReply = $me['role'] === 'buyer' ? ChatAutomation::autoReply((int) $me['id'], (int) $partner->id) : null;
+
         if (request()->wantsJson()) {
-            return response()->json(['message' => $this->toJson($message, $me['id'])]);
+            return response()->json([
+                'message' => $this->toJson($message, $me['id'], $me['role']),
+                'auto_reply' => $autoReply ? $this->toJson($autoReply, $me['id'], $me['role']) : null,
+            ]);
         }
 
         return redirect()->route('messages.thread', $userId);
@@ -239,7 +258,7 @@ class MessageController extends Controller
             'filter' => $filter,
             'roleFilter' => $roleFilter,
             'roleFilters' => $me['role'] === 'admin' ? self::ROLE_FILTERS : [],
-            'support' => $me['role'] !== 'admin' ? User::where('email', 'admin@boombuy.com')->first() : null,
+            'support' => $me['role'] !== 'admin' ? \App\Support\SupportAccount::user() : null,
         ];
     }
 
@@ -294,19 +313,97 @@ class MessageController extends Controller
     {
         return (int) Message::where('sender_id', $myId)
             ->where('recipient_id', $partnerId)
+            ->where('kind', Message::TEXT)
             ->whereNotNull('read_at')
             ->max('id');
     }
 
-    private function toJson(Message $message, int $myId): array
+    private function toJson(Message $message, int $myId, string $role = 'buyer'): array
     {
         return [
             'id' => $message->id,
+            'kind' => $message->kind ?? Message::TEXT,
+            'order' => $message->order_id ? $this->orderCard((int) $message->order_id, $role) : null,
             'mine' => (int) $message->sender_id === $myId,
             'text' => $message->message,
             'time' => $message->created_at->format('g:i A'),
             'day' => $message->created_at->toDateString(),
             'day_label' => self::dayLabel($message->created_at),
+            'product' => $this->productCard($message->product),
+        ];
+    }
+
+    /** What an order-update card shows: number, current status, a link that suits the viewer. */
+    public function orderCard(int $orderId, string $role): ?array
+    {
+        $status = DB::table('orders')->where('id', $orderId)->value('status');
+
+        if ($status === null) {
+            return null;
+        }
+
+        $url = match ($role) {
+            'seller' => route('seller.order.details', $orderId),
+            'admin' => route('admin.order.details', $orderId),
+            default => route('buyer.orders') . '#order-' . $orderId,
+        };
+
+        return ['id' => $orderId, 'status' => $status, 'url' => $url];
+    }
+
+    /**
+     * Products a buyer may want to ask a shop about: the shop's items in their
+     * cart, else the last thing they ordered from it (up to 3).
+     */
+    private function suggestionsFor(array $me, User $partner, ?int $exceptId): array
+    {
+        if ($me['role'] !== 'buyer' || $partner->role !== 'seller') {
+            return [];
+        }
+
+        $cartIds = array_unique(array_map(fn ($key) => (int) parseCartKey($key)[0], array_keys(session('cart', []))));
+
+        $products = Product::onSale()
+            ->where('seller_id', $partner->id)
+            ->whereIn('products.id', $cartIds)
+            ->when($exceptId, fn ($q) => $q->where('products.id', '!=', $exceptId))
+            ->limit(3)
+            ->get();
+
+        if ($products->isEmpty()) {
+            $lastId = DB::table('order_items')
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->where('orders.buyer_id', $me['id'])
+                ->where('order_items.seller_id', $partner->id)
+                ->when($exceptId, fn ($q) => $q->where('order_items.product_id', '!=', $exceptId))
+                ->orderByDesc('orders.id')
+                ->value('order_items.product_id');
+
+            $products = $lastId ? Product::onSale()->where('products.id', $lastId)->get() : collect();
+        }
+
+        return $products->map(fn ($p) => $this->productCard($p))->values()->all();
+    }
+
+    /** A product of one of the two people in the chat (so no one can attach another shop's product). */
+    private function productFor(int $productId, int $partnerId, int $myId): ?Product
+    {
+        return Product::where('id', $productId)->whereIn('seller_id', [$partnerId, $myId])->first();
+    }
+
+    /** What a product card in the chat shows. */
+    public function productCard(?Product $product): ?array
+    {
+        if (!$product) {
+            return null;
+        }
+
+        return [
+            'id' => $product->id,
+            'name' => $product->name,
+            'price' => '₱' . number_format((float) $product->price, 2),
+            'image' => productImageUrl($product->image),
+            'url' => route('product.details', \Illuminate\Support\Str::slug($product->name) . '-' . $product->id),
         ];
     }
 

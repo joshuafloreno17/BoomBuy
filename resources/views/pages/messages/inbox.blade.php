@@ -14,16 +14,16 @@
     @endphp
 
     @if($role === 'seller')
-        <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
     @elseif($role === 'rider')
-        <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
     @elseif($role === 'logistics')
-        <link rel="stylesheet" href="{{ asset('css/logistics-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
     @elseif($role === 'admin')
-        <link rel="stylesheet" href="{{ asset('css/admin-sidebar.css') }}">
+        <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     @endif
 
-    <link rel="stylesheet" href="{{ asset('css/pages/messages.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/messages.css') }}">
 </head>
 
 <body class="chat-role-{{ $role === 'buyer' ? 'buyer' : 'panel' }}{{ $partner ? ' chat-open' : '' }}">

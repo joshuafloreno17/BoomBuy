@@ -1,0 +1,230 @@
+/* Moved out of resources/views/pages/admin-edit-product.blade.php */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Figtree', -apple-system, sans-serif;
+            background: #fff8f3;
+            color: #1b1a1f;
+        }
+
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .container {
+            width: 86%;
+            max-width: 850px;
+            margin: 45px auto 80px;
+        }
+
+        .header {
+            margin-bottom: 25px;
+        }
+
+        .header small {
+            color: #db5a33;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .header h1 {
+            font-size: 36px;
+            margin-top: 8px;
+        }
+
+        .header p {
+            color: #6b6570;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+
+        .success {
+            background: #eaf8ef;
+            color: #15803d;
+            border: 1px solid #bbebca;
+            padding: 13px 16px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .error {
+            background: #fff1ea;
+            color: #dc2626;
+            border: 1px solid #ffd0d0;
+            padding: 13px 16px;
+            border-radius: 9px;
+            margin-bottom: 20px;
+            font-size: 13px;
+        }
+
+        .form-box {
+            background: white;
+            border: 1px solid #f0e2da;
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            border: 1px solid #f0e2da;
+            background: #fff8f3;
+            padding: 12px 14px;
+            border-radius: 8px;
+            outline: none;
+            font-family: 'Figtree', -apple-system, sans-serif;
+            font-size: 13px;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            border-color: #e8420f;
+            background: white;
+        }
+
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .hint {
+            color: #8a7f86;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .current-image {
+            width: 90px;
+            height: 90px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 10px;
+            border: 1px solid #f0e2da;
+        }
+
+        .buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 25px;
+        }
+
+        .save-btn {
+            border: none;
+            background: #e8420f;
+            color: white;
+            padding: 13px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .save-btn:hover {
+            background: #c2380f;
+        }
+
+        .cancel-btn {
+            background: #f6eee9;
+            color: #7c5a50;
+            padding: 13px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .cancel-btn:hover {
+            background: #f0e2da;
+        }
+
+        footer {
+            background: white;
+            border-top: 1px solid #f0e2da;
+            padding: 30px 7%;
+            display: flex;
+            justify-content: space-between;
+            color: #6b6570;
+            font-size: 12px;
+        }
+
+        footer strong {
+            color: #e8420f;
+        }
+
+        @media (max-width: 600px) {
+
+            .container {
+                width: 92%;
+            }
+
+            .form-box {
+                padding: 20px;
+            }
+
+            .buttons {
+                flex-direction: column;
+            }
+
+            .save-btn,
+            .cancel-btn {
+                text-align: center;
+            }
+
+            footer {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+        }
+
+
+/* ===== BoomBuy Vibrant Design System Overrides ===== */
+h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
+.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
+.card-title, .modal-title, .auth-title, .form-title, .empty-title,
+.step-title, .order-title, .stat-title, .stat-value, .banner-title {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    letter-spacing: -0.01em;
+}
+button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
+.register-btn, .login-btn, .submit-btn, .primary-btn {
+    border-radius: 12px !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
+.buy-now:hover, .primary-btn:hover {
+    transform: translateY(-1px);
+}
+.card, [class*="-card"], .product-card {
+    border-radius: 16px !important;
+}
+::selection {
+    background: #ffe6db;
+    color: #7c1a00;
+}

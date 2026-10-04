@@ -2,16 +2,10 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Seller Order Details — BoomBuy'])
 
-    <title>Seller Order Details — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/seller-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/seller-order-details.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/seller-order-details.css') }}">
 
 </head>
 
@@ -156,12 +150,7 @@
                     </div>
                 </div>
 
-                <style>
-                    .buyer-history { display: flex; gap: 10px; align-items: flex-start; margin-top: 18px; padding: 12px 14px; border-radius: 12px; background: #eefaf3; color: #1f6b3a; font-size: 13px; line-height: 1.5; }
-                    .buyer-history i { margin-top: 2px; }
-                    .buyer-history.is-risky { background: #fff4e5; color: #8a5a00; }
-                    .buyer-history-sub { font-size: 12px; opacity: 0.9; margin-top: 2px; }
-                </style>
+                <link rel="stylesheet" href="{{ vasset('css/views/seller-order-details.css') }}">
 
             </div>
 
@@ -341,7 +330,7 @@
 
                 @if(!in_array($currentStatus, ['Pending', 'Processing'], true))
 
-                    <p style="color:#8d6c62; font-size:13px; line-height:1.6;">
+                    <p style="color:#6b6570; font-size:13px; line-height:1.6;">
                         <i class="bi bi-info-circle"></i>
                         This order is <strong>{{ $currentStatus }}</strong>.
                         @if(in_array($currentStatus, ['Ready for Pickup', 'Assigned'], true))
@@ -386,7 +375,7 @@
                         <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">
                             Reason for cancellation
                         </label>
-                        <textarea name="cancellation_reason" placeholder="e.g. Item is out of stock" style="width:100%; min-height:70px; padding:10px; border:1px solid #f0ddd6; border-radius:8px; font-family:inherit; font-size:13px;"></textarea>
+                        <textarea name="cancellation_reason" placeholder="e.g. Item is out of stock" style="width:100%; min-height:70px; padding:10px; border:1px solid #f0e2da; border-radius:8px; font-family:inherit; font-size:13px;"></textarea>
                     </div>
 
                     <button type="submit">

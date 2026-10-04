@@ -3,27 +3,12 @@
     'user' => [],
 ])
 
-@php
-    $sellerUnreadNotifications = \App\Models\Notification::where(
-        'user_id',
-        $user['id'] ?? null
-    )->whereNull('read_at')->count();
-
-    $sellerUnreadMessages = \App\Models\Message::where(
-        'recipient_id',
-        $user['id'] ?? null
-    )->whereNull('read_at')->count();
-@endphp
-
 <aside class="sidebar">
 
-    <a href="{{ route('seller.dashboard') }}" class="logo">
-        Boom<span>Buy</span>
+    <a href="{{ route('seller.dashboard') }}" class="bb-side-brand">
+        <img src="{{ asset('images/icon.svg') }}" alt="" width="36" height="36">
+        <span class="bb-side-name">BoomBuy <small>Seller</small></span>
     </a>
-
-    <div class="sidebar-label">
-        Seller Panel
-    </div>
 
     <nav class="menu">
 
@@ -156,52 +141,27 @@
     </nav>
 
     <div class="sidebar-footer">
+        <div class="bb-side-user">
+            <span class="bb-side-avatar">{{ mb_strtoupper(mb_substr($sellerCardName, 0, 1)) }}</span>
+            <span class="bb-side-who">
+                <strong>{{ $sellerCardName }}</strong>
+                <small>Seller</small>
+            </span>
+        </div>
 
-            <div
-                class="user"
-                style="padding:0 4px; margin-bottom:8px;"
-            >
-                Seller: {{ $user['name'] ?? 'Seller' }}
-            </div>
-
-            <form
-                action="{{ route('logout') }}"
-                method="POST"
-                onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
-            >
-
-                @csrf
-
-                <button
-                    type="submit"
-                    class="logout"
-                    style="width:100%;"
-                >
-                    Logout
-                </button>
-
-            </form>
-
+        <form
+            action="{{ route('logout') }}"
+            method="POST"
+            onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
+        >
+            @csrf
+            <button type="submit" class="logout" aria-label="Log out">
+                <i class="bi bi-box-arrow-right"></i>
+                <span class="label-text">Log out</span>
+            </button>
+        </form>
     </div>
-
 </aside>
 
 @include('partials.confirm-modal')
 
-@once
-    <style>
-        /* Narrow icon rail (every seller page collapses the sidebar at 900px):
-           only the "B" of the logo fits. */
-        @media (max-width: 900px) {
-            aside.sidebar .logo {
-                font-size: 0;
-                text-align: center;
-            }
-
-            aside.sidebar .logo::before {
-                content: "B";
-                font-size: 25px;
-            }
-        }
-    </style>
-@endonce

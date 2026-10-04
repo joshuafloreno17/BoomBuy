@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a { text-decoration: none; }
@@ -20,8 +20,8 @@ a { text-decoration: none; }
 }
 
 .main-content {
-    margin-left: 230px;
-    width: calc(100% - 230px);
+    margin-left: 240px;
+    width: calc(100% - 240px);
     min-height: 100vh;
 }
 
@@ -33,7 +33,7 @@ a { text-decoration: none; }
 
 .page-header {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 25px 30px;
     margin-bottom: 20px;
@@ -48,7 +48,7 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
     margin-top: 7px;
 }
@@ -75,14 +75,14 @@ a { text-decoration: none; }
 
 .card {
     background: white;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
 }
 
 .card h2 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 18px;
     margin-bottom: 14px;
 }
@@ -99,14 +99,14 @@ a { text-decoration: none; }
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: #43302a;
+    color: #1b1a1f;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0ddd5;
+    border: 1px solid #f0e2da;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -123,7 +123,7 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.save-btn:hover { background: #c43408; }
+.save-btn:hover { background: #c2380f; }
 
 table {
     width: 100%;
@@ -131,18 +131,18 @@ table {
 }
 
 th {
-    background: #fffaf8;
-    color: #8d6c62;
+    background: #fff8f3;
+    color: #6b6570;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #f6e8e4;
+    border-bottom: 1px solid #f0e2da;
 }
 
 td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid #f7efed;
+    border-bottom: 1px solid #f6eee9;
 }
 
 tr:last-child td { border-bottom: none; }
@@ -150,7 +150,7 @@ tr:last-child td { border-bottom: none; }
 .voucher-code {
     font-family: monospace;
     font-weight: 800;
-    background: #fff2ee;
+    background: #fff1ea;
     padding: 3px 8px;
     border-radius: 6px;
     color: #e8420f;
@@ -177,11 +177,11 @@ tr:last-child td { border-bottom: none; }
     margin-right: 5px;
 }
 
-.mini-btn.toggle { background: #fff1eb; color: #d9471c; }
+.mini-btn.toggle { background: #fff1ea; color: #d9471c; }
 .mini-btn.delete { background: #fff1f2; color: #be123c; }
 
 .empty-message {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;

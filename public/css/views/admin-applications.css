@@ -1,0 +1,405 @@
+/* Moved out of resources/views/pages/admin/applications.blade.php */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
+}
+
+a {
+    text-decoration: none;
+}
+
+/* PAGE */
+
+.container {
+    width: 86%;
+    max-width: 1100px;
+    margin: 45px auto;
+}
+
+.page-header {
+    margin-bottom: 25px;
+}
+
+.page-header small {
+    color: #db5a33;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.page-header h1 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 30px;
+    margin-top: 7px;
+    margin-bottom: 8px;
+}
+
+.page-header p {
+    color: #6b6570;
+    font-size: 13px;
+}
+
+.success-box {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+.error-box {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    padding: 12px 15px;
+    border-radius: 9px;
+    font-size: 12px;
+    margin-bottom: 20px;
+}
+
+/* TABS */
+
+.tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tab-btn {
+    background: white;
+    border: 1px solid #f0e2da;
+    color: #5e5759;
+    padding: 10px 18px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.tab-btn.active {
+    background: #e8420f;
+    border-color: #e8420f;
+    color: white;
+}
+
+/* APPLICATION CARD */
+
+.app-card {
+    background: white;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 16px;
+    box-shadow: 0 12px 30px rgba(39, 84, 150, 0.05);
+}
+
+.app-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.app-name {
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.app-email {
+    color: #6b6570;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.status-pending-verification {
+    background: #fffaed;
+    color: #c2910c;
+}
+
+.status-approved {
+    background: #f0fdf4;
+    color: #15803d;
+}
+
+.status-rejected {
+    background: #fff1f2;
+    color: #be123c;
+}
+
+.app-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px 20px;
+
+    font-size: 12px;
+    color: #4a4449;
+
+    margin-bottom: 14px;
+}
+
+.app-details strong {
+    display: block;
+    color: #8a7f86;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+}
+
+.documents {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+}
+
+.doc-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: #fff8f3;
+    border: 1px solid #f0e2da;
+    color: #e8420f;
+    padding: 7px 12px;
+    border-radius: 8px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.doc-link:hover {
+    background: #ffe6db;
+}
+
+.remarks-note {
+    background: #fff1f2;
+    color: #be123c;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 11px;
+    margin-bottom: 14px;
+}
+
+.app-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    padding-top: 14px;
+    border-top: 1px solid #f6eee9;
+}
+
+.approve-form,
+.reject-form {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+}
+
+.reject-form input[type="text"] {
+    padding: 9px 11px;
+    border: 1px solid #f0e2da;
+    border-radius: 8px;
+    font-size: 11px;
+    font-family: inherit;
+    width: 190px;
+}
+
+.approve-btn {
+    background: #15803d;
+    color: white;
+    border: none;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.approve-btn:hover {
+    background: #116530;
+}
+
+.reject-btn {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+    padding: 9px 16px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.reject-btn:hover {
+    background: #be123c;
+    color: white;
+}
+
+.empty {
+    text-align: center;
+    padding: 55px 20px;
+    background: white;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+}
+
+.empty-icon {
+    font-size: 45px;
+    margin-bottom: 12px;
+}
+
+.empty h3 {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 17px;
+    margin-bottom: 7px;
+}
+
+.empty p {
+    color: #8a7f86;
+    font-size: 12px;
+}
+
+.footer {
+    text-align: center;
+    color: #8a7f86;
+    font-size: 11px;
+    margin: 30px 0;
+}
+
+@media (max-width: 500px) {
+    .app-card-top {
+        flex-direction: column;
+    }
+
+    .reject-form input[type="text"] {
+        width: 140px;
+    }
+}
+
+/* TYPE TABS, STATUS CHIPS, SEARCH */
+
+a.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+}
+
+.tab-btn .pending-dot {
+    min-width: 20px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #e8420f;
+    color: #fff;
+    font-size: 11px;
+    text-align: center;
+}
+
+.tab-btn.active .pending-dot {
+    background: #fff;
+    color: #e8420f;
+}
+
+.filter-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 18px;
+}
+
+.status-chips {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+}
+
+.status-chip {
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid #f0e2da;
+    background: #fff;
+    color: #5e5759;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.status-chip.active {
+    background: #fff1ea;
+    border-color: #e8420f;
+    color: #c2380f;
+}
+
+/* Pending with something waiting: solid, so it can't be missed. */
+.status-chip.has-work {
+    background: #e8420f;
+    border-color: #e8420f;
+    color: #fff;
+}
+
+.app-search {
+    flex: 1;
+    min-width: 220px;
+    display: flex;
+    gap: 8px;
+}
+
+.app-search input {
+    flex: 1;
+    padding: 10px 13px;
+    border: 1px solid #f0e2da;
+    border-radius: 10px;
+    font-size: 13px;
+    font-family: inherit;
+}
+
+.app-search button,
+.app-search a {
+    padding: 10px 14px;
+    border: none;
+    border-radius: 10px;
+    background: #e8420f;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    font-family: inherit;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.app-search a {
+    background: #f6eee9;
+    color: #4a4449;
+}
+
+@media (max-width: 640px) {
+    .tabs { flex-wrap: wrap; }
+    .app-search { min-width: 100%; }
+    .approve-form, .reject-form { width: 100%; flex-wrap: wrap; }
+    .approve-form select, .reject-form input[type="text"] { flex: 1; min-width: 0; width: auto; }
+}

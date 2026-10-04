@@ -2,292 +2,11 @@
 
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Delivery Details — BoomBuy'])
 
+    <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
 
-<title>Delivery Details — BoomBuy</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
-
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-    * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-    }
-
-    body {
-        font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-        background: #fff7f4;
-        color: #172033;
-    }
-
-    .main {
-        margin-left: 245px;
-        padding: 30px;
-        max-width: 1100px;
-    }
-
-    .topbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 25px;
-    }
-
-    h1 {
-        font-size: 28px;
-    }
-
-    .subtitle {
-        color: #816f6a;
-        margin-top: 6px;
-    }
-
-    .profile {
-        background: white;
-        padding: 10px 16px;
-        border-radius: 10px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .card {
-        background: white;
-        border-radius: 14px;
-        padding: 25px;
-        margin-bottom: 20px;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05);
-    }
-
-    .header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 20px;
-    }
-
-    .order-id {
-        font-size: 21px;
-        font-weight: bold;
-    }
-
-    .status {
-        padding: 8px 14px;
-        border-radius: 20px;
-        background: #ffe3da;
-        color: #df4516;
-        font-size: 13px;
-        font-weight: bold;
-    }
-
-    .status.delivered {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .status.pending {
-        background: #fef3c7;
-        color: #926f0e;
-    }
-
-    .status.transit {
-        background: #ffe3da;
-        color: #df4516;
-    }
-
-    .info {
-        border-top: 1px solid #ebe6e5;
-        padding-top: 15px;
-    }
-
-    .info-row {
-        display: flex;
-        justify-content: space-between;
-        gap: 20px;
-        padding: 12px 0;
-        border-bottom: 1px solid #f9f3f1;
-    }
-
-    .label {
-        color: #816f6a;
-    }
-
-    .value {
-        font-weight: 600;
-        text-align: right;
-        word-break: break-word;
-    }
-
-    .items-title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .item {
-        display: flex;
-        justify-content: space-between;
-        padding: 14px;
-        background: #fbf9f9;
-        border-radius: 10px;
-        margin-bottom: 10px;
-        gap: 20px;
-    }
-
-    .item-name {
-        font-weight: 600;
-    }
-
-    .item-details {
-        color: #816f6a;
-        font-size: 13px;
-        margin-top: 4px;
-    }
-
-    .total {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 18px;
-        padding-top: 15px;
-        border-top: 2px solid #ebe6e5;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    .update-box {
-        margin-top: 20px;
-    }
-
-    .update-box h3 {
-        margin-bottom: 12px;
-    }
-
-    select {
-        width: 100%;
-        padding: 12px;
-        border: 1px solid #dbd3d1;
-        border-radius: 8px;
-        background: white;
-        margin-bottom: 12px;
-        font-size: 14px;
-    }
-
-    .btn {
-        display: inline-block;
-        width: 100%;
-        border: none;
-        padding: 12px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: bold;
-    }
-
-    .update-btn {
-        background: #f9bc16;
-        color: white;
-    }
-
-    .update-btn:hover {
-        background: #eaaf0c;
-    }
-
-    .back-btn {
-        display: inline-block;
-        text-decoration: none;
-        background: #111827;
-        color: white;
-        padding: 11px 16px;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-
-    .back-btn:hover {
-        background: #523d36;
-    }
-
-    .alert {
-        padding: 14px 18px;
-        border-radius: 10px;
-        margin-bottom: 20px;
-    }
-
-    .success {
-        background: #dcfce7;
-        color: #166534;
-    }
-
-    .error {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .no-items {
-        color: #b0a09b;
-        padding: 10px 0;
-    }
-
-    @media (max-width: 800px) {
-        .main {
-            margin-left: 75px;
-            padding: 20px;
-        }
-
-        .topbar,
-        .header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 15px;
-        }
-
-        .info-row {
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .value {
-            text-align: left;
-        }
-    }
-
-    @media (max-width: 450px) {
-        .main {
-            margin-left: 64px;
-        }
-    }
-
-/* ===== BoomBuy Vibrant Design System Overrides ===== */
-h1, h2, h3, .logo, .hero-title, .hero h1, .section-title, .page-title,
-.product-title, .price, .cta, .cta-title, .brand, .checkout-title,
-.card-title, .modal-title, .auth-title, .form-title, .empty-title,
-.step-title, .order-title, .stat-title, .stat-value, .banner-title {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
-    letter-spacing: -0.01em;
-}
-button, .btn, [class*="btn-"], .add-to-cart, .buy-now, .checkout-btn,
-.register-btn, .login-btn, .submit-btn, .primary-btn {
-    border-radius: 12px !important;
-    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
-}
-button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
-.buy-now:hover, .primary-btn:hover {
-    transform: translateY(-1px);
-}
-.card, [class*="-card"], .product-card {
-    border-radius: 16px !important;
-}
-::selection {
-    background: #ffd7c2;
-    color: #7c1a00;
-}
-</style>
-
+<link rel="stylesheet" href="{{ vasset('css/views/rider-delivery-details.css') }}">
 
 </head>
 
@@ -558,7 +277,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                 <i class="bi bi-box-seam-fill"></i> Confirm Pickup
             </h3>
 
-            <p style="font-size:12px; color:#8d6c62; margin-bottom:12px;">
+            <p style="font-size:12px; color:#6b6570; margin-bottom:12px;">
                 Proceed to the seller's location, verify the order, then confirm that you have picked it up.
             </p>
 
@@ -583,7 +302,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
         <div class="card update-box">
             <h3><i class="bi bi-geo-alt-fill"></i> At the Sorting Center</h3>
-            <p style="font-size:12px; color:#8d6c62;">
+            <p style="font-size:12px; color:#6b6570;">
                 This parcel is being processed by the Sorting Center. You'll be notified once it's assigned to a rider for final delivery.
             </p>
         </div>
@@ -683,17 +402,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
                     });
                 </script>
 
-                <style>
-                    .failure-box { margin-top: 12px; }
-                    .failure-label { font-size: 12px; font-weight: 700; display: block; margin-bottom: 8px; }
-                    .failure-reasons { display: grid; gap: 7px; margin-bottom: 10px; }
-                    .failure-reason { display: flex; align-items: center; gap: 9px; padding: 10px 12px; border: 1px solid #f0ddd6; border-radius: 9px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
-                    .failure-reason input { accent-color: var(--accent, #e8420f); margin: 0; }
-                    .failure-reason:has(input:checked) { border-color: var(--accent, #e8420f); background: #fff5f1; }
-                    .failure-reason.is-refused:has(input:checked) { border-color: #c62828; background: #fff1f0; }
-                    .failure-note { gap: 8px; align-items: flex-start; padding: 10px 12px; margin-bottom: 10px; border-radius: 9px; background: #fff1f0; color: #9b2222; font-size: 12px; line-height: 1.5; }
-                    .failure-details { width: 100%; min-height: 64px; padding: 10px; border: 1px solid #f0ddd6; border-radius: 8px; font-family: inherit; font-size: 12px; }
-                </style>
+                <link rel="stylesheet" href="{{ vasset('css/views/rider-delivery-details-2.css') }}">
 
                 <button
                     type="submit"

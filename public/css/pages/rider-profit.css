@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,8 +7,8 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', sans-serif;
-    background: #fff8f5;
+    font-family: 'Figtree', sans-serif;
+    background: #fff8f3;
     color: #222;
 }
 
@@ -22,7 +22,7 @@ a { text-decoration: none; }
 
 .page-header {
     background: white;
-    border: 1px solid #f3e4df;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 25px 30px;
     margin-bottom: 20px;
@@ -34,12 +34,12 @@ a { text-decoration: none; }
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 28px;
 }
 
 .page-header p {
-    color: #816f6a;
+    color: #6b6570;
     font-size: 13px;
     margin-top: 5px;
 }
@@ -59,13 +59,13 @@ a { text-decoration: none; }
 .filter-form label {
     font-size: 10px;
     font-weight: 800;
-    color: #a28f89;
+    color: #8a7f86;
     text-transform: uppercase;
 }
 
 .filter-form input[type="date"] {
     padding: 9px 11px;
-    border: 1px solid #eee3df;
+    border: 1px solid #f0e2da;
     border-radius: 8px;
     font-family: inherit;
     font-size: 12px;
@@ -82,7 +82,7 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.filter-btn:hover { background: #c43408; }
+.filter-btn:hover { background: #c2380f; }
 
 .stats {
     display: grid;
@@ -93,33 +93,33 @@ a { text-decoration: none; }
 
 .stat-card {
     background: white;
-    border: 1px solid #eee3df;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #a28f89;
+    color: #8a7f86;
     font-size: 11px;
     margin-bottom: 8px;
 }
 
 .stat-card strong {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
     color: #15803d;
 }
 
 .panel {
     background: white;
-    border: 1px solid #eee3df;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     padding: 22px;
 }
 
 .panel h2 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 18px;
     margin-bottom: 14px;
 }
@@ -130,8 +130,8 @@ table {
 }
 
 th {
-    background: #fffaf8;
-    color: #a28f89;
+    background: #fff8f3;
+    color: #8a7f86;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
@@ -147,7 +147,7 @@ td {
 tr:last-child td { border-bottom: none; }
 
 .empty-message {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;

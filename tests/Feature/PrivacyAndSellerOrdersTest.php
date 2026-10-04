@@ -31,6 +31,46 @@ class PrivacyAndSellerOrdersTest extends TestCase
         );
     }
 
+    public function test_every_role_can_change_their_profile_photo_and_a_non_image_is_refused(): void
+    {
+        Storage::fake('public');
+
+        $users = [
+            'buyer.profile.photo' => $this->makeUser('buyer'),
+            'seller.profile.photo' => $this->makeSeller(),
+            'rider.profile.photo' => $this->makeRider(),
+            'logistics.profile.photo' => $this->makeLogistics(),
+        ];
+
+        foreach ($users as $route => $user) {
+            $this->flushSession();
+
+            $this->actingAsUser($user)
+                ->post(route($route), ['profile_photo' => $this->photo('me.png')])
+                ->assertSessionHas('success');
+
+            $saved = DB::table('users')->where('id', $user->id)->value('profile_photo');
+            $this->assertStringStartsWith($user->role . '_' . $user->id . '_', $saved);
+            $this->assertStringEndsWith('.png', $saved);
+            Storage::disk('public')->assertExists('profile-photos/' . $saved);
+            $this->assertSame($saved, session('user')['profile_photo']);
+        }
+
+        // Anything that isn't an image is refused by the shared rule. (Fake
+        // uploads report their type from the name; real ones from the content.)
+        $this->flushSession();
+        $buyer = $users['buyer.profile.photo'];
+        $before = DB::table('users')->where('id', $buyer->id)->value('profile_photo');
+
+        $this->actingAsUser($buyer)
+            ->post(route('buyer.profile.photo'), [
+                'profile_photo' => UploadedFile::fake()->createWithContent('notes.txt', 'not a picture'),
+            ])
+            ->assertSessionHasErrors('profile_photo');
+
+        $this->assertSame($before, DB::table('users')->where('id', $buyer->id)->value('profile_photo'));
+    }
+
     public function test_seller_orders_have_tabs_search_and_always_open(): void
     {
         $seller = $this->makeSeller();

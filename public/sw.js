@@ -1,5 +1,5 @@
 // Bump the version whenever this file changes — the old cache is deleted on activate.
-const CACHE_NAME = 'boombuy-v2';
+const CACHE_NAME = 'boombuy-v3';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [
@@ -7,6 +7,7 @@ const PRECACHE_ASSETS = [
     '/manifest.json',
     '/images/boombuy-logo.png',
     '/images/icon.svg',
+    '/images/icon-192.png',
     '/favicon.ico',
 ];
 

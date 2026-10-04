@@ -113,10 +113,5 @@
     }
 })();
 </script>
-<style>
-    .bb-live-loading {
-        opacity: .55;
-        transition: opacity .15s ease;
-    }
-</style>
+<link rel="stylesheet" href="{{ vasset('css/partials/live-search.css') }}">
 @endonce

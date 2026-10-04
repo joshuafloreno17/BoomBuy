@@ -1,0 +1,7 @@
+/* Moved out of resources/views/pages/admin/dashboard.blade.php */
+
+body {
+    margin: 0;
+    background: #fff8f3;
+    overflow-x: hidden;
+}

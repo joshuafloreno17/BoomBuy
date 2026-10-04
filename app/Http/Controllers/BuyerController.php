@@ -5,11 +5,15 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\CodPolicy;
-use App\Support\OrderStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
+use App\Services\BuyerOrderService;
+use App\Exceptions\ActionFailed;
+use App\Http\Requests\ProfilePhotoRequest;
+use App\Services\ProfilePhotoService;
+use App\Http\Requests\StoreAddressRequest;
 
 class BuyerController extends Controller
 {
@@ -246,7 +250,7 @@ class BuyerController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function storeAddress()
+    public function storeAddress(StoreAddressRequest $request)
     {
         $user = requireUserRole('buyer');
 
@@ -254,13 +258,7 @@ class BuyerController extends Controller
             return $user;
         }
 
-        $data = request()->validate([
-            'label' => 'nullable|string|max:40',
-            'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s]{7,20}$/'],
-            'address' => 'required|string|max:255',
-        ], [
-            'phone.regex' => 'Enter a valid phone number (numbers only).',
-        ]);
+        $data = $request->validated();
 
         $userId = (int) $user['id'];
 
@@ -399,7 +397,7 @@ class BuyerController extends Controller
         return back()->with('success', 'Profile updated successfully.');
     }
 
-    public function updatePhoto(Request $request)
+    public function updatePhoto(ProfilePhotoRequest $request, ProfilePhotoService $photos)
     {
         $user = requireUserRole('buyer');
 
@@ -407,32 +405,7 @@ class BuyerController extends Controller
             return $user;
         }
 
-        $request->validate([
-            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        $file = $request->file('profile_photo');
-
-        // Extension comes from the file's real content, never the client's
-        // filename — otherwise an image-looking file named "x.php" would be
-        // saved as executable PHP inside the public storage folder.
-        $filename = 'buyer_' . $user['id'] . '_' . time() . '.' . $file->extension();
-
-        $file->storeAs(
-            'profile-photos',
-            $filename,
-            'public'
-        );
-
-        DB::table('users')
-            ->where('id', $user['id'])
-            ->update([
-                'profile_photo' => $filename,
-                'updated_at' => now(),
-            ]);
-
-        $user['profile_photo'] = $filename;
-        session()->put('user', $user);
+        session()->put('user', $photos->store($user, $request->file('profile_photo')));
 
         return back()->with('success', 'Profile picture updated successfully.');
     }
@@ -699,172 +672,17 @@ class BuyerController extends Controller
         );
     }
 
-    public function markReceived($id)
+    public function markReceived($id, BuyerOrderService $orders)
     {
-        $user = requireUserRole('buyer');
+        return $this->buyerOrderAction(fn (array $user) => $orders->markReceived((int) $user['id'], (int) $id));
+    }
 
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        // Hanapin ang order at siguraduhing sa buyer talaga ito
-        $order = DB::table('orders')
-            ->where('id', $id)
-            ->where('buyer_id', $user['id'])
-            ->first();
-
-        if (!$order) {
-            return back()->with('error', 'Order not found.');
-        }
-
-        // Puwede lang i-confirm kapag Delivered na
-        if ($order->status !== 'Delivered') {
-            return back()->with(
-                'error',
-                'You can only confirm an order after it has been delivered.'
-            );
-        }
-
-        // Huwag nang ulitin kung na-confirm na
-        if (!empty($order->buyer_received_at)) {
-            return back()->with(
-                'error',
-                'This order has already been marked as received.'
-            );
-        }
-
-        // Mark as received by buyer
-        DB::table('orders')
-            ->where('id', $id)
-            ->update([
-                'buyer_received_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-        // Notify every seller who has items in this order
-        $sellerIds = DB::table('order_items')
-            ->where('order_id', $id)
-            ->distinct()
-            ->pluck('seller_id');
-
-        foreach ($sellerIds as $sellerId) {
-
-            createNotification(
-                $sellerId,
-                'Order Received by Buyer',
-                "Order #{$id} has been confirmed as received by the buyer.",
-                'order_status',
-                $id
-            );
-        }
-
-        return back()->with(
-            'success',
-            'Order received successfully!'
+    public function cancelOrder($id, BuyerOrderService $orders)
+    {
+        return $this->buyerOrderAction(
+            fn (array $user) => $orders->cancel((int) $user['id'], (int) $id, (string) request('cancel_reason'), (string) request('cancel_details'))
         );
     }
-
-    public function cancelOrder($id)
-    {
-        $user = requireUserRole('buyer');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $order = DB::table('orders')
-            ->where('id', $id)
-            ->where('buyer_id', $user['id'])
-            ->first();
-
-        if (!$order) {
-            return back()->with('error', 'Order not found.');
-        }
-
-        // Paid orders can't be cancelled by the buyer at all once checked out;
-        // COD orders only until the seller hands them over (Pending/Processing).
-        if (!CodPolicy::isCod($order->payment_method)) {
-            return back()->with(
-                'error',
-                'Paid orders can no longer be cancelled. You can request a return once you receive it.'
-            );
-        }
-
-        if (!CodPolicy::buyerCanCancel($order)) {
-            return back()->with(
-                'error',
-                'This order can no longer be cancelled — it is already on its way. You can refuse the parcel on delivery or request a return after receiving it.'
-            );
-        }
-
-        $reason = trim((string) request('cancel_reason'));
-        $details = trim((string) request('cancel_details'));
-
-        if (!in_array($reason, CodPolicy::CANCEL_REASONS, true)) {
-            return back()->with('error', 'Please choose a reason for cancelling.');
-        }
-
-        if ($reason === 'Other' && $details === '') {
-            return back()->with('error', 'Please tell us why you are cancelling.');
-        }
-
-        $reasonText = $reason === 'Other'
-            ? Str::limit($details, 250)
-            : $reason . ($details !== '' ? ' — ' . Str::limit($details, 200) : '');
-
-        // Conditional on the status we just checked, so a double-click (or the
-        // seller moving it on at the same moment) can't cancel/restock twice.
-        $cancelled = DB::table('orders')
-            ->where('id', $id)
-            ->where('status', $order->status)
-            ->update([
-                'status' => 'Cancelled',
-                'cancellation_reason' => 'Cancelled by buyer: ' . $reasonText,
-                'cancelled_by' => 'buyer',
-                'cancelled_at' => now(),
-                'updated_at' => now(),
-            ]);
-
-        if (!$cancelled) {
-            return back()->with(
-                'error',
-                'This order was just updated by the seller. Please refresh and try again.'
-            );
-        }
-
-        OrderStock::cancelled((int) $id, $order->status);
-
-        $sellerIds = DB::table('order_items')
-            ->where('order_id', $id)
-            ->distinct()
-            ->pluck('seller_id');
-
-        $stage = $order->status === 'Processing' ? 'while you were preparing it' : 'before processing';
-
-        foreach ($sellerIds as $sellerId) {
-
-            createNotification(
-                $sellerId,
-                'Order Cancelled by Buyer',
-                "Order #{$id} was cancelled by the buyer {$stage}. Reason: {$reasonText}. The items were returned to your stock.",
-                'order_status',
-                $id
-            );
-        }
-
-        $cod = CodPolicy::status((int) $user['id']);
-
-        $message = 'Your order has been cancelled.';
-
-        if ($cod['blocked']) {
-            $message .= ' Cash on Delivery is paused on your account until '
-                . $cod['available_at']->format('M d, Y')
-                . ' because of repeated cancellations.';
-        }
-
-        return back()->with('success', $message);
-    }
-
     public function reorder($id)
     {
         $user = requireUserRole('buyer');
@@ -1027,7 +845,21 @@ class BuyerController extends Controller
         return back()->with('success', 'Thank you! Your product review has been submitted.');
     }
 
-    public function requestReturnRefund($orderId)
+    public function requestReturnRefund($orderId, BuyerOrderService $orders)
+    {
+        return $this->buyerOrderAction(fn (array $user) => $orders->requestReturn(
+            (int) $user['id'],
+            (int) $orderId,
+            (int) request('order_item_id'),
+            (string) request('request_type'),
+            (string) request('reason'),
+            (string) request('message'),
+            request()->file('evidence')
+        ));
+    }
+
+    /** Runs a buyer order action and flashes its message (or the rule it broke). */
+    private function buyerOrderAction(callable $action)
     {
         $user = requireUserRole('buyer');
 
@@ -1035,182 +867,12 @@ class BuyerController extends Controller
             return $user;
         }
 
-        $order = DB::table('orders')
-            ->where('id', $orderId)
-            ->where('buyer_id', $user['id'])
-            ->first();
-
-        if (!$order) {
-            return back()->with('error', 'Order not found.');
+        try {
+            return back()->with('success', $action($user));
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        // Must be delivered first
-        if ($order->status !== 'Delivered') {
-            return back()->with(
-                'error',
-                'Only delivered orders can be returned or refunded.'
-            );
-        }
-
-        // Buyer must confirm that the order was received first
-        if (empty($order->buyer_received_at)) {
-            return back()->with(
-                'error',
-                'Please confirm that you received the order before requesting a return or refund.'
-            );
-        }
-
-        // Matches the platform's stated return window — an unlimited-time
-        // return/refund window is unusual and hard to honor for a seller.
-        $returnWindowDays = \App\Support\AutoReceive::RETURN_WINDOW_DAYS;
-
-        $returnDeadline = \Illuminate\Support\Carbon::parse($order->buyer_received_at)
-            ->addDays($returnWindowDays);
-
-        if ($returnDeadline->isPast()) {
-            return back()->with(
-                'error',
-                'The ' . $returnWindowDays . '-day return/refund window for this order has passed.'
-            );
-        }
-
-        $orderItemId = (int) request('order_item_id');
-        $requestType = trim(request('request_type'));
-        $reason = trim(request('reason'));
-        $message = trim(request('message'));
-
-        if (!in_array($requestType, ['Return', 'Refund'])) {
-            return back()->with('error', 'Invalid request type.');
-        }
-
-        if (empty($reason)) {
-            return back()->with('error', 'Please select a reason.');
-        }
-
-        $item = DB::table('order_items')
-            ->where('id', $orderItemId)
-            ->where('order_id', $orderId)
-            ->first();
-
-        if (!$item) {
-            return back()->with('error', 'Order item not found.');
-        }
-
-        $existingRequest = DB::table('return_refund_requests')
-            ->where('order_id', $orderId)
-            ->where('order_item_id', $orderItemId)
-            ->whereIn('status', [
-                'pending',
-                'approved',
-                'returned',
-                'refund_processing'
-            ])
-            ->exists();
-
-        if ($existingRequest) {
-            return back()->with(
-                'error',
-                'A return/refund request already exists for this item.'
-            );
-        }
-
-        $refundAmount =
-            (float) $item->price *
-            (int) $item->quantity;
-
-        $evidencePath = null;
-
-        if (request()->hasFile('evidence')) {
-
-            request()->validate([
-                'evidence' => 'image|max:4096',
-            ]);
-
-            $evidencePath = request()->file('evidence')->store('return-evidence', 'local');
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE RETURN / REFUND REQUEST
-        |--------------------------------------------------------------------------
-        */
-
-        DB::table('return_refund_requests')->insert([
-            'order_id' =>
-                $orderId,
-
-            'order_item_id' =>
-                $orderItemId,
-
-            'buyer_id' =>
-                $user['id'],
-
-            'seller_id' =>
-                $item->seller_id,
-
-            'request_type' =>
-                $requestType,
-
-            'reason' =>
-                $reason,
-
-            'message' =>
-                $message ?: null,
-
-            'evidence' =>
-                $evidencePath,
-
-            'status' =>
-                'pending',
-
-            'refund_amount' =>
-                $refundAmount,
-
-            'seller_note' =>
-                null,
-
-            'created_at' =>
-                now(),
-
-            'updated_at' =>
-                now(),
-        ]);
-
-        /*
-        |--------------------------------------------------------------------------
-        | SELLER NOTIFICATION
-        |--------------------------------------------------------------------------
-        */
-
-        if (!empty($item->seller_id)) {
-
-            createNotification(
-                (int) $item->seller_id,
-                'New Return / Refund Request',
-                'A buyer submitted a ' .
-                strtolower($requestType) .
-                ' request for Order #' .
-                $orderId .
-                '.',
-                'return_refund',
-                (int) $orderId
-            );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUCCESS
-        |--------------------------------------------------------------------------
-        */
-
-        return back()->with(
-            'success',
-            'Your ' .
-            strtolower($requestType) .
-            ' request has been submitted successfully.'
-        );
     }
-
     public function showRegister()
     {
         return view('pages.buyer.register');

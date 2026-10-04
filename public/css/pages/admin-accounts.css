@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -7,9 +7,9 @@
 }
 
 body {
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-    background: #fff7f4;
-    color: #172033;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: #fff8f3;
+    color: #1b1a1f;
 }
 
 a {
@@ -42,14 +42,14 @@ a {
 }
 
 .page-header h1 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 30px;
     margin-top: 7px;
     margin-bottom: 8px;
 }
 
 .page-header p {
-    color: #977970;
+    color: #6b6570;
     font-size: 13px;
 }
 
@@ -88,20 +88,20 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #8d6c62;
+    color: #6b6570;
     font-size: 11px;
     margin-bottom: 8px;
 }
 
 .stat-card strong {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 25px;
 }
 
@@ -109,7 +109,7 @@ a {
 
 .table-card {
     background: #ffffff;
-    border: 1px solid #f7e5e0;
+    border: 1px solid #f0e2da;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 12px 30px rgba(39, 84, 150, 0.07);
@@ -117,19 +117,19 @@ a {
 
 .table-header {
     padding: 20px 22px;
-    border-bottom: 1px solid #f7efed;
+    border-bottom: 1px solid #f6eee9;
     display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
 .table-header h2 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 17px;
 }
 
 .table-header span {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 11px;
 }
 
@@ -145,18 +145,18 @@ table {
 }
 
 th {
-    background: #fffaf8;
-    color: #8d6c62;
+    background: #fff8f3;
+    color: #6b6570;
     font-size: 11px;
     text-align: left;
     padding: 14px 20px;
-    border-bottom: 1px solid #f6e8e4;
+    border-bottom: 1px solid #f0e2da;
 }
 
 td {
     padding: 17px 20px;
     font-size: 13px;
-    border-bottom: 1px solid #f7efed;
+    border-bottom: 1px solid #f6eee9;
     vertical-align: middle;
 }
 
@@ -181,7 +181,7 @@ tr:hover td {
     height: 38px;
     min-width: 38px;
     border-radius: 50%;
-    background: #ffede8;
+    background: #fff1ea;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -193,7 +193,7 @@ tr:hover td {
 }
 
 .user-id {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 10px;
     margin-top: 3px;
 }
@@ -209,7 +209,7 @@ tr:hover td {
 }
 
 .buyer {
-    background: #ffede8;
+    background: #fff1ea;
     color: #e8420f;
 }
 
@@ -269,8 +269,8 @@ tr:hover td {
 
 .status-select {
     border: 1px solid #f1ded8;
-    background: #fffaf8;
-    color: #172033;
+    background: #fff8f3;
+    color: #1b1a1f;
     padding: 7px 9px;
     border-radius: 8px;
     font-family: inherit;
@@ -317,13 +317,13 @@ tr:hover td {
 }
 
 .empty h3 {
-    font-family: 'Baloo 2', sans-serif;
+    font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 17px;
     margin-bottom: 7px;
 }
 
 .empty p {
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 12px;
 }
 
@@ -331,7 +331,7 @@ tr:hover td {
 
 .footer {
     text-align: center;
-    color: #b99c93;
+    color: #8a7f86;
     font-size: 11px;
     margin: 30px 0;
 }
@@ -367,7 +367,7 @@ h2,
 h3,
 .logo,
 .stat-card strong {
-    font-family: 'Baloo 2', 'Plus Jakarta Sans', sans-serif;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     letter-spacing: -0.01em;
 }
 
@@ -380,7 +380,7 @@ button {
 }
 
 ::selection {
-    background: #ffd7c2;
+    background: #ffe6db;
     color: #7c1a00;
 }
 
@@ -397,12 +397,12 @@ a.stat-card:hover {
 }
 
 a.stat-card.active {
-    border-color: var(--accent, #f13f09);
+    border-color: var(--accent, #e8420f);
     box-shadow: 0 0 0 2px rgba(241, 63, 9, .12);
 }
 
 a.stat-card.active span {
-    color: var(--accent, #f13f09);
+    color: var(--accent, #e8420f);
     font-weight: 700;
 }
 
@@ -424,14 +424,14 @@ a.stat-card.active span {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #a88d85;
+    color: #8a7f86;
 }
 
 .account-search input,
 .account-toolbar select {
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid #ecd7d0;
+    border: 1px solid #e8d6cc;
     border-radius: 12px;
     font-size: 13px;
     font-family: inherit;
@@ -449,7 +449,7 @@ a.stat-card.active span {
 .account-search input:focus,
 .account-toolbar select:focus {
     outline: none;
-    border-color: var(--accent, #f13f09);
+    border-color: var(--accent, #e8420f);
 }
 
 .toolbar-btn {
@@ -459,7 +459,7 @@ a.stat-card.active span {
     padding: 11px 16px;
     border: none;
     border-radius: 12px;
-    background: var(--accent, #f13f09);
+    background: var(--accent, #e8420f);
     color: #fff;
     font-weight: 700;
     font-size: 13px;
@@ -468,8 +468,8 @@ a.stat-card.active span {
 }
 
 .toolbar-btn.light {
-    background: #f7f0ee;
-    color: #553b33;
+    background: #f6eee9;
+    color: #4a4449;
 }
 
 @media (max-width: 1100px) {
@@ -499,14 +499,14 @@ a.stat-card.active span {
     justify-content: center;
     width: 34px;
     height: 34px;
-    border: 1px solid #f0ddd6;
+    border: 1px solid #f0e2da;
     border-radius: 9px;
     background: #fff;
-    color: #c43408;
+    color: #c2380f;
     font-size: 15px;
 }
 
 .message-btn:hover {
-    background: #fff4f0;
+    background: #fff1ea;
     border-color: #e8b9aa;
 }

@@ -163,7 +163,7 @@ if (!function_exists('currentMessagingUser')) {
 
         if (session()->get('admin_logged_in')) {
 
-            $admin = \App\Models\User::where('email', 'admin@boombuy.com')->first();
+            $admin = \App\Support\SupportAccount::user();
 
             if ($admin) {
                 return [
@@ -331,5 +331,16 @@ if (!function_exists('otpAttemptsExceeded')) {
         }
 
         return false;
+    }
+}
+
+if (!function_exists('vasset')) {
+
+    // asset() plus the file's modified time, so browsers fetch a CSS/JS file again after it changes.
+    function vasset(string $path): string
+    {
+        $file = public_path($path);
+
+        return asset($path) . (is_file($file) ? '?v=' . filemtime($file) : '');
     }
 }

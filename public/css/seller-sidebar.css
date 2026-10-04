@@ -1,23 +1,5 @@
-@import url('https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
-
-.logo {
-    font-family: 'Baloo 2', sans-serif;
-    font-size: 23px;
-    font-weight: 800;
-    color: #e8420f;
-    display: block;
-}
-
-.logo span {
-    color: #172033;
-}
-
-.notification-link {
-    position: relative;
-    display: flex !important;
-    align-items: center;
-    gap: 8px;
-}
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+@import url('portal-sidebar.css');
 
 .notification-badge {
     margin-left: auto;
@@ -26,8 +8,8 @@
     padding: 0 6px;
     border-radius: 999px;
     background: #e8420f;
-    color: white;
-    font-size: 10px;
+    color: #fff;
+    font-size: 11px;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
@@ -40,10 +22,10 @@
 }
 
 .sidebar {
-    width: 230px;
+    width: 240px;
     background: #ffffff;
-    border-right: 1px solid #ffe9e2;
-    padding: 25px 18px;
+    border-right: 1px solid #f0e2da;
+    padding: 24px 14px 16px;
     display: flex;
     flex-direction: column;
     position: fixed;
@@ -52,23 +34,15 @@
     bottom: 0;
     z-index: 1000;
     overflow-y: auto;
-}
-
-.sidebar-label {
-    font-size: 11px;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #b99c93;
-    margin-top: 22px;
-    margin-bottom: 4px;
-    font-weight: 700;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    scrollbar-width: thin;
+    scrollbar-color: #f0e2da transparent;
 }
 
 .sidebar .menu {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-top: 8px;
+    gap: 3px;
 }
 
 /* Own resets, so the sidebar looks the same whatever the page CSS does. */
@@ -77,78 +51,115 @@
 }
 
 .sidebar .menu a {
+    position: relative;
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 12px;
+    gap: 12px;
+    padding: 11px 12px;
     border-radius: 10px;
-    color: #8d6c62;
-    font-size: 13px;
+    color: #5e5759;
+    font-size: 14.5px;
     font-weight: 600;
-    transition: 0.2s;
+    transition: background 0.15s ease, color 0.15s ease;
 }
 
-.sidebar .menu a:hover,
+.sidebar .menu a i {
+    width: 20px;
+    font-size: 17px;
+    text-align: center;
+}
+
+.sidebar .menu a:hover {
+    background: #fff8f3;
+    color: #1b1a1f;
+}
+
 .sidebar .menu a.active {
-    background: #fff4f1;
+    background: #fff1ea;
+    color: #c2380f;
+    font-weight: 700;
+}
+
+.sidebar .menu a.active i {
     color: #e8420f;
 }
 
 .sidebar-footer {
     margin-top: auto;
-    padding: 16px 0 0;
-    border-top: 1px solid #ffe9e2;
-    font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
-}
-
-.sidebar-footer .user {
-    color: #8d6c62;
-    font-size: 13px;
-    font-weight: 500;
+    padding-top: 16px;
 }
 
 .sidebar-footer .logout {
-    border: none;
-    background: #fff3f0;
-    color: #dc2626;
-    padding: 10px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 700;
-    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
     width: 100%;
+    padding: 11px 12px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #5e5759;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.sidebar-footer .logout i {
+    width: 20px;
+    font-size: 17px;
+    text-align: center;
 }
 
 .sidebar-footer .logout:hover {
-    background: #ffe0e0;
+    background: #fff8f3;
+    color: #c2380f;
 }
 
 .main-content {
-    margin-left: 230px;
-    width: calc(100% - 230px);
+    margin-left: 240px;
+    width: calc(100% - 240px);
     min-width: 0;
 }
 
 @media (max-width: 900px) {
     .sidebar {
         width: 72px;
-        padding: 20px 8px;
+        padding: 18px 10px;
+    }
+
+    .sidebar .bb-side-brand {
+        justify-content: center;
+        padding: 2px 0 20px;
     }
 
     .sidebar .label-text,
-    .sidebar-label,
-    .sidebar-footer .user {
+    .sidebar .bb-side-name,
+    .sidebar .bb-side-who {
         display: none !important;
     }
 
-    .sidebar .menu a {
+    .sidebar .bb-side-user {
         justify-content: center;
+        padding: 8px 0;
+        background: transparent;
+        border: 0;
+    }
+
+    .sidebar .menu a,
+    .sidebar-footer .logout {
+        justify-content: center;
+        padding: 12px 0;
     }
 
     .notification-badge {
         position: absolute;
-        top: 5px;
-        right: 5px;
+        top: 4px;
+        right: 4px;
+        min-width: 17px;
+        height: 17px;
+        padding: 0 4px;
+        font-size: 9.5px;
     }
 
     .main-content {

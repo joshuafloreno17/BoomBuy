@@ -1,0 +1,922 @@
+/* =========================================================
+   Portal dashboards (seller, admin, logistics) — "Sunrise Market".
+   Header, KPI tiles, cards, to-do list, bar chart and tables.
+========================================================= */
+
+.pd {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 28px 32px 48px;
+    box-sizing: border-box;
+    color: #1b1a1f;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.pd *,
+.pd *::before,
+.pd *::after {
+    box-sizing: border-box;
+}
+
+.pd a {
+    text-decoration: none;
+}
+
+/* ---------- Header ---------- */
+.pd-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px 16px;
+}
+
+.pd-head-text {
+    flex: 1 1 320px;
+    min-width: 0;
+}
+
+.pd-eyebrow {
+    margin: 0;
+    color: #8a7f86;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+}
+
+.pd-title {
+    margin: 4px 0 0;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: clamp(26px, 3.2vw, 34px);
+    font-weight: 800;
+    letter-spacing: -.01em;
+    line-height: 1.1;
+}
+
+.pd-search {
+    flex: 0 1 300px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 0 14px;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    background: #fff;
+    color: #8a7f86;
+}
+
+.pd-search:focus-within {
+    border-color: #e8420f;
+    box-shadow: 0 0 0 4px rgba(232, 66, 15, .12);
+}
+
+.pd-search input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    color: #1b1a1f;
+    font: inherit;
+}
+
+.pd-icon-btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    background: #fff;
+    color: #1b1a1f;
+    font-size: 18px;
+}
+
+.pd-icon-btn:hover {
+    border-color: #e8d6cc;
+    background: #fff8f3;
+}
+
+.pd-icon-btn em {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+    display: grid;
+    place-items: center;
+    border: 2px solid #fff8f3;
+    border-radius: 999px;
+    background: #e8420f;
+    color: #fff;
+    font-size: 10.5px;
+    font-style: normal;
+    font-weight: 800;
+}
+
+.pd-btn {
+    height: 44px;
+    padding: 0 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    font: inherit;
+    font-size: 14.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background .15s ease, border-color .15s ease;
+}
+
+.pd-btn-primary {
+    background: #e8420f;
+    color: #fff;
+}
+
+.pd-btn-primary:hover {
+    background: #c2380f;
+    color: #fff;
+}
+
+.pd-btn-ghost {
+    border-color: #e8d6cc;
+    background: #fff;
+    color: #1b1a1f;
+}
+
+.pd-btn-ghost:hover {
+    border-color: #e8420f;
+    color: #c2380f;
+}
+
+.pd-btn-sm {
+    height: 36px;
+    padding: 0 14px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+/* ---------- KPI tiles ---------- */
+.pd-kpis {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+}
+
+.pd-kpi {
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border: 1px solid #f0e2da;
+    border-radius: 18px;
+    background: #fff;
+    color: #1b1a1f;
+}
+
+a.pd-kpi:hover {
+    border-color: #e8d6cc;
+    box-shadow: 0 8px 22px rgba(27, 26, 31, .06);
+}
+
+.pd-kpi.is-accent {
+    border-color: #e8420f;
+    background: #e8420f;
+    color: #fff;
+}
+
+.pd-kpi-label {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: .8;
+}
+
+.pd-kpi-value {
+    margin-top: 6px;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.pd-kpi-note {
+    margin-top: 4px;
+    font-size: 13px;
+    opacity: .85;
+}
+
+/* ---------- Cards and rows ---------- */
+.pd-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.pd-card {
+    min-width: 0;
+    padding: 22px;
+    border: 1px solid #f0e2da;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.pd-grow-2 { flex: 2 1 480px; }
+.pd-grow-1 { flex: 1 1 300px; }
+
+.pd-card-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px 12px;
+    margin-bottom: 14px;
+}
+
+.pd-card-title {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.pd-link {
+    color: #c2380f;
+    font-size: 14px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pd-link:hover {
+    text-decoration: underline;
+}
+
+.pd-muted {
+    color: #6b6570;
+    font-size: 13.5px;
+}
+
+/* ---------- To-do list ---------- */
+.pd-todo {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.pd-todo-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 12px;
+    background: #fff8f3;
+    color: #1b1a1f;
+    transition: background .15s ease;
+}
+
+a.pd-todo-item:hover {
+    background: #fff1ea;
+}
+
+.pd-todo-icon {
+    width: 38px;
+    height: 38px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #f2ece8;
+    color: #1b1a1f;
+    font-size: 17px;
+}
+
+.pd-todo-item.is-hot .pd-todo-icon {
+    background: #ffe6db;
+    color: #c2380f;
+}
+
+.pd-todo-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.pd-todo-text strong {
+    display: block;
+    font-size: 14px;
+}
+
+.pd-todo-text span {
+    display: block;
+    color: #6b6570;
+    font-size: 12.5px;
+}
+
+.pd-todo-count {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.pd-todo-item.is-done .pd-todo-count {
+    color: #8a7f86;
+}
+
+/* ---------- Bar chart (7 bars, plain HTML) ---------- */
+.pd-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    height: 220px;
+    padding: 0 4px;
+    border-bottom: 1px solid #f0e2da;
+}
+
+.pd-bar {
+    flex: 1;
+    height: 100%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+.pd-bar-amount {
+    color: #6b6570;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pd-bar-fill {
+    width: 100%;
+    max-width: 46px;
+    min-height: 4px;
+    border-radius: 10px 10px 4px 4px;
+    background: #ffd3c2;
+}
+
+.pd-bar.is-today .pd-bar-fill {
+    background: #e8420f;
+}
+
+.pd-bar-days {
+    display: flex;
+    gap: 12px;
+    padding: 8px 4px 0;
+}
+
+.pd-bar-days span {
+    flex: 1;
+    min-width: 0;
+    color: #8a7f86;
+    font-size: 12px;
+    text-align: center;
+}
+
+.pd-bar-days span.is-today {
+    color: #1b1a1f;
+    font-weight: 700;
+}
+
+/* ---------- Segmented control ---------- */
+.pd-seg {
+    display: inline-flex;
+    padding: 3px;
+    border-radius: 10px;
+    background: #fff1ea;
+}
+
+.pd-seg a,
+.pd-seg button {
+    padding: 8px 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: #6b6570;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.pd-seg .is-on {
+    background: #fff;
+    color: #1b1a1f;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
+}
+
+/* ---------- Tables ---------- */
+.pd-table-wrap {
+    overflow-x: auto;
+}
+
+.pd-table {
+    width: 100%;
+    min-width: 640px;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.pd-table th {
+    padding: 10px 8px;
+    color: #8a7f86;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: .05em;
+    text-align: left;
+    text-transform: uppercase;
+}
+
+.pd-table td {
+    padding: 14px 8px;
+    border-top: 1px solid #f6ece6;
+    vertical-align: middle;
+}
+
+.pd-table tr.is-link {
+    cursor: pointer;
+}
+
+.pd-table tr.is-link:hover td {
+    background: #fff8f3;
+}
+
+.pd-strong {
+    font-weight: 700;
+}
+
+.pd-sub {
+    color: #6b6570;
+}
+
+.pd-empty {
+    padding: 28px 16px;
+    border: 1px dashed #e8d6cc;
+    border-radius: 14px;
+    color: #6b6570;
+    font-size: 14px;
+    text-align: center;
+}
+
+.pd-empty i {
+    display: block;
+    margin-bottom: 6px;
+    color: #e8420f;
+    font-size: 24px;
+}
+
+/* ---------- People / list rows ---------- */
+.pd-list {
+    display: flex;
+    flex-direction: column;
+}
+
+.pd-list-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 14px 4px;
+    border-top: 1px solid #f6ece6;
+    color: #1b1a1f;
+}
+
+.pd-list-row:first-child {
+    border-top: 0;
+}
+
+.pd-avatar {
+    width: 40px;
+    height: 40px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    border-radius: 50%;
+    background: #fff1ea;
+    color: #a3300c;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.pd-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pd-list-main {
+    flex: 1 1 200px;
+    min-width: 0;
+}
+
+.pd-list-main strong {
+    display: block;
+}
+
+.pd-list-main span {
+    display: block;
+    color: #6b6570;
+    font-size: 13px;
+}
+
+.pd-tag {
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #f3ece7;
+    color: #5e5759;
+    font-size: 12.5px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.pd-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.pd-chip {
+    height: 36px;
+    padding: 0 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 999px;
+    background: #fff1ea;
+    color: #1b1a1f;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.pd-chip.is-on {
+    background: #1b1a1f;
+    color: #fff;
+    font-weight: 700;
+}
+
+/* ---------- Pipeline (logistics) ---------- */
+.pd-pipeline {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+    padding: 8px;
+    border: 1px solid #f0e2da;
+    border-radius: 18px;
+    background: #fff;
+}
+
+.pd-step {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff8f3;
+    color: #1b1a1f;
+}
+
+a.pd-step:hover {
+    background: #fff1ea;
+}
+
+.pd-step.is-hot {
+    background: #e8420f;
+    color: #fff;
+}
+
+.pd-step-label {
+    font-size: 13px;
+    font-weight: 600;
+    opacity: .85;
+}
+
+.pd-step-count {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 34px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.pd-step-note {
+    font-size: 12.5px;
+    opacity: .8;
+}
+
+/* ---------- Alerts ---------- */
+.pd-alert {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.pd-alert.is-ok {
+    background: #e9f9ef;
+    color: #15803d;
+}
+
+.pd-alert.is-error {
+    background: #fee2e2;
+    color: #b42318;
+}
+
+@media (max-width: 900px) {
+    .pd {
+        padding: 22px 18px 40px;
+    }
+}
+
+@media (max-width: 560px) {
+    .pd {
+        padding: 18px 12px 36px;
+        gap: 18px;
+    }
+
+    .pd-search {
+        flex-basis: 100%;
+        order: 3;
+    }
+
+    .pd-kpis {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .pd-kpi {
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .pd-kpi-value {
+        font-size: 24px;
+    }
+
+    .pd-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+
+    .pd-bars,
+    .pd-bar-days {
+        gap: 6px;
+    }
+
+    .pd-bar-amount {
+        font-size: 10px;
+    }
+}
+
+/* Older page content that follows a dashboard (e.g. the seller's product table)
+   lines up with it. */
+.pd + .container {
+    width: auto;
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 6px 32px 48px;
+    box-sizing: border-box;
+}
+
+.pd-bars-empty {
+    position: relative;
+}
+
+.pd-bars-empty::after {
+    content: attr(data-empty);
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    transform: translate(-50%, -50%);
+    color: #8a7f86;
+    font-size: 14px;
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+    .pd + .container { padding: 6px 18px 40px; }
+}
+
+@media (max-width: 560px) {
+    .pd + .container { padding: 4px 12px 36px; }
+}
+
+@media (max-width: 560px) {
+    .pd-bars { height: 170px; }
+
+    /* Tables marked .pd-stack become one card per row on phones. */
+    .pd-table.pd-stack { min-width: 0; }
+    .pd-stack thead { display: none; }
+    .pd-stack tr {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px 12px;
+        padding: 12px 0;
+        border-top: 1px solid #f6ece6;
+    }
+    .pd-stack tbody tr:first-child { border-top: 0; }
+    .pd-stack td { padding: 0; border: 0; }
+    .pd-stack td:last-child { order: 1; grid-column: 2; grid-row: 1; justify-self: end; }
+    .pd-stack .pd-hide-sm { display: none; }
+}
+
+/* Pages whose whole content is a dashboard: the dashboard sets its own padding. */
+.main:has(> .pd),
+.main-content:has(> .pd:first-child) {
+    padding: 0;
+}
+
+@media (max-width: 560px) {
+    .pd-pipeline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .pd-step { padding: 12px; }
+    .pd-step-count { font-size: 26px; }
+    .pd-list-main { flex-basis: 120px; }
+}
+
+/* ---------- Bell drop-down (partials/notification-popover) ---------- */
+.pd-pop {
+    position: relative;
+}
+
+.pd-pop-panel {
+    position: absolute;
+    top: calc(100% + 10px);
+    right: 0;
+    z-index: 50;
+    width: min(380px, calc(100vw - 32px));
+    overflow: hidden;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    background: #fff;
+    box-shadow: 0 18px 40px rgba(27, 26, 31, .14);
+    animation: pdPopIn .16s ease-out;
+}
+
+.pd-pop-panel[hidden] {
+    display: none;
+}
+
+@keyframes pdPopIn {
+    from { opacity: 0; transform: translateY(-6px); }
+}
+
+.pd-pop-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid #f6ece6;
+}
+
+.pd-pop-head strong {
+    font-size: 15px;
+}
+
+.pd-pop-head button {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: 8px;
+    background: #fff1ea;
+    color: #c2380f;
+    font: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pd-pop-list {
+    max-height: min(420px, 60vh);
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+}
+
+.pd-pop-item {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border-radius: 12px;
+    color: #1b1a1f;
+}
+
+.pd-pop-item:hover {
+    background: #fff8f3;
+}
+
+.pd-pop-item.is-unread {
+    background: #fff1ea;
+}
+
+.pd-pop-item.is-unread::after {
+    content: "";
+    position: absolute;
+    top: 16px;
+    right: 12px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #e8420f;
+}
+
+.pd-pop-icon {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: #f3ece7;
+    color: #c2380f;
+    font-size: 16px;
+}
+
+.pd-pop-text {
+    min-width: 0;
+    padding-right: 14px;
+}
+
+.pd-pop-text strong {
+    display: block;
+    font-size: 13.5px;
+}
+
+.pd-pop-text span {
+    display: block;
+    margin-top: 2px;
+    color: #5e5759;
+    font-size: 12.5px;
+    line-height: 1.4;
+}
+
+.pd-pop-text small {
+    display: block;
+    margin-top: 4px;
+    color: #8a7f86;
+    font-size: 11.5px;
+}
+
+.pd-pop-empty {
+    padding: 28px 16px;
+    color: #6b6570;
+    font-size: 14px;
+    text-align: center;
+}
+
+.pd-pop-empty i {
+    display: block;
+    margin-bottom: 6px;
+    color: #e8420f;
+    font-size: 22px;
+}
+
+.pd-pop-all {
+    display: block;
+    padding: 12px;
+    border-top: 1px solid #f6ece6;
+    color: #c2380f;
+    font-size: 13.5px;
+    font-weight: 700;
+    text-align: center;
+}
+
+.pd-pop-all:hover {
+    background: #fff8f3;
+}
+
+/* Phones: the bell sits on the left, so the panel spans the screen instead. */
+@media (max-width: 700px) {
+    .pd-pop-panel {
+        position: fixed;
+        top: 76px;
+        left: 12px;
+        right: 12px;
+        z-index: 2500;
+        width: auto;
+    }
+
+    .pd-pop-list {
+        max-height: calc(100vh - 220px);
+    }
+}

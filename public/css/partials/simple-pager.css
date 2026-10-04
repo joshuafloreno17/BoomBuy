@@ -1,0 +1,27 @@
+/* Moved out of resources/views/partials/simple-pager.blade.php */
+
+.bb-pager {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    margin: 26px 0 8px;
+    flex-wrap: wrap;
+}
+.bb-pager-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 9px 16px;
+    border-radius: 12px;
+    border: 1px solid #f0e2da;
+    background: #fff;
+    color: var(--accent, #e8420f);
+    font-weight: 700;
+    font-size: 14px;
+    text-decoration: none;
+}
+.bb-pager-btn:hover { background: #fff1ea; }
+.bb-pager-btn.is-disabled { color: #c9b3ac; background: #fbf7f6; cursor: default; }
+.bb-pager-info { color: #7c5f57; font-size: 14px; font-weight: 600; }
+.bb-pager-info small { color: #8a7f86; font-weight: 500; }

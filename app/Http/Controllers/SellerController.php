@@ -8,14 +8,21 @@ use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\User;
 use App\Models\Voucher;
-use App\Support\Categories;
 use App\Support\CodPolicy;
-use App\Support\OrderStock;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\SellerOrderService;
+use App\Exceptions\ActionFailed;
+use App\Services\ProductService;
+use App\Services\ReturnRefundService;
+use App\Http\Requests\ProfilePhotoRequest;
+use App\Services\ProfilePhotoService;
+use App\Http\Requests\StoreVoucherRequest;
+use App\Http\Requests\AutoReplyRequest;
+use App\Http\Requests\UpdateShopRequest;
 
 class SellerController extends Controller
 {
@@ -83,6 +90,67 @@ class SellerController extends Controller
 
         $totalSales = max(0, $totalSales - $this->voucherDiscounts((int) $user['id']));
 
+        /*
+        |--------------------------------------------------------------------------
+        | TODAY + TO-DO (dashboard tiles and "Needs your action")
+        |--------------------------------------------------------------------------
+        */
+
+        $sellerItems = fn () => DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.seller_id', $user['id']);
+
+        $deliveredToday = $sellerItems()
+            ->where('orders.status', 'Delivered')
+            ->whereRaw('DATE(COALESCE(orders.delivered_at, orders.updated_at)) = ?', [now()->toDateString()])
+            ->selectRaw('COUNT(DISTINCT orders.id) as orders, COALESCE(SUM(order_items.price * order_items.quantity), 0) as revenue')
+            ->first();
+
+        // Waiting since before today: the ones to pack first.
+        $toShipOld = $sellerItems()
+            ->whereIn('orders.status', ['Pending', 'Processing'])
+            ->where('orders.created_at', '<', now()->startOfDay())
+            ->distinct()
+            ->count('orders.id');
+
+        $readyForPickup = $sellerOrderStatuses->where('status', 'Ready for Pickup')->count();
+
+        $lowStockCount = $products->filter(fn ($p) => (int) $p->sellable_stock <= 5)->count();
+
+        $rating = DB::table('product_reviews')
+            ->join('products', 'products.id', '=', 'product_reviews.product_id')
+            ->where('products.seller_id', $user['id'])
+            ->selectRaw('AVG(product_reviews.rating) as average, COUNT(*) as total')
+            ->first();
+
+        $pendingReturns = DB::table('return_refund_requests')
+            ->where('seller_id', $user['id'])
+            ->where('status', 'pending')
+            ->count();
+
+        $shopName = DB::table('seller_applications')->where('user_id', $user['id'])->value('business_name')
+            ?: ($user['name'] ?? 'Seller');
+
+        $unreadNotes = \App\Support\Inbox::unreadNotifications((int) $user['id']);
+        $recentNotes = Notification::where('user_id', $user['id'])->latest()->limit(6)->get();
+
+        $recentOrders = $sellerItems()
+            ->groupBy('orders.id', 'orders.status', 'orders.created_at', 'orders.shipping_name', 'orders.payment_method')
+            ->orderByDesc('orders.created_at')
+            ->limit(5)
+            ->select(
+                'orders.id',
+                'orders.status',
+                'orders.created_at',
+                'orders.shipping_name',
+                'orders.payment_method',
+                DB::raw('SUM(order_items.price * order_items.quantity) as subtotal'),
+                DB::raw('SUM(order_items.quantity) as quantity'),
+                DB::raw('MIN(order_items.product_name) as first_item'),
+                DB::raw('COUNT(*) as line_count')
+            )
+            ->get();
+
 
         /*
         |--------------------------------------------------------------------------
@@ -132,7 +200,17 @@ class SellerController extends Controller
                 'pendingOrders',
                 'totalSales',
                 'orderStatusBreakdown',
-                'salesTrend'
+                'salesTrend',
+                'deliveredToday',
+                'toShipOld',
+                'readyForPickup',
+                'lowStockCount',
+                'rating',
+                'pendingReturns',
+                'recentOrders',
+                'shopName',
+                'unreadNotes',
+                'recentNotes'
             )
         );
     }
@@ -166,7 +244,10 @@ class SellerController extends Controller
 
         return view(
             'pages.seller.profile',
-            compact('user', 'dbUser', 'application', 'totalProducts', 'totalSales')
+            compact('user', 'dbUser', 'application', 'totalProducts', 'totalSales') + [
+                'autoReply' => \App\Support\ChatAutomation::settingsFor((int) $user['id']),
+                'autoReplyDefault' => \App\Support\ChatAutomation::defaultAutoReply($application->business_name ?? $user['name']),
+            ]
         );
     }
 
@@ -215,7 +296,7 @@ class SellerController extends Controller
      * Shop name and "about this shop", shown on the seller's shop page.
      * The category stays as registered — it's what the category lock uses.
      */
-    public function updateShop(Request $request)
+    public function updateAutoReply(AutoReplyRequest $request)
     {
         $user = requireUserRole('seller');
 
@@ -223,13 +304,29 @@ class SellerController extends Controller
             return $user;
         }
 
-        $data = $request->validate([
-            'business_name' => 'required|string|min:3|max:60',
-            'shop_description' => 'nullable|string|max:500',
-        ], [
-            'business_name.required' => 'Please enter your shop name.',
-            'business_name.min' => 'Your shop name needs at least 3 characters.',
-        ]);
+        $data = $request->validated();
+
+        DB::table('seller_applications')
+            ->where('user_id', $user['id'])
+            ->update([
+                'auto_reply_enabled' => (bool) ($data['auto_reply_enabled'] ?? false),
+                // Blank = the default greeting.
+                'auto_reply_message' => trim((string) ($data['auto_reply_message'] ?? '')) ?: null,
+                'updated_at' => now(),
+            ]);
+
+        return redirect(route('seller.profile') . '#auto-reply')->with('success', 'Auto-reply saved.');
+    }
+
+    public function updateShop(UpdateShopRequest $request)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $data = $request->validated();
 
         $shopName = trim($data['business_name']);
 
@@ -260,7 +357,7 @@ class SellerController extends Controller
         return back()->with('success', 'Shop details updated.');
     }
 
-    public function updatePhoto(Request $request)
+    public function updatePhoto(ProfilePhotoRequest $request, ProfilePhotoService $photos)
     {
         $user = requireUserRole('seller');
 
@@ -268,26 +365,7 @@ class SellerController extends Controller
             return $user;
         }
 
-        $request->validate([
-            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
-        ]);
-
-        $file = $request->file('profile_photo');
-
-        // Extension from the real content, not the client filename (see BuyerController::updatePhoto).
-        $filename = 'seller_' . $user['id'] . '_' . time() . '.' . $file->extension();
-
-        $file->storeAs('profile-photos', $filename, 'public');
-
-        DB::table('users')
-            ->where('id', $user['id'])
-            ->update([
-                'profile_photo' => $filename,
-                'updated_at' => now(),
-            ]);
-
-        $user['profile_photo'] = $filename;
-        session()->put('user', $user);
+        session()->put('user', $photos->store($user, $request->file('profile_photo')));
 
         return back()->with('success', 'Profile picture updated successfully.');
     }
@@ -517,24 +595,13 @@ class SellerController extends Controller
         );
     }
 
-    public function storeVoucher()
+    public function storeVoucher(StoreVoucherRequest $request)
     {
         $user = requireUserRole('seller');
 
         if (!is_array($user)) {
             return $user;
         }
-
-        request()->validate([
-            'code' => 'required|string|max:30|unique:vouchers,code',
-            'discount_type' => 'required|in:percentage,fixed',
-            // A percentage over 100 would discount more than the seller's
-            // items are worth and eat into the rest of the buyer's order.
-            'discount_value' => 'required|numeric|min:0.01' . (request('discount_type') === 'percentage' ? '|max:100' : ''),
-            'min_order_amount' => 'nullable|numeric|min:0',
-            'max_uses' => 'nullable|integer|min:1',
-            'expires_at' => 'nullable|date',
-        ]);
 
         Voucher::create([
             'seller_id' => $user['id'],
@@ -783,15 +850,10 @@ class SellerController extends Controller
      */
     private function registeredCategory(int $sellerId): ?string
     {
-        $declared = DB::table('seller_applications')
-            ->where('user_id', $sellerId)
-            ->orderByDesc('id')
-            ->value('business_category');
-
-        return Categories::slug($declared);
+        return app(ProductService::class)->registeredCategory($sellerId);
     }
 
-    public function storeProduct()
+    public function storeProduct(ProductService $products)
     {
         $user = requireUserRole('seller');
 
@@ -799,175 +861,20 @@ class SellerController extends Controller
             return $user;
         }
 
-        $name = trim(request('name'));
-        $category = trim(request('category'));
-
-        // Sellers may only sell in the category they registered for.
-        $registeredCategory = $this->registeredCategory((int) $user['id']);
-
-        if ($registeredCategory) {
-            if ($category !== '' && Categories::slug($category) !== $registeredCategory) {
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'You can only sell ' . Categories::LIST[$registeredCategory] . ' products — the category your shop is registered for.'
-                    );
-            }
-
-            $category = $registeredCategory;
-        }
-        $price = (float) request('price');
-        $stock = (int) request('stock');
-        $description = trim(request('description'));
-
-        // Validate basic fields
-        // FIX: $stock is now actually defined above instead of being
-        // referenced without ever being read from the request.
-        if (
-            empty($name) ||
-            empty($category) ||
-            $price <= 0 ||
-            $stock <= 0 ||
-            empty($description)
-        ) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please complete all product fields.'
-                );
-        }
-
-        // Validate category
-        $categoryName = isset(Categories::LIST[strtolower($category)])
-            ? Categories::LIST[strtolower($category)]
-            : null;
-
-        if ($categoryName === null) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please select a valid product category.'
-                );
-        }
-
-        // Prevent duplicate product names within this seller's own store
-        $existingProduct = Product::where('name', $name)
-            ->where('seller_id', $user['id'])
-            ->first();
-
-        if ($existingProduct) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'You already have a product with this name.'
-                );
-        }
-
-        // Validate image
-        if (!request()->hasFile('image')) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please upload a product image.'
-                );
-        }
-
-        $image = request()->file('image');
-
-        if (!$image->isValid()) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'The uploaded image is invalid.'
-                );
-        }
-
-        // Checks the file's real content, not its name — store() names the
-        // file from the content too, so a disguised script can't slip through.
-        if (!isValidProductImage($image)) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Product image must be a JPG, JPEG, PNG, or WEBP image no larger than 5MB.'
-                );
-        }
-
-        // Inline variations: an "extra price" can be negative (a cheaper
-        // option) but must never bring the final price to ₱0 or below.
-        foreach (request('variations', []) as $variation) {
-
-            if (trim($variation['type'] ?? '') === '' || trim($variation['value'] ?? '') === '') {
-                continue;
-            }
-
-            if ($price + (float) ($variation['price_adjustment'] ?? 0) <= 0) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'The option "' . trim($variation['value']) . '" would make the price ₱0 or less. Please lower its discount.');
-            }
-        }
-
-        // Save uploaded image
-        $imagePath = $image->store(
-            'products',
-            'public'
-        );
-
-        // Create product
-        $product = Product::create([
-            'seller_id' => $user['id'],
-            'name' => $name,
-            'category' => $categoryName,
-            'price' => $price,
-            'stock' => $stock,
-            'description' => $description,
-            'image' => $imagePath,
-        ]);
-
-        // Optional variations submitted inline on this form
-        $submittedVariations = request('variations', []);
-        $seenOptions = [];
-
-        foreach ($submittedVariations as $variation) {
-
-            $type = trim($variation['type'] ?? '');
-            $value = trim($variation['value'] ?? '');
-
-            if (empty($type) || empty($value)) {
-                continue;
-            }
-
-            // The same option typed twice on the form is only saved once.
-            $optionKey = strtolower(ProductVariation::normalizeType($type) . '|' . ProductVariation::normalizeValue($value));
-
-            if (isset($seenOptions[$optionKey])) {
-                continue;
-            }
-
-            $seenOptions[$optionKey] = true;
-
-            ProductVariation::create([
-                'product_id' => $product->id,
-                'variation_type' => $type,
-                'variation_value' => $value,
-                'price_adjustment' => (float) ($variation['price_adjustment'] ?? 0),
-                'stock' => max(0, (int) ($variation['stock'] ?? 0)),
-            ]);
+        try {
+            $product = $products->create(
+                (int) $user['id'],
+                request()->only('name', 'category', 'price', 'stock', 'description'),
+                request()->hasFile('image') ? request()->file('image') : null,
+                (array) request('variations', [])
+            );
+        } catch (ActionFailed $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
 
         return redirect()
             ->route('seller.dashboard')
-            ->with(
-                'success',
-                $name . ' has been added to your store!'
-            );
+            ->with('success', $product->name . ' has been added to your store!');
     }
 
     // Tabs on the seller's Orders page => the order statuses each one shows.
@@ -980,7 +887,6 @@ class SellerController extends Controller
         'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
     ];
-
     public function orders()
     {
         $user = requireUserRole('seller');
@@ -1304,245 +1210,16 @@ class SellerController extends Controller
         );
     }
 
-    public function updateOrderStatus($id)
+    public function updateOrderStatus($id, SellerOrderService $orders)
     {
-        $user = requireUserRole('seller');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $status = trim(request('status'));
-
-        // Seller can only move orders through these statuses
-        $allowedStatuses = [
-            'Processing',
-            'Ready for Pickup',
-            'Cancelled',
-        ];
-
-        if (!in_array($status, $allowedStatuses)) {
-
-            return back()->with(
-                'error',
-                'Invalid seller order status.'
-            );
-        }
-
-        // Check if the order exists
-        $order = DB::table('orders')
-            ->where('id', $id)
-            ->first();
-
-        if (!$order) {
-
-            return back()->with(
-                'error',
-                'Order not found.'
-            );
-        }
-
-        // Check if this seller has an item in this order
-        $hasSellerProduct = DB::table('order_items')
-            ->where('order_id', $id)
-            ->where('seller_id', $user['id'])
-            ->exists();
-
-        if (!$hasSellerProduct) {
-
-            return back()->with(
-                'error',
-                'This order does not belong to you.'
-            );
-        }
-
-        // ==============================
-        // ENFORCE SELLER STATUS FLOW
-        // ==============================
-
-        // The seller only owns an order while it's still with them. Anything
-        // past that (rider, Sorting Center, delivered, cancelled, returned)
-        // belongs to its own flow and must not be cancelled or rewound here.
-        if (!in_array($order->status, ['Pending', 'Processing'], true)) {
-
-            return back()->with(
-                'error',
-                $order->status === 'Ready for Pickup'
-                    ? 'This order is already Ready for Pickup and can no longer be updated by the seller.'
-                    : 'This order is already ' . $order->status . ' and can no longer be updated by the seller.'
-            );
-        }
-
-        // Pending → Processing or Cancelled
-        if (
-            $order->status === 'Pending' &&
-            !in_array($status, ['Processing', 'Cancelled'])
-        ) {
-
-            return back()->with(
-                'error',
-                'Pending orders must be moved to Processing first.'
-            );
-        }
-
-        // Processing → Ready for Pickup or Cancelled
-        if (
-            $order->status === 'Processing' &&
-            !in_array($status, ['Ready for Pickup', 'Cancelled'])
-        ) {
-
-            return back()->with(
-                'error',
-                'Processing orders must be moved to Ready for Pickup.'
-            );
-        }
-
-        if ($status === 'Cancelled') {
-
-            $reason = trim((string) request('cancellation_reason'));
-
-            if (empty($reason)) {
-                return back()->with('error', 'Please provide a reason for cancelling this order.');
-            }
-        }
-
-        // ==============================
-        // UPDATE ORDER STATUS
-        // ==============================
-
-        // Only move it from the status we just validated against, so two
-        // overlapping requests can't both act on the same order.
-        $updated = DB::table('orders')
-            ->where('id', $id)
-            ->where('status', $order->status)
-            ->update([
-                'status' => $status,
-                'cancellation_reason' => $status === 'Cancelled' ? $reason : null,
-                'cancelled_by' => $status === 'Cancelled' ? 'seller' : null,
-                'cancelled_at' => $status === 'Cancelled' ? now() : null,
-                'updated_at' => now(),
-            ]);
-
-        if (!$updated) {
-            return back()->with('error', 'This order was just updated. Please refresh and try again.');
-        }
-
-        if ($status === 'Cancelled') {
-            OrderStock::cancelled((int) $id, $order->status);
-        }
-
-        // ==============================
-        // BUYER NOTIFICATION
-        // ==============================
-
-        if ($status === 'Processing') {
-
-            createNotification(
-                (int) $order->buyer_id,
-                'Order Processing',
-                'Your order #' . $id .
-                ' is now being processed by the seller.',
-                'order',
-                (int) $id
-            );
-
-        } elseif ($status === 'Ready for Pickup') {
-
-            createNotification(
-                (int) $order->buyer_id,
-                'Order Ready for Pickup',
-                'Your order #' . $id .
-                ' has been packed and is ready for a rider to pick up.',
-                'order',
-                (int) $id
-            );
-
-            notifyAllActiveRiders(
-                'New Delivery Available',
-                'Order #' . $id . ' is ready for pickup and available to claim.',
-                'delivery',
-                (int) $id
-            );
-
-        } elseif ($status === 'Cancelled') {
-
-            createNotification(
-                (int) $order->buyer_id,
-                'Order Cancelled by Seller',
-                'Your order #' . $id . ' was cancelled by the seller. Reason: ' . $reason,
-                'order',
-                (int) $id
-            );
-        }
-
-        // ==============================
-        // SELLER NOTIFICATION
-        // ==============================
-        //
-        // Notify the seller that the order status
-        // has been updated successfully.
-        //
-
-        createNotification(
-            (int) $user['id'],
-            'Order Status Updated',
-            'Order #' . $id .
-            ' is now ' . $status . '.',
-            'order_status',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Order status updated to ' . $status . '.'
+        return $this->sellerOrderAction(
+            fn (array $user) => $orders->updateStatus((int) $user['id'], (int) $id, (string) request('status'), (string) request('cancellation_reason'))
         );
     }
-
-    public function confirmPickup($id)
+    public function confirmPickup($id, SellerOrderService $orders)
     {
-        $user = requireUserRole('seller');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Order not found.');
-        }
-
-        $hasSellerProduct = DB::table('order_items')
-            ->where('order_id', $id)
-            ->where('seller_id', $user['id'])
-            ->exists();
-
-        if (!$hasSellerProduct) {
-            return back()->with('error', 'This order does not belong to you.');
-        }
-
-        if (empty($order->rider_id)) {
-            return back()->with('error', 'No rider has picked up this order yet.');
-        }
-
-        // Only while the hand-over is happening, and only once — the time
-        // recorded is when the parcel actually left the seller.
-        if (!in_array($order->status, ['Assigned', 'Picked Up'], true)) {
-            return back()->with('error', 'This order is not waiting for a rider pickup.');
-        }
-
-        if (!empty($order->seller_confirmed_pickup_at)) {
-            return back()->with('error', 'You already confirmed this pickup.');
-        }
-
-        DB::table('orders')
-            ->where('id', $id)
-            ->whereNull('seller_confirmed_pickup_at')
-            ->update(['seller_confirmed_pickup_at' => now()]);
-
-        return back()->with('success', 'Rider pickup confirmed.');
+        return $this->sellerOrderAction(fn (array $user) => $orders->confirmPickup((int) $user['id'], (int) $id));
     }
-
     public function editProduct($id)
     {
         $user = requireUserRole('seller');
@@ -1571,7 +1248,7 @@ class SellerController extends Controller
         );
     }
 
-    public function updateProduct($id)
+    public function updateProduct($id, ProductService $products)
     {
         $user = requireUserRole('seller');
 
@@ -1585,189 +1262,26 @@ class SellerController extends Controller
             abort(404);
         }
 
-        // Make sure this product belongs to the logged-in seller
+        // Only the seller's own products.
         if ((string) $product->seller_id !== (string) ($user['id'] ?? '')) {
             abort(403);
         }
 
-        $name = trim(request('name'));
-        $category = trim(request('category'));
-
-        // Sellers may only sell in the category they registered for.
-        $registeredCategory = $this->registeredCategory((int) $user['id']);
-
-        if ($registeredCategory) {
-            if ($category !== '' && Categories::slug($category) !== $registeredCategory) {
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'You can only sell ' . Categories::LIST[$registeredCategory] . ' products — the category your shop is registered for.'
-                    );
-            }
-
-            $category = $registeredCategory;
-        }
-        $price = (float) request('price');
-        $stock = (int) request('stock');
-        $description = trim(request('description'));
-
-        /*
-        |--------------------------------------------------------------------------
-        | Validate fields
-        |--------------------------------------------------------------------------
-        */
-
-        if (
-            empty($name) ||
-            empty($category) ||
-            $price <= 0 ||
-            $stock < 0 ||
-            empty($description)
-        ) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please complete all product fields.'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | BoomBuy Category System
-        |--------------------------------------------------------------------------
-        */
-
-        // Old categories (Smartphone, Laptop…) are converted automatically
-        // when an existing product is edited.
-        $categoryName = Categories::label($category);
-
-        if ($categoryName === null) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'Please select a valid BoomBuy category.'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Prevent duplicate product names
-        |--------------------------------------------------------------------------
-        */
-
-        $existingProduct = Product::where('name', $name)
-            ->where('seller_id', $user['id'])
-            ->where('id', '!=', $product->id)
-            ->first();
-
-        if ($existingProduct) {
-
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'You already have a product with this name.'
-                );
-        }
-
-        // A cheaper option (negative extra price) must still cost more than ₱0
-        // at the new base price.
-        $lowestAdjustment = (float) $product->variations()->min('price_adjustment');
-
-        if ($product->variations()->exists() && $price + $lowestAdjustment <= 0) {
-            return back()
-                ->withInput()
-                ->with(
-                    'error',
-                    'At this price one of your options would cost ₱0 or less. Raise the price or change that option\'s extra price first.'
-                );
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Keep existing image
-        |--------------------------------------------------------------------------
-        */
-
-        $imagePath = $product->image;
-        $oldImage = $product->image;
-
-        /*
-        |--------------------------------------------------------------------------
-        | New image uploaded?
-        |--------------------------------------------------------------------------
-        */
-
-        if (request()->hasFile('image')) {
-
-            $image = request()->file('image');
-
-            if (!$image->isValid()) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'The uploaded image is invalid.'
-                    );
-            }
-
-            if (!isValidProductImage($image)) {
-
-                return back()
-                    ->withInput()
-                    ->with(
-                        'error',
-                        'Product image must be a JPG, JPEG, PNG, or WEBP image no larger than 5MB.'
-                    );
-            }
-
-            $imagePath = $image->store(
-                'products',
-                'public'
+        try {
+            $products->update(
+                $product,
+                (int) $user['id'],
+                request()->only('name', 'category', 'price', 'stock', 'description'),
+                request()->hasFile('image') ? request()->file('image') : null
             );
+        } catch (ActionFailed $e) {
+            return back()->withInput()->with('error', $e->getMessage());
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Update product
-        |--------------------------------------------------------------------------
-        */
-
-        $product->update([
-
-            'name' => $name,
-            'category' => $categoryName,
-            'price' => $price,
-            'image' => $imagePath,
-            'stock' => $stock,
-            'description' => $description,
-
-        ]);
-
-        // The replaced photo is no longer used anywhere.
-        if ($oldImage && $oldImage !== $imagePath && !str_starts_with($oldImage, 'http')) {
-            Storage::disk('public')->delete($oldImage);
-        }
-
-        /*
-        |--------------------------------------------------------------------------
-        | Success
-        |--------------------------------------------------------------------------
-        */
 
         return redirect()
             ->route('seller.dashboard')
-            ->with(
-                'success',
-                'Product updated successfully!'
-            );
+            ->with('success', 'Product updated successfully!');
     }
-
     public function deleteProduct($id)
     {
         $user = requireUserRole('seller');
@@ -1866,271 +1380,29 @@ class SellerController extends Controller
         );
     }
 
-    public function approveReturnRefund($id)
+    public function approveReturnRefund($id, ReturnRefundService $returns)
     {
-        $user = requireUserRole('seller');
-        if (!is_array($user)) return $user;
-
-        $requestData = DB::table('return_refund_requests')
-            ->join('order_items', 'return_refund_requests.order_item_id', '=', 'order_items.id')
-            ->where('return_refund_requests.id', $id)
-            ->where('return_refund_requests.seller_id', $user['id'])
-            ->select(
-                'return_refund_requests.*',
-                'order_items.product_name',
-                'order_items.quantity'
-            )
-            ->first();
-
-        if (!$requestData) {
-            return back()->with('error', 'Return/Refund request not found.');
-        }
-
-        if ($requestData->status !== 'pending') {
-            return back()->with('error', 'This request has already been processed.');
-        }
-
-        // Conditional on the status just checked — a double-click can't
-        // re-run this step or notify the buyer twice.
-        $moved = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('status', 'pending')
-            ->update([
-                'status' => 'approved',
-                'seller_note' => 'Request approved by seller.',
-                'updated_at' => now(),
-            ]);
-
-        if (!$moved) {
-            return back()->with('error', 'This request was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $requestData->buyer_id,
-            ucfirst($requestData->request_type) . ' Request Approved',
-            'Your ' . strtolower($requestData->request_type) . ' request for ' . $requestData->product_name . ' has been approved.',
-            'return_refund',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Return/Refund request for ' . $requestData->product_name . ' has been approved.'
-        );
+        return $this->sellerOrderAction(fn (array $user) => $returns->approve((int) $user['id'], (int) $id));
     }
 
-    public function rejectReturnRefund($id)
+    public function rejectReturnRefund($id, ReturnRefundService $returns)
     {
-        $user = requireUserRole('seller');
-        if (!is_array($user)) return $user;
-
-        $requestData = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('seller_id', $user['id'])
-            ->first();
-
-        if (!$requestData) {
-            return back()->with('error', 'Return/Refund request not found.');
-        }
-
-        if ($requestData->status !== 'pending') {
-            return back()->with('error', 'This request has already been processed.');
-        }
-
-        $sellerNote = trim((string) request('seller_note'));
-
-        // Conditional on the status just checked — a double-click can't
-        // re-run this step or notify the buyer twice.
-        $moved = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('status', 'pending')
-            ->update([
-                'status' => 'rejected',
-                'seller_note' => $sellerNote !== '' ? $sellerNote : 'Request rejected by seller.',
-                'updated_at' => now(),
-            ]);
-
-        if (!$moved) {
-            return back()->with('error', 'This request was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $requestData->buyer_id,
-            ucfirst($requestData->request_type) . ' Request Rejected',
-            'Your ' . strtolower($requestData->request_type) . ' request was rejected by the seller.' .
-            ($sellerNote !== '' ? ' Reason: ' . $sellerNote : ''),
-            'return_refund',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Return/Refund request has been rejected.'
-        );
+        return $this->sellerOrderAction(fn (array $user) => $returns->reject((int) $user['id'], (int) $id, (string) request('seller_note')));
     }
 
-    public function markReturnRefundReturned($id)
+    public function markReturnRefundReturned($id, ReturnRefundService $returns)
     {
-        $user = requireUserRole('seller');
-        if (!is_array($user)) return $user;
-
-        $requestData = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('seller_id', $user['id'])
-            ->first();
-
-        if (!$requestData) {
-            return back()->with('error', 'Return/Refund request not found.');
-        }
-
-        if ($requestData->status !== 'approved') {
-            return back()->with('error', 'Only approved requests can be marked as returned.');
-        }
-
-        if ($requestData->request_type !== 'Return') {
-            return back()->with('error', 'This request is not a return request.');
-        }
-
-        // Conditional on still being "approved" so a double-click can't
-        // restock the same returned item twice.
-        $marked = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('status', 'approved')
-            ->update([
-                'status' => 'returned',
-                'seller_note' => 'Item has been marked as returned by the seller.',
-                'updated_at' => now(),
-            ]);
-
-        if (!$marked) {
-            return back()->with('error', 'This request was just updated. Please refresh and try again.');
-        }
-
-        // The seller can untick "Add back to stock" for damaged items.
-        $restocked = false;
-
-        if (request()->boolean('restock', true)) {
-
-            $item = DB::table('order_items')->where('id', $requestData->order_item_id)->first();
-
-            $restocked = $item && OrderStock::restockItem($item);
-        }
-
-        createNotification(
-            (int) $requestData->buyer_id,
-            'Item Marked as Returned',
-            'The seller has confirmed receipt of your returned item.',
-            'return_refund',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Return request has been marked as returned.' .
-            ($restocked ? ' The item was added back to your stock.' : '')
-        );
+        return $this->sellerOrderAction(fn (array $user) => $returns->markReturned((int) $user['id'], (int) $id, request()->boolean('restock', true)));
     }
 
-    public function startReturnRefundProcessing($id)
+    public function startReturnRefundProcessing($id, ReturnRefundService $returns)
     {
-        $user = requireUserRole('seller');
-        if (!is_array($user)) return $user;
-
-        $requestData = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('seller_id', $user['id'])
-            ->first();
-
-        if (!$requestData) {
-            return back()->with('error', 'Return/Refund request not found.');
-        }
-
-        if ($requestData->status !== 'approved') {
-            return back()->with('error', 'Only approved refund requests can be processed.');
-        }
-
-        if ($requestData->request_type !== 'Refund') {
-            return back()->with('error', 'This request is not a refund request.');
-        }
-
-        // Conditional on the status just checked — a double-click can't
-        // re-run this step or notify the buyer twice.
-        $moved = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('status', 'approved')
-            ->update([
-                'status' => 'refund_processing',
-                'seller_note' => 'Refund is currently being processed.',
-                'updated_at' => now(),
-            ]);
-
-        if (!$moved) {
-            return back()->with('error', 'This request was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $requestData->buyer_id,
-            'Refund Processing',
-            'Your refund is now being processed by the seller.',
-            'return_refund',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Refund is now being processed.'
-        );
+        return $this->sellerOrderAction(fn (array $user) => $returns->startRefund((int) $user['id'], (int) $id));
     }
 
-    public function completeReturnRefund($id)
+    public function completeReturnRefund($id, ReturnRefundService $returns)
     {
-        $user = requireUserRole('seller');
-        if (!is_array($user)) return $user;
-
-        $requestData = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('seller_id', $user['id'])
-            ->first();
-
-        if (!$requestData) {
-            return back()->with('error', 'Return/Refund request not found.');
-        }
-
-        if ($requestData->status !== 'refund_processing') {
-            return back()->with('error', 'Only refunds that are being processed can be completed.');
-        }
-
-        if ($requestData->request_type !== 'Refund') {
-            return back()->with('error', 'This request is not a refund request.');
-        }
-
-        // Conditional on the status just checked — a double-click can't
-        // re-run this step or notify the buyer twice.
-        $moved = DB::table('return_refund_requests')
-            ->where('id', $id)
-            ->where('status', 'refund_processing')
-            ->update([
-                'status' => 'completed',
-                'seller_note' => 'Refund has been completed by the seller.',
-                'updated_at' => now(),
-            ]);
-
-        if (!$moved) {
-            return back()->with('error', 'This request was just updated. Please refresh and try again.');
-        }
-
-        createNotification(
-            (int) $requestData->buyer_id,
-            'Refund Completed',
-            'Your refund has been completed by the seller.',
-            'return_refund',
-            (int) $id
-        );
-
-        return back()->with(
-            'success',
-            'Refund has been marked as completed.'
-        );
+        return $this->sellerOrderAction(fn (array $user) => $returns->completeRefund((int) $user['id'], (int) $id));
     }
 
     public function showRegister()
@@ -2288,7 +1560,13 @@ class SellerController extends Controller
             ->with('success', 'We sent a 6-digit code to your email.');
     }
 
-    public function restockOrder($id)
+    public function restockOrder($id, SellerOrderService $orders)
+    {
+        return $this->sellerOrderAction(fn (array $user) => $orders->restock((int) $user['id'], (int) $id));
+    }
+
+    /** Runs a seller order action and flashes its message (or the rule it broke). */
+    private function sellerOrderAction(callable $action)
     {
         $user = requireUserRole('seller');
 
@@ -2296,47 +1574,12 @@ class SellerController extends Controller
             return $user;
         }
 
-        $order = DB::table('orders')->where('id', $id)->first();
-
-        if (!$order) {
-            return back()->with('error', 'Order not found.');
+        try {
+            return back()->with('success', $action($user));
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        if ($order->status !== 'Returned to Seller') {
-            return back()->with('error', 'Only orders returned to you can be restocked.');
-        }
-
-        if (!empty($order->restocked_at)) {
-            return back()->with('error', 'This order has already been marked as restocked.');
-        }
-
-        $items = DB::table('order_items')
-            ->where('order_id', $id)
-            ->where('seller_id', $user['id'])
-            ->get();
-
-        if ($items->isEmpty()) {
-            return back()->with('error', 'This order does not belong to you.');
-        }
-
-        $result = OrderStock::restore((int) $id, (int) $user['id']);
-
-        if ($result === null) {
-            return back()->with('error', 'This order has already been marked as restocked.');
-        }
-
-        $restoredCount = $result['restored'];
-        $skippedCount = $result['skipped'];
-
-        $message = 'Order #' . $id . ' marked as restocked (' . $restoredCount . ' item(s) added back to inventory).';
-
-        if ($skippedCount > 0) {
-            $message .= ' ' . $skippedCount . ' item(s) could not be matched to a variation and were skipped — please adjust stock manually.';
-        }
-
-        return back()->with('success', $message);
     }
-
     public function notifications()
     {
         $user = requireUserRole('seller');

@@ -195,7 +195,8 @@
                 </header>
 
                 @php
-                    $lastMineId = optional($thread->where('sender_id', $me['id'])->last())->id ?? 0;
+                    // "Seen" follows what a person typed, not auto-replies or order updates.
+                    $lastMineId = optional($thread->where('sender_id', $me['id'])->filter(fn ($m) => $m->isText())->last())->id ?? 0;
                     $lastDay = null;
                 @endphp
 
@@ -216,9 +217,28 @@
                             @php $lastDay = $day; @endphp
                         @endif
 
-                        <div class="bubble {{ (int) $message->sender_id === (int) $me['id'] ? 'mine' : 'theirs' }}" data-id="{{ $message->id }}">
+                        <div class="bubble {{ (int) $message->sender_id === (int) $me['id'] ? 'mine' : 'theirs' }} {{ $message->isText() ? '' : 'is-auto' }}" data-id="{{ $message->id }}">
+                            @if($message->product)
+                                @php $card = app(\App\Http\Controllers\MessageController::class)->productCard($message->product); @endphp
+                                <a href="{{ $card['url'] }}" class="chat-product">
+                                    <span class="chat-product-img">
+                                        @if($card['image'])<img src="{{ $card['image'] }}" alt="" onerror="this.remove()">@endif
+                                        <i class="bi bi-bag"></i>
+                                    </span>
+                                    <span class="chat-product-text"><strong>{{ $card['name'] }}</strong><b>{{ $card['price'] }}</b></span>
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            @endif
                             <span class="bubble-text">{{ $message->message }}</span>
-                            <span class="bubble-time">{{ $message->created_at->format('g:i A') }}</span>
+                            @if($message->order_id && !empty($orderCards[$message->order_id]))
+                                @php $oc = $orderCards[$message->order_id]; @endphp
+                                <a href="{{ $oc['url'] }}" class="chat-order">
+                                    <span><strong>Order #{{ $oc['id'] }}</strong><em class="chat-order-status">Now: {{ $oc['status'] }}</em></span>
+                                    <b>View order <i class="bi bi-chevron-right"></i></b>
+                                </a>
+                            @endif
+                            {{-- Sent by the shop automatically: a quiet note beside the time. --}}
+                            <span class="bubble-time">@if($message->kind === \App\Models\Message::AUTO_REPLY)Auto-reply · @elseif($message->kind === \App\Models\Message::ORDER_UPDATE)Order update · @endif{{ $message->created_at->format('g:i A') }}</span>
                         </div>
                     @empty
                         <div class="thread-empty" id="emptyThread">
@@ -232,8 +252,38 @@
                     </div>
                 </div>
 
+                @if(!empty($askingAbout))
+                    {{-- "Chat" from a product page: the next message carries this product. --}}
+                    <div class="ask-about" id="askAbout" data-product-id="{{ $askingAbout['id'] }}">
+                        <span class="chat-product-img">
+                            @if($askingAbout['image'])<img src="{{ $askingAbout['image'] }}" alt="" onerror="this.remove()">@endif
+                            <i class="bi bi-bag"></i>
+                        </span>
+                        <span class="chat-product-text"><small>Asking about</small><strong>{{ $askingAbout['name'] }}</strong><b>{{ $askingAbout['price'] }}</b></span>
+                        <button type="button" class="ask-about-remove" id="askAboutRemove" aria-label="Don't attach this product"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                @endif
+                @if(!empty($suggestions))
+                    {{-- Buyer → shop: items from their cart (or last order) they may want to ask about. --}}
+                    <div class="chat-suggest" id="chatSuggest">
+                        <span class="chat-suggest-label"><i class="bi bi-cart3"></i> Want to ask about {{ count($suggestions) > 1 ? 'one of these' : 'this' }}?</span>
+                        <div class="chat-suggest-list">
+                            @foreach($suggestions as $s)
+                                <button type="button" class="chat-suggest-item" data-suggest="{{ json_encode($s) }}">
+                                    <span class="chat-product-img">
+                                        @if($s['image'])<img src="{{ $s['image'] }}" alt="" onerror="this.remove()">@endif
+                                        <i class="bi bi-bag"></i>
+                                    </span>
+                                    <span class="chat-product-text"><strong>{{ $s['name'] }}</strong><b>{{ $s['price'] }}</b></span>
+                                </button>
+                            @endforeach
+                        </div>
+                        <button type="button" class="chat-suggest-close" id="chatSuggestClose" aria-label="Hide suggestions"><i class="bi bi-x-lg"></i></button>
+                    </div>
+                @endif
                 <form method="POST" action="{{ route('messages.store', $partner['id']) }}" class="thread-compose" id="sendForm">
                     @csrf
+                    @if(!empty($askingAbout))<input type="hidden" name="product_id" value="{{ $askingAbout['id'] }}">@endif
                     <textarea name="message" rows="1" maxlength="2000" placeholder="Write a message…" aria-label="Message" required autofocus></textarea>
                     <button type="submit" class="thread-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
                 </form>
@@ -396,6 +446,105 @@
         seenMarker.hidden = !(lastMineId && seenUpTo >= lastMineId);
     }
 
+    // A product card for a message about a product (built from data, never HTML).
+    function productCard(p) {
+        var a = document.createElement('a');
+        a.className = 'chat-product';
+        a.href = p.url;
+
+        var media = document.createElement('span');
+        media.className = 'chat-product-img';
+        if (p.image) {
+            var img = document.createElement('img');
+            img.src = p.image;
+            img.alt = '';
+            img.onerror = function () { img.remove(); };
+            media.appendChild(img);
+        }
+        var icon = document.createElement('i');
+        icon.className = 'bi bi-bag';
+        media.appendChild(icon);
+
+        var info = document.createElement('span');
+        info.className = 'chat-product-text';
+        var name = document.createElement('strong');
+        name.textContent = p.name;
+        var price = document.createElement('b');
+        price.textContent = p.price;
+        info.appendChild(name);
+        info.appendChild(price);
+
+        var chevron = document.createElement('i');
+        chevron.className = 'bi bi-chevron-right';
+
+        a.appendChild(media);
+        a.appendChild(info);
+        a.appendChild(chevron);
+        return a;
+    }
+
+    // "Asking about" chip: goes out with the next message, or can be removed.
+    var askAbout = document.getElementById('askAbout');
+    function dropAskAbout() {
+        if (askAbout) askAbout.remove();
+        askAbout = null;
+        var hidden = form.querySelector('input[name="product_id"]');
+        if (hidden) hidden.remove();
+    }
+    function bindRemove() {
+        var btn = document.getElementById('askAboutRemove');
+        if (btn) btn.addEventListener('click', function () { dropAskAbout(); textarea.focus(); });
+    }
+    bindRemove();
+
+    // Picking a suggested product puts it in the "Asking about" chip (replacing any).
+    function setAskAbout(p) {
+        dropAskAbout();
+
+        askAbout = document.createElement('div');
+        askAbout.className = 'ask-about';
+        askAbout.id = 'askAbout';
+        askAbout.dataset.productId = p.id;
+
+        var card = productCard(p);
+        var media = card.querySelector('.chat-product-img');
+        var info = card.querySelector('.chat-product-text');
+        var small = document.createElement('small');
+        small.textContent = 'Asking about';
+        info.insertBefore(small, info.firstChild);
+
+        var remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'ask-about-remove';
+        remove.id = 'askAboutRemove';
+        remove.setAttribute('aria-label', "Don't attach this product");
+        remove.innerHTML = '<i class="bi bi-x-lg"></i>';
+
+        askAbout.appendChild(media);
+        askAbout.appendChild(info);
+        askAbout.appendChild(remove);
+        form.parentNode.insertBefore(askAbout, form);
+        bindRemove();
+
+        var hidden = document.createElement('input');
+        hidden.type = 'hidden';
+        hidden.name = 'product_id';
+        hidden.value = p.id;
+        form.appendChild(hidden);
+    }
+
+    var suggest = document.getElementById('chatSuggest');
+    if (suggest) {
+        suggest.addEventListener('click', function (e) {
+            if (e.target.closest('#chatSuggestClose')) { suggest.remove(); suggest = null; return; }
+            var item = e.target.closest('[data-suggest]');
+            if (!item) return;
+            setAskAbout(JSON.parse(item.dataset.suggest));
+            suggest.querySelectorAll('[data-suggest]').forEach(function (b) { b.classList.toggle('is-picked', b === item); });
+            textarea.focus();
+        });
+    }
+
     // textContent only — message text is user input.
     function addBubble(m) {
         if (shown[m.id]) return;
@@ -417,8 +566,11 @@
         }
 
         var bubble = document.createElement('div');
-        bubble.className = 'bubble ' + (m.mine ? 'mine' : 'theirs');
+        var isText = !m.kind || m.kind === 'text';
+        bubble.className = 'bubble ' + (m.mine ? 'mine' : 'theirs') + (isText ? '' : ' is-auto');
         bubble.dataset.id = m.id;
+
+        if (m.product) bubble.appendChild(productCard(m.product));
 
         var text = document.createElement('span');
         text.className = 'bubble-text';
@@ -426,14 +578,34 @@
 
         var time = document.createElement('span');
         time.className = 'bubble-time';
-        time.textContent = m.time;
+        time.textContent = (m.kind === 'auto_reply' ? 'Auto-reply · ' : m.kind === 'order_update' ? 'Order update · ' : '') + m.time;
 
         bubble.appendChild(text);
+
+        if (m.order) {
+            var order = document.createElement('a');
+            order.className = 'chat-order';
+            order.href = m.order.url;
+            var left = document.createElement('span');
+            var num = document.createElement('strong');
+            num.textContent = 'Order #' + m.order.id;
+            var status = document.createElement('em');
+            status.className = 'chat-order-status';
+            status.textContent = 'Now: ' + m.order.status;
+            left.appendChild(num);
+            left.appendChild(status);
+            var view = document.createElement('b');
+            view.innerHTML = 'View order <i class="bi bi-chevron-right"></i>';
+            order.appendChild(left);
+            order.appendChild(view);
+            bubble.appendChild(order);
+        }
+
         bubble.appendChild(time);
         box.insertBefore(bubble, seenMarker);
 
         lastId = Math.max(lastId, m.id);
-        if (m.mine) lastMineId = Math.max(lastMineId, m.id);
+        if (m.mine && isText) lastMineId = Math.max(lastMineId, m.id);
         updateSeen();
 
         if (nearBottom || m.mine) box.scrollTop = box.scrollHeight;
@@ -481,7 +653,7 @@
 
         button.disabled = true;
 
-        fetch(form.action, {
+        fetch(form.getAttribute('action'), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
@@ -490,7 +662,9 @@
                 'X-Requested-With': 'XMLHttpRequest'
             },
             credentials: 'same-origin',
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify(askAbout
+                ? { message: text, product_id: parseInt(askAbout.dataset.productId, 10) }
+                : { message: text })
         })
             .then(function (r) {
                 if (!r.ok) throw new Error('send failed');
@@ -498,6 +672,10 @@
             })
             .then(function (data) {
                 addBubble(data.message);
+                if (askAbout && suggest) { suggest.remove(); suggest = null; }
+                dropAskAbout();
+                // The shop's auto-reply, after a short "typing" pause.
+                if (data.auto_reply) setTimeout(function () { addBubble(data.auto_reply); }, 900);
                 textarea.value = '';
                 autosize();
                 textarea.focus();

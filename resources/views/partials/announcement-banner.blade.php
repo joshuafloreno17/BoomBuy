@@ -1,9 +1,3 @@
-@php
-    $latestAnnouncement = \App\Models\PlatformAnnouncement::where('is_active', true)
-        ->orderByDesc('created_at')
-        ->first();
-@endphp
-
 @if($latestAnnouncement)
 
     <div style="

@@ -19,6 +19,54 @@ class MessagingAndComplaintsTest extends TestCase
         $this->withoutMiddleware(\Illuminate\Foundation\Http\Middleware\VerifyCsrfToken::class);
     }
 
+    public function test_chat_from_a_product_page_carries_the_product_card(): void
+    {
+        $buyer = $this->makeUser();
+        $seller = $this->makeSeller('shoes', 'Stride Co');
+        $other = $this->makeSeller('shoes', 'Other Shop');
+        $sneaker = $this->makeProduct($seller, ['name' => 'Trail Sneaker', 'price' => 1450]);
+        $foreign = $this->makeProduct($other, ['name' => 'Someone Elses Boot']);
+
+        // The product page's Chat button opens the chat with an "Asking about" chip.
+        $this->actingAsUser($buyer)
+            ->get(route('messages.thread', [$seller->id, 'product' => $sneaker->id]))
+            ->assertOk()
+            ->assertSee('id="askAbout"', false)
+            ->assertSee('Trail Sneaker');
+
+        // Sending (the way the page does, via fetch) stores the product and returns the card.
+        $this->actingAsUser($buyer)
+            ->postJson(route('messages.store', $seller->id), ['message' => 'Available in size 9?', 'product_id' => $sneaker->id])
+            ->assertOk()
+            ->assertJsonPath('message.product.name', 'Trail Sneaker')
+            ->assertJsonPath('message.product.price', '₱1,450.00');
+
+        $this->assertSame($sneaker->id, Message::where('kind', Message::TEXT)->latest('id')->first()->product_id);
+
+        // The seller sees the card in the conversation.
+        $this->flushSession();
+        $this->actingAsUser($seller)
+            ->get(route('messages.thread', $buyer->id))
+            ->assertOk()
+            ->assertSee('chat-product', false)
+            ->assertSee('Trail Sneaker');
+
+        // Another shop's product can't be attached: the message goes, without a card.
+        $this->flushSession();
+        $this->actingAsUser($buyer)
+            ->postJson(route('messages.store', $seller->id), ['message' => 'And this one?', 'product_id' => $foreign->id])
+            ->assertOk()
+            ->assertJsonPath('message.product', null);
+
+        $this->assertNull(Message::where('kind', Message::TEXT)->latest('id')->first()->product_id);
+
+        // Nor through the chip.
+        $this->actingAsUser($buyer)
+            ->get(route('messages.thread', [$seller->id, 'product' => $foreign->id]))
+            ->assertOk()
+            ->assertDontSee('id="askAbout"', false);
+    }
+
     public function test_guests_cannot_use_messages(): void
     {
         $this->get(route('messages.index'))->assertRedirect(route('login'));

@@ -1,15 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    @include('partials.head', ['title' => 'Profit — BoomBuy Rider'])
 
-    <title>Profit — BoomBuy Rider</title>
-
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
-    <link rel="stylesheet" href="{{ asset('css/rider-sidebar.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/rider-profit.css') }}">
 </head>
 

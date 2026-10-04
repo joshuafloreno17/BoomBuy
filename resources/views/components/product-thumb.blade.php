@@ -11,27 +11,7 @@
 @endphp
 
 @once
-<style>
-    .bb-thumb {
-        position: relative;
-        flex-shrink: 0;
-        overflow: hidden;
-        border-radius: 14px;
-        background: #fff4f0;
-        color: #e2a08a;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .bb-thumb img {
-        position: absolute;
-        inset: 0;
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-</style>
+<link rel="stylesheet" href="{{ vasset('css/partials/product-thumb.css') }}">
 @endonce
 
 <span {{ $attributes->merge(['class' => 'bb-thumb']) }} style="width: {{ $size }}px; height: {{ $size }}px; font-size: {{ round($size * 0.42) }}px;">
