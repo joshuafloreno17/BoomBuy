@@ -17,7 +17,11 @@
     .main {
         margin-left: 245px;
         padding: 30px;
-        max-width: 1100px;
+    }
+
+    .details-wrap {
+        max-width: 1000px;
+        margin: 0 auto;
     }
 
     .topbar {

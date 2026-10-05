@@ -10,6 +10,9 @@
 
 <body>
 
+@include('partials.buyer-navbar', ['activeNav' => 'orders'])
+
+<main class="success-wrap">
 <div class="success-card">
 
     <div class="success-icon">
@@ -135,6 +138,7 @@
     </div>
 
 </div>
+</main>
 
     @include('partials.buyer-footer')
 

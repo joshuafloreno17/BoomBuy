@@ -192,3 +192,22 @@
         padding: 20px 12px;
     }
 }
+
+/* Pages with a footer: keep it at the bottom of the screen even when the
+   content is short (a spacer grows between the content and the footer). */
+.main:has(> .footer) {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.main:has(> .footer)::before {
+    content: "";
+    order: 1;
+    flex: 1 0 30px;
+}
+
+.main > .footer {
+    order: 2;
+    margin-top: 0;
+}

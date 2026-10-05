@@ -228,3 +228,19 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: #ffe6db;
     color: #7c1a00;
 }
+
+/* Keep the footer at the bottom of the screen even when the content is short. */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .layout,
+body > .main-content {
+    flex: 1 0 auto;
+}
+
+body > footer {
+    flex-shrink: 0;
+}

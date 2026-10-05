@@ -89,43 +89,10 @@
                         @endphp
 
 
-                        <form
-                            action="{{ !$notification->read_at
-                                ? route(
-                                    'rider.notifications.read',
-                                    $notification->id
-                                )
-                                : '#'
-                            }}"
-                            method="{{ !$notification->read_at
-                                ? 'POST'
-                                : 'GET'
-                            }}"
-                            class="notification-form"
+                        <a
+                            href="{{ route('notifications.open', $notification->id) }}"
+                            class="notification-card {{ $notification->read_at ? 'read' : 'unread' }}"
                         >
-
-                            @if(!$notification->read_at)
-
-                                @csrf
-
-                            @endif
-
-
-                            <button
-                                type="{{ !$notification->read_at
-                                    ? 'submit'
-                                    : 'button'
-                                }}"
-                                class="notification-card
-                                    {{ $notification->read_at
-                                        ? 'read'
-                                        : 'unread'
-                                    }}"
-                                {{ $notification->read_at
-                                    ? 'disabled'
-                                    : ''
-                                }}
-                            >
 
                                 <div class="notification-top">
 
@@ -195,9 +162,7 @@
 
                                 </div>
 
-                            </button>
-
-                        </form>
+                        </a>
 
                     @endforeach
                 @include('partials.simple-pager', ['paginator' => $notifications])

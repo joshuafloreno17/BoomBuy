@@ -494,3 +494,13 @@ footer {
         width: 100%;
     }
 }
+
+/* Keep the footer at the bottom of the screen even when the form is short. */
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+body > .page {
+    flex: 1 0 auto;
+}

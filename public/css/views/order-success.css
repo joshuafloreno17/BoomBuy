@@ -15,12 +15,12 @@
             color: #1b1a1f;
 
             min-height: 100vh;
+        }
 
+        .success-wrap {
             display: flex;
-            align-items: center;
             justify-content: center;
-
-            padding: 30px;
+            padding: 48px 20px 64px;
         }
 
         .success-card {
@@ -158,6 +158,13 @@
 
             text-align: center;
 
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+
+            text-decoration: none;
+
             transition: 0.2s;
         }
 
@@ -183,8 +190,8 @@
 
         @media (max-width: 600px) {
 
-            body {
-                padding: 15px;
+            .success-wrap {
+                padding: 24px 16px 40px;
             }
 
             .success-card {

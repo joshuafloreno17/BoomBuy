@@ -15,6 +15,7 @@
 <x-layout.rider-sidebar active="deliveries" :user="$user" />
 
 <main class="main">
+<div class="details-wrap">
 
 
 <div class="topbar">
@@ -428,6 +429,7 @@
 </a>
 
 
+</div>
 </main>
 
     @include('partials.pwa-register')

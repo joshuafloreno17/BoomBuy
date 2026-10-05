@@ -269,3 +269,19 @@ footer strong {
         text-align: center;
     }
 }
+
+/* Keep the footer at the bottom of the screen even when the content is short. */
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+body > .layout,
+body > .main-content {
+    flex: 1 0 auto;
+}
+
+body > footer {
+    flex-shrink: 0;
+}

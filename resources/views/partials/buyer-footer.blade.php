@@ -81,5 +81,27 @@
         sync();
         phone.addEventListener('change', sync);
     })();
+
+    // Short pages: push the footer down to the bottom of the screen instead of
+    // leaving it floating under the content.
+    (function () {
+        var footer = document.querySelector('.bb-footer');
+        if (!footer) return;
+
+        function fit() {
+            footer.style.marginTop = '';
+            var gap = window.innerHeight - (footer.getBoundingClientRect().bottom + window.scrollY);
+            if (gap > 0) {
+                footer.style.marginTop = (parseFloat(getComputedStyle(footer).marginTop) + gap) + 'px';
+            }
+        }
+
+        fit();
+        window.addEventListener('load', fit);
+        window.addEventListener('resize', fit);
+        if (window.ResizeObserver) {
+            new ResizeObserver(fit).observe(document.body);
+        }
+    })();
 </script>
 @endonce
