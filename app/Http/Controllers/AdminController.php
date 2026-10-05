@@ -956,10 +956,10 @@ class AdminController extends Controller
         ));
     }
 
-    // Registration types the admin reviews (riders are reviewed by Logistics).
+    // Registration types the admin reviews (riders are reviewed by Logistics;
+    // buyers are approved automatically when they sign up).
     public const APPLICATION_TYPES = [
         'seller' => 'Sellers',
-        'buyer' => 'Buyers',
         'logistics' => 'Logistics',
     ];
 

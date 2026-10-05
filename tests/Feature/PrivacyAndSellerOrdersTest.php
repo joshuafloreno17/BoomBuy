@@ -215,11 +215,34 @@ class PrivacyAndSellerOrdersTest extends TestCase
             'otp_code' => '654321',
             'otp_expires_at' => now()->addMinutes(10),
         ])->post(route('otp.verify'), ['otp_code' => '654321'])
-            ->assertRedirect(route('login'));
+            // No admin approval for buyers: straight into the shop, logged in.
+            ->assertRedirect(route('buyer.dashboard'));
 
         $userId = DB::table('users')->where('email', 'newbuyer@example.com')->value('id');
 
         $this->assertNotNull($userId);
-        $this->assertDatabaseHas('buyer_applications', ['user_id' => $userId, 'status' => 'Pending Verification']);
+        $this->assertDatabaseHas('buyer_applications', ['user_id' => $userId, 'status' => 'Approved']);
+        $this->assertSame($userId, session('user.id'));
+        $this->get(route('buyer.dashboard'))->assertOk();
+    }
+
+    public function test_a_buyer_left_pending_from_before_can_still_log_in(): void
+    {
+        $buyer = $this->makeUser('buyer', ['email' => 'waiting@example.com', 'password' => bcrypt('password123')]);
+        DB::table('buyer_applications')->insert([
+            'user_id' => $buyer->id, 'full_name' => $buyer->name, 'status' => 'Pending Verification',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        $this->post(route('login.submit'), ['email' => 'waiting@example.com', 'password' => 'password123'])
+            ->assertSessionMissing('error');
+        $this->assertSame($buyer->id, session('user.id'));
+    }
+
+    public function test_admin_applications_no_longer_list_buyers(): void
+    {
+        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'buyer']))
+            ->assertOk()
+            ->assertDontSee('type=buyer', false);
     }
 }

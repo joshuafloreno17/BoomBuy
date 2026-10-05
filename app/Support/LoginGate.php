@@ -48,21 +48,8 @@ class LoginGate
             }
         }
 
-        // Buyers with no application row are legacy accounts from before the
-        // approval gate existed — they're left alone.
-        if ($user->role === 'buyer') {
-
-            $application = DB::table('buyer_applications')
-                ->where('user_id', $user->id)
-                ->orderByDesc('created_at')
-                ->first();
-
-            if ($application && $application->status !== 'Approved') {
-                return $application->status === 'Rejected'
-                    ? 'Your account application was not approved. Please contact support for more information.'
-                    : 'Your account is still pending administrator verification. We will notify you by email once it has been approved.';
-            }
-        }
+        // Buyers need no approval — they shop as soon as they've verified their
+        // email. (Suspension above still applies to them.)
 
         if (!in_array($user->role, ['buyer', 'seller', 'rider', 'logistics'])) {
             return 'Invalid account role.';
