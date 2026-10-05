@@ -201,6 +201,49 @@ textarea {
     box-shadow: 0 8px 20px rgba(39, 84, 150, 0.08);
 }
 
+/* The cover preview with its ✕ in the corner. */
+.preview-frame {
+    position: relative;
+    display: inline-block;
+}
+
+/* ✕ that removes a picked photo (cover, option photo). */
+.photo-remove {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 28px;
+    height: 28px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #1b1a1f;
+    color: #fff;
+    font-size: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, .18);
+}
+
+.photo-remove:hover {
+    background: #dc2626;
+}
+
+.photo-remove[hidden] {
+    display: none;
+}
+
+.photo-remove.is-small {
+    top: 2px;
+    right: 2px;
+    width: 18px;
+    height: 18px;
+    border-width: 1px;
+    font-size: 8px;
+    z-index: 1;
+}
+
 .preview-label {
     margin-top: 8px;
     font-size: 11px;
@@ -330,7 +373,7 @@ textarea {
 }
 
 /* The header names the columns on wider screens. */
-.var-field > span {
+.var-field > span:not(.var-photo-box) {
     display: none;
 }
 
@@ -368,6 +411,50 @@ textarea {
     display: none;
 }
 
+/* Option photo: a small square that opens the file picker and shows the pick. */
+.var-photo {
+    position: relative;
+    cursor: pointer;
+}
+
+.var-photo input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.var-photo-box {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 38px;
+    border: 1.5px dashed #ecc9bd;
+    border-radius: 8px;
+    background: #fff8f3;
+    color: #e8420f;
+    font-size: 15px;
+    overflow: hidden;
+}
+
+.var-photo:hover .var-photo-box,
+.var-photo:focus-within .var-photo-box {
+    border-color: #e8420f;
+}
+
+.var-photo.has-photo .var-photo-box {
+    border-style: solid;
+}
+
+.var-photo-box img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 /* Phones: each variation is a small card, two fields per line, each with its label. */
 @media (max-width: 600px) {
     .var-head {
@@ -384,7 +471,7 @@ textarea {
         margin-bottom: 10px;
     }
 
-    .var-field > span {
+    .var-field > span:not(.var-photo-box) {
         display: block;
         margin-bottom: 4px;
         font-size: 11px;
@@ -398,5 +485,250 @@ textarea {
 
     .remove-variation-btn span {
         display: inline;
+    }
+}
+
+/* Each option's own photos, under its fields. */
+.var-photos {
+    grid-column: 1 / -1;
+    display: grid;
+    gap: 6px;
+    padding: 2px 0 6px;
+}
+
+.var-photos-lbl {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: #6b6570;
+}
+
+.var-photos-lbl b {
+    color: #1b1a1f;
+}
+
+.var-photos-lbl small {
+    color: #8a7f86;
+    font-weight: 500;
+}
+
+.var-photos-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.var-photo-tile {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    border-radius: 10px;
+    border: 1px solid #f0e2da;
+    background: #fff8f3;
+}
+
+.var-photo-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 9px;
+    display: block;
+}
+
+.var-photo-tile .photo-remove.is-small {
+    top: -6px;
+    right: -6px;
+}
+
+.var-photos-add.var-photos-add {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border: 1.5px dashed #ecc9bd;
+    border-radius: 10px;
+    background: #fff8f3;
+    color: #e8420f;
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.var-photos-add:hover,
+.var-photos-add:focus-within {
+    border-color: #e8420f;
+}
+
+.var-photos-add[hidden] {
+    display: none;
+}
+
+.var-photos-add input {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+/* =========================
+   OPTIONS AND THEIR PHOTOS
+========================= */
+
+.opt-intro {
+    margin-bottom: 12px;
+    color: #8a7f86;
+    font-size: 12px;
+}
+
+.opt-type {
+    display: grid;
+    gap: 6px;
+    max-width: 320px;
+    margin-bottom: 12px;
+}
+
+.opt-type[hidden] {
+    display: none;
+}
+
+.opt-type label {
+    font-size: 12.5px;
+}
+
+.opt-list {
+    display: grid;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.opt-list:empty {
+    display: none;
+}
+
+.opt-card {
+    display: grid;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid #f0e2da;
+    border-radius: 14px;
+    background: #fff;
+}
+
+.opt-fields {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 40px;
+    gap: 10px;
+    align-items: end;
+}
+
+.opt-field {
+    display: grid;
+    gap: 4px;
+    min-width: 0;
+    margin: 0;
+}
+
+.opt-field > span {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6b6570;
+}
+
+.opt-field small {
+    font-weight: 500;
+    color: #8a7f86;
+}
+
+.opt-field input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #f0e2da;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.opt-field input:focus {
+    border-color: #e8420f;
+}
+
+.opt-remove {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 10px;
+    background: #fff1ea;
+    color: #e8420f;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.opt-remove:hover {
+    background: #ffe4e4;
+    color: #dc2626;
+}
+
+.opt-card .var-photos {
+    padding: 0;
+}
+
+.opt-card .var-photos-lbl {
+    color: #c2380f;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.opt-card .var-photos-lbl b {
+    color: #c2380f;
+}
+
+.opt-card .var-photo-tile,
+.opt-card .var-photos-add.var-photos-add {
+    width: 76px;
+    height: 76px;
+}
+
+.opt-cover {
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: #e8420f;
+    color: #fff;
+    font-size: 10px;
+    font-weight: 800;
+}
+
+.opt-cover[hidden] {
+    display: none;
+}
+
+.opt-add-btn {
+    padding: 10px 14px;
+    border: 1px dashed #f0b8a5;
+    border-radius: 10px;
+    background: #fff1ea;
+    color: #e8420f;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .opt-fields {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+    }
+
+    .opt-name {
+        grid-column: 1 / -1;
     }
 }

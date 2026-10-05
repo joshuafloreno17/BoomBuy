@@ -697,25 +697,62 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
             gap: 8px;
         }
 
-        /* Text options become pills; photo options stay square. */
-        .variation-picker .variation-swatch:not(:has(img)) {
+        /* Shopee-style option chips: optional photo + name; the chosen one gets an orange border and a corner check. */
+        .variation-picker .variation-swatch {
+            position: relative;
             width: auto;
             min-width: 52px;
-            height: 42px;
-            padding: 0 16px;
-            border-radius: 12px;
+            height: 44px;
+            padding: 0 14px 0 6px;
+            gap: 8px;
+            border: 1.5px solid #e9dcd5;
+            border-radius: 10px;
             background: #fff;
+            overflow: hidden;
         }
 
-        .variation-picker .variation-swatch .swatch-fallback {
-            font-size: 13px;
+        .variation-picker .variation-swatch:not(:has(img)) {
+            padding: 0 16px;
+        }
+
+        .variation-picker .variation-swatch img {
+            width: 32px;
+            height: 32px;
+            flex: none;
+            border-radius: 6px;
+            object-fit: cover;
+        }
+
+        .variation-picker .variation-swatch .swatch-label {
+            font-size: 13.5px;
+            font-weight: 600;
             color: #1b1a1f;
-            padding: 0;
+            white-space: nowrap;
         }
 
-        .variation-picker .variation-swatch.active:not(:has(img)) {
-            border-color: #1b1a1f;
-            background: #1b1a1f;
+        .variation-picker .variation-swatch:hover {
+            border-color: #e8420f;
+        }
+
+        .variation-picker .variation-swatch.active {
+            border-color: #e8420f;
+            background: #fff8f3;
+        }
+
+        .variation-picker .variation-swatch.active .swatch-label {
+            color: #c2380f;
+        }
+
+        .variation-picker .variation-swatch.active::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            width: 16px;
+            height: 16px;
+            background: #e8420f
+                url("data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 16 16%27%3E%3Cpath d=%27M8.5 11.2l2.1 2 4-4.2%27 fill=%27none%27 stroke=%27white%27 stroke-width=%271.6%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27/%3E%3C/svg%3E") no-repeat center / 16px;
+            clip-path: polygon(100% 0, 100% 100%, 0 100%);
         }
 
         .variation-picker .variation-swatch.active .swatch-fallback {
@@ -1019,7 +1056,12 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     padding: 2px;
     overflow-x: auto;
     scroll-behavior: smooth;
-    scrollbar-width: thin;
+    /* No scrollbar: the ‹ › arrows and clicks bring hidden thumbnails into view. */
+    scrollbar-width: none;
+}
+
+.pd-thumbs::-webkit-scrollbar {
+    display: none;
 }
 
 .pd-thumb {
@@ -1062,4 +1104,97 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 @media (prefers-reduced-motion: reduce) {
     .pd-thumbs { scroll-behavior: auto; }
+}
+
+.pd-thumbs-wrap {
+    position: relative;
+}
+
+.pd-strip-nav {
+    position: absolute;
+    top: 50%;
+    z-index: 2;
+    width: 26px;
+    height: 44px;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 8px;
+    background: rgba(27, 26, 31, 0.55);
+    color: #fff;
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.pd-strip-nav:hover {
+    background: rgba(27, 26, 31, 0.8);
+}
+
+.pd-strip-nav[hidden] {
+    display: none;
+}
+
+.pd-strip-nav.prev { left: 2px; }
+.pd-strip-nav.next { right: 2px; }
+
+/* The wrapper takes the gap so the strip arrows center on the thumbnails. */
+.pd-thumbs-wrap { margin-top: 10px; }
+.pd-thumbs-wrap .pd-thumbs { margin-top: 0; }
+
+/* Long thumbnail rows scroll inside their column instead of widening the page. */
+.product-detail > * {
+    min-width: 0;
+}
+
+@media (max-width: 800px) {
+    .product-detail {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+/* Main photo: a fixed square, so switching photos never moves the page.
+   The whole photo shows (contain) on white, like the photos sellers upload. */
+.product-visual {
+    aspect-ratio: 1 / 1;
+    min-height: 0;
+    height: auto;
+    background: #fff;
+    border: 1px solid #f0e2da;
+}
+
+.product-visual #mainProductImage {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain !important;
+}
+
+@media (max-width: 800px) {
+    .product-visual {
+        min-height: 0;
+    }
+}
+
+/* Photo arrows stay put on hover (the generic button lift would drop them
+   half their height) and just grow a little. */
+.product-visual .gallery-nav {
+    transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.product-visual .gallery-nav:hover {
+    transform: translateY(-50%) scale(1.15);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.18);
+}
+
+.pd-thumbs-wrap .pd-strip-nav:hover {
+    transform: translateY(-50%) scale(1.08);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .product-visual .gallery-nav:hover,
+    .pd-thumbs-wrap .pd-strip-nav:hover {
+        transform: translateY(-50%);
+    }
 }

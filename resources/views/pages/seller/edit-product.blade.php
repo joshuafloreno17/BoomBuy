@@ -352,35 +352,8 @@
                     </div>
 
 
-                    {{-- IMAGE + STOCK --}}
+                    {{-- STOCK (photos are in their own section below) --}}
                     <div class="row">
-
-                        <div class="form-group">
-
-                            <label for="image">
-                                Product Image
-                            </label>
-
-                            @if(!empty($product->image))
-                                <div style="margin-bottom:8px;">
-                                    <img
-                                        src="{{ asset('storage/' . $product->image) }}"
-                                        alt="Current product image"
-                                        style="width:70px; height:70px; object-fit:cover; border-radius:10px; border:1px solid #f0e2da;"
-                                    >
-                                </div>
-                            @endif
-
-                            @include('partials.file-picker', [
-                                'id' => 'image',
-                                'name' => 'image',
-                                'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
-                                'label' => !empty($product->image) ? 'Replace the photo' : 'Upload a product photo',
-                                'hint' => 'Leave empty to keep the current one · JPG, PNG or WEBP · up to 5 MB',
-                            ])
-
-                        </div>
-
 
                         <div class="form-group">
 

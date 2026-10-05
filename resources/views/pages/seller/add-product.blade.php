@@ -232,49 +232,6 @@
                     </div>
 
 
-                    <!-- PRODUCT IMAGE -->
-                    <div class="form-group">
-
-                        <label for="image">
-                            Product Image
-                        </label>
-
-                        <div class="image-upload-box">
-
-                            @include('partials.file-picker', [
-                                'id' => 'image',
-                                'name' => 'image',
-                                'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
-                                'label' => 'Upload your product image',
-                                'hint' => 'JPG, PNG or WEBP · up to 5 MB · square photos look best',
-                                'required' => true,
-                            ])
-
-                            <div
-                                id="image-preview"
-                                class="image-preview"
-                            >
-
-                                <img
-                                    id="preview-image"
-                                    src=""
-                                    alt="Product Preview"
-                                >
-
-                                <div class="preview-label">
-                                    Image Preview
-                                </div>
-
-                            </div>
-
-                        </div>
-
-                    </div>
-
-                    <!-- MORE PHOTOS -->
-                    @include('partials.product-photos-field', ['product' => null])
-
-
                     <!-- DESCRIPTION -->
                     <div class="form-group">
 
@@ -292,46 +249,32 @@
                     </div>
 
 
-                    <!-- VARIATIONS (OPTIONAL) -->
+                    <!-- OPTIONS AND THEIR PHOTOS (optional) -->
                     <div class="form-group">
 
                         <label>
-                            Variations (Optional)
+                            Options and their photos <span style="font-weight:500; color:#8a7f86;">(optional · up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} photos each)</span>
                         </label>
 
-                        <div style="margin-bottom:10px; color:#8a7f86; font-size:11px;">
-                            Does this product come in different colors, sizes, etc.? Add them here.
+                        <div class="opt-intro">
+                            Does it come in different colors, sizes or kinds? Add each one as an option with its own photos. Buyers see only that option's photos after picking it.
+                            Leave the photos empty when every option looks the same (like sizes).
                         </div>
 
-                        {{-- Column names for the rows below; shown once there is a row. --}}
-                        <div id="variationHead" class="var-head" hidden>
-                            <span>Type</span>
-                            <span>Value</span>
-                            <span>Extra price (₱) <small>· 0 = same</small></span>
-                            <span>Stock</span>
-                            <span></span>
+                        <div class="opt-type" id="optType" hidden>
+                            <label for="variationType">Variation type</label>
+                            <input type="text" id="variationType" placeholder="e.g. Color, Size, Mount" autocomplete="off">
                         </div>
-                        <div id="variationRows"></div>
 
-                        <button
-                            type="button"
-                            id="addVariationBtn"
-                            style="
-                                background:#fff1ea;
-                                color:#e8420f;
-                                border:1px dashed #f0b8a5;
-                                border-radius:8px;
-                                padding:10px 14px;
-                                font-size:12px;
-                                font-weight:700;
-                                cursor:pointer;
-                            "
-                        >
-                            + Add Variation
-                        </button>
+                        <div id="variationRows" class="opt-list"></div>
+
+                        <button type="button" id="addVariationBtn" class="opt-add-btn">+ Add option</button>
 
                     </div>
 
+
+                    <!-- PHOTOS FOR ALL OPTIONS (or the product's photos when it has no options) -->
+                    @include('partials.product-photos-uploader')
 
                     <!-- BUTTONS -->
                     <div class="buttons">
@@ -362,41 +305,123 @@
 
 </div>
 
-<script src="{{ asset('js/pages/product-image-preview.js') }}"></script>
 <script>
     (function () {
         var rowsContainer = document.getElementById('variationRows');
-        var head = document.getElementById('variationHead');
+        var typeBox = document.getElementById('optType');
+        var typeInput = document.getElementById('variationType');
         var addBtn = document.getElementById('addVariationBtn');
         var index = 0;
+        var OPTION_MAX = {{ \App\Support\ProductPhotos::MAX_PER_OPTION }};
+        var say = window.bbAlert || window.alert;
 
-        function syncHead() {
-            head.hidden = rowsContainer.children.length === 0;
+        // The one variation type goes on every option (the form sends it per option).
+        function syncType() {
+            rowsContainer.querySelectorAll('.opt-type-field').forEach(function (i) { i.value = typeInput.value.trim(); });
+        }
+        typeInput.addEventListener('input', syncType);
+
+        function renumber() {
+            var cards = rowsContainer.querySelectorAll('.opt-card');
+            cards.forEach(function (card, n) { card.querySelector('[data-opt-n]').textContent = n + 1; });
+            typeBox.hidden = cards.length === 0;
+            document.dispatchEvent(new Event('bb:options-changed'));
+            markCover();
+        }
+
+        // Badge and "Set as cover" on the photos (shared with Photos for all options).
+        function markCover() {
+            document.dispatchEvent(new Event('bb:option-photos'));
         }
 
         function addRow() {
-            var row = document.createElement('div');
-            row.className = 'var-row';
+            var card = document.createElement('div');
+            card.className = 'opt-card';
+            card.dataset.row = index;
 
-            // Each field carries its own label too: phones stack them instead of showing the header.
-            row.innerHTML =
-                '<label class="var-field"><span>Type</span><input type="text" name="variations[' + index + '][type]" placeholder="e.g. Color" autocomplete="off"></label>' +
-                '<label class="var-field"><span>Value</span><input type="text" name="variations[' + index + '][value]" placeholder="e.g. Red"></label>' +
-                '<label class="var-field"><span>Extra price (₱) · 0 = same</span><input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" placeholder="0" value="0"></label>' +
-                '<label class="var-field"><span>Stock</span><input type="number" min="0" name="variations[' + index + '][stock]" placeholder="0" value="0"></label>' +
-                '<button type="button" class="remove-variation-btn" aria-label="Remove this variation"><i class="bi bi-x-lg"></i><span>Remove</span></button>';
+            card.innerHTML =
+                '<input type="hidden" class="opt-type-field" name="variations[' + index + '][type]">' +
+                '<div class="opt-fields">' +
+                    '<label class="opt-field opt-name"><span>Option <b data-opt-n></b> name</span><input type="text" name="variations[' + index + '][value]" placeholder="e.g. Red, XL, Air Vent" required></label>' +
+                    '<label class="opt-field"><span>Extra ₱ <small>· 0 = same</small></span><input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" value="0"></label>' +
+                    '<label class="opt-field"><span>Stock</span><input type="number" min="0" name="variations[' + index + '][stock]" value="0"></label>' +
+                    '<button type="button" class="opt-remove" aria-label="Remove this option" title="Remove option"><i class="bi bi-x-lg"></i></button>' +
+                '</div>' +
+                '<div class="var-photos">' +
+                    '<span class="var-photos-lbl">Photos for <b data-opt-name>this option</b> · <span data-opt-count>0</span>/' + OPTION_MAX + '</span>' +
+                    '<div class="var-photos-list">' +
+                        '<label class="var-photos-add"><input type="file" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" multiple><i class="bi bi-camera-fill"></i><span>+ Photos</span></label>' +
+                    '</div>' +
+                    '<input type="file" class="var-photos-field" name="variations[' + index + '][photos][]" multiple hidden>' +
+                '</div>';
 
-            row.querySelector('.remove-variation-btn').addEventListener('click', function () {
-                row.remove();
-                syncHead();
+            // This option's own photos (sent in the order shown).
+            var files = [];
+            var list = card.querySelector('.var-photos-list');
+            var addTile = card.querySelector('.var-photos-add');
+            var picker = addTile.querySelector('input');
+            var field = card.querySelector('.var-photos-field');
+
+            function syncPhotos() {
+                var dt = new DataTransfer();
+                files.forEach(function (f) { dt.items.add(f); });
+                field.files = dt.files;
+
+                list.querySelectorAll('.var-photo-tile').forEach(function (t) { t.remove(); });
+                files.forEach(function (file, i) {
+                    var tile = document.createElement('div');
+                    tile.className = 'var-photo-tile';
+                    tile.innerHTML = '<img alt="">' +
+                        '<button type="button" class="photo-remove is-small" title="Remove" aria-label="Remove this photo"><i class="bi bi-x-lg"></i></button>';
+                    window.bbCover.decorate(tile, file, 'opt:' + card.dataset.row + ':' + i);
+                    tile.querySelector('img').src = URL.createObjectURL(file);
+                    tile.querySelector('.photo-remove').addEventListener('click', function () { files.splice(i, 1); syncPhotos(); });
+                    list.insertBefore(tile, addTile);
+                });
+                addTile.hidden = files.length >= OPTION_MAX;
+                card.querySelector('[data-opt-count]').textContent = files.length;
+                markCover();
+            }
+
+            picker.addEventListener('change', function () {
+                var skipped = 0;
+                Array.prototype.slice.call(picker.files || []).forEach(function (file) {
+                    if (!/^image\/(jpeg|png|webp)$/.test(file.type) || file.size > 5 * 1024 * 1024 || files.length >= OPTION_MAX) { skipped++; return; }
+                    files.push(file);
+                });
+                picker.value = '';
+                if (skipped) say(skipped + ' photo' + (skipped === 1 ? ' was' : 's were') + ' not added. Use JPG, PNG or WEBP up to 5 MB, up to ' + OPTION_MAX + ' per option.');
+                syncPhotos();
             });
 
-            rowsContainer.appendChild(row);
+            // "Photos for Red" follows the option name.
+            card.querySelector('input[name$="[value]"]').addEventListener('input', function (e) {
+                card.querySelector('[data-opt-name]').textContent = e.target.value.trim() || 'this option';
+            });
+
+            card.querySelector('.opt-remove').addEventListener('click', function () {
+                card.remove();
+                renumber();
+            });
+
+            rowsContainer.appendChild(card);
             index++;
-            syncHead();
+            syncType();
+            renumber();
+            card.querySelector('input[name$="[value]"]').focus();
         }
 
         addBtn.addEventListener('click', addRow);
+
+        // Options need a type (Color, Size…) so buyers see "Choose a color".
+        addBtn.form.addEventListener('submit', function (e) {
+            if (rowsContainer.children.length && !typeInput.value.trim()) {
+                e.preventDefault();
+                say('Please fill in the variation type (for example Color, Size or Mount).');
+                typeInput.focus();
+            }
+            syncType();
+        });
     })();
 </script>
 

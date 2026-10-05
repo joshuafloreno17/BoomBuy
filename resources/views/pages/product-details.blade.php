@@ -95,18 +95,24 @@
     </div>
 
     @if($gallery->count() > 1)
-        {{-- Hover (or tap) a thumbnail to show it big. --}}
+        {{-- Click (or tap) a thumbnail to show it big. --}}
+        <div class="pd-thumbs-wrap" id="pdThumbsWrap">
+        <button type="button" class="pd-strip-nav prev" data-strip="-1" aria-label="Scroll photos left" hidden>‹</button>
         <div class="pd-thumbs" id="pdThumbs">
             @foreach($gallery as $photo)
                 <button
                     type="button"
                     class="pd-thumb {{ $loop->first ? 'is-active' : '' }}"
                     data-src="{{ $photo['url'] }}"
-                    aria-label="Show photo {{ $loop->iteration }} of {{ $gallery->count() }}"
+                    data-group="{{ $photo['group'] }}"
+                    data-fp="{{ $photo['fp'] }}"
+                    aria-label="Show photo {{ $loop->iteration }}"
                 >
                     <img src="{{ $photo['url'] }}" alt="" loading="lazy" onerror="this.closest('.pd-thumb').remove()">
                 </button>
             @endforeach
+        </div>
+        <button type="button" class="pd-strip-nav next" data-strip="1" aria-label="Scroll photos right" hidden>›</button>
         </div>
     @endif
 
@@ -177,9 +183,8 @@
                     @foreach($variations as $index => $variation)
 
                         @php
-                            $variationImageUrl = $variation->image
-                                ? asset('storage/' . ltrim($variation->image, '/'))
-                                : '';
+                            // Same picture as a gallery photo? Use that one, so its thumbnail lights up.
+                            $variationImageUrl = $variationPhotos[$variation->id] ?? '';
                         @endphp
 
                         <button
@@ -195,10 +200,9 @@
                             title="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
                         >
                             @if($variationImageUrl)
-                                <img src="{{ $variationImageUrl }}" alt="{{ $variation->variation_value }}">
-                            @else
-                                <span class="swatch-fallback">{{ $variation->variation_value }}</span>
+                                <img src="{{ $variationImageUrl }}" alt="" onerror="this.remove()">
                             @endif
+                            <span class="swatch-label">{{ $variation->variation_value }}</span>
                         </button>
 
                     @endforeach
@@ -575,7 +579,8 @@
 
     }
 
-    function selectVariation(index) {
+    // keepPhoto: on page load the cover stays up; the option photo shows once the buyer picks.
+    function selectVariation(index, keepPhoto) {
 
         const swatches = Array.prototype.slice.call(
             document.querySelectorAll('.variation-swatch')
@@ -600,9 +605,17 @@
         const img = document.getElementById('mainProductImage');
         const fallback = document.getElementById('mainImageFallback');
 
-        const imageUrl = swatch.dataset.image || img.dataset.fallbackSrc || '';
+        // The row shows this option's photos, then the photos for all options.
+        filterThumbs(swatch.dataset.id);
+        const firstShown = allThumbs()[0];
+        const imageUrl = swatch.dataset.image || (firstShown && firstShown.dataset.src) || img.dataset.fallbackSrc || '';
 
-        if (imageUrl) {
+        // A click while hovering keeps the option's photo (no restore on leave).
+        previewBack = null;
+
+        if (keepPhoto) {
+            // leave the cover as is
+        } else if (imageUrl) {
             img.src = imageUrl;
             markThumb(imageUrl);
         } else {
@@ -630,9 +643,28 @@
 
     }
 
-    // ---- Photo thumbnails: hover (mouse) or tap shows the photo big. ----
+    // ---- Photo thumbnails: click (or tap) shows the photo big. ----
     // Read fresh each time: a thumbnail whose photo fails to load removes itself.
-    const allThumbs = () => Array.from(document.querySelectorAll('.pd-thumb'));
+    const allThumbs = () => Array.from(document.querySelectorAll('.pd-thumb')).filter(function (t) { return !t.hidden; });
+
+    // Show one option's photos plus the photos for all options (minus repeats of the option's photos).
+    function filterThumbs(optionId) {
+        const thumbs = Array.from(document.querySelectorAll('.pd-thumb'));
+        const own = new Set();
+        thumbs.forEach(function (t) {
+            const mine = t.dataset.group === String(optionId);
+            t.hidden = !(mine || t.dataset.group === 'all');
+            if (mine) own.add(t.dataset.fp);
+        });
+        thumbs.forEach(function (t) {
+            if (t.dataset.group === 'all' && own.has(t.dataset.fp)) t.hidden = true;
+        });
+        const wrap = document.getElementById('pdThumbsWrap');
+        if (wrap) wrap.hidden = allThumbs().length < 2;
+        const row = document.getElementById('pdThumbs');
+        if (row) row.scrollLeft = 0;
+        window.dispatchEvent(new Event('resize'));
+    }
 
     function markThumb(url) {
         allThumbs().forEach(function (t) {
@@ -660,10 +692,54 @@
 
     allThumbs().forEach(function (thumb) {
         const show = function () { showPhoto(allThumbs().indexOf(thumb)); };
-        if (canHover) thumb.addEventListener('mouseenter', show);
         thumb.addEventListener('click', show);
         thumb.addEventListener('focus', show);
     });
+
+    // Hovering an option with a photo previews it; leaving puts the shown photo back.
+    let previewBack = null;
+
+    document.querySelectorAll('.variation-swatch').forEach(function (swatch) {
+        if (!canHover || !swatch.dataset.image) return;
+
+        swatch.addEventListener('mouseenter', function () {
+            const img = document.getElementById('mainProductImage');
+            previewBack = img.getAttribute('src');
+            img.src = swatch.dataset.image;
+            markThumb(swatch.dataset.image);
+        });
+
+        swatch.addEventListener('mouseleave', function () {
+            if (previewBack === null) return;
+            const img = document.getElementById('mainProductImage');
+            img.src = previewBack;
+            markThumb(img.src);
+            previewBack = null;
+        });
+    });
+
+    // Strip arrows: only when the thumbnails don't all fit.
+    (function () {
+        const row = document.getElementById('pdThumbs');
+        if (!row) return;
+        const navs = document.querySelectorAll('.pd-strip-nav');
+        const update = function () {
+            const overflow = row.scrollWidth > row.clientWidth + 2;
+            navs.forEach(function (b) {
+                const dir = parseInt(b.dataset.strip, 10);
+                b.hidden = !overflow || (dir < 0 ? row.scrollLeft <= 2 : row.scrollLeft + row.clientWidth >= row.scrollWidth - 2);
+            });
+        };
+        navs.forEach(function (b) {
+            b.addEventListener('click', function () {
+                row.scrollBy({ left: parseInt(b.dataset.strip, 10) * row.clientWidth * 0.8, behavior: 'smooth' });
+            });
+        });
+        row.addEventListener('scroll', update, { passive: true });
+        window.addEventListener('resize', update);
+        window.addEventListener('load', update);
+        update();
+    })();
 
     function galleryStep(direction) {
 
@@ -728,7 +804,25 @@
 
     // Initialize variation selection on page load
     if (document.querySelector('.variation-swatch')) {
-        selectVariation(0);
+        // Start on the option the cover photo belongs to, so the photo and the chosen option match.
+        const mainImg = document.getElementById('mainProductImage');
+        const coverThumb = Array.from(document.querySelectorAll('.pd-thumb')).find(function (t) { return t.dataset.src === mainImg.dataset.fallbackSrc; });
+        let start = 0;
+
+        if (coverThumb && coverThumb.dataset.group !== 'all') {
+            const owner = Array.from(document.querySelectorAll('.variation-swatch')).findIndex(function (s) { return s.dataset.id === coverThumb.dataset.group; });
+            if (owner >= 0) start = owner;
+        }
+
+        selectVariation(start, true);
+
+        // The cover's thumbnail is hidden (a repeat of this option's photo, or another
+        // option's): show the same picture if it is shown, else the first shown photo.
+        const shown = allThumbs();
+        if (shown.length && !shown.some(function (t) { return t.dataset.src === mainImg.getAttribute('src'); })) {
+            const same = coverThumb ? shown.findIndex(function (t) { return t.dataset.fp === coverThumb.dataset.fp; }) : -1;
+            showPhoto(same >= 0 ? same : 0);
+        }
     }
 
 

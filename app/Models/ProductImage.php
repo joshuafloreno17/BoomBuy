@@ -4,10 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-/** One extra photo of a product; the cover photo is products.image. */
+/** One photo of a product: for one option (product_variation_id) or for all options (null). */
 class ProductImage extends Model
 {
-    protected $fillable = ['product_id', 'path', 'sort_order'];
+    protected $fillable = ['product_id', 'product_variation_id', 'path', 'sort_order', 'is_cover'];
+
+    protected $casts = ['is_cover' => 'boolean'];
 
     public function product()
     {

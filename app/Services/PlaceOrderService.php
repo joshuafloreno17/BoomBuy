@@ -143,6 +143,8 @@ class PlaceOrderService
                 // Transient: which stock row to reduce, not an order_items column.
                 'variation_id' => $variation->id ?? null,
                 'variation_label' => $variationLabel,
+                // The option's photo as it was when bought.
+                'variation_image' => $variation->image ?? null,
                 'price' => $unitPrice,
                 'quantity' => $quantity,
             ];
@@ -219,6 +221,7 @@ class PlaceOrderService
                             'seller_id' => $item['seller_id'],
                             'product_name' => $item['product_name'],
                             'variation_label' => $item['variation_label'] ?? null,
+                            'variation_image' => $item['variation_image'] ?? null,
                             'price' => $item['price'],
                             'quantity' => $item['quantity'],
                             'created_at' => now(),

@@ -155,7 +155,8 @@ class ViewServiceProvider extends ServiceProvider
                 'variation' => $variation ? $variation->variation_type . ': ' . $variation->variation_value : null,
                 'quantity' => (int) $cart[$key],
                 'price' => (float) $product->price + (float) ($variation->price_adjustment ?? 0),
-                'image' => productImageUrl($product->image),
+                // The chosen option's photo, else the cover.
+                'image' => productImageUrl(($variation->image ?? null) ?: $product->image),
                 'icon' => Categories::icon($product->category),
                 'url' => route('product.details', Str::slug($product->name) . '-' . $product->id),
             ];

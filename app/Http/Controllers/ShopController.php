@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Support\Categories;
+use App\Support\ProductPhotos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -639,15 +640,9 @@ class ShopController extends Controller
 
         $variations = \App\Models\ProductVariation::where('product_id', $product->id)->get();
 
-        // Thumbnail row: the cover, the extra photos, then each option's photo.
-        $photoUrl = fn ($path) => str_starts_with($path, 'http') ? $path : asset('storage/' . ltrim($path, '/'));
-        $gallery = collect([$product->image])
-            ->merge($product->images()->pluck('path'))
-            ->filter()
-            ->map(fn ($path) => ['url' => $photoUrl($path), 'variation' => null])
-            ->merge($variations->filter(fn ($v) => $v->image)->map(fn ($v) => ['url' => $photoUrl($v->image), 'variation' => $v->id]))
-            ->unique('url')
-            ->values();
+        // Photo row: each option's own photos, then the photos for all options.
+        $variations = $variations->sortBy('id')->values();
+        ['photos' => $gallery, 'variationPhotos' => $variationPhotos] = ProductPhotos::gallery($product, $variations);
 
         return view(
             'pages.product-details',
@@ -660,6 +655,7 @@ class ShopController extends Controller
                 'isWishlisted',
                 'variations',
                 'gallery',
+                'variationPhotos',
                 'canMessageSeller',
                 'ratingCounts',
                 'shop',

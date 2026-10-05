@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use App\Services\SellerOrderService;
 use App\Exceptions\ActionFailed;
 use App\Services\ProductService;
+use App\Support\ProductPhotos;
 use App\Services\ReturnRefundService;
 use App\Http\Requests\ProfilePhotoRequest;
 use App\Services\ProfilePhotoService;
@@ -710,20 +711,19 @@ class SellerController extends Controller
                 ->with('error', 'This product already has that option. Edit its stock instead of adding it again.');
         }
 
-        $imagePath = null;
-
-        if (request()->hasFile('image')) {
-            $imagePath = request()->file('image')->store('variations', 'public');
-        }
-
-        ProductVariation::create([
+        $option = ProductVariation::create([
             'product_id' => $product->id,
             'variation_type' => request('variation_type'),
             'variation_value' => request('variation_value'),
             'price_adjustment' => request('price_adjustment', 0),
             'stock' => request('stock'),
-            'image' => $imagePath,
         ]);
+
+        // Its photo becomes this option's first photo.
+        if (request()->hasFile('image')) {
+            app(ProductService::class)->storeFiles($product, $option->id, [request()->file('image')]);
+            ProductPhotos::sync($product);
+        }
 
         return back()->with('success', 'Variation added successfully.');
     }
@@ -779,16 +779,17 @@ class SellerController extends Controller
             $variation->stock = $stock;
             $variation->price_adjustment = $price;
 
+            $variation->save();
+
+            // A new photo goes first among this option's photos (so it is the chip photo).
             if ($photo) {
-                if ($variation->image) {
-                    Storage::disk('public')->delete($variation->image);
-                }
-                $variation->image = $photo->store('variations', 'public');
+                app(ProductService::class)->storeFiles($product, $variation->id, [$photo], 'first');
             }
 
-            $variation->save();
             $changed++;
         }
+
+        ProductPhotos::sync($product);
 
         return back()->with('success', $changed
             ? 'Saved changes to ' . $changed . ' ' . Str::plural('option', $changed) . '.'
@@ -814,12 +815,13 @@ class SellerController extends Controller
             ->first();
 
         if ($variation) {
-
-            if ($variation->image) {
-                Storage::disk('public')->delete($variation->image);
-            }
-
+            // Its own photos go with it.
+            $paths = $variation->images()->pluck('path')->push($variation->image)->filter()->all();
+            $variation->images()->delete();
             $variation->delete();
+
+            ProductPhotos::sync($product);
+            ProductPhotos::deleteUnused($paths);
         }
 
         return back()->with('success', 'Variation removed.');
@@ -853,6 +855,24 @@ class SellerController extends Controller
         return app(ProductService::class)->registeredCategory($sellerId);
     }
 
+    /** The Add Product variation rows, each with its photo (files arrive separately from the text fields). */
+    private function variationsWithPhotos(): array
+    {
+        $variations = (array) request('variations', []);
+
+        foreach ((array) request()->file('variations', []) as $i => $files) {
+            if (!isset($variations[$i])) {
+                continue;
+            }
+            if ($files['image'] ?? null) {
+                $variations[$i]['image'] = $files['image'];
+            }
+            $variations[$i]['photos'] = (array) ($files['photos'] ?? []);
+        }
+
+        return $variations;
+    }
+
     public function storeProduct(ProductService $products)
     {
         $user = requireUserRole('seller');
@@ -866,8 +886,9 @@ class SellerController extends Controller
                 (int) $user['id'],
                 request()->only('name', 'category', 'price', 'stock', 'description'),
                 request()->hasFile('image') ? request()->file('image') : null,
-                (array) request('variations', []),
-                (array) request()->file('photos', [])
+                $this->variationsWithPhotos(),
+                (array) request()->file('photos', []),
+                (string) request('cover_ref', '')
             );
         } catch (ActionFailed $e) {
             return back()->withInput()->with('error', $e->getMessage());
@@ -1276,7 +1297,9 @@ class SellerController extends Controller
                 request()->hasFile('image') ? request()->file('image') : null,
                 [
                     'add' => (array) request()->file('photos', []),
+                    'option_add' => (array) request()->file('option_photos', []),
                     'remove' => (array) request('remove_photos', []),
+                    'first' => (int) request('first_photo', 0),
                     'cover' => (int) request('cover_photo', 0),
                 ]
             );
@@ -1330,7 +1353,7 @@ class SellerController extends Controller
 
         $product->delete();
 
-        Storage::disk('public')->delete($images);
+        ProductPhotos::deleteUnused($images);
 
         return redirect()
             ->route('seller.dashboard')

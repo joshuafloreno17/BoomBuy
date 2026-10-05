@@ -29,6 +29,12 @@ class ProductVariation extends Model
         return $this->belongsTo(Product::class);
     }
 
+    /** This option's own photos; the first is its chip photo. */
+    public function images()
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order')->orderBy('id');
+    }
+
     /**
      * Always stored as "Color", never "color" / "COLOR " / "coloer", so one
      * product can't end up with two different "types" that mean the same.

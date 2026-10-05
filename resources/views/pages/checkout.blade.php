@@ -288,7 +288,7 @@
                             <div class="product-info">
 
                                 <div class="product-icon">
-                                    <x-product-thumb :image="$product['image']" :category="$product['category']" size="48" style="width:100%; height:100%; border-radius:inherit;" />
+                                    <x-product-thumb :image="($lineVariation->image ?? null) ?: $product['image']" :category="$product['category']" size="48" style="width:100%; height:100%; border-radius:inherit;" />
                                 </div>
 
 

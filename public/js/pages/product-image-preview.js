@@ -1,6 +1,15 @@
 const imageInput = document.getElementById('image');
 const previewBox = document.getElementById('image-preview');
 const previewImage = document.getElementById('preview-image');
+const previewRemove = document.getElementById('previewRemove');
+
+// ✕ on the preview: take the photo back out and show the empty upload box again.
+if (previewRemove) {
+    previewRemove.addEventListener('click', function () {
+        imageInput.value = '';
+        imageInput.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+}
 
 imageInput.addEventListener('change', function () {
 

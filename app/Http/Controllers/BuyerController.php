@@ -587,7 +587,8 @@ class BuyerController extends Controller
                     (float) ($item['price'] ?? 0) *
                     (int) ($item['quantity'] ?? 1);
 
-                $item['image'] = $product->image ?? null;
+                // The photo of the option bought (kept on the line), else the cover.
+                $item['image'] = ($item['variation_image'] ?? null) ?: ($product->image ?? null);
                 $item['category'] = $product->category ?? null;
                 $item['slug'] = $product ? Str::slug($product->name) . '-' . $product->id : null;
 

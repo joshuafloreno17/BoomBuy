@@ -520,7 +520,7 @@ class AdminController extends Controller
 
         $product->delete();
 
-        Storage::disk('public')->delete($images);
+        \App\Support\ProductPhotos::deleteUnused($images);
 
         return redirect()
             ->route('admin.products')

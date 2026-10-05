@@ -177,7 +177,8 @@
                             @endif
 
                             <div class="product-image">
-                                <x-product-thumb :image="$product->image" :category="$product->category" size="90" style="width:100%; height:100%; border-radius:13px;" />
+                                {{-- The chosen option's photo, else the cover. --}}
+                                <x-product-thumb :image="($itemVariation->image ?? null) ?: $product->image" :category="$product->category" size="90" style="width:100%; height:100%; border-radius:13px;" />
                             </div>
 
                             <div class="product-info">
