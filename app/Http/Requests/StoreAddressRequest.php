@@ -17,7 +17,17 @@ class StoreAddressRequest extends FormRequest
         return [
             'label' => 'nullable|string|max:40',
             'phone' => ['required', 'string', 'max:20', 'regex:/^[0-9+\-\s]{7,20}$/'],
-            'address' => 'required|string|max:255',
+            'address' => [
+                'required',
+                'string',
+                'max:255',
+                // The town and province decide which Sorting Center delivers there.
+                function ($attribute, $value, $fail) {
+                    if (!\App\Support\PhLocations::locate((string) $value)) {
+                        $fail('Include your city/municipality and province, e.g. "123 Rizal St., Poblacion, Santa Cruz, Laguna".');
+                    }
+                },
+            ],
         ];
     }
 

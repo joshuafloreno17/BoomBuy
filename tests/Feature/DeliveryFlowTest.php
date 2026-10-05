@@ -8,8 +8,10 @@ use Tests\Feature\Concerns\BuildsBoomBuyData;
 use Tests\TestCase;
 
 /**
- * An order's trip: seller → pickup rider → Sorting Center (logistics)
- * → delivery rider → buyer.
+ * An order's trip: seller drops it at the Sorting Center (logistics) →
+ * delivery rider → buyer. (Orders from before then that still have a
+ * pickup rider can finish that way — see the claim test.) The routing
+ * between Sorting Centers is covered in SortingCenterJourneyTest.
  */
 class DeliveryFlowTest extends TestCase
 {
@@ -31,27 +33,17 @@ class DeliveryFlowTest extends TestCase
     {
         $buyer = $this->makeUser();
         $seller = $this->makeSeller();
-        $pickupRider = $this->makeRider();
+        $otherRider = $this->makeRider();
         $deliveryRider = $this->makeRider();
         $logistics = $this->makeLogistics();
         $order = $this->makeOrder($buyer, $this->makeProduct($seller));
 
-        // Seller
+        // Seller packs it and drops it at the Sorting Center themselves
         $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Ready for Pickup']);
-        $this->assertSame('Ready for Pickup', $this->orderStatus($order));
-
-        // Pickup rider sees it, claims it, picks it up
-        $this->actingAsUser($pickupRider)->get(route('rider.dashboard'))->assertOk()->assertSee('#' . $order);
-        $this->actingAsUser($pickupRider)->post(route('rider.delivery.claim', $order))->assertSessionHas('success');
-        $this->assertSame('Assigned', $this->orderStatus($order));
-        $this->notified($buyer->id, 'Rider Assigned');
-
-        $this->actingAsUser($pickupRider)
-            ->post(route('rider.delivery.confirm-pickup', $order))
-            ->assertSessionHas('success', 'Pickup confirmed! Please bring the parcel to the Sorting Center.');
-        $this->assertSame('Picked Up', $this->orderStatus($order));
-        $this->notified($logistics->id, 'Parcel En Route');
+        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Dropped Off']);
+        $this->assertSame('Dropped Off', $this->orderStatus($order));
+        $this->notified($buyer->id, 'Order Shipped');
+        $this->notified($logistics->id, 'Parcel Dropped Off');
 
         // Sorting Center receives it and hands it to the delivery rider
         $this->actingAsUser($logistics)->get(route('logistics.parcels'))->assertOk()->assertSee('#' . $order);
@@ -64,8 +56,8 @@ class DeliveryFlowTest extends TestCase
         $this->assertSame('Assigned for Delivery', $this->orderStatus($order));
         $this->notified($deliveryRider->id, 'New Delivery Assignment');
 
-        // The pickup rider no longer owns the final leg
-        $this->actingAsUser($pickupRider)
+        // Another rider can't take over the delivery
+        $this->actingAsUser($otherRider)
             ->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery'])
             ->assertSessionHas('error');
 

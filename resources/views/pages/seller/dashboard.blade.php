@@ -112,10 +112,10 @@
                     <span class="pd-todo-text"><strong>Pack and ship</strong><span>New orders to prepare</span></span>
                     <span class="pd-todo-count">{{ $pendingOrders }}</span>
                 </a>
-                <a href="{{ route('seller.orders', ['tab' => 'to-ship']) }}" class="pd-todo-item {{ $readyForPickup > 0 ? '' : 'is-done' }}">
-                    <span class="pd-todo-icon"><i class="bi bi-truck"></i></span>
-                    <span class="pd-todo-text"><strong>Waiting for a rider</strong><span>Packed and ready for pickup</span></span>
-                    <span class="pd-todo-count">{{ $readyForPickup }}</span>
+                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $toDropOff > 0 ? '' : 'is-done' }}">
+                    <span class="pd-todo-icon"><i class="bi bi-box-arrow-in-right"></i></span>
+                    <span class="pd-todo-text"><strong>Drop off at Sorting Center</strong><span>Being packed — bring them in next</span></span>
+                    <span class="pd-todo-count">{{ $toDropOff }}</span>
                 </a>
                 <a href="{{ route('seller.orders', ['tab' => 'returns']) }}" class="pd-todo-item {{ $pendingReturns > 0 ? 'is-hot' : 'is-done' }}">
                     <span class="pd-todo-icon"><i class="bi bi-arrow-counterclockwise"></i></span>

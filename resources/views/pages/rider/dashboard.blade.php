@@ -178,11 +178,11 @@
                     </div>
 
                     <div class="stat-title">
-                        Available Orders
+                        To Deliver
                     </div>
 
                     <div class="stat-number">
-                        {{ $availableCount }}
+                        {{ count($myDeliveryAssignments ?? []) }}
                     </div>
 
                 </div>
@@ -225,8 +225,12 @@
 
 
             <!-- =====================================================
-                 AVAILABLE ORDERS
+                 AVAILABLE ORDERS — only older orders still use a pickup
+                 rider (sellers now drop parcels at the Sorting Center),
+                 so this shows only while there are some left.
             ===================================================== -->
+
+            @if(count($availableDeliveries) > 0)
 
             <div class="section-title">
 
@@ -407,38 +411,16 @@
 
                 </div>
 
-            @else
-
-                <div class="empty">
-
-                    <div class="empty-icon">
-                        <i class="bi bi-box-seam-fill"></i>
-                    </div>
-
-                    <div class="empty-title">
-                        No Available Orders
-                    </div>
-
-                    <div class="empty-text">
-
-                        Orders marked
-
-                        <strong>
-                            "Ready for Pickup"
-                        </strong>
-
-                        will appear here.
-
-                    </div>
-
-                </div>
+            @endif
 
             @endif
 
 
             <!-- =====================================================
-                 ACTIVE DELIVERIES
+                 ACTIVE DELIVERIES — pickups from sellers (older orders only)
             ===================================================== -->
+
+            @if(count($myActiveDeliveries) > 0)
 
             <div class="section-title">
 
@@ -633,23 +615,7 @@
 
                 </div>
 
-            @else
-
-                <div class="empty">
-
-                    <div class="empty-icon">
-                        <i class="bi bi-truck"></i>
-                    </div>
-
-                    <div class="empty-title">
-                        No Active Deliveries
-                    </div>
-
-                    <div class="empty-text">
-                        Orders you claim will appear here.
-                    </div>
-
-                </div>
+            @endif
 
             @endif
 

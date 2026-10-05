@@ -73,6 +73,8 @@ class BuyerOrderService
             throw new ActionFailed('This order was just updated by the seller. Please refresh and try again.');
         }
 
+        \App\Support\OrderTimeline::log($orderId, 'Cancelled', 'Cancelled by you', $reasonText);
+
         OrderStock::cancelled($orderId, $order->status);
         ChatAutomation::orderUpdate($orderId, 'cancelled');
 
@@ -122,6 +124,8 @@ class BuyerOrderService
             'buyer_received_at' => now(),
             'updated_at' => now(),
         ]);
+
+        \App\Support\OrderTimeline::log($orderId, 'Delivered', 'You confirmed you received it');
 
         foreach (DB::table('order_items')->where('order_id', $orderId)->distinct()->pluck('seller_id') as $sellerId) {
             createNotification(

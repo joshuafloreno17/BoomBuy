@@ -114,7 +114,7 @@ class SellerController extends Controller
             ->distinct()
             ->count('orders.id');
 
-        $readyForPickup = $sellerOrderStatuses->where('status', 'Ready for Pickup')->count();
+        $toDropOff = $sellerOrderStatuses->where('status', 'Processing')->count();
 
         $lowStockCount = $products->filter(fn ($p) => (int) $p->sellable_stock <= 5)->count();
 
@@ -204,7 +204,7 @@ class SellerController extends Controller
                 'salesTrend',
                 'deliveredToday',
                 'toShipOld',
-                'readyForPickup',
+                'toDropOff',
                 'lowStockCount',
                 'rating',
                 'pendingReturns',
@@ -904,7 +904,7 @@ class SellerController extends Controller
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
         'to-ship' => ['label' => 'To Ship', 'statuses' => ['Ready for Pickup', 'Assigned']],
-        'shipped' => ['label' => 'Shipped', 'statuses' => ['Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
         'completed' => ['label' => 'Completed', 'statuses' => ['Delivered']],
         'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
@@ -1238,6 +1238,50 @@ class SellerController extends Controller
             fn (array $user) => $orders->updateStatus((int) $user['id'], (int) $id, (string) request('status'), (string) request('cancellation_reason'))
         );
     }
+
+    /** A printable shipping label for the seller's parcel: waybill no., QR, from/to and route. */
+    public function shippingLabel($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $order = DB::table('orders')->where('id', $id)->first();
+
+        $items = $order
+            ? DB::table('order_items')->where('order_id', $order->id)->where('seller_id', $user['id'])->get()
+            : collect();
+
+        if ($items->isEmpty()) {
+            abort(404);
+        }
+
+        $seller = DB::table('users')->where('id', $user['id'])->first();
+        $shopName = DB::table('seller_applications')->where('user_id', $user['id'])->value('business_name') ?: $seller->name;
+
+        $sellerTown = \App\Support\ParcelRoute::sellerLocation((int) $user['id']);
+        $origin = $order->origin_center_id
+            ? \App\Models\SortingCenter::find($order->origin_center_id)
+            : \App\Support\ParcelRoute::centerFor($sellerTown['province'], $sellerTown['city']);
+
+        $buyerTown = $order->shipping_province
+            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+            : \App\Support\PhLocations::locate($order->shipping_address);
+        $destination = $order->destination_center_id
+            ? \App\Models\SortingCenter::find($order->destination_center_id)
+            : ($buyerTown ? \App\Support\ParcelRoute::centerFor($buyerTown['province'], $buyerTown['city']) : null);
+
+        $waybill = \App\Support\Waybill::number((int) $order->id);
+        $scanUrl = route('logistics.scan', $waybill);
+        $isCod = \App\Support\CodPolicy::isCod((string) $order->payment_method);
+
+        return view('pages.seller.shipping-label', compact(
+            'order', 'items', 'seller', 'shopName', 'origin', 'destination', 'waybill', 'scanUrl', 'isCod'
+        ));
+    }
+
     public function confirmPickup($id, SellerOrderService $orders)
     {
         return $this->sellerOrderAction(fn (array $user) => $orders->confirmPickup((int) $user['id'], (int) $id));

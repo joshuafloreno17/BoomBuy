@@ -66,6 +66,8 @@ class AutoReceive
                 continue;
             }
 
+            OrderTimeline::log((int) $order->id, 'Delivered', 'Marked as received automatically', 'No issue reported within ' . self::DAYS . ' days of delivery');
+
             $marked++;
             $returnUntil = $receivedAt->copy()->addDays(self::RETURN_WINDOW_DAYS);
 

@@ -349,7 +349,11 @@
                             <strong>Free delivery</strong>
                             — this item alone already reaches ₱{{ number_format($freeDeliveryMin) }}
                         @else
-                            <strong>Delivery ₱{{ number_format($deliveryFee) }}</strong>
+                            @if(!empty($deliveryTo))
+                                <strong>Delivery ₱{{ number_format($deliveryFee) }} to {{ $deliveryTo }}</strong>
+                            @else
+                                <strong>Delivery from ₱{{ number_format($deliveryFee) }}</strong>
+                            @endif
                             — free on orders of ₱{{ number_format($freeDeliveryMin) }} and up from this shop
                         @endif
                     </span>

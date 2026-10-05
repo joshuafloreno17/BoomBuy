@@ -61,12 +61,16 @@
                 @if(!empty($addresses) && $addresses->count() > 0)
                     <div class="addr-pick" role="radiogroup" aria-label="Saved addresses">
                         @foreach($addresses as $addr)
+                            @php $addrParts = \App\Support\PhLocations::split($addr->address); @endphp
                             <label class="addr-pick-option">
                                 <input
                                     type="radio"
                                     name="saved_address"
                                     value="{{ $addr->id }}"
                                     data-address="{{ $addr->address }}"
+                                    data-province="{{ $addrParts['province'] }}"
+                                    data-city="{{ $addrParts['city'] }}"
+                                    data-street="{{ $addrParts['street'] }}"
                                     data-phone="{{ $addr->phone }}"
                                     @checked(!old('address') && $addr->is_default)
                                 >
@@ -121,17 +125,19 @@
 
                 <div class="form-group">
 
-                    <label>
+                    <label for="ship_province">
                         Delivery Address
                     </label>
 
-                    <input
-                        type="text"
-                        name="address"
-                        value="{{ old('address', $savedAddress ?? '') }}"
-                        placeholder="House No., Street, Barangay, City"
-                        required
-                    >
+                    @include('partials.address-fields', ['id' => 'ship', 'value' => old('address', $savedAddress ?? '')])
+
+                    <small class="address-locate {{ $deliveryTo ? 'is-found' : 'is-missing' }}" id="addressLocate" aria-live="polite">
+                        @if($deliveryTo)
+                            <i class="bi bi-geo-alt-fill"></i> Delivering to {{ trim(($deliveryTo['city'] ? $deliveryTo['city'] . ', ' : '') . str_replace(' (NCR)', '', $deliveryTo['province'])) }}
+                        @else
+                            <i class="bi bi-exclamation-circle"></i> Pick your province and city/municipality so we can route your parcel.
+                        @endif
+                    </small>
 
                 </div>
 
@@ -349,11 +355,15 @@
                             ({{ $parcelCount }} sellers)
                         @endif
                     </span>
-                    <strong>{{ $checkoutDeliveryFee > 0 ? '₱' . number_format($checkoutDeliveryFee, 2) : 'FREE' }}</strong>
+                    <strong id="deliveryFeeValue">{{ $checkoutDeliveryFee > 0 ? '₱' . number_format($checkoutDeliveryFee, 2) : 'FREE' }}</strong>
                 </div>
 
                 <div class="subtotal-row" style="font-size:11px; color:#6b6570;">
                     <span>
+                        <span id="deliveryZone">
+                            @php $zoneLabels = collect($checkoutPlan['orders'])->pluck('zone')->unique()->map(fn ($z) => \App\Support\ParcelRoute::ZONES[$z] ?? $z); @endphp
+                            {{ $deliveryTo ? 'Shipping distance: ' . $zoneLabels->implode(' / ') . '.' : 'The delivery fee depends on how far the seller is from you.' }}
+                        </span>
                         @if($parcelCount > 1)
                             Items from different sellers become separate orders, each shipped on its own.
                         @endif
@@ -374,7 +384,7 @@
                         Total
                     </span>
 
-                    <span class="total-price">
+                    <span class="total-price" id="totalValue">
 
                         ₱{{ number_format($checkoutFinalTotal, 2) }}
 
@@ -415,22 +425,72 @@
         var phone = document.querySelector('input[name="phone"]');
         if (!address || !phone) return;
 
+        var fields = document.querySelector('[data-address-fields]');
+        var applying = false;
+
         document.querySelectorAll('input[name="saved_address"]').forEach(function (radio) {
             radio.addEventListener('change', function () {
-                address.value = radio.dataset.address;
+                applying = true;
+                if (fields && fields.bbSetAddress) {
+                    fields.bbSetAddress({ province: radio.dataset.province, city: radio.dataset.city, street: radio.dataset.street });
+                } else {
+                    address.value = radio.dataset.address;
+                }
                 phone.value = radio.dataset.phone;
+                applying = false;
             });
         });
 
-        // Typing a different address un-picks the saved one.
+        // Changing the address by hand un-picks the saved one.
         [address, phone].forEach(function (input) {
             input.addEventListener('input', function () {
+                if (applying) return;
                 document.querySelectorAll('input[name="saved_address"]:checked').forEach(function (radio) {
                     if (radio.dataset.address !== address.value || radio.dataset.phone !== phone.value) {
                         radio.checked = false;
                     }
                 });
             });
+        });
+
+        // The delivery fee depends on the distance from each seller to the
+        // address — re-price it whenever the address changes.
+        var locate = document.getElementById('addressLocate');
+        var feeEl = document.getElementById('deliveryFeeValue');
+        var totalEl = document.getElementById('totalValue');
+        var zoneEl = document.getElementById('deliveryZone');
+        var timer = null;
+        var peso = function (n) {
+            return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        };
+
+        function quote() {
+            fetch(@json(route('checkout.quote')) + '?address=' + encodeURIComponent(address.value), {
+                headers: { 'Accept': 'application/json' }
+            })
+                .then(function (r) { return r.ok ? r.json() : null; })
+                .then(function (q) {
+                    if (!q) return;
+                    feeEl.textContent = q.delivery_fee > 0 ? peso(q.delivery_fee) : 'FREE';
+                    totalEl.textContent = peso(q.total);
+                    zoneEl.textContent = q.located
+                        ? 'Shipping distance: ' + q.zones.join(' / ') + '.'
+                        : 'The delivery fee depends on how far the seller is from you.';
+                    locate.className = 'address-locate ' + (q.located ? 'is-found' : 'is-missing');
+                    locate.innerHTML = q.located
+                        ? '<i class="bi bi-geo-alt-fill"></i> Delivering to ' + q.located.replace(/</g, '&lt;')
+                        : '<i class="bi bi-exclamation-circle"></i> Pick your province and city/municipality so we can route your parcel.';
+                })
+                .catch(function () {});
+        }
+
+        address.addEventListener('input', function () {
+            clearTimeout(timer);
+            timer = setTimeout(quote, 400);
+        });
+
+        document.querySelectorAll('input[name="saved_address"]').forEach(function (radio) {
+            radio.addEventListener('change', quote);
         });
     })();
     </script>

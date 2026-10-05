@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-/** What a rider earns per delivery. Who may send it is checked by the controller. */
+/** The four delivery fees, one per distance tier (see App\Support\DeliveryFee::ZONE_SETTINGS). */
 class DeliveryFeeRequest extends FormRequest
 {
     public function authorize(): bool
@@ -15,7 +15,10 @@ class DeliveryFeeRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'delivery_fee' => 'required|numeric|min:0',
+            'delivery_fee' => 'required|numeric|min:0|max:10000',
+            'delivery_fee_province' => 'required|numeric|min:0|max:10000',
+            'delivery_fee_island' => 'required|numeric|min:0|max:10000',
+            'delivery_fee_far' => 'required|numeric|min:0|max:10000',
         ];
     }
 }

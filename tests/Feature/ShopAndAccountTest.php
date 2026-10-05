@@ -144,8 +144,8 @@ class ShopAndAccountTest extends TestCase
     {
         $buyer = $this->makeUser();
 
-        $this->actingAsUser($buyer)->post(route('buyer.addresses.store'), ['label' => 'Home', 'phone' => '09171234567', 'address' => '1 Rizal St']);
-        $this->actingAsUser($buyer)->post(route('buyer.addresses.store'), ['label' => 'Work', 'phone' => '09998887777', 'address' => '99 IT Park']);
+        $this->actingAsUser($buyer)->post(route('buyer.addresses.store'), ['label' => 'Home', 'phone' => '09171234567', 'address' => '1 Rizal St, Santa Cruz, Laguna']);
+        $this->actingAsUser($buyer)->post(route('buyer.addresses.store'), ['label' => 'Work', 'phone' => '09998887777', 'address' => '99 IT Park, Cebu City']);
 
         $home = \App\Models\BuyerAddress::where('label', 'Home')->first();
         $work = \App\Models\BuyerAddress::where('label', 'Work')->first();

@@ -620,6 +620,23 @@ class ShopController extends Controller
         $deliveryFee = \App\Support\DeliveryFee::baseFee();
         $freeDeliveryMin = \App\Support\DeliveryFee::FREE_SHIPPING_MIN;
 
+        // A logged-in buyer sees the fee to their own default address
+        // (by distance from the seller's town); everyone else "from ₱…".
+        $deliveryTo = null;
+        $viewer = session()->get('user');
+
+        if ($viewer && ($viewer['role'] ?? '') === 'buyer' && $product->seller_id) {
+            $buyerAddress = \App\Models\BuyerAddress::where('user_id', $viewer['id'])->where('is_default', true)->value('address')
+                ?? DB::table('users')->where('id', $viewer['id'])->value('address');
+            $town = \App\Support\PhLocations::locate($buyerAddress);
+
+            if ($town) {
+                $zone = \App\Support\ParcelRoute::zone(\App\Support\ParcelRoute::sellerLocation((int) $product->seller_id), $town);
+                $deliveryFee = \App\Support\DeliveryFee::zoneFee($zone);
+                $deliveryTo = trim(($town['city'] ? $town['city'] . ', ' : '') . str_replace(' (NCR)', '', $town['province']));
+            }
+        }
+
         // Wishlist state (false for guests)
         $sessionUser = session()->get('user');
 
@@ -661,6 +678,7 @@ class ShopController extends Controller
                 'shop',
                 'moreFromSeller',
                 'deliveryFee',
+                'deliveryTo',
                 'freeDeliveryMin'
             )
         );

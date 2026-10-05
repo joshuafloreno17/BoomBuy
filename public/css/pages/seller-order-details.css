@@ -458,3 +458,272 @@ footer {
 .card > .status-pill:first-child {
     margin-bottom: 14px;
 }
+
+/* =========================================
+   UPDATE STATUS — progress tracker
+========================================= */
+
+.status-track {
+    list-style: none;
+
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+
+    margin: 22px 0 6px;
+    padding: 0;
+}
+
+.status-track li {
+    position: relative;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+
+    text-align: center;
+}
+
+/* connector line to the previous step */
+.status-track li + li::before {
+    content: "";
+
+    position: absolute;
+    top: 16px;
+    right: 50%;
+
+    width: 100%;
+    height: 3px;
+
+    background: #eee4de;
+
+    z-index: 0;
+}
+
+.status-track li.is-done + li::before {
+    background: var(--teal, #0d9488);
+}
+
+.status-track-dot {
+    position: relative;
+    z-index: 1;
+
+    width: 34px;
+    height: 34px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+    border: 2px solid #e6dad3;
+
+    background: #ffffff;
+    color: #a99ea4;
+
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.status-track-label {
+    color: #8a7f86;
+
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 1.3;
+}
+
+.status-track li.is-done .status-track-dot {
+    border-color: var(--teal, #0d9488);
+
+    background: var(--teal, #0d9488);
+    color: #ffffff;
+
+    font-size: 16px;
+}
+
+.status-track li.is-done .status-track-label {
+    color: var(--teal-dark, #0a6f66);
+}
+
+.status-track li.is-current .status-track-dot {
+    border-color: var(--orange);
+
+    background: #fff1ea;
+    color: var(--orange-dark);
+
+    box-shadow: 0 0 0 5px rgba(243, 79, 29, .12);
+}
+
+.status-track li.is-current .status-track-label {
+    color: var(--text, #1b1a1f);
+
+    font-weight: 800;
+}
+
+.status-next-note {
+    margin-top: 10px;
+
+    color: #6b6570;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.status-stopped {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+
+    margin-top: 18px;
+    padding: 14px 16px;
+
+    border: 1px solid #f6d3cc;
+    border-radius: 12px;
+
+    background: #fff4f1;
+    color: #8c2a14;
+
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.status-stopped i {
+    font-size: 18px;
+    color: #d63a1c;
+}
+
+.status-stopped span {
+    display: block;
+    color: #6b6570;
+}
+
+.status-cancel {
+    margin-top: 16px;
+    padding-top: 14px;
+
+    border-top: 1px dashed #eee4de;
+}
+
+.status-cancel summary {
+    width: fit-content;
+
+    color: #c2331a;
+
+    font-size: 13px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.status-cancel form {
+    margin-top: 12px;
+}
+
+.status-cancel label {
+    display: block;
+
+    margin-bottom: 6px;
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.status-cancel textarea {
+    width: 100%;
+    min-height: 74px;
+
+    margin-bottom: 12px;
+    padding: 10px 12px;
+
+    border: 1px solid #dbd3d1;
+    border-radius: 10px;
+
+    font-family: inherit;
+    font-size: 13px;
+
+    resize: vertical;
+}
+
+.status-cancel textarea:focus {
+    outline: none;
+    border-color: #d63a1c;
+    box-shadow: 0 0 0 3px rgba(214, 58, 28, .1);
+}
+
+button.btn-danger {
+    background: #ffffff;
+    color: #c2331a;
+
+    border: 1.5px solid #f2b8ab;
+}
+
+button.btn-danger:hover {
+    background: #fff1ee;
+    box-shadow: none;
+}
+
+@media (max-width: 600px) {
+    .status-track-label {
+        font-size: 10.5px;
+    }
+
+    .status-track-dot {
+        width: 28px;
+        height: 28px;
+    }
+
+    .status-track li + li::before {
+        top: 13px;
+    }
+}
+
+/* Where the seller brings the parcel */
+.dropoff-box {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+
+    margin: 16px 0 4px;
+    padding: 12px 14px;
+
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+
+    background: #fffaf7;
+
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.dropoff-box i {
+    font-size: 18px;
+    color: var(--orange);
+}
+
+.dropoff-box strong {
+    display: block;
+    color: var(--text, #1b1a1f);
+}
+
+.dropoff-box span {
+    color: #6b6570;
+}
+
+.dropoff-box .dropoff-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 8px;
+    padding: 7px 12px;
+    border: 1.5px solid #1b1a1f;
+    border-radius: 10px;
+    color: #1b1a1f;
+    font-size: 12px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.dropoff-box .dropoff-label:hover {
+    background: #1b1a1f;
+    color: #ffffff;
+}

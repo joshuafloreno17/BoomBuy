@@ -487,8 +487,10 @@
                                     'Processing',
                                     'Ready for Pickup',
                                     'Assigned',
+                                    'Dropped Off',
                                     'Picked Up',
                                     'At Sorting Center',
+                                    'In Transit',
                                     'Assigned for Delivery',
                                     'Out for Delivery' =>
                                         'processing',

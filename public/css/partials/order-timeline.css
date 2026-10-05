@@ -1,0 +1,80 @@
+/* An order's trip, newest first (partials/order-timeline). */
+
+.order-timeline {
+    list-style: none;
+    margin: 14px 0 18px;
+    padding: 0;
+}
+
+.order-timeline li {
+    position: relative;
+    display: flex;
+    gap: 12px;
+    padding-bottom: 14px;
+}
+
+/* the line down to the previous step */
+.order-timeline li:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    bottom: 0;
+    left: 5px;
+    width: 2px;
+    background: #efe3dc;
+}
+
+.order-timeline-dot {
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 12px;
+    height: 12px;
+    margin-top: 3px;
+    border-radius: 50%;
+    background: #d9cdc6;
+}
+
+.order-timeline li.is-latest .order-timeline-dot {
+    background: #e8420f;
+    box-shadow: 0 0 0 4px rgba(232, 66, 15, .15);
+}
+
+.order-timeline li.is-done .order-timeline-dot {
+    background: #0d9488;
+    box-shadow: 0 0 0 4px rgba(13, 148, 136, .15);
+}
+
+.order-timeline li.is-bad .order-timeline-dot {
+    background: #dc2626;
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, .12);
+}
+
+.order-timeline-body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+    font-size: 13px;
+    line-height: 1.45;
+}
+
+.order-timeline-body strong {
+    color: #1b1a1f;
+    font-weight: 700;
+}
+
+.order-timeline li:not(.is-latest) .order-timeline-body strong {
+    color: #4b4550;
+    font-weight: 600;
+}
+
+.order-timeline-body span {
+    color: #6b6570;
+    overflow-wrap: anywhere;
+}
+
+.order-timeline-body time {
+    color: #8a7f86;
+    font-size: 12px;
+}

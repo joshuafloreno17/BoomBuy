@@ -60,18 +60,23 @@
         <!-- RIDER DELIVERY FEE -->
 
         <div class="card">
-            <h2><i class="bi bi-bicycle"></i> Rider Delivery Fee</h2>
-            <p class="desc">Set how much a rider earns per completed delivery. Used in the rider Profit dashboard.</p>
+            <h2><i class="bi bi-bicycle"></i> Delivery Fees</h2>
+            <p class="desc">What the buyer pays per seller's parcel, by how far it travels from the seller's town. Orders of ₱{{ number_format(\App\Support\DeliveryFee::FREE_SHIPPING_MIN) }} and up ship free. The same-town fee is also what a rider earns per completed delivery (rider Profit dashboard).</p>
 
             <form method="POST" action="{{ route('admin.settings.delivery-fee.update') }}">
                 @csrf
 
-                <div class="form-group" style="max-width:180px;">
-                    <label for="delivery_fee">Delivery Fee (₱)</label>
-                    <input type="text" id="delivery_fee" name="delivery_fee" value="{{ old('delivery_fee', $deliveryFee) }}" placeholder="50" required>
+                <div class="fee-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(160px, 1fr)); gap:12px;">
+                    @foreach (\App\Support\ParcelRoute::ZONES as $zone => $label)
+                        @php [$key, $default] = \App\Support\DeliveryFee::ZONE_SETTINGS[$zone]; @endphp
+                        <div class="form-group">
+                            <label for="{{ $key }}">{{ $label }} (₱)</label>
+                            <input type="text" id="{{ $key }}" name="{{ $key }}" value="{{ old($key, \App\Models\PlatformSetting::get($key, $default)) }}" placeholder="{{ $default }}" required>
+                        </div>
+                    @endforeach
                 </div>
 
-                <button type="submit" class="save-btn">Save Delivery Fee</button>
+                <button type="submit" class="save-btn">Save Delivery Fees</button>
             </form>
         </div>
 

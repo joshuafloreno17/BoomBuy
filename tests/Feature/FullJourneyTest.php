@@ -109,16 +109,11 @@ class FullJourneyTest extends TestCase
 
         // Seller prepares it
         $this->actingAsUser($this->seller)->post(route('seller.order.status', $this->orderId), ['status' => 'Processing']);
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $this->orderId), ['status' => 'Ready for Pickup']);
-        $this->assertSame('Ready for Pickup', $this->orderNow());
-        $this->everyoneSeesTheOrder('Ready for Pickup');
+        $this->actingAsUser($this->seller)->post(route('seller.order.status', $this->orderId), ['status' => 'Dropped Off']);
+        $this->assertSame('Dropped Off', $this->orderNow());
+        $this->everyoneSeesTheOrder('Dropped Off');
 
-        // Pickup rider → Sorting Center
-        $this->actingAsUser($this->pickupRider)->post(route('rider.delivery.claim', $this->orderId))->assertSessionHas('success');
-        $this->everyoneSeesTheOrder('Assigned');
-        $this->actingAsUser($this->pickupRider)->post(route('rider.delivery.confirm-pickup', $this->orderId))->assertSessionHas('success');
-        $this->everyoneSeesTheOrder('Picked Up');
-
+        // The seller brought it to the Sorting Center (head office staff here).
         $this->actingAsUser($this->logistics)->post(route('logistics.parcels.confirm-received', $this->orderId))->assertSessionHas('success');
         $this->everyoneSeesTheOrder('At Sorting Center');
         $this->actingAsUser($this->logistics)

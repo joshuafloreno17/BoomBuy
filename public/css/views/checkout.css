@@ -374,3 +374,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         color: #c2380f;
         text-decoration: none;
     }
+
+/* Whether we found the town in the delivery address */
+.address-locate {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+    margin-top: 6px;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.address-locate.is-found {
+    color: #0a6f66;
+}
+
+.address-locate.is-missing {
+    color: #b45309;
+}

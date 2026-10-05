@@ -676,11 +676,11 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $fee = $request->validated('delivery_fee');
+        foreach (\App\Support\DeliveryFee::ZONE_SETTINGS as [$key]) {
+            PlatformSetting::set($key, (string) $request->validated($key));
+        }
 
-        PlatformSetting::set('delivery_fee', (string) $fee);
-
-        return back()->with('success', 'Rider delivery fee updated to ₱' . $fee . '.');
+        return back()->with('success', 'Delivery fees updated.');
     }
 
     public function storeAnnouncement(AnnouncementRequest $request)
@@ -1064,7 +1064,7 @@ class AdminController extends Controller
         )->get()->groupBy('rider_id');
 
         $awaitingConfirmation = DB::table('orders')
-            ->where('status', 'Picked Up')
+            ->whereIn('status', ['Dropped Off', 'Picked Up'])
             ->orderBy('updated_at')
             ->get();
 
@@ -1183,7 +1183,7 @@ class AdminController extends Controller
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
         'to-pickup' => ['label' => 'For Pickup', 'statuses' => ['Ready for Pickup', 'Assigned']],
-        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery']],
         'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
         'delivered' => ['label' => 'Delivered', 'statuses' => ['Delivered']],
         'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
@@ -1364,6 +1364,7 @@ class AdminController extends Controller
         }
 
         OrderStock::cancelled((int) $id, $order->status);
+        \App\Support\OrderTimeline::log((int) $id, 'Cancelled', 'Cancelled by BoomBuy', $reason);
         \App\Support\ChatAutomation::orderUpdate((int) $id, 'cancelled');
 
         createNotification(

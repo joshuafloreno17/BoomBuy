@@ -262,6 +262,8 @@
                     Shipment Tracking
                 </h2>
 
+                @include('partials.order-timeline', ['steps' => \App\Support\OrderTimeline::forOrders([(int) $order['id']])->get((int) $order['id'])])
+
                 <div class="info-grid">
 
                     <div class="info-box">
@@ -274,6 +276,10 @@
                         <div class="value">
                             @if($assignedRider)
                                 {{ $assignedRider->name }}
+                            @elseif(in_array($order['status'] ?? '', ['Pending', 'Processing'], true))
+                                None — you bring this parcel to the Sorting Center
+                            @elseif(in_array($order['status'] ?? '', ['Dropped Off', 'At Sorting Center'], true))
+                                The Sorting Center will assign a delivery rider
                             @elseif(in_array($order['status'] ?? '', ['Ready for Pickup']))
                                 Waiting for a courier to accept this delivery…
                             @else
@@ -326,63 +332,153 @@
                     Update Order Status
                 </h2>
 
-                @php $currentStatus = $order['status'] ?? ''; @endphp
+                @php
+                    $currentStatus = $order['status'] ?? '';
 
-                @if(!in_array($currentStatus, ['Pending', 'Processing'], true))
+                    // Where each status sits on the seller's 5-step tracker (0-based).
+                    $stepOf = [
+                        'Pending' => 0,
+                        'Processing' => 1,
+                        'Dropped Off' => 2,
+                        // Older orders that still went through a pickup rider.
+                        'Ready for Pickup' => 2,
+                        'Assigned' => 2,
+                        'Picked Up' => 2,
+                        'At Sorting Center' => 3,
+                        'In Transit' => 3,
+                        'Assigned for Delivery' => 3,
+                        'Out for Delivery' => 3,
+                        'Delivery Failed' => 3,
+                        'Delivered' => 4,
+                        'Completed' => 4,
+                    ];
+                    $trackSteps = ['Order placed', 'Processing', 'Dropped off', 'In transit', 'Delivered'];
 
-                    <p style="color:#6b6570; font-size:13px; line-height:1.6;">
-                        <i class="bi bi-info-circle"></i>
-                        This order is <strong>{{ $currentStatus }}</strong>.
-                        @if(in_array($currentStatus, ['Ready for Pickup', 'Assigned'], true))
-                            Keep the parcel ready — a rider will collect it. There's nothing more for you to update.
-                        @else
-                            From here the rider, Sorting Center or buyer moves it along — there's nothing for you to update.
-                        @endif
-                    </p>
+                    // Where this seller brings the parcel: the Sorting Center of their town.
+                    $sellerTown = \App\Support\ParcelRoute::sellerLocation((int) $user['id']);
+                    $dropOffCenter = !empty($order['origin_center_id'])
+                        ? \App\Models\SortingCenter::find($order['origin_center_id'])
+                        : \App\Support\ParcelRoute::centerFor($sellerTown['province'], $sellerTown['city']);
+
+                    $stoppedStatus = !isset($stepOf[$currentStatus]);
+                    $currentStep = $stepOf[$currentStatus] ?? -1;
+                    $allDone = $currentStep === 4;
+
+                    // The one thing the seller can do next, and what the buyer is told.
+                    $nextAction = match ($currentStatus) {
+                        'Pending' => ['status' => 'Processing', 'label' => 'Start Processing', 'icon' => 'bi-box-seam', 'note' => 'The buyer will be told you are now preparing their order.'],
+                        'Processing' => ['status' => 'Dropped Off', 'label' => 'Dropped Off at ' . ($dropOffCenter->name ?? 'Sorting Center'), 'icon' => 'bi-box-arrow-in-right', 'note' => 'Bring the packed parcel to the Sorting Center, then tap this. The buyer will be told it has shipped, and the Sorting Center will confirm they received it.', 'confirm' => 'Confirm you handed order #' . $order['id'] . ' to ' . ($dropOffCenter->name ?? 'the Sorting Center') . '?'],
+                        default => null,
+                    };
+                @endphp
+
+                @if($stoppedStatus)
+
+                    <div class="status-stopped">
+                        <i class="bi bi-x-octagon-fill"></i>
+                        <div>
+                            This order is <strong>{{ $currentStatus ?: 'unknown' }}</strong>.
+                            @if(!empty($order['cancellation_reason']))
+                                <span>Reason: {{ $order['cancellation_reason'] }}</span>
+                            @endif
+                        </div>
+                    </div>
 
                 @else
 
-                <form
-                    method="POST"
-                    action="{{ route('seller.order.status', $order['id']) }}"
-                >
+                    <ol class="status-track" aria-label="Order progress">
+                        @foreach($trackSteps as $i => $label)
+                            @php
+                                $state = ($i < $currentStep || ($allDone && $i === 4)) ? 'is-done' : ($i === $currentStep ? 'is-current' : '');
+                            @endphp
+                            <li class="{{ $state }}" @if($i === $currentStep) aria-current="step" @endif>
+                                <span class="status-track-dot">
+                                    @if($state === 'is-done')
+                                        <i class="bi bi-check-lg"></i>
+                                    @else
+                                        {{ $i + 1 }}
+                                    @endif
+                                </span>
+                                <span class="status-track-label">{{ $label }}</span>
+                            </li>
+                        @endforeach
+                    </ol>
 
-                    @csrf
+                    @if(in_array($currentStatus, ['Pending', 'Processing'], true))
+                        <div class="dropoff-box">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <div>
+                                <strong>Drop off at: {{ $dropOffCenter->name ?? 'No Sorting Center in your area yet' }}</strong>
+                                <span>
+                                    @if($dropOffCenter)
+                                        {{ $dropOffCenter->address ?: $dropOffCenter->town }}
+                                    @else
+                                        BoomBuy hasn't opened a Sorting Center near your shop's town yet — contact support before dropping this off.
+                                    @endif
+                                </span>
+                                <a href="{{ route('seller.order.label', $order['id']) }}" target="_blank" rel="noopener" class="dropoff-label">
+                                    <i class="bi bi-printer-fill"></i> Print shipping label ({{ \App\Support\Waybill::number((int) $order['id']) }})
+                                </a>
+                            </div>
+                        </div>
+                    @endif
 
-                    <select name="status" id="sellerStatusSelect" required onchange="document.getElementById('cancellationReasonBox').style.display = this.value === 'Cancelled' ? 'block' : 'none';">
+                    @if($nextAction)
 
-                        <option value="">
-                            Select Status
-                        </option>
+                        <form
+                            method="POST"
+                            action="{{ route('seller.order.status', $order['id']) }}"
+                            @if(!empty($nextAction['confirm']))
+                                data-confirm="{{ $nextAction['confirm'] }}"
+                                data-confirm-ok="Yes, Dropped Off"
+                            @endif
+                        >
+                            @csrf
+                            <input type="hidden" name="status" value="{{ $nextAction['status'] }}">
+                            <button type="submit">
+                                <i class="bi {{ $nextAction['icon'] }}"></i> {{ $nextAction['label'] }}
+                            </button>
+                            <p class="status-next-note">
+                                <i class="bi bi-bell"></i> {{ $nextAction['note'] }}
+                            </p>
+                        </form>
 
-                        @if($currentStatus === 'Pending')
-                            <option value="Processing">
-                                Processing
-                            </option>
-                        @else
-                            <option value="Ready for Pickup">
-                                Ready for Pickup
-                            </option>
-                        @endif
+                        <details class="status-cancel">
+                            <summary>Can't fulfil this order? Cancel it</summary>
 
-                        <option value="Cancelled">
-                            Cancelled (e.g. out of stock)
-                        </option>
+                            <form
+                                method="POST"
+                                action="{{ route('seller.order.status', $order['id']) }}"
+                                data-confirm="Cancel order #{{ $order['id'] }}? The buyer will be notified with your reason and the stock will be returned."
+                                data-confirm-ok="Cancel Order"
+                                data-confirm-danger
+                            >
+                                @csrf
+                                <input type="hidden" name="status" value="Cancelled">
+                                <label for="cancellationReason">Reason for cancellation</label>
+                                <textarea id="cancellationReason" name="cancellation_reason" placeholder="e.g. Item is out of stock" required></textarea>
+                                <button type="submit" class="btn-danger">
+                                    <i class="bi bi-x-circle"></i> Cancel Order
+                                </button>
+                            </form>
+                        </details>
 
-                    </select>
+                    @else
 
-                    <div id="cancellationReasonBox" style="display:none; margin-top:10px;">
-                        <label style="font-size:13px; font-weight:700; display:block; margin-bottom:6px;">
-                            Reason for cancellation
-                        </label>
-                        <textarea name="cancellation_reason" placeholder="e.g. Item is out of stock" style="width:100%; min-height:70px; padding:10px; border:1px solid #f0e2da; border-radius:8px; font-family:inherit; font-size:13px;"></textarea>
-                    </div>
+                        <p class="status-next-note">
+                            <i class="bi bi-info-circle"></i>
+                            @if($allDone)
+                                This order has been delivered. Nothing left for you to do.
+                            @elseif($currentStatus === 'Dropped Off')
+                                You dropped this off. Waiting for the Sorting Center to confirm they received it — from there they send it to the buyer.
+                            @elseif(in_array($currentStatus, ['Ready for Pickup', 'Assigned'], true))
+                                Keep the parcel ready — a rider will collect it. There's nothing more for you to update.
+                            @else
+                                Currently <strong>{{ $currentStatus }}</strong>. The Sorting Center and delivery rider move it along from here.
+                            @endif
+                        </p>
 
-                    <button type="submit">
-                        Update Order Status
-                    </button>
-
-                </form>
+                    @endif
 
                 @endif
 

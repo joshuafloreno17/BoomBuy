@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * Messages the shop "sends" by itself in the buyer–seller chat:
  *  - an auto-reply when a buyer writes and the seller hasn't replied lately;
- *  - order updates (placed, ready for pickup, out for delivery, delivered,
+ *  - order updates (placed, processing, dropped off, out for delivery, delivered,
  *    cancelled) shown as an order card.
  * They are saved as already read, so they never add to the unread badges
  * (the bell already announces order changes).
@@ -22,6 +22,8 @@ class ChatAutomation
 
     private const ORDER_TEXT = [
         'placed' => 'Thanks for your order #%d! We received it and will start preparing it soon.',
+        'processing' => 'Good news! We are now preparing your order #%d.',
+        'dropped_off' => 'Your order #%d is packed and on its way — we dropped it off at the Sorting Center.',
         'ready' => 'Your order #%d is packed and ready for pickup. A rider will collect it soon.',
         'out_for_delivery' => 'Your order #%d is out for delivery — it is on its way to you!',
         'delivered' => 'Your order #%d has been delivered. Enjoy, and please confirm once you have received it.',

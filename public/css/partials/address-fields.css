@@ -1,0 +1,56 @@
+/* Province → City/Municipality → street (partials/address-fields). */
+
+.addr-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.addr-fields-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.addr-fields-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.addr-fields-cell > span {
+    color: #6b6570;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.addr-fields select,
+.addr-fields input[type="text"] {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #e6dad3;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1b1a1f;
+    font-family: inherit;
+    font-size: 14px;
+}
+
+.addr-fields select:disabled {
+    background: #faf6f3;
+    color: #a99ea4;
+}
+
+.addr-fields select:focus,
+.addr-fields input[type="text"]:focus {
+    outline: none;
+    border-color: #e8420f;
+    box-shadow: 0 0 0 3px rgba(232, 66, 15, .1);
+}
+
+@media (max-width: 560px) {
+    .addr-fields-row {
+        grid-template-columns: 1fr;
+    }
+}

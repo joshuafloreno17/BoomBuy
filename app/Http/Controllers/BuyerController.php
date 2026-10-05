@@ -23,7 +23,9 @@ class BuyerController extends Controller
         'Processing' => [2, 'Seller is packing your order.'],
         'Ready for Pickup' => [2, 'Packed and waiting for a rider.'],
         'Assigned' => [2, 'A rider is on the way to the seller.'],
+        'Dropped Off' => [3, 'Seller dropped it off — heading into the Sorting Center.'],
         'Picked Up' => [3, 'Picked up — heading to the Sorting Center.'],
+        'In Transit' => [3, 'On its way to the Sorting Center near you.'],
         'At Sorting Center' => [3, 'At the Sorting Center.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
@@ -32,7 +34,7 @@ class BuyerController extends Controller
 
     private const TO_SHIP_STATUSES = ['Pending', 'Processing', 'Ready for Pickup'];
 
-    private const TO_RECEIVE_STATUSES = ['Assigned', 'Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery'];
+    private const TO_RECEIVE_STATUSES = ['Assigned', 'Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery'];
 
     public function dashboard()
     {
@@ -383,10 +385,21 @@ class BuyerController extends Controller
                 ->with('error', 'This phone number is already registered.');
         }
 
+        // The town and province decide which Sorting Center delivers there.
+        $town = \App\Support\PhLocations::locate($address);
+
+        if (!$town) {
+            return back()
+                ->withInput()
+                ->with('error', 'Pick your province and city/municipality for the address.');
+        }
+
         $dbUser = User::find($user['id']);
         $dbUser->name = $name;
         $dbUser->phone = $phone;
         $dbUser->address = $address;
+        $dbUser->province = $town['province'];
+        $dbUser->city_municipality = $town['city'] ?? $dbUser->city_municipality;
         $dbUser->save();
 
         // Keep the session copy in sync so the navbar/name display updates too
@@ -667,9 +680,12 @@ class BuyerController extends Controller
         $codStatus = CodPolicy::status((int) $user['id']);
         $cancelReasons = CodPolicy::CANCEL_REASONS;
 
+        // Each order's trip so far: when and where (Sorting Centers included).
+        $timelines = \App\Support\OrderTimeline::forOrders(array_map('intval', array_column($orders, 'id')));
+
         return view(
             'pages.buyer.orders',
-            compact('user', 'orders', 'codStatus', 'cancelReasons')
+            compact('user', 'orders', 'codStatus', 'cancelReasons', 'timelines')
         );
     }
 

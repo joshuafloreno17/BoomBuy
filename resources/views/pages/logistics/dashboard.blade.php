@@ -22,9 +22,9 @@
 
             @php
                 $steps = [
-                    ['label' => 'Ready for pickup', 'count' => $pipeline['Ready for Pickup']['count'] ?? 0, 'note' => 'At the seller', 'url' => route('logistics.parcels')],
-                    ['label' => 'Picked up', 'count' => $pipeline['Picked Up']['count'] ?? 0, 'note' => 'Confirm when they arrive', 'url' => route('logistics.parcels') . '#awaiting-confirmation'],
-                    ['label' => 'Needs a rider', 'count' => $pipeline['At Sorting Center']['count'] ?? 0, 'note' => 'At the Sorting Center', 'url' => route('logistics.parcels') . '#awaiting-assignment', 'hot' => true],
+                    ['label' => 'Dropped off', 'count' => ($pipeline['Dropped Off']['count'] ?? 0) + ($pipeline['Picked Up']['count'] ?? 0), 'note' => 'Confirm when they arrive', 'url' => route('logistics.parcels') . '#awaiting-confirmation'],
+                    ['label' => 'Between centers', 'count' => $pipeline['In Transit']['count'] ?? 0, 'note' => 'Confirm when they arrive', 'url' => route('logistics.parcels') . '#incoming'],
+                    ['label' => 'At a center', 'count' => $pipeline['At Sorting Center']['count'] ?? 0, 'note' => 'Dispatch or assign a rider', 'url' => route('logistics.parcels') . '#awaiting-assignment', 'hot' => true],
                     ['label' => 'Out for delivery', 'count' => ($pipeline['Assigned for Delivery']['count'] ?? 0) + ($pipeline['Out for Delivery']['count'] ?? 0), 'note' => 'On the road now', 'url' => route('logistics.parcels')],
                     ['label' => 'Delivered today', 'count' => $deliveredToday, 'note' => $failedToday > 0 ? $failedToday . ' failed today' : 'No failed attempts', 'url' => route('logistics.parcels')],
                 ];

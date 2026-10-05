@@ -13,6 +13,7 @@ use App\Http\Controllers\LogisticsController;
 use App\Http\Controllers\SellerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\SortingCenterController;
 
 // Helper functions (requireUserRole, cart helpers, OTP…) live in
 // app/Helpers/helpers.php, autoloaded via composer.json.
@@ -247,6 +248,12 @@ Route::post('/admin/settings/commission', [AdminController::class, 'updateCommis
 
 Route::post('/admin/settings/delivery-fee', [AdminController::class, 'updateDeliveryFee'])->name('admin.settings.delivery-fee.update');
 
+// Sorting Centers: one per town; which center each logistics account works at.
+Route::get('/admin/sorting-centers', [SortingCenterController::class, 'index'])->name('admin.sorting-centers');
+Route::post('/admin/sorting-centers', [SortingCenterController::class, 'store'])->name('admin.sorting-centers.store');
+Route::post('/admin/sorting-centers/{id}/toggle', [SortingCenterController::class, 'toggle'])->name('admin.sorting-centers.toggle');
+Route::post('/admin/sorting-centers/staff/{userId}', [SortingCenterController::class, 'assignStaff'])->name('admin.sorting-centers.staff');
+
 
 Route::post('/admin/settings/announcements', [AdminController::class, 'storeAnnouncement'])->name('admin.settings.announcements.store');
 
@@ -440,6 +447,9 @@ Route::get('/seller/order/{id}/waybill', [SellerController::class, 'orderWaybill
 Route::post('/seller/order/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('seller.order.status');
 
 
+// Printable shipping label (waybill no. + QR) to stick on the parcel before drop-off.
+Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'])->whereNumber('id')->name('seller.order.label');
+
 Route::post('/seller/order/{id}/confirm-pickup', [SellerController::class, 'confirmPickup'])->name('seller.order.confirm-pickup');
 
 /*
@@ -583,6 +593,8 @@ Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
 | PLACE ORDER
 |--------------------------------------------------------------------------
 */
+
+Route::get('/checkout/delivery-quote', [CartController::class, 'deliveryQuote'])->name('checkout.quote');
 
 Route::post('/checkout/place-order', [CartController::class, 'placeOrder'])->name('checkout.place');
 
@@ -760,6 +772,13 @@ Route::get('/logistics/parcels', [LogisticsController::class, 'parcels'])->name(
 
 Route::post('/logistics/parcels/{id}/confirm-received', [LogisticsController::class, 'confirmParcelReceived'])->name('logistics.parcels.confirm-received');
 
+
+// A scanned shipping label's QR code lands here.
+Route::get('/logistics/scan/{code}', [LogisticsController::class, 'scanParcel'])->name('logistics.scan');
+
+Route::post('/logistics/parcels/{id}/dispatch', [LogisticsController::class, 'dispatchParcel'])->name('logistics.parcels.dispatch');
+
+Route::post('/logistics/parcels/{id}/confirm-arrival', [LogisticsController::class, 'confirmParcelArrival'])->name('logistics.parcels.confirm-arrival');
 
 Route::post('/logistics/parcels/{id}/assign', [LogisticsController::class, 'assignParcel'])->name('logistics.parcels.assign');
 

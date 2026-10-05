@@ -1,0 +1,283 @@
+/* Admin → Sorting Centers. Base layout comes from pages/admin-logistics.css. */
+
+.stat-card strong small {
+    color: #8a7f86;
+    font-family: 'Figtree', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.footer {
+    text-align: center;
+    color: #8a7f86;
+    font-size: 11px;
+    margin: 30px 0;
+}
+
+.sc-flash {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-bottom: 18px;
+    padding: 12px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.sc-flash.is-ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.sc-flash.is-error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+}
+
+.sc-card {
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    padding: 22px;
+    margin-bottom: 20px;
+}
+
+.sc-card h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+}
+
+.sc-card h2 i {
+    color: #e8420f;
+}
+
+.sc-note {
+    color: #6b6570;
+    font-size: 12px;
+    margin: 6px 0 12px;
+}
+
+/* Open a center */
+.sc-add {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.sc-add label {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.sc-add label em {
+    color: #8a7f86;
+    font-style: normal;
+    font-weight: 500;
+}
+
+.sc-add-wide {
+    grid-column: 1 / -1;
+}
+
+.sc-add select,
+.sc-add input,
+.sc-staff select,
+.sc-filter select,
+.sc-filter input {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #dbd3d1;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1b1a1f;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.sc-add select:focus,
+.sc-add input:focus,
+.sc-staff select:focus,
+.sc-filter select:focus,
+.sc-filter input:focus {
+    outline: none;
+    border-color: #e8420f;
+    box-shadow: 0 0 0 3px rgba(232, 66, 15, .1);
+}
+
+.sc-add button,
+.sc-staff button {
+    padding: 11px 18px;
+    border: none;
+    border-radius: 12px;
+    background: #e8420f;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.sc-add button {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+.sc-add button:hover,
+.sc-staff button:hover {
+    background: #c2380f;
+}
+
+/* Staff */
+.sc-staff {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) auto;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 0;
+    border-top: 1px solid #f5ebe5;
+}
+
+.sc-staff-who strong {
+    display: block;
+    font-size: 13px;
+}
+
+.sc-staff-who span {
+    color: #8a7f86;
+    font-size: 12px;
+    overflow-wrap: anywhere;
+}
+
+/* List */
+.sc-list-head {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.sc-filter {
+    display: flex;
+    gap: 8px;
+}
+
+.sc-filter select {
+    width: auto;
+}
+
+.sc-filter input {
+    width: 160px;
+}
+
+.sc-table-wrap {
+    overflow-x: auto;
+}
+
+.sc-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+}
+
+.sc-table th {
+    padding: 10px 12px;
+    color: #8a7f86;
+    font-size: 11px;
+    font-weight: 700;
+    text-align: left;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    border-bottom: 1px solid #f0e2da;
+}
+
+.sc-table td {
+    padding: 12px;
+    border-bottom: 1px solid #f5ebe5;
+    vertical-align: middle;
+}
+
+.sc-table td strong {
+    display: block;
+}
+
+.sc-table td span:not(.sc-pill) {
+    color: #8a7f86;
+    font-size: 12px;
+}
+
+.sc-table tr.is-closed td {
+    opacity: .6;
+}
+
+.sc-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+.sc-pill.is-open {
+    background: #e3f6f4;
+    color: #0a6f66;
+}
+
+.sc-pill.is-closed {
+    background: #f1f0ee;
+    color: #6b6570;
+}
+
+.sc-toggle {
+    padding: 6px 12px;
+    border: 1px solid #f0e2da;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1b1a1f;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.sc-toggle:hover {
+    border-color: #e8420f;
+    color: #e8420f;
+}
+
+.sc-empty {
+    color: #8a7f86;
+    text-align: center;
+}
+
+@media (max-width: 700px) {
+    .stats {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-add,
+    .sc-staff {
+        grid-template-columns: 1fr;
+    }
+
+    .sc-filter {
+        width: 100%;
+    }
+
+    .sc-filter select,
+    .sc-filter input {
+        flex: 1;
+        width: auto;
+        min-width: 0;
+    }
+}

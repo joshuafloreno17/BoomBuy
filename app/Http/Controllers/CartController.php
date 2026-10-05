@@ -7,6 +7,8 @@ use App\Models\User;
 use App\Support\CheckoutPlan;
 use App\Support\CodPolicy;
 use App\Support\DeliveryFee;
+use App\Support\ParcelRoute;
+use App\Support\PhLocations;
 use Illuminate\Support\Facades\DB;
 use App\Services\PlaceOrderService;
 use App\Exceptions\CheckoutFailed;
@@ -651,7 +653,12 @@ class CartController extends Controller
             $planLines[] = ['seller_id' => $product->seller_id, 'price' => $unitPrice, 'quantity' => (int) $quantity];
         }
 
-        $checkoutPlan = CheckoutPlan::build($planLines, $appliedVoucher);
+        // The delivery fee depends on how far each seller is from the address.
+        $deliveryTo = PhLocations::locate($savedAddress);
+        $checkoutPlan = CheckoutPlan::build($planLines, $appliedVoucher, $deliveryTo);
+
+        // Kept so the page can re-price delivery when another address is picked.
+        session()->put('checkout_quote', ['lines' => $planLines, 'voucher_id' => $appliedVoucher?->id]);
 
         return view(
             'pages.checkout',
@@ -666,9 +673,40 @@ class CartController extends Controller
                 'addresses',
                 'codStatus',
                 'freeShippingMin',
-                'checkoutPlan'
+                'checkoutPlan',
+                'deliveryTo'
             )
         );
+    }
+
+    /**
+     * The checkout totals for another delivery address (JSON) — the delivery
+     * fee changes with the distance from each seller's town.
+     */
+    public function deliveryQuote()
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return response()->json(['error' => 'Please log in again.'], 401);
+        }
+
+        $quote = session()->get('checkout_quote');
+
+        if (!$quote) {
+            return response()->json(['error' => 'Please reopen checkout.'], 409);
+        }
+
+        $location = PhLocations::locate((string) request('address'));
+        $voucher = !empty($quote['voucher_id']) ? \App\Models\Voucher::find($quote['voucher_id']) : null;
+        $plan = CheckoutPlan::build($quote['lines'], $voucher, $location);
+
+        return response()->json([
+            'located' => $location ? trim(($location['city'] ? $location['city'] . ', ' : '') . str_replace(' (NCR)', '', $location['province'])) : null,
+            'zones' => collect($plan['orders'])->pluck('zone')->unique()->map(fn ($z) => ParcelRoute::ZONES[$z] ?? $z)->values(),
+            'delivery_fee' => $plan['delivery_fee'],
+            'total' => $plan['total'],
+        ]);
     }
 
     public function placeOrder(PlaceOrderService $orders)

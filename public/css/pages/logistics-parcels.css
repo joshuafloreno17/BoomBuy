@@ -484,3 +484,61 @@ a { text-decoration: none; }
     .assign-form select,
     .reject-form input[type="text"] { flex: 1; min-width: 0; width: auto; }
 }
+
+/* Which center this staff member works at */
+.center-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff1ea;
+    color: #c2380f;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.center-badge span {
+    color: #8a7f86;
+    font-weight: 600;
+}
+
+/* Seller's town center → buyer's town center */
+.parcel-route {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    margin-top: 10px;
+    color: #1b1a1f;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.parcel-route > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    background: #fbf6f2;
+    border: 1px solid #f0e2da;
+}
+
+.parcel-route > i {
+    color: #e8420f;
+}
+
+.parcel-route em {
+    color: #0a6f66;
+    font-style: normal;
+}
+
+.parcel-route > .parcel-waybill {
+    background: #1b1a1f;
+    border-color: #1b1a1f;
+    color: #ffffff;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    letter-spacing: .5px;
+}

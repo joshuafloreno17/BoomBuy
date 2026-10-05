@@ -11,17 +11,21 @@ use App\Models\Voucher;
  * show the totals) and placeOrder (to create the orders), so they always
  * agree.
  *
+ * Each seller's delivery fee depends on how far their parcel travels to the
+ * buyer (ParcelRoute::zone); without a known buyer location the middle tier
+ * is shown until an address is entered.
+ *
  * Each line: ['seller_id', 'price', 'quantity', ...anything else].
  */
 class CheckoutPlan
 {
     /**
      * @return array{
-     *   orders: array<int, array{seller_id:int, lines:array, subtotal:float, discount:float, voucher_code:?string, delivery_fee:float, total:float}>,
+     *   orders: array<int, array{seller_id:int, lines:array, subtotal:float, discount:float, voucher_code:?string, zone:string, delivery_fee:float, total:float}>,
      *   subtotal: float, discount: float, delivery_fee: float, total: float
      * }
      */
-    public static function build(array $lines, ?Voucher $voucher = null): array
+    public static function build(array $lines, ?Voucher $voucher = null, ?array $buyerLocation = null): array
     {
         $orders = [];
 
@@ -60,8 +64,9 @@ class CheckoutPlan
 
             $itemsTotal = max(0, $order['subtotal'] - $order['discount']);
 
-            // Each seller's parcel is delivered separately.
-            $order['delivery_fee'] = DeliveryFee::for($itemsTotal);
+            // Each seller's parcel is delivered separately, from the seller's town.
+            $order['zone'] = ParcelRoute::zone(ParcelRoute::sellerLocation($sellerId), $buyerLocation);
+            $order['delivery_fee'] = DeliveryFee::for($itemsTotal, $order['zone']);
             $order['total'] = round($itemsTotal + $order['delivery_fee'], 2);
         }
         unset($order);

@@ -27,6 +27,10 @@ class DatabaseSeeder extends Seeder
             TestAccountsSeeder::class,
             // One approved seller account per category (no products).
             SellerShopsSeeder::class,
+            // Sorting Centers: every town in Laguna and Metro Manila, plus each seller's town.
+            SortingCenterSeeder::class,
+            // Each seller's town: its Sorting Center, a logistics staff account and a rider.
+            LogisticsNetworkSeeder::class,
         ]);
     }
 }

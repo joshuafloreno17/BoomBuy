@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Notification;
 use App\Models\RiderArea;
+use App\Models\SortingCenter;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -172,17 +173,32 @@ class LogisticsController extends Controller
 
         // Every courier-side status, in pipeline order.
         $pipelineStatuses = [
+            'Dropped Off' => 'Dropped off by the seller — confirm arrival',
             'Ready for Pickup' => 'Waiting for a rider at the seller',
             'Assigned' => 'Rider heading to the seller',
             'Picked Up' => 'On the way to the Sorting Center',
-            'At Sorting Center' => 'Waiting for a delivery rider',
+            'At Sorting Center' => 'At a Sorting Center',
+            'In Transit' => 'Between Sorting Centers',
             'Assigned for Delivery' => 'Delivery rider assigned',
             'Out for Delivery' => 'With the rider, on the way to the buyer',
             'Delivery Failed' => 'Needs a reschedule or return',
         ];
 
+        // A center's staff see their own center's numbers; head office sees all.
+        $myCenter = $this->staffCenter($user);
+        $queues = $this->parcelQueues($myCenter);
+        $involvesMe = function ($query) use ($myCenter) {
+            if ($myCenter) {
+                $query->where(fn ($q) => $q->where('origin_center_id', $myCenter->id)
+                    ->orWhere('destination_center_id', $myCenter->id)
+                    ->orWhere('current_center_id', $myCenter->id)
+                    ->orWhere(fn ($w) => $w->whereNull('origin_center_id')->whereNull('destination_center_id')));
+            }
+        };
+
         $statusCounts = DB::table('orders')
             ->whereIn('status', array_keys($pipelineStatuses))
+            ->where($involvesMe)
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
@@ -197,6 +213,14 @@ class LogisticsController extends Controller
             ->where('rider_applications.status', 'Approved')
             ->distinct()
             ->pluck('users.id');
+
+        // A center's own riders: those covering its province.
+        if ($myCenter) {
+            $activeRiderIds = RiderArea::whereIn('rider_id', $activeRiderIds)
+                ->where('province', $myCenter->province)
+                ->distinct()
+                ->pluck('rider_id');
+        }
 
         $activeRiders = $activeRiderIds->count();
 
@@ -214,38 +238,48 @@ class LogisticsController extends Controller
         $deliveredToday = DB::table('orders')
             ->where('status', 'Delivered')
             ->whereDate('delivered_at', $today)
+            ->where($queues['delivering'])
             ->count();
 
         $failedToday = DB::table('orders')
             ->whereDate('delivery_failed_at', $today)
+            ->where($queues['delivering'])
             ->count();
 
         $returnedThisWeek = DB::table('orders')
             ->where('status', 'Returned to Seller')
             ->where('updated_at', '>=', now()->subDays(7))
+            ->where($queues['delivering'])
             ->count();
 
-        // What's waiting on logistics right now.
+        // What's waiting on logistics right now — the same lists as the Parcels page.
         $todo = [
             [
                 'icon' => 'bi-envelope-paper-fill',
                 'label' => 'Confirm arrivals',
-                'hint' => 'Parcels a rider picked up — confirm when they reach the Sorting Center.',
-                'count' => (int) ($statusCounts['Picked Up'] ?? 0),
+                'hint' => 'Drop-offs from sellers and parcels sent here from other centers.',
+                'count' => count($queues['awaitingConfirmation']) + count($queues['incoming']),
                 'url' => route('logistics.parcels') . '#awaiting-confirmation',
+            ],
+            [
+                'icon' => 'bi-send-fill',
+                'label' => 'Dispatch parcels',
+                'hint' => 'Going to a buyer in another town — send them on to that Sorting Center.',
+                'count' => count($queues['toDispatch']),
+                'url' => route('logistics.parcels') . '#to-dispatch',
             ],
             [
                 'icon' => 'bi-inbox-fill',
                 'label' => 'Assign riders',
-                'hint' => 'Parcels at the Sorting Center that need a delivery rider.',
-                'count' => (int) ($statusCounts['At Sorting Center'] ?? 0),
+                'hint' => 'Parcels here for buyers near you that need a delivery rider.',
+                'count' => count($queues['awaitingAssignment']),
                 'url' => route('logistics.parcels') . '#awaiting-assignment',
             ],
             [
                 'icon' => 'bi-exclamation-triangle-fill',
                 'label' => 'Failed deliveries',
                 'hint' => 'Reschedule to a rider or return to the seller.',
-                'count' => (int) ($statusCounts['Delivery Failed'] ?? 0),
+                'count' => count($queues['failedDeliveries']),
                 'url' => route('logistics.parcels') . '#failed-deliveries',
             ],
             [
@@ -259,16 +293,13 @@ class LogisticsController extends Controller
 
         $recentParcels = DB::table('orders')
             ->whereIn('status', array_merge(array_keys($pipelineStatuses), ['Delivered', 'Returned to Seller']))
+            ->where($involvesMe)
             ->orderByDesc('updated_at')
             ->limit(8)
             ->get(['id', 'status', 'shipping_name', 'shipping_address', 'updated_at']);
 
-        // At the Sorting Center and still without a delivery rider, oldest first.
-        $needsRider = DB::table('orders')
-            ->where('status', 'At Sorting Center')
-            ->orderByRaw('COALESCE(sorting_center_received_at, updated_at)')
-            ->limit(5)
-            ->get(['id', 'shipping_name', 'shipping_address', 'sorting_center_received_at', 'updated_at']);
+        // Here and still without a delivery rider, oldest first.
+        $needsRider = $queues['awaitingAssignment']->take(5);
 
         // Active riders and what each is carrying right now.
         $riders = DB::table('users')
@@ -558,48 +589,19 @@ class LogisticsController extends Controller
         }
 
         $search = trim((string) request('q', ''));
+        $myCenter = $this->staffCenter($user);
 
-        // Order # (with or without "#"), buyer name or address.
-        $matching = function () use ($search) {
-            return DB::table('orders')->when($search !== '', function ($query) use ($search) {
-                $number = ltrim($search, '#');
-                $like = '%' . $search . '%';
+        [
+            'matching' => $matching,
+            'awaitingConfirmation' => $awaitingConfirmation,
+            'toDispatch' => $toDispatch,
+            'incoming' => $incoming,
+            'awaitingAssignment' => $awaitingAssignment,
+            'failedDeliveries' => $failedDeliveries,
+            'onTheRoad' => $onTheRoad,
+        ] = $this->parcelQueues($myCenter, $search);
 
-                $query->where(function ($q) use ($number, $like) {
-                    if (ctype_digit($number)) {
-                        $q->orWhere('id', (int) $number);
-                    }
-
-                    $q->orWhere('shipping_name', 'like', $like)
-                        ->orWhere('shipping_address', 'like', $like);
-                });
-            });
-        };
-
-        // Picked up by a rider from the seller, en route to this Sorting Center
-        $awaitingConfirmation = $matching()
-            ->where('status', 'Picked Up')
-            ->orderBy('updated_at')
-            ->get();
-
-        // Physically received at the Sorting Center, waiting to be assigned
-        // to a rider for the final-mile delivery leg.
-        $awaitingAssignment = $matching()
-            ->where('status', 'At Sorting Center')
-            ->orderBy('sorting_center_received_at')
-            ->get();
-
-        $failedDeliveries = $matching()
-            ->where('status', 'Delivery Failed')
-            ->orderByDesc('delivery_failed_at')
-            ->get();
-
-        // Already handed to a delivery rider — read-only, so logistics can
-        // see where every parcel that left the Sorting Center is.
-        $onTheRoad = $matching()
-            ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
-            ->orderBy('updated_at')
-            ->get();
+        $centerNames = SortingCenter::pluck('name', 'id');
 
         // A searched parcel that's in none of the lists above (still with
         // the seller, delivered, cancelled…) — say where it is instead of
@@ -608,6 +610,8 @@ class LogisticsController extends Controller
 
         if ($search !== '') {
             $shownIds = $awaitingConfirmation->pluck('id')
+                ->merge($toDispatch->pluck('id'))
+                ->merge($incoming->pluck('id'))
                 ->merge($awaitingAssignment->pluck('id'))
                 ->merge($failedDeliveries->pluck('id'))
                 ->merge($onTheRoad->pluck('id'));
@@ -631,19 +635,36 @@ class LogisticsController extends Controller
 
         $riderAreas = RiderArea::whereIn('rider_id', $activeRiders->pluck('id'))->get();
 
-        // For each parcel that needs a rider, suggest riders whose assigned
-        // area name appears in the shipping address — a simple, honest match
-        // since orders only store a single free-text shipping address string.
+        // A center's staff pick from their own riders — those covering the
+        // center's province. (No riders there yet → everyone, so a parcel is
+        // never stuck.) Head office picks from all.
+        if ($myCenter) {
+            $ownRiderIds = $riderAreas->where('province', $myCenter->province)->pluck('rider_id')->unique();
+
+            if ($ownRiderIds->isNotEmpty()) {
+                $activeRiders = $activeRiders->whereIn('id', $ownRiderIds)->values();
+                $riderAreas = $riderAreas->whereIn('rider_id', $ownRiderIds);
+            }
+        }
+
+        // For each parcel that needs a rider, suggest riders covering the
+        // buyer's town, then the rest of the buyer's province.
         $suggestedRidersByOrder = [];
 
         foreach ($awaitingAssignment->merge($failedDeliveries) as $order) {
 
-            $matches = $riderAreas->filter(function ($area) use ($order) {
-                return stripos($order->shipping_address, $area->city_municipality) !== false
-                    || stripos($order->shipping_address, $area->province) !== false;
-            })->pluck('rider_id')->unique();
+            // Riders covering the buyer's town first, then the rest of the province.
+            $town = $order->shipping_province
+                ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+                : \App\Support\PhLocations::locate($order->shipping_address);
 
-            $suggestedRidersByOrder[$order->id] = $activeRiders->whereIn('id', $matches)->values();
+            $matches = $riderAreas
+                ->filter(fn ($area) => $town && $area->province === $town['province'])
+                ->sortByDesc(fn ($area) => \App\Support\PhLocations::sameTown($area->city_municipality, $town['city'] ?? null))
+                ->pluck('rider_id')
+                ->unique();
+
+            $suggestedRidersByOrder[$order->id] = $matches->map(fn ($id) => $activeRiders->firstWhere('id', $id))->filter()->values();
         }
 
         // Names of the riders already attached to the listed parcels.
@@ -657,38 +678,76 @@ class LogisticsController extends Controller
                 'user',
                 'search',
                 'awaitingConfirmation',
+                'toDispatch',
+                'incoming',
                 'awaitingAssignment',
                 'failedDeliveries',
                 'onTheRoad',
                 'elsewhere',
                 'activeRiders',
                 'suggestedRidersByOrder',
-                'riderNames'
+                'riderNames',
+                'myCenter',
+                'centerNames'
             )
         );
     }
 
+    /**
+     * A scanned shipping label (its QR opens this): straight to that parcel
+     * on the Parcels page, where its next step's button is.
+     */
+    public function scanParcel($code)
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $orderId = \App\Support\Waybill::parse($code);
+
+        if (!$orderId || !DB::table('orders')->where('id', $orderId)->exists()) {
+            return redirect()->route('logistics.parcels')->with('error', 'No parcel matches "' . $code . '".');
+        }
+
+        return redirect()->route('logistics.parcels', ['q' => \App\Support\Waybill::number($orderId)]);
+    }
+
     public function confirmParcelReceived($id, SortingCenterService $center)
     {
-        return $this->parcelAction(fn () => $center->confirmReceived((int) $id));
+        return $this->parcelAction(fn (?int $myCenter) => $center->confirmReceived((int) $id, $myCenter));
+    }
+
+    public function dispatchParcel($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->dispatch((int) $id, $myCenter));
+    }
+
+    public function confirmParcelArrival($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->confirmArrival((int) $id, $myCenter));
     }
 
     public function assignParcel($id, SortingCenterService $center)
     {
-        return $this->parcelAction(fn () => $center->assign((int) $id, request('rider_id')));
+        return $this->parcelAction(fn (?int $myCenter) => $center->assign((int) $id, request('rider_id'), $myCenter));
     }
 
     public function rescheduleParcel($id, SortingCenterService $center)
     {
-        return $this->parcelAction(fn () => $center->reschedule((int) $id, request('rider_id')));
+        return $this->parcelAction(fn (?int $myCenter) => $center->reschedule((int) $id, request('rider_id'), $myCenter));
     }
 
     public function returnParcelToSeller($id, SortingCenterService $center)
     {
-        return $this->parcelAction(fn () => $center->returnToSeller((int) $id));
+        return $this->parcelAction(fn (?int $myCenter) => $center->returnToSeller((int) $id, $myCenter));
     }
 
-    /** Runs a Sorting Center action and flashes its message (or the rule it broke). */
+    /**
+     * Runs a Sorting Center action as this staff member's center and flashes
+     * its message (or the rule it broke).
+     */
     private function parcelAction(callable $action)
     {
         $user = requireUserRole('logistics');
@@ -698,10 +757,118 @@ class LogisticsController extends Controller
         }
 
         try {
-            return back()->with('success', $action());
+            return back()->with('success', $action($this->staffCenter($user)?->id));
         } catch (ActionFailed $e) {
             return back()->with('error', $e->getMessage());
         }
+    }
+
+    /**
+     * The parcel lists one staff member works on — the Parcels page shows
+     * them and the dashboard counts them, so both always agree.
+     *
+     * Staff of one center only get that center's parcels; head office (no
+     * center) gets all. Parcels from before Sorting Centers (no center at
+     * all) show to everyone.
+     */
+    private function parcelQueues(?SortingCenter $myCenter, string $search = ''): array
+    {
+        // Order # (with or without "#"), waybill no. (BB-000066), buyer name or address.
+        $matching = function () use ($search) {
+            return DB::table('orders')->when($search !== '', function ($query) use ($search) {
+                $number = \App\Support\Waybill::parse($search);
+                $like = '%' . $search . '%';
+
+                $query->where(function ($q) use ($number, $like) {
+                    if ($number) {
+                        $q->orWhere('id', $number);
+                    }
+
+                    $q->orWhere('shipping_name', 'like', $like)
+                        ->orWhere('shipping_address', 'like', $like);
+                });
+            });
+        };
+
+        $mine = fn (string $column) => function ($query) use ($myCenter, $column) {
+            if ($myCenter) {
+                $query->where(fn ($q) => $q->where($column, $myCenter->id)->orWhereNull($column));
+            }
+        };
+
+        // The center that delivers to the buyer: the destination, or the
+        // origin when there's no center near the buyer.
+        $delivering = function ($query) use ($myCenter) {
+            if ($myCenter) {
+                $query->where(fn ($q) => $q->where('destination_center_id', $myCenter->id)
+                    ->orWhere(fn ($w) => $w->whereNull('destination_center_id')
+                        ->where(fn ($o) => $o->where('origin_center_id', $myCenter->id)->orWhereNull('origin_center_id'))));
+            }
+        };
+
+        return [
+            'matching' => $matching,
+
+            // Dropped off by the seller at this center (or, on older orders,
+            // brought in by a pickup rider) — confirm it arrived.
+            'awaitingConfirmation' => $matching()
+                ->whereIn('status', ['Dropped Off', 'Picked Up'])
+                ->where($mine('origin_center_id'))
+                ->orderBy('updated_at')
+                ->get(),
+
+            // Received here, but the buyer lives in another center's town.
+            'toDispatch' => $matching()
+                ->where('status', 'At Sorting Center')
+                ->whereNotNull('destination_center_id')
+                ->whereNotNull('current_center_id')
+                ->whereColumn('current_center_id', '!=', 'destination_center_id')
+                ->where($mine('current_center_id'))
+                ->orderBy('sorting_center_received_at')
+                ->get(),
+
+            // Dispatched from another center to this one.
+            'incoming' => $matching()
+                ->where('status', 'In Transit')
+                ->where($mine('destination_center_id'))
+                ->orderBy('dispatched_at')
+                ->get(),
+
+            // At the center that delivers to the buyer, waiting for a rider
+            // for the final-mile delivery leg.
+            'awaitingAssignment' => $matching()
+                ->where('status', 'At Sorting Center')
+                ->where(fn ($q) => $q->whereNull('destination_center_id')
+                    ->orWhereNull('current_center_id')
+                    ->orWhereColumn('current_center_id', 'destination_center_id'))
+                ->where($mine('current_center_id'))
+                ->orderBy('sorting_center_received_at')
+                ->get(),
+
+            'failedDeliveries' => $matching()
+                ->where('status', 'Delivery Failed')
+                ->where($delivering)
+                ->orderByDesc('delivery_failed_at')
+                ->get(),
+
+            // Already handed to a delivery rider — read-only, so logistics can
+            // see where every parcel that left the Sorting Center is.
+            'onTheRoad' => $matching()
+                ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
+                ->where($delivering)
+                ->orderBy('updated_at')
+                ->get(),
+
+            'delivering' => $delivering,
+        ];
+    }
+
+    /** The center this logistics account works at; null = head office (all centers). */
+    private function staffCenter(array $user): ?SortingCenter
+    {
+        $centerId = DB::table('users')->where('id', $user['id'])->value('sorting_center_id');
+
+        return $centerId ? SortingCenter::find($centerId) : null;
     }
 
     public function approveRider($id)

@@ -1,0 +1,217 @@
+/* Printable 4×6 in shipping label (seller → Sorting Center). */
+
+body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: #fff8f3;
+    color: #1b1a1f;
+    font-family: 'Figtree', -apple-system, sans-serif;
+}
+
+.label-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    max-width: 4in;
+    margin: 0 auto 10px;
+}
+
+.label-back {
+    color: #6b6570;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.label-print {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border: none;
+    border-radius: 12px;
+    background: #e8420f;
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.label-print:hover {
+    background: #c2380f;
+}
+
+.label-help {
+    max-width: 4in;
+    margin: 0 auto 16px;
+    color: #6b6570;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.label {
+    box-sizing: border-box;
+    width: 4in;
+    max-width: 100%;
+    min-height: 6in;
+    margin: 0 auto;
+    border: 2px solid #1b1a1f;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+}
+
+.label > * {
+    border-bottom: 2px solid #1b1a1f;
+    padding: 10px 12px;
+}
+
+.label > :last-child {
+    border-bottom: none;
+}
+
+.label span {
+    display: block;
+    color: #4b4550;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+}
+
+.label strong {
+    display: block;
+    font-size: 14px;
+    font-weight: 800;
+    line-height: 1.25;
+}
+
+.label p {
+    margin: 2px 0 0;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.label-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.label-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.label-service {
+    padding: 4px 12px;
+    border: 2px solid #1b1a1f;
+    font-size: 16px;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.label-code {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.label-qr {
+    flex-shrink: 0;
+    width: 132px;
+    height: 132px;
+}
+
+.label-qr img,
+.label-qr canvas {
+    display: block;
+    width: 132px !important;
+    height: 132px !important;
+}
+
+.label-qr.is-fallback {
+    display: grid;
+    place-items: center;
+    border: 1px dashed #8a7f86;
+    color: #6b6570;
+    font-size: 10px;
+    text-align: center;
+}
+
+.label-code-text strong {
+    margin: 2px 0 4px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 22px;
+    letter-spacing: 1px;
+}
+
+.label-route {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: #1b1a1f;
+    color: #ffffff;
+}
+
+.label-route > div {
+    flex: 1;
+    min-width: 0;
+}
+
+.label-route span {
+    color: #d9cdc6;
+}
+
+.label-route strong {
+    font-size: 13px;
+}
+
+.label-party.is-to strong {
+    font-size: 16px;
+}
+
+.label-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.label-foot > div:last-child {
+    text-align: right;
+}
+
+@media print {
+    @page {
+        size: 4in 6in;
+        margin: 0;
+    }
+
+    body {
+        padding: 0;
+        background: #ffffff;
+    }
+
+    .label-toolbar,
+    .label-help {
+        display: none;
+    }
+
+    .label {
+        width: 4in;
+        height: 6in;
+        margin: 0;
+        border: none;
+    }
+
+    .label-route {
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+    }
+}

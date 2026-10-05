@@ -9,6 +9,9 @@ use App\Models\Voucher;
 use App\Support\ChatAutomation;
 use App\Support\CheckoutPlan;
 use App\Support\CodPolicy;
+use App\Support\OrderTimeline;
+use App\Support\ParcelRoute;
+use App\Support\PhLocations;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -28,17 +31,17 @@ class PlaceOrderService
      */
     public function place(array $buyer, array $cart, array $details, ?string $voucherCode = null): array
     {
-        [$address, $phone, $payment] = $this->checkDetails($buyer, $details);
+        [$address, $phone, $payment, $location] = $this->checkDetails($buyer, $details);
 
         $orderItems = $this->buildLines($cart);
 
         $voucher = $voucherCode ? Voucher::where('code', $voucherCode)->first() : null;
 
         // One order per seller; the voucher lands only on its own seller's
-        // order, and each order carries its own delivery fee.
-        $plan = CheckoutPlan::build($orderItems, $voucher);
+        // order, and each order carries its own delivery fee (by distance).
+        $plan = CheckoutPlan::build($orderItems, $voucher, $location);
 
-        return $this->create($buyer, $plan, $voucher, $address, $phone, $payment);
+        return $this->create($buyer, $plan, $voucher, $address, $phone, $payment, $location);
     }
 
     /** Address, phone and payment method, including the COD pause. */
@@ -61,6 +64,15 @@ class PlaceOrderService
             throw CheckoutFailed::inForm('The delivery address is too long.');
         }
 
+        // The town and province decide which Sorting Center delivers it.
+        $location = PhLocations::locate($address);
+
+        if (!$location) {
+            throw CheckoutFailed::inForm(
+                'We could not find your town in that address. Please include your city/municipality and province, e.g. "123 Rizal St., Poblacion, Santa Cruz, Laguna".'
+            );
+        }
+
         if (!in_array($payment, CodPolicy::PAYMENT_METHODS, true)) {
             throw CheckoutFailed::inForm('Please choose a valid payment method.');
         }
@@ -77,7 +89,7 @@ class PlaceOrderService
             }
         }
 
-        return [$address, $phone, $payment];
+        return [$address, $phone, $payment, $location];
     }
 
     /**
@@ -165,11 +177,13 @@ class PlaceOrderService
      * the last unit can't both succeed. If any line loses the race, the whole
      * checkout (and its notifications) rolls back instead of overselling.
      */
-    private function create(array $buyer, array $plan, ?Voucher $voucher, string $address, string $phone, string $payment): array
+    private function create(array $buyer, array $plan, ?Voucher $voucher, string $address, string $phone, string $payment, array $location): array
     {
         $voucherUsed = collect($plan['orders'])->contains(fn ($o) => $o['voucher_code'] !== null);
 
-        return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment) {
+        $destination = ParcelRoute::centerFor($location['province'], $location['city']);
+
+        return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment, $location, $destination) {
                 if ($voucherUsed) {
                     // Conditional so two simultaneous checkouts can't push a
                     // voucher past its max_uses — the loser rolls back.
@@ -188,6 +202,9 @@ class PlaceOrderService
                 $orderIds = [];
 
                 foreach ($plan['orders'] as $planned) {
+                    $seller = ParcelRoute::sellerLocation((int) $planned['seller_id']);
+                    $origin = ParcelRoute::centerFor($seller['province'], $seller['city']);
+
                     $orderId = DB::table('orders')->insertGetId([
                         'buyer_id' => $buyer['id'],
                         'total_amount' => $planned['total'],
@@ -199,12 +216,19 @@ class PlaceOrderService
                         'shipping_name' => $buyer['name'] ?? 'Buyer',
                         'shipping_phone' => $phone,
                         'shipping_address' => $address,
+                        'shipping_province' => $location['province'],
+                        'shipping_city' => $location['city'],
+                        // The seller drops it at origin; the buyer's town center delivers it.
+                        'origin_center_id' => $origin?->id,
+                        'destination_center_id' => $destination?->id,
                         'payment_method' => $payment,
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
 
                     $orderIds[] = $orderId;
+
+                    OrderTimeline::log((int) $orderId, 'Pending', 'Order placed', 'Payment: ' . $payment);
 
                     createNotification(
                         (int) $buyer['id'],

@@ -670,7 +670,7 @@
                         line.classList.add('is-free');
                         line.innerHTML = '<i class="bi bi-truck"></i> Free delivery from this shop';
                     } else {
-                        line.innerHTML = '<i class="bi bi-truck"></i> Delivery ' + peso(deliveryFee)
+                        line.innerHTML = '<i class="bi bi-truck"></i> Delivery from ' + peso(deliveryFee)
                             + ' — add ' + peso(freeDeliveryMin - subtotal) + ' more from this shop for free delivery';
                     }
                 });

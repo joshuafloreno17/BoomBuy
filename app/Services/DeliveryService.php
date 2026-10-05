@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Exceptions\ActionFailed;
 use App\Support\ChatAutomation;
+use App\Support\OrderTimeline;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -185,6 +186,13 @@ class DeliveryService
             throw new ActionFailed('This delivery was just updated. Please refresh and try again.');
         }
 
+        OrderTimeline::log(
+            $orderId,
+            $status,
+            $status === 'Delivered' ? 'Delivered' : 'Out for delivery',
+            $status === 'Delivered' ? null : 'The rider is on the way to you'
+        );
+
         if ($status === 'Out for Delivery') {
             createNotification((int) $order->buyer_id, 'Order Out for Delivery', 'Your order #' . $orderId . ' is now out for delivery.', 'order', $orderId);
             createNotification($riderId, 'Delivery Out for Delivery', 'Order #' . $orderId . ' is now out for delivery.', 'delivery_status', $orderId);
@@ -234,6 +242,8 @@ class DeliveryService
         if (!$updated) {
             throw new ActionFailed('This delivery was just updated. Please refresh and try again.');
         }
+
+        OrderTimeline::log($orderId, 'Delivery Failed', 'Delivery attempt failed', $reason);
 
         if ($refused) {
             createNotification(

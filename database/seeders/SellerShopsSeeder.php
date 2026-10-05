@@ -28,17 +28,17 @@ class SellerShopsSeeder extends Seeder
         'electronics' => [
             'email' => 'voltique@boombuy.test', 'shop' => 'Voltique Electronics',
             'first' => 'Carlo', 'last' => 'Mendoza', 'sex' => 'Male', 'birthdate' => '1992-02-14',
-            'street' => '21 Jupiter St', 'barangay' => 'Bel-Air', 'city' => 'Makati City', 'province' => 'Metro Manila (NCR)',
+            'street' => '8 Aurora Blvd', 'barangay' => 'Cubao', 'city' => 'Quezon City', 'province' => 'Metro Manila (NCR)',
         ],
         'womens-fashion' => [
             'email' => 'maisonbelle@boombuy.test', 'shop' => 'Maison Belle',
             'first' => 'Andrea', 'last' => 'Villanueva', 'sex' => 'Female', 'birthdate' => '1996-07-02',
-            'street' => '8 Tomas Morato Ave', 'barangay' => 'South Triangle', 'city' => 'Quezon City', 'province' => 'Metro Manila (NCR)',
+            'street' => '15 P. Guevarra St', 'barangay' => 'Poblacion I', 'city' => 'Santa Cruz', 'province' => 'Laguna',
         ],
         'mens-fashion' => [
             'email' => 'gentryandco@boombuy.test', 'shop' => 'Gentry & Co. Menswear',
             'first' => 'Miguel', 'last' => 'Ramos', 'sex' => 'Male', 'birthdate' => '1994-10-21',
-            'street' => '45 Shaw Blvd', 'barangay' => 'Kapitolyo', 'city' => 'Pasig City', 'province' => 'Metro Manila (NCR)',
+            'street' => '12 Calle Crisologo', 'barangay' => 'Barangay I', 'city' => 'Vigan City', 'province' => 'Ilocos Sur',
         ],
         'kids-baby' => [
             'email' => 'littlehaven@boombuy.test', 'shop' => 'Little Haven Baby & Kids',
@@ -73,12 +73,12 @@ class SellerShopsSeeder extends Seeder
         'office-school' => [
             'email' => 'inkwell@boombuy.test', 'shop' => 'Inkwell Office & School',
             'first' => 'Grace', 'last' => 'Tan', 'sex' => 'Female', 'birthdate' => '1995-08-12',
-            'street' => '101 España Blvd', 'barangay' => 'Sampaloc', 'city' => 'Manila', 'province' => 'Metro Manila (NCR)',
+            'street' => '25 Elias Angeles St', 'barangay' => 'Dinaga', 'city' => 'Naga City', 'province' => 'Camarines Sur',
         ],
         'pet-supplies' => [
             'email' => 'pawsandwhiskers@boombuy.test', 'shop' => 'Paws & Whiskers Pet Co.',
             'first' => 'Ivy', 'last' => 'Navarro', 'sex' => 'Female', 'birthdate' => '1998-05-23',
-            'street' => '6 Sumulong Hwy', 'barangay' => 'Dela Paz', 'city' => 'Antipolo City', 'province' => 'Rizal',
+            'street' => '9 Pioneer Ave', 'barangay' => 'Dadiangas South', 'city' => 'General Santos City', 'province' => 'South Cotabato',
         ],
         'toys-games-hobbies' => [
             'email' => 'wonderbox@boombuy.test', 'shop' => 'Wonderbox Toys & Hobbies',
@@ -88,12 +88,12 @@ class SellerShopsSeeder extends Seeder
         'jewelry-accessories' => [
             'email' => 'aurelia@boombuy.test', 'shop' => 'Aurelia Jewelry & Accessories',
             'first' => 'Carmina', 'last' => 'Reyes', 'sex' => 'Female', 'birthdate' => '1997-02-19',
-            'street' => '5th Ave cor. 26th St', 'barangay' => 'Bonifacio Global City', 'city' => 'Taguig City', 'province' => 'Metro Manila (NCR)',
+            'street' => '4 Valderrosa St', 'barangay' => 'Zone IV', 'city' => 'Zamboanga City', 'province' => 'Zamboanga del Sur',
         ],
         'shoes' => [
             'email' => 'stridefootwear@boombuy.test', 'shop' => 'Stride Footwear Co.',
             'first' => 'Dennis', 'last' => 'Flores', 'sex' => 'Male', 'birthdate' => '1989-07-07',
-            'street' => '40 J.P. Rizal St', 'barangay' => 'Concepcion Uno', 'city' => 'Marikina City', 'province' => 'Metro Manila (NCR)',
+            'street' => '33 Justice Romualdez St', 'barangay' => 'Downtown', 'city' => 'Tacloban City', 'province' => 'Leyte',
         ],
         'tools-home-improvement' => [
             'email' => 'ironclad@boombuy.test', 'shop' => 'Ironclad Hardware & Tools',
@@ -103,7 +103,7 @@ class SellerShopsSeeder extends Seeder
         'garden-outdoor' => [
             'email' => 'evergreen@boombuy.test', 'shop' => 'Evergreen Garden Supply',
             'first' => 'Rosa', 'last' => 'Mercado', 'sex' => 'Female', 'birthdate' => '1991-10-10',
-            'street' => '14 Aguinaldo Hwy', 'barangay' => 'Maharlika East', 'city' => 'Tagaytay City', 'province' => 'Cavite',
+            'street' => '18 Rizal Ave', 'barangay' => 'San Pedro', 'city' => 'Puerto Princesa City', 'province' => 'Palawan',
         ],
     ];
 
@@ -138,6 +138,17 @@ class SellerShopsSeeder extends Seeder
                 ]
             );
 
+            // Each shop is in a different province, spread over Luzon, Visayas
+            // and Mindanao — kept up to date on re-runs so the Sorting Center
+            // routes match (see LogisticsNetworkSeeder).
+            $seller->update([
+                'address' => $address,
+                'province' => $shop['province'],
+                'city_municipality' => $shop['city'],
+                'barangay' => $shop['barangay'],
+                'street_address' => $shop['street'],
+            ]);
+
             // The one category this seller registered for.
             DB::table('seller_applications')->updateOrInsert(
                 ['user_id' => $seller->id],
@@ -145,7 +156,7 @@ class SellerShopsSeeder extends Seeder
                     'full_name' => $seller->name,
                     'business_name' => $shop['shop'],
                     'phone' => $seller->phone ?? $phone,
-                    'address' => $seller->address ?? $address,
+                    'address' => $address,
                     'business_category' => $category,
                     'status' => 'Approved',
                     'reviewed_at' => now(),

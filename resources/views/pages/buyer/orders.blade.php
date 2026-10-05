@@ -177,7 +177,7 @@
 
                             if (!$canCancel && in_array($orderGroup, ['to-ship', 'to-receive'])) {
                                 $cancelNote = $isCod
-                                    ? 'This order can no longer be cancelled because it is already ready for pickup or on its way. You can refuse the parcel when it arrives, or request a return after receiving it.'
+                                    ? 'This order can no longer be cancelled because it is already shipped or on its way. You can refuse the parcel when it arrives, or request a return after receiving it.'
                                     : 'Paid orders (GCash, Maya or card) can\'t be cancelled after checkout. You can request a return once you receive it.';
                             }
 
@@ -227,7 +227,7 @@
                                         @endfor
                                     </div>
                                     <div class="order-track-labels" aria-hidden="true">
-                                        <span>Placed</span><span>Packed</span><span>Picked up</span><span>On the way</span><span>Delivered</span>
+                                        <span>Placed</span><span>Packed</span><span>Shipped</span><span>On the way</span><span>Delivered</span>
                                     </div>
                                     <div class="order-track-note"><i class="bi bi-info-circle"></i> {{ $order['step_note'] }}</div>
                                 </div>
@@ -769,6 +769,8 @@
     <i class="bi bi-geo-alt-fill"></i> Order Tracking
 </div>
 
+@include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect()])
+
 @if($showRider || $orderGroup === 'delivered')
 
 {{-- RIDER PROFILE --}}
@@ -863,7 +865,7 @@
             </div>
 
             <div class="rider-profile-email">
-                Rider details will appear here once a rider picks up your order.
+                Rider details will appear here once a delivery rider is assigned to your order.
             </div>
 
         </div>

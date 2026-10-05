@@ -144,15 +144,9 @@
                         >
                     </div>
 
-                    <div class="field">
-                        <label for="address">Address</label>
-                        <input
-                            type="text"
-                            id="address"
-                            name="address"
-                            value="{{ old('address', $dbUser->address ?? '') }}"
-                            required
-                        >
+                    <div class="field" style="grid-column: 1 / -1;">
+                        <label for="profile_province">Address</label>
+                        @include('partials.address-fields', ['id' => 'profile', 'value' => $dbUser->address ?? ''])
                         <span class="field-hint">Used at checkout until you save addresses below.</span>
                     </div>
 
@@ -226,8 +220,11 @@
                                 <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XX XXX XXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
                             </div>
                             <div class="field" style="grid-column: 1 / -1;">
-                                <label for="addr_address">Complete Address</label>
-                                <input type="text" id="addr_address" name="address" maxlength="255" placeholder="House No., Street, Barangay, City, Province" value="{{ old('address') }}" required>
+                                <label for="addr_province">Complete Address</label>
+                                @include('partials.address-fields', ['id' => 'addr', 'value' => old('address')])
+                                @error('address')
+                                    <span class="field-hint" style="color:#be123c;">{{ $message }}</span>
+                                @enderror
                             </div>
                         </div>
                         <label class="addr-default-check">
