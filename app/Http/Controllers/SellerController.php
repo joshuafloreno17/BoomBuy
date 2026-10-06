@@ -115,6 +115,7 @@ class SellerController extends Controller
             ->count('orders.id');
 
         $toDropOff = $sellerOrderStatuses->where('status', 'Processing')->count();
+        $newOrders = $sellerOrderStatuses->where('status', 'Pending')->count();
 
         $lowStockCount = $products->filter(fn ($p) => (int) $p->sellable_stock <= 5)->count();
 
@@ -205,6 +206,7 @@ class SellerController extends Controller
                 'deliveredToday',
                 'toShipOld',
                 'toDropOff',
+                'newOrders',
                 'lowStockCount',
                 'rating',
                 'pendingReturns',
@@ -902,9 +904,9 @@ class SellerController extends Controller
     // Tabs on the seller's Orders page => the order statuses each one shows.
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
-        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
-        'to-ship' => ['label' => 'To Ship', 'statuses' => ['Ready for Pickup', 'Assigned']],
-        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
+        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending']],
+        'to-ship' => ['label' => 'To Drop Off', 'statuses' => ['Processing']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
         'completed' => ['label' => 'Completed', 'statuses' => ['Delivered']],
         'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
@@ -1282,10 +1284,7 @@ class SellerController extends Controller
         ));
     }
 
-    public function confirmPickup($id, SellerOrderService $orders)
-    {
-        return $this->sellerOrderAction(fn (array $user) => $orders->confirmPickup((int) $user['id'], (int) $id));
-    }
+
     public function editProduct($id)
     {
         $user = requireUserRole('seller');

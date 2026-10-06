@@ -107,12 +107,12 @@
                 <h2 class="pd-card-title" id="todo-title">Needs your action</h2>
             </div>
             <div class="pd-todo">
-                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $pendingOrders > 0 ? 'is-hot' : 'is-done' }}">
+                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $newOrders > 0 ? 'is-hot' : 'is-done' }}">
                     <span class="pd-todo-icon"><i class="bi bi-box-seam"></i></span>
                     <span class="pd-todo-text"><strong>Pack and ship</strong><span>New orders to prepare</span></span>
-                    <span class="pd-todo-count">{{ $pendingOrders }}</span>
+                    <span class="pd-todo-count">{{ $newOrders }}</span>
                 </a>
-                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $toDropOff > 0 ? '' : 'is-done' }}">
+                <a href="{{ route('seller.orders', ['tab' => 'to-ship']) }}" class="pd-todo-item {{ $toDropOff > 0 ? '' : 'is-done' }}">
                     <span class="pd-todo-icon"><i class="bi bi-box-arrow-in-right"></i></span>
                     <span class="pd-todo-text"><strong>Drop off at Sorting Center</strong><span>Being packed — bring them in next</span></span>
                     <span class="pd-todo-count">{{ $toDropOff }}</span>

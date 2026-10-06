@@ -24,7 +24,7 @@ class OrderSafetyTest extends TestCase
         $seller = $this->makeSeller();
         $product = $this->makeProduct($seller);
 
-        foreach (['Ready for Pickup', 'Picked Up', 'At Sorting Center', 'Out for Delivery', 'Delivered', 'Cancelled'] as $status) {
+        foreach (['Dropped Off', 'In Transit', 'At Sorting Center', 'Out for Delivery', 'Delivered', 'Cancelled'] as $status) {
             $orderId = $this->makeOrder($this->makeUser(), $product, $status);
 
             $this->actingAsUser($seller)
@@ -37,27 +37,6 @@ class OrderSafetyTest extends TestCase
 
             $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => $status]);
         }
-    }
-
-    public function test_seller_confirms_a_rider_pickup_only_once_and_only_during_hand_over(): void
-    {
-        $seller = $this->makeSeller();
-        $rider = $this->makeRider();
-        $product = $this->makeProduct($seller);
-
-        $delivered = $this->makeOrder($this->makeUser(), $product, 'Delivered', ['rider_id' => $rider->id]);
-
-        $this->actingAsUser($seller)
-            ->post(route('seller.order.confirm-pickup', $delivered))
-            ->assertSessionHas('error');
-
-        $assigned = $this->makeOrder($this->makeUser(), $product, 'Assigned', ['rider_id' => $rider->id]);
-
-        $this->actingAsUser($seller)->post(route('seller.order.confirm-pickup', $assigned))->assertSessionHas('success');
-        $first = DB::table('orders')->where('id', $assigned)->value('seller_confirmed_pickup_at');
-
-        $this->actingAsUser($seller)->post(route('seller.order.confirm-pickup', $assigned))->assertSessionHas('error');
-        $this->assertSame($first, DB::table('orders')->where('id', $assigned)->value('seller_confirmed_pickup_at'));
     }
 
     public function test_abandoned_buy_now_does_not_replace_the_cart_at_checkout(): void
@@ -174,20 +153,16 @@ class OrderSafetyTest extends TestCase
         $logistics = $this->makeLogistics();
         $product = $this->makeProduct($this->makeSeller());
 
-        $pickup = $this->makeOrder($this->makeUser(), $product, 'Assigned', ['rider_id' => $rider->id]);
-        $carrying = $this->makeOrder($this->makeUser(), $product, 'Picked Up', ['rider_id' => $rider->id]);
-        $delivery = $this->makeOrder($this->makeUser(), $product, 'Out for Delivery', [
-            'rider_id' => $rider->id, 'delivery_rider_id' => $rider->id,
-        ]);
+        $assigned = $this->makeOrder($this->makeUser(), $product, 'Assigned for Delivery', ['delivery_rider_id' => $rider->id]);
+        $delivery = $this->makeOrder($this->makeUser(), $product, 'Out for Delivery', ['delivery_rider_id' => $rider->id]);
 
         $this->actingAsUser($logistics)
             ->post(route('logistics.riders.toggle-status', $rider->id), ['status' => 'Deactivated'])
             ->assertSessionHas('success');
 
-        $this->assertDatabaseHas('orders', ['id' => $pickup, 'status' => 'Ready for Pickup', 'rider_id' => null]);
-        $this->assertDatabaseHas('orders', ['id' => $delivery, 'status' => 'At Sorting Center', 'delivery_rider_id' => null]);
-        // Already on its way to the Sorting Center — Logistics confirms it on arrival.
-        $this->assertDatabaseHas('orders', ['id' => $carrying, 'status' => 'Picked Up']);
+        foreach ([$assigned, $delivery] as $orderId) {
+            $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'At Sorting Center', 'delivery_rider_id' => null]);
+        }
         $this->assertDatabaseHas('notifications', ['user_id' => $logistics->id, 'title' => 'Parcels Need a New Rider']);
     }
 

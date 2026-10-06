@@ -8,9 +8,9 @@ use App\Support\OrderTimeline;
 use Illuminate\Support\Facades\DB;
 
 /**
- * A rider's work on an order. Pickup leg: claim a Ready for Pickup order →
- * Assigned → Picked Up (to the Sorting Center). Last leg: Assigned for
- * Delivery → Out for Delivery → Delivered or Delivery Failed (a refusal
+ * A rider's work on an order — the last leg, from the Sorting Center to the
+ * buyer (sellers drop parcels at the Sorting Center themselves): Assigned
+ * for Delivery → Out for Delivery → Delivered or Delivery Failed (a refusal
  * included). Used by the rider web pages and meant for the mobile app.
  */
 class DeliveryService
@@ -26,109 +26,6 @@ class DeliveryService
     ];
 
     public const RIDER_STATUSES = ['Out for Delivery', 'Delivered', 'Delivery Failed'];
-
-    /**
-     * First come, first served: the UPDATE only changes a row that is still
-     * unclaimed and Ready for Pickup when it runs, so when two riders claim
-     * at the same moment only one wins — the database is the lock.
-     *
-     * @throws ActionFailed
-     */
-    public function claim(int $riderId, int $orderId): string
-    {
-        $order = DB::table('orders')->where('id', $orderId)->first();
-
-        if (!$order) {
-            throw new ActionFailed('Delivery not found.');
-        }
-
-        if ($order->status !== 'Ready for Pickup') {
-            throw new ActionFailed('This order is not ready for pickup.');
-        }
-
-        if (!empty($order->rider_id)) {
-            throw new ActionFailed('This order has already been assigned to another rider.');
-        }
-
-        $claimed = DB::table('orders')
-            ->where('id', $orderId)
-            ->where('status', 'Ready for Pickup')
-            ->whereNull('rider_id')
-            ->update(['rider_id' => $riderId, 'status' => 'Assigned', 'updated_at' => now()]);
-
-        if (!$claimed) {
-            throw new ActionFailed('This order was just claimed by another rider. Please choose a different delivery.');
-        }
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Rider Assigned',
-            'A rider has accepted your order #' . $orderId . ' and will pick it up from the seller shortly.',
-            'order',
-            $orderId
-        );
-
-        createNotification(
-            $riderId,
-            'Delivery Accepted',
-            'You accepted Order #' . $orderId . '. Proceed to the seller\'s location, verify the order, then confirm pickup.',
-            'delivery',
-            $orderId
-        );
-
-        return 'Delivery accepted! Proceed to the seller\'s location and confirm pickup once you have the order.';
-    }
-
-    /**
-     * The rider has the parcel and heads to the Sorting Center.
-     *
-     * @throws ActionFailed
-     */
-    public function confirmPickup(int $riderId, int $orderId): string
-    {
-        $order = DB::table('orders')->where('id', $orderId)->first();
-
-        if (!$order) {
-            throw new ActionFailed('Delivery not found.');
-        }
-
-        if ((int) $order->rider_id !== $riderId) {
-            throw new ActionFailed('This delivery is not assigned to you.');
-        }
-
-        if ($order->status !== 'Assigned') {
-            throw new ActionFailed('This order has already been picked up.');
-        }
-
-        DB::table('orders')
-            ->where('id', $orderId)
-            ->where('rider_id', $riderId)
-            ->where('status', 'Assigned')
-            ->update(['status' => 'Picked Up', 'updated_at' => now()]);
-
-        createNotification(
-            (int) $order->buyer_id,
-            'Order Picked Up',
-            'Your order #' . $orderId . ' has been picked up by the rider and is now on its way.',
-            'order',
-            $orderId
-        );
-
-        notifyOrderSellers(
-            $orderId,
-            'Order Picked Up by Rider',
-            'Order #' . $orderId . ' has been picked up by the rider and is on its way to the Sorting Center.'
-        );
-
-        notifyLogisticsUsers(
-            'Parcel En Route',
-            'Order #' . $orderId . ' has been picked up by a rider and is on its way to the Sorting Center.',
-            'parcel',
-            $orderId
-        );
-
-        return 'Pickup confirmed! Please bring the parcel to the Sorting Center.';
-    }
 
     /**
      * @return string  What happened, for the rider.

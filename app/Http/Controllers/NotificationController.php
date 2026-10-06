@@ -103,17 +103,17 @@ class NotificationController extends Controller
             return redirect($back)->with('error', 'Order #' . $orderId . ' is no longer available.');
         }
 
-        // A rider can only open a delivery that is still up for grabs or is theirs;
-        // one another rider already claimed would just be a 404.
+        // A rider can only open a delivery that is (still) theirs — one the
+        // Sorting Center gave to another rider would just be a 404.
         if (($user['role'] ?? '') === 'rider' && $orderId > 0) {
-            $delivery = DB::table('orders')->where('id', $orderId)->first(['status', 'rider_id', 'delivery_rider_id']);
+            $delivery = DB::table('orders')->where('id', $orderId)->first(['rider_id', 'delivery_rider_id']);
             $riderId = (int) $user['id'];
-            $isOpen = $delivery->status === 'Ready for Pickup' && empty($delivery->rider_id);
-            $isMine = (int) $delivery->rider_id === $riderId || (int) ($delivery->delivery_rider_id ?? 0) === $riderId;
+            $isMine = (int) ($delivery->delivery_rider_id ?? 0) === $riderId
+                || (empty($delivery->delivery_rider_id) && (int) $delivery->rider_id === $riderId);
 
-            if (!$isOpen && !$isMine) {
+            if (!$isMine) {
                 return redirect()->route('rider.deliveries')
-                    ->with('error', 'Order #' . $orderId . ' was already claimed by another rider.');
+                    ->with('error', 'Order #' . $orderId . ' is no longer assigned to you.');
             }
         }
 

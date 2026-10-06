@@ -9,9 +9,8 @@ use Tests\TestCase;
 
 /**
  * An order's trip: seller drops it at the Sorting Center (logistics) →
- * delivery rider → buyer. (Orders from before then that still have a
- * pickup rider can finish that way — see the claim test.) The routing
- * between Sorting Centers is covered in SortingCenterJourneyTest.
+ * delivery rider → buyer. The routing between Sorting Centers is covered
+ * in SortingCenterJourneyTest.
  */
 class DeliveryFlowTest extends TestCase
 {
@@ -80,7 +79,7 @@ class DeliveryFlowTest extends TestCase
         $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller));
 
         $this->actingAsUser($seller)
-            ->post(route('seller.order.status', $order), ['status' => 'Ready for Pickup'])
+            ->post(route('seller.order.status', $order), ['status' => 'Dropped Off'])
             ->assertSessionHas('error');
         $this->assertSame('Pending', $this->orderStatus($order));
 
@@ -90,16 +89,22 @@ class DeliveryFlowTest extends TestCase
         $this->assertSame('Pending', $this->orderStatus($order));
     }
 
-    public function test_only_one_rider_can_claim_an_order(): void
+    public function test_riders_only_see_and_update_their_own_deliveries(): void
     {
-        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($this->makeSeller()), 'Ready for Pickup');
-        $first = $this->makeRider();
-        $second = $this->makeRider();
+        $mine = $this->makeRider();
+        $other = $this->makeRider();
+        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($this->makeSeller()), 'Assigned for Delivery', [
+            'delivery_rider_id' => $mine->id,
+        ]);
 
-        $this->actingAsUser($first)->post(route('rider.delivery.claim', $order))->assertSessionHas('success');
-        $this->actingAsUser($second)->post(route('rider.delivery.claim', $order))->assertSessionHas('error');
+        $this->actingAsUser($mine)->get(route('rider.dashboard'))->assertOk()->assertSee('#' . $order);
+        $this->actingAsUser($mine)->get(route('rider.delivery.details', $order))->assertOk();
 
-        $this->assertSame($first->id, (int) DB::table('orders')->where('id', $order)->value('rider_id'));
+        $this->actingAsUser($other)->get(route('rider.dashboard'))->assertOk()->assertDontSee('Order #' . $order);
+        $this->actingAsUser($other)->get(route('rider.delivery.details', $order))->assertNotFound();
+        $this->actingAsUser($other)
+            ->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery'])
+            ->assertSessionHas('error');
     }
 
     public function test_parcels_only_go_to_active_approved_riders(): void
@@ -245,6 +250,6 @@ class DeliveryFlowTest extends TestCase
         $this->actingAsUser($logistics)
             ->get(route('logistics.riders', ['status' => 'approved']))
             ->assertSee($approved->email)
-            ->assertSee('0 pickup(s) · 1 delivery(ies)');
+            ->assertSee('1 delivery(ies)');
     }
 }

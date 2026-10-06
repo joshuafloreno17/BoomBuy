@@ -280,8 +280,6 @@
                                 None — you bring this parcel to the Sorting Center
                             @elseif(in_array($order['status'] ?? '', ['Dropped Off', 'At Sorting Center'], true))
                                 The Sorting Center will assign a delivery rider
-                            @elseif(in_array($order['status'] ?? '', ['Ready for Pickup']))
-                                Waiting for a courier to accept this delivery…
                             @else
                                 Not yet applicable
                             @endif
@@ -296,28 +294,6 @@
                     @endif
 
                 </div>
-
-                @if(!empty($order['rider_id']))
-
-                    @if(!empty($order['seller_confirmed_pickup_at']))
-
-                        <div class="success" style="margin-top:16px;">
-                            <i class="bi bi-check-circle-fill"></i> You confirmed handing this order over to the rider on
-                            {{ \Illuminate\Support\Carbon::parse($order['seller_confirmed_pickup_at'])->format('M d, Y • h:i A') }}.
-                        </div>
-
-                    @elseif(in_array($order['status'] ?? '', ['Assigned', 'Picked Up'], true))
-
-                        <form method="POST" action="{{ route('seller.order.confirm-pickup', $order['id']) }}" style="margin-top:16px;">
-                            @csrf
-                            <button type="submit">
-                                <i class="bi bi-check-circle-fill"></i> Confirm Rider Pickup
-                            </button>
-                        </form>
-
-                    @endif
-
-                @endif
 
             </div>
 
@@ -340,10 +316,6 @@
                         'Pending' => 0,
                         'Processing' => 1,
                         'Dropped Off' => 2,
-                        // Older orders that still went through a pickup rider.
-                        'Ready for Pickup' => 2,
-                        'Assigned' => 2,
-                        'Picked Up' => 2,
                         'At Sorting Center' => 3,
                         'In Transit' => 3,
                         'Assigned for Delivery' => 3,
@@ -471,8 +443,6 @@
                                 This order has been delivered. Nothing left for you to do.
                             @elseif($currentStatus === 'Dropped Off')
                                 You dropped this off. Waiting for the Sorting Center to confirm they received it — from there they send it to the buyer.
-                            @elseif(in_array($currentStatus, ['Ready for Pickup', 'Assigned'], true))
-                                Keep the parcel ready — a rider will collect it. There's nothing more for you to update.
                             @else
                                 Currently <strong>{{ $currentStatus }}</strong>. The Sorting Center and delivery rider move it along from here.
                             @endif

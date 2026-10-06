@@ -785,7 +785,7 @@ class AdminController extends Controller
             // Their listings leave the shop automatically; orders they still
             // have to pack can't move until they're back or are cancelled.
             $openOrders = DB::table('orders')
-                ->whereIn('status', ['Pending', 'Processing', 'Ready for Pickup'])
+                ->whereIn('status', ['Pending', 'Processing'])
                 ->whereExists(function ($q) use ($user) {
                     $q->select(DB::raw(1))
                         ->from('order_items')
@@ -1064,7 +1064,7 @@ class AdminController extends Controller
         )->get()->groupBy('rider_id');
 
         $awaitingConfirmation = DB::table('orders')
-            ->whereIn('status', ['Dropped Off', 'Picked Up'])
+            ->where('status', 'Dropped Off')
             ->orderBy('updated_at')
             ->get();
 
@@ -1182,16 +1182,15 @@ class AdminController extends Controller
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
-        'to-pickup' => ['label' => 'For Pickup', 'statuses' => ['Ready for Pickup', 'Assigned']],
-        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery']],
         'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
         'delivered' => ['label' => 'Delivered', 'statuses' => ['Delivered']],
         'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
     ];
 
     // The admin may only cancel while the items are still with the seller —
-    // after pickup the parcel goes back through the Logistics return flow.
-    public const ADMIN_CANCELLABLE = ['Pending', 'Processing', 'Ready for Pickup'];
+    // once it's at a Sorting Center it goes back through the Logistics return flow.
+    public const ADMIN_CANCELLABLE = ['Pending', 'Processing'];
 
     public function orders()
     {
@@ -1344,7 +1343,7 @@ class AdminController extends Controller
         if (!in_array($order->status, self::ADMIN_CANCELLABLE)) {
             return back()->with(
                 'error',
-                'Only orders that are still with the seller (Pending, Processing or Ready for Pickup) can be cancelled.'
+                'Only orders that are still with the seller (Pending or Processing) can be cancelled.'
             );
         }
 

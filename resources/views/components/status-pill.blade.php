@@ -4,10 +4,7 @@
     $styles = [
         'Pending' => ['bg' => '#f1f0ee', 'color' => '#6b6570', 'icon' => 'bi-hourglass-split'],
         'Processing' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-gear-fill'],
-        'Ready for Pickup' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-box-seam-fill'],
-        'Assigned' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-person-check-fill'],
         'Dropped Off' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-box-arrow-in-right'],
-        'Picked Up' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-truck'],
         'At Sorting Center' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-building'],
         'In Transit' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-truck'],
         'Assigned for Delivery' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-person-check-fill'],

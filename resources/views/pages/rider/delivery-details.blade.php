@@ -270,46 +270,6 @@
     )
 )
 
-    @if($currentStatus === 'Assigned')
-
-        <div class="card update-box">
-
-            <h3>
-                <i class="bi bi-box-seam-fill"></i> Confirm Pickup
-            </h3>
-
-            <p style="font-size:12px; color:#6b6570; margin-bottom:12px;">
-                Proceed to the seller's location, verify the order, then confirm that you have picked it up.
-            </p>
-
-            <form
-                method="POST"
-                action="{{ route('rider.delivery.confirm-pickup', $delivery['id']) }}"
-            >
-
-                @csrf
-
-                <button type="submit" class="btn update-btn">
-                    <i class="bi bi-check-circle-fill"></i> Confirm Item Pickup
-                </button>
-
-            </form>
-
-        </div>
-
-    @endif
-
-    @if($currentStatus === 'Picked Up' || $currentStatus === 'At Sorting Center')
-
-        <div class="card update-box">
-            <h3><i class="bi bi-geo-alt-fill"></i> At the Sorting Center</h3>
-            <p style="font-size:12px; color:#6b6570;">
-                This parcel is being processed by the Sorting Center. You'll be notified once it's assigned to a rider for final delivery.
-            </p>
-        </div>
-
-    @endif
-
     @if($currentStatus === 'Assigned for Delivery' || $currentStatus === 'Out for Delivery')
 
         <div class="card update-box">

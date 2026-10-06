@@ -21,10 +21,7 @@ class BuyerController extends Controller
     private const ORDER_PROGRESS = [
         'Pending' => [1, 'Waiting for the seller to confirm.'],
         'Processing' => [2, 'Seller is packing your order.'],
-        'Ready for Pickup' => [2, 'Packed and waiting for a rider.'],
-        'Assigned' => [2, 'A rider is on the way to the seller.'],
         'Dropped Off' => [3, 'Seller dropped it off — heading into the Sorting Center.'],
-        'Picked Up' => [3, 'Picked up — heading to the Sorting Center.'],
         'In Transit' => [3, 'On its way to the Sorting Center near you.'],
         'At Sorting Center' => [3, 'At the Sorting Center.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
@@ -32,9 +29,9 @@ class BuyerController extends Controller
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
-    private const TO_SHIP_STATUSES = ['Pending', 'Processing', 'Ready for Pickup'];
+    private const TO_SHIP_STATUSES = ['Pending', 'Processing'];
 
-    private const TO_RECEIVE_STATUSES = ['Assigned', 'Dropped Off', 'Picked Up', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery'];
+    private const TO_RECEIVE_STATUSES = ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery'];
 
     public function dashboard()
     {

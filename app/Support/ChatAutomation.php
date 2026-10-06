@@ -24,7 +24,6 @@ class ChatAutomation
         'placed' => 'Thanks for your order #%d! We received it and will start preparing it soon.',
         'processing' => 'Good news! We are now preparing your order #%d.',
         'dropped_off' => 'Your order #%d is packed and on its way — we dropped it off at the Sorting Center.',
-        'ready' => 'Your order #%d is packed and ready for pickup. A rider will collect it soon.',
         'out_for_delivery' => 'Your order #%d is out for delivery — it is on its way to you!',
         'delivered' => 'Your order #%d has been delivered. Enjoy, and please confirm once you have received it.',
         'cancelled' => 'Order #%d has been cancelled.',

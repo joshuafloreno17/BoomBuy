@@ -13,8 +13,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * What a seller does with an order: Pending → Processing → Dropped Off (the
  * seller brings the parcel to the Sorting Center themselves), or Cancelled
- * while it is still with them; confirm a rider's pickup on older orders that
- * still went through one; and put a returned order back into stock.
+ * while it is still with them; take back a returned parcel at the Sorting
+ * Center; and put a returned order back into stock.
  */
 class SellerOrderService
 {
@@ -132,36 +132,6 @@ class SellerOrderService
         });
 
         return 'Order status updated to ' . $status . '.';
-    }
-
-    /**
-     * The seller confirms the rider took the parcel. Only during the hand-over
-     * and only once: the time recorded is when it actually left the seller.
-     *
-     * @throws ActionFailed
-     */
-    public function confirmPickup(int $sellerId, int $orderId): string
-    {
-        $order = $this->sellerOrder($sellerId, $orderId);
-
-        if (empty($order->rider_id)) {
-            throw new ActionFailed('No rider has picked up this order yet.');
-        }
-
-        if (!in_array($order->status, ['Assigned', 'Picked Up'], true)) {
-            throw new ActionFailed('This order is not waiting for a rider pickup.');
-        }
-
-        if (!empty($order->seller_confirmed_pickup_at)) {
-            throw new ActionFailed('You already confirmed this pickup.');
-        }
-
-        DB::table('orders')
-            ->where('id', $orderId)
-            ->whereNull('seller_confirmed_pickup_at')
-            ->update(['seller_confirmed_pickup_at' => now()]);
-
-        return 'Rider pickup confirmed.';
     }
 
     /**

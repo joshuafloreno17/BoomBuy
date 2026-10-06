@@ -14,7 +14,7 @@ class OrderStock
      * rider has picked the parcel up, stock only comes back through the
      * Returned to Seller → restock flow.
      */
-    public const RESTOCKABLE_ON_CANCEL = ['Pending', 'Processing', 'Ready for Pickup'];
+    public const RESTOCKABLE_ON_CANCEL = ['Pending', 'Processing'];
 
     /**
      * Put an order's items back into inventory and stamp restocked_at.

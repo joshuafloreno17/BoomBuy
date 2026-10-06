@@ -143,7 +143,7 @@
                         <div class="app-name">Order #{{ $order->id }}</div>
                         <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
                     </div>
-                    <span class="status-badge status-pending-verification">Picked Up</span>
+                    <x-status-pill :status="$order->status" />
                 </div>
             </div>
 

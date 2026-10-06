@@ -108,32 +108,16 @@
                         All Deliveries
                     </option>
 
-                    <option value="Pending">
-                        Pending
-                    </option>
-
-                    <option value="Ready for Pickup">
-                        Ready for Pickup
-                    </option>
-
-                    <option value="Assigned">
-                        Assigned
-                    </option>
-
-                    <option value="Picked Up">
-                        Picked Up
-                    </option>
-
-                    <option value="At Sorting Center">
-                        At Sorting Center
-                    </option>
-
                     <option value="Assigned for Delivery">
                         Assigned for Delivery
                     </option>
 
                     <option value="Out for Delivery">
                         Out for Delivery
+                    </option>
+
+                    <option value="Delivery Failed">
+                        Delivery Failed
                     </option>
 
                     <option value="Delivered">
@@ -298,41 +282,6 @@
                             <!-- BUTTONS -->
 
                             <div class="buttons">
-
-
-                                {{-- READY FOR PICKUP --}}
-
-                                @if(
-                                    $status === 'Ready for Pickup' &&
-                                    empty($delivery['rider_id'] ?? null)
-                                )
-
-
-                                    <form
-                                        method="POST"
-                                        action="{{ route(
-                                            'rider.delivery.claim',
-                                            $delivery['id']
-                                        ) }}"
-                                        class="claim-form"
-                                    >
-
-                                        @csrf
-
-                                        <button
-                                            type="submit"
-                                            class="btn claim-btn"
-                                        >
-
-                                            <i class="bi bi-truck"></i> Accept Delivery
-
-                                        </button>
-
-                                    </form>
-
-
-                                @endif
-
 
 
                                 {{-- VIEW DETAILS --}}

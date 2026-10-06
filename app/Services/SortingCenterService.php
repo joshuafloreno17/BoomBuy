@@ -33,8 +33,7 @@ class SortingCenterService
     {
         $order = $this->parcel($orderId);
 
-        // Dropped off by the seller, or (older orders) brought in by a pickup rider.
-        if (!in_array($order->status, ['Dropped Off', 'Picked Up'], true)) {
+        if ($order->status !== 'Dropped Off') {
             throw new ActionFailed('This parcel is not awaiting Sorting Center confirmation.');
         }
 

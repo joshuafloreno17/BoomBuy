@@ -28,7 +28,6 @@
 
     $events = array_filter([
         ['bi-bag-check', 'Order placed', $order->created_at],
-        ['bi-box-seam', 'Seller handed parcel to rider', $order->seller_confirmed_pickup_at],
         ['bi-building', 'Received at Sorting Center', $order->sorting_center_received_at],
         ['bi-exclamation-triangle', 'Delivery failed' . ($order->delivery_attempts ? ' (attempt ' . $order->delivery_attempts . ')' : ''), $order->delivery_failed_at],
         ['bi-hand-thumbs-down', 'Buyer refused the parcel', $order->buyer_refused_at],

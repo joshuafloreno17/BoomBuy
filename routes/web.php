@@ -450,7 +450,6 @@ Route::post('/seller/order/{id}/status', [SellerController::class, 'updateOrderS
 // Printable shipping label (waybill no. + QR) to stick on the parcel before drop-off.
 Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'])->whereNumber('id')->name('seller.order.label');
 
-Route::post('/seller/order/{id}/confirm-pickup', [SellerController::class, 'confirmPickup'])->name('seller.order.confirm-pickup');
 
 /*
 |--------------------------------------------------------------------------
@@ -475,10 +474,8 @@ Route::get('/rider/deliveries', [RiderController::class, 'deliveries'])->name('r
 |--------------------------------------------------------------------------
 */
 
-Route::post('/rider/delivery/{id}/claim', [RiderController::class, 'claimDelivery'])->name('rider.delivery.claim');
 
 
-Route::post('/rider/delivery/{id}/confirm-pickup', [RiderController::class, 'confirmPickup'])->name('rider.delivery.confirm-pickup');
 
 /*
 |--------------------------------------------------------------------------

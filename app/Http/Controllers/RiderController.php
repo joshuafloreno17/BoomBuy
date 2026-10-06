@@ -45,165 +45,21 @@ class RiderController extends Controller
             return $user;
         }
 
-        $riderId = $user['id'] ?? null;
+        // Every parcel a Sorting Center handed this rider to deliver.
+        $myDeliveries = $this->riderOrders((int) $user['id']);
 
+        $myDeliveryAssignments = array_values(array_filter(
+            $myDeliveries,
+            fn ($order) => in_array($order['status'] ?? '', ['Assigned for Delivery', 'Out for Delivery'], true)
+        ));
 
-        // ==========================================
-        // AVAILABLE ORDERS
-        // ==========================================
-
-        $availableOrders = DB::table('orders')
-            ->where('status', 'Ready for Pickup')
-            ->whereNull('rider_id')
-            ->orderByDesc('created_at')
-            ->get();
-
-        $availableOrders = $availableOrders->map(function ($order) {
-
-            $order = (array) $order;
-
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
-
-            $order['items'] = $items->map(function ($item) {
-                return (array) $item;
-            })->toArray();
-
-            $order['total'] = (float) $order['total_amount'];
-            $order['buyer_name'] = $order['shipping_name'];
-            $order['address'] = $order['shipping_address'];
-            $order['phone'] = $order['shipping_phone'];
-            $order['payment'] = $order['payment_method'];
-
-            return $order;
-
-        })->toArray();
-
-
-        // ==========================================
-        // MY DELIVERIES
-        // ==========================================
-
-        $myDeliveries = DB::table('orders')
-            ->where('rider_id', $riderId)
-            ->orderByDesc('created_at')
-            ->get();
-
-        $myDeliveries = $myDeliveries->map(function ($order) {
-
-            $order = (array) $order;
-
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
-
-            $order['items'] = $items->map(function ($item) {
-                return (array) $item;
-            })->toArray();
-
-            $order['total'] = (float) $order['total_amount'];
-            $order['buyer_name'] = $order['shipping_name'];
-            $order['address'] = $order['shipping_address'];
-            $order['phone'] = $order['shipping_phone'];
-            $order['payment'] = $order['payment_method'];
-
-            return $order;
-
-        })->toArray();
-
-
-        // ==========================================
-        // ITEMS FOR DELIVERY (assigned by the Sorting Center for the
-        // final-mile leg — may be a different rider than the one who
-        // picked the parcel up from the seller)
-        // ==========================================
-
-        $myDeliveryAssignments = DB::table('orders')
-            ->where('delivery_rider_id', $riderId)
-            ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
-            ->orderByDesc('updated_at')
-            ->get();
-
-        $myDeliveryAssignments = $myDeliveryAssignments->map(function ($order) {
-
-            $order = (array) $order;
-
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
-
-            $order['items'] = $items->map(function ($item) {
-                return (array) $item;
-            })->toArray();
-
-            $order['total'] = (float) $order['total_amount'];
-            $order['buyer_name'] = $order['shipping_name'];
-            $order['address'] = $order['shipping_address'];
-            $order['phone'] = $order['shipping_phone'];
-            $order['payment'] = $order['payment_method'];
-
-            return $order;
-
-        })->toArray();
-
-
-        // ==========================================
-        // OUT FOR DELIVERY
-        // ==========================================
-
-        $inTransit = array_values(
-            array_filter(
-                $myDeliveries,
-                function ($order) {
-
-                    return ($order['status'] ?? '') === 'Out for Delivery';
-
-                }
-            )
-        );
-
-
-        // ==========================================
-        // DELIVERED
-        // ==========================================
-
-        $delivered = array_values(
-            array_filter(
-                $myDeliveries,
-                function ($order) {
-
-                    return ($order['status'] ?? '') === 'Delivered';
-
-                }
-            )
-        );
-
-
-        // ==========================================
-        // TOTAL COUNT
-        // ==========================================
-
-        $totalCount =
-            count($availableOrders) +
-            count($myDeliveries);
-
-
-        // ==========================================
-        // RIDER DASHBOARD
-        // ==========================================
+        $inTransit = array_values(array_filter($myDeliveries, fn ($order) => ($order['status'] ?? '') === 'Out for Delivery'));
+        $delivered = array_values(array_filter($myDeliveries, fn ($order) => ($order['status'] ?? '') === 'Delivered'));
+        $totalCount = count($myDeliveries);
 
         return view(
             'pages.rider.dashboard',
-            compact(
-                'user',
-                'availableOrders',
-                'myDeliveries',
-                'myDeliveryAssignments',
-                'inTransit',
-                'delivered',
-                'totalCount'
-            )
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount')
         );
     }
 
@@ -215,86 +71,37 @@ class RiderController extends Controller
             return $user;
         }
 
-        $riderId = $user['id'] ?? null;
+        $deliveries = $this->riderOrders((int) $user['id']);
 
-        // ==============================
-        // AVAILABLE + MY DELIVERIES
-        // ==============================
+        return view('pages.rider.deliveries', compact('user', 'deliveries'));
+    }
 
+    /**
+     * The orders a Sorting Center assigned this rider to deliver, newest
+     * first, shaped for the rider pages. (Orders from before the Sorting
+     * Center hop existed were tracked on rider_id.)
+     */
+    private function riderOrders(int $riderId): array
+    {
         $orders = DB::table('orders')
-            ->where(function ($query) use ($riderId) {
-
-                // Orders available for any rider
-                $query->where(function ($q) {
-                    $q->whereIn('status', [
-                        'Ready for Pickup',
-                        'Shipped'
-                    ])
-                    ->whereNull('rider_id');
-                })
-
-                // OR orders already assigned to this rider (pickup leg)
-                ->orWhere('rider_id', $riderId)
-
-                // OR orders assigned to this rider by the Sorting Center (delivery leg)
-                ->orWhere('delivery_rider_id', $riderId);
-
-            })
+            ->where(fn ($q) => $q->where('delivery_rider_id', $riderId)
+                ->orWhere(fn ($old) => $old->whereNull('delivery_rider_id')->where('rider_id', $riderId)))
             ->orderByDesc('created_at')
             ->get();
 
+        $items = DB::table('order_items')->whereIn('order_id', $orders->pluck('id'))->get()->groupBy('order_id');
 
-        $deliveries = $orders->map(function ($order) {
-
+        return $orders->map(function ($order) use ($items) {
             $order = (array) $order;
-
-            // Get order items
-            $items = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get();
-
-            $order['items'] = $items->map(function ($item) {
-                return (array) $item;
-            })->toArray();
-
-            // Fields expected by Rider Blade
-            $order['total'] =
-                (float) $order['total_amount'];
-
-            $order['buyer_name'] =
-                $order['shipping_name'];
-
-            $order['address'] =
-                $order['shipping_address'];
-
-            $order['phone'] =
-                $order['shipping_phone'];
-
-            $order['payment'] =
-                $order['payment_method'];
+            $order['items'] = $items->get($order['id'], collect())->map(fn ($item) => (array) $item)->toArray();
+            $order['total'] = (float) $order['total_amount'];
+            $order['buyer_name'] = $order['shipping_name'];
+            $order['address'] = $order['shipping_address'];
+            $order['phone'] = $order['shipping_phone'];
+            $order['payment'] = $order['payment_method'];
 
             return $order;
-
         })->toArray();
-
-
-        return view(
-            'pages.rider.deliveries',
-            compact(
-                'user',
-                'deliveries'
-            )
-        );
-    }
-
-    public function claimDelivery($id, DeliveryService $deliveries)
-    {
-        return $this->riderAction(fn (array $user) => $deliveries->claim((int) $user['id'], (int) $id));
-    }
-
-    public function confirmPickup($id, DeliveryService $deliveries)
-    {
-        return $this->riderAction(fn (array $user) => $deliveries->confirmPickup((int) $user['id'], (int) $id));
     }
 
     public function deliveryDetails($id)
@@ -316,19 +123,12 @@ class RiderController extends Controller
             abort(404);
         }
 
-        // Check if this order is available for pickup
-        $isAvailable =
-            $delivery->status === 'Ready for Pickup'
-            && empty($delivery->rider_id);
+        // Only the rider the Sorting Center handed it to (rider_id on orders
+        // from before the Sorting Center hop existed).
+        $isAssigned = (int) ($delivery->delivery_rider_id ?? 0) === (int) $riderId
+            || (empty($delivery->delivery_rider_id) && (int) $delivery->rider_id === (int) $riderId);
 
-        // Check if this order belongs to the logged-in rider — either as the
-        // pickup-leg rider (rider_id) or, once the Sorting Center has assigned
-        // it, as the final-mile delivery rider (delivery_rider_id).
-        $isAssigned =
-            (int) $delivery->rider_id === (int) $riderId
-            || (int) ($delivery->delivery_rider_id ?? 0) === (int) $riderId;
-
-        if (!$isAvailable && !$isAssigned) {
+        if (!$isAssigned) {
             abort(404);
         }
 
@@ -401,16 +201,16 @@ class RiderController extends Controller
             return $user;
         }
 
-        // Delivery statistics: every order this rider picked up or delivered.
+        // Delivery statistics: every order a Sorting Center handed this rider.
         $statusCounts = DB::table('orders')
-            ->where(fn ($q) => $q->where('rider_id', $user['id'])->orWhere('delivery_rider_id', $user['id']))
+            ->where('delivery_rider_id', $user['id'])
             ->select('status', DB::raw('COUNT(*) as total'))
             ->groupBy('status')
             ->pluck('total', 'status');
 
         $totalDeliveries = (int) $statusCounts->sum();
         $deliveredCount = (int) ($statusCounts['Delivered'] ?? 0);
-        $activeCount = (int) collect(['Assigned', 'Picked Up', 'At Sorting Center', 'Assigned for Delivery', 'Out for Delivery'])
+        $activeCount = (int) collect(['Assigned for Delivery', 'Out for Delivery'])
             ->sum(fn ($status) => $statusCounts[$status] ?? 0);
 
         return view(

@@ -79,29 +79,6 @@ if (!function_exists('notifyLogisticsUsers')) {
     }
 }
 
-if (!function_exists('notifyAllActiveRiders')) {
-
-    function notifyAllActiveRiders(
-        string $title,
-        string $message,
-        ?string $type = null,
-        ?int $referenceId = null
-    ): void {
-
-        $riderUserIds = \Illuminate\Support\Facades\DB::table('users')
-            ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
-            ->where('users.role', 'rider')
-            ->where('users.status', 'Active')
-            ->where('rider_applications.status', 'Approved')
-            ->distinct()
-            ->pluck('users.id');
-
-        foreach ($riderUserIds as $riderUserId) {
-            createNotification($riderUserId, $title, $message, $type, $referenceId);
-        }
-    }
-}
-
 if (!function_exists('calculateAge')) {
 
     function calculateAge(?string $birthdate): ?int

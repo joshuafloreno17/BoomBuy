@@ -73,7 +73,7 @@
                             <x-status-pill :status="$order->status" />
                         </div>
                         <div class="parcel-meta">
-                            @if (in_array($order->status, ['Pending', 'Processing', 'Ready for Pickup', 'Assigned']))
+                            @if (in_array($order->status, ['Pending', 'Processing']))
                                 Still with the seller — it will show up under "Confirm arrival" once the seller drops it off.
                             @else
                                 Last updated {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}.

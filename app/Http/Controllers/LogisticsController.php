@@ -174,9 +174,6 @@ class LogisticsController extends Controller
         // Every courier-side status, in pipeline order.
         $pipelineStatuses = [
             'Dropped Off' => 'Dropped off by the seller — confirm arrival',
-            'Ready for Pickup' => 'Waiting for a rider at the seller',
-            'Assigned' => 'Rider heading to the seller',
-            'Picked Up' => 'On the way to the Sorting Center',
             'At Sorting Center' => 'At a Sorting Center',
             'In Transit' => 'Between Sorting Centers',
             'Assigned for Delivery' => 'Delivery rider assigned',
@@ -307,13 +304,6 @@ class LogisticsController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'profile_photo', 'city_municipality']);
 
-        $pickupLoad = DB::table('orders')
-            ->whereIn('rider_id', $activeRiderIds)
-            ->whereIn('status', ['Assigned', 'Picked Up'])
-            ->select('rider_id', DB::raw('COUNT(*) as total'))
-            ->groupBy('rider_id')
-            ->pluck('total', 'rider_id');
-
         $deliveryLoad = DB::table('orders')
             ->whereIn('delivery_rider_id', $activeRiderIds)
             ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
@@ -327,7 +317,7 @@ class LogisticsController extends Controller
                 'name' => $rider->name,
                 'photo' => $rider->profile_photo,
                 'area' => $rider->city_municipality,
-                'load' => (int) ($pickupLoad[$rider->id] ?? 0) + (int) ($deliveryLoad[$rider->id] ?? 0),
+                'load' => (int) ($deliveryLoad[$rider->id] ?? 0),
             ])
             ->sortByDesc('load')
             ->take(6)
@@ -517,13 +507,6 @@ class LogisticsController extends Controller
         $riderAreas = RiderArea::whereIn('rider_id', $riderIds)->get()->groupBy('rider_id');
 
         // What each rider is carrying right now, so logistics can spread the work.
-        $pickupLoad = DB::table('orders')
-            ->whereIn('rider_id', $riderIds)
-            ->whereIn('status', ['Assigned', 'Picked Up'])
-            ->select('rider_id', DB::raw('COUNT(*) as total'))
-            ->groupBy('rider_id')
-            ->pluck('total', 'rider_id');
-
         $deliveryLoad = DB::table('orders')
             ->whereIn('delivery_rider_id', $riderIds)
             ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
@@ -533,7 +516,7 @@ class LogisticsController extends Controller
 
         return view(
             'pages.logistics.riders',
-            compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'pickupLoad', 'deliveryLoad')
+            compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'deliveryLoad')
         );
     }
 
@@ -812,7 +795,7 @@ class LogisticsController extends Controller
             // Dropped off by the seller at this center (or, on older orders,
             // brought in by a pickup rider) — confirm it arrived.
             'awaitingConfirmation' => $matching()
-                ->whereIn('status', ['Dropped Off', 'Picked Up'])
+                ->where('status', 'Dropped Off')
                 ->where($mine('origin_center_id'))
                 ->orderBy('updated_at')
                 ->get(),

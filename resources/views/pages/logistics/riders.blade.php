@@ -106,7 +106,7 @@
                         @if ($app->status === 'Approved')
                             <div>
                                 <strong>Current Load</strong>
-                                {{ $pickupLoad[$app->user_id] ?? 0 }} pickup(s) · {{ $deliveryLoad[$app->user_id] ?? 0 }} delivery(ies)
+                                {{ $deliveryLoad[$app->user_id] ?? 0 }} delivery(ies)
                             </div>
                         @endif
                     </div>
