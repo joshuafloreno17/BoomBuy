@@ -1575,6 +1575,45 @@ class AdminController extends Controller
         );
     }
 
+    /** Compliance → Riders: stuck deliveries, failed attempts, complaints. */
+    public function complianceRiders()
+    {
+        return $this->peopleCompliance('riders', \App\Support\PeopleCompliance::riders());
+    }
+
+    /** Compliance → Buyers: COD pauses for cancelling/refusing, complaints. */
+    public function complianceBuyers()
+    {
+        return $this->peopleCompliance('buyers', \App\Support\PeopleCompliance::buyers());
+    }
+
+    private function peopleCompliance(string $who, \Illuminate\Support\Collection $everyone)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $search = trim((string) request('q', ''));
+        $withIssues = $everyone->where('has_issues', true)->count();
+
+        // Opens on "Needs attention" while anything needs it, else everyone.
+        $view = in_array(request('view'), ['all', 'issues'], true)
+            ? request('view')
+            : ($withIssues > 0 ? 'issues' : 'all');
+
+        $people = $everyone
+            ->when($view === 'issues', fn ($c) => $c->where('has_issues', true))
+            ->when($search !== '', fn ($c) => $c->filter(fn ($p) => stripos($p['name'], $search) !== false
+                || stripos($p['email'], $search) !== false
+                || stripos($p['area'] ?? '', $search) !== false))
+            ->sortBy(fn ($p) => ($p['has_issues'] ? '0' : '1') . strtolower($p['name']))
+            ->values();
+
+        $total = $everyone->count();
+
+        return view('pages.admin.compliance-people', compact('who', 'people', 'total', 'withIssues', 'view', 'search'));
+    }
+
     public function flagProduct($id)
     {
         if (!session()->get('admin_logged_in')) {
@@ -1631,21 +1670,28 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $seller = DB::table('users')->where('id', $userId)->first();
+        // Sellers, riders and buyers can all be warned from Compliance.
+        $person = DB::table('users')->where('id', $userId)->whereIn('role', ['seller', 'rider', 'buyer'])->first();
 
-        if (!$seller) {
-            return back()->with('error', 'Seller not found.');
+        if (!$person) {
+            return back()->with('error', 'Account not found.');
         }
 
         $message = trim((string) request('warning_message'));
 
+        $standard = match ($person->role) {
+            'rider' => 'Your rider account has received a compliance warning from BoomBuy admin. Please keep your deliveries moving and update their status on time.',
+            'buyer' => 'Your BoomBuy account has received a warning from the admin about cancelled or refused orders. Repeated issues may lead to your account being suspended.',
+            default => 'Your seller account has received a compliance warning from BoomBuy admin. Please review your product listings.',
+        };
+
         createNotification(
             $userId,
             'Compliance Warning',
-            $message !== '' ? $message : 'Your seller account has received a compliance warning from BoomBuy admin. Please review your product listings.',
+            $message !== '' ? $message : $standard,
             'compliance_warning'
         );
 
-        return back()->with('success', 'Warning sent to ' . $seller->name . '.');
+        return back()->with('success', 'Warning sent to ' . $person->name . '.');
     }
 }

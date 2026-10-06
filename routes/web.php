@@ -919,6 +919,8 @@ Route::post('/messages/{userId}', [MessageController::class, 'store'])->name('me
 */
 
 Route::get('/admin/compliance', [AdminController::class, 'compliance'])->name('admin.compliance');
+Route::get('/admin/compliance/riders', [AdminController::class, 'complianceRiders'])->name('admin.compliance.riders');
+Route::get('/admin/compliance/buyers', [AdminController::class, 'complianceBuyers'])->name('admin.compliance.buyers');
 
 
 Route::post('/admin/compliance/products/{id}/flag', [AdminController::class, 'flagProduct'])->name('admin.compliance.flag');

@@ -231,3 +231,39 @@ table { min-width: 760px; }
     .stats .stat-card strong { font-size: 20px; }
     .issue-row { flex-direction: column; align-items: flex-start; }
 }
+
+/* Sellers | Riders | Buyers */
+.compliance-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0 0 20px;
+    padding: 5px;
+    width: fit-content;
+    max-width: 100%;
+    border: 1px solid #f0e2da;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.compliance-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 16px;
+    border-radius: 10px;
+    color: #6b6570;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.compliance-tabs a:hover {
+    background: #fff4ee;
+    color: #1b1a1f;
+}
+
+.compliance-tabs a.active {
+    background: #1b1a1f;
+    color: #ffffff;
+}

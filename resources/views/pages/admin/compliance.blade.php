@@ -20,9 +20,11 @@
 
         <div class="page-header">
             <small>Admin Panel</small>
-            <h1>Seller Compliance</h1>
+            <h1>Compliance</h1>
             <p>Sellers may only list products in the category they registered for. Flag what breaks the rules, then warn or suspend the seller if needed.</p>
         </div>
+
+        @include('pages.admin.partials.compliance-tabs', ['active' => 'sellers'])
 
         @if(session('success'))
             <div class="success-box"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
