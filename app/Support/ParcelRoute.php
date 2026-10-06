@@ -24,9 +24,10 @@ class ParcelRoute
     ];
 
     /**
-     * The center serving a town: its province's BoomBuy Sorting Center
-     * (e.g. Santa Cruz, Laguna → "BoomBuy Sorting Center – Laguna"). None
-     * when that province's center is closed.
+     * The nearest open BoomBuy Sorting Center to a town: its own province's
+     * (Santa Cruz, Laguna → "BoomBuy Sorting Center – Laguna"); if that one is
+     * closed or missing, another in the same region, then one on the same
+     * island group. None only when there's nothing open nearby at all.
      */
     public static function centerFor(?string $province, ?string $city = null): ?SortingCenter
     {
@@ -34,7 +35,32 @@ class ParcelRoute
             return null;
         }
 
-        return SortingCenter::where('is_active', true)->where('province', $province)->orderBy('id')->first();
+        $open = fn (array $provinces) => SortingCenter::where('is_active', true)->whereIn('province', $provinces);
+
+        if ($own = $open([$province])->orderBy('id')->first()) {
+            return $own;
+        }
+
+        // Same region — the region's main center first (e.g. Calamba for CALABARZON).
+        $region = PhLocations::region($province);
+
+        if ($region) {
+            $hubProvince = PhLocations::REGIONS[$region]['hub'][0];
+            $inRegion = $open(PhLocations::REGIONS[$region]['provinces'])->get();
+
+            if ($inRegion->isNotEmpty()) {
+                return $inRegion->firstWhere('province', $hubProvince) ?? $inRegion->sortBy('id')->first();
+            }
+        }
+
+        // Same island group (Luzon / Visayas / Mindanao).
+        $island = PhLocations::islandGroup($province);
+        $sameIsland = array_values(array_filter(
+            array_keys(PhLocations::all()),
+            fn ($p) => PhLocations::islandGroup($p) === $island
+        ));
+
+        return $open($sameIsland)->orderBy('id')->first();
     }
 
     /**

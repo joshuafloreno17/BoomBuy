@@ -296,20 +296,43 @@ class SortingCenterJourneyTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // 4. No open Sorting Center in the buyer's province: origin delivers
+    // 4. No center in a province: the nearest open one takes over
     // ------------------------------------------------------------------
 
-    public function test_no_center_near_the_buyer_means_the_origin_delivers(): void
+    public function test_the_nearest_open_center_is_used_when_a_province_has_none(): void
+    {
+        // This test only has Metro Manila and Laguna centers.
+        $caviteSeller = $this->sellerIn('Cavite', 'Imus City');
+        $product = $this->makeProduct($caviteSeller, ['price' => 300]);
+        $buyer = $this->makeUser();
+
+        // Seller in Cavite → nearest is in the same region (CALABARZON): Laguna.
+        $this->actingAsUser($caviteSeller)->get(route('seller.order.details', $this->makeOrder($buyer, $product, 'Processing', [
+            'shipping_address' => '1 Rizal St, Quezon City', 'shipping_province' => 'Metro Manila (NCR)', 'shipping_city' => 'Quezon City',
+        ])))->assertSee('Drop off at: Santa Cruz Sorting Center');
+
+        // Buyer in Lucena, Quezon → also delivered from the Laguna center.
+        $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Lucena City, Quezon')->assertRedirect();
+        $order = $this->latestOrder($buyer);
+        $this->assertSame($this->santaCruz->id, (int) $order->origin_center_id);
+        $this->assertSame($this->santaCruz->id, (int) $order->destination_center_id);
+
+        // Closing Laguna's center: Laguna now goes to the nearest open one (Metro Manila).
+        $this->santaCruz->update(['is_active' => false]);
+        $this->assertSame($this->qc->id, \App\Support\ParcelRoute::centerFor('Laguna')?->id);
+    }
+
+    public function test_nothing_open_on_the_buyers_island_means_the_origin_delivers(): void
     {
         $seller = $this->sellerIn('Metro Manila (NCR)', 'Quezon City');
         $product = $this->makeProduct($seller, ['price' => 300]);
         $buyer = $this->makeUser();
         $qcRider = $this->makeAreaRider($this->qc, 'QC Rider');
 
-        // Quezon province has no center in this test (each province has its own).
-        $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Lucena City, Quezon')->assertRedirect();
+        // No center anywhere in Mindanao in this test.
+        $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Matina, Davao City, Davao del Sur')->assertRedirect();
         $order = $this->latestOrder($buyer);
-        $this->assertSame('Quezon', $order->shipping_province);
+        $this->assertSame('Davao del Sur', $order->shipping_province);
         $this->assertNull($order->destination_center_id);
 
         $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Processing']);
@@ -367,7 +390,8 @@ class SortingCenterJourneyTest extends TestCase
         $davao = SortingCenter::where('province', 'Davao del Sur')->firstOrFail();
         $this->assertSame('BoomBuy Sorting Center – Davao del Sur', $davao->name);
         $this->assertSame($davao->id, \App\Support\ParcelRoute::centerFor('Davao del Sur')?->id);
-        $this->assertNull(\App\Support\ParcelRoute::centerFor('Davao Oriental'));
+        // Davao Oriental has none yet: its nearest is the Davao del Sur center (same region).
+        $this->assertSame($davao->id, \App\Support\ParcelRoute::centerFor('Davao Oriental')?->id);
 
         // Moving Laguna's center keeps the one center (and its parcels).
         $this->actingAsAdmin()->post(route('admin.sorting-centers.store'), ['region' => 'calabarzon', 'province' => 'Laguna', 'city_municipality' => 'Calamba City'])
@@ -392,7 +416,7 @@ class SortingCenterJourneyTest extends TestCase
 
         // A closed center no longer takes new orders for its town.
         $this->actingAsAdmin()->post(route('admin.sorting-centers.toggle', $this->santaCruz->id))->assertSessionHas('success');
-        $this->assertNull(\App\Support\ParcelRoute::centerFor('Laguna', 'Santa Cruz'));
+        $this->assertNotSame($this->santaCruz->id, \App\Support\ParcelRoute::centerFor('Laguna', 'Santa Cruz')?->id);
     }
 
     // ------------------------------------------------------------------

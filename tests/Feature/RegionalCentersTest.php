@@ -42,6 +42,29 @@ class RegionalCentersTest extends TestCase
         $this->assertNotSame($cavite->id, $laguna->id);
     }
 
+    public function test_every_seeded_shop_is_in_its_sorting_centers_town(): void
+    {
+        $this->seed(\Database\Seeders\SortingCenterSeeder::class);
+        $this->seed(\Database\Seeders\SellerShopsSeeder::class);
+
+        $shops = DB::table('users')->where('role', 'seller')->where('email', 'like', '%@boombuy.test')->get();
+        $this->assertCount(16, $shops);
+        $this->assertCount(16, $shops->pluck('province')->unique());
+
+        foreach ($shops as $shop) {
+            $center = ParcelRoute::centerFor($shop->province);
+            $this->assertTrue(
+                PhLocations::sameTown($center->city_municipality, $shop->city_municipality),
+                "{$shop->email} is in {$shop->city_municipality}, but its center is in {$center->city_municipality}"
+            );
+        }
+
+        // Moving a center moves the shop with it on the next run.
+        ParcelRoute::centerFor('Laguna')->update(['city_municipality' => 'Calamba City']);
+        $this->seed(\Database\Seeders\SellerShopsSeeder::class);
+        $this->assertSame('Calamba City', DB::table('users')->where('email', 'maisonbelle@boombuy.test')->value('city_municipality'));
+    }
+
     public function test_regional_centers_become_provincial_ones(): void
     {
         // Per-town centers, then the regional fold (the 2026-10-06 migration)…

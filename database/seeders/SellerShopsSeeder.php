@@ -48,12 +48,12 @@ class SellerShopsSeeder extends Seeder
         'home-living' => [
             'email' => 'hearthstone@boombuy.test', 'shop' => 'Hearthstone Home & Living',
             'first' => 'Ramon', 'last' => 'Aquino', 'sex' => 'Male', 'birthdate' => '1988-12-01',
-            'street' => '77 A.S. Fortuna St', 'barangay' => 'Banilad', 'city' => 'Mandaue City', 'province' => 'Cebu',
+            'street' => '77 Osmeña Blvd', 'barangay' => 'Capitol Site', 'city' => 'Cebu City', 'province' => 'Cebu',
         ],
         'sports-outdoors' => [
             'email' => 'summitactive@boombuy.test', 'shop' => 'Summit Active Gear',
             'first' => 'Paolo', 'last' => 'Cruz', 'sex' => 'Male', 'birthdate' => '1997-06-18',
-            'street' => '3 Session Rd', 'barangay' => 'Session Road Area', 'city' => 'Baguio City', 'province' => 'Benguet',
+            'street' => '3 Halsema Hwy', 'barangay' => 'Balili', 'city' => 'La Trinidad', 'province' => 'Benguet',
         ],
         'beauty-personal-care' => [
             'email' => 'lumierebeauty@boombuy.test', 'shop' => 'Lumière Beauty',
@@ -73,12 +73,12 @@ class SellerShopsSeeder extends Seeder
         'office-school' => [
             'email' => 'inkwell@boombuy.test', 'shop' => 'Inkwell Office & School',
             'first' => 'Grace', 'last' => 'Tan', 'sex' => 'Female', 'birthdate' => '1995-08-12',
-            'street' => '25 Elias Angeles St', 'barangay' => 'Dinaga', 'city' => 'Naga City', 'province' => 'Camarines Sur',
+            'street' => '25 Maharlika Hwy', 'barangay' => 'San Jose', 'city' => 'Pili', 'province' => 'Camarines Sur',
         ],
         'pet-supplies' => [
             'email' => 'pawsandwhiskers@boombuy.test', 'shop' => 'Paws & Whiskers Pet Co.',
             'first' => 'Ivy', 'last' => 'Navarro', 'sex' => 'Female', 'birthdate' => '1998-05-23',
-            'street' => '9 Pioneer Ave', 'barangay' => 'Dadiangas South', 'city' => 'General Santos City', 'province' => 'South Cotabato',
+            'street' => '9 General Santos Dr', 'barangay' => 'Zone II', 'city' => 'Koronadal City', 'province' => 'South Cotabato',
         ],
         'toys-games-hobbies' => [
             'email' => 'wonderbox@boombuy.test', 'shop' => 'Wonderbox Toys & Hobbies',
@@ -88,7 +88,7 @@ class SellerShopsSeeder extends Seeder
         'jewelry-accessories' => [
             'email' => 'aurelia@boombuy.test', 'shop' => 'Aurelia Jewelry & Accessories',
             'first' => 'Carmina', 'last' => 'Reyes', 'sex' => 'Female', 'birthdate' => '1997-02-19',
-            'street' => '4 Valderrosa St', 'barangay' => 'Zone IV', 'city' => 'Zamboanga City', 'province' => 'Zamboanga del Sur',
+            'street' => '4 Rizal Ave', 'barangay' => 'San Jose', 'city' => 'Pagadian City', 'province' => 'Zamboanga del Sur',
         ],
         'shoes' => [
             'email' => 'stridefootwear@boombuy.test', 'shop' => 'Stride Footwear Co.',
@@ -98,7 +98,7 @@ class SellerShopsSeeder extends Seeder
         'tools-home-improvement' => [
             'email' => 'ironclad@boombuy.test', 'shop' => 'Ironclad Hardware & Tools',
             'first' => 'Arnel', 'last' => 'Garcia', 'sex' => 'Male', 'birthdate' => '1987-04-15',
-            'street' => '22 MacArthur Hwy', 'barangay' => 'Balibago', 'city' => 'Angeles City', 'province' => 'Pampanga',
+            'street' => '22 Jose Abad Santos Ave', 'barangay' => 'Dolores', 'city' => 'San Fernando City', 'province' => 'Pampanga',
         ],
         'garden-outdoor' => [
             'email' => 'evergreen@boombuy.test', 'shop' => 'Evergreen Garden Supply',
@@ -114,7 +114,17 @@ class SellerShopsSeeder extends Seeder
         $i = 0;
 
         foreach (self::SHOPS as $category => $shop) {
-            $address = "{$shop['street']}, {$shop['barangay']}, {$shop['city']}, {$shop['province']}";
+            // Each shop is in the town where its province's Sorting Center
+            // stands (the provincial capital), so drop-off is close by. If
+            // the admin moved that center, the shop follows it.
+            $center = \App\Models\SortingCenter::where('province', $shop['province'])->where('is_active', true)->orderBy('id')->first();
+
+            if ($center && !\App\Support\PhLocations::sameTown($center->city_municipality, $shop['city'])) {
+                $shop['city'] = $center->city_municipality;
+                $shop['barangay'] = 'Poblacion';
+            }
+
+            $address = "{$shop['street']}, {$shop['barangay']}, {$shop['city']}, " . \App\Support\PhLocations::provinceLabel($shop['province']);
             $phone = sprintf('0915%07d', 1000001 + $i++);
 
             $seller = User::firstOrCreate(

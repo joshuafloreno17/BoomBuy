@@ -25,10 +25,11 @@ class DatabaseSeeder extends Seeder
         // Accounts only — sellers add their own products (with photos) from the Seller Panel.
         $this->call([
             TestAccountsSeeder::class,
-            // One approved seller account per category (no products).
-            SellerShopsSeeder::class,
-            // Sorting Centers: every town in Laguna and Metro Manila, plus each seller's town.
+            // One BoomBuy Sorting Center per province (at its capital).
             SortingCenterSeeder::class,
+            // One approved seller account per category (no products), each in a
+            // town with a Sorting Center.
+            SellerShopsSeeder::class,
             // Each seller's town: its Sorting Center, a logistics staff account and a rider.
             LogisticsNetworkSeeder::class,
         ]);
