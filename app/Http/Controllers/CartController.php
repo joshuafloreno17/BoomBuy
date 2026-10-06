@@ -634,6 +634,9 @@ class CartController extends Controller
         }
 
         $codStatus = CodPolicy::status((int) $user['id']);
+
+        // No ordering on an incomplete account (name, phone, address with a town).
+        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id']);
         $freeShippingMin = DeliveryFee::FREE_SHIPPING_MIN;
 
         // Same split/fee/voucher math placeOrder will use.
@@ -674,7 +677,8 @@ class CartController extends Controller
                 'codStatus',
                 'freeShippingMin',
                 'checkoutPlan',
-                'deliveryTo'
+                'deliveryTo',
+                'missingInfo'
             )
         );
     }
@@ -715,6 +719,15 @@ class CartController extends Controller
 
         if (!is_array($user)) {
             return $user;
+        }
+
+        // The checkout page already blocks this; the server makes sure.
+        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id']);
+
+        if ($missingInfo) {
+            return redirect()
+                ->route('buyer.profile')
+                ->with('error', 'Complete your account before checking out — missing: ' . implode(', ', array_map('lcfirst', $missingInfo)) . '.');
         }
 
         // What is being ordered: a "Buy now" item, or the lines the buyer

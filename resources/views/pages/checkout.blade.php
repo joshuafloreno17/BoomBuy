@@ -38,6 +38,22 @@
     @endif
 
 
+    @if(!empty($missingInfo))
+        <div class="profile-gate" role="alert">
+            <i class="bi bi-person-exclamation"></i>
+            <div>
+                <strong>Complete your account to place an order</strong>
+                <p>We need these before we can ship to you:</p>
+                <ul>
+                    @foreach($missingInfo as $item)
+                        <li>{{ $item }}</li>
+                    @endforeach
+                </ul>
+                <a href="{{ route('buyer.profile') }}" class="profile-gate-btn"><i class="bi bi-pencil-square"></i> Complete my profile</a>
+            </div>
+        </div>
+    @endif
+
     <form
         action="{{ route('checkout.place') }}"
         method="POST"
@@ -396,11 +412,16 @@
                 <button
                     type="submit"
                     class="place-order"
+                    @disabled(!empty($missingInfo))
                 >
 
                     <i class="bi bi-bag-check-fill"></i> Place Order
 
                 </button>
+
+                @if(!empty($missingInfo))
+                    <p class="place-order-blocked"><i class="bi bi-lock-fill"></i> Complete your profile first — see the note at the top.</p>
+                @endif
 
 
                 <div class="secure">

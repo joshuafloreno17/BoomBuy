@@ -392,3 +392,70 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 .address-locate.is-missing {
     color: #b45309;
 }
+
+/* Account incomplete: what's missing, and no ordering until it's done */
+.profile-gate {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    max-width: 1200px;
+    margin: 0 auto 20px;
+    padding: 16px 18px;
+    border: 1px solid #fcd9b6;
+    border-radius: 14px;
+    background: #fff7ed;
+    color: #7c2d12;
+}
+
+.profile-gate > i {
+    font-size: 24px;
+    color: #ea580c;
+}
+
+.profile-gate strong {
+    display: block;
+    font-size: 15px;
+}
+
+.profile-gate p {
+    margin: 4px 0 6px;
+    font-size: 13px;
+}
+
+.profile-gate ul {
+    margin: 0 0 12px;
+    padding-left: 18px;
+    font-size: 13px;
+    line-height: 1.6;
+}
+
+.profile-gate-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 14px;
+    border-radius: 10px;
+    background: #e8420f;
+    color: #ffffff;
+    font-size: 13px;
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.profile-gate-btn:hover {
+    background: #c2380f;
+}
+
+.place-order:disabled {
+    background: #d9cdc6 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    cursor: not-allowed;
+}
+
+.place-order-blocked {
+    margin-top: 8px;
+    color: #b45309;
+    font-size: 12px;
+    text-align: center;
+}

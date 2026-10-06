@@ -44,6 +44,50 @@ class CheckoutTest extends TestCase
         $this->assertArrayNotHasKey("{$product->id}:0", session('cart', []));
     }
 
+    public function test_an_incomplete_account_cannot_check_out(): void
+    {
+        $product = $this->makeProduct($this->makeSeller());
+        $cart = ['cart' => ["{$product->id}:0" => 1]];
+        $form = ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'];
+
+        // No phone, and an address with no town ("N/A").
+        $buyer = $this->makeUser('buyer', ['phone' => null, 'address' => 'N/A']);
+
+        $this->actingAsUser($buyer, $cart)->get(route('checkout'))
+            ->assertOk()
+            ->assertSee('Complete your account to place an order')
+            ->assertSee('A mobile number the rider can call')
+            ->assertSee('A delivery address with your province and city/municipality')
+            ->assertSee('disabled', false);
+
+        // Even posting the form directly is refused.
+        $this->actingAsUser($buyer, $cart)->post(route('checkout.place'), $form)
+            ->assertRedirect(route('buyer.profile'))
+            ->assertSessionHas('error');
+        $this->assertDatabaseCount('orders', 0);
+
+        // Once the profile is complete, it goes through.
+        $buyer->forceFill(['phone' => '09171234567', 'address' => '1 Rizal St, Cebu City'])->save();
+
+        $this->actingAsUser($buyer, $cart)->get(route('checkout'))->assertDontSee('Complete your account to place an order');
+        $this->actingAsUser($buyer, $cart)->post(route('checkout.place'), $form)->assertRedirect();
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_a_saved_default_address_counts_for_a_complete_account(): void
+    {
+        $product = $this->makeProduct($this->makeSeller());
+        $buyer = $this->makeUser('buyer', ['address' => 'N/A']);
+
+        \App\Models\BuyerAddress::create([
+            'user_id' => $buyer->id, 'label' => 'Home', 'phone' => '09998887777',
+            'address' => '99 IT Park, Cebu City', 'is_default' => true,
+        ]);
+
+        $this->actingAsUser($buyer, ['cart' => ["{$product->id}:0" => 1]])->get(route('checkout'))
+            ->assertDontSee('Complete your account to place an order');
+    }
+
     public function test_checkout_needs_the_delivery_details(): void
     {
         $buyer = $this->makeUser();
