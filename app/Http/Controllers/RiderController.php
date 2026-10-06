@@ -57,9 +57,12 @@ class RiderController extends Controller
         $delivered = array_values(array_filter($myDeliveries, fn ($order) => ($order['status'] ?? '') === 'Delivered'));
         $totalCount = count($myDeliveries);
 
+        // Cash on Delivery money this rider still has to hand in at the Sorting Center.
+        $codHeld = app(\App\Services\SortingCenterService::class)->codHeldBy((int) $user['id']);
+
         return view(
             'pages.rider.dashboard',
-            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount')
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld')
         );
     }
 
@@ -173,7 +176,8 @@ class RiderController extends Controller
             (int) $id,
             (string) request('status'),
             (string) request('failure_code'),
-            (string) request('failure_reason')
+            (string) request('failure_reason'),
+            request()->file('delivery_proof')
         ));
     }
 

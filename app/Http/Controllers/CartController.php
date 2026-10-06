@@ -660,6 +660,8 @@ class CartController extends Controller
         // The delivery fee depends on how far each seller is from the address.
         $deliveryTo = PhLocations::locate($savedAddress);
         $checkoutPlan = CheckoutPlan::build($planLines, $appliedVoucher, $deliveryTo);
+        $pickupCenter = $deliveryTo ? ParcelRoute::centerFor($deliveryTo['province']) : null;
+        $checkoutEta = self::latestEta($checkoutPlan);
 
         // Kept so the page can re-price delivery when another address is picked.
         session()->put('checkout_quote', ['lines' => $planLines, 'voucher_id' => $appliedVoucher?->id]);
@@ -679,7 +681,9 @@ class CartController extends Controller
                 'freeShippingMin',
                 'checkoutPlan',
                 'deliveryTo',
-                'missingInfo'
+                'missingInfo',
+                'pickupCenter',
+                'checkoutEta'
             )
         );
     }
@@ -704,14 +708,28 @@ class CartController extends Controller
 
         $location = PhLocations::locate((string) request('address'));
         $voucher = !empty($quote['voucher_id']) ? \App\Models\Voucher::find($quote['voucher_id']) : null;
-        $plan = CheckoutPlan::build($quote['lines'], $voucher, $location);
+        $pickupCenter = $location ? ParcelRoute::centerFor($location['province']) : null;
+        $fulfillment = request('fulfillment') === 'pickup' && $pickupCenter ? 'pickup' : 'delivery';
+        $plan = CheckoutPlan::build($quote['lines'], $voucher, $location, $fulfillment);
 
         return response()->json([
             'located' => $location ? trim(($location['city'] ? $location['city'] . ', ' : '') . str_replace(' (NCR)', '', $location['province'])) : null,
             'zones' => collect($plan['orders'])->pluck('zone')->unique()->map(fn ($z) => ParcelRoute::ZONES[$z] ?? $z)->values(),
+            'eta' => self::latestEta($plan),
+            'fulfillment' => $fulfillment,
+            'pickup_center' => $pickupCenter ? ['name' => $pickupCenter->name, 'address' => $pickupCenter->address ?: $pickupCenter->town] : null,
             'delivery_fee' => $plan['delivery_fee'],
             'total' => $plan['total'],
         ]);
+    }
+
+    /** The arrival window of the slowest parcel in a checkout ("Oct 9–11"). */
+    public static function latestEta(array $plan): ?string
+    {
+        $order = ['local' => 0, 'province' => 1, 'island' => 2, 'far' => 3];
+        $slowest = collect($plan['orders'])->pluck('zone')->sortBy(fn ($z) => $order[$z] ?? 2)->last();
+
+        return $slowest ? ParcelRoute::etaLabel($slowest) : null;
     }
 
     public function placeOrder(PlaceOrderService $orders)
@@ -758,7 +776,7 @@ class CartController extends Controller
             $orderIds = $orders->place(
                 $user,
                 $cart,
-                request()->only('address', 'phone', 'payment'),
+                request()->only('address', 'phone', 'payment', 'fulfillment'),
                 session()->get('applied_voucher')
             );
         } catch (CheckoutFailed $e) {
@@ -868,6 +886,11 @@ class CartController extends Controller
 
         $order['payment'] =
             $order['payment_method'];
+
+        $order['eta'] = ParcelRoute::etaLabel($order['delivery_zone'] ?? null, $order['created_at'] ?? null);
+        $order['pickup_center'] = ($order['fulfillment'] ?? 'delivery') === 'pickup' && !empty($order['destination_center_id'])
+            ? \App\Models\SortingCenter::find($order['destination_center_id'])
+            : null;
 
         // A multi-seller checkout creates one order per seller — show them all.
         $checkoutOrders = DB::table('orders')

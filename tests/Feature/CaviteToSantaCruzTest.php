@@ -69,7 +69,7 @@ class CaviteToSantaCruzTest extends TestCase
 
         // Rider delivers to Santa Cruz.
         $this->actingAsUser($lagunaRider)->post(route('rider.delivery.status', $id), ['status' => 'Out for Delivery']);
-        $this->actingAsUser($lagunaRider)->post(route('rider.delivery.status', $id), ['status' => 'Delivered'])->assertSessionHas('success');
+        $this->actingAsUser($lagunaRider)->post(route('rider.delivery.status', $id), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()])->assertSessionHas('success');
 
         $this->assertSame([
             'Order placed',

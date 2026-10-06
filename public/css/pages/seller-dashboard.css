@@ -603,3 +603,20 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         gap: 6px;
     }
 }
+
+.pd-cod {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: #fff8e1;
+    border: 1px solid #f3e1a6;
+    color: #6b5300;
+    font-size: 14px;
+}
+
+.pd-cod-pending {
+    color: #8a6d00;
+}

@@ -623,6 +623,7 @@ class ShopController extends Controller
         // A logged-in buyer sees the fee to their own default address
         // (by distance from the seller's town); everyone else "from ₱…".
         $deliveryTo = null;
+        $deliveryEta = null;
         $viewer = session()->get('user');
 
         if ($viewer && ($viewer['role'] ?? '') === 'buyer' && $product->seller_id) {
@@ -634,6 +635,7 @@ class ShopController extends Controller
                 $zone = \App\Support\ParcelRoute::zone(\App\Support\ParcelRoute::sellerLocation((int) $product->seller_id), $town);
                 $deliveryFee = \App\Support\DeliveryFee::zoneFee($zone);
                 $deliveryTo = trim(($town['city'] ? $town['city'] . ', ' : '') . str_replace(' (NCR)', '', $town['province']));
+                $deliveryEta = \App\Support\ParcelRoute::etaLabel($zone);
             }
         }
 
@@ -679,6 +681,7 @@ class ShopController extends Controller
                 'moreFromSeller',
                 'deliveryFee',
                 'deliveryTo',
+                'deliveryEta',
                 'freeDeliveryMin'
             )
         );

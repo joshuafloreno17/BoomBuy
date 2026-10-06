@@ -542,3 +542,14 @@ a { text-decoration: none; }
     font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     letter-spacing: .5px;
 }
+
+.dispatch-batch {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 14px;
+}
+
+.dispatch-batch form {
+    margin: 0;
+}

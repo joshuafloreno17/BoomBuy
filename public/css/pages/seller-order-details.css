@@ -727,3 +727,24 @@ button.btn-danger:hover {
     background: #1b1a1f;
     color: #ffffff;
 }
+
+/* Cash on Delivery payout state */
+.cod-state {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    margin-top: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+}
+
+.cod-state.is-done {
+    background: #e3f6f4;
+    color: #0a6f66;
+}
+
+.cod-state.is-wait {
+    background: #fff8eb;
+    color: #8a5a00;
+}

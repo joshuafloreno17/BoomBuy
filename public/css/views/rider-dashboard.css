@@ -714,3 +714,28 @@ body > .main-content {
 body > footer {
     flex-shrink: 0;
 }
+
+.cod-remit {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: -20px 0 30px;
+    padding: 14px 18px;
+    border-radius: 14px;
+    background: #fff8e1;
+    border: 1px solid #f3e1a6;
+    color: #6b5300;
+}
+
+.cod-remit > i {
+    font-size: 24px;
+}
+
+.cod-remit strong {
+    display: block;
+    font-size: 15px;
+}
+
+.cod-remit span {
+    font-size: 13px;
+}

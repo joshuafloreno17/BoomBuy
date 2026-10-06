@@ -176,7 +176,7 @@ class OrderSafetyTest extends TestCase
         ]);
 
         $this->actingAsUser($rider)
-            ->post(route('rider.delivery.status', $orderId), ['status' => 'Delivered'])
+            ->post(route('rider.delivery.status', $orderId), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()])
             ->assertSessionHas('success');
 
         $this->assertNotNull(DB::table('orders')->where('id', $orderId)->value('delivered_at'));

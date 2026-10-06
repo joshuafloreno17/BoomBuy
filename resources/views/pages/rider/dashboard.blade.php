@@ -206,6 +206,16 @@
 
             </section>
 
+            @if(isset($codHeld) && $codHeld->isNotEmpty())
+                <div class="cod-remit">
+                    <i class="bi bi-cash-stack"></i>
+                    <div>
+                        <strong>Cash to hand in: ₱{{ number_format((float) $codHeld->sum('total_amount'), 2) }}</strong>
+                        <span>From {{ $codHeld->count() }} Cash on Delivery order(s). Give it to your Sorting Center so the sellers get paid.</span>
+                    </div>
+                </div>
+            @endif
+
 
             <!-- =====================================================
                  ITEMS FOR DELIVERY (assigned by the Sorting Center)

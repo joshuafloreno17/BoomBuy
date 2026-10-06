@@ -211,7 +211,7 @@ class SortingCenterJourneyTest extends TestCase
         // Rider delivers, buyer confirms.
         $this->actingAsUser($this->santaCruzRider)->get(route('rider.delivery.details', $id))->assertOk();
         $this->actingAsUser($this->santaCruzRider)->post(route('rider.delivery.status', $id), ['status' => 'Out for Delivery'])->assertSessionHas('success');
-        $this->actingAsUser($this->santaCruzRider)->post(route('rider.delivery.status', $id), ['status' => 'Delivered'])->assertSessionHas('success');
+        $this->actingAsUser($this->santaCruzRider)->post(route('rider.delivery.status', $id), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()])->assertSessionHas('success');
         $this->actingAsUser($buyer)->post(route('buyer.order.received', $id))->assertSessionHas('success');
         $this->assertSame('Delivered', $this->orderStatus($id));
         $this->assertNotNull(DB::table('orders')->where('id', $id)->value('buyer_received_at'));

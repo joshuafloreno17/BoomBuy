@@ -62,7 +62,7 @@ class DeliveryFlowTest extends TestCase
 
         // Delivery rider delivers
         $this->actingAsUser($deliveryRider)->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery']);
-        $this->actingAsUser($deliveryRider)->post(route('rider.delivery.status', $order), ['status' => 'Delivered']);
+        $this->actingAsUser($deliveryRider)->post(route('rider.delivery.status', $order), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()]);
         $this->assertSame('Delivered', $this->orderStatus($order));
         $this->notified($buyer->id, 'Order Delivered');
         $this->notified($seller->id, 'Order Delivered');
@@ -158,6 +158,11 @@ class DeliveryFlowTest extends TestCase
             ->assertSessionHas('error');
 
         $this->actingAsUser($logistics)->post(route('logistics.parcels.return-to-seller', $order))->assertSessionHas('success');
+        $this->assertSame('Return Ready', $this->orderStatus($order));
+        $this->notified($seller->id, 'Collect Your Returned Parcel');
+
+        // The seller comes for it at the Sorting Center.
+        $this->actingAsUser($logistics)->post(route('logistics.parcels.hand-back', $order))->assertSessionHas('success');
         $this->assertSame('Returned to Seller', $this->orderStatus($order));
         $this->notified($seller->id, 'Order Returned to You');
     }

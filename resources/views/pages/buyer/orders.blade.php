@@ -85,9 +85,9 @@
                         // How many orders each tab holds (same grouping as the cards below).
                         $tabGroups = [
                             'to-ship' => ['pending', 'processing'],
-                            'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery'],
+                            'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery', 'ready to collect'],
                             'delivered' => ['delivered'],
-                            'cancelled' => ['cancelled', 'delivery failed', 'returned to seller'],
+                            'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
                         ];
                         $tabCounts = ['all' => count($orders), 'to-ship' => 0, 'to-receive' => 0, 'delivered' => 0, 'cancelled' => 0];
                         foreach ($orders as $o) {
@@ -131,9 +131,9 @@
 
                             $statusGroups = [
                                 'to-ship' => ['pending', 'processing'],
-                                'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery'],
+                                'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery', 'ready to collect'],
                                 'delivered' => ['delivered'],
-                                'cancelled' => ['cancelled', 'delivery failed', 'returned to seller'],
+                                'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
                             ];
 
                             $orderGroup = 'to-ship';
@@ -149,7 +149,7 @@
                             // actually has the parcel; a closed order (cancelled,
                             // failed, returned) gets its own short history instead
                             // of an unfinished delivery timeline.
-                            $showRider = $orderGroup === 'to-receive';
+                            $showRider = $orderGroup === 'to-receive' && ($order['fulfillment'] ?? 'delivery') !== 'pickup';
                             $isClosed = $orderGroup === 'cancelled';
 
                             $closedLabels = [
@@ -230,6 +230,14 @@
                                         <span>Placed</span><span>Packed</span><span>Shipped</span><span>On the way</span><span>Delivered</span>
                                     </div>
                                     <div class="order-track-note"><i class="bi bi-info-circle"></i> {{ $order['step_note'] }}</div>
+                                    @if(!empty($order['eta']))
+                                        <div class="order-track-note order-track-eta">
+                                            <i class="bi bi-calendar-check"></i> Estimated arrival: <strong>{{ $order['eta'] }}</strong>
+                                            @if(($order['fulfillment'] ?? 'delivery') === 'pickup')
+                                                · you'll pick it up at the Sorting Center
+                                            @endif
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 
@@ -769,7 +777,7 @@
     <i class="bi bi-geo-alt-fill"></i> Order Tracking
 </div>
 
-@include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect()])
+@include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect(), 'proof' => !empty($order['delivery_proof']) ? route('orders.delivery-proof', $order['id']) : null])
 
 @if($showRider || $orderGroup === 'delivered')
 

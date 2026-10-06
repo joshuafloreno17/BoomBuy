@@ -5,6 +5,7 @@
 
     <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-logistics.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
     <link rel="stylesheet" href="{{ vasset('css/views/admin-sorting-centers.css') }}">
 </head>
 
@@ -50,6 +51,13 @@
                 <strong>{{ $stats['staff'] }}</strong>
             </div>
         </div>
+
+        {{-- WHERE THE CENTERS ARE --}}
+        <section class="sc-card">
+            <h2><i class="bi bi-map-fill"></i> Sorting Center Map</h2>
+            <p class="sc-note">One pin per province. A bigger pin holds more parcels right now; grey pins are closed centers.</p>
+            <div id="scMap" class="sc-map" role="img" aria-label="Map of the BoomBuy Sorting Centers"></div>
+        </section>
 
         {{-- SET UP / MOVE A REGION'S CENTER --}}
         <section class="sc-card">
@@ -178,6 +186,37 @@
 
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+    // Pins for every center; the popup shows its town and parcel count.
+    (function () {
+        var box = document.getElementById('scMap');
+        if (!box || !window.L) return;
+
+        var map = L.map(box, { scrollWheelZoom: false }).setView([12.3, 122.5], 5);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 12,
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        @json($mapPins).forEach(function (pin) {
+            var popup = document.createElement('div');
+            var name = document.createElement('strong');
+            name.textContent = pin.name;
+            popup.appendChild(name);
+            popup.appendChild(document.createElement('br'));
+            popup.appendChild(document.createTextNode(pin.town + ' · ' + pin.parcels + ' parcel(s)' + (pin.open ? '' : ' · closed')));
+
+            L.circleMarker([pin.lat, pin.lng], {
+                radius: Math.min(16, 6 + pin.parcels),
+                color: pin.open ? '#c2410c' : '#8a7f86',
+                fillColor: pin.open ? '#e8420f' : '#c9c2c6',
+                fillOpacity: 0.85,
+                weight: 2
+            }).bindPopup(popup).addTo(map);
+        });
+    })();
+</script>
 <script src="{{ asset('js/data/psgc-data.js') }}"></script>
 <script>
     // Region → its provinces → that province's cities/municipalities.

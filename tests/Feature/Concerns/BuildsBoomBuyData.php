@@ -5,6 +5,7 @@ namespace Tests\Feature\Concerns;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\User;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
@@ -151,6 +152,15 @@ trait BuildsBoomBuyData
             'price_adjustment' => 0,
             'stock' => $stock,
         ]);
+    }
+
+    /** The rider's proof-of-delivery photo: a real 1x1 PNG (no GD here, so fake()->image() can't draw one). */
+    protected function deliveryPhoto(): UploadedFile
+    {
+        return UploadedFile::fake()->createWithContent(
+            'proof.png',
+            base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==')
+        );
     }
 
     /** Log in the way BoomBuy does: the user's array in session('user'). */

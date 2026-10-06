@@ -489,11 +489,14 @@
                                     'At Sorting Center',
                                     'In Transit',
                                     'Assigned for Delivery',
-                                    'Out for Delivery' =>
+                                    'Out for Delivery',
+                                    'Ready to Collect' =>
                                         'processing',
 
                                     'Cancelled',
                                     'Delivery Failed',
+                                    'Returning',
+                                    'Return Ready',
                                     'Returned to Seller' =>
                                         'cancelled',
 

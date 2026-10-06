@@ -58,6 +58,9 @@
                 <a href="#awaiting-assignment" class="{{ count($awaitingAssignment) ? 'has-work' : '' }}">Assign rider <span>{{ count($awaitingAssignment) }}</span></a>
                 <a href="#failed-deliveries" class="{{ count($failedDeliveries) ? 'has-work' : '' }}">Failed <span>{{ count($failedDeliveries) }}</span></a>
                 <a href="#on-the-road">On the road <span>{{ count($onTheRoad) }}</span></a>
+                <a href="#ready-to-collect" class="{{ count($readyToCollect) ? 'has-work' : '' }}">Pick-ups <span>{{ count($readyToCollect) }}</span></a>
+                <a href="#returns" class="{{ count($incomingReturns) + count($returnReady) ? 'has-work' : '' }}">Returns <span>{{ count($incomingReturns) + count($returnReady) }}</span></a>
+                <a href="#cod" class="{{ count($codToReceive) ? 'has-work' : '' }}">COD cash <span>{{ count($codToReceive) }}</span></a>
             </nav>
 
             @if ($search !== '' && $elsewhere->isNotEmpty())
@@ -125,6 +128,19 @@
 
             {{-- 2. RECEIVED HERE, BUYER IS IN ANOTHER TOWN --}}
             <h2 class="section-heading" id="to-dispatch"><i class="bi bi-send-fill"></i> To Dispatch ({{ count($toDispatch) }})</h2>
+
+            {{-- One click per destination when several parcels go the same way. --}}
+            @if (count($toDispatch) > 1)
+                <div class="dispatch-batch">
+                    @foreach ($toDispatch->groupBy('destination_center_id') as $destinationId => $group)
+                        <form method="POST" action="{{ route('logistics.parcels.dispatch-all') }}" data-confirm="Dispatch all {{ count($group) }} parcel(s) to {{ $centerNames[$destinationId] ?? 'that center' }}?" data-confirm-ok="Dispatch All">
+                            @csrf
+                            <input type="hidden" name="destination_center_id" value="{{ $destinationId }}">
+                            <button type="submit" class="approve-btn"><i class="bi bi-send-check-fill"></i> Dispatch all {{ count($group) }} to {{ $centerNames[$destinationId] ?? 'destination' }}</button>
+                        </form>
+                    @endforeach
+                </div>
+            @endif
 
             @forelse ($toDispatch as $order)
 
@@ -373,6 +389,138 @@
                     <div class="empty-icon"><i class="bi bi-truck"></i></div>
                     <h3>{{ $search !== '' ? 'No matches here' : 'Nothing out for delivery' }}</h3>
                     <p>Parcels handed to a delivery rider show up here until they are delivered.</p>
+                </div>
+
+            @endforelse
+
+            {{-- 5. PICK-UP ORDERS WAITING FOR THEIR BUYER --}}
+            <h2 class="section-heading" id="ready-to-collect"><i class="bi bi-person-check-fill"></i> Ready to Collect ({{ count($readyToCollect) }})</h2>
+
+            @forelse ($readyToCollect as $order)
+
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Order #{{ $order->id }}</div>
+                            <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_phone }}</div>
+                        </div>
+                        <x-status-pill :status="$order->status" />
+                    </div>
+
+                    @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
+                    <div class="parcel-meta">
+                        <i class="bi bi-clock"></i> Waiting {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans(null, true) }}
+                        @if (\App\Support\CodPolicy::isCod($order->payment_method))
+                            · <strong>collect ₱{{ number_format((float) $order->total_amount, 2) }} in cash</strong>
+                        @else
+                            · already paid ({{ $order->payment_method }})
+                        @endif
+                    </div>
+
+                    <div class="app-actions">
+                        <form method="POST" action="{{ route('logistics.parcels.hand-to-buyer', $order->id) }}" data-confirm="Hand order #{{ $order->id }} to {{ $order->shipping_name }}? Check their order number{{ \App\Support\CodPolicy::isCod($order->payment_method) ? ' and collect the cash' : '' }} first." data-confirm-ok="Handed Over">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-bag-check-fill"></i> Buyer Collected It</button>
+                        </form>
+                        <form method="POST" action="{{ route('logistics.parcels.return-to-seller', $order->id) }}" data-confirm="Buyer never came for order #{{ $order->id }}? Send it back to the seller." data-confirm-ok="Return to Seller" data-confirm-danger>
+                            @csrf
+                            <button type="submit" class="reject-btn"><i class="bi bi-arrow-return-left"></i> Not Collected — Return</button>
+                        </form>
+                    </div>
+                </div>
+
+            @empty
+
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-person-check"></i></div>
+                    <h3>{{ $search !== '' ? 'No matches here' : 'No Pick-ups Waiting' }}</h3>
+                    <p>Orders whose buyer chose to pick up here wait in this list until they come.</p>
+                </div>
+
+            @endforelse
+
+            {{-- 6. RETURNS TO THIS CENTER'S SELLERS --}}
+            <h2 class="section-heading" id="returns"><i class="bi bi-arrow-return-left"></i> Returns ({{ count($incomingReturns) + count($returnReady) }})</h2>
+
+            @foreach ($incomingReturns as $order)
+
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Order #{{ $order->id }} · coming back</div>
+                            <div class="app-email">For the seller — {{ $order->failure_reason ?: 'returned' }}</div>
+                        </div>
+                        <x-status-pill :status="$order->status" />
+                    </div>
+
+                    @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
+                    <div class="app-actions">
+                        <form method="POST" action="{{ route('logistics.parcels.confirm-return', $order->id) }}">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-check-circle-fill"></i> Confirm Return Arrived</button>
+                        </form>
+                    </div>
+                </div>
+
+            @endforeach
+
+            @foreach ($returnReady as $order)
+
+                @php $returnSeller = \Illuminate\Support\Facades\DB::table('order_items')->join('users', 'users.id', '=', 'order_items.seller_id')->where('order_items.order_id', $order->id)->value('users.name'); @endphp
+
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Order #{{ $order->id }} · waiting for the seller</div>
+                            <div class="app-email">{{ $returnSeller ?: 'Seller' }} collects it here</div>
+                        </div>
+                        <x-status-pill :status="$order->status" />
+                    </div>
+
+                    <div class="app-actions">
+                        <form method="POST" action="{{ route('logistics.parcels.hand-back', $order->id) }}" data-confirm="Hand returned order #{{ $order->id }} back to {{ $returnSeller ?: 'the seller' }}?" data-confirm-ok="Handed Back">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-shop"></i> Seller Took It Back</button>
+                        </form>
+                    </div>
+                </div>
+
+            @endforeach
+
+            @if (count($incomingReturns) + count($returnReady) === 0)
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-arrow-return-left"></i></div>
+                    <h3>{{ $search !== '' ? 'No matches here' : 'No Returns' }}</h3>
+                    <p>Parcels going back to sellers who drop off here show up until the seller collects them.</p>
+                </div>
+            @endif
+
+            {{-- 7. CASH ON DELIVERY MONEY FROM RIDERS --}}
+            <h2 class="section-heading" id="cod"><i class="bi bi-cash-stack"></i> COD Cash From Riders ({{ count($codToReceive) }})</h2>
+
+            @forelse ($codToReceive as $cash)
+
+                <div class="app-card compact">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">{{ $cash->rider_name }}</div>
+                            <div class="app-email">{{ $cash->parcels }} COD delivery(ies) · holding ₱{{ number_format((float) $cash->amount, 2) }}</div>
+                        </div>
+                        <form method="POST" action="{{ route('logistics.riders.receive-cod', $cash->rider_id) }}" data-confirm="Received ₱{{ number_format((float) $cash->amount, 2) }} in cash from {{ $cash->rider_name }}? This releases the sellers' payouts." data-confirm-ok="Cash Received">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-cash-coin"></i> Receive ₱{{ number_format((float) $cash->amount, 2) }}</button>
+                        </form>
+                    </div>
+                </div>
+
+            @empty
+
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-cash-stack"></i></div>
+                    <h3>No Cash to Collect</h3>
+                    <p>When riders deliver Cash on Delivery orders, the money they hold shows up here until they hand it in.</p>
                 </div>
 
             @endforelse

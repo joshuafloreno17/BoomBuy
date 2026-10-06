@@ -179,6 +179,9 @@ class LogisticsController extends Controller
             'Assigned for Delivery' => 'Delivery rider assigned',
             'Out for Delivery' => 'With the rider, on the way to the buyer',
             'Delivery Failed' => 'Needs a reschedule or return',
+            'Ready to Collect' => 'Waiting at a center for the buyer to pick up',
+            'Returning' => 'Going back to the seller\'s Sorting Center',
+            'Return Ready' => 'Waiting for the seller to collect a return',
         ];
 
         // A center's staff see their own center's numbers; head office sees all.
@@ -582,9 +585,25 @@ class LogisticsController extends Controller
             'awaitingAssignment' => $awaitingAssignment,
             'failedDeliveries' => $failedDeliveries,
             'onTheRoad' => $onTheRoad,
+            'readyToCollect' => $readyToCollect,
+            'incomingReturns' => $incomingReturns,
+            'returnReady' => $returnReady,
+            'delivering' => $delivering,
         ] = $this->parcelQueues($myCenter, $search);
 
         $centerNames = SortingCenter::pluck('name', 'id');
+
+        // Cash on Delivery money riders collected for this center's
+        // deliveries and haven't handed in yet.
+        $codToReceive = DB::table('orders')
+            ->join('users', 'users.id', '=', 'orders.delivery_rider_id')
+            ->whereNotNull('orders.cod_collected_at')
+            ->whereNull('orders.cod_remitted_at')
+            ->where($delivering)
+            ->groupBy('orders.delivery_rider_id', 'users.name')
+            ->orderBy('users.name')
+            ->selectRaw('orders.delivery_rider_id as rider_id, users.name as rider_name, COUNT(*) as parcels, SUM(orders.total_amount) as amount')
+            ->get();
 
         // A searched parcel that's in none of the lists above (still with
         // the seller, delivered, cancelled…) — say where it is instead of
@@ -597,7 +616,10 @@ class LogisticsController extends Controller
                 ->merge($incoming->pluck('id'))
                 ->merge($awaitingAssignment->pluck('id'))
                 ->merge($failedDeliveries->pluck('id'))
-                ->merge($onTheRoad->pluck('id'));
+                ->merge($onTheRoad->pluck('id'))
+                ->merge($readyToCollect->pluck('id'))
+                ->merge($incomingReturns->pluck('id'))
+                ->merge($returnReady->pluck('id'));
 
             $elsewhere = $matching()
                 ->whereNotIn('id', $shownIds)
@@ -671,7 +693,11 @@ class LogisticsController extends Controller
                 'suggestedRidersByOrder',
                 'riderNames',
                 'myCenter',
-                'centerNames'
+                'centerNames',
+                'readyToCollect',
+                'incomingReturns',
+                'returnReady',
+                'codToReceive'
             )
         );
     }
@@ -710,6 +736,31 @@ class LogisticsController extends Controller
     public function confirmParcelArrival($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmArrival((int) $id, $myCenter));
+    }
+
+    public function dispatchAllParcels(SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->dispatchAll((int) request('destination_center_id'), $myCenter));
+    }
+
+    public function handParcelToBuyer($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->handToBuyer((int) $id, $myCenter));
+    }
+
+    public function confirmReturnArrival($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->confirmReturnArrival((int) $id, $myCenter));
+    }
+
+    public function handParcelBackToSeller($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->handBackToSeller((int) $id, $myCenter));
+    }
+
+    public function receiveRiderCod($riderId, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->receiveCod((int) $riderId, $myCenter));
     }
 
     public function assignParcel($id, SortingCenterService $center)
@@ -839,6 +890,27 @@ class LogisticsController extends Controller
             'onTheRoad' => $matching()
                 ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
                 ->where($delivering)
+                ->orderBy('updated_at')
+                ->get(),
+
+            // Pick-up orders waiting here for their buyer.
+            'readyToCollect' => $matching()
+                ->where('status', 'Ready to Collect')
+                ->where($mine('current_center_id'))
+                ->orderBy('updated_at')
+                ->get(),
+
+            // Returned parcels on their way back here, to this center's sellers.
+            'incomingReturns' => $matching()
+                ->where('status', 'Returning')
+                ->where($mine('origin_center_id'))
+                ->orderBy('dispatched_at')
+                ->get(),
+
+            // Returned parcels here, waiting for their seller.
+            'returnReady' => $matching()
+                ->where('status', 'Return Ready')
+                ->where($mine('current_center_id'))
                 ->orderBy('updated_at')
                 ->get(),
 

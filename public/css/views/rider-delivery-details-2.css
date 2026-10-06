@@ -9,3 +9,34 @@
 .failure-reason.is-refused:has(input:checked) { border-color: #c62828; background: #fff1ea; }
 .failure-note { gap: 8px; align-items: flex-start; padding: 10px 12px; margin-bottom: 10px; border-radius: 9px; background: #fff1ea; color: #9b2222; font-size: 12px; line-height: 1.5; }
 .failure-details { width: 100%; min-height: 64px; padding: 10px; border: 1px solid #f0e2da; border-radius: 8px; font-family: inherit; font-size: 12px; }
+
+/* Proof of delivery photo */
+.proof-box {
+    margin-top: 12px;
+    padding: 12px 14px;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    background: #fffaf7;
+}
+
+.proof-box input[type="file"] {
+    width: 100%;
+    margin-top: 8px;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.proof-hint {
+    margin: 4px 0 0;
+    color: #6b6570;
+    font-size: 12px;
+}
+
+.proof-cod {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin: 10px 0 0;
+    color: #0a6f66;
+    font-size: 13px;
+}

@@ -281,11 +281,12 @@
             <form
                 method="POST"
                 action="{{ route('rider.delivery.status', $delivery['id']) }}"
+                enctype="multipart/form-data"
             >
 
                 @csrf
 
-                <select name="status" id="deliveryStatusSelect" required onchange="document.getElementById('failureReasonBox').style.display = this.value === 'Delivery Failed' ? 'block' : 'none';">
+                <select name="status" id="deliveryStatusSelect" required onchange="document.getElementById('failureReasonBox').style.display = this.value === 'Delivery Failed' ? 'block' : 'none'; var proof = document.getElementById('proofBox'); proof.style.display = this.value === 'Delivered' ? 'block' : 'none'; document.getElementById('deliveryProof').required = this.value === 'Delivered';">
 
                     <option value="">
                         Select new status
@@ -312,6 +313,18 @@
                     @endif
 
                 </select>
+
+                {{-- PROOF OF DELIVERY: a photo of the hand-over --}}
+                <div id="proofBox" class="proof-box" style="display:none;">
+                    <label class="failure-label" for="deliveryProof">
+                        <i class="bi bi-camera-fill"></i> Proof of delivery
+                    </label>
+                    <p class="proof-hint">Take a photo of the parcel with the buyer (or at their door). JPG, PNG or WEBP, up to 5 MB.</p>
+                    <input type="file" name="delivery_proof" id="deliveryProof" accept="image/*" capture="environment">
+                    @if(\App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
+                        <p class="proof-cod"><i class="bi bi-cash-coin"></i> Collect <strong>₱{{ number_format((float) ($delivery['total_amount'] ?? 0), 2) }}</strong> in cash, then hand it in at the Sorting Center.</p>
+                    @endif
+                </div>
 
                 <div id="failureReasonBox" class="failure-box" style="display:none;">
                     <label class="failure-label">

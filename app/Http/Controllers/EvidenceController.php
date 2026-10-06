@@ -44,6 +44,36 @@ class EvidenceController extends Controller
         return $this->serve($request->evidence);
     }
 
+    /**
+     * The rider's proof-of-delivery photo: for the buyer, the order's sellers,
+     * the rider, logistics staff (head office, or the centers it went through)
+     * and the admin.
+     */
+    public function deliveryProof($id)
+    {
+        $order = DB::table('orders')->where('id', $id)->first();
+
+        abort_unless($order && $order->delivery_proof, 404);
+
+        $viewer = session('user');
+        $viewerId = (int) ($viewer['id'] ?? 0);
+
+        $allowed = session('admin_logged_in')
+            || ($viewer && in_array($viewerId, [(int) $order->buyer_id, (int) $order->delivery_rider_id], true))
+            || ($viewer && DB::table('order_items')->where('order_id', $order->id)->where('seller_id', $viewerId)->exists());
+
+        if (!$allowed && ($viewer['role'] ?? '') === 'logistics') {
+            $center = DB::table('users')->where('id', $viewerId)->value('sorting_center_id');
+            $allowed = !$center || in_array((int) $center, array_map('intval', array_filter([
+                $order->origin_center_id, $order->destination_center_id, $order->current_center_id,
+            ])), true);
+        }
+
+        abort_unless($allowed, 403);
+
+        return $this->serve($order->delivery_proof);
+    }
+
     private function serve(string $path)
     {
         if (Storage::disk('local')->exists($path)) {

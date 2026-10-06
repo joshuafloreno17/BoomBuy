@@ -292,3 +292,17 @@
 .sc-filter input {
     width: 220px;
 }
+
+.sc-map {
+    height: 460px;
+    border-radius: 12px;
+    border: 1px solid #f0e2da;
+    overflow: hidden;
+    z-index: 0;
+}
+
+@media (max-width: 640px) {
+    .sc-map {
+        height: 340px;
+    }
+}

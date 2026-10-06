@@ -4,8 +4,11 @@ namespace App\Services;
 
 use App\Exceptions\ActionFailed;
 use App\Support\ChatAutomation;
+use App\Support\CodPolicy;
 use App\Support\OrderTimeline;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 /**
  * A rider's work on an order — the last leg, from the Sorting Center to the
@@ -32,7 +35,7 @@ class DeliveryService
      *
      * @throws ActionFailed
      */
-    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = ''): string
+    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = '', ?UploadedFile $proof = null): string
     {
         $status = trim($status);
 
@@ -69,17 +72,35 @@ class DeliveryService
             throw new ActionFailed('This order cannot be updated from its current status.');
         }
 
+        $delivered = [];
+
+        if ($status === 'Delivered') {
+            // Proof of delivery: a photo of the parcel handed over (kept private).
+            if (!$proof || !isValidProductImage($proof)) {
+                throw new ActionFailed('Take a photo of the parcel with the buyer (JPG, PNG or WEBP, up to 5 MB) to mark it Delivered.');
+            }
+
+            $delivered = [
+                'delivered_at' => now(),
+                'delivery_proof' => $proof->store('delivery-proofs', 'local'),
+                // Cash on Delivery: the rider now holds the buyer's payment
+                // until they hand it in at the Sorting Center.
+                'cod_collected_at' => CodPolicy::isCod((string) $order->payment_method) ? now() : null,
+            ];
+        }
+
         // Only from the status just checked, so a double tap can't send the
         // buyer duplicate notifications.
         $updated = DB::table('orders')
             ->where('id', $orderId)
             ->where('status', $order->status)
-            ->update(array_merge(
-                ['status' => $status, 'updated_at' => now()],
-                $status === 'Delivered' ? ['delivered_at' => now()] : []
-            ));
+            ->update(array_merge(['status' => $status, 'updated_at' => now()], $delivered));
 
         if (!$updated) {
+            if (!empty($delivered['delivery_proof'])) {
+                Storage::disk('local')->delete($delivered['delivery_proof']);
+            }
+
             throw new ActionFailed('This delivery was just updated. Please refresh and try again.');
         }
 

@@ -36,9 +36,25 @@ class DeliveryFee
         return round((float) PlatformSetting::get($key, $default), 2);
     }
 
-    /** @param float $itemsTotal item total after voucher discount */
-    public static function for(float $itemsTotal, string $zone = 'local'): float
+    /**
+     * Picking the parcel up at the buyer's Sorting Center skips the rider's
+     * last leg, so the same-town (rider) part of the fee comes off.
+     */
+    public static function pickupFee(string $zone): float
     {
-        return $itemsTotal >= self::FREE_SHIPPING_MIN ? 0.0 : self::zoneFee($zone);
+        return max(0.0, round(self::zoneFee($zone) - self::zoneFee('local'), 2));
+    }
+
+    /**
+     * @param float  $itemsTotal   item total after voucher discount
+     * @param string $fulfillment  "delivery" or "pickup" (at the Sorting Center)
+     */
+    public static function for(float $itemsTotal, string $zone = 'local', string $fulfillment = 'delivery'): float
+    {
+        if ($itemsTotal >= self::FREE_SHIPPING_MIN) {
+            return 0.0;
+        }
+
+        return $fulfillment === 'pickup' ? self::pickupFee($zone) : self::zoneFee($zone);
     }
 }

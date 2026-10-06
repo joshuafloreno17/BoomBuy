@@ -351,6 +351,7 @@
                         @else
                             @if(!empty($deliveryTo))
                                 <strong>Delivery ₱{{ number_format($deliveryFee) }} to {{ $deliveryTo }}</strong>
+                                · arrives {{ $deliveryEta }}
                             @else
                                 <strong>Delivery from ₱{{ number_format($deliveryFee) }}</strong>
                             @endif

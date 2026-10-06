@@ -11,6 +11,9 @@
         'Out for Delivery' => ['bg' => '#fff8e1', 'color' => '#8a6d00', 'icon' => 'bi-bicycle'],
         'Delivered' => ['bg' => 'var(--teal-bg)', 'color' => 'var(--teal-dark)', 'icon' => 'bi-check-circle-fill'],
         'Delivery Failed' => ['bg' => '#fee2e2', 'color' => '#dc2626', 'icon' => 'bi-x-circle-fill'],
+        'Ready to Collect' => ['bg' => 'var(--teal-bg)', 'color' => 'var(--teal-dark)', 'icon' => 'bi-shop-window'],
+        'Returning' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-arrow-repeat'],
+        'Return Ready' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-box-seam'],
         'Returned to Seller' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-arrow-return-left'],
         'Cancelled' => ['bg' => '#fee2e2', 'color' => '#dc2626', 'icon' => 'bi-slash-circle-fill'],
     ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\SortingCenter;
+use App\Support\PhCoordinates;
 use App\Support\PhLocations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -55,11 +56,28 @@ class SortingCenterController extends Controller
             'staff' => $staff->whereNotNull('sorting_center_id')->count(),
         ];
 
+        // One pin per center on the map, at its province.
+        $mapPins = SortingCenter::get(['id', 'name', 'province', 'city_municipality', 'is_active'])
+            ->map(function ($center) use ($parcelCounts) {
+                $point = PhCoordinates::forProvince($center->province);
+
+                return $point ? [
+                    'name' => $center->name,
+                    'town' => $center->town,
+                    'lat' => $point[0],
+                    'lng' => $point[1],
+                    'parcels' => (int) ($parcelCounts[$center->id] ?? 0),
+                    'open' => (bool) $center->is_active,
+                ] : null;
+            })
+            ->filter()
+            ->values();
+
         $regions = PhLocations::REGIONS;
         $provinces = PhLocations::all();
 
         return view('pages.admin.sorting-centers', compact(
-            'centers', 'parcelCounts', 'staff', 'allCenters', 'stats', 'regions', 'provinces', 'search'
+            'centers', 'parcelCounts', 'staff', 'allCenters', 'stats', 'regions', 'provinces', 'search', 'mapPins'
         ));
     }
 

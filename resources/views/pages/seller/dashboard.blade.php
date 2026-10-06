@@ -81,6 +81,16 @@
         </a>
     </section>
 
+    @if(isset($codPayout) && ((float) $codPayout->pending > 0 || (float) $codPayout->released > 0))
+        <div class="pd-cod">
+            <i class="bi bi-cash-stack"></i>
+            <span><strong>Cash on Delivery payouts:</strong> {{ $peso($codPayout->released) }} released</span>
+            @if((float) $codPayout->pending > 0)
+                <span class="pd-cod-pending">· {{ $peso($codPayout->pending) }} still with riders — released once they hand it in at the Sorting Center</span>
+            @endif
+        </div>
+    @endif
+
     <div class="pd-row">
         <section class="pd-card pd-grow-2" aria-labelledby="week-title">
             <div class="pd-card-head">

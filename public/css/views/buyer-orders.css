@@ -960,3 +960,11 @@
             display: none;
         }
     }
+
+.order-track-eta {
+    color: #0a6f66;
+}
+
+.order-track-eta strong {
+    font-weight: 800;
+}

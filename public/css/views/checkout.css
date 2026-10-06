@@ -459,3 +459,61 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     font-size: 12px;
     text-align: center;
 }
+
+/* Door delivery or pick-up at the Sorting Center */
+.fulfillment-options {
+    display: grid;
+    gap: 10px;
+}
+
+.fulfillment-option {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    border: 1.5px solid #f0e2da;
+    border-radius: 12px;
+    background: #ffffff;
+    cursor: pointer;
+}
+
+.fulfillment-option:has(input:checked) {
+    border-color: #e8420f;
+    background: #fff7f2;
+}
+
+.fulfillment-option input {
+    margin-top: 3px;
+    accent-color: #e8420f;
+}
+
+.fulfillment-option strong {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #1b1a1f;
+    font-size: 14px;
+}
+
+.fulfillment-option small {
+    display: block;
+    margin-top: 2px;
+    color: #6b6570;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.fulfillment-option.is-disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}
+
+.eta-row span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.eta-row strong {
+    color: #0a6f66;
+}

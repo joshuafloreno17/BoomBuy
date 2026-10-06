@@ -106,6 +106,31 @@
         <div class="order-row">
 
             <span class="order-label">
+                Estimated Arrival
+            </span>
+
+            <span class="order-value">
+                {{ $order['eta'] ?? '—' }}
+            </span>
+
+        </div>
+
+        @if(!empty($order['pickup_center']))
+            <div class="order-row">
+                <span class="order-label">
+                    Pick Up At
+                </span>
+                <span class="order-value">
+                    {{ $order['pickup_center']->name }}<br>
+                    <small style="font-weight:500; color:#6b6570;">{{ $order['pickup_center']->address ?: $order['pickup_center']->town }}</small>
+                </span>
+            </div>
+        @endif
+
+
+        <div class="order-row">
+
+            <span class="order-label">
                 Order Total
             </span>
 

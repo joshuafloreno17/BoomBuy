@@ -175,6 +175,39 @@
                 </div>
 
 
+                {{-- DOOR DELIVERY, OR PICK-UP AT THE BUYER'S SORTING CENTER --}}
+                @php $wantsPickup = old('fulfillment') === 'pickup' && $pickupCenter; @endphp
+                <div class="form-group">
+
+                    <label>How do you want to get it?</label>
+
+                    <div class="fulfillment-options" role="radiogroup" aria-label="Delivery option">
+                        <label class="fulfillment-option">
+                            <input type="radio" name="fulfillment" value="delivery" @checked(!$wantsPickup)>
+                            <span>
+                                <strong><i class="bi bi-truck"></i> Deliver to my address</strong>
+                                <small>A rider brings it to your door.</small>
+                            </span>
+                        </label>
+
+                        <label class="fulfillment-option {{ $pickupCenter ? '' : 'is-disabled' }}" id="pickupOption">
+                            <input type="radio" name="fulfillment" value="pickup" @checked($wantsPickup) @disabled(!$pickupCenter)>
+                            <span>
+                                <strong><i class="bi bi-building"></i> Pick up at the Sorting Center</strong>
+                                <small id="pickupCenterText">
+                                    @if($pickupCenter)
+                                        {{ $pickupCenter->name }} — {{ $pickupCenter->address ?: $pickupCenter->town }}. Lower delivery fee; bring your order number.
+                                    @else
+                                        Pick your province first to see the Sorting Center near you.
+                                    @endif
+                                </small>
+                            </span>
+                        </label>
+                    </div>
+
+                </div>
+
+
                 <h2 style="margin-top: 30px;">
                     <i class="bi bi-credit-card-fill"></i> Payment Method
                 </h2>
@@ -374,6 +407,11 @@
                     <strong id="deliveryFeeValue">{{ $checkoutDeliveryFee > 0 ? '₱' . number_format($checkoutDeliveryFee, 2) : 'FREE' }}</strong>
                 </div>
 
+                <div class="subtotal-row eta-row">
+                    <span><i class="bi bi-calendar-check"></i> Estimated arrival</span>
+                    <strong id="etaValue">{{ $deliveryTo && $checkoutEta ? $checkoutEta : '—' }}</strong>
+                </div>
+
                 <div class="subtotal-row" style="font-size:11px; color:#6b6570;">
                     <span>
                         <span id="deliveryZone">
@@ -485,8 +523,17 @@
             return '₱' + Number(n).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
         };
 
+        var etaEl = document.getElementById('etaValue');
+        var pickupRadio = document.querySelector('input[name="fulfillment"][value="pickup"]');
+        var deliveryRadio = document.querySelector('input[name="fulfillment"][value="delivery"]');
+        var pickupOption = document.getElementById('pickupOption');
+        var pickupText = document.getElementById('pickupCenterText');
+        var escape = function (s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;'); };
+
         function quote() {
-            fetch(@json(route('checkout.quote')) + '?address=' + encodeURIComponent(address.value), {
+            var fulfillment = pickupRadio && pickupRadio.checked ? 'pickup' : 'delivery';
+
+            fetch(@json(route('checkout.quote')) + '?address=' + encodeURIComponent(address.value) + '&fulfillment=' + fulfillment, {
                 headers: { 'Accept': 'application/json' }
             })
                 .then(function (r) { return r.ok ? r.json() : null; })
@@ -494,13 +541,27 @@
                     if (!q) return;
                     feeEl.textContent = q.delivery_fee > 0 ? peso(q.delivery_fee) : 'FREE';
                     totalEl.textContent = peso(q.total);
+                    etaEl.textContent = q.located && q.eta ? q.eta : '—';
                     zoneEl.textContent = q.located
                         ? 'Shipping distance: ' + q.zones.join(' / ') + '.'
                         : 'The delivery fee depends on how far the seller is from you.';
                     locate.className = 'address-locate ' + (q.located ? 'is-found' : 'is-missing');
                     locate.innerHTML = q.located
-                        ? '<i class="bi bi-geo-alt-fill"></i> Delivering to ' + q.located.replace(/</g, '&lt;')
+                        ? '<i class="bi bi-geo-alt-fill"></i> Delivering to ' + escape(q.located)
                         : '<i class="bi bi-exclamation-circle"></i> Pick your province and city/municipality so we can route your parcel.';
+
+                    // Pick-up is only offered where there's a Sorting Center to hold it.
+                    if (pickupRadio) {
+                        pickupRadio.disabled = !q.pickup_center;
+                        pickupOption.classList.toggle('is-disabled', !q.pickup_center);
+                        pickupText.textContent = q.pickup_center
+                            ? q.pickup_center.name + ' — ' + q.pickup_center.address + '. Lower delivery fee; bring your order number.'
+                            : 'Pick your province first to see the Sorting Center near you.';
+
+                        if (!q.pickup_center && pickupRadio.checked) {
+                            deliveryRadio.checked = true;
+                        }
+                    }
                 })
                 .catch(function () {});
         }
@@ -510,9 +571,14 @@
             timer = setTimeout(quote, 400);
         });
 
-        document.querySelectorAll('input[name="saved_address"]').forEach(function (radio) {
+        document.querySelectorAll('input[name="saved_address"], input[name="fulfillment"]').forEach(function (radio) {
             radio.addEventListener('change', quote);
         });
+
+        // Coming back with "pick up" already chosen (e.g. after a form error): price it that way.
+        if (pickupRadio && pickupRadio.checked) {
+            quote();
+        }
     })();
     </script>
     @include('partials.buyer-footer')

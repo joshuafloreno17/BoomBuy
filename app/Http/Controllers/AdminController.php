@@ -1182,10 +1182,10 @@ class AdminController extends Controller
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
-        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect']],
         'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
         'delivered' => ['label' => 'Delivered', 'statuses' => ['Delivered']],
-        'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
+        'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
     ];
 
     // The admin may only cancel while the items are still with the seller —

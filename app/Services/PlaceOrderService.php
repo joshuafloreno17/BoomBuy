@@ -31,7 +31,7 @@ class PlaceOrderService
      */
     public function place(array $buyer, array $cart, array $details, ?string $voucherCode = null): array
     {
-        [$address, $phone, $payment, $location] = $this->checkDetails($buyer, $details);
+        [$address, $phone, $payment, $location, $fulfillment] = $this->checkDetails($buyer, $details);
 
         $orderItems = $this->buildLines($cart);
 
@@ -39,9 +39,9 @@ class PlaceOrderService
 
         // One order per seller; the voucher lands only on its own seller's
         // order, and each order carries its own delivery fee (by distance).
-        $plan = CheckoutPlan::build($orderItems, $voucher, $location);
+        $plan = CheckoutPlan::build($orderItems, $voucher, $location, $fulfillment);
 
-        return $this->create($buyer, $plan, $voucher, $address, $phone, $payment, $location);
+        return $this->create($buyer, $plan, $voucher, $address, $phone, $payment, $location, $fulfillment);
     }
 
     /** Address, phone and payment method, including the COD pause. */
@@ -77,6 +77,14 @@ class PlaceOrderService
             throw CheckoutFailed::inForm('Please choose a valid payment method.');
         }
 
+        // Door delivery, or pick-up at the buyer's Sorting Center (only when
+        // there's one open nearby to hold it).
+        $fulfillment = ($details['fulfillment'] ?? 'delivery') === 'pickup' ? 'pickup' : 'delivery';
+
+        if ($fulfillment === 'pickup' && !ParcelRoute::centerFor($location['province'])) {
+            throw CheckoutFailed::inForm('There is no BoomBuy Sorting Center near that address to pick up from yet. Please choose delivery.');
+        }
+
         if (CodPolicy::isCod($payment)) {
             $codStatus = CodPolicy::status((int) $buyer['id']);
 
@@ -89,7 +97,7 @@ class PlaceOrderService
             }
         }
 
-        return [$address, $phone, $payment, $location];
+        return [$address, $phone, $payment, $location, $fulfillment];
     }
 
     /**
@@ -177,13 +185,13 @@ class PlaceOrderService
      * the last unit can't both succeed. If any line loses the race, the whole
      * checkout (and its notifications) rolls back instead of overselling.
      */
-    private function create(array $buyer, array $plan, ?Voucher $voucher, string $address, string $phone, string $payment, array $location): array
+    private function create(array $buyer, array $plan, ?Voucher $voucher, string $address, string $phone, string $payment, array $location, string $fulfillment): array
     {
         $voucherUsed = collect($plan['orders'])->contains(fn ($o) => $o['voucher_code'] !== null);
 
         $destination = ParcelRoute::centerFor($location['province'], $location['city']);
 
-        return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment, $location, $destination) {
+        return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment, $location, $destination, $fulfillment) {
                 if ($voucherUsed) {
                     // Conditional so two simultaneous checkouts can't push a
                     // voucher past its max_uses — the loser rolls back.
@@ -211,6 +219,8 @@ class PlaceOrderService
                         'voucher_code' => $planned['voucher_code'],
                         'discount_amount' => $planned['discount'],
                         'delivery_fee' => $planned['delivery_fee'],
+                        'delivery_zone' => $planned['zone'],
+                        'fulfillment' => $fulfillment,
                         // The seller's workflow starts here.
                         'status' => 'Pending',
                         'shipping_name' => $buyer['name'] ?? 'Buyer',

@@ -777,6 +777,16 @@ Route::post('/logistics/parcels/{id}/dispatch', [LogisticsController::class, 'di
 
 Route::post('/logistics/parcels/{id}/confirm-arrival', [LogisticsController::class, 'confirmParcelArrival'])->name('logistics.parcels.confirm-arrival');
 
+Route::post('/logistics/parcels/dispatch-all', [LogisticsController::class, 'dispatchAllParcels'])->name('logistics.parcels.dispatch-all');
+
+Route::post('/logistics/parcels/{id}/hand-to-buyer', [LogisticsController::class, 'handParcelToBuyer'])->name('logistics.parcels.hand-to-buyer');
+
+Route::post('/logistics/parcels/{id}/confirm-return', [LogisticsController::class, 'confirmReturnArrival'])->name('logistics.parcels.confirm-return');
+
+Route::post('/logistics/parcels/{id}/hand-back', [LogisticsController::class, 'handParcelBackToSeller'])->name('logistics.parcels.hand-back');
+
+Route::post('/logistics/riders/{riderId}/receive-cod', [LogisticsController::class, 'receiveRiderCod'])->name('logistics.riders.receive-cod');
+
 Route::post('/logistics/parcels/{id}/assign', [LogisticsController::class, 'assignParcel'])->name('logistics.parcels.assign');
 
 
@@ -867,6 +877,7 @@ Route::get('/complaints', [ComplaintController::class, 'index'])->name('complain
 // Private evidence photos — only the people involved and the admin.
 Route::get('/complaints/{id}/evidence', [EvidenceController::class, 'complaint'])->whereNumber('id')->name('complaints.evidence');
 Route::get('/return-refund/{id}/evidence', [EvidenceController::class, 'returnRequest'])->whereNumber('id')->name('return-refund.evidence');
+Route::get('/orders/{id}/delivery-proof', [EvidenceController::class, 'deliveryProof'])->whereNumber('id')->name('orders.delivery-proof');
 
 
 Route::post('/complaints', [ComplaintController::class, 'store'])->name('complaints.store');

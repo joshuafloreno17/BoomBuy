@@ -13,7 +13,8 @@ use App\Models\Voucher;
  *
  * Each seller's delivery fee depends on how far their parcel travels to the
  * buyer (ParcelRoute::zone); without a known buyer location the middle tier
- * is shown until an address is entered.
+ * is shown until an address is entered. Picking up at the buyer's Sorting
+ * Center (fulfillment "pickup") drops the rider's part of the fee.
  *
  * Each line: ['seller_id', 'price', 'quantity', ...anything else].
  */
@@ -25,7 +26,7 @@ class CheckoutPlan
      *   subtotal: float, discount: float, delivery_fee: float, total: float
      * }
      */
-    public static function build(array $lines, ?Voucher $voucher = null, ?array $buyerLocation = null): array
+    public static function build(array $lines, ?Voucher $voucher = null, ?array $buyerLocation = null, string $fulfillment = 'delivery'): array
     {
         $orders = [];
 
@@ -66,7 +67,8 @@ class CheckoutPlan
 
             // Each seller's parcel is delivered separately, from the seller's town.
             $order['zone'] = ParcelRoute::zone(ParcelRoute::sellerLocation($sellerId), $buyerLocation);
-            $order['delivery_fee'] = DeliveryFee::for($itemsTotal, $order['zone']);
+            $order['delivery_fee'] = DeliveryFee::for($itemsTotal, $order['zone'], $fulfillment);
+            $order['eta'] = ParcelRoute::etaLabel($order['zone']);
             $order['total'] = round($itemsTotal + $order['delivery_fee'], 2);
         }
         unset($order);

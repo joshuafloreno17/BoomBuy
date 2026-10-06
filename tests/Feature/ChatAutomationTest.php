@@ -136,7 +136,7 @@ class ChatAutomationTest extends TestCase
         DB::table('orders')->where('id', $order)->update(['status' => 'Assigned for Delivery', 'delivery_rider_id' => $rider->id]);
         $this->flushSession();
         $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery']);
-        $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Delivered']);
+        $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()]);
 
         $this->assertSame(4, Message::where('kind', Message::ORDER_UPDATE)->where('order_id', $order)->count());
 

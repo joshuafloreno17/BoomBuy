@@ -17,6 +17,8 @@ use Illuminate\Support\Str;
  *
  *   - every provincial BoomBuy Sorting Center has a logistics staff account
  *     (hub.<province>@boombuy.test) — unless it already has staff;
+ *   - a center left with more than one of those test accounts (from the
+ *     older town-named ones) keeps just one;
  *   - every seller's town has an approved rider whose area is that town
  *     (rider.<town>@boombuy.test), for final-mile deliveries there.
  *
@@ -48,10 +50,56 @@ class LogisticsNetworkSeeder extends Seeder
     {
         $password = Hash::make('password123');
 
+        $removed = $this->dropDuplicateStaff();
         $staffCount = $this->staffEveryCenter($password);
         $riderCount = $this->riderEverySellerTown($password);
 
-        $this->command?->info("Logistics network: staff added at {$staffCount} center(s), riders in {$riderCount} seller town(s).");
+        $this->command?->info("Logistics network: staff added at {$staffCount} center(s), riders in {$riderCount} seller town(s), {$removed} duplicate test account(s) removed.");
+    }
+
+    /**
+     * One seeded staff account per center is enough. Keeps
+     * hub.<province>@boombuy.test (or the oldest one) and removes the rest;
+     * an account other records still point to is switched off instead.
+     * Real staff accounts (not @boombuy.test) are never touched.
+     */
+    public function dropDuplicateStaff(): int
+    {
+        $removed = 0;
+
+        $seeded = DB::table('users')
+            ->where('role', 'logistics')
+            ->where('email', 'like', 'hub.%@boombuy.test')
+            ->whereNotNull('sorting_center_id')
+            ->orderBy('id')
+            ->get(['id', 'email', 'sorting_center_id'])
+            ->groupBy('sorting_center_id');
+
+        foreach ($seeded as $centerId => $accounts) {
+            if ($accounts->count() < 2) {
+                continue;
+            }
+
+            $province = SortingCenter::whereKey($centerId)->value('province');
+            $preferred = 'hub.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test';
+            $keep = $accounts->firstWhere('email', $preferred) ?? $accounts->first();
+
+            foreach ($accounts->where('id', '!=', $keep->id) as $extra) {
+                try {
+                    DB::transaction(function () use ($extra) {
+                        DB::table('logistics_applications')->where('user_id', $extra->id)->delete();
+                        DB::table('users')->where('id', $extra->id)->delete();
+                    });
+                } catch (\Throwable) {
+                    DB::table('users')->where('id', $extra->id)->update(['status' => 'Deactivated', 'sorting_center_id' => null]);
+                }
+
+                $this->command?->line('  removed duplicate staff ' . $extra->email);
+                $removed++;
+            }
+        }
+
+        return $removed;
     }
 
     /** Each regional center without staff gets one account. */

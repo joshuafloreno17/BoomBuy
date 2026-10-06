@@ -26,12 +26,13 @@ class BuyerController extends Controller
         'At Sorting Center' => [3, 'At the Sorting Center.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
+        'Ready to Collect' => [4, 'Ready at the Sorting Center — bring your order number to collect it.'],
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
     private const TO_SHIP_STATUSES = ['Pending', 'Processing'];
 
-    private const TO_RECEIVE_STATUSES = ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery'];
+    private const TO_RECEIVE_STATUSES = ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
 
     public function dashboard()
     {
@@ -620,6 +621,11 @@ class BuyerController extends Controller
             [$order['step'], $order['step_note']] = $order['status'] === 'Delivered'
                 ? [5, null]
                 : (empty($order['buyer_refused_at']) ? (self::ORDER_PROGRESS[$order['status']] ?? [0, null]) : [0, null]);
+
+            // When it should arrive, while it's still on its way.
+            $order['eta'] = $order['step'] > 0 && $order['step'] < 5
+                ? \App\Support\ParcelRoute::etaLabel($order['delivery_zone'] ?? null, $order['created_at'] ?? null)
+                : null;
 
             // Basic order information
             $order['total'] =

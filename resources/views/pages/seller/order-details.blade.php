@@ -262,7 +262,19 @@
                     Shipment Tracking
                 </h2>
 
-                @include('partials.order-timeline', ['steps' => \App\Support\OrderTimeline::forOrders([(int) $order['id']])->get((int) $order['id'])])
+                @include('partials.order-timeline', [
+                    'steps' => \App\Support\OrderTimeline::forOrders([(int) $order['id']])->get((int) $order['id']),
+                    'proof' => !empty($order['delivery_proof']) ? route('orders.delivery-proof', $order['id']) : null,
+                ])
+
+                @if(\App\Support\CodPolicy::isCod($order['payment_method'] ?? ''))
+                    @php
+                        $codState = !empty($order['cod_remitted_at']) ? ['is-done', 'bi-check-circle-fill', 'COD payout released — the cash reached the Sorting Center.']
+                            : (!empty($order['cod_collected_at']) ? ['is-wait', 'bi-hourglass-split', 'The rider collected the cash; it\'s released to you once handed in at the Sorting Center.']
+                            : ['is-wait', 'bi-cash-coin', 'Cash on Delivery — paid to the rider when delivered.']);
+                    @endphp
+                    <div class="cod-state {{ $codState[0] }}"><i class="bi {{ $codState[1] }}"></i> {{ $codState[2] }}</div>
+                @endif
 
                 <div class="info-grid">
 
@@ -321,6 +333,7 @@
                         'Assigned for Delivery' => 3,
                         'Out for Delivery' => 3,
                         'Delivery Failed' => 3,
+                        'Ready to Collect' => 3,
                         'Delivered' => 4,
                         'Completed' => 4,
                     ];

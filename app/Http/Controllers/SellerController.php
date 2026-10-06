@@ -107,6 +107,13 @@ class SellerController extends Controller
             ->selectRaw('COUNT(DISTINCT orders.id) as orders, COALESCE(SUM(order_items.price * order_items.quantity), 0) as revenue')
             ->first();
 
+        // Cash on Delivery money: still with a rider vs. handed in at a Sorting Center (payout released).
+        $codPayout = $sellerItems()
+            ->where('orders.payment_method', \App\Support\CodPolicy::METHOD)
+            ->whereNotNull('orders.cod_collected_at')
+            ->selectRaw('COALESCE(SUM(CASE WHEN orders.cod_remitted_at IS NULL THEN order_items.price * order_items.quantity ELSE 0 END), 0) as pending, COALESCE(SUM(CASE WHEN orders.cod_remitted_at IS NOT NULL THEN order_items.price * order_items.quantity ELSE 0 END), 0) as released')
+            ->first();
+
         // Waiting since before today: the ones to pack first.
         $toShipOld = $sellerItems()
             ->whereIn('orders.status', ['Pending', 'Processing'])
@@ -204,6 +211,7 @@ class SellerController extends Controller
                 'orderStatusBreakdown',
                 'salesTrend',
                 'deliveredToday',
+                'codPayout',
                 'toShipOld',
                 'toDropOff',
                 'newOrders',
@@ -906,9 +914,9 @@ class SellerController extends Controller
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending']],
         'to-ship' => ['label' => 'To Drop Off', 'statuses' => ['Processing']],
-        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Delivery Failed']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed']],
         'completed' => ['label' => 'Completed', 'statuses' => ['Delivered']],
-        'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returned to Seller']],
+        'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
     ];
     public function orders()

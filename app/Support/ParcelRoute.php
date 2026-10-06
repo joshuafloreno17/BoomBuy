@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\SortingCenter;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -61,6 +62,33 @@ class ParcelRoute
         ));
 
         return $open($sameIsland)->orderBy('id')->first();
+    }
+
+    /** Days from order to arrival by distance: [earliest, latest]. */
+    public const ETA_DAYS = [
+        'local' => [1, 2],
+        'province' => [1, 3],
+        'island' => [2, 5],
+        'far' => [4, 8],
+    ];
+
+    /** @return array{0: Carbon, 1: Carbon} earliest and latest arrival */
+    public static function eta(?string $zone, $from = null): array
+    {
+        [$min, $max] = self::ETA_DAYS[$zone] ?? self::ETA_DAYS['island'];
+        $start = $from ? Carbon::parse($from) : now();
+
+        return [$start->copy()->addDays($min)->startOfDay(), $start->copy()->addDays($max)->startOfDay()];
+    }
+
+    /** "Oct 9–11", or "Oct 30 – Nov 2" across months. */
+    public static function etaLabel(?string $zone, $from = null): string
+    {
+        [$early, $late] = self::eta($zone, $from);
+
+        return $early->month === $late->month
+            ? $early->format('M j') . '–' . $late->format('j')
+            : $early->format('M j') . ' – ' . $late->format('M j');
     }
 
     /**

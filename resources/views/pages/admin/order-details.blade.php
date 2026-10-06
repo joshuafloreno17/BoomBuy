@@ -26,17 +26,7 @@
     $fmt = fn ($t) => $t ? \Carbon\Carbon::parse($t)->format('M d, Y · g:i A') : null;
     $itemsTotal = $order->items->sum(fn ($i) => $i->price * $i->quantity);
 
-    $events = array_filter([
-        ['bi-bag-check', 'Order placed', $order->created_at],
-        ['bi-building', 'Received at Sorting Center', $order->sorting_center_received_at],
-        ['bi-exclamation-triangle', 'Delivery failed' . ($order->delivery_attempts ? ' (attempt ' . $order->delivery_attempts . ')' : ''), $order->delivery_failed_at],
-        ['bi-hand-thumbs-down', 'Buyer refused the parcel', $order->buyer_refused_at],
-        ['bi-check-circle', 'Buyer confirmed receipt', $order->buyer_received_at],
-        ['bi-slash-circle', 'Cancelled' . ($order->cancelled_by ? ' by ' . $order->cancelled_by : ''), $order->cancelled_at],
-        ['bi-arrow-counterclockwise', 'Items restocked', $order->restocked_at],
-    ], fn ($e) => !empty($e[2]));
-
-    usort($events, fn ($a, $b) => strtotime($a[2]) <=> strtotime($b[2]));
+    $centerNames = \App\Models\SortingCenter::whereIn('id', array_filter([$order->origin_center_id, $order->destination_center_id]))->pluck('name', 'id');
 @endphp
 
 <div class="container">
@@ -80,11 +70,24 @@
 
         <div class="card info">
             <h2>Courier</h2>
-            <div class="label">Pickup rider</div>
-            {{ $order->pickup_rider_name ?? 'Not assigned yet' }}
+            <div class="label">Route</div>
+            {{ $centerNames[$order->origin_center_id] ?? 'Seller\'s Sorting Center' }}
+            → {{ $centerNames[$order->destination_center_id] ?? 'Buyer\'s Sorting Center' }}
+            <span class="muted">· {{ ($order->fulfillment ?? 'delivery') === 'pickup' ? 'buyer picks up at the center' : 'door delivery' }}</span>
 
             <div class="label" style="margin-top:12px;">Delivery rider</div>
-            {{ $order->delivery_rider_name ?? 'Not assigned yet' }}
+            {{ ($order->fulfillment ?? 'delivery') === 'pickup' ? 'None — picked up at the center' : ($order->delivery_rider_name ?? 'Not assigned yet') }}
+
+            @if(\App\Support\CodPolicy::isCod($order->payment_method))
+                <div class="label" style="margin-top:12px;">Cash on Delivery</div>
+                @if($order->cod_remitted_at)
+                    Handed in to the Sorting Center {{ $fmt($order->cod_remitted_at) }} — payout released
+                @elseif($order->cod_collected_at)
+                    Collected by the rider {{ $fmt($order->cod_collected_at) }} — not handed in yet
+                @else
+                    Not collected yet
+                @endif
+            @endif
 
             @if($order->delivery_attempts)
                 <div class="label" style="margin-top:12px;">Delivery attempts</div>
@@ -140,11 +143,14 @@
     <div class="card">
         <h2>History</h2>
 
-        <ul class="timeline">
-            @foreach($events as [$icon, $text, $when])
-                <li><i class="bi {{ $icon }}"></i> <span>{{ $text }}</span> <span class="when">{{ $fmt($when) }}</span></li>
-            @endforeach
-        </ul>
+        @include('partials.order-timeline', [
+            'steps' => \App\Support\OrderTimeline::forOrders([(int) $order->id])->get((int) $order->id),
+            'proof' => $order->delivery_proof ? route('orders.delivery-proof', $order->id) : null,
+        ])
+
+        @if(!empty($order->restocked_at))
+            <div class="note"><i class="bi bi-arrow-counterclockwise"></i> Items restocked {{ $fmt($order->restocked_at) }}.</div>
+        @endif
 
         @if($order->cancellation_reason)
             <div class="note"><strong>Cancellation reason:</strong> {{ $order->cancellation_reason }}</div>
