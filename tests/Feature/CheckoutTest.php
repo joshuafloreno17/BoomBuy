@@ -88,6 +88,37 @@ class CheckoutTest extends TestCase
             ->assertDontSee('Complete your account to place an order');
     }
 
+    public function test_deleted_products_leave_the_cart_and_the_badge(): void
+    {
+        $buyer = $this->makeUser();
+        $kept = $this->makeProduct($this->makeSeller(), ['name' => 'Still Here']);
+        $withOption = $this->makeProduct($this->makeSeller('electronics'), ['category' => 'Electronics']);
+        $option = $this->addVariation($withOption, 'Blue');
+        $goneOption = $this->addVariation($withOption, 'Red');
+        $goneOptionId = $goneOption->id;
+        $goneOption->delete();
+
+        // A product deleted after it went into the cart (e.g. the shop was emptied).
+        $cart = [
+            '999999:0' => 1,
+            "{$withOption->id}:{$goneOptionId}" => 2,
+            "{$kept->id}:0" => 1,
+            "{$withOption->id}:{$option->id}" => 1,
+        ];
+
+        $this->actingAsUser($buyer, ['cart' => $cart])->get(route('buyer.dashboard'))
+            ->assertOk()
+            ->assertSee('id="cartCount"', false)
+            ->assertSeeInOrder(['id="cartCount"', '>2</span>'], false);
+
+        $this->assertSame(["{$kept->id}:0" => 1, "{$withOption->id}:{$option->id}" => 1], session('cart'));
+
+        // Only deleted things: badge hidden, cart page empty-handed but fine.
+        $this->flushSession();
+        $this->actingAsUser($buyer, ['cart' => ['999999:0' => 1]])->get(route('cart'))->assertOk();
+        $this->assertSame([], session('cart'));
+    }
+
     public function test_checkout_needs_the_delivery_details(): void
     {
         $buyer = $this->makeUser();

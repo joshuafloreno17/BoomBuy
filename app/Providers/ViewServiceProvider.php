@@ -9,6 +9,7 @@ use App\Models\PlatformAnnouncement;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Models\User;
+use App\Support\CartContents;
 use App\Support\Categories;
 use App\Support\Inbox;
 use App\Support\SupportAccount;
@@ -88,7 +89,8 @@ class ViewServiceProvider extends ServiceProvider
 
         $nav = [
             'bbNavUser' => $user,
-            'bbCartCount' => array_sum(session()->get('cart', [])),
+            // Only lines whose product still exists (deleted ones are dropped).
+            'bbCartCount' => CartContents::count(),
             'bbActive' => $data['activeNav'] ?? null,
             'bbNotificationCount' => 0,
             'bbMessageCount' => 0,
@@ -127,7 +129,7 @@ class ViewServiceProvider extends ServiceProvider
     /** The cart's newest five lines for the navbar cart panel. */
     private function cartPreviewData(): array
     {
-        $cart = session('cart', []);
+        $cart = CartContents::prune();
         $keys = array_reverse(array_keys($cart)); // newest first
         $shown = array_slice($keys, 0, 5);
 

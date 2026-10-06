@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Models\User;
+use App\Support\CartContents;
 use App\Support\CheckoutPlan;
 use App\Support\CodPolicy;
 use App\Support\DeliveryFee;
@@ -122,7 +123,7 @@ class CartController extends Controller
 
         session()->put('cart', $cart);
 
-        return $this->addResult(true, 'Added to cart.', array_sum($cart));
+        return $this->addResult(true, 'Added to cart.', CartContents::count());
     }
 
     /*
@@ -347,7 +348,7 @@ class CartController extends Controller
         }
 
         $cart =
-            session()->get('cart', []);
+            CartContents::prune();
 
         $appliedVoucher = null;
         $voucherError = null;
@@ -458,7 +459,7 @@ class CartController extends Controller
 
         } else {
 
-            $cart = session()->get('cart', []);
+            $cart = CartContents::prune();
 
             if (empty($cart)) {
 
