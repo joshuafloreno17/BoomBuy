@@ -68,6 +68,40 @@ class PhLocations
             'provinces' => ['Basilan', 'Lanao del Sur', 'Maguindanao del Norte', 'Maguindanao del Sur', 'Sulu', 'Tawi-Tawi']],
     ];
 
+    /** Each province's capital — where its BoomBuy Sorting Center is set up. */
+    public const PROVINCE_CAPITALS = [
+        'Metro Manila (NCR)' => 'Quezon City', 'Abra' => 'Bangued', 'Apayao' => 'Kabugao', 'Benguet' => 'La Trinidad',
+        'Ifugao' => 'Lagawe', 'Kalinga' => 'Tabuk City', 'Mountain Province' => 'Bontoc', 'Ilocos Norte' => 'Laoag City',
+        'Ilocos Sur' => 'Vigan City', 'La Union' => 'San Fernando City', 'Pangasinan' => 'Lingayen', 'Batanes' => 'Basco',
+        'Cagayan' => 'Tuguegarao City', 'Isabela' => 'Ilagan City', 'Nueva Vizcaya' => 'Bayombong', 'Quirino' => 'Cabarroguis',
+        'Aurora' => 'Baler', 'Bataan' => 'Balanga City', 'Bulacan' => 'Malolos City', 'Nueva Ecija' => 'Palayan City',
+        'Pampanga' => 'San Fernando City', 'Tarlac' => 'Tarlac City', 'Zambales' => 'Iba', 'Batangas' => 'Batangas City',
+        'Cavite' => 'Imus City', 'Laguna' => 'Santa Cruz', 'Quezon' => 'Lucena City', 'Rizal' => 'Antipolo City',
+        'Marinduque' => 'Boac', 'Occidental Mindoro' => 'Mamburao', 'Oriental Mindoro' => 'Calapan City',
+        'Palawan' => 'Puerto Princesa City', 'Romblon' => 'Romblon', 'Albay' => 'Legazpi City', 'Camarines Norte' => 'Daet',
+        'Camarines Sur' => 'Pili', 'Catanduanes' => 'Virac', 'Masbate' => 'Masbate City', 'Sorsogon' => 'Sorsogon City',
+        'Aklan' => 'Kalibo', 'Antique' => 'San Jose de Buenavista', 'Capiz' => 'Roxas City', 'Guimaras' => 'Jordan',
+        'Iloilo' => 'Iloilo City', 'Negros Occidental' => 'Bacolod City', 'Bohol' => 'Tagbilaran City', 'Cebu' => 'Cebu City',
+        'Negros Oriental' => 'Dumaguete City', 'Siquijor' => 'Siquijor', 'Biliran' => 'Naval', 'Eastern Samar' => 'Borongan City',
+        'Leyte' => 'Tacloban City', 'Northern Samar' => 'Catarman', 'Samar' => 'Catbalogan City', 'Southern Leyte' => 'Maasin City',
+        'Zamboanga del Norte' => 'Dipolog City', 'Zamboanga del Sur' => 'Pagadian City', 'Zamboanga Sibugay' => 'Ipil',
+        'Bukidnon' => 'Malaybalay City', 'Camiguin' => 'Mambajao', 'Lanao del Norte' => 'Tubod',
+        'Misamis Occidental' => 'Oroquieta City', 'Misamis Oriental' => 'Cagayan de Oro City', 'Davao de Oro' => 'Nabunturan',
+        'Davao del Norte' => 'Tagum City', 'Davao del Sur' => 'Davao City', 'Davao Occidental' => 'Malita',
+        'Davao Oriental' => 'Mati City', 'Cotabato' => 'Kidapawan City', 'Sarangani' => 'Alabel',
+        'South Cotabato' => 'Koronadal City', 'Sultan Kudarat' => 'Isulan', 'Agusan del Norte' => 'Butuan City',
+        'Agusan del Sur' => 'Prosperidad', 'Dinagat Islands' => 'San Jose', 'Surigao del Norte' => 'Surigao City',
+        'Surigao del Sur' => 'Tandag City', 'Basilan' => 'Isabela City', 'Lanao del Sur' => 'Marawi City',
+        'Maguindanao del Norte' => 'Datu Odin Sinsuat', 'Maguindanao del Sur' => 'Buluan', 'Sulu' => 'Jolo',
+        'Tawi-Tawi' => 'Bongao',
+    ];
+
+    /** "Metro Manila (NCR)" → "Metro Manila"; others as they are. */
+    public static function provinceLabel(?string $province): string
+    {
+        return str_replace(' (NCR)', '', (string) $province);
+    }
+
     /** The region key ("calabarzon") a province belongs to. */
     public static function region(?string $province): ?string
     {

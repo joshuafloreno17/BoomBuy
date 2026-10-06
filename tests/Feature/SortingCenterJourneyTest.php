@@ -296,7 +296,7 @@ class SortingCenterJourneyTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // 4. No open Sorting Center in the buyer's region: origin delivers
+    // 4. No open Sorting Center in the buyer's province: origin delivers
     // ------------------------------------------------------------------
 
     public function test_no_center_near_the_buyer_means_the_origin_delivers(): void
@@ -306,14 +306,10 @@ class SortingCenterJourneyTest extends TestCase
         $buyer = $this->makeUser();
         $qcRider = $this->makeAreaRider($this->qc, 'QC Rider');
 
-        // Lucena is in CALABARZON — covered by the Santa Cruz (CALABARZON) center.
+        // Quezon province has no center in this test (each province has its own).
         $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Lucena City, Quezon')->assertRedirect();
-        $this->assertSame($this->santaCruz->id, (int) $this->latestOrder($buyer)->destination_center_id);
-
-        // Davao Region has no center in this test.
-        $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Matina, Davao City, Davao del Sur')->assertRedirect();
         $order = $this->latestOrder($buyer);
-        $this->assertSame('Davao del Sur', $order->shipping_province);
+        $this->assertSame('Quezon', $order->shipping_province);
         $this->assertNull($order->destination_center_id);
 
         $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Processing']);
@@ -365,18 +361,19 @@ class SortingCenterJourneyTest extends TestCase
 
         // Admin: page, open a center, assign staff, change a fee.
         $this->actingAsAdmin()->get(route('admin.sorting-centers'))->assertOk()->assertSee('Santa Cruz Sorting Center');
-        // A new region's center.
+        // A new province's center.
         $this->actingAsAdmin()->post(route('admin.sorting-centers.store'), ['region' => 'davao', 'province' => 'Davao del Sur', 'city_municipality' => 'Davao City'])
             ->assertSessionHas('success');
-        $davao = SortingCenter::where('region', 'davao')->firstOrFail();
-        $this->assertSame('BoomBuy Sorting Center – Davao Region', $davao->name);
-        $this->assertSame($davao->id, \App\Support\ParcelRoute::centerFor('Davao Oriental')?->id);
+        $davao = SortingCenter::where('province', 'Davao del Sur')->firstOrFail();
+        $this->assertSame('BoomBuy Sorting Center – Davao del Sur', $davao->name);
+        $this->assertSame($davao->id, \App\Support\ParcelRoute::centerFor('Davao del Sur')?->id);
+        $this->assertNull(\App\Support\ParcelRoute::centerFor('Davao Oriental'));
 
-        // Moving CALABARZON's center keeps the one center (and its parcels).
+        // Moving Laguna's center keeps the one center (and its parcels).
         $this->actingAsAdmin()->post(route('admin.sorting-centers.store'), ['region' => 'calabarzon', 'province' => 'Laguna', 'city_municipality' => 'Calamba City'])
             ->assertSessionHas('success');
         $this->assertSame('Calamba City', $this->santaCruz->fresh()->city_municipality);
-        $this->assertSame(1, SortingCenter::where('region', 'calabarzon')->count());
+        $this->assertSame(1, SortingCenter::where('province', 'Laguna')->count());
 
         // A town outside the region, or not a real town, is refused.
         $this->actingAsAdmin()->post(route('admin.sorting-centers.store'), ['region' => 'calabarzon', 'province' => 'Cebu', 'city_municipality' => 'Cebu City'])

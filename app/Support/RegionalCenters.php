@@ -6,8 +6,9 @@ use App\Models\SortingCenter;
 use Illuminate\Support\Facades\DB;
 
 /**
- * One BoomBuy Sorting Center per region (17), covering the whole country.
- * Used by the migration that replaced the per-town centers and by the seeder.
+ * One BoomBuy Sorting Center per region (17). Only used by the 2026-10-06
+ * migration that folded the first per-town centers; centers are now one per
+ * province (see ProvincialCenters).
  */
 class RegionalCenters
 {
@@ -27,7 +28,7 @@ class RegionalCenters
 
             $center->fill([
                 'region' => $key,
-                'name' => SortingCenter::nameFor($key),
+                'name' => 'BoomBuy Sorting Center – ' . $region['label'],
                 'address' => $center->address ?: $city . ', ' . str_replace(' (NCR)', '', $province),
             ])->save();
 

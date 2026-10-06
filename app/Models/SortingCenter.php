@@ -6,9 +6,9 @@ use App\Support\PhLocations;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * A BoomBuy Sorting Center — one per region ("BoomBuy Sorting Center –
- * CALABARZON"), covering every province in it. province/city is where the
- * building is.
+ * A BoomBuy Sorting Center — one per province ("BoomBuy Sorting Center –
+ * Cavite"), serving every town in it. city_municipality is where the
+ * building is; region groups centers on the admin page.
  */
 class SortingCenter extends Model
 {
@@ -30,26 +30,26 @@ class SortingCenter extends Model
         return $this->hasMany(User::class, 'sorting_center_id');
     }
 
-    /** "Calamba City, Laguna" — where the building is. */
+    /** "Imus City, Cavite" — where the building is. */
     public function getTownAttribute(): string
     {
-        return $this->city_municipality . ', ' . str_replace(' (NCR)', '', $this->province);
+        return $this->city_municipality . ', ' . PhLocations::provinceLabel($this->province);
     }
 
-    /** "CALABARZON" — the region it serves. */
+    /** "Cavite" — the province it serves. */
     public function getAreaAttribute(): string
     {
-        return PhLocations::regionLabel($this->region) ?? $this->town;
+        return PhLocations::provinceLabel($this->province);
     }
 
-    /** @return string[] the provinces it serves */
+    /** @return string[] the provinces it serves (its own) */
     public function getProvincesAttribute(): array
     {
-        return PhLocations::REGIONS[$this->region]['provinces'] ?? [$this->province];
+        return [$this->province];
     }
 
-    public static function nameFor(string $region): string
+    public static function nameFor(string $province): string
     {
-        return 'BoomBuy Sorting Center – ' . (PhLocations::regionLabel($region) ?? $region);
+        return 'BoomBuy Sorting Center – ' . PhLocations::provinceLabel($province);
     }
 }

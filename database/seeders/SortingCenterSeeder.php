@@ -3,21 +3,20 @@
 namespace Database\Seeders;
 
 use App\Models\SortingCenter;
-use App\Support\RegionalCenters;
+use App\Support\ProvincialCenters;
 use Illuminate\Database\Seeder;
 
 /**
- * One BoomBuy Sorting Center per region — 17, covering the whole country
- * (e.g. "BoomBuy Sorting Center – CALABARZON" in Calamba, serving Laguna,
- * Cavite, Batangas, Rizal and Quezon). Safe to re-run; any old per-town
- * centers are folded into their region's.
+ * One BoomBuy Sorting Center per province — 83, covering the whole country
+ * (e.g. "BoomBuy Sorting Center – Cavite" in Imus, "– Laguna" in Santa Cruz).
+ * Safe to re-run.
  */
 class SortingCenterSeeder extends Seeder
 {
     public function run(): void
     {
-        RegionalCenters::foldTownCenters();
+        ProvincialCenters::ensure();
 
-        $this->command?->info('Sorting Centers: ' . SortingCenter::count() . ' (one per region)');
+        $this->command?->info('Sorting Centers: ' . SortingCenter::count() . ' (one per province)');
     }
 }

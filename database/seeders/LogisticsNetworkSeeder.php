@@ -5,7 +5,8 @@ namespace Database\Seeders;
 use App\Models\RiderArea;
 use App\Models\SortingCenter;
 use App\Models\User;
-use App\Support\RegionalCenters;
+use App\Support\PhLocations;
+use App\Support\ProvincialCenters;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -14,8 +15,8 @@ use Illuminate\Support\Str;
 /**
  * A working logistics setup everywhere:
  *
- *   - every regional BoomBuy Sorting Center has a logistics staff account
- *     (hub.<region>@boombuy.test) — unless it already has staff;
+ *   - every provincial BoomBuy Sorting Center has a logistics staff account
+ *     (hub.<province>@boombuy.test) — unless it already has staff;
  *   - every seller's town has an approved rider whose area is that town
  *     (rider.<town>@boombuy.test), for final-mile deliveries there.
  *
@@ -58,14 +59,14 @@ class LogisticsNetworkSeeder extends Seeder
     {
         $added = 0;
 
-        foreach (RegionalCenters::ensure() as $region => $center) {
+        foreach (ProvincialCenters::ensure() as $province => $center) {
             if ($center->staff()->exists()) {
                 continue;
             }
 
             [$first, $last, $sex] = self::STAFF_NAMES[$added % count(self::STAFF_NAMES)];
             $staff = User::firstOrCreate(
-                ['email' => 'hub.' . $region . '@boombuy.test'],
+                ['email' => 'hub.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test'],
                 [
                     'name' => "$first $last",
                     'first_name' => $first,
@@ -75,7 +76,7 @@ class LogisticsNetworkSeeder extends Seeder
                     'age' => 36,
                     'password' => $password,
                     'role' => 'logistics',
-                    'phone' => sprintf('0916%07d', 2100001 + crc32($region) % 899999),
+                    'phone' => sprintf('0916%07d', 2100001 + crc32($province) % 899999),
                     'is_verified' => true,
                 ]
             );

@@ -21,7 +21,7 @@
         <div class="header">
             <small>Admin Panel</small>
             <h1>Sorting Centers</h1>
-            <p>One BoomBuy Sorting Center per region, covering the whole country. Sellers drop parcels at their region's center; a parcel for a buyer in another region is sent on to that region's center, which delivers it.</p>
+            <p>One BoomBuy Sorting Center per province, covering the whole country. Sellers drop parcels at their province's center; a parcel for a buyer in another province is sent on to that province's center, whose riders deliver it.</p>
         </div>
 
         @if (session('success'))
@@ -38,12 +38,12 @@
 
         <div class="stats">
             <div class="stat-card">
-                <span>Regions With an Open Center</span>
-                <strong>{{ $stats['centers'] }} <small>of {{ $stats['regions'] }}</small></strong>
+                <span>Provinces With an Open Center</span>
+                <strong>{{ $stats['centers'] }} <small>of {{ $stats['provinces'] }}</small></strong>
             </div>
             <div class="stat-card">
-                <span>Provinces Covered</span>
-                <strong>{{ collect($regions)->filter(fn ($r, $key) => $centers->where('region', $key)->where('is_active', true)->isNotEmpty())->sum(fn ($r) => count($r['provinces'])) }} <small>of {{ count($provinces) }}</small></strong>
+                <span>Parcels at or Between Centers</span>
+                <strong>{{ $parcelCounts->sum() }}</strong>
             </div>
             <div class="stat-card">
                 <span>Staff Assigned to a Center</span>
@@ -53,8 +53,8 @@
 
         {{-- SET UP / MOVE A REGION'S CENTER --}}
         <section class="sc-card">
-            <h2><i class="bi bi-geo-alt-fill"></i> Set Up or Move a Region's Center</h2>
-            <p class="sc-note">Pick the region, then the town where the building is. A region that already has a center gets it moved there.</p>
+            <h2><i class="bi bi-geo-alt-fill"></i> Set Up or Move a Province's Center</h2>
+            <p class="sc-note">Pick the province, then the town where the building is. A province that already has a center gets it moved there.</p>
 
             <form method="POST" action="{{ route('admin.sorting-centers.store') }}" class="sc-add">
                 @csrf
@@ -64,7 +64,7 @@
                     <select name="region" id="scRegion" required>
                         <option value="">Select region</option>
                         @foreach ($regions as $key => $region)
-                            <option value="{{ $key }}" @selected(old('region') === $key)>{{ $region['label'] }} — {{ implode(', ', array_map(fn ($p) => str_replace(' (NCR)', '', $p), $region['provinces'])) }}</option>
+                            <option value="{{ $key }}" @selected(old('region') === $key)>{{ $region['label'] }}</option>
                         @endforeach
                     </select>
                 </label>
@@ -98,7 +98,7 @@
                 <h2><i class="bi bi-building"></i> Centers ({{ count($centers) }})</h2>
 
                 <form method="GET" action="{{ route('admin.sorting-centers') }}" class="sc-filter">
-                    <input type="search" name="q" value="{{ $search }}" placeholder="Search region, town or province" aria-label="Search centers">
+                    <input type="search" name="q" value="{{ $search }}" placeholder="Search province, town or region" aria-label="Search centers">
                 </form>
             </div>
 
@@ -107,7 +107,7 @@
                     <thead>
                         <tr>
                             <th>Center</th>
-                            <th>Serves</th>
+                            <th>Region</th>
                             <th>Staff</th>
                             <th>Parcels now</th>
                             <th>Status</th>
@@ -121,7 +121,7 @@
                                     <strong>{{ $center->name }}</strong>
                                     <span>{{ $center->address ?: $center->town }}</span>
                                 </td>
-                                <td class="sc-serves">{{ implode(', ', array_map(fn ($p) => str_replace(' (NCR)', '', $p), $center->provinces)) }}</td>
+                                <td class="sc-serves">{{ \App\Support\PhLocations::regionLabel($center->region) ?? '—' }}</td>
                                 <td>{{ $center->staff_count }}</td>
                                 <td>{{ $parcelCounts[$center->id] ?? 0 }}</td>
                                 <td>
