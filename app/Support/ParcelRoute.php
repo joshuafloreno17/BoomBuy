@@ -8,9 +8,10 @@ use Illuminate\Support\Facades\DB;
 /**
  * Which Sorting Centers a parcel goes through and how far it travels.
  *
- * The seller drops the parcel at the center of their own town (origin). If
- * the buyer lives in another town it is sent on to the center of the buyer's
- * town (destination), where a delivery rider takes it to the door.
+ * There is one BoomBuy Sorting Center per region. The seller drops the parcel
+ * at their region's center (origin). If the buyer is in another region it is
+ * sent on to the buyer's region's center (destination), where a delivery
+ * rider takes it to the door.
  */
 class ParcelRoute
 {
@@ -23,19 +24,19 @@ class ParcelRoute
     ];
 
     /**
-     * The center serving a town: the one in that town, else another center in
-     * the same province (the nearest we have), else none.
+     * The center serving a town: its region's BoomBuy Sorting Center
+     * (e.g. any town in Laguna → "BoomBuy Sorting Center – CALABARZON").
+     * None when that region's center is closed.
      */
-    public static function centerFor(?string $province, ?string $city): ?SortingCenter
+    public static function centerFor(?string $province, ?string $city = null): ?SortingCenter
     {
-        if (!$province) {
+        $region = PhLocations::region($province);
+
+        if (!$region) {
             return null;
         }
 
-        $inProvince = SortingCenter::where('is_active', true)->where('province', $province)->orderBy('id')->get();
-
-        return $inProvince->first(fn ($center) => PhLocations::sameTown($center->city_municipality, $city))
-            ?? $inProvince->first();
+        return SortingCenter::where('is_active', true)->where('region', $region)->orderBy('id')->first();
     }
 
     /**

@@ -214,10 +214,10 @@ class LogisticsController extends Controller
             ->distinct()
             ->pluck('users.id');
 
-        // A center's own riders: those covering its province.
+        // A center's own riders: those covering a province in its region.
         if ($myCenter) {
             $activeRiderIds = RiderArea::whereIn('rider_id', $activeRiderIds)
-                ->where('province', $myCenter->province)
+                ->whereIn('province', $myCenter->provinces)
                 ->distinct()
                 ->pluck('rider_id');
         }
@@ -636,10 +636,10 @@ class LogisticsController extends Controller
         $riderAreas = RiderArea::whereIn('rider_id', $activeRiders->pluck('id'))->get();
 
         // A center's staff pick from their own riders — those covering the
-        // center's province. (No riders there yet → everyone, so a parcel is
+        // center's region. (No riders there yet → everyone, so a parcel is
         // never stuck.) Head office picks from all.
         if ($myCenter) {
-            $ownRiderIds = $riderAreas->where('province', $myCenter->province)->pluck('rider_id')->unique();
+            $ownRiderIds = $riderAreas->whereIn('province', $myCenter->provinces)->pluck('rider_id')->unique();
 
             if ($ownRiderIds->isNotEmpty()) {
                 $activeRiders = $activeRiders->whereIn('id', $ownRiderIds)->values();

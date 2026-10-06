@@ -8,8 +8,9 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 
 /**
- * Admin → Sorting Centers: open a center in a town, switch one off, and say
- * which center each logistics account works at.
+ * Admin → Sorting Centers: one BoomBuy Sorting Center per region. Set where a
+ * region's center is, close or reopen one, and say which center each
+ * logistics account works at.
  */
 class SortingCenterController extends Controller
 {
@@ -19,17 +20,16 @@ class SortingCenterController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $province = (string) request('province', '');
         $search = trim((string) request('q', ''));
 
         $centers = SortingCenter::query()
-            ->when($province !== '', fn ($q) => $q->where('province', $province))
-            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w->where('name', 'like', '%' . $search . '%')
-                ->orWhere('city_municipality', 'like', '%' . $search . '%')))
             ->withCount('staff')
-            ->orderBy('province')
-            ->orderBy('city_municipality')
-            ->get();
+            ->get()
+            ->sortBy(fn ($c) => array_search($c->region, array_keys(PhLocations::REGIONS), true))
+            ->when($search !== '', fn ($list) => $list->filter(fn ($c) => stripos($c->name, $search) !== false
+                || stripos($c->town, $search) !== false
+                || collect($c->provinces)->contains(fn ($p) => stripos($p, $search) !== false)))
+            ->values();
 
         // Parcels each center is holding or expecting right now.
         $parcelCounts = DB::table('orders')
@@ -43,22 +43,30 @@ class SortingCenterController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'status', 'sorting_center_id']);
 
-        $allCenters = SortingCenter::orderBy('province')->orderBy('city_municipality')->get(['id', 'name', 'province']);
+        $allCenters = SortingCenter::get(['id', 'name', 'region'])
+            ->sortBy(fn ($c) => array_search($c->region, array_keys(PhLocations::REGIONS), true))
+            ->values();
+
+        $openRegions = SortingCenter::where('is_active', true)->whereNotNull('region')->distinct()->pluck('region');
 
         $stats = [
-            'centers' => SortingCenter::where('is_active', true)->count(),
-            'provinces' => SortingCenter::where('is_active', true)->distinct()->count('province'),
+            'centers' => $openRegions->count(),
+            'regions' => count(PhLocations::REGIONS),
             'staff' => $staff->whereNotNull('sorting_center_id')->count(),
         ];
 
-        $provinces = array_keys(PhLocations::all());
-        $usedProvinces = SortingCenter::distinct()->orderBy('province')->pluck('province');
+        $regions = PhLocations::REGIONS;
+        $provinces = PhLocations::all();
 
         return view('pages.admin.sorting-centers', compact(
-            'centers', 'parcelCounts', 'staff', 'allCenters', 'stats', 'provinces', 'usedProvinces', 'province', 'search'
+            'centers', 'parcelCounts', 'staff', 'allCenters', 'stats', 'regions', 'provinces', 'search'
         ));
     }
 
+    /**
+     * Set up a region's center, or move it: where the building is (a town in
+     * that region) and its street address.
+     */
     public function store()
     {
         if (!session()->get('admin_logged_in')) {
@@ -66,31 +74,34 @@ class SortingCenterController extends Controller
         }
 
         $data = request()->validate([
+            'region' => ['required', 'string', Rule::in(array_keys(PhLocations::REGIONS))],
             'province' => ['required', 'string', Rule::in(array_keys(PhLocations::all()))],
             'city_municipality' => ['required', 'string', 'max:120'],
             'address' => ['nullable', 'string', 'max:255'],
         ]);
 
+        if (PhLocations::region($data['province']) !== $data['region']) {
+            return back()->withInput()->with('error', $data['province'] . ' is not in ' . PhLocations::regionLabel($data['region']) . '.');
+        }
+
         if (!PhLocations::exists($data['province'], $data['city_municipality'])) {
             return back()->withInput()->with('error', 'Pick a city/municipality from the list for that province.');
         }
 
-        $exists = SortingCenter::where('province', $data['province'])->get()
-            ->contains(fn ($c) => PhLocations::sameTown($c->city_municipality, $data['city_municipality']));
+        $center = SortingCenter::where('region', $data['region'])->orderBy('id')->first();
+        $isNew = !$center;
+        $center ??= new SortingCenter(['region' => $data['region'], 'is_active' => true]);
 
-        if ($exists) {
-            return back()->withInput()->with('error', $data['city_municipality'] . ' already has a Sorting Center.');
-        }
-
-        $center = SortingCenter::create([
-            'name' => $data['city_municipality'] . ' Sorting Center',
+        $center->fill([
+            'name' => SortingCenter::nameFor($data['region']),
             'province' => $data['province'],
             'city_municipality' => $data['city_municipality'],
-            'address' => trim((string) ($data['address'] ?? '')) ?: null,
-            'is_active' => true,
-        ]);
+            'address' => trim((string) ($data['address'] ?? '')) ?: $data['city_municipality'] . ', ' . str_replace(' (NCR)', '', $data['province']),
+        ])->save();
 
-        return back()->with('success', $center->name . ' is open. Orders to and from ' . $center->town . ' now go through it.');
+        return back()->with('success', $isNew
+            ? $center->name . ' is open in ' . $center->town . '. It serves ' . implode(', ', $center->provinces) . '.'
+            : $center->name . ' is now in ' . $center->town . '.');
     }
 
     public function toggle($id)
@@ -104,7 +115,7 @@ class SortingCenterController extends Controller
 
         return back()->with('success', $center->name . ($center->is_active
             ? ' is open again.'
-            : ' is closed. New orders in ' . $center->town . ' go to another center in ' . $center->province . ' (parcels already there stay).'));
+            : ' is closed. New orders in ' . $center->area . ' have no regional center until it reopens — the seller\'s center delivers them, or head office handles them (parcels already there stay).'));
     }
 
     public function assignStaff($userId)

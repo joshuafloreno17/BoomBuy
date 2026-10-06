@@ -27,6 +27,64 @@ class PhLocations
         'Sulu', 'Tawi-Tawi',
     ];
 
+    /**
+     * The 17 regions: name, the provinces they cover, and the city of the
+     * region's BoomBuy Sorting Center ([province, city]).
+     */
+    public const REGIONS = [
+        'ncr' => ['label' => 'Metro Manila', 'hub' => ['Metro Manila (NCR)', 'Quezon City'],
+            'provinces' => ['Metro Manila (NCR)']],
+        'car' => ['label' => 'Cordillera', 'hub' => ['Benguet', 'Baguio City'],
+            'provinces' => ['Abra', 'Apayao', 'Benguet', 'Ifugao', 'Kalinga', 'Mountain Province']],
+        'ilocos' => ['label' => 'Ilocos Region', 'hub' => ['La Union', 'San Fernando City'],
+            'provinces' => ['Ilocos Norte', 'Ilocos Sur', 'La Union', 'Pangasinan']],
+        'cagayan-valley' => ['label' => 'Cagayan Valley', 'hub' => ['Cagayan', 'Tuguegarao City'],
+            'provinces' => ['Batanes', 'Cagayan', 'Isabela', 'Nueva Vizcaya', 'Quirino']],
+        'central-luzon' => ['label' => 'Central Luzon', 'hub' => ['Pampanga', 'San Fernando City'],
+            'provinces' => ['Aurora', 'Bataan', 'Bulacan', 'Nueva Ecija', 'Pampanga', 'Tarlac', 'Zambales']],
+        'calabarzon' => ['label' => 'CALABARZON', 'hub' => ['Laguna', 'Calamba City'],
+            'provinces' => ['Batangas', 'Cavite', 'Laguna', 'Quezon', 'Rizal']],
+        'mimaropa' => ['label' => 'MIMAROPA', 'hub' => ['Oriental Mindoro', 'Calapan City'],
+            'provinces' => ['Marinduque', 'Occidental Mindoro', 'Oriental Mindoro', 'Palawan', 'Romblon']],
+        'bicol' => ['label' => 'Bicol Region', 'hub' => ['Albay', 'Legazpi City'],
+            'provinces' => ['Albay', 'Camarines Norte', 'Camarines Sur', 'Catanduanes', 'Masbate', 'Sorsogon']],
+        'western-visayas' => ['label' => 'Western Visayas', 'hub' => ['Iloilo', 'Iloilo City'],
+            'provinces' => ['Aklan', 'Antique', 'Capiz', 'Guimaras', 'Iloilo', 'Negros Occidental']],
+        'central-visayas' => ['label' => 'Central Visayas', 'hub' => ['Cebu', 'Cebu City'],
+            'provinces' => ['Bohol', 'Cebu', 'Negros Oriental', 'Siquijor']],
+        'eastern-visayas' => ['label' => 'Eastern Visayas', 'hub' => ['Leyte', 'Tacloban City'],
+            'provinces' => ['Biliran', 'Eastern Samar', 'Leyte', 'Northern Samar', 'Samar', 'Southern Leyte']],
+        'zamboanga' => ['label' => 'Zamboanga Peninsula', 'hub' => ['Zamboanga del Sur', 'Zamboanga City'],
+            'provinces' => ['Zamboanga del Norte', 'Zamboanga del Sur', 'Zamboanga Sibugay']],
+        'northern-mindanao' => ['label' => 'Northern Mindanao', 'hub' => ['Misamis Oriental', 'Cagayan de Oro City'],
+            'provinces' => ['Bukidnon', 'Camiguin', 'Lanao del Norte', 'Misamis Occidental', 'Misamis Oriental']],
+        'davao' => ['label' => 'Davao Region', 'hub' => ['Davao del Sur', 'Davao City'],
+            'provinces' => ['Davao de Oro', 'Davao del Norte', 'Davao del Sur', 'Davao Occidental', 'Davao Oriental']],
+        'soccsksargen' => ['label' => 'SOCCSKSARGEN', 'hub' => ['South Cotabato', 'Koronadal City'],
+            'provinces' => ['Cotabato', 'Sarangani', 'South Cotabato', 'Sultan Kudarat']],
+        'caraga' => ['label' => 'Caraga', 'hub' => ['Agusan del Norte', 'Butuan City'],
+            'provinces' => ['Agusan del Norte', 'Agusan del Sur', 'Dinagat Islands', 'Surigao del Norte', 'Surigao del Sur']],
+        'barmm' => ['label' => 'BARMM', 'hub' => ['Maguindanao del Norte', 'Datu Odin Sinsuat'],
+            'provinces' => ['Basilan', 'Lanao del Sur', 'Maguindanao del Norte', 'Maguindanao del Sur', 'Sulu', 'Tawi-Tawi']],
+    ];
+
+    /** The region key ("calabarzon") a province belongs to. */
+    public static function region(?string $province): ?string
+    {
+        foreach (self::REGIONS as $key => $region) {
+            if (in_array($province, $region['provinces'], true)) {
+                return $key;
+            }
+        }
+
+        return null;
+    }
+
+    public static function regionLabel(?string $key): ?string
+    {
+        return $key ? (self::REGIONS[$key]['label'] ?? null) : null;
+    }
+
     private static ?array $data = null;
 
     /** @return array<string, string[]> province => cities/municipalities */

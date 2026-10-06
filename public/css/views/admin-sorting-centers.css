@@ -281,3 +281,14 @@
         min-width: 0;
     }
 }
+
+.sc-table td.sc-serves {
+    max-width: 320px;
+    color: #4b4550;
+    font-size: 12px;
+    line-height: 1.5;
+}
+
+.sc-filter input {
+    width: 220px;
+}

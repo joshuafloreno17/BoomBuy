@@ -12,7 +12,7 @@
             <i class="bi bi-arrow-right" aria-hidden="true"></i>
             <span><i class="bi bi-house-door"></i> {{ $to ?? 'No center near the buyer — deliver from here' }}</span>
         @else
-            <em>same town — deliver from here</em>
+            <em>same region — deliver from here</em>
         @endif
     </div>
 @endif

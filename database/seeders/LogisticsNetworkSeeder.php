@@ -5,22 +5,22 @@ namespace Database\Seeders;
 use App\Models\RiderArea;
 use App\Models\SortingCenter;
 use App\Models\User;
-use App\Support\ParcelRoute;
-use App\Support\PhLocations;
+use App\Support\RegionalCenters;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Str;
 
 /**
- * Every seller's town gets a working logistics setup: a Sorting Center to drop
- * parcels at, one logistics staff account assigned to it, and one approved
- * rider whose area is that town (for final-mile deliveries there).
+ * A working logistics setup everywhere:
  *
- *   hub.<town>@boombuy.test    logistics staff of <Town> Sorting Center
- *   rider.<town>@boombuy.test  rider covering <Town>
+ *   - every regional BoomBuy Sorting Center has a logistics staff account
+ *     (hub.<region>@boombuy.test) — unless it already has staff;
+ *   - every seller's town has an approved rider whose area is that town
+ *     (rider.<town>@boombuy.test), for final-mile deliveries there.
  *
- * Run after SellerShopsSeeder. Safe to re-run. Password: password123
+ * Run after SellerShopsSeeder and SortingCenterSeeder. Safe to re-run.
+ * Password: password123
  */
 class LogisticsNetworkSeeder extends Seeder
 {
@@ -47,6 +47,71 @@ class LogisticsNetworkSeeder extends Seeder
     {
         $password = Hash::make('password123');
 
+        $staffCount = $this->staffEveryCenter($password);
+        $riderCount = $this->riderEverySellerTown($password);
+
+        $this->command?->info("Logistics network: staff added at {$staffCount} center(s), riders in {$riderCount} seller town(s).");
+    }
+
+    /** Each regional center without staff gets one account. */
+    private function staffEveryCenter(string $password): int
+    {
+        $added = 0;
+
+        foreach (RegionalCenters::ensure() as $region => $center) {
+            if ($center->staff()->exists()) {
+                continue;
+            }
+
+            [$first, $last, $sex] = self::STAFF_NAMES[$added % count(self::STAFF_NAMES)];
+            $staff = User::firstOrCreate(
+                ['email' => 'hub.' . $region . '@boombuy.test'],
+                [
+                    'name' => "$first $last",
+                    'first_name' => $first,
+                    'last_name' => $last,
+                    'sex' => $sex,
+                    'birthdate' => '1990-01-15',
+                    'age' => 36,
+                    'password' => $password,
+                    'role' => 'logistics',
+                    'phone' => sprintf('0916%07d', 2100001 + crc32($region) % 899999),
+                    'is_verified' => true,
+                ]
+            );
+
+            DB::table('users')->where('id', $staff->id)->update([
+                'sorting_center_id' => $center->id,
+                'address' => $center->address,
+                'province' => $center->province,
+                'city_municipality' => $center->city_municipality,
+                'street_address' => $center->name,
+            ]);
+
+            DB::table('logistics_applications')->updateOrInsert(
+                ['user_id' => $staff->id],
+                [
+                    'full_name' => $staff->name,
+                    'business_name' => $center->name,
+                    'phone' => $staff->phone,
+                    'address' => $center->address,
+                    'status' => 'Approved',
+                    'reviewed_at' => now(),
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
+            );
+
+            $this->command?->line(sprintf('  %-48s staff %s', $center->name, $staff->email));
+            $added++;
+        }
+
+        return $added;
+    }
+
+    /** Each seller's town gets a rider covering it. */
+    private function riderEverySellerTown(string $password): int
+    {
         $towns = DB::table('users')
             ->where('role', 'seller')
             ->whereNotNull('province')
@@ -59,57 +124,13 @@ class LogisticsNetworkSeeder extends Seeder
         $i = 0;
 
         foreach ($towns as $town) {
-            $center = $this->centerFor($town->province, $town->city_municipality);
             // "Iloilo City" → iloilo, but "Quezon City" stays quezon-city (Quezon is also a province).
-            $slug = Str::slug($center->city_municipality === 'Quezon City'
-                ? $center->city_municipality
-                : preg_replace('/ City$/', '', $center->city_municipality));
-            $place = $center->city_municipality . ', ' . str_replace(' (NCR)', '', $center->province);
+            $slug = Str::slug($town->city_municipality === 'Quezon City'
+                ? $town->city_municipality
+                : preg_replace('/ City$/', '', $town->city_municipality));
+            $place = $town->city_municipality . ', ' . str_replace(' (NCR)', '', $town->province);
 
-            // Logistics staff at this center.
-            [$first, $last, $sex] = self::STAFF_NAMES[$i % count(self::STAFF_NAMES)];
-            $staff = User::firstOrCreate(
-                ['email' => 'hub.' . $slug . '@boombuy.test'],
-                [
-                    'name' => "$first $last",
-                    'first_name' => $first,
-                    'last_name' => $last,
-                    'sex' => $sex,
-                    'birthdate' => '1990-01-15',
-                    'age' => 36,
-                    'password' => $password,
-                    'role' => 'logistics',
-                    'phone' => sprintf('0916%07d', 2000001 + $i),
-                    'is_verified' => true,
-                ]
-            );
-
-            DB::table('users')->where('id', $staff->id)->update([
-                'sorting_center_id' => $center->id,
-                'address' => $center->address ?: 'Poblacion, ' . $place,
-                'province' => $center->province,
-                'city_municipality' => $center->city_municipality,
-                'barangay' => 'Poblacion',
-                'street_address' => $center->name,
-            ]);
-
-            DB::table('logistics_applications')->updateOrInsert(
-                ['user_id' => $staff->id],
-                [
-                    'full_name' => $staff->name,
-                    'business_name' => $center->name,
-                    'phone' => $staff->phone,
-                    'address' => $center->address ?: 'Poblacion, ' . $place,
-                    'status' => 'Approved',
-                    'reviewed_at' => now(),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]
-            );
-
-            // Rider who delivers in this town.
             [$riderFirst, $riderLast] = self::RIDER_NAMES[$i % count(self::RIDER_NAMES)];
-            $riderAddress = ($i + 10) . ' Rizal St, Poblacion, ' . $place;
             $rider = User::firstOrCreate(
                 ['email' => 'rider.' . $slug . '@boombuy.test'],
                 [
@@ -122,9 +143,9 @@ class LogisticsNetworkSeeder extends Seeder
                     'password' => $password,
                     'role' => 'rider',
                     'phone' => sprintf('0917%07d', 3000001 + $i),
-                    'address' => $riderAddress,
-                    'province' => $center->province,
-                    'city_municipality' => $center->city_municipality,
+                    'address' => ($i + 10) . ' Rizal St, Poblacion, ' . $place,
+                    'province' => $town->province,
+                    'city_municipality' => $town->city_municipality,
                     'barangay' => 'Poblacion',
                     'street_address' => ($i + 10) . ' Rizal St',
                     'is_verified' => true,
@@ -149,31 +170,13 @@ class LogisticsNetworkSeeder extends Seeder
 
             RiderArea::firstOrCreate([
                 'rider_id' => $rider->id,
-                'province' => $center->province,
-                'city_municipality' => $center->city_municipality,
+                'province' => $town->province,
+                'city_municipality' => $town->city_municipality,
             ]);
 
-            $this->command?->line(sprintf('  %-34s staff %-32s rider %s', $center->name, $staff->email, $rider->email));
             $i++;
         }
 
-        $this->command?->info("Logistics network: {$i} towns with a Sorting Center, staff and rider.");
-    }
-
-    /** The center in this town — opened if the town doesn't have one yet. */
-    private function centerFor(string $province, string $city): SortingCenter
-    {
-        $center = ParcelRoute::centerFor($province, $city);
-
-        if ($center && PhLocations::sameTown($center->city_municipality, $city)) {
-            return $center;
-        }
-
-        $label = str_replace(' (NCR)', '', $province);
-
-        return SortingCenter::firstOrCreate(
-            ['province' => $province, 'city_municipality' => $city],
-            ['name' => $city . ' Sorting Center', 'address' => 'Poblacion, ' . $city . ', ' . $label, 'is_active' => true]
-        );
+        return $i;
     }
 }
