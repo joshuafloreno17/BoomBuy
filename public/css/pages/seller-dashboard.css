@@ -620,3 +620,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 .pd-cod-pending {
     color: #8a6d00;
 }
+
+/* The payout banner is a link to the Payouts page. */
+a.pd-cod {
+    text-decoration: none;
+}
+
+a.pd-cod:hover,
+a.pd-cod:focus-visible {
+    border-color: #e8420f;
+}

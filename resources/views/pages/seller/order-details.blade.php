@@ -269,7 +269,7 @@
 
                 @if(\App\Support\CodPolicy::isCod($order['payment_method'] ?? ''))
                     @php
-                        $codState = !empty($order['cod_remitted_at']) ? ['is-done', 'bi-check-circle-fill', 'COD payout released — the cash reached the Sorting Center.']
+                        $codState = !empty($order['cod_remitted_at']) ? ['is-done', 'bi-check-circle-fill', 'COD cash received at the Sorting Center — it joins your payout once the return window closes.']
                             : (!empty($order['cod_collected_at']) ? ['is-wait', 'bi-hourglass-split', 'The rider collected the cash; it\'s released to you once handed in at the Sorting Center.']
                             : ['is-wait', 'bi-cash-coin', 'Cash on Delivery — paid to the rider when delivered.']);
                     @endphp

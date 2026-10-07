@@ -625,8 +625,8 @@
     .return-close{border:none;background:#f7f2f0;color:#6f5a52;width:34px;height:34px;border-radius:50%;cursor:pointer;font-size:18px;font-weight:800}
     .return-form-group{margin-bottom:16px}
     .return-form-group label{display:block;margin-bottom:7px;color:#4a4449;font-size:12px;font-weight:800}
-    .return-form-group select,.return-form-group textarea{width:100%;border:1px solid #ece4df;border-radius:10px;padding:11px 13px;font-family:inherit;font-size:13px;outline:none;background:#fff}
-    .return-form-group select:focus,.return-form-group textarea:focus{border-color:#f34f1d;box-shadow:0 0 0 3px rgba(243,79,29,.10)}
+    .return-form-group select,.return-form-group textarea,.return-form-group input[type="text"]{width:100%;border:1px solid #ece4df;border-radius:10px;padding:11px 13px;font-family:inherit;font-size:13px;outline:none;background:#fff}
+    .return-form-group select:focus,.return-form-group textarea:focus,.return-form-group input[type="text"]:focus{border-color:#f34f1d;box-shadow:0 0 0 3px rgba(243,79,29,.10)}
     .return-form-group textarea{min-height:90px;resize:vertical}
     .return-note{background:#fff8f4;border:1px solid #f3dfd7;color:#7d6259;padding:12px 14px;border-radius:10px;font-size:11px;line-height:1.5;margin-bottom:18px}
     .return-actions{display:flex;justify-content:flex-end;gap:10px;flex-wrap:wrap}

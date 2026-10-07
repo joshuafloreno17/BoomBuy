@@ -172,6 +172,7 @@ class NotificationController extends Controller
                 $type === 'return_refund' => route('seller.orders', ['tab' => 'returns']),
                 $isOrder && $orderId > 0 => route('seller.order.details', $orderId),
                 $type === 'compliance_warning' => route('seller.dashboard'),
+                $type === 'payout' => route('seller.payouts'),
                 default => route('seller.notifications'),
             },
             'rider' => $isOrder && $orderId > 0

@@ -378,7 +378,8 @@
                             'approved' => 'status-approved',
                             'rejected' => 'status-rejected',
                             'returned' => 'status-returned',
-                            'refund_processing' => 'status-refund-processing',
+                            'refund_processing', 'refund_pending', 'dropped_off', 'in_transit', 'ready_for_seller' => 'status-refund-processing',
+                            'disputed' => 'status-pending',
                             'completed' => 'status-completed',
                             default => 'status-pending',
                         };
@@ -407,7 +408,7 @@
                             </div>
 
                             <div class="status {{ $statusClass }}">
-                                {{ ucwords(str_replace('_', ' ', $request->status)) }}
+                                {{ \App\Services\ReturnRefundService::LABELS[$request->status] ?? ucwords(str_replace('_', ' ', $request->status)) }}
                             </div>
 
                         </div>
@@ -527,65 +528,50 @@
 
                             </div>
 
-                        @elseif($statusLower === 'approved' && $request->request_type === 'Return')
+                        @elseif(in_array($statusLower, ['approved', 'dropped_off', 'in_transit', 'ready_for_seller', 'disputed', 'refund_pending', 'refund_processing'], true))
 
-                            <div class="return-footer">
-
-                                <form
-                                    action="{{ route('seller.return-refund.returned', ['id' => $request->id]) }}"
-                                    method="POST"
-                                    style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;"
-                                >
-                                    @csrf
-
-                                    {{-- Unticked sends restock=0; ticked overrides it with 1. --}}
-                                    <input type="hidden" name="restock" value="0">
-                                    <label style="display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; cursor:pointer;">
-                                        <input type="checkbox" name="restock" value="1" checked>
-                                        Add back to stock (untick if damaged)
-                                    </label>
-
-                                    <button type="submit" class="btn btn-approve">
-                                        <i class="bi bi-box-seam-fill"></i> Mark as Returned
-                                    </button>
-                                </form>
-
+                            <div class="return-footer" style="display:block;">
+                                <div class="return-block-text" style="font-size:12.5px;">
+                                    @switch($statusLower)
+                                        @case('approved')
+                                            <i class="bi bi-hourglass-split"></i> Waiting for the buyer to drop the item at their Sorting Center.
+                                            @break
+                                        @case('dropped_off')
+                                        @case('in_transit')
+                                            <i class="bi bi-truck"></i> The item is on its way to your Sorting Center.
+                                            @break
+                                        @case('ready_for_seller')
+                                            <i class="bi bi-shop"></i> <strong>Collect it at your Sorting Center</strong> — give them return number #{{ $request->id }}.
+                                            @break
+                                        @case('disputed')
+                                            <i class="bi bi-shield-check"></i> The buyer asked BoomBuy to review this. BoomBuy will decide and tell you.
+                                            @break
+                                        @default
+                                            <i class="bi bi-cash-coin"></i> BoomBuy is sending the buyer their refund of ₱{{ number_format((float) $request->refund_amount, 2) }}. It is not taken from your payout — it was never part of it.
+                                    @endswitch
+                                </div>
                             </div>
 
-                        @elseif($statusLower === 'approved' && $request->request_type === 'Refund')
+                        @endif
+
+                        {{-- The item came back: put it back in stock (once), unless it is damaged. --}}
+                        @if($request->request_type === 'Return' && ($request->returned_at || $statusLower === 'returned') && empty($request->restocked_at))
 
                             <div class="return-footer">
-
-                                <form
-                                    action="{{ route('seller.return-refund.processing', ['id' => $request->id]) }}"
-                                    method="POST"
-                                >
+                                <form action="{{ route('seller.return-refund.restock', ['id' => $request->id]) }}" method="POST">
                                     @csrf
-
                                     <button type="submit" class="btn btn-approve">
-                                        <i class="bi bi-credit-card-fill"></i> Start Refund Processing
+                                        <i class="bi bi-box-seam-fill"></i> Add back to stock
                                     </button>
                                 </form>
-
+                                <span style="font-size:12px; color:#6b6570;">Skip this if it came back damaged.</span>
                             </div>
 
-                        @elseif($statusLower === 'refund_processing')
+                        @elseif(!empty($request->restocked_at))
 
-                            <div class="return-footer">
-
-                                <form
-                                    action="{{ route('seller.return-refund.complete', ['id' => $request->id]) }}"
-                                    method="POST"
-                                >
-                                    @csrf
-
-                                    <button type="submit" class="btn btn-approve">
-                                        <i class="bi bi-check-circle-fill"></i> Mark Refund Completed
-                                    </button>
-                                </form>
-
+                            <div class="return-footer" style="font-size:12px; color:#0a6f66; font-weight:700;">
+                                <i class="bi bi-check-circle-fill"></i> Added back to stock
                             </div>
-
                         @endif
 
                     </div>

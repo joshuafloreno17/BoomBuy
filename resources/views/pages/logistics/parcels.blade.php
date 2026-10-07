@@ -63,6 +63,7 @@
                 <a href="#failed-deliveries" class="{{ count($failedDeliveries) ? 'has-work' : '' }}">Failed <span>{{ count($failedDeliveries) }}</span></a>
                 <a href="#on-the-road">On the road <span>{{ count($onTheRoad) }}</span></a>
                 <a href="#ready-to-collect" class="{{ count($readyToCollect) ? 'has-work' : '' }}">Pick-ups <span>{{ count($readyToCollect) }}</span></a>
+                <a href="#buyer-returns" class="{{ collect($buyerReturns)->sum(fn ($l) => count($l)) ? 'has-work' : '' }}">Buyer returns <span>{{ collect($buyerReturns)->sum(fn ($l) => count($l)) }}</span></a>
                 <a href="#returns" class="{{ count($incomingReturns) + count($returnReady) ? 'has-work' : '' }}">Returns <span>{{ count($incomingReturns) + count($returnReady) }}</span></a>
                 <a href="#cod" class="{{ count($codToReceive) ? 'has-work' : '' }}">COD cash <span>{{ count($codToReceive) }}</span></a>
             </nav>
@@ -408,6 +409,54 @@
 
             @endforelse
 
+            {{-- RETURNS FROM BUYERS: items going back to their seller --}}
+            @php
+                $returnCount = collect($buyerReturns)->sum(fn ($list) => count($list));
+                $returnSteps = [
+                    'toReceive' => ['Buyer brings it here', 'logistics.returns.receive', 'Received From Buyer', 'bi-box-arrow-in-down', 'Check the item matches return #:id, then take it.'],
+                    'toSend' => ['Send to the seller\'s center', 'logistics.returns.send', 'Send to Seller\'s Center', 'bi-send-fill', null],
+                    'incoming' => ['On its way here', 'logistics.returns.arrive', 'It Arrived', 'bi-box-seam-fill', null],
+                    'forSeller' => ['Waiting for the seller', 'logistics.returns.hand-to-seller', 'Seller Collected It', 'bi-bag-check-fill', null],
+                ];
+            @endphp
+            <h2 class="section-heading" id="buyer-returns"><i class="bi bi-arrow-return-left"></i> Returns from Buyers ({{ $returnCount }})</h2>
+
+            @if($returnCount === 0)
+                <div class="empty">
+                    <p>No returned items to handle right now.</p>
+                </div>
+            @endif
+
+            @foreach($returnSteps as $queue => [$stepLabel, $stepRoute, $stepButton, $stepIcon, $stepHint])
+                @foreach($buyerReturns[$queue] as $return)
+                    <div class="app-card">
+                        <div class="app-card-top">
+                            <div>
+                                <div class="app-name">Return #{{ $return->id }} · {{ $return->product_name ?? 'Item' }}{{ $return->quantity ? ' × ' . $return->quantity : '' }}</div>
+                                <div class="app-email">Order #{{ $return->order_id }} · Buyer {{ $return->buyer_name ?? '' }}</div>
+                            </div>
+                            <span class="status-badge status-pending">{{ $stepLabel }}</span>
+                        </div>
+
+                        <div class="parcel-meta">
+                            <i class="bi bi-signpost-2"></i>
+                            {{ $centerNames[$return->destination_center_id] ?? 'Buyer\'s center' }} → {{ $centerNames[$return->origin_center_id] ?? 'Seller\'s center' }}
+                            · Reason: {{ $return->reason }}
+                        </div>
+
+                        @if($stepHint)
+                            <div class="remarks-note">{{ str_replace(':id', $return->id, $stepHint) }}</div>
+                        @endif
+
+                        <div class="app-actions">
+                            <form method="POST" action="{{ route($stepRoute, $return->id) }}">
+                                @csrf
+                                <button type="submit" class="approve-btn"><i class="bi {{ $stepIcon }}"></i> {{ $stepButton }}</button>
+                            </form>
+                        </div>
+                    </div>
+                @endforeach
+            @endforeach
             {{-- 5. PICK-UP ORDERS WAITING FOR THEIR BUYER --}}
             <h2 class="section-heading" id="ready-to-collect"><i class="bi bi-person-check-fill"></i> Ready to Collect ({{ count($readyToCollect) }})</h2>
 

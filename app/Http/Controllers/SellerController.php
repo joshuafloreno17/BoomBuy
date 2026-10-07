@@ -107,7 +107,7 @@ class SellerController extends Controller
             ->selectRaw('COUNT(DISTINCT orders.id) as orders, COALESCE(SUM(order_items.price * order_items.quantity), 0) as revenue')
             ->first();
 
-        // Cash on Delivery money: still with a rider vs. handed in at a Sorting Center (payout released).
+        // Cash on Delivery money: still with a rider vs. handed in at a Sorting Center (cash is in; paid out via Payouts).
         $codPayout = $sellerItems()
             ->where('orders.payment_method', \App\Support\CodPolicy::METHOD)
             ->whereNotNull('orders.cod_collected_at')
@@ -222,7 +222,7 @@ class SellerController extends Controller
                 'shopName',
                 'unreadNotes',
                 'recentNotes'
-            )
+            ) + ['payoutBalance' => \App\Support\SellerBalance::for((int) $user['id'])]
         );
     }
 
@@ -517,7 +517,10 @@ class SellerController extends Controller
         // on what the buyer actually paid for their items.
         $voucherDiscounts = $this->voucherDiscounts((int) $user['id'], $from, $to);
 
-        $totalSales = max(0, $grossSales - $voucherDiscounts);
+        // After vouchers and refunds; commission at each order's own rate (same as Payouts).
+        $summary = \App\Support\SellerBalance::summary((int) $user['id'], $from, $to);
+        $totalSales = $summary['sales'];
+        $refunds = $summary['refunds'];
 
         $totalOrders = (clone $baseQuery)->distinct('order_items.order_id')->count('order_items.order_id');
 
@@ -526,8 +529,8 @@ class SellerController extends Controller
         $averageOrder = $deliveredOrders > 0 ? $totalSales / $deliveredOrders : 0;
 
         $commissionRate = (float) PlatformSetting::get('commission_rate', '10');
-        $commissionOwed = $totalSales * ($commissionRate / 100);
-        $netEarnings = $totalSales - $commissionOwed;
+        $commissionOwed = $summary['commission'];
+        $netEarnings = $summary['earnings'];
 
         // Sales by product, within range, delivered only
         $productSales = (clone $deliveredQuery)
@@ -1509,19 +1512,64 @@ class SellerController extends Controller
         return $this->sellerOrderAction(fn (array $user) => $returns->reject((int) $user['id'], (int) $id, (string) request('seller_note')));
     }
 
-    public function markReturnRefundReturned($id, ReturnRefundService $returns)
+    /** What BoomBuy owes this seller, what it already sent, and where to send it. */
+    public function payouts()
     {
-        return $this->sellerOrderAction(fn (array $user) => $returns->markReturned((int) $user['id'], (int) $id, request()->boolean('restock', true)));
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $balance = \App\Support\SellerBalance::for((int) $user['id']);
+
+        $payouts = DB::table('seller_payouts')
+            ->where('seller_id', $user['id'])
+            ->orderByDesc('paid_at')
+            ->get();
+
+        return view('pages.seller.payouts', [
+            'user' => $user,
+            'balance' => $balance,
+            'orders' => $balance['orders']->take(50),
+            'payouts' => $payouts,
+            'account' => \App\Support\SellerBalance::account((int) $user['id']),
+            'methods' => \App\Services\ReturnRefundService::REFUND_METHODS,
+        ]);
     }
 
-    public function startReturnRefundProcessing($id, ReturnRefundService $returns)
+    public function updatePayoutAccount()
     {
-        return $this->sellerOrderAction(fn (array $user) => $returns->startRefund((int) $user['id'], (int) $id));
-    }
+        $user = requireUserRole('seller');
 
-    public function completeReturnRefund($id, ReturnRefundService $returns)
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $method = (string) request('payout_method');
+        $name = trim((string) request('payout_account_name'));
+        $number = trim((string) request('payout_account_number'));
+
+        if (!in_array($method, \App\Services\ReturnRefundService::REFUND_METHODS, true) || $name === '' || $number === '') {
+            return back()->withInput()->with('error', 'Choose GCash, Maya or bank transfer and enter the account name and number.');
+        }
+
+        if ($method !== 'Bank transfer' && !preg_match('/^(09|\+639)\d{9}$/', preg_replace('/[\s-]/', '', $number))) {
+            return back()->withInput()->with('error', 'Enter the ' . $method . ' mobile number, e.g. 09171234567.');
+        }
+
+        DB::table('seller_applications')->where('user_id', $user['id'])->update([
+            'payout_method' => $method,
+            'payout_account_name' => mb_substr($name, 0, 120),
+            'payout_account_number' => mb_substr($number, 0, 60),
+            'updated_at' => now(),
+        ]);
+
+        return back()->with('success', 'Payout account saved. BoomBuy will send your payouts there.');
+    }
+    public function restockReturnRefund($id, ReturnRefundService $returns)
     {
-        return $this->sellerOrderAction(fn (array $user) => $returns->completeRefund((int) $user['id'], (int) $id));
+        return $this->sellerOrderAction(fn (array $user) => $returns->restock((int) $user['id'], (int) $id));
     }
 
     public function showRegister()

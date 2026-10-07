@@ -308,21 +308,32 @@ class SellerScenariosTest extends TestCase
         };
         $statusOf = fn (int $id) => DB::table('return_refund_requests')->where('id', $id)->value('status');
 
+        // A return: approved → the item comes back through the Sorting Center → restock once.
         $return = $make('Return');
-        $this->asSeller()->post(route('seller.return-refund.returned', $return))->assertSessionHas('error');
+        $this->asSeller()->post(route('seller.return-refund.restock', $return))->assertSessionHas('error');
         $this->post(route('seller.return-refund.approve', $return))->assertSessionHas('success');
-        $this->post(route('seller.return-refund.returned', $return), ['restock' => '1'])->assertSessionHas('success');
-        $this->assertSame('returned', $statusOf($return));
+        $this->assertSame('approved', $statusOf($return));
+        $this->assertTrue($this->notifiedWith($buyer, 'Return Approved'));
+
+        $staff = $this->staffAt($this->laguna);
+        $this->flushSession();
+        $this->actingAsUser($staff)->post(route('logistics.returns.receive', $return))->assertSessionHas('success');
+        $this->post(route('logistics.returns.hand-to-seller', $return))->assertSessionHas('success');
+        $this->assertSame('refund_pending', $statusOf($return));
+
+        $this->flushSession();
+        $this->asSeller()->get(route('seller.orders', ['tab' => 'returns']))->assertOk()->assertSee('Add back to stock');
+        $this->post(route('seller.return-refund.restock', $return))->assertSessionHas('success');
         $this->assertSame(11, $this->stockOf($this->shoes));
 
+        // A refund: approved → straight to BoomBuy (the seller no longer sends money).
         $refund = $make('Refund');
-        $this->post(route('seller.return-refund.complete', $refund))->assertSessionHas('error');
-        $this->post(route('seller.return-refund.approve', $refund));
-        $this->post(route('seller.return-refund.processing', $refund))->assertSessionHas('success');
-        $this->post(route('seller.return-refund.complete', $refund))->assertSessionHas('success');
-        $this->assertSame('completed', $statusOf($refund));
+        $this->post(route('seller.return-refund.approve', $refund))->assertSessionHas('success');
+        $this->assertSame('refund_pending', $statusOf($refund));
 
+        // Rejecting needs a reason the buyer sees.
         $rejected = $make('Refund');
+        $this->post(route('seller.return-refund.reject', $rejected), ['seller_note' => ''])->assertSessionHas('error');
         $this->post(route('seller.return-refund.reject', $rejected), ['seller_note' => 'Used item'])->assertSessionHas('success');
         $this->assertTrue($this->notifiedWith($buyer, 'Refund Request Rejected'));
     }

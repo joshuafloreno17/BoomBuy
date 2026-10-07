@@ -226,7 +226,7 @@ class LogisticsScenariosTest extends TestCase
 
         $this->post(route('logistics.riders.receive-cod', $this->lagunaRider->id))->assertSessionHas('success');
         $this->assertNotNull(DB::table('orders')->where('id', $orderId)->value('cod_remitted_at'));
-        $this->assertTrue($this->notifiedWith($this->seller, 'COD Payout Released'));
+        $this->assertTrue($this->notifiedWith($this->seller, 'COD Cash Received'));
         $this->assertTrue($this->notifiedWith($this->lagunaRider, 'Cash Handed In'));
     }
 

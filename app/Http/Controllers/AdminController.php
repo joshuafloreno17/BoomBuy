@@ -849,9 +849,12 @@ class AdminController extends Controller
             ->selectRaw('order_items.seller_id, users.name as seller_name, SUM(order_items.price * order_items.quantity) as sales')
             ->groupBy('order_items.seller_id', 'users.name')
             ->get()
-            ->map(function ($row) use ($commissionRate, $voucherDiscountsBySeller) {
-                $sales = max(0, (float) $row->sales - (float) ($voucherDiscountsBySeller[$row->seller_id] ?? 0));
-                $commission = $sales * ($commissionRate / 100);
+            ->map(function ($row) {
+                // Same figures as the seller's own Reports and Payouts: after vouchers and
+                // refunds, commission at each order's saved rate.
+                $summary = \App\Support\SellerBalance::summary((int) $row->seller_id);
+                $sales = $summary['sales'];
+                $commission = $summary['commission'];
 
                 return [
                     'seller_id' => $row->seller_id,
@@ -1427,6 +1430,173 @@ class AdminController extends Controller
         return back()->with('success', 'Order #' . $id . ' has been cancelled.');
     }
 
+    // Tabs on the admin Returns page => the request statuses each one shows.
+    public const RETURN_TABS = [
+        'review' => ['label' => 'Needs your decision', 'statuses' => ['disputed']],
+        'refund' => ['label' => 'Refunds to send', 'statuses' => ['refund_pending', 'refund_processing']],
+        'moving' => ['label' => 'Items on the way back', 'statuses' => ['approved', 'dropped_off', 'in_transit', 'ready_for_seller']],
+        'pending' => ['label' => 'Waiting for sellers', 'statuses' => ['pending']],
+        'closed' => ['label' => 'Closed', 'statuses' => ['completed', 'rejected', 'cancelled', 'returned']],
+    ];
+
+    /** Returns & refunds: BoomBuy decides disputes and sends the refunds. */
+    public function returns()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $counts = DB::table('return_refund_requests')->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
+        $tabCounts = collect(self::RETURN_TABS)->map(fn ($tab) => (int) collect($tab['statuses'])->sum(fn ($s) => $counts[$s] ?? 0));
+
+        // Opens where work is waiting.
+        $tab = array_key_exists((string) request('tab'), self::RETURN_TABS)
+            ? request('tab')
+            : ($tabCounts['review'] > 0 ? 'review' : ($tabCounts['refund'] > 0 ? 'refund' : 'moving'));
+
+        $requests = DB::table('return_refund_requests')
+            ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
+            ->leftJoin('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+            ->leftJoin('users as buyers', 'buyers.id', '=', 'return_refund_requests.buyer_id')
+            ->whereIn('return_refund_requests.status', self::RETURN_TABS[$tab]['statuses'])
+            ->select('return_refund_requests.*', 'order_items.product_name', 'order_items.quantity', 'buyers.name as buyer_name', 'orders.payment_method')
+            ->orderBy('return_refund_requests.updated_at', $tab === 'closed' ? 'desc' : 'asc')
+            ->paginate(20)
+            ->withQueryString();
+
+        $shops = \App\Support\SellerShop::many($requests->pluck('seller_id'));
+
+        return view('pages.admin.returns', [
+            'requests' => $requests,
+            'tabs' => self::RETURN_TABS,
+            'tab' => $tab,
+            'tabCounts' => $tabCounts,
+            'shops' => $shops,
+        ]);
+    }
+
+    public function decideReturn($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->adminAction(fn () => $returns->decide((int) $id, request('decision') === 'approve', (string) request('note')));
+    }
+
+    public function refundReturn($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->adminAction(fn () => $returns->markRefunded((int) $id, (string) request('reference'), \App\Support\SupportAccount::id()));
+    }
+
+    /** Sellers' balances, and recording a payment to one of them. */
+    public function payouts()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $sellers = DB::table('users')
+            ->join('seller_applications', 'seller_applications.user_id', '=', 'users.id')
+            ->where('users.role', 'seller')
+            ->where('seller_applications.status', 'Approved')
+            ->orderBy('seller_applications.business_name')
+            ->get(['users.id', 'users.name', 'users.email', 'seller_applications.business_name'])
+            ->unique('id')
+            ->map(function ($seller) {
+                $balance = \App\Support\SellerBalance::for((int) $seller->id);
+
+                return (object) [
+                    'id' => (int) $seller->id,
+                    'shop' => $seller->business_name ?: $seller->name,
+                    'email' => $seller->email,
+                    'balance' => $balance,
+                    'account' => \App\Support\SellerBalance::account((int) $seller->id),
+                ];
+            })
+            ->sortByDesc(fn ($s) => $s->balance['available'])
+            ->values();
+
+        $history = DB::table('seller_payouts')
+            ->join('users', 'users.id', '=', 'seller_payouts.seller_id')
+            ->orderByDesc('seller_payouts.paid_at')
+            ->limit(30)
+            ->get(['seller_payouts.*', 'users.name as seller_name']);
+
+        return view('pages.admin.payouts', [
+            'sellers' => $sellers,
+            'history' => $history,
+            'totalAvailable' => round($sellers->sum(fn ($s) => $s->balance['available']), 2),
+            'totalOnHold' => round($sellers->sum(fn ($s) => $s->balance['on_hold'] + $s->balance['waiting_cash']), 2),
+        ]);
+    }
+
+    public function storePayout($sellerId)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $seller = DB::table('users')->where('id', $sellerId)->where('role', 'seller')->first();
+
+        if (!$seller) {
+            return back()->with('error', 'Seller not found.');
+        }
+
+        $amount = round((float) request('amount'), 2);
+        $reference = trim((string) request('reference'));
+        $account = \App\Support\SellerBalance::account((int) $sellerId);
+        $available = \App\Support\SellerBalance::for((int) $sellerId)['available'];
+
+        if (!$account['method'] || !$account['number']) {
+            return back()->with('error', $seller->name . ' has not set where to be paid yet (Seller → Payouts).');
+        }
+
+        if ($amount <= 0) {
+            return back()->with('error', 'Enter the amount you sent.');
+        }
+
+        if ($amount > $available + 0.001) {
+            return back()->with('error', 'That is more than their available balance of ₱' . number_format($available, 2) . '.');
+        }
+
+        if ($reference === '') {
+            return back()->with('error', 'Enter the transfer\'s reference number.');
+        }
+
+        DB::table('seller_payouts')->insert([
+            'seller_id' => (int) $sellerId,
+            'amount' => $amount,
+            'method' => $account['method'],
+            'account_name' => $account['name'],
+            'account_number' => $account['number'],
+            'reference' => Str::limit($reference, 100, ''),
+            'note' => trim((string) request('note')) ?: null,
+            'paid_by' => \App\Support\SupportAccount::id(),
+            'paid_at' => now(),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        createNotification(
+            (int) $sellerId,
+            'Payout Sent',
+            'BoomBuy sent you ₱' . number_format($amount, 2) . ' by ' . $account['method'] . ' (' . \App\Services\ReturnRefundService::masked($account['number']) . '). Reference: ' . $reference . '.',
+            'payout'
+        );
+
+        return back()->with('success', '₱' . number_format($amount, 2) . ' payout to ' . $seller->name . ' recorded.');
+    }
+
+    /** Runs an admin action and flashes its message (or the rule it broke). */
+    private function adminAction(callable $action)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        try {
+            return back()->with('success', $action());
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
+        }
+    }
     public function notifications()
     {
         if (!session()->get('admin_logged_in')) {

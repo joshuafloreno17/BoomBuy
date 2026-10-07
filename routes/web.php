@@ -650,6 +650,8 @@ Route::get('/policies', [ShopController::class, 'policies'])->name('policies');
 
 
 Route::post('/buyer/order/{orderId}/return-refund', [BuyerController::class, 'requestReturnRefund'])->name('buyer.return-refund.store');
+Route::post('/buyer/return-refund/{id}/cancel', [BuyerController::class, 'cancelReturnRefund'])->name('buyer.return-refund.cancel');
+Route::post('/buyer/return-refund/{id}/escalate', [BuyerController::class, 'escalateReturnRefund'])->name('buyer.return-refund.escalate');
 
 
 // =====================================================
@@ -662,25 +664,34 @@ Route::post('/seller/return-refund/{id}/approve', [SellerController::class, 'app
 Route::post('/seller/return-refund/{id}/reject', [SellerController::class, 'rejectReturnRefund'])->name('seller.return-refund.reject');
 
 
-// =====================================================
-// SELLER RETURN / REFUND — MARK AS RETURNED
-// =====================================================
-
-Route::post('/seller/return-refund/{id}/returned', [SellerController::class, 'markReturnRefundReturned'])->name('seller.return-refund.returned');
+// The returned item came back to the seller: put it back in stock. (The
+// refund itself is sent by BoomBuy — see admin/returns.)
+Route::post('/seller/return-refund/{id}/restock', [SellerController::class, 'restockReturnRefund'])->name('seller.return-refund.restock');
 
 
 // =====================================================
-// SELLER REFUND — START REFUND
+// SORTING CENTER — RETURNED ITEMS ON THEIR WAY BACK TO THE SELLER
 // =====================================================
 
-Route::post('/seller/return-refund/{id}/refund-processing', [SellerController::class, 'startReturnRefundProcessing'])->name('seller.return-refund.processing');
+Route::post('/logistics/returns/{id}/receive', [LogisticsController::class, 'receiveBuyerReturn'])->name('logistics.returns.receive');
+Route::post('/logistics/returns/{id}/send', [LogisticsController::class, 'sendBuyerReturn'])->name('logistics.returns.send');
+Route::post('/logistics/returns/{id}/arrive', [LogisticsController::class, 'arriveBuyerReturn'])->name('logistics.returns.arrive');
+Route::post('/logistics/returns/{id}/hand-to-seller', [LogisticsController::class, 'handBuyerReturnToSeller'])->name('logistics.returns.hand-to-seller');
 
 
 // =====================================================
-// SELLER REFUND — COMPLETE REFUND
+// ADMIN — RETURNS & REFUNDS, SELLER PAYOUTS
 // =====================================================
 
-Route::post('/seller/return-refund/{id}/complete', [SellerController::class, 'completeReturnRefund'])->name('seller.return-refund.complete');
+Route::get('/admin/returns', [AdminController::class, 'returns'])->name('admin.returns');
+Route::post('/admin/returns/{id}/decide', [AdminController::class, 'decideReturn'])->name('admin.returns.decide');
+Route::post('/admin/returns/{id}/refunded', [AdminController::class, 'refundReturn'])->name('admin.returns.refunded');
+
+Route::get('/admin/payouts', [AdminController::class, 'payouts'])->name('admin.payouts');
+Route::post('/admin/payouts/{sellerId}', [AdminController::class, 'storePayout'])->name('admin.payouts.store');
+
+Route::get('/seller/payouts', [SellerController::class, 'payouts'])->name('seller.payouts');
+Route::post('/seller/payouts/account', [SellerController::class, 'updatePayoutAccount'])->name('seller.payouts.account');
 
 // =========================
 // RIDER APPLICATION

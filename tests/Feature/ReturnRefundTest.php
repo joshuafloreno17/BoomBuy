@@ -41,46 +41,67 @@ class ReturnRefundTest extends TestCase
             'request_type' => $type,
             'reason' => 'Damaged item',
             'message' => 'Screen is cracked.',
+            'refund_method' => 'GCash',
+            'refund_account_name' => 'Juan Dela Cruz',
+            'refund_account_number' => '09171234567',
         ]);
     }
 
-    public function test_return_is_approved_received_and_restocked(): void
+    public function test_return_travels_back_is_restocked_and_boombuy_sends_the_refund(): void
     {
         [$buyer, $seller, $product, $orderId, $itemId] = $this->receivedOrder(1, 5);
+        $logistics = $this->makeLogistics();
 
         $this->requestReturn($buyer, $orderId, $itemId)->assertSessionHas('success');
 
         $requestId = DB::table('return_refund_requests')->value('id');
         $this->assertDatabaseHas('notifications', ['user_id' => $seller->id, 'title' => 'New Return / Refund Request']);
+        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'refund_method' => 'GCash', 'refund_account_number' => '09171234567']);
 
         $this->flushSession();
-
         $this->actingAsUser($seller)->post(route('seller.return-refund.approve', $requestId))->assertSessionHas('success');
-        $this->actingAsUser($seller)->post(route('seller.return-refund.returned', $requestId))->assertSessionHas('success');
+        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Return Approved']);
 
-        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'returned']);
+        // The buyer drops it at the Sorting Center; the seller collects it there.
+        $this->flushSession();
+        $this->actingAsUser($logistics)->post(route('logistics.returns.receive', $requestId))->assertSessionHas('success');
+        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'ready_for_seller']);
+        $this->actingAsUser($logistics)->post(route('logistics.returns.hand-to-seller', $requestId))->assertSessionHas('success');
+        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'refund_pending']);
+
+        $this->flushSession();
+        $this->actingAsUser($seller)->post(route('seller.return-refund.restock', $requestId))->assertSessionHas('success');
+        $this->actingAsUser($seller)->post(route('seller.return-refund.restock', $requestId))->assertSessionHas('error');
         $this->assertSame(6, $product->fresh()->stock);
-        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Item Marked as Returned']);
+
+        $this->flushSession();
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'GC-778899'])->assertSessionHas('success');
+
+        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'completed', 'refund_reference' => 'GC-778899']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Refund Sent']);
     }
 
-    public function test_refund_goes_through_processing_to_completed(): void
+    public function test_refund_only_goes_straight_to_boombuy_once_approved(): void
     {
         [$buyer, $seller, , $orderId, $itemId] = $this->receivedOrder();
 
         $this->requestReturn($buyer, $orderId, $itemId, 'Refund')->assertSessionHas('success');
         $requestId = DB::table('return_refund_requests')->value('id');
 
+        // Nothing to send before it's approved.
         $this->flushSession();
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'X'])->assertSessionHas('error');
 
-        // Can't complete before it's approved and processing.
-        $this->actingAsUser($seller)->post(route('seller.return-refund.complete', $requestId))->assertSessionHas('error');
+        $this->flushSession();
+        $this->actingAsUser($seller)->post(route('seller.return-refund.approve', $requestId))->assertSessionHas('success');
+        $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'refund_pending']);
 
-        $this->actingAsUser($seller)->post(route('seller.return-refund.approve', $requestId));
-        $this->actingAsUser($seller)->post(route('seller.return-refund.processing', $requestId))->assertSessionHas('success');
-        $this->actingAsUser($seller)->post(route('seller.return-refund.complete', $requestId))->assertSessionHas('success');
+        $this->flushSession();
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => ''])->assertSessionHas('error');
+        $this->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-1234'])->assertSessionHas('success');
 
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'completed']);
-        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Refund Completed']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Refund Sent']);
     }
 
     public function test_request_is_refused_after_the_7_day_window(): void

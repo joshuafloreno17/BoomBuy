@@ -1,0 +1,321 @@
+/* Returns, refunds and payouts (admin Returns, admin Payouts, seller Payouts).
+   Loaded after each page's base stylesheet; Sunrise Market colors. */
+
+.money-tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+}
+
+.money-tile {
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 14px;
+    padding: 16px 18px;
+    min-width: 0;
+}
+
+.money-tile span {
+    display: block;
+    color: #6b6570;
+    font-size: 11.5px;
+    font-weight: 600;
+    margin-bottom: 6px;
+}
+
+.money-tile strong {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 24px;
+    font-variant-numeric: tabular-nums;
+}
+
+.money-tile small {
+    display: block;
+    margin-top: 4px;
+    color: #8a7f86;
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.money-tile.is-key {
+    border-color: #e8420f;
+    background: #fff1ea;
+}
+
+.money-tile.is-key strong {
+    color: #c2380f;
+}
+
+.money-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.money-tabs a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 13px;
+    border-radius: 999px;
+    border: 1px solid #f0e2da;
+    background: #ffffff;
+    color: #1b1a1f;
+    font-size: 12.5px;
+    font-weight: 700;
+}
+
+.money-tabs a b {
+    font-size: 11px;
+    color: #8a7f86;
+    font-variant-numeric: tabular-nums;
+}
+
+.money-tabs a.active {
+    background: #1b1a1f;
+    border-color: #1b1a1f;
+    color: #ffffff;
+}
+
+.money-tabs a.active b {
+    color: #ffd9c7;
+}
+
+.money-card {
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+}
+
+.money-card h2,
+.money-card h3 {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 17px;
+    margin-bottom: 4px;
+}
+
+.money-card .sub {
+    color: #6b6570;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+}
+
+.money-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.money-head > div {
+    min-width: 0;
+}
+
+.money-meta {
+    color: #6b6570;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.money-amount {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.money-pill {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .02em;
+    background: #fff3dc;
+    color: #8a5300;
+    white-space: nowrap;
+}
+
+.money-pill.is-good { background: #e3f6f4; color: #0a6f66; }
+.money-pill.is-bad { background: #fff1f2; color: #be123c; }
+.money-pill.is-wait { background: #f3eef0; color: #6b6570; }
+
+.money-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px 18px;
+    margin: 14px 0;
+    padding: 12px 14px;
+    background: #fff8f3;
+    border-radius: 12px;
+}
+
+.money-grid div {
+    min-width: 0;
+    font-size: 12.5px;
+}
+
+.money-grid dt,
+.money-grid .k {
+    color: #8a7f86;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    margin-bottom: 2px;
+}
+
+.money-grid .v {
+    color: #1b1a1f;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+}
+
+.money-note {
+    font-size: 12.5px;
+    color: #4a4449;
+    background: #fff8f3;
+    border-left: 3px solid #f5b70b;
+    padding: 9px 12px;
+    border-radius: 8px;
+    margin: 10px 0;
+    white-space: pre-line;
+}
+
+.money-form {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.money-form label {
+    display: grid;
+    gap: 4px;
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #6b6570;
+    flex: 1 1 180px;
+    min-width: 0;
+}
+
+.money-form input,
+.money-form select,
+.money-form textarea {
+    width: 100%;
+    padding: 9px 11px;
+    border: 1px solid #f0e2da;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    background: #ffffff;
+    color: #1b1a1f;
+}
+
+.money-form textarea {
+    min-height: 60px;
+    resize: vertical;
+}
+
+.money-form input:focus,
+.money-form select:focus,
+.money-form textarea:focus {
+    outline: none;
+    border-color: #e8420f;
+    box-shadow: 0 0 0 3px #ffe6db;
+}
+
+.money-btn {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 16px;
+    font-family: inherit;
+    font-size: 12.5px;
+    font-weight: 800;
+    cursor: pointer;
+    background: #e8420f;
+    color: #ffffff;
+    white-space: nowrap;
+}
+
+.money-btn:hover {
+    background: #c2380f;
+}
+
+.money-btn.is-quiet {
+    background: #ffffff;
+    color: #1b1a1f;
+    border: 1px solid #f0e2da;
+}
+
+.money-btn.is-quiet:hover {
+    border-color: #e8420f;
+    color: #c2380f;
+}
+
+.money-btn.is-danger {
+    background: #be123c;
+}
+
+.money-btn:focus-visible {
+    outline: 2px solid #1b1a1f;
+    outline-offset: 2px;
+}
+
+.money-table-wrap {
+    overflow-x: auto;
+}
+
+.money-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12.5px;
+}
+
+.money-table th {
+    text-align: left;
+    color: #8a7f86;
+    font-size: 10.5px;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+    padding: 8px 10px;
+    border-bottom: 1px solid #f0e2da;
+    white-space: nowrap;
+}
+
+.money-table td {
+    padding: 10px;
+    border-bottom: 1px solid #f6ece6;
+    vertical-align: top;
+}
+
+.money-table td.num,
+.money-table th.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.money-empty {
+    text-align: center;
+    color: #8a7f86;
+    font-size: 13px;
+    padding: 28px 12px;
+}
+
+@media (max-width: 600px) {
+    .money-tile strong {
+        font-size: 20px;
+    }
+
+    .money-form label {
+        flex-basis: 100%;
+    }
+}

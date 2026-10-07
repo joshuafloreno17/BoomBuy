@@ -66,6 +66,22 @@
             @endif
         </a>
 
+        <a href="{{ route('admin.returns') }}" @class(['active' => $active === 'returns'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+            <span>Returns</span>
+
+            @if($returnsWaitingCount > 0)
+                <span class="notification-badge">
+                    {{ $returnsWaitingCount > 99 ? '99+' : $returnsWaitingCount }}
+                </span>
+            @endif
+        </a>
+
+        <a href="{{ route('admin.payouts') }}" @class(['active' => $active === 'payouts'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
+            <span>Payouts</span>
+        </a>
+
         <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
             <span>Messages</span>

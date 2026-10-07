@@ -53,6 +53,16 @@
         </a>
 
         <a
+            href="{{ route('seller.payouts') }}"
+            @class(['active' => $active === 'payouts'])
+        >
+            <i class="bi bi-wallet2"></i>
+            <span class="label-text">
+                Payouts
+            </span>
+        </a>
+
+        <a
             href="{{ route('seller.vouchers') }}"
             @class(['active' => $active === 'vouchers'])
         >

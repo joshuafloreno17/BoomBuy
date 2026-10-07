@@ -57,6 +57,9 @@ class AutoReceiveTest extends TestCase
                 'order_item_id' => $itemId,
                 'request_type' => 'Return',
                 'reason' => 'Damaged item',
+                'refund_method' => 'GCash',
+                'refund_account_name' => 'Buyer Name',
+                'refund_account_number' => '09171234567',
             ])
             ->assertSessionHasNoErrors();
 

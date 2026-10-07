@@ -15,6 +15,10 @@ use Illuminate\Support\Facades\DB;
  *    voucher come back; it doesn't count against the buyer's COD limit).
  *  - Ready to Collect: the buyer never came. A reminder after
  *    PICKUP_REMIND_DAYS, then it goes back to the seller after PICKUP_DAYS.
+ *  - A return/refund request the seller doesn't answer within
+ *    RETURN_ANSWER_DAYS goes to BoomBuy to decide.
+ *  - An approved return the buyer doesn't drop off within RETURN_DROP_DAYS
+ *    is cancelled.
  *
  * Days are counted from the order's date, but never from before this
  * feature first ran (SINCE_KEY) — orders already waiting when it was
@@ -34,6 +38,10 @@ class StaleOrders
 
     public const PICKUP_DAYS = 7;
 
+    public const RETURN_ANSWER_DAYS = 3;
+
+    public const RETURN_DROP_DAYS = 7;
+
     /** Platform setting: when the timers started (set on the first sweep). */
     public const SINCE_KEY = 'stale_orders_since';
 
@@ -41,10 +49,10 @@ class StaleOrders
 
     private const THROTTLE_MINUTES = 10;
 
-    /** @return array{cancelled:int, returned:int, reminded:int} */
+    /** @return array{cancelled:int, returned:int, reminded:int, escalated:int, returns_cancelled:int} */
     public static function sweep(bool $force = false): array
     {
-        $done = ['cancelled' => 0, 'returned' => 0, 'reminded' => 0];
+        $done = ['cancelled' => 0, 'returned' => 0, 'reminded' => 0, 'escalated' => 0, 'returns_cancelled' => 0];
 
         if (!$force && !Cache::add(self::THROTTLE_KEY, true, now()->addMinutes(self::THROTTLE_MINUTES))) {
             return $done;
@@ -68,7 +76,88 @@ class StaleOrders
             $done['returned'] = self::returnUncollected();
         }
 
+        if ($since->lte(now()->subDays(self::RETURN_ANSWER_DAYS))) {
+            $done['escalated'] = self::escalateUnanswered();
+        }
+
+        if ($since->lte(now()->subDays(self::RETURN_DROP_DAYS))) {
+            $done['returns_cancelled'] = self::cancelUndelivered();
+        }
+
         return $done;
+    }
+
+    /** Requests the seller left unanswered go to BoomBuy. */
+    private static function escalateUnanswered(): int
+    {
+        $due = DB::table('return_refund_requests')
+            ->where('status', 'pending')
+            ->where('created_at', '<=', now()->subDays(self::RETURN_ANSWER_DAYS))
+            ->get(['id', 'order_id', 'buyer_id', 'seller_id']);
+
+        $moved = 0;
+
+        foreach ($due as $request) {
+            $updated = DB::table('return_refund_requests')->where('id', $request->id)->where('status', 'pending')->update([
+                'status' => 'disputed',
+                'escalated_at' => now(),
+                'admin_note' => 'The seller did not answer within ' . self::RETURN_ANSWER_DAYS . ' days.',
+                'updated_at' => now(),
+            ]);
+
+            if (!$updated) {
+                continue;
+            }
+
+            createNotification((int) $request->buyer_id, 'Return Sent to BoomBuy', 'The seller did not answer your request for order #' . $request->order_id . ' in time, so BoomBuy will decide it.', 'return_refund', (int) $request->id);
+
+            if ($request->seller_id) {
+                createNotification((int) $request->seller_id, 'Return Sent to BoomBuy', 'You did not answer the return/refund request for order #' . $request->order_id . ' within ' . self::RETURN_ANSWER_DAYS . ' days, so BoomBuy will decide it.', 'return_refund', (int) $request->id);
+            }
+
+            if ($adminId = SupportAccount::id()) {
+                createNotification($adminId, 'Return Review Requested', 'Request #' . $request->id . ' (order #' . $request->order_id . ') was not answered by the seller. Please decide it.', 'return_refund', (int) $request->id);
+            }
+
+            $moved++;
+        }
+
+        return $moved;
+    }
+
+    /** Approved returns the buyer never brought in are cancelled. */
+    private static function cancelUndelivered(): int
+    {
+        $due = DB::table('return_refund_requests')
+            ->where('status', 'approved')
+            ->where('request_type', 'Return')
+            ->where('approved_at', '<=', now()->subDays(self::RETURN_DROP_DAYS))
+            ->get(['id', 'order_id', 'buyer_id', 'seller_id']);
+
+        $cancelled = 0;
+
+        foreach ($due as $request) {
+            $updated = DB::table('return_refund_requests')->where('id', $request->id)->where('status', 'approved')->update([
+                'status' => 'cancelled',
+                'closed_at' => now(),
+                'admin_note' => 'Cancelled: the item was not brought to a Sorting Center within ' . self::RETURN_DROP_DAYS . ' days.',
+                'updated_at' => now(),
+            ]);
+
+            if (!$updated) {
+                continue;
+            }
+
+            createNotification((int) $request->buyer_id, 'Return Cancelled', 'Your return for order #' . $request->order_id . ' was cancelled because the item was not brought to a Sorting Center within ' . self::RETURN_DROP_DAYS . ' days.', 'return_refund', (int) $request->id);
+
+            if ($request->seller_id) {
+                createNotification((int) $request->seller_id, 'Return Cancelled', 'The buyer did not send back the item for order #' . $request->order_id . ', so the return was cancelled.', 'return_refund', (int) $request->id);
+            }
+
+            $cancelled++;
+        }
+
+        return $cancelled;
     }
 
     /** When the timers started counting (now, the first time). */

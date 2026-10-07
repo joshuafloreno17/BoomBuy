@@ -162,6 +162,9 @@ class PrivacyAndSellerOrdersTest extends TestCase
             'request_type' => 'Return',
             'reason' => 'Damaged item',
             'evidence' => $this->photo('damage.png'),
+            'refund_method' => 'GCash',
+            'refund_account_name' => 'Buyer Name',
+            'refund_account_number' => '09171234567',
         ])->assertSessionHas('success');
 
         $requestId = DB::table('return_refund_requests')->value('id');

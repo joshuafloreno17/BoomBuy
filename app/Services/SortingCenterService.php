@@ -273,7 +273,7 @@ class SortingCenterService
         OrderTimeline::log($orderId, 'Delivered', 'Collected by the buyer at ' . $hereName, $isCod ? 'Paid in cash at the counter' : null, $order->current_center_id ? (int) $order->current_center_id : null);
 
         createNotification((int) $order->buyer_id, 'Order Delivered', 'You collected order #' . $orderId . ' at ' . $hereName . '. Enjoy!', 'order', $orderId);
-        notifyOrderSellers($orderId, 'Order Delivered', 'Order #' . $orderId . ' was collected by the buyer at ' . $hereName . '.' . ($isCod ? ' The COD payment is in — your payout is released.' : ''));
+        notifyOrderSellers($orderId, 'Order Delivered', 'Order #' . $orderId . ' was collected by the buyer at ' . $hereName . '.' . ($isCod ? ' The COD payment is in — it joins your payout once the return window closes.' : ''));
         ChatAutomation::orderUpdate($orderId, 'delivered');
 
         return 'Order #' . $orderId . ' handed to the buyer.' . ($isCod ? ' Cash collected: ₱' . number_format((float) $order->total_amount, 2) . '.' : '');
@@ -612,7 +612,7 @@ class SortingCenterService
         createNotification($riderId, 'Cash Handed In', '₱' . number_format($total, 2) . ' for ' . $orders->count() . ' COD delivery(ies) was received by ' . $centerName . '.', 'delivery_status');
 
         foreach ($orders as $order) {
-            notifyOrderSellers((int) $order->id, 'COD Payout Released', 'The Cash on Delivery payment for order #' . $order->id . ' reached ' . $centerName . ' — your payout is released.');
+            notifyOrderSellers((int) $order->id, 'COD Cash Received', 'The Cash on Delivery payment for order #' . $order->id . ' reached ' . $centerName . '. It joins your payout once the buyer can no longer return it (see Payouts).');
         }
 
         return '₱' . number_format($total, 2) . ' received from ' . (DB::table('users')->where('id', $riderId)->value('name') ?? 'the rider') . ' for ' . $orders->count() . ' delivery(ies).';

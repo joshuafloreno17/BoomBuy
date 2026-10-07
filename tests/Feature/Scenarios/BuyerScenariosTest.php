@@ -431,6 +431,7 @@ class BuyerScenariosTest extends TestCase
 
             return $this->actingAsUser($buyer)->post(route('buyer.return-refund.store', $orderId), array_merge([
                 'order_item_id' => $item, 'request_type' => 'Return', 'reason' => 'Damaged item',
+                'refund_method' => 'GCash', 'refund_account_name' => 'Ana Buyer', 'refund_account_number' => '09171234567',
             ], $extra));
         };
 
@@ -440,6 +441,10 @@ class BuyerScenariosTest extends TestCase
         $recent = $this->deliveredOrder($buyer, $this->shoes, 2);
         $request($recent, ['evidence' => \Illuminate\Http\UploadedFile::fake()->create('big.png', 5000, 'image/png')])
             ->assertSessionHasErrors('evidence');
+
+        // Where the money goes back is required, and a GCash number must look like one.
+        $request($recent, ['refund_method' => ''])->assertSessionHas('error', fn ($m) => str_contains($m, 'Choose where we should send your refund'));
+        $request($recent, ['refund_account_number' => '12345'])->assertSessionHas('error', fn ($m) => str_contains($m, 'GCash mobile number'));
         $request($recent)->assertSessionHas('success');
         $request($recent)->assertSessionHas('error', 'A return/refund request already exists for this item.');
     }

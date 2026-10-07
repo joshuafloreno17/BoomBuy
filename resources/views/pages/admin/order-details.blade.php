@@ -81,7 +81,7 @@
             @if(\App\Support\CodPolicy::isCod($order->payment_method))
                 <div class="label" style="margin-top:12px;">Cash on Delivery</div>
                 @if($order->cod_remitted_at)
-                    Handed in to the Sorting Center {{ $fmt($order->cod_remitted_at) }} — payout released
+                    Handed in to the Sorting Center {{ $fmt($order->cod_remitted_at) }} — cash is in
                 @elseif($order->cod_collected_at)
                     Collected by the rider {{ $fmt($order->cod_collected_at) }} — not handed in yet
                 @else

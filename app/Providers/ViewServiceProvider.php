@@ -56,6 +56,8 @@ class ViewServiceProvider extends ServiceProvider
                 'adminUnreadNotifications' => Inbox::unreadNotifications($adminId),
                 'adminUnreadMessages' => Inbox::unreadMessages($adminId),
                 'pendingComplaintsCount' => Complaint::where('status', 'Pending')->count(),
+                // Disputes to decide and refunds to send.
+                'returnsWaitingCount' => DB::table('return_refund_requests')->whereIn('status', ['disputed', 'refund_pending', 'refund_processing'])->count(),
             ]);
         });
 

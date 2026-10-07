@@ -227,6 +227,8 @@ class PlaceOrderService
                         'discount_amount' => $planned['discount'],
                         'delivery_fee' => $planned['delivery_fee'],
                         'delivery_zone' => $planned['zone'],
+                        // BoomBuy's cut as it is today, so a later change doesn't rewrite this order.
+                        'commission_rate' => (float) \App\Models\PlatformSetting::get('commission_rate', '10'),
                         'fulfillment' => $fulfillment,
                         // Asked for at the Sorting Center counter; only the buyer sees it.
                         'pickup_code' => $fulfillment === 'pickup' ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT) : null,

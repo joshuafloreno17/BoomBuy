@@ -146,27 +146,32 @@ class FullJourneyTest extends TestCase
         $this->actingAsUser($this->seller)->get(route('seller.reviews'))->assertOk()->assertSee('Good sound for the price.');
         $this->everyoneSeesTheOrder('Received + reviewed');
 
-        // Refund: request → approve → processing → completed
+        // Refund: request → seller approves → BoomBuy sends it
         $itemId = DB::table('order_items')->where('order_id', $this->orderId)->value('id');
         $this->actingAsUser($this->buyer)->post(route('buyer.return-refund.store', $this->orderId), [
             'order_item_id' => $itemId,
             'request_type' => 'Refund',
             'reason' => 'Damaged item',
             'message' => 'Left earbud does not charge.',
+            'refund_method' => 'Maya',
+            'refund_account_name' => 'Buyer Name',
+            'refund_account_number' => '09171234567',
         ])->assertSessionHas('success');
         $requestId = DB::table('return_refund_requests')->where('order_id', $this->orderId)->value('id');
         $this->everyoneSeesTheOrder('Refund requested');
         $this->actingAsUser($this->seller)->get(route('seller.orders', ['tab' => 'returns']))->assertOk()->assertSee('Left earbud does not charge.');
         $this->flushSession();
 
-        foreach (['approve', 'processing', 'complete'] as $step) {
-            $this->actingAsUser($this->seller)->post(route("seller.return-refund.{$step}", $requestId))->assertSessionHas('success');
-            $this->flushSession();
-            $this->everyoneSeesTheOrder("Refund {$step}");
-        }
+        $this->actingAsUser($this->seller)->post(route('seller.return-refund.approve', $requestId))->assertSessionHas('success');
+        $this->flushSession();
+        $this->everyoneSeesTheOrder('Refund approved');
+
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-55501'])->assertSessionHas('success');
+        $this->flushSession();
+        $this->everyoneSeesTheOrder('Refund sent');
 
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'completed']);
-        $this->assertDatabaseHas('notifications', ['user_id' => $this->buyer->id, 'title' => 'Refund Completed']);
+        $this->assertDatabaseHas('notifications', ['user_id' => $this->buyer->id, 'title' => 'Refund Sent']);
     }
 
     /** The two ways an order ends early: the buyer cancels, or delivery fails and it goes back. */

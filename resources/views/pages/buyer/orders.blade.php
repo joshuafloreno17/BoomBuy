@@ -639,6 +639,52 @@
 
                             </div>
 
+                            @foreach($returnRequests->get($order['id'], collect()) as $returnRequest)
+                                @php
+                                    $returnLabel = \App\Services\ReturnRefundService::LABELS[$returnRequest->status] ?? ucfirst($returnRequest->status);
+                                    $dropCenter = $dropOffCenters->get($order['destination_center_id'] ?? 0);
+                                    $canEscalate = $returnRequest->status === 'rejected' && empty($returnRequest->escalated_at)
+                                        && \Carbon\Carbon::parse($returnRequest->updated_at)->addDays(\App\Services\ReturnRefundService::DISPUTE_DAYS)->isFuture();
+                                @endphp
+                                <div class="cancel-note return-status" id="return-{{ $returnRequest->id }}">
+                                    <i class="bi bi-arrow-return-left"></i>
+                                    <span>
+                                        <strong>{{ $returnRequest->request_type }} #{{ $returnRequest->id }} · {{ $returnRequest->product_name ?? 'Item' }}</strong>
+                                        — {{ $returnLabel }} · ₱{{ number_format((float) $returnRequest->refund_amount, 2) }}
+
+                                        @if($returnRequest->status === 'approved')
+                                            <br>Pack the item and bring it to <strong>{{ $dropCenter->name ?? 'your nearest BoomBuy Sorting Center' }}</strong>{{ $dropCenter ? ' (' . ($dropCenter->address ?: $dropCenter->town) . ')' : '' }}. Tell the staff return number <strong>#{{ $returnRequest->id }}</strong>.
+                                        @elseif($returnRequest->status === 'completed' && $returnRequest->refund_reference)
+                                            <br>Sent to your {{ $returnRequest->refund_method }} ({{ \App\Services\ReturnRefundService::masked($returnRequest->refund_account_number) }}) · Reference: {{ $returnRequest->refund_reference }}
+                                        @elseif($returnRequest->status === 'rejected' && $returnRequest->seller_note)
+                                            <br>Seller: {{ $returnRequest->seller_note }}
+                                        @endif
+
+                                        @if($returnRequest->admin_note && in_array($returnRequest->status, ['rejected', 'disputed', 'approved', 'refund_pending', 'completed'], true))
+                                            <br>{{ $returnRequest->admin_note }}
+                                        @endif
+
+                                        @if(in_array($returnRequest->status, ['pending', 'disputed', 'approved'], true))
+                                            <form method="POST" action="{{ route('buyer.return-refund.cancel', $returnRequest->id) }}" style="display:inline;" data-confirm="Cancel this {{ strtolower($returnRequest->request_type) }} request?" data-confirm-ok="Cancel Request">
+                                                @csrf
+                                                <button type="submit" class="link-btn" style="border:none; background:none; color:#be123c; font-weight:700; cursor:pointer; padding:0; margin-left:6px;">Cancel request</button>
+                                            </form>
+                                        @endif
+
+                                        @if($canEscalate)
+                                            <form method="POST" action="{{ route('buyer.return-refund.escalate', $returnRequest->id) }}" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;">
+                                                @csrf
+                                                <label for="why-{{ $returnRequest->id }}" style="flex:1 1 220px; display:grid; gap:4px; font-size:11.5px; font-weight:700;">
+                                                    Disagree? Tell BoomBuy why
+                                                    <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid #f0e2da; border-radius:8px; font:inherit;">
+                                                </label>
+                                                <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Ask BoomBuy to review</button>
+                                            </form>
+                                        @endif
+                                    </span>
+                                </div>
+                            @endforeach
+
                             @if($cancelNote)
                                 <div class="cancel-note">
                                     <i class="bi bi-info-circle-fill"></i>
@@ -741,6 +787,27 @@
                                                 name="message"
                                                 placeholder="Explain what happened (optional)"
                                             ></textarea>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="refund-method-{{ $order['id'] }}">Send my refund to</label>
+                                            <select id="refund-method-{{ $order['id'] }}" name="refund_method" required>
+                                                <option value="">Choose…</option>
+                                                @foreach(\App\Services\ReturnRefundService::REFUND_METHODS as $refundMethod)
+                                                    <option value="{{ $refundMethod }}" @selected(($lastRefundTo->refund_method ?? null) === $refundMethod)>{{ $refundMethod }}</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="refund-name-{{ $order['id'] }}">Account name</label>
+                                            <input type="text" id="refund-name-{{ $order['id'] }}" name="refund_account_name" maxlength="120" required value="{{ $lastRefundTo->refund_account_name ?? '' }}" placeholder="As registered on the account">
+                                        </div>
+
+                                        <div class="return-form-group">
+                                            <label for="refund-number-{{ $order['id'] }}">Mobile or account number</label>
+                                            <input type="text" id="refund-number-{{ $order['id'] }}" name="refund_account_number" maxlength="60" required value="{{ $lastRefundTo->refund_account_number ?? '' }}" placeholder="09XXXXXXXXX">
+                                            <small style="display:block; margin-top:4px; color:#8a7f86;">BoomBuy sends the refund here — the item price less any voucher discount. The delivery fee isn't refunded.</small>
                                         </div>
 
                                         <div class="return-form-group">

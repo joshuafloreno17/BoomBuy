@@ -81,14 +81,12 @@
         </a>
     </section>
 
-    @if(isset($codPayout) && ((float) $codPayout->pending > 0 || (float) $codPayout->released > 0))
-        <div class="pd-cod">
-            <i class="bi bi-cash-stack"></i>
-            <span><strong>Cash on Delivery payouts:</strong> {{ $peso($codPayout->released) }} released</span>
-            @if((float) $codPayout->pending > 0)
-                <span class="pd-cod-pending">· {{ $peso($codPayout->pending) }} still with riders — released once they hand it in at the Sorting Center</span>
-            @endif
-        </div>
+    @if(isset($payoutBalance) && ($payoutBalance['available'] + $payoutBalance['on_hold'] + $payoutBalance['waiting_cash'] + $payoutBalance['paid_out']) > 0)
+        <a class="pd-cod" href="{{ route('seller.payouts') }}">
+            <i class="bi bi-wallet2"></i>
+            <span><strong>Payouts:</strong> {{ $peso($payoutBalance['available']) }} ready</span>
+            <span class="pd-cod-pending">· {{ $peso($payoutBalance['on_hold']) }} on hold while buyers can still return · {{ $peso($payoutBalance['waiting_cash']) }} COD not handed in yet</span>
+        </a>
     @endif
 
     <div class="pd-row">

@@ -690,12 +690,29 @@ class BuyerController extends Controller
         $codStatus = CodPolicy::status((int) $user['id']);
         $cancelReasons = CodPolicy::CANCEL_REASONS;
 
+        // Return/refund requests per order, with where to drop a returned item.
+        $returnRequests = DB::table('return_refund_requests')
+            ->leftJoin('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+            ->where('return_refund_requests.buyer_id', $user['id'])
+            ->orderByDesc('return_refund_requests.id')
+            ->get(['return_refund_requests.*', 'order_items.product_name'])
+            ->groupBy('order_id');
+
+        $dropOffCenters = \App\Models\SortingCenter::whereIn('id', collect($orders)->pluck('destination_center_id')->filter()->unique())->get()->keyBy('id');
+
+        // Last refund account used, to fill the form in.
+        $lastRefundTo = DB::table('return_refund_requests')
+            ->where('buyer_id', $user['id'])
+            ->whereNotNull('refund_method')
+            ->orderByDesc('id')
+            ->first(['refund_method', 'refund_account_name', 'refund_account_number']);
+
         // Each order's trip so far: when and where (Sorting Centers included).
         $timelines = \App\Support\OrderTimeline::forOrders(array_map('intval', array_column($orders, 'id')));
 
         return view(
             'pages.buyer.orders',
-            compact('user', 'orders', 'codStatus', 'cancelReasons', 'timelines')
+            compact('user', 'orders', 'codStatus', 'cancelReasons', 'timelines', 'returnRequests', 'dropOffCenters', 'lastRefundTo')
         );
     }
 
@@ -881,8 +898,23 @@ class BuyerController extends Controller
             (string) request('request_type'),
             (string) request('reason'),
             (string) request('message'),
-            request()->file('evidence')
+            request()->file('evidence'),
+            [
+                'method' => request('refund_method'),
+                'account_name' => request('refund_account_name'),
+                'account_number' => request('refund_account_number'),
+            ]
         ));
+    }
+
+    public function cancelReturnRefund($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->buyerOrderAction(fn (array $user) => $returns->cancelByBuyer((int) $user['id'], (int) $id));
+    }
+
+    public function escalateReturnRefund($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->buyerOrderAction(fn (array $user) => $returns->escalate((int) $user['id'], (int) $id, (string) request('why')));
     }
 
     /** Runs a buyer order action and flashes its message (or the rule it broke). */

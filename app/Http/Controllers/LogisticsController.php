@@ -714,6 +714,8 @@ class LogisticsController extends Controller
             $suggestedRidersByOrder[$order->id] = $matches->map(fn ($id) => $activeRiders->firstWhere('id', $id))->filter()->values();
         }
 
+        $buyerReturns = $this->buyerReturnQueues($myCenter, $unassigned, $search);
+
         // Names of the riders already attached to the listed parcels.
         $riderNames = DB::table('users')
             ->whereIn('id', $onTheRoad->pluck('delivery_rider_id')->merge($failedDeliveries->pluck('delivery_rider_id'))->filter()->unique())
@@ -740,7 +742,8 @@ class LogisticsController extends Controller
                 'incomingReturns',
                 'returnReady',
                 'codToReceive',
-                'unassigned'
+                'unassigned',
+                'buyerReturns'
             )
         );
     }
@@ -809,6 +812,26 @@ class LogisticsController extends Controller
     public function assignParcel($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->assign((int) $id, request('rider_id'), $myCenter));
+    }
+
+    public function receiveBuyerReturn($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $returns->receiveFromBuyer((int) $id, $myCenter));
+    }
+
+    public function sendBuyerReturn($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $returns->sendToSellerCenter((int) $id, $myCenter));
+    }
+
+    public function arriveBuyerReturn($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $returns->arriveAtSellerCenter((int) $id, $myCenter));
+    }
+
+    public function handBuyerReturnToSeller($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $returns->handToSeller((int) $id, $myCenter));
     }
 
     public function confirmParcelBack($id, SortingCenterService $center)
@@ -970,6 +993,39 @@ class LogisticsController extends Controller
                 ->get(),
 
             'delivering' => $delivering,
+        ];
+    }
+
+    /**
+     * Items buyers are sending back to sellers, by what this center has to
+     * do: take it from the buyer, send it on, confirm it arrived, give it to
+     * the seller. Head office sees every center's; not assigned sees none.
+     *
+     * @return array<string, \Illuminate\Support\Collection>
+     */
+    private function buyerReturnQueues(?SortingCenter $myCenter, bool $none, string $search = ''): array
+    {
+        $base = fn () => DB::table('return_refund_requests')
+            ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
+            ->leftJoin('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+            ->leftJoin('users as buyers', 'buyers.id', '=', 'return_refund_requests.buyer_id')
+            ->where('return_refund_requests.request_type', 'Return')
+            ->when($none, fn ($q) => $q->whereRaw('1 = 0'))
+            ->when($search !== '', function ($q) use ($search) {
+                $number = (int) ltrim($search, '#');
+                $q->where(fn ($w) => $w->where('return_refund_requests.id', $number)->orWhere('return_refund_requests.order_id', \App\Support\Waybill::parse($search) ?? $number));
+            })
+            ->select('return_refund_requests.*', 'order_items.product_name', 'order_items.quantity', 'buyers.name as buyer_name', 'orders.origin_center_id', 'orders.destination_center_id')
+            ->orderBy('return_refund_requests.updated_at');
+
+        $at = fn (string $column) => fn ($q) => $myCenter ? $q->where(fn ($w) => $w->where($column, $myCenter->id)->orWhereNull($column)) : $q;
+
+        return [
+            // Approved: the buyer brings it to their own center.
+            'toReceive' => $base()->where('return_refund_requests.status', 'approved')->where($at('orders.destination_center_id'))->get(),
+            'toSend' => $base()->where('return_refund_requests.status', 'dropped_off')->where($at('return_refund_requests.current_center_id'))->get(),
+            'incoming' => $base()->where('return_refund_requests.status', 'in_transit')->where($at('orders.origin_center_id'))->get(),
+            'forSeller' => $base()->where('return_refund_requests.status', 'ready_for_seller')->where($at('return_refund_requests.current_center_id'))->get(),
         ];
     }
 

@@ -309,7 +309,7 @@ class CourierFeaturesTest extends TestCase
         $this->assertNotNull(DB::table('orders')->where('id', $id)->value('cod_collected_at'));
 
         $this->actingAsUser($this->santaCruzRider)->get(route('rider.dashboard'))->assertOk()->assertSee('Cash to hand in: ₱500.00');
-        $this->actingAsUser($this->seller)->get(route('seller.dashboard'))->assertOk()->assertSee('still with riders');
+        $this->actingAsUser($this->seller)->get(route('seller.dashboard'))->assertOk()->assertSee('COD not handed in yet');
 
         // QC never had this rider's delivery; Santa Cruz receives the money.
         $this->actingAsUser($this->qcStaff)->post(route('logistics.riders.receive-cod', $this->santaCruzRider->id))->assertSessionHas('error');
@@ -319,7 +319,7 @@ class CourierFeaturesTest extends TestCase
         $order = DB::table('orders')->where('id', $id)->first();
         $this->assertNotNull($order->cod_remitted_at);
         $this->assertSame($this->santaCruz->id, (int) $order->cod_remitted_center_id);
-        $this->assertTrue($this->notified($this->seller, 'COD Payout Released', $id));
+        $this->assertTrue($this->notified($this->seller, 'COD Cash Received', $id));
 
         // Nothing left to hand in.
         $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.riders.receive-cod', $this->santaCruzRider->id))->assertSessionHas('error');

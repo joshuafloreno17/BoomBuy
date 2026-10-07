@@ -20,7 +20,7 @@ use Illuminate\Support\Str;
 class BuyerOrderService
 {
     /** Return/refund requests that still block a new one for the same item. */
-    private const OPEN_REQUEST_STATUSES = ['pending', 'approved', 'returned', 'refund_processing'];
+    private const OPEN_REQUEST_STATUSES = ReturnRefundService::OPEN;
 
     /**
      * @return string  What happened, for the buyer.
@@ -154,7 +154,8 @@ class BuyerOrderService
         string $type,
         string $reason,
         string $message = '',
-        ?UploadedFile $evidence = null
+        ?UploadedFile $evidence = null,
+        array $refundTo = []
     ): string {
         $order = $this->buyerOrder($buyerId, $orderId);
 
@@ -182,6 +183,23 @@ class BuyerOrderService
 
         if ($reason === '') {
             throw new ActionFailed('Please select a reason.');
+        }
+
+        // Where BoomBuy sends the money back.
+        $refundMethod = trim((string) ($refundTo['method'] ?? ''));
+        $refundName = trim((string) ($refundTo['account_name'] ?? ''));
+        $refundNumber = trim((string) ($refundTo['account_number'] ?? ''));
+
+        if (!in_array($refundMethod, ReturnRefundService::REFUND_METHODS, true)) {
+            throw new ActionFailed('Choose where we should send your refund (GCash, Maya or bank transfer).');
+        }
+
+        if ($refundName === '' || $refundNumber === '') {
+            throw new ActionFailed('Enter the account name and number for your refund.');
+        }
+
+        if ($refundMethod !== 'Bank transfer' && !preg_match('/^(09|\+639)\d{9}$/', preg_replace('/[\s-]/', '', $refundNumber))) {
+            throw new ActionFailed('Enter the ' . $refundMethod . ' mobile number, e.g. 09171234567.');
         }
 
         $item = DB::table('order_items')->where('id', $orderItemId)->where('order_id', $orderId)->first();
@@ -217,7 +235,10 @@ class BuyerOrderService
             'message' => $message ?: null,
             'evidence' => $evidencePath,
             'status' => 'pending',
-            'refund_amount' => (float) $item->price * (int) $item->quantity,
+            'refund_amount' => self::refundAmount($order, $item),
+            'refund_method' => $refundMethod,
+            'refund_account_name' => mb_substr($refundName, 0, 120),
+            'refund_account_number' => mb_substr($refundNumber, 0, 60),
             'seller_note' => null,
             'created_at' => now(),
             'updated_at' => now(),
@@ -234,6 +255,25 @@ class BuyerOrderService
         }
 
         return 'Your ' . strtolower($type) . ' request has been submitted successfully.';
+    }
+
+    /**
+     * What the buyer gets back for one line: what they paid for it — its
+     * price less its share of the order's voucher discount. The delivery
+     * fee isn't refunded.
+     */
+    public static function refundAmount(object $order, object $item): float
+    {
+        $line = (float) $item->price * (int) $item->quantity;
+        $discount = (float) ($order->discount_amount ?? 0);
+
+        if ($discount <= 0) {
+            return round($line, 2);
+        }
+
+        $subtotal = (float) DB::table('order_items')->where('order_id', $order->id)->sum(DB::raw('price * quantity'));
+
+        return $subtotal > 0 ? round(max(0, $line - $discount * $line / $subtotal), 2) : round($line, 2);
     }
 
     private function buyerOrder(int $buyerId, int $orderId): object
