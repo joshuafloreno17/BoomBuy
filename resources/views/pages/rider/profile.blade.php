@@ -352,6 +352,43 @@
 
                     </div>
 
+
+                    {{-- CHANGE PASSWORD --}}
+
+                    <div class="card password-card">
+
+                        <div class="card-title">
+                            <i class="bi bi-shield-lock-fill"></i> Change Password
+                        </div>
+
+                        <form method="POST" action="{{ route('rider.profile.password') }}" class="password-form">
+                            @csrf
+
+                            <label class="pw-field" for="current_password">
+                                <span>Current password</span>
+                                <input type="password" id="current_password" name="current_password" autocomplete="current-password" required>
+                            </label>
+
+                            <div class="pw-row">
+                                <label class="pw-field" for="new_password">
+                                    <span>New password</span>
+                                    <input type="password" id="new_password" name="new_password" minlength="8" autocomplete="new-password" required>
+                                    <small>At least 8 characters.</small>
+                                </label>
+
+                                <label class="pw-field" for="new_password_confirmation">
+                                    <span>Confirm new password</span>
+                                    <input type="password" id="new_password_confirmation" name="new_password_confirmation" minlength="8" autocomplete="new-password" required>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="upload-submit-btn">
+                                <i class="bi bi-check-circle-fill"></i> Update Password
+                            </button>
+                        </form>
+
+                    </div>
+
                 </div>
 
             </div>

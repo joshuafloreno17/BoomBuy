@@ -194,7 +194,7 @@ class CourierFeaturesTest extends TestCase
 
         // Only Santa Cruz can hand it over; COD is paid there, so the seller's money is in at once.
         $this->actingAsUser($this->qcStaff)->post(route('logistics.parcels.hand-to-buyer', $id))->assertSessionHas('error');
-        $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.hand-to-buyer', $id))->assertSessionHas('success');
+        $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.hand-to-buyer', $id), ['pickup_code' => DB::table('orders')->where('id', $id)->value('pickup_code')])->assertSessionHas('success');
 
         $done = DB::table('orders')->where('id', $id)->first();
         $this->assertSame('Delivered', $done->status);

@@ -192,6 +192,13 @@ class PlaceOrderService
         $destination = ParcelRoute::centerFor($location['province'], $location['city']);
 
         return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment, $location, $destination, $fulfillment) {
+                if ($voucherUsed && $voucher->usedUpBy((int) $buyer['id'])) {
+                    throw new CheckoutFailed(
+                        'You have already used voucher "' . $voucher->code . '". It has been removed — please review your total and place the order again.',
+                        voucherDropped: true
+                    );
+                }
+
                 if ($voucherUsed) {
                     // Conditional so two simultaneous checkouts can't push a
                     // voucher past its max_uses — the loser rolls back.
@@ -221,6 +228,8 @@ class PlaceOrderService
                         'delivery_fee' => $planned['delivery_fee'],
                         'delivery_zone' => $planned['zone'],
                         'fulfillment' => $fulfillment,
+                        // Asked for at the Sorting Center counter; only the buyer sees it.
+                        'pickup_code' => $fulfillment === 'pickup' ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT) : null,
                         // The seller's workflow starts here.
                         'status' => 'Pending',
                         'shipping_name' => $buyer['name'] ?? 'Buyer',

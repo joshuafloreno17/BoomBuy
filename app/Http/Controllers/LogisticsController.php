@@ -72,6 +72,11 @@ class LogisticsController extends Controller
                 ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
         }
 
+        if ($birthdateError = birthdateError($birthdate, 18)) {
+            return back()
+                ->withInput()
+                ->with('error', $birthdateError);
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return back()
                 ->withInput()
@@ -90,13 +95,16 @@ class LogisticsController extends Controller
                 ->with('error', 'Passwords do not match.');
         }
 
-        if (User::where('email', $email)->exists()) {
+        // A rejected applicant may apply again with the same email.
+        $reapplying = \App\Support\RejectedApplicant::find($email, 'logistics');
+
+        if (!$reapplying && User::where('email', $email)->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'Email is already registered.');
         }
 
-        if (User::where('phone', $phone)->exists()) {
+        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');
@@ -169,6 +177,7 @@ class LogisticsController extends Controller
         $application = DB::table('logistics_applications')
             ->where('user_id', $user['id'])
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->first();
 
         // Every courier-side status, in pipeline order.
@@ -186,9 +195,12 @@ class LogisticsController extends Controller
 
         // A center's staff see their own center's numbers; head office sees all.
         $myCenter = $this->staffCenter($user);
-        $queues = $this->parcelQueues($myCenter);
-        $involvesMe = function ($query) use ($myCenter) {
-            if ($myCenter) {
+        $unassigned = $this->isUnassigned($user);
+        $queues = $this->parcelQueues($myCenter, '', $unassigned);
+        $involvesMe = function ($query) use ($myCenter, $unassigned) {
+            if ($unassigned) {
+                $query->whereRaw('1 = 0');
+            } elseif ($myCenter) {
                 $query->where(fn ($q) => $q->where('origin_center_id', $myCenter->id)
                     ->orWhere('destination_center_id', $myCenter->id)
                     ->orWhere('current_center_id', $myCenter->id)
@@ -215,7 +227,9 @@ class LogisticsController extends Controller
             ->pluck('users.id');
 
         // A center's own riders: those covering a province in its region.
-        if ($myCenter) {
+        if ($unassigned) {
+            $activeRiderIds = collect();
+        } elseif ($myCenter) {
             $activeRiderIds = RiderArea::whereIn('rider_id', $activeRiderIds)
                 ->whereIn('province', $myCenter->provinces)
                 ->distinct()
@@ -229,8 +243,11 @@ class LogisticsController extends Controller
             ->diff(RiderArea::whereIn('rider_id', $activeRiderIds)->distinct()->pluck('rider_id'))
             ->count();
 
+        $riderProvinces = $this->riderProvinces($user);
+
         $pendingRiderApplications = DB::table('rider_applications')
             ->where('status', 'Pending Verification')
+            ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces, 'rider_applications.user_id'))
             ->count();
 
         $today = now()->toDateString();
@@ -340,7 +357,8 @@ class LogisticsController extends Controller
                 'deliveredToday',
                 'failedToday',
                 'returnedThisWeek',
-                'recentParcels'
+                'recentParcels',
+                'unassigned'
             )
         );
     }
@@ -358,6 +376,7 @@ class LogisticsController extends Controller
         $application = DB::table('logistics_applications')
             ->where('user_id', $user['id'])
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->first();
 
         return view('pages.logistics.profile', compact('user', 'dbUser', 'application'));
@@ -473,8 +492,12 @@ class LogisticsController extends Controller
 
         $search = trim((string) request('q', ''));
 
+        // A center's staff see the riders of their own province only.
+        $riderProvinces = $this->riderProvinces($user);
+
         $base = DB::table('rider_applications')
             ->join('users', 'users.id', '=', 'rider_applications.user_id')
+            ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . $search . '%';
 
@@ -544,6 +567,13 @@ class LogisticsController extends Controller
             return back()->with('error', 'Rider not found.');
         }
 
+        // Staff give riders areas in their own center's province only.
+        $riderProvinces = $this->riderProvinces($user);
+
+        if ($riderProvinces !== null && !in_array($province, $riderProvinces, true)) {
+            return back()->with('error', $riderProvinces === [] ? self::NOT_ASSIGNED : 'You can only assign areas in ' . implode(', ', $riderProvinces) . '.');
+        }
+
         RiderArea::firstOrCreate([
             'rider_id' => $riderId,
             'province' => $province,
@@ -561,7 +591,14 @@ class LogisticsController extends Controller
             return $user;
         }
 
-        RiderArea::where('id', $areaId)->delete();
+        $area = RiderArea::find($areaId);
+        $riderProvinces = $this->riderProvinces($user);
+
+        if ($area && $riderProvinces !== null && !in_array($area->province, $riderProvinces, true)) {
+            return back()->with('error', $riderProvinces === [] ? self::NOT_ASSIGNED : 'That area is in another Sorting Center\'s province.');
+        }
+
+        $area?->delete();
 
         return back()->with('success', 'Area removed.');
     }
@@ -576,6 +613,7 @@ class LogisticsController extends Controller
 
         $search = trim((string) request('q', ''));
         $myCenter = $this->staffCenter($user);
+        $unassigned = $this->isUnassigned($user);
 
         [
             'matching' => $matching,
@@ -589,7 +627,7 @@ class LogisticsController extends Controller
             'incomingReturns' => $incomingReturns,
             'returnReady' => $returnReady,
             'delivering' => $delivering,
-        ] = $this->parcelQueues($myCenter, $search);
+        ] = $this->parcelQueues($myCenter, $search, $unassigned);
 
         $centerNames = SortingCenter::pluck('name', 'id');
 
@@ -637,6 +675,10 @@ class LogisticsController extends Controller
             ->distinct()
             ->orderBy('users.name')
             ->get();
+
+        if ($unassigned) {
+            $activeRiders = collect();
+        }
 
         $riderAreas = RiderArea::whereIn('rider_id', $activeRiders->pluck('id'))->get();
 
@@ -697,7 +739,8 @@ class LogisticsController extends Controller
                 'readyToCollect',
                 'incomingReturns',
                 'returnReady',
-                'codToReceive'
+                'codToReceive',
+                'unassigned'
             )
         );
     }
@@ -745,7 +788,7 @@ class LogisticsController extends Controller
 
     public function handParcelToBuyer($id, SortingCenterService $center)
     {
-        return $this->parcelAction(fn (?int $myCenter) => $center->handToBuyer((int) $id, $myCenter));
+        return $this->parcelAction(fn (?int $myCenter) => $center->handToBuyer((int) $id, $myCenter, (string) request('pickup_code')));
     }
 
     public function confirmReturnArrival($id, SortingCenterService $center)
@@ -766,6 +809,11 @@ class LogisticsController extends Controller
     public function assignParcel($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->assign((int) $id, request('rider_id'), $myCenter));
+    }
+
+    public function confirmParcelBack($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->confirmBack((int) $id, $myCenter));
     }
 
     public function rescheduleParcel($id, SortingCenterService $center)
@@ -790,6 +838,10 @@ class LogisticsController extends Controller
             return $user;
         }
 
+        if ($this->isUnassigned($user)) {
+            return back()->with('error', self::NOT_ASSIGNED);
+        }
+
         try {
             return back()->with('success', $action($this->staffCenter($user)?->id));
         } catch (ActionFailed $e) {
@@ -805,11 +857,12 @@ class LogisticsController extends Controller
      * center) gets all. Parcels from before Sorting Centers (no center at
      * all) show to everyone.
      */
-    private function parcelQueues(?SortingCenter $myCenter, string $search = ''): array
+    private function parcelQueues(?SortingCenter $myCenter, string $search = '', bool $none = false): array
     {
         // Order # (with or without "#"), waybill no. (BB-000066), buyer name or address.
-        $matching = function () use ($search) {
-            return DB::table('orders')->when($search !== '', function ($query) use ($search) {
+        // $none: an account not assigned to any center sees nothing.
+        $matching = function () use ($search, $none) {
+            return DB::table('orders')->when($none, fn ($q) => $q->whereRaw('1 = 0'))->when($search !== '', function ($query) use ($search) {
                 $number = \App\Support\Waybill::parse($search);
                 $like = '%' . $search . '%';
 
@@ -832,8 +885,10 @@ class LogisticsController extends Controller
 
         // The center that delivers to the buyer: the destination, or the
         // origin when there's no center near the buyer.
-        $delivering = function ($query) use ($myCenter) {
-            if ($myCenter) {
+        $delivering = function ($query) use ($myCenter, $none) {
+            if ($none) {
+                $query->whereRaw('1 = 0');
+            } elseif ($myCenter) {
                 $query->where(fn ($q) => $q->where('destination_center_id', $myCenter->id)
                     ->orWhere(fn ($w) => $w->whereNull('destination_center_id')
                         ->where(fn ($o) => $o->where('origin_center_id', $myCenter->id)->orWhereNull('origin_center_id'))));
@@ -918,13 +973,73 @@ class LogisticsController extends Controller
         ];
     }
 
-    /** The center this logistics account works at; null = head office (all centers). */
+    /** The center this logistics account works at; null = head office (all centers) — or not assigned, see isUnassigned(). */
     private function staffCenter(array $user): ?SortingCenter
     {
         $centerId = DB::table('users')->where('id', $user['id'])->value('sorting_center_id');
 
         return $centerId ? SortingCenter::find($centerId) : null;
     }
+
+    /**
+     * Not given a center and not head office: a new account the admin hasn't
+     * assigned yet. It sees no parcels or riders and can't act on any.
+     */
+    private function isUnassigned(array $user): bool
+    {
+        $row = DB::table('users')->where('id', $user['id'])->first(['sorting_center_id', 'is_head_office']);
+
+        return !$row || (!$row->sorting_center_id && !$row->is_head_office);
+    }
+
+    /**
+     * The provinces whose riders this staff member looks after: their
+     * center's. null = head office (every rider); [] = not assigned (none).
+     *
+     * @return string[]|null
+     */
+    private function riderProvinces(array $user): ?array
+    {
+        if ($this->isUnassigned($user)) {
+            return [];
+        }
+
+        return $this->staffCenter($user)?->provinces;
+    }
+
+    /** A rider (or applicant) living in, or covering an area in, one of these provinces. */
+    private function riderInProvinces($query, array $provinces, string $userIdColumn = 'users.id'): void
+    {
+        $query->where(fn ($q) => $q->whereExists(fn ($home) => $home->select(DB::raw(1))->from('users as rider_home')
+                ->whereColumn('rider_home.id', $userIdColumn)
+                ->whereIn('rider_home.province', $provinces))
+            ->orWhereExists(fn ($areas) => $areas->select(DB::raw(1))->from('rider_areas')
+                ->whereColumn('rider_areas.rider_id', $userIdColumn)
+                ->whereIn('rider_areas.province', $provinces)));
+    }
+
+    /** May this staff member decide on / manage this rider? */
+    private function coversRider(array $user, int $riderUserId): bool
+    {
+        $provinces = $this->riderProvinces($user);
+
+        if ($provinces === null) {
+            return true;
+        }
+
+        if ($provinces === []) {
+            return false;
+        }
+
+        $query = DB::table('users')->where('users.id', $riderUserId);
+        $this->riderInProvinces($query, $provinces);
+
+        return $query->exists();
+    }
+
+    private const NOT_YOUR_RIDER = 'This rider belongs to another Sorting Center\'s area.';
+
+    private const NOT_ASSIGNED = 'You are not assigned to a Sorting Center yet. Ask the BoomBuy admin to assign you.';
 
     public function approveRider($id)
     {
@@ -938,6 +1053,10 @@ class LogisticsController extends Controller
 
         if (!$application) {
             return back()->with('error', 'Application not found.');
+        }
+
+        if (!$this->coversRider($user, (int) $application->user_id)) {
+            return back()->with('error', $this->isUnassigned($user) ? self::NOT_ASSIGNED : self::NOT_YOUR_RIDER);
         }
 
         if ($application->status !== 'Pending Verification') {
@@ -996,6 +1115,10 @@ class LogisticsController extends Controller
 
         if (!$application) {
             return back()->with('error', 'Application not found.');
+        }
+
+        if (!$this->coversRider($user, (int) $application->user_id)) {
+            return back()->with('error', $this->isUnassigned($user) ? self::NOT_ASSIGNED : self::NOT_YOUR_RIDER);
         }
 
         if ($application->status !== 'Pending Verification') {
@@ -1065,6 +1188,8 @@ class LogisticsController extends Controller
             abort(404);
         }
 
+        abort_unless($this->coversRider($user, (int) $application->user_id), 403);
+
         if (!Storage::disk('local')->exists($application->$field)) {
             abort(404);
         }
@@ -1090,6 +1215,10 @@ class LogisticsController extends Controller
 
         if (!$rider) {
             return back()->with('error', 'Rider account not found.');
+        }
+
+        if (!$this->coversRider($user, (int) $rider->id)) {
+            return back()->with('error', $this->isUnassigned($user) ? self::NOT_ASSIGNED : self::NOT_YOUR_RIDER);
         }
 
         DB::table('users')->where('id', $userId)->update(['status' => $status]);

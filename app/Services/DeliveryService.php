@@ -82,6 +82,8 @@ class DeliveryService
 
             $delivered = [
                 'delivered_at' => now(),
+                // What the rider earns for it, at today's fee.
+                'rider_fee' => \App\Support\DeliveryFee::baseFee(),
                 'delivery_proof' => $proof->store('delivery-proofs', 'local'),
                 // Cash on Delivery: the rider now holds the buyer's payment
                 // until they hand it in at the Sorting Center.
@@ -151,6 +153,8 @@ class DeliveryService
                 'failure_reason' => $reason,
                 'delivery_failed_at' => now(),
                 'delivery_attempts' => $order->delivery_attempts + 1,
+                // The rider still has it until the Sorting Center confirms it's back.
+                'back_at_center_at' => null,
                 // A refusal is final: the Sorting Center returns it to the
                 // seller instead of rescheduling.
                 'buyer_refused_at' => $refused ? now() : null,
@@ -195,6 +199,6 @@ class DeliveryService
             'The rider could not deliver order #' . $orderId . '. Reason: ' . $reason . '. The Sorting Center will reschedule or return it.'
         );
 
-        return 'Delivery marked as failed. The Sorting Center will reschedule or return this parcel.';
+        return 'Delivery marked as failed. Please bring the parcel back to the Sorting Center — they will reschedule it or return it to the seller.';
     }
 }

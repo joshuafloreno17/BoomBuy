@@ -56,6 +56,12 @@ class MessageController extends Controller
             return redirect()->route('messages.index')->with('error', 'User not found.');
         }
 
+        if (!$this->canMessage($me, $partner)) {
+            return request()->wantsJson()
+                ? response()->json(['message' => self::NOT_ALLOWED], 403)
+                : redirect()->route('messages.index')->with('error', self::NOT_ALLOWED);
+        }
+
         $thread = Message::where(function ($query) use ($me, $userId) {
                 $query->where('sender_id', $me['id'])->where('recipient_id', $userId);
             })
@@ -117,6 +123,12 @@ class MessageController extends Controller
 
         if ((int) $partner->id === (int) $me['id']) {
             return redirect()->route('messages.index')->with('error', 'You cannot send a message to yourself.');
+        }
+
+        if (!$this->canMessage($me, $partner)) {
+            return request()->wantsJson()
+                ? response()->json(['message' => self::NOT_ALLOWED], 403)
+                : redirect()->route('messages.index')->with('error', self::NOT_ALLOWED);
         }
 
         $product = $request->validated('product_id')
@@ -194,6 +206,49 @@ class MessageController extends Controller
                 'url' => route('messages.thread', $user->id),
             ])->values(),
         ]);
+    }
+
+    public const NOT_ALLOWED = 'You can message shops, the people on your orders, and BoomBuy Support.';
+
+    /**
+     * Who may write to whom. Anyone ↔ the admin (Support); a buyer → any
+     * active shop; people who share an order (its buyer, sellers and rider);
+     * logistics ↔ riders and sellers (parcels); and anyone already in a
+     * conversation with each other. Not, say, a buyer to another buyer.
+     */
+    private function canMessage(array $me, User $partner): bool
+    {
+        $myId = (int) $me['id'];
+        $roles = [$me['role'], $partner->role];
+
+        if (in_array('admin', $roles, true)) {
+            return true;
+        }
+
+        if ($me['role'] === 'buyer' && $partner->role === 'seller' && $partner->status === 'Active') {
+            return true;
+        }
+
+        if (in_array('logistics', $roles, true) && array_intersect($roles, ['rider', 'seller'])) {
+            return true;
+        }
+
+        $talkedBefore = Message::where(fn ($q) => $q->where('sender_id', $myId)->where('recipient_id', $partner->id))
+            ->orWhere(fn ($q) => $q->where('sender_id', $partner->id)->where('recipient_id', $myId))
+            ->exists();
+
+        if ($talkedBefore) {
+            return true;
+        }
+
+        $on = fn (int $userId) => fn ($query) => $query->where('buyer_id', $userId)
+            ->orWhere('rider_id', $userId)
+            ->orWhere('delivery_rider_id', $userId)
+            ->orWhereExists(fn ($items) => $items->select(DB::raw(1))->from('order_items')
+                ->whereColumn('order_items.order_id', 'orders.id')
+                ->where('order_items.seller_id', $userId));
+
+        return DB::table('orders')->where($on($myId))->where($on((int) $partner->id))->exists();
     }
 
     /** The conversation list (with search and filters) shared by both views. */

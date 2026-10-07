@@ -22,10 +22,24 @@ class AutoReceiveDeliveredOrders
 {
     public function handle(Request $request, Closure $next): Response
     {
+        // Never block a page over this housekeeping.
         try {
             AutoReceive::sweep();
         } catch (\Throwable $e) {
-            // Never block a page over this housekeeping.
+            report($e);
+        }
+
+        // Unconfirmed orders cancelled, uncollected pick-ups returned (StaleOrders).
+        try {
+            \App\Support\StaleOrders::sweep();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
+        // Once a day: ID files of registrations never finished (OrphanUploads).
+        try {
+            \App\Support\OrphanUploads::sweep();
+        } catch (\Throwable $e) {
             report($e);
         }
 

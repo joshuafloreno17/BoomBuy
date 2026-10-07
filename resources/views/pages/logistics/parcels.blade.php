@@ -36,6 +36,10 @@
                 <div class="error-box"><i class="bi bi-x-circle-fill"></i> {{ session('error') }}</div>
             @endif
 
+            @if (!empty($unassigned))
+                <div class="error-box"><i class="bi bi-hourglass-split"></i> You are not assigned to a Sorting Center yet, so there are no parcels to show. The BoomBuy admin will assign you.</div>
+            @endif
+
             {{-- FIND A PARCEL --}}
             <form method="GET" action="{{ route('logistics.parcels') }}" class="parcel-search" data-live-search data-live-target="#liveClear, #liveResults">
                 <i class="bi bi-search"></i>
@@ -324,7 +328,16 @@
 
                     <div class="app-actions">
 
-                        @if($order->delivery_attempts < 2 && empty($order->buyer_refused_at))
+                        @if(empty($order->back_at_center_at))
+
+                            {{-- The rider still has it: nothing else can happen until it's back here. --}}
+                            <div class="remarks-note"><i class="bi bi-bicycle"></i> Still with the rider. Confirm once they bring it back to the Sorting Center.</div>
+                            <form method="POST" action="{{ route('logistics.parcels.confirm-back', $order->id) }}">
+                                @csrf
+                                <button type="submit" class="approve-btn"><i class="bi bi-box-arrow-in-down"></i> Parcel Is Back Here</button>
+                            </form>
+
+                        @elseif($order->delivery_attempts < 2 && empty($order->buyer_refused_at))
 
                             <form class="assign-form" method="POST" action="{{ route('logistics.parcels.reschedule', $order->id) }}">
                                 @csrf
@@ -342,10 +355,12 @@
 
                         @endif
 
-                        <form method="POST" action="{{ route('logistics.parcels.return-to-seller', $order->id) }}" data-confirm="Return this parcel to the seller? This cannot be undone." data-confirm-ok="Return Parcel" data-confirm-danger>
-                            @csrf
-                            <button type="submit" class="reject-btn"><i class="bi bi-arrow-return-left"></i> Return to Seller</button>
-                        </form>
+                        @if(!empty($order->back_at_center_at))
+                            <form method="POST" action="{{ route('logistics.parcels.return-to-seller', $order->id) }}" data-confirm="Return this parcel to the seller? This cannot be undone." data-confirm-ok="Return Parcel" data-confirm-danger>
+                                @csrf
+                                <button type="submit" class="reject-btn"><i class="bi bi-arrow-return-left"></i> Return to Seller</button>
+                            </form>
+                        @endif
 
                     </div>
 
@@ -419,8 +434,14 @@
                     </div>
 
                     <div class="app-actions">
-                        <form method="POST" action="{{ route('logistics.parcels.hand-to-buyer', $order->id) }}" data-confirm="Hand order #{{ $order->id }} to {{ $order->shipping_name }}? Check their order number{{ \App\Support\CodPolicy::isCod($order->payment_method) ? ' and collect the cash' : '' }} first." data-confirm-ok="Handed Over">
+                        <form method="POST" action="{{ route('logistics.parcels.hand-to-buyer', $order->id) }}" class="pickup-form" data-confirm="Hand order #{{ $order->id }} to {{ $order->shipping_name }}?{{ \App\Support\CodPolicy::isCod($order->payment_method) ? ' Collect the cash first.' : '' }}" data-confirm-ok="Handed Over">
                             @csrf
+                            @if (!empty($order->pickup_code))
+                                <label class="pickup-code" for="pickup-code-{{ $order->id }}">
+                                    <span>Buyer's pickup code</span>
+                                    <input type="text" id="pickup-code-{{ $order->id }}" name="pickup_code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="6 digits" autocomplete="off" required>
+                                </label>
+                            @endif
                             <button type="submit" class="approve-btn"><i class="bi bi-bag-check-fill"></i> Buyer Collected It</button>
                         </form>
                         <form method="POST" action="{{ route('logistics.parcels.return-to-seller', $order->id) }}" data-confirm="Buyer never came for order #{{ $order->id }}? Send it back to the seller." data-confirm-ok="Return to Seller" data-confirm-danger>

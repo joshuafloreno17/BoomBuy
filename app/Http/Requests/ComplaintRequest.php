@@ -18,6 +18,7 @@ class ComplaintRequest extends FormRequest
             'subject' => 'required|string|max:150',
             'description' => 'required|string|max:2000',
             'order_id' => 'nullable|integer',
+            'against_user_id' => 'nullable|integer',
             'evidence' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:5120',
         ];
     }

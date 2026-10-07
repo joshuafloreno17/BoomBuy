@@ -321,3 +321,30 @@ if (!function_exists('vasset')) {
         return asset($path) . (is_file($file) ? '?v=' . filemtime($file) : '');
     }
 }
+
+if (!function_exists('birthdateError')) {
+
+    /**
+     * Why a birthdate on a registration form can't be accepted, or null.
+     * Sellers, riders and logistics staff sign up for work and must be 18;
+     * buyers at least 13.
+     */
+    function birthdateError(?string $birthdate, int $minimumAge): ?string
+    {
+        try {
+            $date = \Carbon\Carbon::parse((string) $birthdate)->startOfDay();
+        } catch (\Throwable $e) {
+            return 'Please enter a valid birthday.';
+        }
+
+        if ($date->isFuture() || $date->lt(now()->subYears(120))) {
+            return 'Please enter a valid birthday.';
+        }
+
+        if ($date->age < $minimumAge) {
+            return 'You must be at least ' . $minimumAge . ' years old to register.';
+        }
+
+        return null;
+    }
+}

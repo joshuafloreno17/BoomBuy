@@ -37,6 +37,44 @@ class RiderController extends Controller
             ->with('success', 'Profile picture updated successfully.');
     }
 
+    public function updatePassword()
+    {
+        $user = requireUserRole('rider');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $current = request('current_password');
+        $new = request('new_password');
+        $confirm = request('new_password_confirmation');
+
+        if (empty($current) || empty($new) || empty($confirm)) {
+            return back()->with('error', 'Please complete all password fields.');
+        }
+
+        $dbUser = \App\Models\User::find($user['id']);
+
+        if (!Hash::check($current, $dbUser->password)) {
+            return back()->with('error', 'Current password is incorrect.');
+        }
+
+        if (strlen($new) < 8) {
+            return back()->with('error', 'New password must be at least 8 characters.');
+        }
+
+        if ($new !== $confirm) {
+            return back()->with('error', 'New passwords do not match.');
+        }
+
+        $dbUser->password = Hash::make($new);
+        $dbUser->save();
+
+        \App\Support\LoginGate::passwordChanged($dbUser, true);
+
+        return back()->with('success', 'Password changed successfully.');
+    }
+
     public function dashboard()
     {
         $user = requireUserRole('rider');
@@ -253,18 +291,22 @@ class RiderController extends Controller
             ->orderByDesc('delivered_at')
             ->get();
 
+        // Each delivery earns the fee saved when it was delivered (today's
+        // fee only for one that somehow has none).
+        $earned = fn ($order) => $order->rider_fee !== null ? (float) $order->rider_fee : $deliveryFee;
+
         $totalDeliveries = $completedDeliveries->count();
-        $totalProfit = $totalDeliveries * $deliveryFee;
+        $totalProfit = (float) $completedDeliveries->sum($earned);
 
         $dailyProfit = $completedDeliveries
             ->groupBy(function ($order) {
                 return Carbon::parse($order->delivered_at)->format('Y-m-d');
             })
-            ->map(function ($orders, $day) use ($deliveryFee) {
+            ->map(function ($orders, $day) use ($earned) {
                 return [
                     'day' => $day,
                     'deliveries' => $orders->count(),
-                    'profit' => $orders->count() * $deliveryFee,
+                    'profit' => (float) $orders->sum($earned),
                 ];
             })
             ->sortKeysDesc()
@@ -313,13 +355,13 @@ class RiderController extends Controller
             ->orderByDesc('delivered_at')
             ->get();
 
-        $history = $history->map(function ($order) {
+        $itemsByOrder = DB::table('order_items')->whereIn('order_id', $history->pluck('id'))->get()->groupBy('order_id');
+
+        $history = $history->map(function ($order) use ($itemsByOrder) {
 
             $order = (array) $order;
 
-            $order['items'] = DB::table('order_items')
-                ->where('order_id', $order['id'])
-                ->get()
+            $order['items'] = $itemsByOrder->get($order['id'], collect())
                 ->map(fn ($item) => (array) $item)
                 ->toArray();
 
@@ -353,6 +395,7 @@ class RiderController extends Controller
                 $application = DB::table('rider_applications')
                     ->where('user_id', $applicantUser->id)
                     ->orderByDesc('created_at')
+                    ->orderByDesc('id')
                     ->first();
             }
 
@@ -441,7 +484,7 @@ class RiderController extends Controller
         'vehicle_model' => $validated['vehicle_model'],
         'plate_number' => $validated['plate_number'],
 
-        'email' => $validated['email'],
+        'email' => strtolower(trim($validated['email'])),
 
         'password' => Hash::make(
             $validated['password']

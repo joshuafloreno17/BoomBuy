@@ -551,7 +551,13 @@ class ShopController extends Controller
 
             $slug = Str::slug($id);
 
-            $matches = Product::all()->filter(fn ($item) => Str::slug($item->name) === $slug);
+            // Only names containing those words, in order — not every product in the shop.
+            $like = '%' . implode('%', array_map(fn ($word) => addcslashes($word, '%_\\'), explode('-', $slug))) . '%';
+
+            $matches = Product::where('name', 'like', $like)
+                ->limit(50)
+                ->get()
+                ->filter(fn ($item) => Str::slug($item->name) === $slug);
 
             $product = $matches->count() === 1 ? $matches->first() : null;
         }

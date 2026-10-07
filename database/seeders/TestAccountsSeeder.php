@@ -162,6 +162,13 @@ class TestAccountsSeeder extends Seeder
             ]
         );
 
+        // The test account works as head office (every Sorting Center) unless
+        // the admin has put it at one center.
+        DB::table('users')
+            ->where('id', $logistics->id)
+            ->whereNull('sorting_center_id')
+            ->update(['is_head_office' => true]);
+
         DB::table('logistics_applications')->updateOrInsert(
             ['user_id' => $logistics->id],
             [

@@ -27,6 +27,9 @@ use Illuminate\Support\Facades\DB;
  */
 class SortingCenterService
 {
+    /** Parcels sitting at a center that the admin may send back when they're stuck there. */
+    public const ADMIN_RETURNABLE = ['At Sorting Center', 'Ready to Collect', 'Delivery Failed'];
+
     /** After this many failed attempts a parcel goes back to the seller. */
     public const MAX_DELIVERY_ATTEMPTS = 2;
 
@@ -225,7 +228,7 @@ class SortingCenterService
      *
      * @throws ActionFailed
      */
-    public function handToBuyer(int $orderId, ?int $centerId = null): string
+    public function handToBuyer(int $orderId, ?int $centerId = null, ?string $pickupCode = null): string
     {
         $order = $this->parcel($orderId);
 
@@ -234,6 +237,19 @@ class SortingCenterService
         }
 
         $this->mustBeAt($order->current_center_id, $centerId, 'is waiting at another Sorting Center');
+
+        // Whoever collects it must show the code from the buyer's account.
+        if (!empty($order->pickup_code)) {
+            $pickupCode = preg_replace('/\D/', '', (string) $pickupCode);
+
+            if ($pickupCode === '') {
+                throw new ActionFailed('Enter the buyer\'s 6-digit pickup code first. They can find it in their BoomBuy orders.');
+            }
+
+            if (!hash_equals((string) $order->pickup_code, $pickupCode)) {
+                throw new ActionFailed('That pickup code is wrong. Don\'t hand over order #' . $orderId . ' — ask the buyer to open the order in their BoomBuy account.');
+            }
+        }
 
         $isCod = CodPolicy::isCod((string) $order->payment_method);
 
@@ -319,6 +335,60 @@ class SortingCenterService
     }
 
     /**
+     * The rider brought a failed delivery back to the Sorting Center. Only
+     * then can it go out again or back to the seller — until now it was
+     * still with the rider.
+     *
+     * @throws ActionFailed
+     */
+    public function confirmBack(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'Delivery Failed') {
+            throw new ActionFailed('This parcel is not a failed delivery.');
+        }
+
+        if (!empty($order->back_at_center_at)) {
+            throw new ActionFailed('This parcel was already confirmed back at the Sorting Center.');
+        }
+
+        $here = $order->destination_center_id ?: $order->current_center_id;
+        $this->mustBeAt($here, $centerId, 'is handled by another Sorting Center');
+        $here = $here ?: $centerId;
+
+        $updated = DB::table('orders')
+            ->where('id', $orderId)
+            ->where('status', 'Delivery Failed')
+            ->whereNull('back_at_center_at')
+            ->update(['back_at_center_at' => now(), 'current_center_id' => $here, 'updated_at' => now()]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        $riderName = DB::table('users')->where('id', $order->delivery_rider_id)->value('name') ?? 'The rider';
+
+        OrderTimeline::log(
+            $orderId,
+            'Delivery Failed',
+            'Back at ' . (ParcelRoute::centerName($here ? (int) $here : null) ?? 'the Sorting Center'),
+            $riderName . ' brought it back after the failed attempt',
+            $here ? (int) $here : null
+        );
+
+        return 'Parcel #' . $orderId . ' is back at the Sorting Center. You can now reschedule it or return it to the seller.';
+    }
+
+    /** A failed delivery still with its rider can't be sent anywhere yet. */
+    private function mustBeBack(object $order): void
+    {
+        if ($order->status === 'Delivery Failed' && empty($order->back_at_center_at)) {
+            throw new ActionFailed('The rider still has parcel #' . $order->id . '. Confirm it is back at the Sorting Center first.');
+        }
+    }
+
+    /**
      * Another delivery attempt — not for a refused parcel, and only up to MAX_DELIVERY_ATTEMPTS.
      *
      * @throws ActionFailed
@@ -344,6 +414,8 @@ class SortingCenterService
         if ($order->delivery_attempts >= self::MAX_DELIVERY_ATTEMPTS) {
             throw new ActionFailed('This parcel has reached the maximum delivery attempts. Please return it to the seller instead.');
         }
+
+        $this->mustBeBack($order);
 
         $rider = $this->riderOrFail($riderId);
         $this->handTo($orderId, 'Delivery Failed', (int) $rider->id);
@@ -372,9 +444,12 @@ class SortingCenterService
      * to the seller: to the seller's center if it's elsewhere (Returning),
      * else it waits here for the seller (Return Ready).
      *
+     * $adminReason: the admin sending back a parcel stuck at a center (it
+     * may then also be one still "At Sorting Center").
+     *
      * @throws ActionFailed
      */
-    public function returnToSeller(int $orderId, ?int $centerId = null): string
+    public function returnToSeller(int $orderId, ?int $centerId = null, ?string $adminReason = null): string
     {
         $order = $this->parcel($orderId);
 
@@ -382,9 +457,13 @@ class SortingCenterService
 
         $this->mustBeAt($here, $centerId, 'is handled by another Sorting Center');
 
-        if (!in_array($order->status, ['Delivery Failed', 'Ready to Collect'], true)) {
+        $returnable = $adminReason !== null ? self::ADMIN_RETURNABLE : ['Delivery Failed', 'Ready to Collect'];
+
+        if (!in_array($order->status, $returnable, true)) {
             throw new ActionFailed('Only a failed delivery or a parcel the buyer never collected can be returned to the seller.');
         }
+
+        $this->mustBeBack($order);
 
         $here = $here ?: $centerId;
         $origin = $order->origin_center_id;
@@ -405,8 +484,12 @@ class SortingCenterService
             throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
         }
 
-        $why = !empty($order->buyer_refused_at) ? 'Refused on delivery'
-            : ($order->status === 'Ready to Collect' ? 'Not collected by the buyer' : 'Could not be delivered');
+        $why = match (true) {
+            $adminReason !== null => 'Sent back by BoomBuy: ' . $adminReason,
+            !empty($order->buyer_refused_at) => 'Refused on delivery',
+            $order->status === 'Ready to Collect' => 'Not collected by the buyer',
+            default => 'Could not be delivered',
+        };
         $originName = ParcelRoute::centerName($origin ? (int) $origin : null) ?? 'the seller\'s Sorting Center';
 
         OrderTimeline::log(
@@ -594,7 +677,8 @@ class SortingCenterService
         createNotification(
             (int) $order->buyer_id,
             'Ready to Collect',
-            'Your order #' . $order->id . ' is ready to collect at ' . $where . '. Show your order number'
+            'Your order #' . $order->id . ' is ready to collect at ' . $where . '. '
+                . (!empty($order->pickup_code) ? 'Give the staff your pickup code ' . $order->pickup_code . ' (keep it private)' : 'Show your order number')
                 . (CodPolicy::isCod((string) $order->payment_method) ? ' and pay ₱' . number_format((float) $order->total_amount, 2) . ' in cash' : '') . '.',
             'order',
             (int) $order->id

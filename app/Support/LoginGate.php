@@ -39,11 +39,12 @@ class LoginGate
             $application = DB::table($user->role . '_applications')
                 ->where('user_id', $user->id)
                 ->orderByDesc('created_at')
+                ->orderByDesc('id')
                 ->first();
 
             if (!$application || $application->status !== 'Approved') {
                 return ($application->status ?? null) === 'Rejected'
-                    ? 'Your ' . $user->role . ' application was not approved. Please contact support for more information.'
+                    ? 'Your ' . $user->role . ' application was not approved. You can apply again with the same email from the Register page, or contact support.'
                     : 'Your ' . $user->role . ' account is still pending verification. We will notify you once it has been approved.';
             }
         }
@@ -83,14 +84,27 @@ class LoginGate
         Cookie::queue(Cookie::forget(self::SIGNED_IN_COOKIE));
     }
 
-    /** Issue a fresh remember-me token (only its hash is stored). */
+    /**
+     * Issue a fresh remember-me token for this browser (only its hash is
+     * stored). Each browser has its own, so remembering the phone doesn't
+     * sign the laptop out.
+     */
     public static function remember(object $user): void
     {
         $token = Str::random(60);
 
-        DB::table('users')
-            ->where('id', $user->id)
-            ->update(['remember_token' => hash('sha256', $token)]);
+        DB::table('remember_tokens')->insert([
+            'user_id' => $user->id,
+            'token_hash' => hash('sha256', $token),
+            'last_used_at' => now(),
+            'created_at' => now(),
+        ]);
+
+        // Tokens no browser has used for longer than a cookie lives.
+        DB::table('remember_tokens')
+            ->where('user_id', $user->id)
+            ->where('last_used_at', '<', now()->subDays(self::REMEMBER_DAYS))
+            ->delete();
 
         Cookie::queue(
             self::REMEMBER_COOKIE,
@@ -107,14 +121,24 @@ class LoginGate
         }
 
         [$userId, $token] = explode('|', $cookie, 2);
+        $hash = hash('sha256', $token);
 
         $user = DB::table('users')->where('id', (int) $userId)->first();
 
-        if (!$user || empty($user->remember_token)) {
+        if (!$user) {
             return null;
         }
 
-        return hash_equals($user->remember_token, hash('sha256', $token)) ? $user : null;
+        $row = DB::table('remember_tokens')->where('user_id', $user->id)->where('token_hash', $hash)->first();
+
+        if ($row) {
+            DB::table('remember_tokens')->where('id', $row->id)->update(['last_used_at' => now()]);
+
+            return $user;
+        }
+
+        // A token saved the old way (one per account) before this browser came back.
+        return !empty($user->remember_token) && hash_equals($user->remember_token, $hash) ? $user : null;
     }
 
     /**
@@ -126,21 +150,35 @@ class LoginGate
      */
     public static function passwordChanged(object $user, bool $keepThisBrowser = false): void
     {
-        DB::table('users')->where('id', $user->id)->update(['remember_token' => null]);
+        self::forgetEverywhere((int) $user->id);
 
         if ($keepThisBrowser && request()->hasCookie(self::REMEMBER_COOKIE)) {
             self::remember($user);
         }
     }
 
-    /** Invalidate every remembered browser for this user and drop the cookie. */
-    public static function forget(?int $userId): void
+    /**
+     * Log out of this browser: its remember-me token goes (other remembered
+     * browsers stay signed in), and the cookie is dropped. $everywhere: every
+     * browser of that user — for a suspended or deactivated account.
+     */
+    public static function forget(?int $userId, bool $everywhere = false): void
     {
-        if ($userId) {
-            DB::table('users')->where('id', $userId)->update(['remember_token' => null]);
+        if ($userId && $everywhere) {
+            self::forgetEverywhere($userId);
+        } elseif ($userId && ($cookie = request()->cookie(self::REMEMBER_COOKIE)) && str_contains($cookie, '|')) {
+            [, $token] = explode('|', $cookie, 2);
+            DB::table('remember_tokens')->where('user_id', $userId)->where('token_hash', hash('sha256', $token))->delete();
         }
 
         Cookie::queue(Cookie::forget(self::REMEMBER_COOKIE));
         self::signedOut();
+    }
+
+    /** No browser stays remembered for this user. */
+    private static function forgetEverywhere(int $userId): void
+    {
+        DB::table('remember_tokens')->where('user_id', $userId)->delete();
+        DB::table('users')->where('id', $userId)->update(['remember_token' => null]);
     }
 }

@@ -228,15 +228,10 @@
                             >
                         </div>
 
-                        <div class="field">
-                            <label for="address">Address</label>
-                            <input
-                                type="text"
-                                id="address"
-                                name="address"
-                                value="{{ old('address', $dbUser->address ?? '') }}"
-                                required
-                            >
+                        <div class="field" style="grid-column: 1 / -1;">
+                            <label for="profile_province">Shop address</label>
+                            @include('partials.address-fields', ['id' => 'profile', 'value' => old('address', $dbUser->address ?? '')])
+                            <span class="field-hint">Your town decides which Sorting Center you drop parcels at, and the delivery fee buyers pay.</span>
                         </div>
 
                     </div>

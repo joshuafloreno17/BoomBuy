@@ -239,6 +239,7 @@ class SellerController extends Controller
         $application = DB::table('seller_applications')
             ->where('user_id', $user['id'])
             ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->first();
 
         $totalProducts = DB::table('products')
@@ -290,10 +291,21 @@ class SellerController extends Controller
                 ->with('error', 'This phone number is already registered.');
         }
 
+        // The shop's town decides its Sorting Center and its buyers' delivery fees.
+        $town = \App\Support\PhLocations::locate($address);
+
+        if (!$town) {
+            return back()
+                ->withInput()
+                ->with('error', 'Pick your province and city/municipality for the address.');
+        }
+
         $dbUser = User::find($user['id']);
         $dbUser->name = $name;
         $dbUser->phone = $phone;
         $dbUser->address = $address;
+        $dbUser->province = $town['province'];
+        $dbUser->city_municipality = $town['city'] ?? $dbUser->city_municipality;
         $dbUser->save();
 
         session()->put('user', array_merge($user, [
@@ -437,7 +449,8 @@ class SellerController extends Controller
                 'products.name as product_name'
             )
             ->orderByDesc('product_reviews.created_at')
-            ->get();
+            ->orderByDesc('product_reviews.id')
+            ->paginate(20);
 
         return view('pages.seller.reviews', compact('user', 'reviews'));
     }
@@ -621,6 +634,8 @@ class SellerController extends Controller
             'discount_value' => request('discount_value'),
             'min_order_amount' => request('min_order_amount', 0),
             'max_uses' => request('max_uses') ?: null,
+            // Blank = no limit per buyer.
+            'per_buyer_limit' => request('per_buyer_limit') ?: null,
             'expires_at' => request('expires_at') ?: null,
             'is_active' => true,
         ]);
@@ -655,7 +670,22 @@ class SellerController extends Controller
             return $user;
         }
 
-        Voucher::where('id', $id)->where('seller_id', $user['id'])->delete();
+        $voucher = Voucher::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$voucher) {
+            abort(404);
+        }
+
+        // Sales and commission subtract the discounts of the seller's own
+        // vouchers by code — a used voucher has to stay, or past sales would
+        // suddenly look bigger. It is switched off instead.
+        if (DB::table('orders')->where('voucher_code', $voucher->code)->exists()) {
+            $voucher->update(['is_active' => false]);
+
+            return back()->with('success', 'Voucher "' . $voucher->code . '" was already used in orders, so it was turned off instead of deleted. Buyers can no longer use it.');
+        }
+
+        $voucher->delete();
 
         return back()->with('success', 'Voucher deleted.');
     }
@@ -831,6 +861,13 @@ class SellerController extends Controller
             $variation->delete();
 
             ProductPhotos::sync($product);
+
+            // With no photos left, sync keeps the old cover — which here was
+            // this option's photo. Don't show a photo of something gone.
+            if (in_array($product->image, $paths, true)) {
+                $product->update(['image' => null]);
+            }
+
             ProductPhotos::deleteUnused($paths);
         }
 
@@ -1542,6 +1579,11 @@ class SellerController extends Controller
                 ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
         }
 
+        if ($birthdateError = birthdateError($birthdate, 18)) {
+            return back()
+                ->withInput()
+                ->with('error', $birthdateError);
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return back()
                 ->withInput()
@@ -1560,18 +1602,27 @@ class SellerController extends Controller
                 ->with('error', 'Passwords do not match.');
         }
 
-        // CHECK EXISTING EMAIL
-        if (User::where('email', $email)->exists()) {
+        // CHECK EXISTING EMAIL — a rejected applicant may apply again with theirs.
+        $reapplying = \App\Support\RejectedApplicant::find($email, 'seller');
+
+        if (!$reapplying && User::where('email', $email)->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'Email is already registered.');
         }
 
         // CHECK EXISTING PHONE NUMBER
-        if (User::where('phone', $phone)->exists()) {
+        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');
+        }
+
+        // Two shops with the same name would confuse buyers (same rule as Shop settings).
+        if (DB::table('seller_applications')->whereRaw('LOWER(business_name) = ?', [mb_strtolower($businessName)])->when($reapplying, fn ($q) => $q->where('user_id', '!=', $reapplying->id))->exists()) {
+            return back()
+                ->withInput()
+                ->with('error', 'Another shop already uses that name. Please choose a different one.');
         }
 
         // SELLER VERIFICATION DOCUMENTS

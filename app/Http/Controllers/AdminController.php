@@ -1192,6 +1192,9 @@ class AdminController extends Controller
     // once it's at a Sorting Center it goes back through the Logistics return flow.
     public const ADMIN_CANCELLABLE = ['Pending', 'Processing'];
 
+    /** A parcel that hasn't moved at a Sorting Center for this many days counts as stuck. */
+    public const STUCK_DAYS = 7;
+
     public function orders()
     {
         if (!session()->get('admin_logged_in')) {
@@ -1309,10 +1312,50 @@ class AdminController extends Controller
 
         $canCancel = in_array($order->status, self::ADMIN_CANCELLABLE);
 
+        // Stuck at a center for a week or more: the admin can send it back to the seller.
+        $stuckSince = \Illuminate\Support\Carbon::parse($order->updated_at);
+        $canForceReturn = in_array($order->status, \App\Services\SortingCenterService::ADMIN_RETURNABLE, true)
+            && $stuckSince->lte(now()->subDays(self::STUCK_DAYS))
+            && ($order->status !== 'Delivery Failed' || !empty($order->back_at_center_at));
+
         return view(
             'pages.admin.order-details',
-            compact('order', 'sellerNames', 'canCancel')
+            compact('order', 'sellerNames', 'canCancel', 'canForceReturn', 'stuckSince')
         );
+    }
+
+    /** Send a parcel stuck at a Sorting Center back to its seller (see STUCK_DAYS). */
+    public function forceReturn($id, \App\Services\SortingCenterService $centers)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $reason = Str::limit(trim((string) request('reason')), 300, '');
+
+        if ($reason === '') {
+            return back()->with('error', 'Please give a reason for sending this parcel back.');
+        }
+
+        $order = DB::table('orders')->where('id', $id)->first();
+
+        if (!$order) {
+            return back()->with('error', 'Order not found.');
+        }
+
+        if (\Illuminate\Support\Carbon::parse($order->updated_at)->gt(now()->subDays(self::STUCK_DAYS))) {
+            return back()->with('error', 'This parcel moved in the last ' . self::STUCK_DAYS . ' days. Let the Sorting Center handle it.');
+        }
+
+        try {
+            $message = $centers->returnToSeller((int) $id, null, $reason);
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        notifyOrderSellers((int) $id, 'Parcel Sent Back by BoomBuy', 'Order #' . $id . ' was stuck at a Sorting Center, so BoomBuy is returning it to you. Reason: ' . $reason);
+
+        return back()->with('success', $message);
     }
 
     // Admins don't push orders through the pipeline by hand — each step is
@@ -1436,15 +1479,22 @@ class AdminController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $complaints = Complaint::with('complainant')
+        $complaints = Complaint::with(['complainant', 'against'])
+            // Waiting ones first, then newest.
+            ->orderByRaw("CASE status WHEN 'Pending' THEN 0 WHEN 'Under Review' THEN 1 ELSE 2 END")
             ->orderByDesc('created_at')
-            ->get();
+            ->paginate(20);
 
-        $pendingCount = $complaints->where('status', 'Pending')->count();
+        $statusCounts = Complaint::query()
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $pendingCount = (int) ($statusCounts['Pending'] ?? 0);
 
         return view(
             'pages.admin.complaints',
-            compact('complaints', 'pendingCount')
+            compact('complaints', 'pendingCount', 'statusCounts')
         );
     }
 

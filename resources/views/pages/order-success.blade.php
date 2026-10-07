@@ -127,6 +127,18 @@
             </div>
         @endif
 
+        @if(!empty($order['pickup_code']))
+            <div class="order-row">
+                <span class="order-label">
+                    Pickup Code
+                </span>
+                <span class="order-value" style="letter-spacing:.12em;">
+                    {{ $order['pickup_code'] }}<br>
+                    <small style="font-weight:500; color:#6b6570; letter-spacing:0;">Give it to the staff when you collect. Keep it private.</small>
+                </span>
+            </div>
+        @endif
+
 
         <div class="order-row">
 

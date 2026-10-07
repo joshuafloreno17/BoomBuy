@@ -25,14 +25,17 @@ use App\Http\Controllers\SortingCenterController;
 */
 
 Route::post('/rider/profile/photo', [RiderController::class, 'updatePhoto'])->name('rider.profile.photo');
+Route::post('/rider/profile/password', [RiderController::class, 'updatePassword'])->name('rider.profile.password');
 
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 
 
-// throttle:N,M = at most N attempts per M minutes per visitor — stops
-// password / OTP guessing and email spam on the unauthenticated forms.
-Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1')->name('login.submit');
+// throttle:N,M,name = at most N attempts per M minutes per visitor — stops
+// password / OTP guessing and email spam on the unauthenticated forms. The
+// name gives each form its own count; without it every throttled route
+// shares one counter, and typing in the search box would use up the login.
+Route::post('/login', [AuthController::class, 'login'])->middleware('throttle:10,1,login')->name('login.submit');
 
 
 /*
@@ -66,7 +69,7 @@ Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->n
 // CHECK FORGOT PASSWORD EMAIL
 // ==========================================================
 
-Route::post('/forgot-password', [AuthController::class, 'sendResetOtp'])->middleware('throttle:5,10')->name('password.email');
+Route::post('/forgot-password', [AuthController::class, 'sendResetOtp'])->middleware('throttle:5,10,forgot-password')->name('password.email');
 
 
 // ==========================================================
@@ -80,7 +83,7 @@ Route::get('/reset-password', [AuthController::class, 'showResetPassword'])->nam
 // UPDATE NEW PASSWORD
 // ==========================================================
 
-Route::post('/reset-password', [AuthController::class, 'updatePassword'])->middleware('throttle:10,1')->name('password.update');
+Route::post('/reset-password', [AuthController::class, 'updatePassword'])->middleware('throttle:10,1,reset-password')->name('password.update');
 
 
 
@@ -166,7 +169,7 @@ Route::post('/buyer/orders/{orderId}/review/{productId}', [BuyerController::clas
 Route::get('/admin/login', [AdminController::class, 'showLogin'])->name('admin.login');
 
 
-Route::post('/admin/login', [AdminController::class, 'login'])->middleware('throttle:10,1')->name('admin.login.submit');
+Route::post('/admin/login', [AdminController::class, 'login'])->middleware('throttle:10,1,admin-login')->name('admin.login.submit');
 
 
 /*
@@ -198,7 +201,7 @@ Route::get('/products', [ShopController::class, 'products'])->name('products');
 Route::get('/shop/{seller}', [ShopController::class, 'sellerShop'])->whereNumber('seller')->name('shop.seller');
 
 // Live suggestions for the navbar search box (JSON).
-Route::get('/search/suggestions', [ShopController::class, 'searchSuggestions'])->middleware('throttle:120,1')->name('search.suggestions');
+Route::get('/search/suggestions', [ShopController::class, 'searchSuggestions'])->middleware('throttle:120,1,search')->name('search.suggestions');
 
 
 /*
@@ -324,6 +327,7 @@ Route::get('/admin/orders', [AdminController::class, 'orders'])->name('admin.ord
 Route::get('/admin/order/{id}', [AdminController::class, 'orderDetails'])->name('admin.order.details');
 
 Route::post('/admin/order/{id}/cancel', [AdminController::class, 'cancelOrder'])->name('admin.order.cancel');
+Route::post('/admin/order/{id}/return', [AdminController::class, 'forceReturn'])->name('admin.order.force-return');
 
 
 
@@ -689,7 +693,7 @@ Route::get('/rider/apply', [RiderController::class, 'showApply'])->name('rider.a
 // RIDER APPLICATION SUBMIT
 // =========================
 
-Route::post('/rider/apply', [RiderController::class, 'submitApply'])->middleware('throttle:5,10')->name('rider.apply.submit');
+Route::post('/rider/apply', [RiderController::class, 'submitApply'])->middleware('throttle:5,10,register')->name('rider.apply.submit');
 
 
 // Buyer Registration Page
@@ -697,7 +701,7 @@ Route::get('/buyer/register', [BuyerController::class, 'showRegister'])->name('b
 
 
 // Buyer Registration Submit
-Route::post('/buyer/register', [BuyerController::class, 'register'])->middleware('throttle:5,10')->name('buyer.register.submit');
+Route::post('/buyer/register', [BuyerController::class, 'register'])->middleware('throttle:5,10,register')->name('buyer.register.submit');
 
 
 // Seller Registration Page
@@ -705,7 +709,7 @@ Route::get('/seller/register', [SellerController::class, 'showRegister'])->name(
 
 
 // Seller Registration Submit
-Route::post('/seller/register', [SellerController::class, 'register'])->middleware('throttle:5,10')->name('seller.register.submit');
+Route::post('/seller/register', [SellerController::class, 'register'])->middleware('throttle:5,10,register')->name('seller.register.submit');
 
 
 // Logistics Registration Page
@@ -713,7 +717,7 @@ Route::get('/logistics/register', [LogisticsController::class, 'showRegister'])-
 
 
 // Logistics Registration Submit
-Route::post('/logistics/register', [LogisticsController::class, 'register'])->middleware('throttle:5,10')->name('logistics.register.submit');
+Route::post('/logistics/register', [LogisticsController::class, 'register'])->middleware('throttle:5,10,register')->name('logistics.register.submit');
 
 
 /*
@@ -790,6 +794,7 @@ Route::post('/logistics/riders/{riderId}/receive-cod', [LogisticsController::cla
 Route::post('/logistics/parcels/{id}/assign', [LogisticsController::class, 'assignParcel'])->name('logistics.parcels.assign');
 
 
+Route::post('/logistics/parcels/{id}/confirm-back', [LogisticsController::class, 'confirmParcelBack'])->name('logistics.parcels.confirm-back');
 Route::post('/logistics/parcels/{id}/reschedule', [LogisticsController::class, 'rescheduleParcel'])->name('logistics.parcels.reschedule');
 
 
@@ -816,11 +821,11 @@ Route::get('/verify-otp', [AuthController::class, 'showVerifyOtp'])->name('otp.s
 
 
 // Verify OTP Submit
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:10,1')->name('otp.verify');
+Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->middleware('throttle:10,1,otp-verify')->name('otp.verify');
 
 
 // Resend OTP
-Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:3,5')->name('otp.resend');
+Route::post('/resend-otp', [AuthController::class, 'resendOtp'])->middleware('throttle:3,5,otp-resend')->name('otp.resend');
 
 
 Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');
@@ -903,7 +908,7 @@ Route::post('/admin/complaints/{id}/status', [AdminController::class, 'updateCom
 Route::get('/messages', [MessageController::class, 'index'])->name('messages.index');
 
 // Admin's "New message" search — must stay above /messages/{userId}.
-Route::get('/messages/recipients', [MessageController::class, 'recipients'])->middleware('throttle:60,1')->name('messages.recipients');
+Route::get('/messages/recipients', [MessageController::class, 'recipients'])->middleware('throttle:60,1,recipients')->name('messages.recipients');
 
 
 Route::get('/messages/{userId}', [MessageController::class, 'thread'])->name('messages.thread');

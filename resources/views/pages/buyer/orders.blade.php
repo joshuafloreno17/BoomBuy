@@ -238,6 +238,11 @@
                                             @endif
                                         </div>
                                     @endif
+                                    @if(($order['fulfillment'] ?? 'delivery') === 'pickup' && !empty($order['pickup_code']))
+                                        <div class="order-track-note order-track-eta">
+                                            <i class="bi bi-shield-lock"></i> Pickup code: <strong style="letter-spacing:.12em;">{{ $order['pickup_code'] }}</strong> · give it to the staff at the counter. Keep it private.
+                                        </div>
+                                    @endif
                                 </div>
                             @endif
 

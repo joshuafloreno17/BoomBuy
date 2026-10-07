@@ -13,6 +13,7 @@ class Voucher extends Model
         'discount_value',
         'min_order_amount',
         'max_uses',
+        'per_buyer_limit',
         'used_count',
         'expires_at',
         'is_active',
@@ -29,7 +30,8 @@ class Voucher extends Model
             return false;
         }
 
-        if ($this->expires_at && $this->expires_at->isPast()) {
+        // "Expires on Oct 7" means it still works all of Oct 7.
+        if ($this->expires_at && $this->expires_at->copy()->endOfDay()->isPast()) {
             return false;
         }
 
@@ -42,6 +44,22 @@ class Voucher extends Model
         }
 
         return true;
+    }
+
+    /** Orders this buyer has used it on (cancelled ones give the use back). */
+    public function usesBy(int $buyerId): int
+    {
+        return \Illuminate\Support\Facades\DB::table('orders')
+            ->where('voucher_code', $this->code)
+            ->where('buyer_id', $buyerId)
+            ->where('status', '!=', 'Cancelled')
+            ->count();
+    }
+
+    /** Has this buyer used it as many times as one buyer may? */
+    public function usedUpBy(int $buyerId): bool
+    {
+        return $this->per_buyer_limit !== null && $this->usesBy($buyerId) >= (int) $this->per_buyer_limit;
     }
 
     /**

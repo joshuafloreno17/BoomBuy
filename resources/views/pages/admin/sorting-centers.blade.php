@@ -154,7 +154,7 @@
         {{-- STAFF --}}
         <section class="sc-card">
             <h2><i class="bi bi-people-fill"></i> Logistics Staff</h2>
-            <p class="sc-note">Staff only see and handle their own center's parcels. "Head office" sees every center.</p>
+            <p class="sc-note">Staff only see and handle their own center's parcels and riders. "Head office" sees every center. A new account has no access until you assign it here.</p>
 
             @forelse ($staff as $person)
                 <form method="POST" action="{{ route('admin.sorting-centers.staff', $person->id) }}" class="sc-staff">
@@ -164,7 +164,8 @@
                         <span>{{ $person->email }}</span>
                     </div>
                     <select name="sorting_center_id" aria-label="Sorting Center for {{ $person->name }}">
-                        <option value="">Head office (all centers)</option>
+                        <option value="" @selected(!$person->sorting_center_id && !$person->is_head_office)>Not assigned yet (no access)</option>
+                        <option value="{{ \App\Http\Controllers\SortingCenterController::HEAD_OFFICE }}" @selected(!$person->sorting_center_id && $person->is_head_office)>Head office (all centers)</option>
                         @foreach ($allCenters as $c)
                             <option value="{{ $c->id }}" @selected((int) $person->sorting_center_id === $c->id)>{{ $c->name }}</option>
                         @endforeach

@@ -180,6 +180,30 @@
                 <button type="submit" class="btn btn-danger"><i class="bi bi-slash-circle"></i> Cancel Order</button>
             </form>
         </div>
+    @elseif($canForceReturn)
+        <div class="card cancel-card">
+            <h2>Stuck parcel — send it back to the seller</h2>
+            <p class="info muted" style="margin-top:0;">
+                This parcel has not moved at the Sorting Center since {{ $stuckSince->format('M j') }} ({{ $stuckSince->diffForHumans() }}).
+                Sending it back starts the normal return: the seller collects it at their Sorting Center and can restock it.
+                The buyer, the seller and the center are notified with your reason.
+            </p>
+
+            <form
+                method="POST"
+                action="{{ route('admin.order.force-return', $order->id) }}"
+                data-confirm="Send order #{{ $order->id }} back to the seller? This cannot be undone."
+                data-confirm-title="Return to seller"
+                data-confirm-ok="Return to seller"
+                data-confirm-cancel="Keep waiting"
+                data-confirm-danger
+            >
+                @csrf
+                <label class="label" for="return-reason">Reason (shown to the buyer and seller)</label>
+                <textarea id="return-reason" name="reason" maxlength="300" required placeholder="e.g. Buyer unreachable for 2 weeks">{{ old('reason') }}</textarea>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-arrow-return-left"></i> Return to Seller</button>
+            </form>
+        </div>
     @elseif(!in_array($order->status, ['Delivered', 'Cancelled', 'Returned to Seller']))
         <div class="card info muted">
             <i class="bi bi-info-circle"></i>

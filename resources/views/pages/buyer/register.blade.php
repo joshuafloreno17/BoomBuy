@@ -71,7 +71,7 @@
 
                 <div class="field">
                     <label for="birthdate">Birthday</label>
-                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" required>
+                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" max="{{ now()->subYears(13)->toDateString() }}" required>
                 </div>
 
                 <div class="field">

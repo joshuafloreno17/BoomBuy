@@ -31,9 +31,9 @@
         @endif
 
         @php
-            $underReviewCount = $complaints->where('status', 'Under Review')->count();
-            $resolvedCount = $complaints->where('status', 'Resolved')->count();
-            $dismissedCount = $complaints->where('status', 'Dismissed')->count();
+            $underReviewCount = (int) ($statusCounts['Under Review'] ?? 0);
+            $resolvedCount = (int) ($statusCounts['Resolved'] ?? 0);
+            $dismissedCount = (int) ($statusCounts['Dismissed'] ?? 0);
         @endphp
 
         <div class="stats">
@@ -74,6 +74,9 @@
                             — {{ $complaint->created_at->format('M d, Y • h:i A') }}
                             @if($complaint->order_id)
                                 — Order #{{ $complaint->order_id }}
+                            @endif
+                            @if($complaint->against)
+                                — About: <strong>{{ $complaint->against->name }}</strong> ({{ ucfirst($complaint->against->role) }})
                             @endif
                         </div>
                     </div>
@@ -126,6 +129,8 @@
             </div>
 
         @endforelse
+
+        @include('partials.simple-pager', ['paginator' => $complaints])
 
     </div>
 

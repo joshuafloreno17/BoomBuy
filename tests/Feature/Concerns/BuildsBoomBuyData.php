@@ -73,6 +73,8 @@ trait BuildsBoomBuyData
     protected function makeLogistics(): User
     {
         $user = $this->makeUser('logistics');
+        // No center: head office, which sees every Sorting Center.
+        DB::table('users')->where('id', $user->id)->update(['is_head_office' => true]);
 
         DB::table('logistics_applications')->insert([
             'user_id' => $user->id,

@@ -434,10 +434,14 @@ class AuthController extends Controller
         $role = $pending['role']
             ?? (!empty($pending['vehicle_type']) ? 'rider' : 'buyer');
 
+        // A seller/rider/logistics applicant who was rejected applies again
+        // on their own account: it is updated and gets a new application.
+        $reapplying = \App\Support\RejectedApplicant::find($pending['email'], $role);
+
         // The email may have been registered meanwhile (another tab, or a
         // double-clicked Verify button) — say so instead of crashing on the
         // unique email constraint.
-        if (User::where('email', $pending['email'])->exists()) {
+        if (!$reapplying && User::where('email', $pending['email'])->exists()) {
 
             session()->forget(['pending_registration', 'otp_code', 'otp_email', 'otp_expires_at', 'otp_attempts']);
 
@@ -453,7 +457,7 @@ class AuthController extends Controller
 
         try {
 
-        $user = User::create([
+        $fields = [
             'name' => $pending['name'] ?? $pending['full_name'],
             'email' => $pending['email'],
             'password' => $pending['password'],
@@ -472,7 +476,14 @@ class AuthController extends Controller
             'city_municipality' => $pending['city_municipality'] ?? null,
             'barangay' => $pending['barangay'] ?? null,
             'street_address' => $pending['street_address'] ?? null,
-        ]);
+        ];
+
+        if ($reapplying) {
+            $reapplying->forceFill($fields)->save();
+            $user = $reapplying;
+        } else {
+            $user = User::create($fields);
+        }
 
 
         /*

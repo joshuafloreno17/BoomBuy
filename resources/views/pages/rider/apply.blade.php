@@ -204,7 +204,7 @@
 
                     <div class="form-group">
                         <label for="birthdate">Birthday <span class="required">*</span></label>
-                        <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" required>
+                        <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
                     </div>
 
                     <div class="form-group">

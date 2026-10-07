@@ -50,6 +50,10 @@
                 <div class="pd-alert is-error"><i class="bi bi-exclamation-circle-fill"></i> {{ session('error') }}</div>
             @endif
 
+            @if(!empty($unassigned))
+                <div class="pd-alert is-error"><i class="bi bi-hourglass-split"></i> You are not assigned to a Sorting Center yet, so there are no parcels or riders to show. The BoomBuy admin will assign you.</div>
+            @endif
+
             <section class="pd-pipeline" aria-label="Delivery pipeline">
                 @foreach($steps as $step)
                     <a href="{{ $step['url'] }}" class="pd-step {{ !empty($step['hot']) ? 'is-hot' : '' }}">

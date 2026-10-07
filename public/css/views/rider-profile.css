@@ -616,3 +616,62 @@ body {
     background: #ffe6db;
     color: #7c1a00;
 }
+
+/* =========================
+   CHANGE PASSWORD
+========================= */
+
+.password-card {
+    margin-top: 18px;
+}
+
+.password-form {
+    display: grid;
+    gap: 14px;
+}
+
+.pw-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+}
+
+.pw-field {
+    display: grid;
+    gap: 6px;
+    min-width: 0;
+}
+
+.pw-field span {
+    color: #8a7f86;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pw-field input {
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #f0e2da;
+    border-radius: 10px;
+    background: #fff8f3;
+    color: #1b1a1f;
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+}
+
+.pw-field input:focus {
+    outline: none;
+    border-color: #e8420f;
+    box-shadow: 0 0 0 3px #ffe6db;
+}
+
+.pw-field small {
+    color: #aa9791;
+    font-size: 11px;
+}
+
+@media (max-width: 600px) {
+    .pw-row {
+        grid-template-columns: 1fr;
+    }
+}

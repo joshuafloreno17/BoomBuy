@@ -193,9 +193,11 @@ class FullJourneyTest extends TestCase
         $this->actingAsUser($this->deliveryRider)->post(route('rider.delivery.status', $this->orderId), $fail);
         $this->everyoneSeesTheOrder('Delivery Failed');
 
+        $this->actingAsUser($this->logistics)->post(route('logistics.parcels.confirm-back', $this->orderId))->assertSessionHas('success');
         $this->actingAsUser($this->logistics)->post(route('logistics.parcels.reschedule', $this->orderId), ['rider_id' => $this->deliveryRider->id]);
         $this->actingAsUser($this->deliveryRider)->post(route('rider.delivery.status', $this->orderId), ['status' => 'Out for Delivery']);
         $this->actingAsUser($this->deliveryRider)->post(route('rider.delivery.status', $this->orderId), $fail);
+        $this->actingAsUser($this->logistics)->post(route('logistics.parcels.confirm-back', $this->orderId))->assertSessionHas('success');
         $this->actingAsUser($this->logistics)->post(route('logistics.parcels.return-to-seller', $this->orderId))->assertSessionHas('success');
         $this->assertSame('Return Ready', $this->orderNow());
         $this->everyoneSeesTheOrder('Return Ready');

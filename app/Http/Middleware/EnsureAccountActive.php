@@ -33,7 +33,7 @@ class EnsureAccountActive
         }
 
         $request->session()->forget('user');
-        \App\Support\LoginGate::forget((int) $sessionUser['id']);
+        \App\Support\LoginGate::forget((int) $sessionUser['id'], everywhere: true);
 
         $message = $status === 'Suspended'
             ? 'Your account has been suspended. Please contact BoomBuy support for assistance.'

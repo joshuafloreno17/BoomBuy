@@ -143,6 +143,12 @@ class DeliveryFlowTest extends TestCase
         $this->assertSame('Delivery Failed', $this->orderStatus($order));
         $this->notified($buyer->id, 'Delivery Attempt Failed');
 
+        // Not while the rider still has it...
+        $this->actingAsUser($logistics)
+            ->post(route('logistics.parcels.reschedule', $order), ['rider_id' => $rider->id])
+            ->assertSessionHas('error');
+        $this->actingAsUser($logistics)->post(route('logistics.parcels.confirm-back', $order))->assertSessionHas('success');
+
         // First retry is allowed...
         $this->actingAsUser($logistics)
             ->post(route('logistics.parcels.reschedule', $order), ['rider_id' => $rider->id])
@@ -153,6 +159,7 @@ class DeliveryFlowTest extends TestCase
             ->post(route('rider.delivery.status', $order), ['status' => 'Delivery Failed', 'failure_code' => 'Other', 'failure_reason' => 'Still nobody home.']);
 
         // ...but after two attempts it goes back to the seller.
+        $this->actingAsUser($logistics)->post(route('logistics.parcels.confirm-back', $order))->assertSessionHas('success');
         $this->actingAsUser($logistics)
             ->post(route('logistics.parcels.reschedule', $order), ['rider_id' => $rider->id])
             ->assertSessionHas('error');

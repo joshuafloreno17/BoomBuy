@@ -76,6 +76,8 @@
 
             @endforelse
 
+            @include('partials.simple-pager', ['paginator' => $reviews])
+
         </div>
 
     </main>

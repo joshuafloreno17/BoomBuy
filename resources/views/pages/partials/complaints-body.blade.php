@@ -48,6 +48,50 @@
                         @endforeach
                     </select>
                 </div>
+
+                <div class="form-group">
+                    <label for="against_user_id">Who is this about? (optional)</label>
+                    <select id="against_user_id" name="against_user_id">
+                        <option value="">— Nobody / a BoomBuy issue —</option>
+                        @foreach($orderPeople ?? [] as $peopleOrderId => $people)
+                            @foreach($people as $personId => $personLabel)
+                                <option value="{{ $personId }}" data-order="{{ $peopleOrderId }}" {{ old('against_user_id') == $personId && old('order_id') == $peopleOrderId ? 'selected' : '' }}>
+                                    {{ $personLabel }}
+                                </option>
+                            @endforeach
+                        @endforeach
+                    </select>
+                    <span class="field-hint" id="against-hint">Pick the related order first to see who was on it.</span>
+                </div>
+
+                <script>
+                    // Only the people on the chosen order can be picked.
+                    (function () {
+                        var orderSelect = document.getElementById('order_id');
+                        var personSelect = document.getElementById('against_user_id');
+                        var hint = document.getElementById('against-hint');
+
+                        function sync() {
+                            var orderId = orderSelect.value;
+                            var shown = 0;
+
+                            Array.prototype.forEach.call(personSelect.options, function (option) {
+                                if (!option.dataset.order) return;
+                                var match = option.dataset.order === orderId;
+                                option.hidden = !match;
+                                option.disabled = !match;
+                                if (match) shown++;
+                                if (!match && option.selected) personSelect.value = '';
+                            });
+
+                            personSelect.disabled = shown === 0;
+                            hint.hidden = shown > 0;
+                        }
+
+                        orderSelect.addEventListener('change', sync);
+                        sync();
+                    })();
+                </script>
             @endif
 
             <div class="form-group">

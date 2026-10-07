@@ -26,7 +26,7 @@ class BuyerController extends Controller
         'At Sorting Center' => [3, 'At the Sorting Center.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
-        'Ready to Collect' => [4, 'Ready at the Sorting Center — bring your order number to collect it.'],
+        'Ready to Collect' => [4, 'Ready at the Sorting Center — give the staff your pickup code to collect it.'],
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
@@ -581,7 +581,15 @@ class BuyerController extends Controller
             ->get()
             ->keyBy(fn ($review) => $review->order_id . ':' . $review->product_id);
 
-        $orders = $orders->map(function ($order) use ($allItems, $itemProducts, $itemShops, $buyerReviews) {
+        // The rider bringing it to the door (delivery_rider_id); rider_id is the
+        // old pickup leg, kept for orders from before Sorting Centers.
+        $riders = DB::table('users')
+            ->whereIn('id', $orders->map(fn ($o) => $o->delivery_rider_id ?: $o->rider_id)->filter()->unique())
+            ->where('role', 'rider')
+            ->get(['id', 'name', 'email', 'profile_photo'])
+            ->keyBy('id');
+
+        $orders = $orders->map(function ($order) use ($allItems, $itemProducts, $itemShops, $buyerReviews, $riders) {
 
             $order = (array) $order;
 
@@ -656,12 +664,11 @@ class BuyerController extends Controller
             $order['rider_email'] = null;
             $order['rider_profile_photo'] = null;
 
-            if (!empty($order['rider_id'])) {
+            $riderId = ($order['delivery_rider_id'] ?? null) ?: ($order['rider_id'] ?? null);
 
-                $rider = DB::table('users')
-                    ->where('id', $order['rider_id'])
-                    ->where('role', 'rider')
-                    ->first();
+            if (!empty($riderId)) {
+
+                $rider = $riders->get($riderId);
 
                 if ($rider) {
 
@@ -943,6 +950,11 @@ class BuyerController extends Controller
                 ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
         }
 
+        if ($birthdateError = birthdateError($birthdate, 13)) {
+            return back()
+                ->withInput()
+                ->with('error', $birthdateError);
+        }
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             return back()
                 ->withInput()

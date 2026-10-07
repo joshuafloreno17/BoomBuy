@@ -22,7 +22,9 @@ class StoreVoucherRequest extends FormRequest
             'discount_value' => 'required|numeric|min:0.01' . ($this->input('discount_type') === 'percentage' ? '|max:100' : ''),
             'min_order_amount' => 'nullable|numeric|min:0',
             'max_uses' => 'nullable|integer|min:1',
-            'expires_at' => 'nullable|date',
+            'per_buyer_limit' => 'nullable|integer|min:1',
+            // A date already passed would make a voucher nobody can use.
+            'expires_at' => 'nullable|date|after_or_equal:today',
         ];
     }
 }

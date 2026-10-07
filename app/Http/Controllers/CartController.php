@@ -369,7 +369,7 @@ class CartController extends Controller
                     : (float) str_replace(',', '', cartSummary($cart)['subtotal']);
             }
 
-            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal)) {
+            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal) && !$voucher->usedUpBy((int) session('user.id'))) {
                 $appliedVoucher = $voucher;
             } else {
                 session()->forget('applied_voucher');
@@ -415,6 +415,12 @@ class CartController extends Controller
 
         if (!$voucher->isValidFor($subtotal)) {
             return back()->with('error', 'This voucher is expired, fully used, or your order does not meet its minimum amount.');
+        }
+
+        $buyerId = (int) session('user.id');
+
+        if ($buyerId && $voucher->usedUpBy($buyerId)) {
+            return back()->with('error', 'You have already used voucher "' . $voucher->code . '"' . ((int) $voucher->per_buyer_limit > 1 ? ' ' . $voucher->per_buyer_limit . ' times' : '') . '.');
         }
 
         session()->put('applied_voucher', $voucher->code);
@@ -602,7 +608,7 @@ class CartController extends Controller
                 }
             }
 
-            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal)) {
+            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal) && !$voucher->usedUpBy((int) $user['id'])) {
                 $appliedVoucher = $voucher;
             } else {
                 session()->forget('applied_voucher');

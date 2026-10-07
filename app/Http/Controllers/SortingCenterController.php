@@ -15,6 +15,9 @@ use Illuminate\Validation\Rule;
  */
 class SortingCenterController extends Controller
 {
+    /** The staff select's value for "Head office (all centers)". */
+    public const HEAD_OFFICE = 'head-office';
+
     public function index()
     {
         if (!session()->get('admin_logged_in')) {
@@ -46,7 +49,7 @@ class SortingCenterController extends Controller
         $staff = DB::table('users')
             ->where('role', 'logistics')
             ->orderBy('name')
-            ->get(['id', 'name', 'email', 'status', 'sorting_center_id']);
+            ->get(['id', 'name', 'email', 'status', 'sorting_center_id', 'is_head_office']);
 
         $allCenters = SortingCenter::get(['id', 'name', 'region', 'province'])->sortBy($sortKey)->values();
 
@@ -143,9 +146,13 @@ class SortingCenterController extends Controller
             return redirect()->route('admin.login');
         }
 
-        $data = request()->validate([
-            'sorting_center_id' => ['nullable', 'integer', 'exists:sorting_centers,id'],
-        ]);
+        // A center's id, "head-office" (every center), or empty (not assigned: no access).
+        $choice = (string) request('sorting_center_id', '');
+        $headOffice = $choice === self::HEAD_OFFICE;
+
+        if (!$headOffice && $choice !== '') {
+            request()->validate(['sorting_center_id' => ['integer', 'exists:sorting_centers,id']]);
+        }
 
         $user = DB::table('users')->where('id', $userId)->where('role', 'logistics')->first();
 
@@ -153,9 +160,17 @@ class SortingCenterController extends Controller
             return back()->with('error', 'Logistics account not found.');
         }
 
-        $centerId = $data['sorting_center_id'] ?? null;
+        $centerId = !$headOffice && $choice !== '' ? (int) $choice : null;
 
-        DB::table('users')->where('id', $userId)->update(['sorting_center_id' => $centerId, 'updated_at' => now()]);
+        DB::table('users')->where('id', $userId)->update([
+            'sorting_center_id' => $centerId,
+            'is_head_office' => $headOffice,
+            'updated_at' => now(),
+        ]);
+
+        if (!$centerId && !$headOffice) {
+            return back()->with('success', $user->name . ' is no longer assigned to a Sorting Center and can\'t handle parcels until you assign one.');
+        }
 
         $where = $centerId ? SortingCenter::whereKey($centerId)->value('name') : 'head office (all centers)';
 

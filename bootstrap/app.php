@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\AutoReceiveDeliveredOrders;
 use App\Http\Middleware\EnsureAccountActive;
+use App\Http\Middleware\ForgetFlashedPasswords;
 use App\Http\Middleware\PersistBuyerCart;
 use App\Http\Middleware\PreventBackHistoryCache;
 use App\Http\Middleware\RestoreRememberedLogin;
@@ -31,6 +32,7 @@ return Application::configure(basePath: dirname(__DIR__))
             PersistBuyerCart::class,
             PreventBackHistoryCache::class,
             AutoReceiveDeliveredOrders::class,
+            ForgetFlashedPasswords::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
