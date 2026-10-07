@@ -204,7 +204,7 @@
                 <button type="submit" class="btn btn-danger"><i class="bi bi-arrow-return-left"></i> Return to Seller</button>
             </form>
         </div>
-    @elseif(!in_array($order->status, ['Delivered', 'Cancelled', 'Returned to Seller']))
+    @elseif(!in_array($order->status, ['Delivered', 'Completed', 'Cancelled', 'Returned to Seller']))
         <div class="card info muted">
             <i class="bi bi-info-circle"></i>
             This order has already left the seller, so it can no longer be cancelled here. If it can't be delivered, Logistics returns it to the seller from the Parcels page.

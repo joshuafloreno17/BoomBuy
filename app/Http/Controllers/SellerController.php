@@ -80,13 +80,13 @@ class SellerController extends Controller
         $totalOrders = $sellerOrderStatuses->count();
 
         $pendingOrders = $sellerOrderStatuses
-            ->whereIn('status', ['Pending', 'Processing'])
+            ->whereIn('status', \App\Support\OrderStatus::WITH_SELLER)
             ->count();
 
         $totalSales = (float) DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.seller_id', $user['id'])
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->sum(DB::raw('order_items.price * order_items.quantity'));
 
         $totalSales = max(0, $totalSales - $this->voucherDiscounts((int) $user['id']));
@@ -102,12 +102,12 @@ class SellerController extends Controller
             ->where('order_items.seller_id', $user['id']);
 
         $deliveredToday = $sellerItems()
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->whereRaw('DATE(COALESCE(orders.delivered_at, orders.updated_at)) = ?', [now()->toDateString()])
             ->selectRaw('COUNT(DISTINCT orders.id) as orders, COALESCE(SUM(order_items.price * order_items.quantity), 0) as revenue')
             ->first();
 
-        // Cash on Delivery money: still with a rider vs. handed in at a Sorting Center (cash is in; paid out via Payouts).
+        // Cash on Delivery money: still with a rider vs. handed in at a Sorting Center (cash is in).
         $codPayout = $sellerItems()
             ->where('orders.payment_method', \App\Support\CodPolicy::METHOD)
             ->whereNotNull('orders.cod_collected_at')
@@ -116,12 +116,12 @@ class SellerController extends Controller
 
         // Waiting since before today: the ones to pack first.
         $toShipOld = $sellerItems()
-            ->whereIn('orders.status', ['Pending', 'Processing'])
+            ->whereIn('orders.status', \App\Support\OrderStatus::WITH_SELLER)
             ->where('orders.created_at', '<', now()->startOfDay())
             ->distinct()
             ->count('orders.id');
 
-        $toDropOff = $sellerOrderStatuses->where('status', 'Processing')->count();
+        $toDropOff = $sellerOrderStatuses->whereIn('status', \App\Support\OrderStatus::SELLER_WORKING)->count();
         $newOrders = $sellerOrderStatuses->where('status', 'Pending')->count();
 
         $lowStockCount = $products->filter(fn ($p) => (int) $p->sellable_stock <= 5)->count();
@@ -178,7 +178,7 @@ class SellerController extends Controller
         $salesTrend = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.seller_id', $user['id'])
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->whereDate('orders.created_at', '>=', now()->subDays(6)->startOfDay())
             ->select(
                 DB::raw('DATE(orders.created_at) as day'),
@@ -222,7 +222,7 @@ class SellerController extends Controller
                 'shopName',
                 'unreadNotes',
                 'recentNotes'
-            ) + ['payoutBalance' => \App\Support\SellerBalance::for((int) $user['id'])]
+            )
         );
     }
 
@@ -249,7 +249,7 @@ class SellerController extends Controller
         $totalSales = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.seller_id', $user['id'])
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->sum(DB::raw('order_items.price * order_items.quantity'));
 
         $totalSales = max(0, (float) $totalSales - $this->voucherDiscounts((int) $user['id']));
@@ -509,7 +509,7 @@ class SellerController extends Controller
             ->whereDate('orders.created_at', '>=', $from)
             ->whereDate('orders.created_at', '<=', $to);
 
-        $deliveredQuery = (clone $baseQuery)->where('orders.status', 'Delivered');
+        $deliveredQuery = (clone $baseQuery)->whereIn('orders.status', \App\Support\OrderStatus::DONE);
 
         $grossSales = (float) $deliveredQuery->sum(DB::raw('order_items.price * order_items.quantity'));
 
@@ -517,7 +517,7 @@ class SellerController extends Controller
         // on what the buyer actually paid for their items.
         $voucherDiscounts = $this->voucherDiscounts((int) $user['id'], $from, $to);
 
-        // After vouchers and refunds; commission at each order's own rate (same as Payouts).
+        // After vouchers and refunds; commission at each order's own rate (same as the admin Reports).
         $summary = \App\Support\SellerBalance::summary((int) $user['id'], $from, $to);
         $totalSales = $summary['sales'];
         $refunds = $summary['refunds'];
@@ -710,6 +710,7 @@ class SellerController extends Controller
         $variations = ProductVariation::where('product_id', $id)
             ->orderBy('variation_type')
             ->orderBy('variation_value')
+            ->orderBy('option2_value')
             ->get();
 
         return view(
@@ -735,6 +736,9 @@ class SellerController extends Controller
         request()->validate([
             'variation_type' => 'required|string|max:50',
             'variation_value' => 'required|string|max:50',
+            // Color × Size: the second part, both halves or neither.
+            'option2_type' => 'nullable|string|max:50|required_with:option2_value',
+            'option2_value' => 'nullable|string|max:50|required_with:option2_type',
             // The final price (base + adjustment) must stay above ₱0.
             'price_adjustment' => 'nullable|numeric|gt:' . (0 - (float) $product->price),
             'stock' => 'required|integer|min:0',
@@ -743,9 +747,12 @@ class SellerController extends Controller
 
         // The same option twice ("Color: Red" + "Color: Red") would show up
         // twice in the buyer's picker with separate stock.
+        $value2 = ProductVariation::normalizeValue((string) request('option2_value'));
+
         $duplicate = ProductVariation::where('product_id', $product->id)
             ->where('variation_type', ProductVariation::normalizeType((string) request('variation_type')))
             ->where('variation_value', ProductVariation::normalizeValue((string) request('variation_value')))
+            ->when($value2 !== '', fn ($q) => $q->where('option2_value', $value2), fn ($q) => $q->whereNull('option2_value'))
             ->exists();
 
         if ($duplicate) {
@@ -758,6 +765,8 @@ class SellerController extends Controller
             'product_id' => $product->id,
             'variation_type' => request('variation_type'),
             'variation_value' => request('variation_value'),
+            'option2_type' => request('option2_type'),
+            'option2_value' => request('option2_value'),
             'price_adjustment' => request('price_adjustment', 0),
             'stock' => request('stock'),
         ]);
@@ -934,7 +943,7 @@ class SellerController extends Controller
         try {
             $product = $products->create(
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'stock', 'description'),
+                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
                 request()->hasFile('image') ? request()->file('image') : null,
                 $this->variationsWithPhotos(),
                 (array) request()->file('photos', []),
@@ -952,10 +961,10 @@ class SellerController extends Controller
     // Tabs on the seller's Orders page => the order statuses each one shows.
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
-        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending']],
-        'to-ship' => ['label' => 'To Drop Off', 'statuses' => ['Processing']],
-        'shipped' => ['label' => 'Shipped', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed']],
-        'completed' => ['label' => 'Completed', 'statuses' => ['Delivered']],
+        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Confirmed']],
+        'to-ship' => ['label' => 'To Ship', 'statuses' => ['Preparing', 'Ready for Pickup', 'Pickup Assigned']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed']],
+        'completed' => ['label' => 'Delivered / Completed', 'statuses' => ['Delivered', 'Completed']],
         'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
     ];
@@ -1035,12 +1044,12 @@ class SellerController extends Controller
         $deliveredSales = (float) DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.seller_id', $sellerId)
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->sum(DB::raw('order_items.price * order_items.quantity'));
 
         $summary = [
             'total' => (int) $allStatuses->sum(),
-            'to_process' => (int) (($allStatuses['Pending'] ?? 0) + ($allStatuses['Processing'] ?? 0)),
+            'to_process' => (int) (($allStatuses['Pending'] ?? 0) + ($allStatuses['Confirmed'] ?? 0) + ($allStatuses['Preparing'] ?? 0)),
             'sales' => max(0, $deliveredSales - $this->voucherDiscounts($sellerId)),
         ];
 
@@ -1289,6 +1298,18 @@ class SellerController extends Controller
         );
     }
 
+    public function confirmRiderPickup($id, SellerOrderService $orders)
+    {
+        return $this->sellerOrderAction(fn (array $user) => $orders->confirmRiderPickup((int) $user['id'], (int) $id));
+    }
+
+    public function requestPickup($id, \App\Services\PickupService $pickups)
+    {
+        return $this->sellerOrderAction(
+            fn (array $user) => $pickups->request((int) $user['id'], (int) $id, (string) request('pickup_date'))
+        );
+    }
+
     /** A printable shipping label for the seller's parcel: waybill no., QR, from/to and route. */
     public function shippingLabel($id)
     {
@@ -1384,7 +1405,7 @@ class SellerController extends Controller
             $products->update(
                 $product,
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'stock', 'description'),
+                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
                 request()->hasFile('image') ? request()->file('image') : null,
                 [
                     'add' => (array) request()->file('photos', []),
@@ -1512,61 +1533,6 @@ class SellerController extends Controller
         return $this->sellerOrderAction(fn (array $user) => $returns->reject((int) $user['id'], (int) $id, (string) request('seller_note')));
     }
 
-    /** What BoomBuy owes this seller, what it already sent, and where to send it. */
-    public function payouts()
-    {
-        $user = requireUserRole('seller');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $balance = \App\Support\SellerBalance::for((int) $user['id']);
-
-        $payouts = DB::table('seller_payouts')
-            ->where('seller_id', $user['id'])
-            ->orderByDesc('paid_at')
-            ->get();
-
-        return view('pages.seller.payouts', [
-            'user' => $user,
-            'balance' => $balance,
-            'orders' => $balance['orders']->take(50),
-            'payouts' => $payouts,
-            'account' => \App\Support\SellerBalance::account((int) $user['id']),
-            'methods' => \App\Services\ReturnRefundService::REFUND_METHODS,
-        ]);
-    }
-
-    public function updatePayoutAccount()
-    {
-        $user = requireUserRole('seller');
-
-        if (!is_array($user)) {
-            return $user;
-        }
-
-        $method = (string) request('payout_method');
-        $name = trim((string) request('payout_account_name'));
-        $number = trim((string) request('payout_account_number'));
-
-        if (!in_array($method, \App\Services\ReturnRefundService::REFUND_METHODS, true) || $name === '' || $number === '') {
-            return back()->withInput()->with('error', 'Choose GCash, Maya or bank transfer and enter the account name and number.');
-        }
-
-        if ($method !== 'Bank transfer' && !preg_match('/^(09|\+639)\d{9}$/', preg_replace('/[\s-]/', '', $number))) {
-            return back()->withInput()->with('error', 'Enter the ' . $method . ' mobile number, e.g. 09171234567.');
-        }
-
-        DB::table('seller_applications')->where('user_id', $user['id'])->update([
-            'payout_method' => $method,
-            'payout_account_name' => mb_substr($name, 0, 120),
-            'payout_account_number' => mb_substr($number, 0, 60),
-            'updated_at' => now(),
-        ]);
-
-        return back()->with('success', 'Payout account saved. BoomBuy will send your payouts there.');
-    }
     public function restockReturnRefund($id, ReturnRefundService $returns)
     {
         return $this->sellerOrderAction(fn (array $user) => $returns->restock((int) $user['id'], (int) $id));
@@ -1798,7 +1764,7 @@ class SellerController extends Controller
 
         return (float) DB::table('orders')
             ->whereIn('voucher_code', $codes)
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->when($from, fn ($q) => $q->whereDate('created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('created_at', '<=', $to))
             ->sum('discount_amount');

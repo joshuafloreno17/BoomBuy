@@ -89,7 +89,7 @@ class AdminScenariosTest extends TestCase
         $rider = $this->riderFor($this->laguna);
         $orderId = $this->makeOrder($this->buyerAt(), $this->shoes, 'Out for Delivery', ['delivery_rider_id' => $rider->id, 'current_center_id' => $this->laguna->id]);
         $this->post(route('admin.accounts.status', $rider->id), ['status' => 'Suspended']);
-        $this->assertSame('At Sorting Center', $this->orderStatus($orderId));
+        $this->assertSame('Sorted', $this->orderStatus($orderId));
 
         // Logged out on their next click.
         $this->flushSession();
@@ -250,6 +250,24 @@ class AdminScenariosTest extends TestCase
         $this->actingAsUser($this->seller)->get(route('seller.dashboard'))->assertDontSee('Holiday cut-off');
     }
 
+    public function test_A11b_free_shipping_minimum_is_a_setting(): void
+    {
+        $this->admin()->post(route('admin.settings.delivery-fee.update'), ['delivery_fee' => 50, 'delivery_fee_province' => 80, 'delivery_fee_island' => 120, 'delivery_fee_far' => 180, 'free_shipping_min' => 0])
+            ->assertSessionHasErrors('free_shipping_min');
+        $this->post(route('admin.settings.delivery-fee.update'), ['delivery_fee' => 50, 'delivery_fee_province' => 80, 'delivery_fee_island' => 120, 'delivery_fee_far' => 180, 'free_shipping_min' => 1500])
+            ->assertSessionHas('success');
+        $this->assertEquals(1500, \App\Support\DeliveryFee::freeShippingMin());
+
+        // ₱999 used to ship free; now it pays the fee.
+        $buyer = $this->buyerAt();
+        $pricey = $this->makeProduct($this->seller, ['price' => 999]);
+        $this->placeOrder($buyer, [$pricey->id . ':0' => 1])->assertRedirect();
+        $this->assertEquals(50, $this->lastOrder($buyer)->delivery_fee);
+
+        $this->flushSession();
+        $this->get('/')->assertOk()->assertSee('₱1,500');
+    }
+
     public function test_A12_admin_messages_a_seller_as_boombuy_support(): void
     {
         $this->admin()->getJson(route('messages.recipients', ['q' => 'Santa']))->assertOk()
@@ -264,3 +282,4 @@ class AdminScenariosTest extends TestCase
         $this->getJson(route('messages.recipients'))->assertForbidden();
     }
 }
+

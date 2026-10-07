@@ -78,12 +78,12 @@
                                         @else
                                             <i class="bi bi-camera"></i>
                                         @endif
-                                        <input type="file" name="images[{{ $variation->id }}]" accept="image/*" aria-label="Change photo for {{ $variation->variation_value }}">
+                                        <input type="file" name="images[{{ $variation->id }}]" accept="image/*" aria-label="Change photo for {{ $variation->shortLabel() }}">
                                     </label>
 
                                     <div class="var-name">
-                                        <strong>{{ $variation->variation_value }}</strong>
-                                        <small>{{ $variation->variation_type }}</small>
+                                        <strong>{{ $variation->shortLabel() }}</strong>
+                                        <small>{{ $variation->variation_type }}{{ $variation->hasSecondOption() ? ' × ' . $variation->option2_type : '' }}</small>
                                     </div>
 
                                     <label class="var-cell">
@@ -96,7 +96,7 @@
                                         <input type="number" min="0" name="variations[{{ $variation->id }}][stock]" value="{{ old('variations.' . $variation->id . '.stock', $variation->stock) }}" data-original="{{ $variation->stock }}" class="{{ $variation->stock <= 0 ? 'is-out' : '' }}">
                                     </label>
 
-                                    <button type="submit" form="delete-variation-{{ $variation->id }}" class="delete-btn" aria-label="Remove {{ $variation->variation_value }}">
+                                    <button type="submit" form="delete-variation-{{ $variation->id }}" class="delete-btn" aria-label="Remove {{ $variation->shortLabel() }}">
                                         <i class="bi bi-trash3"></i><span>Remove</span>
                                     </button>
                                 </div>
@@ -111,7 +111,7 @@
 
                     {{-- Delete forms live outside the save form (forms can't nest). --}}
                     @foreach($variations as $variation)
-                        <form method="POST" action="{{ route('seller.products.variations.delete', [$product->id, $variation->id]) }}" id="delete-variation-{{ $variation->id }}" data-confirm="Remove {{ $variation->variation_value }}?" data-confirm-ok="Remove" data-confirm-danger hidden>
+                        <form method="POST" action="{{ route('seller.products.variations.delete', [$product->id, $variation->id]) }}" id="delete-variation-{{ $variation->id }}" data-confirm="Remove {{ $variation->shortLabel() }}?" data-confirm-ok="Remove" data-confirm-danger hidden>
                             @csrf
                             @method('DELETE')
                         </form>
@@ -136,6 +136,16 @@
                         <div class="form-group">
                             <label for="variation_value">Value</label>
                             <input type="text" id="variation_value" name="variation_value" placeholder="e.g. Red" value="{{ old('variation_value') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="option2_type">Second type <small>· optional, e.g. Size</small></label>
+                            <input type="text" id="option2_type" name="option2_type" placeholder="e.g. Size" value="{{ old('option2_type', $variations->first()->option2_type ?? '') }}" autocomplete="off">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="option2_value">Second value</label>
+                            <input type="text" id="option2_value" name="option2_value" placeholder="e.g. M" value="{{ old('option2_value') }}">
                         </div>
 
                         <div class="form-group">

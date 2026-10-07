@@ -26,6 +26,7 @@ use App\Http\Controllers\SortingCenterController;
 
 Route::post('/rider/profile/photo', [RiderController::class, 'updatePhoto'])->name('rider.profile.photo');
 Route::post('/rider/profile/password', [RiderController::class, 'updatePassword'])->name('rider.profile.password');
+Route::post('/rider/profile', [RiderController::class, 'updateProfile'])->name('rider.profile.update');
 
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -450,6 +451,10 @@ Route::get('/seller/order/{id}/waybill', [SellerController::class, 'orderWaybill
 
 Route::post('/seller/order/{id}/status', [SellerController::class, 'updateOrderStatus'])->name('seller.order.status');
 
+// Book a BoomBuy rider to collect the packed parcel (instead of dropping it off).
+Route::post('/seller/order/{id}/confirm-pickup', [SellerController::class, 'confirmRiderPickup'])->whereNumber('id')->name('seller.order.confirm-pickup');
+Route::post('/seller/order/{id}/pickup', [SellerController::class, 'requestPickup'])->whereNumber('id')->name('seller.order.pickup');
+
 
 // Printable shipping label (waybill no. + QR) to stick on the parcel before drop-off.
 Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'])->whereNumber('id')->name('seller.order.label');
@@ -462,6 +467,11 @@ Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'
 */
 
 Route::get('/rider', [RiderController::class, 'dashboard'])->name('rider.dashboard');
+
+// Items for pickup: sellers' pickup requests in the rider's areas.
+Route::get('/rider/pickups', [RiderController::class, 'pickups'])->name('rider.pickups');
+Route::post('/rider/pickup/{id}/accept', [RiderController::class, 'acceptPickup'])->whereNumber('id')->name('rider.pickup.accept');
+Route::post('/rider/pickup/{id}/picked-up', [RiderController::class, 'confirmPickup'])->whereNumber('id')->name('rider.pickup.picked-up');
 
 
 /*
@@ -687,11 +697,9 @@ Route::get('/admin/returns', [AdminController::class, 'returns'])->name('admin.r
 Route::post('/admin/returns/{id}/decide', [AdminController::class, 'decideReturn'])->name('admin.returns.decide');
 Route::post('/admin/returns/{id}/refunded', [AdminController::class, 'refundReturn'])->name('admin.returns.refunded');
 
-Route::get('/admin/payouts', [AdminController::class, 'payouts'])->name('admin.payouts');
-Route::post('/admin/payouts/{sellerId}', [AdminController::class, 'storePayout'])->name('admin.payouts.store');
 
-Route::get('/seller/payouts', [SellerController::class, 'payouts'])->name('seller.payouts');
-Route::post('/seller/payouts/account', [SellerController::class, 'updatePayoutAccount'])->name('seller.payouts.account');
+
+
 
 // =========================
 // RIDER APPLICATION
@@ -789,6 +797,8 @@ Route::post('/logistics/parcels/{id}/confirm-received', [LogisticsController::cl
 Route::get('/logistics/scan/{code}', [LogisticsController::class, 'scanParcel'])->name('logistics.scan');
 
 Route::post('/logistics/parcels/{id}/dispatch', [LogisticsController::class, 'dispatchParcel'])->name('logistics.parcels.dispatch');
+Route::post('/logistics/parcels/{id}/sort', [LogisticsController::class, 'sortParcel'])->whereNumber('id')->name('logistics.parcels.sort');
+Route::post('/logistics/parcels/{id}/assign-pickup', [LogisticsController::class, 'assignPickup'])->whereNumber('id')->name('logistics.parcels.assign-pickup');
 
 Route::post('/logistics/parcels/{id}/confirm-arrival', [LogisticsController::class, 'confirmParcelArrival'])->name('logistics.parcels.confirm-arrival');
 

@@ -353,6 +353,36 @@
                     </div>
 
 
+                    {{-- PHONE AND ADDRESS --}}
+
+                    <div class="card password-card" id="details">
+
+                        <div class="card-title">
+                            <i class="bi bi-geo-alt-fill"></i> Phone &amp; Address
+                        </div>
+
+                        <form method="POST" action="{{ route('rider.profile.update') }}" class="password-form">
+                            @csrf
+
+                            <label class="pw-field" for="phone">
+                                <span>Mobile number</span>
+                                <input type="text" id="phone" name="phone" maxlength="20" required value="{{ old('phone', $dbUser->phone ?? '') }}" placeholder="09XXXXXXXXX">
+                            </label>
+
+                            <div class="pw-field">
+                                <span>Home address</span>
+                                @include('partials.address-fields', ['id' => 'rider', 'value' => old('address', $dbUser->address ?? '')])
+                                <small>Your town decides which Sorting Center you work with.</small>
+                            </div>
+
+                            <button type="submit" class="upload-submit-btn">
+                                <i class="bi bi-check-circle-fill"></i> Save Details
+                            </button>
+                        </form>
+
+                    </div>
+
+
                     {{-- CHANGE PASSWORD --}}
 
                     <div class="card password-card">

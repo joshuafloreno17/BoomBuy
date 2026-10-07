@@ -61,7 +61,7 @@
 
         <div class="card">
             <h2><i class="bi bi-bicycle"></i> Delivery Fees</h2>
-            <p class="desc">What the buyer pays per seller's parcel, by how far it travels from the seller's town. Orders of ₱{{ number_format(\App\Support\DeliveryFee::FREE_SHIPPING_MIN) }} and up ship free. The same-town fee is also what a rider earns per completed delivery (rider Profit dashboard).</p>
+            <p class="desc">What the buyer pays per seller's parcel, by how far it travels from the seller's town. Orders of ₱{{ number_format(\App\Support\DeliveryFee::freeShippingMin()) }} and up ship free. The same-town fee is also what a rider earns per completed delivery (rider Profit dashboard).</p>
 
             <form method="POST" action="{{ route('admin.settings.delivery-fee.update') }}">
                 @csrf
@@ -74,6 +74,11 @@
                             <input type="text" id="{{ $key }}" name="{{ $key }}" value="{{ old($key, \App\Models\PlatformSetting::get($key, $default)) }}" placeholder="{{ $default }}" required>
                         </div>
                     @endforeach
+                    <div class="form-group">
+                        <label for="free_shipping_min">Free delivery from (₱)</label>
+                        <input type="text" id="free_shipping_min" name="free_shipping_min" value="{{ old('free_shipping_min', \App\Support\DeliveryFee::freeShippingMin()) }}" placeholder="{{ \App\Support\DeliveryFee::FREE_SHIPPING_MIN }}">
+                        <small style="color:#8a7f86; font-size:11px;">Items total per seller order.</small>
+                    </div>
                 </div>
 
                 <button type="submit" class="save-btn">Save Delivery Fees</button>

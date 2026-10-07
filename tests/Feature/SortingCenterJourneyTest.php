@@ -153,18 +153,24 @@ class SortingCenterJourneyTest extends TestCase
         $this->assertSame($this->santaCruz->id, (int) $order->destination_center_id);
         $this->actingAsUser($buyer)->get(route('orders.success', $id))->assertOk();
 
-        // Seller: told where to drop it off; can't use the old rider pickup.
+        // Seller: accepts, packs, and a rider brings it to the QC center. The
+        // seller can't skip steps or drop it off themselves any more.
+        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Confirmed'])->assertSessionHas('success');
         $this->actingAsUser($seller)->get(route('seller.order.details', $id))
             ->assertOk()
-            ->assertSee('Drop off at: Quezon City Sorting Center');
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Processing'])->assertSessionHas('success');
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Ready for Pickup'])->assertSessionHas('error');
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off'])->assertSessionHas('success');
-        $this->assertSame('Dropped Off', $this->orderStatus($id));
+            ->assertSee('The rider brings it to Quezon City Sorting Center');
+        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off'])->assertSessionHas('error');
+        $this->actingAsUser($seller)->post(route('seller.order.pickup', $id), ['pickup_date' => now()->toDateString()])->assertSessionHas('error');
+        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Preparing'])->assertSessionHas('success');
+        $this->actingAsUser($seller)->post(route('seller.order.pickup', $id), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
+        $pickupRider = $this->makeRider();
+        app(\App\Services\PickupService::class)->assignByCenter($id, $pickupRider->id);
+        $this->actingAsUser($pickupRider)->post(route('rider.pickup.picked-up', $id))->assertSessionHas('success');
+        $this->assertSame('Picked Up', $this->orderStatus($id));
 
         // Only the QC center is told, and only QC can confirm it.
-        $this->assertTrue($this->notified($this->qcStaff, 'Parcel Dropped Off', $id));
-        $this->assertFalse($this->notified($this->santaCruzStaff, 'Parcel Dropped Off', $id));
+        $this->assertTrue($this->notified($this->qcStaff, 'Parcel Picked Up', $id));
+        $this->assertFalse($this->notified($this->santaCruzStaff, 'Parcel Picked Up', $id));
         $this->actingAsUser($this->santaCruzStaff)->get(route('logistics.parcels'))->assertOk()->assertDontSee('Order #' . $id);
         $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.confirm-received', $id))->assertSessionHas('error');
 
@@ -181,7 +187,7 @@ class SortingCenterJourneyTest extends TestCase
         // QC can't hand it to a rider — it has to go on to Santa Cruz.
         $this->actingAsUser($this->qcStaff)->get(route('logistics.parcels'))->assertSee('Dispatch to Santa Cruz Sorting Center');
         $this->actingAsUser($this->qcStaff)
-            ->post(route('logistics.parcels.assign', $id), ['rider_id' => $this->santaCruzRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($id)), ['rider_id' => $this->santaCruzRider->id])
             ->assertSessionHas('error');
         $this->assertSame(1, $todo($this->qcStaff)['Dispatch parcels']);
         $this->actingAsUser($this->qcStaff)->post(route('logistics.parcels.dispatch', $id))->assertSessionHas('success');
@@ -201,10 +207,10 @@ class SortingCenterJourneyTest extends TestCase
 
         $this->actingAsUser($this->santaCruzStaff)->get(route('logistics.parcels'))->assertSee('Jun Dela Cruz');
         $this->actingAsUser($this->qcStaff)
-            ->post(route('logistics.parcels.assign', $id), ['rider_id' => $this->santaCruzRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($id)), ['rider_id' => $this->santaCruzRider->id])
             ->assertSessionHas('error');
         $this->actingAsUser($this->santaCruzStaff)
-            ->post(route('logistics.parcels.assign', $id), ['rider_id' => $this->santaCruzRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($id)), ['rider_id' => $this->santaCruzRider->id])
             ->assertSessionHas('success');
         $this->assertSame('Assigned for Delivery', $this->orderStatus($id));
 
@@ -213,26 +219,30 @@ class SortingCenterJourneyTest extends TestCase
         $this->actingAsUser($this->santaCruzRider)->post(route('rider.delivery.status', $id), ['status' => 'Out for Delivery'])->assertSessionHas('success');
         $this->actingAsUser($this->santaCruzRider)->post(route('rider.delivery.status', $id), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()])->assertSessionHas('success');
         $this->actingAsUser($buyer)->post(route('buyer.order.received', $id))->assertSessionHas('success');
-        $this->assertSame('Delivered', $this->orderStatus($id));
+        $this->assertSame('Completed', $this->orderStatus($id));
         $this->assertNotNull(DB::table('orders')->where('id', $id)->value('buyer_received_at'));
 
         // The buyer was kept up to date at every hop, in notifications and the shop chat.
-        foreach (['Order Processing', 'Order Shipped', 'Parcel at Sorting Center', 'Parcel In Transit', 'Parcel Near You', 'Rider Assigned for Delivery'] as $title) {
+        foreach (['Order Being Prepared', 'Order Shipped', 'Parcel at Sorting Center', 'Parcel In Transit', 'Parcel Near You', 'Rider Assigned for Delivery'] as $title) {
             $this->assertTrue($this->notified($buyer, $title, $id), "Buyer was not told: $title");
         }
         $chat = DB::table('messages')->where('order_id', $id)->pluck('message')->implode(' | ');
         $this->assertStringContainsString('preparing your order', $chat);
-        $this->assertStringContainsString('dropped it off at the Sorting Center', $chat);
+        $this->assertStringContainsString('picked up by the rider', $chat);
 
         // The tracking timeline shows each hop, with the centers, in order.
         $steps = DB::table('order_events')->where('order_id', $id)->orderBy('id')->pluck('title')->all();
         $this->assertSame([
             'Order placed',
+            'Seller accepted your order',
             'Seller is preparing your order',
-            'Seller dropped it off at Quezon City Sorting Center',
+            'Seller booked a rider pickup',
+            'Rider ' . \App\Models\User::whereKey(DB::table('orders')->where('id', $id)->value('rider_id'))->value('name') . ' will pick it up from the seller',
+            'Rider picked it up from the seller',
             'Received at Quezon City Sorting Center',
             'On its way to Santa Cruz Sorting Center',
             'Arrived at Santa Cruz Sorting Center',
+            'Sorted for delivery to Santa Cruz, Laguna',
             'Handed to a rider for delivery',
             'Out for delivery',
             'Delivered',
@@ -262,13 +272,12 @@ class SortingCenterJourneyTest extends TestCase
         $order = $this->latestOrder($buyer);
         $this->assertEquals(50, $order->delivery_fee);
 
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($seller, $order->id);
         $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.confirm-received', $order->id))->assertSessionHas('success');
 
         $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.dispatch', $order->id))->assertSessionHas('error');
         $this->actingAsUser($this->santaCruzStaff)
-            ->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $this->santaCruzRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $this->santaCruzRider->id])
             ->assertSessionHas('success');
         $this->assertSame('Assigned for Delivery', $this->orderStatus($order->id));
     }
@@ -307,9 +316,9 @@ class SortingCenterJourneyTest extends TestCase
         $buyer = $this->makeUser();
 
         // Seller in Cavite → nearest is in the same region (CALABARZON): Laguna.
-        $this->actingAsUser($caviteSeller)->get(route('seller.order.details', $this->makeOrder($buyer, $product, 'Processing', [
+        $this->actingAsUser($caviteSeller)->get(route('seller.order.details', $this->makeOrder($buyer, $product, 'Preparing', [
             'shipping_address' => '1 Rizal St, Quezon City', 'shipping_province' => 'Metro Manila (NCR)', 'shipping_city' => 'Quezon City',
-        ])))->assertSee('Drop off at: Santa Cruz Sorting Center');
+        ])))->assertSee('The rider brings it to Santa Cruz Sorting Center');
 
         // Buyer in Lucena, Quezon → also delivered from the Laguna center.
         $this->checkout($buyer, ["{$product->id}:0" => 1], 'Purok 3, Lucena City, Quezon')->assertRedirect();
@@ -335,11 +344,10 @@ class SortingCenterJourneyTest extends TestCase
         $this->assertSame('Davao del Sur', $order->shipping_province);
         $this->assertNull($order->destination_center_id);
 
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order->id), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($seller, $order->id);
         $this->actingAsUser($this->qcStaff)->post(route('logistics.parcels.confirm-received', $order->id))->assertSessionHas('success');
         $this->actingAsUser($this->qcStaff)
-            ->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $qcRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $qcRider->id])
             ->assertSessionHas('success');
 
         // On the road: QC's parcel, not Santa Cruz's.
@@ -351,15 +359,15 @@ class SortingCenterJourneyTest extends TestCase
     // 5. An order placed before Sorting Centers existed
     // ------------------------------------------------------------------
 
-    public function test_an_older_order_gets_its_route_when_dropped_off(): void
+    public function test_an_older_order_gets_its_route_when_marked_ready_for_pickup(): void
     {
         $seller = $this->sellerIn('Metro Manila (NCR)', 'Quezon City');
-        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller), 'Processing', [
+        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller), 'Preparing', [
             'shipping_address' => '15 Rizal St, Santa Cruz, Laguna',
         ]);
 
-        $this->actingAsUser($seller)->get(route('seller.order.details', $order))->assertOk()->assertSee('Drop off at: Quezon City Sorting Center');
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Dropped Off'])->assertSessionHas('success');
+        $this->actingAsUser($seller)->get(route('seller.order.details', $order))->assertOk()->assertSee('The rider brings it to Quezon City Sorting Center');
+        $this->actingAsUser($seller)->post(route('seller.order.pickup', $order), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
 
         $row = DB::table('orders')->find($order);
         $this->assertSame($this->qc->id, (int) $row->origin_center_id);
@@ -376,8 +384,7 @@ class SortingCenterJourneyTest extends TestCase
         $buyer = $this->makeUser();
         $this->checkout($buyer, ["{$this->makeProduct($seller)->id}:0" => 1], '15 Rizal St, Santa Cruz, Laguna');
         $id = (int) $this->latestOrder($buyer)->id;
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($seller, $id);
 
         $headOffice = $this->makeStaff(null);
         $this->actingAsUser($headOffice)->get(route('logistics.parcels'))->assertSee('Head office')->assertSee('Order #' . $id);
@@ -442,8 +449,7 @@ class SortingCenterJourneyTest extends TestCase
         // Not someone else's label.
         $this->actingAsUser($this->sellerIn('Laguna', 'Santa Cruz', 'electronics'))->get(route('seller.order.label', $id))->assertNotFound();
 
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($seller, $id);
 
         // Scanning opens the parcel, ready to confirm; typing the waybill no. works too.
         $this->actingAsUser($this->qcStaff)->get(route('logistics.scan', $waybill))
@@ -489,6 +495,8 @@ class SortingCenterJourneyTest extends TestCase
             'shipping_address' => '15 Rizal St, Santa Cruz, Laguna', 'shipping_province' => 'Laguna', 'shipping_city' => 'Santa Cruz',
             'origin_center_id' => $this->santaCruz->id, 'destination_center_id' => $this->santaCruz->id, 'current_center_id' => $this->santaCruz->id,
         ]);
+        $this->actingAsUser($this->santaCruzStaff)->get(route('logistics.parcels'))->assertSee('Rider for this area: Jun Dela Cruz');
+        $this->sorted($order);
         $this->actingAsUser($this->santaCruzStaff)->get(route('logistics.parcels'))
             ->assertSee('Order #' . $order)
             ->assertSee('Jun Dela Cruz (area match)')

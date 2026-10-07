@@ -60,13 +60,13 @@ class AutoReceive
                 ->where('id', $order->id)
                 ->where('status', 'Delivered')
                 ->whereNull('buyer_received_at')
-                ->update(['buyer_received_at' => $receivedAt, 'updated_at' => now()]);
+                ->update(['status' => 'Completed', 'buyer_received_at' => $receivedAt, 'updated_at' => now()]);
 
             if (!$updated) {
                 continue;
             }
 
-            OrderTimeline::log((int) $order->id, 'Delivered', 'Marked as received automatically', 'No issue reported within ' . self::DAYS . ' days of delivery');
+            OrderTimeline::log((int) $order->id, 'Completed', 'Marked as received automatically', 'No issue reported within ' . self::DAYS . ' days of delivery');
 
             $marked++;
             $returnUntil = $receivedAt->copy()->addDays(self::RETURN_WINDOW_DAYS);

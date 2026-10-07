@@ -115,7 +115,7 @@ class SellerScenariosTest extends TestCase
         $buyer = $this->buyerAt();
         $this->makeProduct($this->seller, ['stock' => 2]);
         $this->makeOrder($buyer, $this->shoes, 'Pending');
-        $this->makeOrder($buyer, $this->shoes, 'Processing');
+        $this->makeOrder($buyer, $this->shoes, 'Preparing');
         $this->makeOrder($buyer, $this->shoes, 'Delivered', ['cod_collected_at' => now()]);
         $this->makeOrder($buyer, $this->shoes, 'Delivered', ['cod_collected_at' => now(), 'cod_remitted_at' => now()]);
 
@@ -250,7 +250,8 @@ class SellerScenariosTest extends TestCase
         $this->flushSession();
         $status = fn (array $data) => $this->actingAsUser($this->seller)->post(route('seller.order.status', $orderId), $data);
 
-        $status(['status' => 'Dropped Off'])->assertSessionHas('error', 'Pending orders must be moved to Processing first.');
+        $status(['status' => 'Dropped Off'])->assertSessionHas('error', 'Invalid seller order status.');
+        $status(['status' => 'Preparing'])->assertSessionHas('error', 'Accept the order first.');
         $status(['status' => 'Cancelled'])->assertSessionHas('error', 'Please provide a reason for cancelling this order.');
         $status(['status' => 'Cancelled', 'cancellation_reason' => 'Out of size'])->assertSessionHas('success');
 
@@ -261,7 +262,7 @@ class SellerScenariosTest extends TestCase
 
     public function test_S09_shipping_label_and_waybill(): void
     {
-        $orderId = $this->makeOrder($this->buyerAt(), $this->shoes, 'Processing', ['origin_center_id' => $this->laguna->id]);
+        $orderId = $this->makeOrder($this->buyerAt(), $this->shoes, 'Preparing', ['origin_center_id' => $this->laguna->id]);
 
         $this->asSeller()->get(route('seller.order.label', $orderId))->assertOk()
             ->assertSee(\App\Support\Waybill::number($orderId))

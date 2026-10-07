@@ -1401,3 +1401,25 @@ select {
         bottom: calc(84px + env(safe-area-inset-bottom));
     }
 }
+
+/* Seller's "% off": badge on the photo, old price crossed out */
+.sp-off {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--accent, #e8420f);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+}
+
+.sp-was {
+    margin-left: 4px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted, #6b6570);
+}

@@ -48,8 +48,7 @@ class JourneyScenariosTest extends TestCase
 
     private function sellerShips(int $orderId, ?User $seller = null): void
     {
-        $this->as($seller ?? $this->seller)->post(route('seller.order.status', $orderId), ['status' => 'Processing'])->assertSessionHas('success');
-        $this->post(route('seller.order.status', $orderId), ['status' => 'Dropped Off'])->assertSessionHas('success');
+        $this->shipFromSeller($seller ?? $this->seller, $orderId);
     }
 
     private function riderTakes(int $orderId, User $rider, string $outcome = 'Delivered', array $fail = []): void
@@ -71,7 +70,7 @@ class JourneyScenariosTest extends TestCase
 
         $this->sellerShips($order->id);
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-received', $order->id))->assertSessionHas('success');
-        $this->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
+        $this->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
         $this->riderTakes($order->id, $this->lagunaRider);
 
         $this->as($this->lagunaStaff)->post(route('logistics.riders.receive-cod', $this->lagunaRider->id))->assertSessionHas('success');
@@ -82,7 +81,7 @@ class JourneyScenariosTest extends TestCase
         $this->as($buyer)->post(route('buyer.product.review', [$order->id, $this->shoes->id]), ['rating' => 5, 'review' => 'Ganda!'])->assertSessionHas('success');
 
         // Each step told the buyer, and the shop's chat shows the order cards.
-        foreach (['Order Confirmed', 'Order Processing', 'Order Shipped', 'Parcel at Sorting Center', 'Rider Assigned for Delivery', 'Order Out for Delivery', 'Order Delivered', 'Order Marked as Received'] as $title) {
+        foreach (['Order Confirmed', 'Order Being Prepared', 'Order Shipped', 'Parcel at Sorting Center', 'Rider Assigned for Delivery', 'Order Out for Delivery', 'Order Delivered', 'Order Marked as Received'] as $title) {
             $this->assertTrue($this->notifiedWith($buyer, $title), "Buyer was not told: {$title}");
         }
         $this->assertGreaterThanOrEqual(4, Message::where('recipient_id', $buyer->id)->where('kind', Message::ORDER_UPDATE)->count());
@@ -113,7 +112,7 @@ class JourneyScenariosTest extends TestCase
         $this->assertSame('In Transit', $this->orderStatus($order->id));
 
         $this->as($cebuStaff)->post(route('logistics.parcels.confirm-arrival', $order->id))->assertSessionHas('success');
-        $this->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $cebuRider->id])->assertSessionHas('success');
+        $this->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $cebuRider->id])->assertSessionHas('success');
         $this->riderTakes($order->id, $cebuRider);
 
         $this->assertSame('Delivered', $this->orderStatus($order->id));
@@ -133,7 +132,7 @@ class JourneyScenariosTest extends TestCase
         $this->assertMatchesRegularExpression('/^\d{6}$/', (string) $order->pickup_code);
         $this->post(route('logistics.parcels.hand-to-buyer', $order->id), ['pickup_code' => $order->pickup_code])->assertSessionHas('success');
         $fresh = DB::table('orders')->find($order->id);
-        $this->assertSame('Delivered', $fresh->status);
+        $this->assertSame('Completed', $fresh->status);
         $this->assertNotNull($fresh->buyer_received_at);
         $this->assertNotNull($fresh->cod_remitted_at);
     }
@@ -147,7 +146,7 @@ class JourneyScenariosTest extends TestCase
 
         $this->sellerShips($order->id);
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-received', $order->id));
-        $this->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $this->lagunaRider->id]);
+        $this->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $this->lagunaRider->id]);
         $this->riderTakes($order->id, $this->lagunaRider, 'Failed', ['failure_code' => \App\Services\DeliveryService::REFUSED_REASON]);
 
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-back', $order->id))->assertSessionHas('success');
@@ -167,7 +166,7 @@ class JourneyScenariosTest extends TestCase
         $order = $this->lastOrder($buyer);
         $this->sellerShips($order->id);
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-received', $order->id));
-        $this->post(route('logistics.parcels.assign', $order->id), ['rider_id' => $this->lagunaRider->id]);
+        $this->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $this->lagunaRider->id]);
 
         $this->riderTakes($order->id, $this->lagunaRider, 'Failed', ['failure_code' => 'Buyer not available']);
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-back', $order->id))->assertSessionHas('success');

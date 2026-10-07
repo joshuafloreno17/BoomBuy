@@ -59,7 +59,7 @@ class BuyerScenariosTest extends TestCase
     {
         $buyer = $this->buyerAt();
         foreach (range(1, 4) as $i) {
-            $this->makeOrder($buyer, $this->shoes, 'Processing');
+            $this->makeOrder($buyer, $this->shoes, 'Preparing');
         }
         $this->makeOrder($buyer, $this->makeProduct($this->seller, ['name' => 'Bought Before Boots']), 'Delivered');
 
@@ -352,7 +352,7 @@ class BuyerScenariosTest extends TestCase
         $this->assertSame('Cancelled', $this->orderStatus($pending));
         $this->assertSame(10, $this->stockOf($this->shoes));
 
-        $processing = $this->makeOrder($buyer, $this->shoes, 'Processing');
+        $processing = $this->makeOrder($buyer, $this->shoes, 'Preparing');
         $cancel($processing, ['cancel_reason' => 'Ordered by mistake'])->assertSessionHas('success');
 
         $prepaid = $this->makeOrder($buyer, $this->shoes, 'Pending', ['payment_method' => 'GCash']);
@@ -589,8 +589,7 @@ class BuyerScenariosTest extends TestCase
         $orderId = $this->lastOrder($buyer)->id;
 
         $this->flushSession();
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $orderId), ['status' => 'Processing']);
-        $this->post(route('seller.order.status', $orderId), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($this->seller, $orderId);
         $this->flushSession();
         $this->actingAsUser($staff)->post(route('logistics.parcels.confirm-received', $orderId))->assertSessionHas('success');
 

@@ -32,6 +32,12 @@ class RiderRelease
             );
         }
 
+        // Pickups they accepted but haven't collected: open to other riders again.
+        DB::table('orders')
+            ->where('rider_id', $riderId)
+            ->where('status', 'Pickup Assigned')
+            ->update(['status' => 'Ready for Pickup', 'rider_id' => null, 'updated_at' => now()]);
+
         $held = DB::table('orders')
             ->where('delivery_rider_id', $riderId)
             ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
@@ -41,7 +47,7 @@ class RiderRelease
             ->whereIn('id', $held->pluck('id'))
             ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
             ->update([
-                'status' => 'At Sorting Center',
+                'status' => 'Sorted',
                 'delivery_rider_id' => null,
                 'updated_at' => now(),
             ]);

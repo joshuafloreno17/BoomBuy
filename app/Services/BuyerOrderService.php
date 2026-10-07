@@ -32,7 +32,7 @@ class BuyerOrderService
         $order = $this->buyerOrder($buyerId, $orderId);
 
         // Paid orders can't be cancelled by the buyer once checked out; COD
-        // orders only until the seller hands them over (Pending/Processing).
+        // orders only until the seller packs them (Pending/Confirmed/Preparing).
         if (!CodPolicy::isCod($order->payment_method)) {
             throw new ActionFailed('Paid orders can no longer be cancelled. You can request a return once you receive it.');
         }
@@ -78,7 +78,7 @@ class BuyerOrderService
         OrderStock::cancelled($orderId, $order->status);
         ChatAutomation::orderUpdate($orderId, 'cancelled');
 
-        $stage = $order->status === 'Processing' ? 'while you were preparing it' : 'before processing';
+        $stage = in_array($order->status, \App\Support\OrderStatus::SELLER_WORKING, true) ? 'while you were preparing it' : 'before processing';
 
         foreach (DB::table('order_items')->where('order_id', $orderId)->distinct()->pluck('seller_id') as $sellerId) {
             createNotification(
@@ -120,12 +120,13 @@ class BuyerOrderService
             throw new ActionFailed('This order has already been marked as received.');
         }
 
-        DB::table('orders')->where('id', $orderId)->update([
+        DB::table('orders')->where('id', $orderId)->where('status', 'Delivered')->update([
+            'status' => 'Completed',
             'buyer_received_at' => now(),
             'updated_at' => now(),
         ]);
 
-        \App\Support\OrderTimeline::log($orderId, 'Delivered', 'You confirmed you received it');
+        \App\Support\OrderTimeline::log($orderId, 'Completed', 'You confirmed you received it');
 
         foreach (DB::table('order_items')->where('order_id', $orderId)->distinct()->pluck('seller_id') as $sellerId) {
             createNotification(
@@ -159,7 +160,7 @@ class BuyerOrderService
     ): string {
         $order = $this->buyerOrder($buyerId, $orderId);
 
-        if ($order->status !== 'Delivered') {
+        if (!in_array($order->status, \App\Support\OrderStatus::DONE, true)) {
             throw new ActionFailed('Only delivered orders can be returned or refunded.');
         }
 

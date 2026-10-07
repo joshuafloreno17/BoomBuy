@@ -207,38 +207,8 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
     }
 
     // ------------------------------------------------------------------
-    // Payouts
+    // Commission
     // ------------------------------------------------------------------
-
-    public function test_PY01_balance_counts_only_orders_that_can_no_longer_be_returned(): void
-    {
-        $buyer = $this->buyerAt(self::QC_ADDRESS);
-        // ₱500 each, 10% commission → ₱450 to the seller.
-        $waitingCash = $this->qcOrder($buyer, 10, ['payment_method' => 'Cash on Delivery', 'cod_collected_at' => now()->subDays(10), 'commission_rate' => 10]);
-        $returnable = $this->qcOrder($buyer, 2, ['payment_method' => 'GCash', 'commission_rate' => 10]);
-        $ready = $this->qcOrder($buyer, 10, ['payment_method' => 'Cash on Delivery', 'cod_collected_at' => now()->subDays(10), 'cod_remitted_at' => now()->subDays(9), 'commission_rate' => 10]);
-        $refunded = $this->qcOrder($buyer, 10, ['payment_method' => 'GCash', 'commission_rate' => 10]);
-        DB::table('return_refund_requests')->insert([
-            'order_id' => $refunded, 'order_item_id' => DB::table('order_items')->where('order_id', $refunded)->value('id'),
-            'buyer_id' => $buyer->id, 'seller_id' => $this->seller->id, 'request_type' => 'Refund', 'reason' => 'x',
-            'status' => 'completed', 'refund_amount' => 500, 'refunded_at' => now(), 'created_at' => now(), 'updated_at' => now(),
-        ]);
-
-        $balance = SellerBalance::for($this->seller->id);
-
-        $this->assertEquals(450, $balance['waiting_cash']);
-        $this->assertEquals(450, $balance['on_hold']);
-        $this->assertEquals(450, $balance['available']); // the refunded order earns nothing
-        $this->assertEquals(500, $balance['refunds']);
-        $states = $balance['orders']->pluck('state', 'id');
-        $this->assertSame('waiting_cash', $states[$waitingCash]);
-        $this->assertSame('on_hold', $states[$returnable]);
-        $this->assertSame('available', $states[$ready]);
-
-        // Changing the commission later doesn't touch these orders.
-        PlatformSetting::set('commission_rate', '25');
-        $this->assertEquals(450, SellerBalance::for($this->seller->id)['available']);
-    }
 
     public function test_PY02_new_orders_save_todays_commission_rate(): void
     {
@@ -249,36 +219,7 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
         $this->assertEquals(12.5, $this->lastOrder($buyer)->commission_rate);
     }
 
-    public function test_PY03_seller_sets_an_account_and_admin_pays_up_to_the_balance(): void
-    {
-        $buyer = $this->buyerAt(self::QC_ADDRESS);
-        $this->qcOrder($buyer, 10, ['payment_method' => 'GCash', 'commission_rate' => 10]);
-        $this->qcOrder($buyer, 10, ['payment_method' => 'GCash', 'commission_rate' => 10]);
-
-        // No account yet: the admin can't record a payout.
-        $this->as(null)->post(route('admin.payouts.store', $this->seller->id), ['amount' => 100, 'reference' => 'R1'])
-            ->assertSessionHas('error', fn ($m) => str_contains($m, 'has not set where to be paid'));
-
-        $this->as($this->seller)->post(route('seller.payouts.account'), ['payout_method' => 'GCash', 'payout_account_name' => 'Kicks Owner', 'payout_account_number' => '123'])
-            ->assertSessionHas('error');
-        $this->post(route('seller.payouts.account'), ['payout_method' => 'GCash', 'payout_account_name' => 'Kicks Owner', 'payout_account_number' => '09998887777'])
-            ->assertSessionHas('success');
-
-        $this->as(null)->get(route('admin.payouts'))->assertOk()->assertSee('Santa Cruz Kicks')->assertSee('₱900.00');
-        $this->post(route('admin.payouts.store', $this->seller->id), ['amount' => 1000, 'reference' => 'R1'])->assertSessionHas('error', fn ($m) => str_contains($m, 'more than'));
-        $this->post(route('admin.payouts.store', $this->seller->id), ['amount' => 600])->assertSessionHas('error');
-        $this->post(route('admin.payouts.store', $this->seller->id), ['amount' => 600, 'reference' => 'GC-PAY-1'])->assertSessionHas('success');
-
-        $this->assertEquals(300, SellerBalance::for($this->seller->id)['available']);
-        $this->assertTrue($this->notifiedWith($this->seller, 'Payout Sent'));
-
-        $this->as($this->seller)->get(route('seller.payouts'))->assertOk()
-            ->assertSee('GC-PAY-1')
-            ->assertViewHas('balance', fn ($b) => $b['paid_out'] == 600 && $b['available'] == 300);
-        $this->get(route('seller.dashboard'))->assertOk()->assertSee('₱300 ready');
-    }
-
-    public function test_PY04_reports_match_payouts_after_refunds(): void
+    public function test_PY04_reports_count_refunds_and_commission(): void
     {
         $buyer = $this->buyerAt(self::QC_ADDRESS);
         $kept = $this->qcOrder($buyer, 10, ['payment_method' => 'GCash', 'commission_rate' => 10]);

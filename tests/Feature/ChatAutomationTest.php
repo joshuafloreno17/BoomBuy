@@ -116,19 +116,19 @@ class ChatAutomationTest extends TestCase
         $seller = $this->makeSeller();
         $order = $this->makeOrder($buyer, $this->makeProduct($seller));
 
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Dropped Off']);
+        $this->shipFromSeller($seller, $order);
 
-        // One card when the seller starts on it, one when it's dropped at the Sorting Center.
+        // One card each: accepted, being prepared, picked up by the rider.
         $updates = Message::where('kind', Message::ORDER_UPDATE)->orderBy('id')->get();
-        $this->assertCount(2, $updates);
-        $this->assertStringContainsString('preparing your order', $updates[0]->message);
+        $this->assertCount(3, $updates);
+        $this->assertStringContainsString('accepted your order', $updates[0]->message);
+        $this->assertStringContainsString('preparing your order', $updates[1]->message);
 
-        $update = $updates[1];
+        $update = $updates[2];
         $this->assertSame($seller->id, (int) $update->sender_id);
         $this->assertSame($buyer->id, (int) $update->recipient_id);
         $this->assertSame($order, (int) $update->order_id);
-        $this->assertStringContainsString('dropped it off at the Sorting Center', $update->message);
+        $this->assertStringContainsString('picked up by the rider', $update->message);
         $this->assertNotNull($update->read_at);
 
         // Out for delivery + delivered, from the delivery rider.
@@ -138,7 +138,7 @@ class ChatAutomationTest extends TestCase
         $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery']);
         $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Delivered', 'delivery_proof' => $this->deliveryPhoto()]);
 
-        $this->assertSame(4, Message::where('kind', Message::ORDER_UPDATE)->where('order_id', $order)->count());
+        $this->assertSame(5, Message::where('kind', Message::ORDER_UPDATE)->where('order_id', $order)->count());
 
         // The buyer sees the order card, linked to their orders page.
         $this->flushSession();

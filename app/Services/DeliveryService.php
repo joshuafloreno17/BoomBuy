@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Storage;
 
 /**
  * A rider's work on an order — the last leg, from the Sorting Center to the
- * buyer (sellers drop parcels at the Sorting Center themselves): Assigned
+ * buyer (the first leg, seller → Sorting Center, is PickupService): Assigned
  * for Delivery → Out for Delivery → Delivered or Delivery Failed (a refusal
  * included). Used by the rider web pages and meant for the mobile app.
  */
@@ -52,7 +52,9 @@ class DeliveryService
         // The last leg belongs to whoever the Sorting Center assigned
         // (delivery_rider_id); orders from before the Sorting Center hop
         // existed fall back to rider_id.
-        if ((int) ($order->delivery_rider_id ?? $order->rider_id) !== $riderId) {
+        $legacyRider = empty($order->pickup_date) ? $order->rider_id : null;
+
+        if ((int) ($order->delivery_rider_id ?? $legacyRider) !== $riderId) {
             throw new ActionFailed('This delivery is not assigned to you.');
         }
 

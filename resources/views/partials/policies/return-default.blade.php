@@ -25,7 +25,7 @@
 
             <div class="terms-section">
                 <h3>6. Cancellations</h3>
-                <p>Cash on Delivery orders may be cancelled by the buyer while they are still Pending or Processing. Orders the seller doesn't confirm within 3 days are cancelled automatically. Frequent cancellations or refused parcels may temporarily pause Cash on Delivery for that account.</p>
+                <p>Cash on Delivery orders may be cancelled by the buyer while they are still Pending, Confirmed or Preparing. Orders the seller doesn't confirm within 3 days are cancelled automatically. Frequent cancellations or refused parcels may temporarily pause Cash on Delivery for that account.</p>
             </div>
 
             <div class="terms-section">

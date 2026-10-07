@@ -183,4 +183,35 @@ trait BuildsBoomBuyData
     {
         return ['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'];
     }
+    /**
+     * The seller side of the ERP flow, the way a seller does it: Accept →
+     * Start Preparing → Mark as Ready for Pickup, then a rider (given, or a
+     * new one) collects it — the parcel ends up "Picked Up", on its way to
+     * the seller's Sorting Center.
+     */
+    protected function shipFromSeller(User $seller, int $orderId, ?User $rider = null): void
+    {
+        foreach (["Confirmed", "Preparing"] as $step) {
+            $this->actingAsUser($seller)->post(route("seller.order.status", $orderId), ["status" => $step])->assertSessionHas("success");
+        }
+
+        $this->actingAsUser($seller)->post(route("seller.order.pickup", $orderId), ["pickup_date" => now()->toDateString()])->assertSessionHas("success");
+
+        $rider ??= $this->makeRider();
+        $pickups = app(\App\Services\PickupService::class);
+        $pickups->assignByCenter($orderId, $rider->id);
+        $pickups->pickedUp($rider->id, $orderId);
+    }
+
+    /** Sorts a parcel that is waiting at the center that delivers it (the step before assigning a rider). */
+    protected function sorted(int $orderId): int
+    {
+        try {
+            app(\App\Services\SortingCenterService::class)->sort($orderId);
+        } catch (\App\Exceptions\ActionFailed) {
+            // Not sortable (yet): the assign call under test says why.
+        }
+
+        return $orderId;
+    }
 }

@@ -200,7 +200,7 @@
                                 <div class="unit-price">
                                     ₱{{ number_format($itemUnitPrice, 2) }} each
                                     @if($itemVariation)
-                                        <br>{{ $itemVariation->variation_type }}: {{ $itemVariation->variation_value }}
+                                        <br>{{ $itemVariation->label() }}
                                     @endif
                                 </div>
 
@@ -637,7 +637,7 @@
                ========================= */
 
             var deliveryFee = @json(\App\Support\DeliveryFee::baseFee());
-            var freeDeliveryMin = @json(\App\Support\DeliveryFee::FREE_SHIPPING_MIN);
+            var freeDeliveryMin = @json(\App\Support\DeliveryFee::freeShippingMin());
             var peso = function (n) {
                 return '₱' + n.toLocaleString('en-PH', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
             };

@@ -56,9 +56,11 @@
 
             {{-- JUMP LINKS --}}
             <nav class="section-jump" aria-label="Parcel sections">
-                <a href="#awaiting-confirmation" class="{{ count($awaitingConfirmation) ? 'has-work' : '' }}">Drop-offs <span>{{ count($awaitingConfirmation) }}</span></a>
+                <a href="#pickups-need-rider" class="{{ count($pickupsNeedRider) ? 'has-work' : '' }}">Pickups <span>{{ count($pickupsNeedRider) }}</span></a>
+                <a href="#awaiting-confirmation" class="{{ count($awaitingConfirmation) ? 'has-work' : '' }}">Arrivals <span>{{ count($awaitingConfirmation) }}</span></a>
                 <a href="#to-dispatch" class="{{ count($toDispatch) ? 'has-work' : '' }}">To dispatch <span>{{ count($toDispatch) }}</span></a>
                 <a href="#incoming" class="{{ count($incoming) ? 'has-work' : '' }}">Incoming <span>{{ count($incoming) }}</span></a>
+                <a href="#to-sort" class="{{ count($toSort) ? 'has-work' : '' }}">To sort <span>{{ count($toSort) }}</span></a>
                 <a href="#awaiting-assignment" class="{{ count($awaitingAssignment) ? 'has-work' : '' }}">Assign rider <span>{{ count($awaitingAssignment) }}</span></a>
                 <a href="#failed-deliveries" class="{{ count($failedDeliveries) ? 'has-work' : '' }}">Failed <span>{{ count($failedDeliveries) }}</span></a>
                 <a href="#on-the-road">On the road <span>{{ count($onTheRoad) }}</span></a>
@@ -81,8 +83,8 @@
                             <x-status-pill :status="$order->status" />
                         </div>
                         <div class="parcel-meta">
-                            @if (in_array($order->status, ['Pending', 'Processing']))
-                                Still with the seller — it will show up under "Confirm arrival" once the seller drops it off.
+                            @if (in_array($order->status, ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned']))
+                                Still with the seller — it will show up under "Confirm arrival" once a rider picks it up.
                             @else
                                 Last updated {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}.
                             @endif
@@ -109,7 +111,7 @@
                     @include('pages.logistics.partials.parcel-route', ['order' => $order])
 
                     <div class="parcel-meta">
-                        <i class="bi bi-clock"></i> {{ $order->status === 'Dropped Off' ? 'Dropped off by the seller' : 'Picked up' }} {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
+                        <i class="bi bi-clock"></i> {{ $order->status === 'Dropped Off' ? 'Dropped off by the seller' : 'Picked up by a rider' }} {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
                     </div>
 
                     <div class="app-actions">
@@ -220,6 +222,83 @@
 
             @endforelse
 
+            {{-- PICKUPS NO RIDER ACCEPTED --}}
+            <h2 class="section-heading" id="pickups-need-rider"><i class="bi bi-box-arrow-in-down"></i> Pickups Needing a Rider ({{ count($pickupsNeedRider) }})</h2>
+
+            @forelse ($pickupsNeedRider as $order)
+                @php $suggested = $suggestedRidersByOrder[$order->id] ?? collect(); @endphp
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
+                            <div class="app-email">Pickup day: {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('D, M j') : 'any day' }}</div>
+                        </div>
+                        <x-status-pill status="Ready for Pickup" />
+                    </div>
+                    <div class="parcel-meta">
+                        <i class="bi bi-shop"></i> Waiting at the seller since {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
+                        @if ($suggested->isNotEmpty())
+                            · <i class="bi bi-geo-alt-fill"></i> Covers the seller's area: {{ $suggested->pluck('name')->join(', ') }}
+                        @endif
+                    </div>
+                    <div class="app-actions">
+                        <form class="assign-form" method="POST" action="{{ route('logistics.parcels.assign-pickup', $order->id) }}">
+                            @csrf
+                            <select name="rider_id" required>
+                                <option value="">Select Rider</option>
+                                @foreach ($suggested as $rider)
+                                    <option value="{{ $rider->id }}">{{ $rider->name }} (area match)</option>
+                                @endforeach
+                                @foreach ($activeRiders->whereNotIn('id', $suggested->pluck('id')) as $rider)
+                                    <option value="{{ $rider->id }}">{{ $rider->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="approve-btn">Assign Pickup</button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-box-arrow-in-down"></i></div>
+                    <h3>{{ $search !== '' ? 'No matches here' : 'No Pickups Waiting' }}</h3>
+                    <p>Parcels sellers marked ready for pickup that no rider accepted will appear here.</p>
+                </div>
+            @endforelse
+
+            {{-- TO SORT --}}
+            <h2 class="section-heading" id="to-sort"><i class="bi bi-diagram-3-fill"></i> To Sort ({{ count($toSort) }})</h2>
+
+            @forelse ($toSort as $order)
+                @php $area = \App\Services\SortingCenterService::deliveryArea($order); @endphp
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
+                            <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
+                        </div>
+                        <x-status-pill status="At Sorting Center" />
+                    </div>
+                    <div class="parcel-meta">
+                        <i class="bi bi-geo-alt-fill"></i> Delivery area: <strong>{{ $area ?? 'Unknown — check the address' }}</strong>
+                        @if (($suggestedRidersByOrder[$order->id] ?? collect())->isNotEmpty())
+                            · Rider for this area: {{ $suggestedRidersByOrder[$order->id]->pluck('name')->join(', ') }}
+                        @endif
+                    </div>
+                    <div class="app-actions">
+                        <form method="POST" action="{{ route('logistics.parcels.sort', $order->id) }}">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-diagram-3-fill"></i> Sort to {{ $area ?? 'area' }}</button>
+                        </form>
+                    </div>
+                </div>
+            @empty
+                <div class="empty">
+                    <div class="empty-icon"><i class="bi bi-diagram-3-fill"></i></div>
+                    <h3>{{ $search !== '' ? 'No matches here' : 'Nothing to Sort' }}</h3>
+                    <p>Parcels that arrived for buyers near this center are sorted by area here.</p>
+                </div>
+            @endforelse
+
             {{-- 2. AWAITING ASSIGNMENT --}}
             <h2 class="section-heading" id="awaiting-assignment"><i class="bi bi-inbox-fill"></i> Awaiting Assignment ({{ count($awaitingAssignment) }})</h2>
 
@@ -236,13 +315,14 @@
                             <div class="app-name">Order #{{ $order->id }}</div>
                             <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
                         </div>
-                        <x-status-pill status="At Sorting Center" />
+                        <x-status-pill status="Sorted" />
                     </div>
 
                     @include('pages.logistics.partials.parcel-route', ['order' => $order])
 
                     <div class="parcel-meta">
-                        <i class="bi bi-clock"></i>
+                        <i class="bi bi-diagram-3-fill"></i> Area: <strong>{{ \App\Services\SortingCenterService::deliveryArea($order) ?? 'Unknown' }}</strong>
+                        · <i class="bi bi-clock"></i>
                         Arrived {{ $order->sorting_center_received_at ? \Carbon\Carbon::parse($order->sorting_center_received_at)->diffForHumans() : 'recently' }}
                         @if ($suggested->isNotEmpty())
                             · <i class="bi bi-geo-alt-fill"></i> Area match: {{ $suggested->pluck('name')->join(', ') }}
@@ -282,7 +362,7 @@
                 <div class="empty">
                     <div class="empty-icon"><i class="bi bi-inbox-fill"></i></div>
                     <h3>{{ $search !== '' ? 'No matches here' : 'No Parcels Awaiting Assignment' }}</h3>
-                    <p>Confirmed parcels ready for rider assignment will appear here.</p>
+                    <p>Sorted parcels ready for rider assignment will appear here.</p>
                 </div>
 
             @endforelse

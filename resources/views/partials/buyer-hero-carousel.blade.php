@@ -6,7 +6,7 @@
     Needs: $announcement (PlatformAnnouncement|null), $latest (dashboard product cards).
 --}}
 @php
-    $freeMin = \App\Support\DeliveryFee::FREE_SHIPPING_MIN;
+    $freeMin = \App\Support\DeliveryFee::freeShippingMin();
     $baseFee = \App\Support\DeliveryFee::baseFee();
     $fresh = collect($latest)->take(3)->values();
 

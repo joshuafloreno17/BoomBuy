@@ -361,7 +361,7 @@
                                         {{ $quantity }}
 
                                         @if($lineVariation)
-                                            · {{ $lineVariation->variation_type }}: {{ $lineVariation->variation_value }}
+                                            · {{ $lineVariation->label() }}
                                         @endif
 
                                     </div>

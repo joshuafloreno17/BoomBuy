@@ -42,14 +42,14 @@ class HousekeepingScenariosTest extends TestCase
         $buyer = $this->buyerAt();
         $twoDays = $this->makeOrder($buyer, $this->shoes, 'Pending', ['created_at' => now()->subDays(2)->subHour()]);
         $fourDays = $this->makeOrder($buyer, $this->shoes, 'Pending', ['created_at' => now()->subDays(4)]);
-        $confirmed = $this->makeOrder($buyer, $this->shoes, 'Processing', ['created_at' => now()->subDays(5)]);
+        $confirmed = $this->makeOrder($buyer, $this->shoes, 'Preparing', ['created_at' => now()->subDays(5)]);
 
         $done = StaleOrders::sweep(true);
 
         $this->assertSame(1, $done['cancelled']);
         $this->assertSame('Pending', $this->orderStatus($twoDays));
         $this->assertSame('Cancelled', $this->orderStatus($fourDays));
-        $this->assertSame('Processing', $this->orderStatus($confirmed));
+        $this->assertSame('Preparing', $this->orderStatus($confirmed));
         $this->assertSame(10, $this->stockOf($this->shoes));
         $this->assertTrue($this->notifiedWith($buyer, 'Order Cancelled'));
         $this->assertTrue($this->notifiedWith($this->seller, 'Confirm Order Soon'));
@@ -90,6 +90,24 @@ class HousekeepingScenariosTest extends TestCase
         $this->travelTo(now()->addDays(3)->addHour());
         StaleOrders::sweep(true);
         $this->assertSame('Cancelled', $this->orderStatus($old));
+    }
+
+    public function test_H05_seller_is_reminded_to_collect_a_return_then_boombuy_is_told(): void
+    {
+        $staff = $this->staffAt($this->laguna);
+        $admin = \App\Models\User::create(['name' => 'Admin', 'email' => 'admin@boombuy.com', 'password' => bcrypt('x'), 'role' => 'admin']);
+        $base = ['origin_center_id' => $this->laguna->id, 'current_center_id' => $this->laguna->id];
+        $fourDays = $this->makeOrder($this->buyerAt(), $this->shoes, 'Return Ready', $base + ['updated_at' => now()->subDays(4)]);
+        $eightDays = $this->makeOrder($this->buyerAt(), $this->shoes, 'Return Ready', $base + ['updated_at' => now()->subDays(8)]);
+
+        StaleOrders::sweep(true);
+        StaleOrders::sweep(true); // reminders are sent once
+
+        $this->assertSame(2, DB::table('notifications')->where('user_id', $this->seller->id)->where('title', 'Collect Your Return Soon')->count());
+        $this->assertSame(1, DB::table('notifications')->where('user_id', $admin->id)->where('title', 'Return Not Collected')->count());
+        $this->assertSame($eightDays, (int) DB::table('notifications')->where('user_id', $admin->id)->where('title', 'Return Not Collected')->value('reference_id'));
+        $this->assertTrue($this->notifiedWith($staff, 'Return Not Collected'));
+        $this->assertNotNull($fourDays);
     }
 
     public function test_H04_abandoned_registration_files_are_removed_after_a_day(): void

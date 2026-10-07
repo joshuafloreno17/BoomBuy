@@ -272,7 +272,7 @@ class ShopController extends Controller
             ->withCount(['reviews', 'variations'])
             ->withAvg('reviews', 'rating')
             // For the card's quick "choose a color/size" popup.
-            ->with('variations:id,product_id,variation_type,variation_value,price_adjustment,stock')
+            ->with('variations:id,product_id,variation_type,variation_value,option2_type,option2_value,price_adjustment,stock')
             ->when($category, fn ($q) => $q->whereIn('category', $categoryMap[$category]))
             ->when(!empty($searchTerms), function ($q) use ($searchTerms) {
                 foreach ($searchTerms as $term) {
@@ -328,22 +328,24 @@ class ShopController extends Controller
                 'name' => $product->name,
                 'category' => $product->category,
                 'price' => (float) $product->price,
+                'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
+                'discount' => $product->isDiscounted() ? (int) $product->discount_percent : null,
                 'stock' => (int) $product->sellable_stock,
                 'sold' => (int) $product->sold_count,
                 'shop_name' => $shops->get($product->seller_id)['name'] ?? null,
                 'shop_url' => $shops->get($product->seller_id)['url'] ?? null,
                 // One item at this price already reaches the free-delivery minimum.
-                'free_shipping' => (float) $product->price >= \App\Support\DeliveryFee::FREE_SHIPPING_MIN,
+                'free_shipping' => (float) $product->price >= \App\Support\DeliveryFee::freeShippingMin(),
                 'image' => productImageUrl($product->image),
                 'icon' => Categories::icon($product->category),
                 'rating' => (int) $product->reviews_count > 0 ? round((float) $product->reviews_avg_rating, 1) : null,
                 'reviews' => (int) $product->reviews_count,
                 'has_variations' => (int) $product->variations_count > 0,
-                'variation_type' => $product->variations->first()->variation_type ?? null,
+                'variation_type' => $product->variations->first()?->kindLabel(),
                 'variations' => $product->variations
                     ->map(fn ($v) => [
                         'id' => $v->id,
-                        'label' => $v->variation_value,
+                        'label' => $v->shortLabel(),
                         'price' => (float) $product->price + (float) $v->price_adjustment,
                         'stock' => (int) $v->stock,
                     ])
@@ -624,7 +626,7 @@ class ShopController extends Controller
             : collect();
 
         $deliveryFee = \App\Support\DeliveryFee::baseFee();
-        $freeDeliveryMin = \App\Support\DeliveryFee::FREE_SHIPPING_MIN;
+        $freeDeliveryMin = \App\Support\DeliveryFee::freeShippingMin();
 
         // A logged-in buyer sees the fee to their own default address
         // (by distance from the seller's town); everyone else "from ₱…".

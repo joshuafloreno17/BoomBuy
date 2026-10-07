@@ -19,6 +19,9 @@ use Illuminate\Support\Facades\DB;
  *    RETURN_ANSWER_DAYS goes to BoomBuy to decide.
  *  - An approved return the buyer doesn't drop off within RETURN_DROP_DAYS
  *    is cancelled.
+ *  - A parcel or returned item waiting at a center for its seller: the
+ *    seller is reminded after SELLER_PICKUP_REMIND_DAYS, and BoomBuy and the
+ *    center are told after SELLER_PICKUP_ALERT_DAYS.
  *
  * Days are counted from the order's date, but never from before this
  * feature first ran (SINCE_KEY) — orders already waiting when it was
@@ -41,6 +44,10 @@ class StaleOrders
     public const RETURN_ANSWER_DAYS = 3;
 
     public const RETURN_DROP_DAYS = 7;
+
+    public const SELLER_PICKUP_REMIND_DAYS = 3;
+
+    public const SELLER_PICKUP_ALERT_DAYS = 7;
 
     /** Platform setting: when the timers started (set on the first sweep). */
     public const SINCE_KEY = 'stale_orders_since';
@@ -84,7 +91,54 @@ class StaleOrders
             $done['returns_cancelled'] = self::cancelUndelivered();
         }
 
+        if ($since->lte(now()->subDays(self::SELLER_PICKUP_REMIND_DAYS))) {
+            $done['reminded'] += self::remindSellersToCollect();
+        }
+
         return $done;
+    }
+
+    /**
+     * Returned parcels (Return Ready) and buyers' returned items (ready_for_seller)
+     * the seller hasn't come for: a reminder, then BoomBuy and the center are told.
+     */
+    private static function remindSellersToCollect(): int
+    {
+        $waiting = DB::table('orders')
+            ->where('status', 'Return Ready')
+            ->where('updated_at', '<=', now()->subDays(self::SELLER_PICKUP_REMIND_DAYS))
+            ->get(['id', 'updated_at', 'current_center_id'])
+            ->map(fn ($o) => (object) ['order_id' => (int) $o->id, 'ref' => (int) $o->id, 'what' => 'returned parcel', 'since' => $o->updated_at, 'center' => $o->current_center_id, 'type' => 'order'])
+            ->concat(
+                DB::table('return_refund_requests')
+                    ->where('status', 'ready_for_seller')
+                    ->where('updated_at', '<=', now()->subDays(self::SELLER_PICKUP_REMIND_DAYS))
+                    ->get(['id', 'order_id', 'updated_at', 'current_center_id'])
+                    ->map(fn ($r) => (object) ['order_id' => (int) $r->order_id, 'ref' => (int) $r->id, 'what' => 'item a buyer returned (return #' . $r->id . ')', 'since' => $r->updated_at, 'center' => $r->current_center_id, 'type' => 'return_refund'])
+            );
+
+        $sent = 0;
+
+        foreach ($waiting as $item) {
+            $days = (int) Carbon::parse($item->since)->diffInDays(now());
+            $where = ParcelRoute::centerName($item->center ? (int) $item->center : null) ?? 'your Sorting Center';
+
+            foreach (DB::table('order_items')->where('order_id', $item->order_id)->distinct()->pluck('seller_id') as $sellerId) {
+                if (!self::alreadyTold((int) $sellerId, 'Collect Your Return Soon', $item->ref)) {
+                    createNotification((int) $sellerId, 'Collect Your Return Soon', 'The ' . $item->what . ' for order #' . $item->order_id . ' has been waiting for you at ' . $where . ' for ' . $days . ' days. Please collect it.', $item->type, $item->ref);
+                    $sent++;
+                }
+            }
+
+            if ($days >= self::SELLER_PICKUP_ALERT_DAYS && ($adminId = SupportAccount::id()) && !self::alreadyTold($adminId, 'Return Not Collected', $item->ref)) {
+                $message = 'The ' . $item->what . ' for order #' . $item->order_id . ' has waited ' . $days . ' days at ' . $where . ' and the seller has not collected it.';
+                createNotification($adminId, 'Return Not Collected', $message . ' Please contact the seller.', $item->type, $item->ref);
+                ParcelRoute::notifyCenter($item->center ? (int) $item->center : null, 'Return Not Collected', $message . ' BoomBuy has been told.', 'parcel', $item->order_id);
+                $sent++;
+            }
+        }
+
+        return $sent;
     }
 
     /** Requests the seller left unanswered go to BoomBuy. */

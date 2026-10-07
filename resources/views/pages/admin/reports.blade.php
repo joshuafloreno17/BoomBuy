@@ -189,7 +189,7 @@
                 </div>
 
                 <div class="stat-card">
-                    <div class="stat-title">Seller Payouts</div>
+                    <div class="stat-title">Seller Earnings</div>
                     <div class="stat-value">₱{{ number_format($totalPayouts, 2) }}</div>
                 </div>
 
@@ -204,7 +204,7 @@
                             <th>SELLER</th>
                             <th>SALES</th>
                             <th>COMMISSION ({{ number_format($commissionRate, 1) }}%)</th>
-                            <th>NET PAYOUT</th>
+                            <th>SELLER EARNS</th>
                         </tr>
                     </thead>
 
@@ -481,10 +481,15 @@
 
                                 $statusClass = match ($status) {
 
-                                    'Delivered' =>
+                                    'Delivered', 'Completed' =>
                                         'completed',
 
-                                    'Processing',
+                                    'Confirmed',
+                                    'Preparing',
+                                    'Ready for Pickup',
+                                    'Pickup Assigned',
+                                    'Picked Up',
+                                    'Sorted',
                                     'Dropped Off',
                                     'At Sorting Center',
                                     'In Transit',

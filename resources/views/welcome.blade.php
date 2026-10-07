@@ -31,7 +31,7 @@
     @php
         $heroProduct = $featuredProducts->first();
         $heroShop = $heroProduct ? ($featuredShops->get($heroProduct->seller_id)['name'] ?? null) : null;
-        $freeMin = \App\Support\DeliveryFee::FREE_SHIPPING_MIN;
+        $freeMin = \App\Support\DeliveryFee::freeShippingMin();
         $landingCats = array_slice(\App\Support\Categories::LIST, 0, 8, true);
         $catNotes = [
             'electronics' => 'Gadgets & devices',

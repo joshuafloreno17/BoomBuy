@@ -84,9 +84,9 @@
                     @php
                         // How many orders each tab holds (same grouping as the cards below).
                         $tabGroups = [
-                            'to-ship' => ['pending', 'processing'],
-                            'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery', 'ready to collect'],
-                            'delivered' => ['delivered'],
+                            'to-ship' => ['pending', 'confirmed', 'preparing', 'ready for pickup', 'pickup assigned'],
+                            'to-receive' => ['picked up', 'dropped off', 'at sorting center', 'in transit', 'sorted', 'assigned for delivery', 'out for delivery', 'ready to collect'],
+                            'delivered' => ['delivered', 'completed'],
                             'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
                         ];
                         $tabCounts = ['all' => count($orders), 'to-ship' => 0, 'to-receive' => 0, 'delivered' => 0, 'cancelled' => 0];
@@ -126,13 +126,13 @@
                                 );
 
                             $canReview =
-                                ($order['status'] ?? '') === 'Delivered'
+                                in_array($order['status'] ?? '', \App\Support\OrderStatus::DONE, true)
                                 && !empty($order['buyer_received_at']);
 
                             $statusGroups = [
-                                'to-ship' => ['pending', 'processing'],
-                                'to-receive' => ['dropped off', 'at sorting center', 'in transit', 'assigned for delivery', 'out for delivery', 'ready to collect'],
-                                'delivered' => ['delivered'],
+                                'to-ship' => ['pending', 'confirmed', 'preparing', 'ready for pickup', 'pickup assigned'],
+                                'to-receive' => ['picked up', 'dropped off', 'at sorting center', 'in transit', 'sorted', 'assigned for delivery', 'out for delivery', 'ready to collect'],
+                                'delivered' => ['delivered', 'completed'],
                                 'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
                             ];
 
@@ -168,7 +168,7 @@
                                 ? $order['delivery_failed_at']
                                 : ($order['updated_at'] ?? null);
 
-                            // COD: cancellable while Pending/Processing.
+                            // COD: cancellable while Pending/Confirmed/Preparing.
                             // Prepaid: never by the buyer once checked out.
                             $isCod = \App\Support\CodPolicy::isCod($order['payment_method'] ?? null);
                             $canCancel = \App\Support\CodPolicy::buyerCanCancel($order);
@@ -1320,7 +1320,7 @@
 
             document.getElementById('cancel-order-subtitle').textContent = 'Order #' + orderId;
             document.getElementById('cancel-order-processing-note').style.display =
-                status === 'Processing' ? 'block' : 'none';
+                (status === 'Confirmed' || status === 'Preparing') ? 'block' : 'none';
 
             modal.classList.add('active');
             document.body.style.overflow = 'hidden';

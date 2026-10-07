@@ -220,11 +220,11 @@ class AdminTest extends TestCase
         $seller = $this->makeSeller();
         $product = $this->makeProduct($seller, ['stock' => 4]);
         $buyer = $this->makeUser();
-        $orderId = $this->makeOrder($buyer, $product, 'Processing');
+        $orderId = $this->makeOrder($buyer, $product, 'Preparing');
 
         $this->actingAsAdmin()->post(route('admin.order.cancel', $orderId), ['reason' => ''])
             ->assertSessionHas('error');
-        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Processing']);
+        $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Preparing']);
 
         $this->actingAsAdmin()->post(route('admin.order.cancel', $orderId), ['reason' => 'Suspected fraud'])
             ->assertSessionHas('success');

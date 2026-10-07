@@ -170,21 +170,66 @@
 
                 ₱{{ number_format($product['price'] ?? 0) }}
 
+                @if($product->isDiscounted())
+                    <s class="price-was">₱{{ number_format($product->original_price) }}</s>
+                    <span class="price-off">-{{ $product->discount_percent }}%</span>
+                @endif
+
             </div>
 
 
             <!-- VARIATIONS: next to the price and quantity, before the buttons -->
             @if($variations->count() > 0)
-                <div class="variation-picker">
-                    <span class="quantity-label">Choose a {{ strtolower($variations->first()->variation_type) }}</span>
+                @php
+                    // Color × Size: one chip row per part; the combination buttons stay hidden below.
+                    $twoPart = $variations->contains(fn ($v) => $v->hasSecondOption());
 
-                <div class="variation-swatches" id="variationSwatches">
+                    // A combination with no photos of its own shows a sibling's with the same first part (Red/M → Red/S).
+                    $photoGroupFor = [];
+                    foreach ($variations as $v) {
+                        if (!empty($variationPhotos[$v->id])) {
+                            $photoGroupFor[$v->variation_value] ??= $v->id;
+                        }
+                    }
+                @endphp
+                <div class="variation-picker">
+                    <span class="quantity-label">Choose a {{ $variations->first()->kindLabel() }}</span>
+
+                @if($twoPart)
+                    <div class="pd-part">
+                        <small class="pd-part-label">{{ $variations->first()->variation_type }}</small>
+                        <div class="variation-swatches">
+                            @foreach($variations->pluck('variation_value')->unique() as $value1)
+                                @php $chipPhoto = $variationPhotos[$photoGroupFor[$value1] ?? 0] ?? ''; @endphp
+                                <button type="button" class="variation-swatch-part pd-part1" data-value="{{ $value1 }}" title="{{ $value1 }}">
+                                    @if($chipPhoto)
+                                        <img src="{{ $chipPhoto }}" alt="" onerror="this.remove()">
+                                    @endif
+                                    <span class="swatch-label">{{ $value1 }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                    <div class="pd-part">
+                        <small class="pd-part-label">{{ $variations->first(fn ($v) => $v->hasSecondOption())->option2_type }}</small>
+                        <div class="variation-swatches">
+                            @foreach($variations->pluck('option2_value')->filter()->unique() as $value2)
+                                <button type="button" class="variation-swatch-part pd-part2" data-value="{{ $value2 }}" title="{{ $value2 }}">
+                                    <span class="swatch-label">{{ $value2 }}</span>
+                                </button>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <div class="variation-swatches" id="variationSwatches" @if($twoPart) hidden @endif>
 
                     @foreach($variations as $index => $variation)
 
                         @php
                             // Same picture as a gallery photo? Use that one, so its thumbnail lights up.
-                            $variationImageUrl = $variationPhotos[$variation->id] ?? '';
+                            $photoGroup = !empty($variationPhotos[$variation->id]) ? $variation->id : ($photoGroupFor[$variation->variation_value] ?? $variation->id);
+                            $variationImageUrl = $variationPhotos[$photoGroup] ?? '';
                         @endphp
 
                         <button
@@ -192,17 +237,20 @@
                             class="variation-swatch {{ $index === 0 ? 'active' : '' }}"
                             data-index="{{ $index }}"
                             data-id="{{ $variation->id }}"
+                            data-photo-group="{{ $photoGroup }}"
+                            data-v1="{{ $variation->variation_value }}"
+                            data-v2="{{ $variation->option2_value }}"
                             data-adjustment="{{ $variation->price_adjustment }}"
                             data-stock="{{ $variation->stock }}"
-                            data-label="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                            data-label="{{ $variation->label() }}"
                             data-image="{{ $variationImageUrl }}"
                             onclick="selectVariation({{ $index }})"
-                            title="{{ $variation->variation_type }}: {{ $variation->variation_value }}"
+                            title="{{ $variation->label() }}"
                         >
                             @if($variationImageUrl)
                                 <img src="{{ $variationImageUrl }}" alt="" onerror="this.remove()">
                             @endif
-                            <span class="swatch-label">{{ $variation->variation_value }}</span>
+                            <span class="swatch-label">{{ $variation->shortLabel() }}</span>
                         </button>
 
                     @endforeach
@@ -611,7 +659,8 @@
         const fallback = document.getElementById('mainImageFallback');
 
         // The row shows this option's photos, then the photos for all options.
-        filterThumbs(swatch.dataset.id);
+        filterThumbs(swatch.dataset.photoGroup || swatch.dataset.id);
+        syncParts(swatch);
         const firstShown = allThumbs()[0];
         const imageUrl = swatch.dataset.image || (firstShown && firstShown.dataset.src) || img.dataset.fallbackSrc || '';
 
@@ -647,6 +696,50 @@
         }
 
     }
+
+    // ---- Color × Size: two chip rows choose one combination button ----
+    function comboSwatches() {
+        return Array.prototype.slice.call(document.querySelectorAll('.variation-swatch'));
+    }
+
+    // Light up the chips for the chosen combination, and mark sizes this color doesn't have (or has none left of).
+    function syncParts(swatch) {
+        if (!document.querySelector('.pd-part1')) return;
+
+        document.querySelectorAll('.pd-part1').forEach(function (chip) {
+            chip.classList.toggle('active', chip.dataset.value === swatch.dataset.v1);
+        });
+
+        document.querySelectorAll('.pd-part2').forEach(function (chip) {
+            const combo = comboSwatches().find(function (s) { return s.dataset.v1 === swatch.dataset.v1 && s.dataset.v2 === chip.dataset.value; });
+            chip.classList.toggle('active', chip.dataset.value === swatch.dataset.v2);
+            chip.classList.toggle('is-out', !combo || parseInt(combo.dataset.stock, 10) <= 0);
+            chip.disabled = !combo;
+        });
+    }
+
+    function pickPart(v1, v2) {
+        const swatches = comboSwatches();
+        // That exact pair, else this first part with whatever second part has stock, else any of it.
+        let index = swatches.findIndex(function (s) { return s.dataset.v1 === v1 && s.dataset.v2 === v2; });
+        if (index < 0) index = swatches.findIndex(function (s) { return s.dataset.v1 === v1 && parseInt(s.dataset.stock, 10) > 0; });
+        if (index < 0) index = swatches.findIndex(function (s) { return s.dataset.v1 === v1; });
+        if (index >= 0) selectVariation(index);
+    }
+
+    document.querySelectorAll('.pd-part1').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const current = document.querySelector('.variation-swatch.active');
+            pickPart(chip.dataset.value, current ? current.dataset.v2 : '');
+        });
+    });
+
+    document.querySelectorAll('.pd-part2').forEach(function (chip) {
+        chip.addEventListener('click', function () {
+            const current = document.querySelector('.variation-swatch.active');
+            pickPart(current ? current.dataset.v1 : '', chip.dataset.value);
+        });
+    });
 
     // ---- Photo thumbnails: click (or tap) shows the photo big. ----
     // Read fresh each time: a thumbnail whose photo fails to load removes itself.
@@ -815,7 +908,7 @@
         let start = 0;
 
         if (coverThumb && coverThumb.dataset.group !== 'all') {
-            const owner = Array.from(document.querySelectorAll('.variation-swatch')).findIndex(function (s) { return s.dataset.id === coverThumb.dataset.group; });
+            const owner = Array.from(document.querySelectorAll('.variation-swatch')).findIndex(function (s) { return (s.dataset.photoGroup || s.dataset.id) === coverThumb.dataset.group; });
             if (owner >= 0) start = owner;
         }
 

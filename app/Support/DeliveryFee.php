@@ -13,7 +13,16 @@ use App\Models\PlatformSetting;
  */
 class DeliveryFee
 {
+    /** The free-shipping minimum until the admin sets one (Settings → Delivery Fee). */
     public const FREE_SHIPPING_MIN = 999;
+
+    public const FREE_SHIPPING_KEY = 'free_shipping_min';
+
+    /** Item total (per seller's order) from which delivery is free. */
+    public static function freeShippingMin(): float
+    {
+        return round((float) PlatformSetting::get(self::FREE_SHIPPING_KEY, (string) self::FREE_SHIPPING_MIN), 2);
+    }
 
     /** Zone => [setting key, default]. "local" is also the rider's fee. */
     public const ZONE_SETTINGS = [
@@ -51,7 +60,7 @@ class DeliveryFee
      */
     public static function for(float $itemsTotal, string $zone = 'local', string $fulfillment = 'delivery'): float
     {
-        if ($itemsTotal >= self::FREE_SHIPPING_MIN) {
+        if ($itemsTotal >= self::freeShippingMin()) {
             return 0.0;
         }
 

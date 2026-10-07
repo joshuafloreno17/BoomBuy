@@ -38,7 +38,7 @@ class PeopleCompliance
 
         $ids = $riders->pluck('id');
 
-        $delivered = DB::table('orders')->whereIn('delivery_rider_id', $ids)->where('status', 'Delivered')
+        $delivered = DB::table('orders')->whereIn('delivery_rider_id', $ids)->whereIn('status', \App\Support\OrderStatus::DONE)
             ->selectRaw('delivery_rider_id as id, COUNT(*) as n')->groupBy('delivery_rider_id')->pluck('n', 'id');
 
         $failed = DB::table('orders')->whereIn('delivery_rider_id', $ids)->where('delivery_attempts', '>', 0)

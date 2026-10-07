@@ -136,7 +136,7 @@ class LogisticsScenariosTest extends TestCase
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-received', $one));
         $this->post(route('logistics.parcels.confirm-received', $two));
 
-        $this->post(route('logistics.parcels.assign', $one), ['rider_id' => $this->lagunaRider->id])
+        $this->post(route('logistics.parcels.assign', $this->sorted($one)), ['rider_id' => $this->lagunaRider->id])
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'Dispatch this parcel'));
 
         $this->post(route('logistics.parcels.dispatch-all'), ['destination_center_id' => $this->ncr->id])
@@ -154,7 +154,7 @@ class LogisticsScenariosTest extends TestCase
         $this->get(route('logistics.parcels'))
             ->assertViewHas('suggestedRidersByOrder', fn ($s) => $s[$orderId]->pluck('id')->first() === $ncrRider->id);
 
-        $this->post(route('logistics.parcels.assign', $orderId), ['rider_id' => $ncrRider->id])->assertSessionHas('success');
+        $this->post(route('logistics.parcels.assign', $this->sorted($orderId)), ['rider_id' => $ncrRider->id])->assertSessionHas('success');
         $this->assertSame('Assigned for Delivery', $this->orderStatus($orderId));
 
         $pickup = $this->parcel('In Transit', self::QC_ADDRESS, ['fulfillment' => 'pickup']);
@@ -169,7 +169,7 @@ class LogisticsScenariosTest extends TestCase
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.hand-to-buyer', $orderId), ['pickup_code' => '482915'])->assertSessionHas('success');
 
         $order = DB::table('orders')->find($orderId);
-        $this->assertSame('Delivered', $order->status);
+        $this->assertSame('Completed', $order->status);
         $this->assertNotNull($order->cod_remitted_at);
         $this->assertNotNull($order->buyer_received_at);
         $this->assertTrue($this->notifiedWith($this->seller, 'Order Delivered'));
@@ -185,7 +185,7 @@ class LogisticsScenariosTest extends TestCase
         $this->assertSame('Ready to Collect', $this->orderStatus($orderId));
 
         $this->post(route('logistics.parcels.hand-to-buyer', $orderId), ['pickup_code' => '482915'])->assertSessionHas('success');
-        $this->assertSame('Delivered', $this->orderStatus($orderId));
+        $this->assertSame('Completed', $this->orderStatus($orderId));
     }
 
     public function test_L08_two_attempts_at_most_and_refused_parcels_go_back(): void

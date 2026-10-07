@@ -50,9 +50,8 @@ class CaviteToSantaCruzTest extends TestCase
         $this->assertEquals(120, DB::table('orders')->where('id', $id)->value('delivery_fee')); // Cavite → Laguna: same island group
 
         // Seller drops it at the Cavite center.
-        $this->actingAsUser($seller)->get(route('seller.order.details', $id))->assertSee('Drop off at: BoomBuy Sorting Center – Cavite');
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off'])->assertSessionHas('success');
+        $this->actingAsUser($seller)->get(route('seller.order.details', $id))->assertSee('The rider brings it to BoomBuy Sorting Center – Cavite');
+        $this->shipFromSeller($seller, $id);
 
         // Cavite center: receive, then send to Laguna.
         $this->actingAsUser($lagunaStaff)->post(route('logistics.parcels.confirm-received', $id))->assertSessionHas('error');
@@ -64,8 +63,8 @@ class CaviteToSantaCruzTest extends TestCase
         // Laguna center: confirm it arrived, hand it to the Santa Cruz rider.
         $this->actingAsUser($lagunaStaff)->get(route('logistics.parcels'))->assertSee('Order #' . $id)->assertSee('Confirm Arrival');
         $this->actingAsUser($lagunaStaff)->post(route('logistics.parcels.confirm-arrival', $id))->assertSessionHas('success');
-        $this->actingAsUser($lagunaStaff)->get(route('logistics.parcels'))->assertSee($lagunaRider->name . ' (area match)');
-        $this->actingAsUser($lagunaStaff)->post(route('logistics.parcels.assign', $id), ['rider_id' => $lagunaRider->id])->assertSessionHas('success');
+        $this->actingAsUser($lagunaStaff)->get(route('logistics.parcels'))->assertSee('Delivery area: <strong>Santa Cruz, Laguna</strong>', false)->assertSee('Rider for this area: ' . $lagunaRider->name);
+        $this->actingAsUser($lagunaStaff)->post(route('logistics.parcels.assign', $this->sorted($id)), ['rider_id' => $lagunaRider->id])->assertSessionHas('success');
 
         // Rider delivers to Santa Cruz.
         $this->actingAsUser($lagunaRider)->post(route('rider.delivery.status', $id), ['status' => 'Out for Delivery']);
@@ -73,11 +72,15 @@ class CaviteToSantaCruzTest extends TestCase
 
         $this->assertSame([
             'Order placed',
+            'Seller accepted your order',
             'Seller is preparing your order',
-            'Seller dropped it off at BoomBuy Sorting Center – Cavite',
+            'Seller booked a rider pickup',
+            'Rider ' . \App\Models\User::whereKey(DB::table('orders')->where('id', $id)->value('rider_id'))->value('name') . ' will pick it up from the seller',
+            'Rider picked it up from the seller',
             'Received at BoomBuy Sorting Center – Cavite',
             'On its way to BoomBuy Sorting Center – Laguna',
             'Arrived at BoomBuy Sorting Center – Laguna',
+            'Sorted for delivery to Santa Cruz, Laguna',
             'Handed to a rider for delivery',
             'Out for delivery',
             'Delivered',

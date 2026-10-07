@@ -192,7 +192,7 @@ class RiderScenariosTest extends TestCase
             ->assertSessionHas('success', fn ($m) => str_contains($m, '₱550.00 in COD cash'));
         $this->assertTrue($this->notifiedWith($this->staff, 'Collect Cash From Rider'));
 
-        $this->assertSame('At Sorting Center', $this->orderStatus($orderId));
+        $this->assertSame('Sorted', $this->orderStatus($orderId));
         $this->assertNull(DB::table('orders')->where('id', $orderId)->value('delivery_rider_id'));
 
         $this->flushSession();
@@ -238,6 +238,21 @@ class RiderScenariosTest extends TestCase
         $this->get(route('notifications.open', $note->id))
             ->assertRedirect(route('rider.deliveries'))
             ->assertSessionHas('error', 'Order #' . $orderId . ' is no longer assigned to you.');
+    }
+
+    public function test_R10b_rider_updates_phone_and_address(): void
+    {
+        $other = $this->makeUser('buyer');
+
+        $this->asRider()->get(route('rider.profile'))->assertOk()->assertSee('Phone &amp; Address', false);
+        $this->post(route('rider.profile.update'), ['phone' => $other->phone, 'address' => self::QC_ADDRESS])->assertSessionHas('error', 'This phone number is already registered.');
+        $this->post(route('rider.profile.update'), ['phone' => '09175550000', 'address' => 'Nowhere'])->assertSessionHas('error');
+        $this->post(route('rider.profile.update'), ['phone' => '09175550000', 'address' => self::QC_ADDRESS])->assertSessionHas('success');
+
+        $fresh = $this->rider->fresh();
+        $this->assertSame('09175550000', $fresh->phone);
+        $this->assertSame('Metro Manila (NCR)', $fresh->province);
+        $this->assertSame('09175550000', DB::table('rider_applications')->where('user_id', $this->rider->id)->value('phone'));
     }
 
     public function test_R10_profile_photo_and_password_change(): void

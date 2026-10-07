@@ -20,19 +20,24 @@ class BuyerController extends Controller
     // Order status → how far along the 5-step tracker it is, and a short note.
     private const ORDER_PROGRESS = [
         'Pending' => [1, 'Waiting for the seller to confirm.'],
-        'Processing' => [2, 'Seller is packing your order.'],
+        'Confirmed' => [2, 'The seller accepted your order.'],
+        'Preparing' => [2, 'Seller is packing your order.'],
+        'Ready for Pickup' => [2, 'Packed — a BoomBuy rider will pick it up from the seller.'],
+        'Pickup Assigned' => [2, 'A rider is on the way to collect it from the seller.'],
+        'Picked Up' => [3, 'Picked up by the rider — heading to the Sorting Center.'],
         'Dropped Off' => [3, 'Seller dropped it off — heading into the Sorting Center.'],
         'In Transit' => [3, 'On its way to the Sorting Center near you.'],
         'At Sorting Center' => [3, 'At the Sorting Center.'],
+        'Sorted' => [3, 'Sorted for your area — a rider will be assigned next.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
         'Ready to Collect' => [4, 'Ready at the Sorting Center — give the staff your pickup code to collect it.'],
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
-    private const TO_SHIP_STATUSES = ['Pending', 'Processing'];
+    private const TO_SHIP_STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'];
 
-    private const TO_RECEIVE_STATUSES = ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
+    private const TO_RECEIVE_STATUSES = ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
 
     public function dashboard()
     {
@@ -102,7 +107,7 @@ class BuyerController extends Controller
         $boughtIds = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('orders.buyer_id', $buyerId)
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->orderByDesc('orders.created_at')
             ->pluck('order_items.product_id')
             ->unique()
@@ -198,7 +203,7 @@ class BuyerController extends Controller
                     ->where('product_reviews.buyer_id', '=', $buyerId);
             })
             ->where('orders.buyer_id', $buyerId)
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->whereNull('product_reviews.id')
             ->distinct()
             ->count('orders.id');
@@ -344,7 +349,7 @@ class BuyerController extends Controller
 
         $totalSpent = DB::table('orders')
             ->where('buyer_id', $user['id'])
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->sum('total_amount');
 
         return view(
@@ -626,7 +631,7 @@ class BuyerController extends Controller
                 ? \Illuminate\Support\Carbon::parse($order['created_at'])->format('M j, Y · g:i A')
                 : null;
 
-            [$order['step'], $order['step_note']] = $order['status'] === 'Delivered'
+            [$order['step'], $order['step_note']] = in_array($order['status'], \App\Support\OrderStatus::DONE, true)
                 ? [5, null]
                 : (empty($order['buyer_refused_at']) ? (self::ORDER_PROGRESS[$order['status']] ?? [0, null]) : [0, null]);
 
@@ -774,16 +779,10 @@ class BuyerController extends Controller
             // current variations, the same technique used for seller restock.
             if (!empty($item->variation_label)) {
 
-                [$variationType, $variationValue] = array_pad(
-                    explode(': ', $item->variation_label, 2),
-                    2,
-                    null
-                );
-
-                $variation = \App\Models\ProductVariation::where('product_id', $product->id)
-                    ->where('variation_type', $variationType)
-                    ->where('variation_value', $variationValue)
-                    ->first();
+                // The exact option when the order saved it, else the one its label names.
+                $variation = (!empty($item->variation_id)
+                    ? \App\Models\ProductVariation::where('id', $item->variation_id)->where('product_id', $product->id)->first()
+                    : null) ?? \App\Support\OrderStock::findByLabel((int) $product->id, (string) $item->variation_label);
 
                 if (!$variation) {
                     $skippedCount++;
@@ -838,7 +837,7 @@ class BuyerController extends Controller
             return back()->with('error', 'Order not found.');
         }
 
-        if ($order->status !== 'Delivered' || empty($order->buyer_received_at)) {
+        if (!in_array($order->status, \App\Support\OrderStatus::DONE, true) || empty($order->buyer_received_at)) {
             return back()->with('error', 'You can only review products after receiving the order.');
         }
 
@@ -1005,15 +1004,17 @@ class BuyerController extends Controller
                 ->with('error', 'Passwords do not match.');
         }
 
+        $reapplying = \App\Support\RejectedApplicant::find($email, 'buyer');
+
         // CHECK EXISTING EMAIL
-        if (User::where('email', $email)->exists()) {
+        if (!$reapplying && User::where('email', $email)->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'Email is already registered.');
         }
 
         // CHECK EXISTING PHONE NUMBER
-        if (User::where('phone', $phone)->exists()) {
+        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');

@@ -182,9 +182,12 @@ class LogisticsController extends Controller
 
         // Every courier-side status, in pipeline order.
         $pipelineStatuses = [
+            'Ready for Pickup' => 'Waiting at the seller for a pickup rider',
             'Dropped Off' => 'Dropped off by the seller — confirm arrival',
+            'Picked Up' => 'Picked up by a rider — confirm arrival',
             'At Sorting Center' => 'At a Sorting Center',
             'In Transit' => 'Between Sorting Centers',
+            'Sorted' => 'Sorted by area — assign a rider',
             'Assigned for Delivery' => 'Delivery rider assigned',
             'Out for Delivery' => 'With the rider, on the way to the buyer',
             'Delivery Failed' => 'Needs a reschedule or return',
@@ -253,7 +256,7 @@ class LogisticsController extends Controller
         $today = now()->toDateString();
 
         $deliveredToday = DB::table('orders')
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereDate('delivered_at', $today)
             ->where($queues['delivering'])
             ->count();
@@ -274,7 +277,7 @@ class LogisticsController extends Controller
             [
                 'icon' => 'bi-envelope-paper-fill',
                 'label' => 'Confirm arrivals',
-                'hint' => 'Drop-offs from sellers and parcels sent here from other centers.',
+                'hint' => 'Parcels riders picked up from sellers, and parcels sent here from other centers.',
                 'count' => count($queues['awaitingConfirmation']) + count($queues['incoming']),
                 'url' => route('logistics.parcels') . '#awaiting-confirmation',
             ],
@@ -286,11 +289,25 @@ class LogisticsController extends Controller
                 'url' => route('logistics.parcels') . '#to-dispatch',
             ],
             [
+                'icon' => 'bi-diagram-3-fill',
+                'label' => 'Sort parcels',
+                'hint' => 'Read each address and sort it by the buyer\'s area.',
+                'count' => count($queues['toSort']),
+                'url' => route('logistics.parcels') . '#to-sort',
+            ],
+            [
                 'icon' => 'bi-inbox-fill',
                 'label' => 'Assign riders',
-                'hint' => 'Parcels here for buyers near you that need a delivery rider.',
+                'hint' => 'Sorted parcels — give each to the rider who covers its area.',
                 'count' => count($queues['awaitingAssignment']),
                 'url' => route('logistics.parcels') . '#awaiting-assignment',
+            ],
+            [
+                'icon' => 'bi-box-arrow-in-down',
+                'label' => 'Assign pickup riders',
+                'hint' => 'Sellers\' parcels ready for pickup that no rider accepted yet.',
+                'count' => count($queues['pickupsNeedRider']),
+                'url' => route('logistics.parcels') . '#pickups-need-rider',
             ],
             [
                 'icon' => 'bi-exclamation-triangle-fill',
@@ -309,7 +326,7 @@ class LogisticsController extends Controller
         ];
 
         $recentParcels = DB::table('orders')
-            ->whereIn('status', array_merge(array_keys($pipelineStatuses), ['Delivered', 'Returned to Seller']))
+            ->whereIn('status', array_merge(array_keys($pipelineStatuses), ['Delivered', 'Completed', 'Returned to Seller']))
             ->where($involvesMe)
             ->orderByDesc('updated_at')
             ->limit(8)
@@ -603,6 +620,18 @@ class LogisticsController extends Controller
         return back()->with('success', 'Area removed.');
     }
 
+    /** Sort a parcel by its delivery area (the step before assigning a rider). */
+    public function sortParcel($id, \App\Services\SortingCenterService $centers)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $centers->sort((int) $id, $myCenter));
+    }
+
+    /** Give a seller's waiting pickup to a rider. */
+    public function assignPickup($id, \App\Services\PickupService $pickups)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $pickups->assignByCenter((int) $id, request("rider_id"), $myCenter));
+    }
+
     public function parcels()
     {
         $user = requireUserRole('logistics');
@@ -620,7 +649,9 @@ class LogisticsController extends Controller
             'awaitingConfirmation' => $awaitingConfirmation,
             'toDispatch' => $toDispatch,
             'incoming' => $incoming,
+            'toSort' => $toSort,
             'awaitingAssignment' => $awaitingAssignment,
+            'pickupsNeedRider' => $pickupsNeedRider,
             'failedDeliveries' => $failedDeliveries,
             'onTheRoad' => $onTheRoad,
             'readyToCollect' => $readyToCollect,
@@ -652,7 +683,9 @@ class LogisticsController extends Controller
             $shownIds = $awaitingConfirmation->pluck('id')
                 ->merge($toDispatch->pluck('id'))
                 ->merge($incoming->pluck('id'))
+                ->merge($toSort->pluck('id'))
                 ->merge($awaitingAssignment->pluck('id'))
+                ->merge($pickupsNeedRider->pluck('id'))
                 ->merge($failedDeliveries->pluck('id'))
                 ->merge($onTheRoad->pluck('id'))
                 ->merge($readyToCollect->pluck('id'))
@@ -695,15 +728,21 @@ class LogisticsController extends Controller
         }
 
         // For each parcel that needs a rider, suggest riders covering the
-        // buyer's town, then the rest of the buyer's province.
+        // buyer's town, then the rest of the buyer's province. (For a pickup:
+        // the seller's town.)
         $suggestedRidersByOrder = [];
 
-        foreach ($awaitingAssignment->merge($failedDeliveries) as $order) {
+        foreach ($toSort->merge($awaitingAssignment)->merge($failedDeliveries)->merge($pickupsNeedRider) as $order) {
 
-            // Riders covering the buyer's town first, then the rest of the province.
-            $town = $order->shipping_province
-                ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
-                : \App\Support\PhLocations::locate($order->shipping_address);
+            if ($order->status === 'Ready for Pickup') {
+                $sellerId = (int) DB::table('order_items')->where('order_id', $order->id)->value('seller_id');
+                $town = \App\Support\ParcelRoute::sellerLocation($sellerId);
+                $town = $town['province'] ? $town : null;
+            } else {
+                $town = $order->shipping_province
+                    ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+                    : \App\Support\PhLocations::locate($order->shipping_address);
+            }
 
             $matches = $riderAreas
                 ->filter(fn ($area) => $town && $area->province === $town['province'])
@@ -729,7 +768,9 @@ class LogisticsController extends Controller
                 'awaitingConfirmation',
                 'toDispatch',
                 'incoming',
+                'toSort',
                 'awaitingAssignment',
+                'pickupsNeedRider',
                 'failedDeliveries',
                 'onTheRoad',
                 'elsewhere',
@@ -924,7 +965,7 @@ class LogisticsController extends Controller
             // Dropped off by the seller at this center (or, on older orders,
             // brought in by a pickup rider) — confirm it arrived.
             'awaitingConfirmation' => $matching()
-                ->where('status', 'Dropped Off')
+                ->whereIn('status', ['Dropped Off', 'Picked Up'])
                 ->where($mine('origin_center_id'))
                 ->orderBy('updated_at')
                 ->get(),
@@ -946,15 +987,30 @@ class LogisticsController extends Controller
                 ->orderBy('dispatched_at')
                 ->get(),
 
-            // At the center that delivers to the buyer, waiting for a rider
-            // for the final-mile delivery leg.
-            'awaitingAssignment' => $matching()
+            // At the center that delivers to the buyer: sort it by the
+            // buyer's area first…
+            'toSort' => $matching()
                 ->where('status', 'At Sorting Center')
                 ->where(fn ($q) => $q->whereNull('destination_center_id')
                     ->orWhereNull('current_center_id')
                     ->orWhereColumn('current_center_id', 'destination_center_id'))
                 ->where($mine('current_center_id'))
                 ->orderBy('sorting_center_received_at')
+                ->get(),
+
+            // …then give it to the rider who covers that area.
+            'awaitingAssignment' => $matching()
+                ->where('status', 'Sorted')
+                ->where($mine('current_center_id'))
+                ->orderBy('updated_at')
+                ->get(),
+
+            // Sellers' parcels ready for pickup that no rider accepted yet.
+            'pickupsNeedRider' => $matching()
+                ->where('status', 'Ready for Pickup')
+                ->whereNull('rider_id')
+                ->where($mine('origin_center_id'))
+                ->orderBy('pickup_date')
                 ->get(),
 
             'failedDeliveries' => $matching()

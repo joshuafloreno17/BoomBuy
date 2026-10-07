@@ -19,6 +19,7 @@ class DeliveryFeeRequest extends FormRequest
             'delivery_fee_province' => 'required|numeric|min:0|max:10000',
             'delivery_fee_island' => 'required|numeric|min:0|max:10000',
             'delivery_fee_far' => 'required|numeric|min:0|max:10000',
+            'free_shipping_min' => 'nullable|numeric|min:1|max:1000000',
         ];
     }
 }

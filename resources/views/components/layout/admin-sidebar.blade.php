@@ -58,7 +58,6 @@
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             <span>Complaints</span>
 
-
             @if($pendingComplaintsCount > 0)
                 <span class="notification-badge">
                     {{ $pendingComplaintsCount > 99 ? '99+' : $pendingComplaintsCount }}
@@ -75,11 +74,6 @@
                     {{ $returnsWaitingCount > 99 ? '99+' : $returnsWaitingCount }}
                 </span>
             @endif
-        </a>
-
-        <a href="{{ route('admin.payouts') }}" @class(['active' => $active === 'payouts'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01M18 12h.01"/></svg>
-            <span>Payouts</span>
         </a>
 
         <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
@@ -118,19 +112,13 @@
                 <strong>BoomBuy Support</strong>
                 <small>Administrator</small>
             </span>
+            <form action="{{ route('admin.logout') }}" method="POST" class="bb-side-logout-form" onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');">
+                @csrf
+                <button type="submit" class="bb-side-logout" aria-label="Log out" title="Log out">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                </button>
+            </form>
         </div>
-
-        <form
-            action="{{ route('admin.logout') }}"
-            method="POST"
-            onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');"
-        >
-            @csrf
-            <button type="submit" aria-label="Log out">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                <span>Log out</span>
-            </button>
-        </form>
     </div>
 </aside>
 

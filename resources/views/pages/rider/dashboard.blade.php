@@ -218,6 +218,31 @@
 
 
             <!-- =====================================================
+                 ITEMS FOR PICKUP (sellers' pickup requests)
+            ===================================================== -->
+
+            <div class="section-title">
+                <div>
+                    <h2><i class="bi bi-box-arrow-in-down"></i> Items for Pickup</h2>
+                    <p>Sellers in your areas who booked a rider — collect the parcel and bring it to their Sorting Center.</p>
+                </div>
+            </div>
+
+            <a href="{{ route('rider.pickups') }}" class="cod-remit" style="text-decoration:none;color:inherit;margin-bottom:24px">
+                <i class="bi bi-box-arrow-in-down"></i>
+                <div>
+                    <strong>
+                        {{ $pickupCounts['available'] }} new pickup request{{ $pickupCounts['available'] === 1 ? '' : 's' }} near you
+                        @if($pickupCounts['mine'] > 0)
+                            · {{ $pickupCounts['mine'] }} in progress
+                        @endif
+                    </strong>
+                    <span>{{ $pickupCounts['available'] + $pickupCounts['mine'] > 0 ? 'Open Items for Pickup to accept or finish them.' : 'Nothing to pick up right now. You\'ll get a notification when a seller books one.' }}</span>
+                </div>
+            </a>
+
+
+            <!-- =====================================================
                  ITEMS FOR DELIVERY (assigned by the Sorting Center)
             ===================================================== -->
 

@@ -137,7 +137,7 @@
                     type="number"
                     id="price"
                     name="price"
-                    value="{{ old('price', $product->price) }}"
+                    value="{{ old('price', $product->regularPrice()) }}"
                     placeholder="Example: 18999"
                     min="0"
                     step="0.01"

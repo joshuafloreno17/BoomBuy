@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Cash on Delivery rules:
- *  - a COD order can be cancelled by the buyer only while Pending/Processing
+ *  - a COD order can be cancelled by the buyer only while Pending/Confirmed/Preparing
  *    (prepaid orders can't be cancelled by the buyer once checked out);
  *  - buyers who keep cancelling or refusing parcels lose COD for a while,
  *    since every one of those costs the seller packing and shipping.
@@ -18,7 +18,7 @@ class CodPolicy
 
     public const PAYMENT_METHODS = ['Cash on Delivery', 'GCash', 'Maya', 'Credit / Debit Card'];
 
-    public const CANCELLABLE_STATUSES = ['Pending', 'Processing'];
+    public const CANCELLABLE_STATUSES = OrderStatus::WITH_SELLER;
 
     /** Cancellations + refusals allowed inside the window before COD is paused. */
     public const STRIKE_LIMIT = 3;

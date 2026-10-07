@@ -69,7 +69,7 @@ class OrderTimeline
             'dispatched_at' => ['In Transit', 'Sent to the Sorting Center near you'],
             'delivery_failed_at' => ['Delivery Failed', 'Delivery attempt failed'],
             'delivered_at' => ['Delivered', 'Delivered'],
-            'buyer_received_at' => ['Delivered', 'Received by buyer'],
+            'buyer_received_at' => ['Completed', 'Received by buyer'],
             'cancelled_at' => ['Cancelled', 'Cancelled'],
         ] as $column => [$status, $title]) {
             if (!empty($order->$column)) {

@@ -635,8 +635,7 @@ class AuthController extends Controller
         }
 
 
-        // Buyers don't wait for an admin: the record is kept (with their ID)
-        // but approved on the spot, and they go straight into the shop.
+        // Buyers wait for the administrator to check their ID, like sellers.
         if ($role === 'buyer') {
 
             DB::table('buyer_applications')->insert([
@@ -645,9 +644,9 @@ class AuthController extends Controller
                 'phone' => $pending['phone'] ?? null,
                 'address' => $pending['address'] ?? null,
                 'id_photo' => $pending['id_photo'] ?? null,
-                'status' => 'Approved',
+                'status' => 'Pending Verification',
                 'admin_remarks' => null,
-                'reviewed_at' => now(),
+                'reviewed_at' => null,
                 'reviewed_by' => null,
                 'created_at' => now(),
                 'updated_at' => now(),
@@ -737,11 +736,9 @@ class AuthController extends Controller
 
         if ($user->role === 'buyer') {
 
-            LoginGate::startSession($user);
-
             return redirect()
-                ->route('buyer.dashboard')
-                ->with('success', 'Welcome to BoomBuy, ' . $user->name . '! Your account is ready — happy shopping.');
+                ->route('login')
+                ->with('success', 'Your account has been created! Please wait for the administrator\'s approval — we\'ll notify you by email once your account is verified.');
         }
     }
 

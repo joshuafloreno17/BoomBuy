@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * The Sorting Center (logistics) part of an order. A parcel goes:
  *
- *   seller drops it at the origin center → origin confirms it → (buyer in
+ *   seller drops it at the origin center (or a rider picks it up from the\n *   seller and brings it there) → origin confirms it → (buyer in
  *   another province) dispatched, In Transit → the destination center
  *   confirms its arrival → a delivery rider takes it to the buyer, or — when
  *   the buyer chose pick-up — it waits as Ready to Collect until they come.
@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 class SortingCenterService
 {
     /** Parcels sitting at a center that the admin may send back when they're stuck there. */
-    public const ADMIN_RETURNABLE = ['At Sorting Center', 'Ready to Collect', 'Delivery Failed'];
+    public const ADMIN_RETURNABLE = ['At Sorting Center', 'Sorted', 'Ready to Collect', 'Delivery Failed'];
 
     /** After this many failed attempts a parcel goes back to the seller. */
     public const MAX_DELIVERY_ATTEMPTS = 2;
@@ -42,7 +42,7 @@ class SortingCenterService
     {
         $order = $this->parcel($orderId);
 
-        if ($order->status !== 'Dropped Off') {
+        if (!in_array($order->status, ['Dropped Off', 'Picked Up'], true)) {
             throw new ActionFailed('This parcel is not awaiting Sorting Center confirmation.');
         }
 
@@ -254,7 +254,7 @@ class SortingCenterService
         $isCod = CodPolicy::isCod((string) $order->payment_method);
 
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Ready to Collect')->update(array_merge([
-            'status' => 'Delivered',
+            'status' => 'Completed',
             'delivered_at' => now(),
             'buyer_received_at' => now(),
             'updated_at' => now(),
@@ -270,7 +270,7 @@ class SortingCenterService
 
         $hereName = ParcelRoute::centerName($order->current_center_id ? (int) $order->current_center_id : null) ?? 'the Sorting Center';
 
-        OrderTimeline::log($orderId, 'Delivered', 'Collected by the buyer at ' . $hereName, $isCod ? 'Paid in cash at the counter' : null, $order->current_center_id ? (int) $order->current_center_id : null);
+        OrderTimeline::log($orderId, 'Completed', 'Collected by the buyer at ' . $hereName, $isCod ? 'Paid in cash at the counter' : null, $order->current_center_id ? (int) $order->current_center_id : null);
 
         createNotification((int) $order->buyer_id, 'Order Delivered', 'You collected order #' . $orderId . ' at ' . $hereName . '. Enjoy!', 'order', $orderId);
         notifyOrderSellers($orderId, 'Order Delivered', 'Order #' . $orderId . ' was collected by the buyer at ' . $hereName . '.' . ($isCod ? ' The COD payment is in — it joins your payout once the return window closes.' : ''));
@@ -288,6 +288,57 @@ class SortingCenterService
     }
 
     /**
+     * Sort a parcel at the center that delivers it: read the delivery
+     * address and file it under the buyer's area (town, province), so it can
+     * go to the rider who covers that area.
+     *
+     * @throws ActionFailed
+     */
+    public function sort(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'At Sorting Center') {
+            throw new ActionFailed('This parcel is not waiting to be sorted.');
+        }
+
+        if ($this->needsTransfer($order)) {
+            throw new ActionFailed('Dispatch this parcel to ' . ParcelRoute::centerName((int) $order->destination_center_id) . ' first — that center sorts and delivers it.');
+        }
+
+        if ($this->isPickup($order)) {
+            throw new ActionFailed('The buyer chose to pick this parcel up at the Sorting Center — it doesn\'t go to a rider.');
+        }
+
+        $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
+
+        $area = self::deliveryArea($order);
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'At Sorting Center')->update([
+            'status' => 'Sorted',
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        OrderTimeline::log($orderId, 'Sorted', 'Sorted for delivery to ' . ($area ?: 'your area'), null, $order->current_center_id ? (int) $order->current_center_id : null);
+
+        return 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . '. Next: assign the rider for that area.';
+    }
+
+    /** The parcel's delivery area: "Santa Cruz, Laguna", read from its address. */
+    public static function deliveryArea(object $order): ?string
+    {
+        $town = !empty($order->shipping_province)
+            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+            : \App\Support\PhLocations::locate((string) $order->shipping_address);
+
+        return $town ? trim(($town['city'] ? $town['city'] . ', ' : '') . $town['province'], ', ') : null;
+    }
+
+    /**
      * @throws ActionFailed
      */
     public function assign(int $orderId, $riderId, ?int $centerId = null): string
@@ -298,7 +349,7 @@ class SortingCenterService
 
         $order = $this->parcel($orderId);
 
-        if ($order->status !== 'At Sorting Center') {
+        if (!in_array($order->status, ['At Sorting Center', 'Sorted'], true)) {
             throw new ActionFailed('This parcel is not awaiting assignment.');
         }
 
@@ -310,10 +361,14 @@ class SortingCenterService
             throw new ActionFailed('The buyer chose to pick this parcel up at the Sorting Center — no rider needed.');
         }
 
+        if ($order->status !== 'Sorted') {
+            throw new ActionFailed('Sort this parcel by its delivery area first.');
+        }
+
         $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
 
         $rider = $this->riderOrFail($riderId);
-        $this->handTo($orderId, 'At Sorting Center', (int) $rider->id);
+        $this->handTo($orderId, 'Sorted', (int) $rider->id);
 
         createNotification(
             (int) $rider->id,

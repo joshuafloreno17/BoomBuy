@@ -37,6 +37,50 @@ class RiderController extends Controller
             ->with('success', 'Profile picture updated successfully.');
     }
 
+    /** Phone and home address. The town also decides which Sorting Center looks after the rider. */
+    public function updateProfile()
+    {
+        $user = requireUserRole('rider');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $phone = trim((string) request('phone'));
+        $address = trim((string) request('address'));
+
+        if ($phone === '' || $address === '') {
+            return back()->withInput()->with('error', 'Please enter your mobile number and address.');
+        }
+
+        if (!preg_match(\App\Support\BuyerProfile::PHONE_PATTERN, $phone)) {
+            return back()->withInput()->with('error', 'Please enter a valid mobile number (numbers only).');
+        }
+
+        if (\App\Models\User::where('phone', $phone)->where('id', '!=', $user['id'])->exists()) {
+            return back()->withInput()->with('error', 'This phone number is already registered.');
+        }
+
+        $town = \App\Support\PhLocations::locate($address);
+
+        if (!$town) {
+            return back()->withInput()->with('error', 'Pick your province and city/municipality for the address.');
+        }
+
+        \App\Models\User::where('id', $user['id'])->update([
+            'phone' => $phone,
+            'address' => mb_substr($address, 0, 255),
+            'province' => $town['province'],
+            'city_municipality' => $town['city'],
+            'updated_at' => now(),
+        ]);
+
+        // The rider application keeps the contact details logistics staff see.
+        DB::table('rider_applications')->where('user_id', $user['id'])->update(['phone' => $phone, 'address' => mb_substr($address, 0, 255), 'updated_at' => now()]);
+
+        return back()->with('success', 'Your details were updated.');
+    }
+
     public function updatePassword()
     {
         $user = requireUserRole('rider');
@@ -92,16 +136,49 @@ class RiderController extends Controller
         ));
 
         $inTransit = array_values(array_filter($myDeliveries, fn ($order) => ($order['status'] ?? '') === 'Out for Delivery'));
-        $delivered = array_values(array_filter($myDeliveries, fn ($order) => ($order['status'] ?? '') === 'Delivered'));
+        $delivered = array_values(array_filter($myDeliveries, fn ($order) => in_array($order['status'] ?? '', \App\Support\OrderStatus::DONE, true)));
         $totalCount = count($myDeliveries);
 
         // Cash on Delivery money this rider still has to hand in at the Sorting Center.
         $codHeld = app(\App\Services\SortingCenterService::class)->codHeldBy((int) $user['id']);
 
+        // Items for pickup: new requests nearby + pickups this rider accepted.
+        $pickups = app(\App\Services\PickupService::class);
+        $pickupCounts = [
+            'available' => $pickups->available((int) $user['id'])->count(),
+            'mine' => $pickups->mine((int) $user['id'])->count(),
+        ];
+
         return view(
             'pages.rider.dashboard',
-            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld')
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts')
         );
+    }
+
+    /** Items for pickup: open requests in the rider's areas, and the ones they accepted. */
+    public function pickups(\App\Services\PickupService $pickups)
+    {
+        $user = requireUserRole('rider');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $available = $pickups->available((int) $user['id']);
+        $mine = $pickups->mine((int) $user['id']);
+        $hasAreas = DB::table('rider_areas')->where('rider_id', $user['id'])->exists();
+
+        return view('pages.rider.pickups', compact('user', 'available', 'mine', 'hasAreas'));
+    }
+
+    public function acceptPickup($id, \App\Services\PickupService $pickups)
+    {
+        return $this->riderAction(fn (array $user) => $pickups->accept((int) $user['id'], (int) $id));
+    }
+
+    public function confirmPickup($id, \App\Services\PickupService $pickups)
+    {
+        return $this->riderAction(fn (array $user) => $pickups->pickedUp((int) $user['id'], (int) $id));
     }
 
     public function deliveries()
@@ -126,7 +203,7 @@ class RiderController extends Controller
     {
         $orders = DB::table('orders')
             ->where(fn ($q) => $q->where('delivery_rider_id', $riderId)
-                ->orWhere(fn ($old) => $old->whereNull('delivery_rider_id')->where('rider_id', $riderId)))
+                ->orWhere(fn ($old) => $old->whereNull('delivery_rider_id')->whereNull('pickup_date')->where('rider_id', $riderId)))
             ->orderByDesc('created_at')
             ->get();
 
@@ -167,7 +244,7 @@ class RiderController extends Controller
         // Only the rider the Sorting Center handed it to (rider_id on orders
         // from before the Sorting Center hop existed).
         $isAssigned = (int) ($delivery->delivery_rider_id ?? 0) === (int) $riderId
-            || (empty($delivery->delivery_rider_id) && (int) $delivery->rider_id === (int) $riderId);
+            || (empty($delivery->delivery_rider_id) && empty($delivery->pickup_date) && (int) $delivery->rider_id === (int) $riderId);
 
         if (!$isAssigned) {
             abort(404);
@@ -251,13 +328,15 @@ class RiderController extends Controller
             ->pluck('total', 'status');
 
         $totalDeliveries = (int) $statusCounts->sum();
-        $deliveredCount = (int) ($statusCounts['Delivered'] ?? 0);
+        $deliveredCount = (int) (($statusCounts['Delivered'] ?? 0) + ($statusCounts['Completed'] ?? 0));
         $activeCount = (int) collect(['Assigned for Delivery', 'Out for Delivery'])
             ->sum(fn ($status) => $statusCounts[$status] ?? 0);
 
+        $dbUser = \App\Models\User::find($user['id']);
+
         return view(
             'pages.rider.profile',
-            compact('user', 'totalDeliveries', 'deliveredCount', 'activeCount')
+            compact('user', 'totalDeliveries', 'deliveredCount', 'activeCount', 'dbUser')
         );
     }
 
@@ -282,10 +361,11 @@ class RiderController extends Controller
                 $query->where('delivery_rider_id', $user['id'])
                     ->orWhere(function ($q) use ($user) {
                         $q->whereNull('delivery_rider_id')
+                            ->whereNull('pickup_date')
                             ->where('rider_id', $user['id']);
                     });
             })
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereDate('delivered_at', '>=', $from)
             ->whereDate('delivered_at', '<=', $to)
             ->orderByDesc('delivered_at')
@@ -346,10 +426,11 @@ class RiderController extends Controller
                 $query->where('delivery_rider_id', $user['id'])
                     ->orWhere(function ($q) use ($user) {
                         $q->whereNull('delivery_rider_id')
+                            ->whereNull('pickup_date')
                             ->where('rider_id', $user['id']);
                     });
             })
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereDate('delivered_at', '>=', $from)
             ->whereDate('delivered_at', '<=', $to)
             ->orderByDesc('delivered_at')

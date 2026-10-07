@@ -288,9 +288,11 @@
                         <div class="value">
                             @if($assignedRider)
                                 {{ $assignedRider->name }}
-                            @elseif(in_array($order['status'] ?? '', ['Pending', 'Processing'], true))
-                                None — you bring this parcel to the Sorting Center
-                            @elseif(in_array($order['status'] ?? '', ['Dropped Off', 'At Sorting Center'], true))
+                            @elseif(in_array($order['status'] ?? '', \App\Support\OrderStatus::WITH_SELLER, true))
+                                None yet — mark it Ready for Pickup when it is packed
+                            @elseif(($order['status'] ?? '') === 'Ready for Pickup')
+                                Waiting for a pickup rider
+                            @elseif(in_array($order['status'] ?? '', ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted'], true))
                                 The Sorting Center will assign a delivery rider
                             @else
                                 Not yet applicable
@@ -326,9 +328,15 @@
                     // Where each status sits on the seller's 5-step tracker (0-based).
                     $stepOf = [
                         'Pending' => 0,
+                        'Confirmed' => 1,
+                        'Preparing' => 1,
                         'Processing' => 1,
+                        'Ready for Pickup' => 1,
+                        'Pickup Assigned' => 1,
+                        'Picked Up' => 2,
                         'Dropped Off' => 2,
                         'At Sorting Center' => 3,
+                        'Sorted' => 3,
                         'In Transit' => 3,
                         'Assigned for Delivery' => 3,
                         'Out for Delivery' => 3,
@@ -337,9 +345,12 @@
                         'Delivered' => 4,
                         'Completed' => 4,
                     ];
-                    $trackSteps = ['Order placed', 'Processing', 'Dropped off', 'In transit', 'Delivered'];
+                    $trackSteps = ['Order placed', 'Preparing', 'Picked up', 'Sorting & delivery', 'Delivered'];
+                    $unclaimedPickup = $currentStatus === 'Ready for Pickup' && empty($order['rider_id']);
+                    $canCancel = in_array($currentStatus, \App\Support\OrderStatus::WITH_SELLER, true) || $unclaimedPickup;
+                    $canConfirmPickup = !empty($order['rider_id']) && in_array($currentStatus, ['Pickup Assigned', 'Picked Up'], true) && empty($order['seller_confirmed_pickup_at']);
 
-                    // Where this seller brings the parcel: the Sorting Center of their town.
+                    // The rider brings the parcel to the Sorting Center of the seller's province.
                     $sellerTown = \App\Support\ParcelRoute::sellerLocation((int) $user['id']);
                     $dropOffCenter = !empty($order['origin_center_id'])
                         ? \App\Models\SortingCenter::find($order['origin_center_id'])
@@ -351,10 +362,11 @@
 
                     // The one thing the seller can do next, and what the buyer is told.
                     $nextAction = match ($currentStatus) {
-                        'Pending' => ['status' => 'Processing', 'label' => 'Start Processing', 'icon' => 'bi-box-seam', 'note' => 'The buyer will be told you are now preparing their order.'],
-                        'Processing' => ['status' => 'Dropped Off', 'label' => 'Dropped Off at ' . ($dropOffCenter->name ?? 'Sorting Center'), 'icon' => 'bi-box-arrow-in-right', 'note' => 'Bring the packed parcel to the Sorting Center, then tap this. The buyer will be told it has shipped, and the Sorting Center will confirm they received it.', 'confirm' => 'Confirm you handed order #' . $order['id'] . ' to ' . ($dropOffCenter->name ?? 'the Sorting Center') . '?'],
+                        'Pending' => ['status' => 'Confirmed', 'label' => 'Accept Order', 'icon' => 'bi-hand-thumbs-up-fill', 'note' => 'Check the product and stock first. The buyer will be told you accepted their order.'],
+                        'Confirmed' => ['status' => 'Preparing', 'label' => 'Start Preparing', 'icon' => 'bi-box-seam', 'note' => 'The buyer will be told you are now preparing their order. Pack it and print the shipping label.'],
                         default => null,
                     };
+                    $pickupDays = \App\Services\PickupService::dayChoices();
                 @endphp
 
                 @if($stoppedStatus)
@@ -389,18 +401,12 @@
                         @endforeach
                     </ol>
 
-                    @if(in_array($currentStatus, ['Pending', 'Processing'], true))
+                    @if(in_array($currentStatus, ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'], true))
                         <div class="dropoff-box">
-                            <i class="bi bi-geo-alt-fill"></i>
+                            <i class="bi bi-printer-fill"></i>
                             <div>
-                                <strong>Drop off at: {{ $dropOffCenter->name ?? 'No Sorting Center in your area yet' }}</strong>
-                                <span>
-                                    @if($dropOffCenter)
-                                        {{ $dropOffCenter->address ?: $dropOffCenter->town }}
-                                    @else
-                                        BoomBuy hasn't opened a Sorting Center near your shop's town yet — contact support before dropping this off.
-                                    @endif
-                                </span>
+                                <strong>Pack it and attach the shipping label</strong>
+                                <span>The rider brings it to {{ $dropOffCenter->name ?? 'your BoomBuy Sorting Center' }}.</span>
                                 <a href="{{ route('seller.order.label', $order['id']) }}" target="_blank" rel="noopener" class="dropoff-label">
                                     <i class="bi bi-printer-fill"></i> Print shipping label ({{ \App\Support\Waybill::number((int) $order['id']) }})
                                 </a>
@@ -410,14 +416,7 @@
 
                     @if($nextAction)
 
-                        <form
-                            method="POST"
-                            action="{{ route('seller.order.status', $order['id']) }}"
-                            @if(!empty($nextAction['confirm']))
-                                data-confirm="{{ $nextAction['confirm'] }}"
-                                data-confirm-ok="Yes, Dropped Off"
-                            @endif
-                        >
+                        <form method="POST" action="{{ route('seller.order.status', $order['id']) }}">
                             @csrf
                             <input type="hidden" name="status" value="{{ $nextAction['status'] }}">
                             <button type="submit">
@@ -428,6 +427,64 @@
                             </p>
                         </form>
 
+                    @elseif($currentStatus === 'Preparing')
+
+                        {{-- Packed: ask for a rider to pick it up. --}}
+                        <form method="POST" action="{{ route('seller.order.pickup', $order['id']) }}">
+                            @csrf
+                            <label for="pickupDate" style="display:block;margin:0 0 4px;font-weight:700">Pickup day</label>
+                            <select id="pickupDate" name="pickup_date" required style="width:100%;max-width:280px;padding:9px 10px;border-radius:10px;border:1px solid var(--line,#f0e2da);margin-bottom:10px">
+                                @foreach($pickupDays as $date => $label)
+                                    <option value="{{ $date }}">{{ $label }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit">
+                                <i class="bi bi-box-arrow-up"></i> Mark as Ready for Pickup
+                            </button>
+                            <p class="status-next-note">
+                                <i class="bi bi-bell"></i> Riders in your area are notified. If none covers your town, your Sorting Center assigns one.
+                            </p>
+                        </form>
+
+                    @else
+
+                        <p class="status-next-note">
+                            <i class="bi bi-info-circle"></i>
+                            @if($allDone)
+                                {{ $currentStatus === 'Completed' ? 'The buyer confirmed they received this order. Transaction completed.' : 'This order has been delivered. Waiting for the buyer to confirm they received it.' }}
+                            @elseif($unclaimedPickup)
+                                Ready for pickup{{ !empty($order['pickup_date']) ? ' on ' . \Illuminate\Support\Carbon::parse($order['pickup_date'])->format('l, M j') : '' }}. Waiting for a rider to be assigned — you'll be told who is coming.
+                            @elseif($currentStatus === 'Pickup Assigned')
+                                {{ $assignedRider->name ?? 'A rider' }} will pick it up{{ !empty($order['pickup_date']) ? ' on ' . \Illuminate\Support\Carbon::parse($order['pickup_date'])->format('l, M j') : '' }}. Hand over the packed parcel, then confirm the pickup below.
+                            @elseif($currentStatus === 'Picked Up')
+                                The rider picked it up and is bringing it to {{ $dropOffCenter->name ?? 'the Sorting Center' }}. They'll confirm once it arrives.
+                            @elseif($currentStatus === 'Dropped Off')
+                                You dropped this off. Waiting for the Sorting Center to confirm they received it — from there they send it to the buyer.
+                            @else
+                                Currently <strong>{{ $currentStatus }}</strong>. The Sorting Center and delivery rider move it along from here.
+                            @endif
+                        </p>
+
+                    @endif
+
+                    @if($canConfirmPickup)
+                        <form
+                            method="POST"
+                            action="{{ route('seller.order.confirm-pickup', $order['id']) }}"
+                            data-confirm="Did you hand order #{{ $order['id'] }} to {{ $assignedRider->name ?? 'the rider' }}?"
+                            data-confirm-ok="Yes, handed over"
+                            style="margin-top:12px"
+                        >
+                            @csrf
+                            <button type="submit">
+                                <i class="bi bi-check2-circle"></i> Confirm Rider Pickup
+                            </button>
+                        </form>
+                    @elseif(!empty($order['seller_confirmed_pickup_at']))
+                        <p class="status-next-note"><i class="bi bi-check2-circle"></i> You confirmed the rider pickup on {{ \Illuminate\Support\Carbon::parse($order['seller_confirmed_pickup_at'])->format('M j, g:i A') }}.</p>
+                    @endif
+
+                    @if($canCancel)
                         <details class="status-cancel">
                             <summary>Can't fulfil this order? Cancel it</summary>
 
@@ -447,20 +504,6 @@
                                 </button>
                             </form>
                         </details>
-
-                    @else
-
-                        <p class="status-next-note">
-                            <i class="bi bi-info-circle"></i>
-                            @if($allDone)
-                                This order has been delivered. Nothing left for you to do.
-                            @elseif($currentStatus === 'Dropped Off')
-                                You dropped this off. Waiting for the Sorting Center to confirm they received it — from there they send it to the buyer.
-                            @else
-                                Currently <strong>{{ $currentStatus }}</strong>. The Sorting Center and delivery rider move it along from here.
-                            @endif
-                        </p>
-
                     @endif
 
                 @endif

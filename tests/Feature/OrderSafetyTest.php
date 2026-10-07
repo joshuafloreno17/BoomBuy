@@ -24,7 +24,7 @@ class OrderSafetyTest extends TestCase
         $seller = $this->makeSeller();
         $product = $this->makeProduct($seller);
 
-        foreach (['Dropped Off', 'In Transit', 'At Sorting Center', 'Out for Delivery', 'Delivered', 'Cancelled'] as $status) {
+        foreach (['Pickup Assigned', 'Picked Up', 'Dropped Off', 'In Transit', 'At Sorting Center', 'Sorted', 'Out for Delivery', 'Delivered', 'Completed', 'Cancelled'] as $status) {
             $orderId = $this->makeOrder($this->makeUser(), $product, $status);
 
             $this->actingAsUser($seller)
@@ -32,7 +32,7 @@ class OrderSafetyTest extends TestCase
                 ->assertSessionHas('error');
 
             $this->actingAsUser($seller)
-                ->post(route('seller.order.status', $orderId), ['status' => 'Processing'])
+                ->post(route('seller.order.status', $orderId), ['status' => 'Confirmed'])
                 ->assertSessionHas('error');
 
             $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => $status]);
@@ -161,7 +161,7 @@ class OrderSafetyTest extends TestCase
             ->assertSessionHas('success');
 
         foreach ([$assigned, $delivery] as $orderId) {
-            $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'At Sorting Center', 'delivery_rider_id' => null]);
+            $this->assertDatabaseHas('orders', ['id' => $orderId, 'status' => 'Sorted', 'delivery_rider_id' => null]);
         }
         $this->assertDatabaseHas('notifications', ['user_id' => $logistics->id, 'title' => 'Parcels Need a New Rider']);
     }

@@ -19,7 +19,7 @@
         @foreach($steps as $i => $step)
             @php
                 $tone = match ($step->status) {
-                    'Delivered' => 'is-done',
+                    'Delivered', 'Completed' => 'is-done',
                     'Cancelled', 'Delivery Failed', 'Returning', 'Return Ready', 'Returned to Seller' => 'is-bad',
                     default => '',
                 };

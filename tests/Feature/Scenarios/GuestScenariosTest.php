@@ -143,7 +143,7 @@ class GuestScenariosTest extends TestCase
 
     // ---------------- Registration ----------------
 
-    public function test_G07_buyer_registers_verifies_email_and_is_logged_in_right_away(): void
+    public function test_G07_buyer_registers_waits_for_admin_approval_by_email_then_logs_in(): void
     {
         $form = $this->registrationBase(['id_photo' => $this->png('id.png')]);
 
@@ -151,11 +151,26 @@ class GuestScenariosTest extends TestCase
         Mail::assertSent(\App\Mail\OtpMail::class);
 
         $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])
-            ->assertRedirect(route('buyer.dashboard'));
+            ->assertRedirect(route('login'));
 
         $user = User::where('email', $form['email'])->first();
         $this->assertNotNull($user);
         $this->assertSame('buyer', $user->role);
+        $this->assertNull(session('user.id'));
+
+        // Can't shop yet.
+        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => $form['password']])
+            ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
+
+        // The admin checks the ID and approves; the decision goes out by email.
+        $appId = \Illuminate\Support\Facades\DB::table('buyer_applications')->where('user_id', $user->id)->value('id');
+        $this->withSession(['admin_logged_in' => true])
+            ->post(route('admin.applications.approve', ['buyer', $appId]))->assertRedirect();
+        Mail::assertSent(\App\Mail\ApplicationStatusMail::class);
+
+        $this->flushSession();
+        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => $form['password']])
+            ->assertSessionMissing('error');
         $this->assertSame($user->id, session('user.id'));
     }
 

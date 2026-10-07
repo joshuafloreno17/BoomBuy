@@ -11,14 +11,24 @@ use App\Support\PhLocations;
 use Illuminate\Support\Facades\DB;
 
 /**
- * What a seller does with an order: Pending → Processing → Dropped Off (the
- * seller brings the parcel to the Sorting Center themselves), or Cancelled
- * while it is still with them; take back a returned parcel at the Sorting
- * Center; and put a returned order back into stock.
+ * What a seller does with an order (ERP flow): Pending → Accept → Confirmed
+ * → Start preparing → Preparing (pack, print the shipping label) → Ready for
+ * Pickup (PickupService) → a rider collects it, and the seller confirms the
+ * hand-over. Cancelled while it is still with them. Also: take back a
+ * returned parcel at the Sorting Center, and put a returned order back into
+ * stock.
  */
 class SellerOrderService
 {
-    public const SELLER_STATUSES = ['Processing', 'Dropped Off', 'Cancelled'];
+    public const SELLER_STATUSES = ['Confirmed', 'Preparing', 'Cancelled'];
+
+    /** What each status may move to when the seller acts. */
+    private const NEXT = [
+        'Pending' => ['Confirmed', 'Cancelled'],
+        'Confirmed' => ['Preparing', 'Cancelled'],
+        'Preparing' => ['Cancelled'],
+        'Ready for Pickup' => ['Cancelled'],
+    ];
 
     /**
      * @return string  What happened, for the seller.
@@ -39,16 +49,19 @@ class SellerOrderService
         // The seller only owns an order while it is still with them. Anything
         // past that (rider, Sorting Center, delivered, cancelled, returned)
         // follows its own flow and must not be cancelled or rewound here.
-        if (!in_array($order->status, ['Pending', 'Processing'], true)) {
+        // A booked pickup nobody accepted yet may still be cancelled.
+        $unclaimedPickup = $order->status === 'Ready for Pickup' && empty($order->rider_id);
+
+        if (!isset(self::NEXT[$order->status]) || ($order->status === 'Ready for Pickup' && !$unclaimedPickup)) {
             throw new ActionFailed('This order is already ' . $order->status . ' and can no longer be updated by the seller.');
         }
 
-        if ($order->status === 'Pending' && !in_array($status, ['Processing', 'Cancelled'], true)) {
-            throw new ActionFailed('Pending orders must be moved to Processing first.');
-        }
-
-        if ($order->status === 'Processing' && !in_array($status, ['Dropped Off', 'Cancelled'], true)) {
-            throw new ActionFailed('Processing orders must be dropped off at the Sorting Center next.');
+        if (!in_array($status, self::NEXT[$order->status], true)) {
+            throw new ActionFailed(match ($order->status) {
+                'Pending' => 'Accept the order first.',
+                'Confirmed' => 'Start preparing the order next.',
+                default => 'Mark it as ready for pickup when it is packed.',
+            });
         }
 
         $cancelling = $status === 'Cancelled';
@@ -62,8 +75,10 @@ class SellerOrderService
         $updated = DB::table('orders')
             ->where('id', $orderId)
             ->where('status', $order->status)
+            ->when($unclaimedPickup, fn ($q) => $q->whereNull('rider_id'))
             ->update([
                 'status' => $status,
+                'pickup_date' => null,
                 'cancellation_reason' => $cancelling ? $reason : null,
                 'cancelled_by' => $cancelling ? 'seller' : null,
                 'cancelled_at' => $cancelling ? now() : null,
@@ -78,60 +93,88 @@ class SellerOrderService
             OrderStock::cancelled($orderId, $order->status);
         }
 
-        // Orders placed before Sorting Centers existed get their route now.
-        if ($status === 'Dropped Off' && (empty($order->origin_center_id) || empty($order->destination_center_id))) {
-            $seller = ParcelRoute::sellerLocation($sellerId);
-            $buyerTown = $order->shipping_province
-                ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
-                : PhLocations::locate($order->shipping_address);
-
-            $route = [
-                'origin_center_id' => $order->origin_center_id ?: ParcelRoute::centerFor($seller['province'], $seller['city'])?->id,
-                'destination_center_id' => $order->destination_center_id ?: ($buyerTown ? ParcelRoute::centerFor($buyerTown['province'], $buyerTown['city'])?->id : null),
-            ];
-
-            DB::table('orders')->where('id', $orderId)->update($route);
-            $order->origin_center_id = $route['origin_center_id'];
-        }
-
         $buyerId = (int) $order->buyer_id;
 
         match ($status) {
-            'Processing' => OrderTimeline::log($orderId, $status, 'Seller is preparing your order'),
-            'Dropped Off' => OrderTimeline::log(
-                $orderId,
-                $status,
-                'Seller dropped it off at ' . (ParcelRoute::centerName($order->origin_center_id ? (int) $order->origin_center_id : null) ?? 'the Sorting Center'),
-                null,
-                $order->origin_center_id ? (int) $order->origin_center_id : null
-            ),
+            'Confirmed' => OrderTimeline::log($orderId, $status, 'Seller accepted your order'),
+            'Preparing' => OrderTimeline::log($orderId, $status, 'Seller is preparing your order'),
             default => OrderTimeline::log($orderId, $status, 'Cancelled by the seller', $reason),
         };
 
-        if ($status === 'Processing') {
-            createNotification($buyerId, 'Order Processing', 'Your order #' . $orderId . ' is now being processed by the seller.', 'order', $orderId);
-        } elseif ($status === 'Dropped Off') {
-            createNotification($buyerId, 'Order Shipped', 'Your order #' . $orderId . ' has been packed and dropped off at the Sorting Center by the seller.', 'order', $orderId);
-            ParcelRoute::notifyCenter(
-                $order->origin_center_id ? (int) $order->origin_center_id : null,
-                'Parcel Dropped Off',
-                'The seller dropped off Order #' . $orderId . '. Confirm once it is received at your Sorting Center.',
-                'parcel',
-                $orderId
-            );
-        } else {
-            createNotification($buyerId, 'Order Cancelled by Seller', 'Your order #' . $orderId . ' was cancelled by the seller. Reason: ' . $reason, 'order', $orderId);
-        }
+        match ($status) {
+            'Confirmed' => createNotification($buyerId, 'Order Confirmed', 'The seller accepted your order #' . $orderId . '.', 'order', $orderId),
+            'Preparing' => createNotification($buyerId, 'Order Being Prepared', 'The seller is now preparing your order #' . $orderId . '.', 'order', $orderId),
+            default => createNotification($buyerId, 'Order Cancelled by Seller', 'Your order #' . $orderId . ' was cancelled by the seller. Reason: ' . $reason, 'order', $orderId),
+        };
 
         createNotification($sellerId, 'Order Status Updated', 'Order #' . $orderId . ' is now ' . $status . '.', 'order_status', $orderId);
 
         ChatAutomation::orderUpdate($orderId, match ($status) {
-            'Processing' => 'processing',
-            'Dropped Off' => 'dropped_off',
+            'Confirmed' => 'confirmed',
+            'Preparing' => 'processing',
             default => 'cancelled',
         });
 
         return 'Order status updated to ' . $status . '.';
+    }
+
+    /**
+     * The seller confirms they handed the parcel to the pickup rider (the
+     * rider confirms on their side too; whoever is first marks it Picked Up).
+     *
+     * @throws ActionFailed
+     */
+    public function confirmRiderPickup(int $sellerId, int $orderId): string
+    {
+        $order = $this->sellerOrder($sellerId, $orderId);
+
+        if (empty($order->rider_id) || !in_array($order->status, ['Pickup Assigned', 'Picked Up'], true)) {
+            throw new ActionFailed('No rider is picking up this order right now.');
+        }
+
+        if (!empty($order->seller_confirmed_pickup_at)) {
+            throw new ActionFailed('You already confirmed this pickup.');
+        }
+
+        DB::table('orders')->where('id', $orderId)->whereNull('seller_confirmed_pickup_at')->update(['seller_confirmed_pickup_at' => now()]);
+
+        if ($order->status === 'Pickup Assigned') {
+            app(PickupService::class)->markPickedUp($order, 'Seller handed it to the rider');
+        }
+
+        return 'Rider pickup confirmed.';
+    }
+
+    /**
+     * Orders placed before Sorting Centers existed get their route when the
+     * parcel leaves the seller.
+     *
+     * @return array{origin_center_id: ?int, destination_center_id: ?int}
+     */
+    public function ensureRoute(object $order, int $sellerId): array
+    {
+        $route = [
+            'origin_center_id' => $order->origin_center_id ? (int) $order->origin_center_id : null,
+            'destination_center_id' => $order->destination_center_id ? (int) $order->destination_center_id : null,
+        ];
+
+        if ($route['origin_center_id'] && $route['destination_center_id']) {
+            return $route;
+        }
+
+        $seller = ParcelRoute::sellerLocation($sellerId);
+        $buyerTown = $order->shipping_province
+            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+            : PhLocations::locate($order->shipping_address);
+
+        $route = [
+            'origin_center_id' => $route['origin_center_id'] ?: ParcelRoute::centerFor($seller['province'], $seller['city'])?->id,
+            'destination_center_id' => $route['destination_center_id'] ?: ($buyerTown ? ParcelRoute::centerFor($buyerTown['province'], $buyerTown['city'])?->id : null),
+        ];
+
+        DB::table('orders')->where('id', $order->id)->update($route);
+
+        return $route;
     }
 
     /**

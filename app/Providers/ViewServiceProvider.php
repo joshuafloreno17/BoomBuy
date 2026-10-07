@@ -156,7 +156,7 @@ class ViewServiceProvider extends ServiceProvider
 
             $lines[] = [
                 'name' => $product->name,
-                'variation' => $variation ? $variation->variation_type . ': ' . $variation->variation_value : null,
+                'variation' => $variation?->label(),
                 'quantity' => (int) $cart[$key],
                 'price' => (float) $product->price + (float) ($variation->price_adjustment ?? 0),
                 // The chosen option's photo, else the cover.

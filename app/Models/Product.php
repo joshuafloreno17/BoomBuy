@@ -12,6 +12,8 @@ class Product extends Model
         'name',
         'category',
         'price',
+        'original_price',
+        'discount_percent',
         'stock',
         'description',
         'image',
@@ -23,7 +25,42 @@ class Product extends Model
     protected $casts = [
         'is_flagged' => 'boolean',
         'is_archived' => 'boolean',
+        'discount_percent' => 'integer',
     ];
+
+    public const MAX_DISCOUNT = 90;
+
+    /**
+     * The columns to save for a regular price and a "% off": `price` is what
+     * the buyer pays, `original_price` the crossed-out price before the discount.
+     *
+     * @return array{price: float, original_price: ?float, discount_percent: ?int}
+     */
+    public static function pricing(float $regular, ?int $discount): array
+    {
+        $discount = (int) $discount;
+
+        if ($discount <= 0) {
+            return ['price' => round($regular, 2), 'original_price' => null, 'discount_percent' => null];
+        }
+
+        return [
+            'price' => round($regular * (100 - $discount) / 100, 2),
+            'original_price' => round($regular, 2),
+            'discount_percent' => $discount,
+        ];
+    }
+
+    /** The price before any discount (what the seller typed as "Price"). */
+    public function regularPrice(): float
+    {
+        return (float) ($this->original_price ?? $this->price);
+    }
+
+    public function isDiscounted(): bool
+    {
+        return $this->discount_percent > 0 && $this->original_price !== null;
+    }
 
     public function reviews()
     {
@@ -87,7 +124,7 @@ class Product extends Model
         return $query->selectRaw(
             "(SELECT COALESCE(SUM(oi.quantity), 0) FROM order_items oi"
             . " JOIN orders o ON o.id = oi.order_id"
-            . " WHERE oi.product_id = products.id AND o.status = 'Delivered') as sold_count"
+            . " WHERE oi.product_id = products.id AND o.status IN ('Delivered', 'Completed')) as sold_count"
         );
     }
 
@@ -117,9 +154,9 @@ class Product extends Model
             : null;
 
         if (!$variation && $this->variations()->exists()) {
-            $type = $this->variations()->value('variation_type') ?: 'option';
+            $type = $this->variations()->first()?->kindLabel() ?: 'option';
 
-            return [null, 'Please choose a ' . strtolower($type) . ' for ' . $this->name . ' first.'];
+            return [null, 'Please choose a ' . $type . ' for ' . $this->name . ' first.'];
         }
 
         return [$variation, null];

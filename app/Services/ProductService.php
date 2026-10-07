@@ -49,7 +49,7 @@ class ProductService
      */
     public function create(int $sellerId, array $input, ?UploadedFile $image, array $variations = [], array $photos = [], string $coverRef = ''): Product
     {
-        [$name, $category, $price, $stock, $description] = $this->fields($sellerId, $input);
+        [$name, $category, $price, $stock, $description, $discount] = $this->fields($sellerId, $input);
 
         if ($name === '' || $category === '' || $price <= 0 || $stock <= 0 || $description === '') {
             throw new ActionFailed('Please complete all product fields.');
@@ -74,7 +74,12 @@ class ProductService
                 continue;
             }
 
-            if ($price + (float) ($variation['price_adjustment'] ?? 0) <= 0) {
+            // Color × Size: with a second type, every row needs its second value.
+            if (trim($variation['type2'] ?? '') !== '' && trim($variation['value2'] ?? '') === '') {
+                throw new ActionFailed('Enter the ' . trim($variation['type2']) . ' for "' . trim($variation['value']) . '".');
+            }
+
+            if (Product::pricing($price, $discount)['price'] + (float) ($variation['price_adjustment'] ?? 0) <= 0) {
                 throw new ActionFailed('The option "' . trim($variation['value']) . '" would make the price ₱0 or less. Please lower its discount.');
             }
 
@@ -91,7 +96,7 @@ class ProductService
             'seller_id' => $sellerId,
             'name' => $name,
             'category' => $categoryName,
-            'price' => $price,
+            ...Product::pricing($price, $discount),
             'stock' => $stock,
             'description' => $description,
         ]);
@@ -108,8 +113,11 @@ class ProductService
                 continue;
             }
 
+            $type2 = trim($variation['type2'] ?? '');
+            $value2 = trim($variation['value2'] ?? '');
+
             // The same option typed twice on the form is saved once.
-            $key = strtolower(ProductVariation::normalizeType($type) . '|' . ProductVariation::normalizeValue($value));
+            $key = strtolower(ProductVariation::normalizeType($type) . '|' . ProductVariation::normalizeValue($value) . '|' . ProductVariation::normalizeValue($value2));
 
             if (isset($seen[$key])) {
                 continue;
@@ -121,6 +129,8 @@ class ProductService
                 'product_id' => $product->id,
                 'variation_type' => $type,
                 'variation_value' => $value,
+                'option2_type' => $type2 !== '' ? $type2 : null,
+                'option2_value' => $type2 !== '' ? $value2 : null,
                 'price_adjustment' => (float) ($variation['price_adjustment'] ?? 0),
                 'stock' => max(0, (int) ($variation['stock'] ?? 0)),
             ]);
@@ -149,7 +159,7 @@ class ProductService
      */
     public function update(Product $product, int $sellerId, array $input, ?UploadedFile $image, array $gallery = []): Product
     {
-        [$name, $category, $price, $stock, $description] = $this->fields($sellerId, $input);
+        [$name, $category, $price, $stock, $description, $discount] = $this->fields($sellerId, $input);
 
         if ($name === '' || $category === '' || $price <= 0 || $stock < 0 || $description === '') {
             throw new ActionFailed('Please complete all product fields.');
@@ -167,7 +177,7 @@ class ProductService
 
         // A cheaper option (negative extra price) must still cost more than ₱0
         // at the new base price.
-        if ($product->variations()->exists() && $price + (float) $product->variations()->min('price_adjustment') <= 0) {
+        if ($product->variations()->exists() && Product::pricing($price, $discount)['price'] + (float) $product->variations()->min('price_adjustment') <= 0) {
             throw new ActionFailed('At this price one of your options would cost ₱0 or less. Raise the price or change that option\'s extra price first.');
         }
 
@@ -200,7 +210,7 @@ class ProductService
         $product->update([
             'name' => $name,
             'category' => $categoryName,
-            'price' => $price,
+            ...Product::pricing($price, $discount),
             'stock' => $stock,
             'description' => $description,
         ]);
@@ -325,12 +335,19 @@ class ProductService
             $category = $registered;
         }
 
+        $discount = trim((string) ($input['discount_percent'] ?? ''));
+
+        if ($discount !== '' && (!ctype_digit($discount) || (int) $discount > Product::MAX_DISCOUNT)) {
+            throw new ActionFailed('Discount must be a whole number from 0 to ' . Product::MAX_DISCOUNT . '%.');
+        }
+
         return [
             $name,
             $category,
             (float) ($input['price'] ?? 0),
             (int) ($input['stock'] ?? 0),
             trim((string) ($input['description'] ?? '')),
+            (int) $discount,
         ];
     }
 

@@ -2,7 +2,7 @@
    LOGISTICS SIDEBAR (shared)
 ========================================================= */
 
-@import url('portal-sidebar.css');
+@import url('portal-sidebar.css?v=3');
 
 .logistics-sidebar {
     position: fixed;
@@ -136,6 +136,8 @@
 
     .logistics-sidebar .bb-side-user {
         justify-content: center;
+        flex-direction: column;
+        gap: 4px;
         padding: 8px 0;
         background: transparent;
         border: 0;

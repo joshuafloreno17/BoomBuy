@@ -2,7 +2,7 @@
    SIDEBAR (shared across all admin pages)
 ========================= */
 
-@import url('portal-sidebar.css');
+@import url('portal-sidebar.css?v=3');
 
 .sidebar {
     width: 245px;
@@ -146,6 +146,8 @@
 
     .sidebar .bb-side-user {
         justify-content: center;
+        flex-direction: column;
+        gap: 4px;
         padding: 8px 0;
         background: transparent;
         border: 0;

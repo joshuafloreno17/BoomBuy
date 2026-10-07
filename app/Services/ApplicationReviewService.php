@@ -16,8 +16,7 @@ use function Illuminate\Support\defer;
  */
 class ApplicationReviewService
 {
-    // Buyers are approved automatically when they sign up.
-    public const TYPES = ['seller', 'logistics'];
+    public const TYPES = ['seller', 'buyer', 'logistics'];
 
     /** Notification titles/texts per application type. */
     private const COPY = [

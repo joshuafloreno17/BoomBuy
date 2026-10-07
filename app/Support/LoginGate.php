@@ -32,15 +32,20 @@ class LoginGate
                 : 'Your account has been deactivated. Please contact BoomBuy support for assistance.';
         }
 
-        // Sellers, riders and logistics accounts need an Approved application
-        // — this is what enforces the ID/document checks from registration.
-        if (in_array($user->role, ['seller', 'rider', 'logistics'])) {
+        // Every account needs an Approved application — this is what
+        // enforces the ID/document checks from registration.
+        if (in_array($user->role, ['buyer', 'seller', 'rider', 'logistics'])) {
 
             $application = DB::table($user->role . '_applications')
                 ->where('user_id', $user->id)
                 ->orderByDesc('created_at')
                 ->orderByDesc('id')
                 ->first();
+
+            // Buyers who signed up before approval existed have no application row.
+            if (!$application && $user->role === 'buyer') {
+                $application = (object) ['status' => 'Approved'];
+            }
 
             if (!$application || $application->status !== 'Approved') {
                 return ($application->status ?? null) === 'Rejected'
@@ -49,8 +54,6 @@ class LoginGate
             }
         }
 
-        // Buyers need no approval — they shop as soon as they've verified their
-        // email. (Suspension above still applies to them.)
 
         if (!in_array($user->role, ['buyer', 'seller', 'rider', 'logistics'])) {
             return 'Invalid account role.';
@@ -151,6 +154,7 @@ class LoginGate
     public static function passwordChanged(object $user, bool $keepThisBrowser = false): void
     {
         self::forgetEverywhere((int) $user->id);
+        ApiToken::revokeAll((int) $user->id);
 
         if ($keepThisBrowser && request()->hasCookie(self::REMEMBER_COOKIE)) {
             self::remember($user);

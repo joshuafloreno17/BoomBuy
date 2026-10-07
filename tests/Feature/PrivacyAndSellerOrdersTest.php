@@ -204,7 +204,7 @@ class PrivacyAndSellerOrdersTest extends TestCase
         ])->assertSessionHas('error');
     }
 
-    public function test_buyer_registration_still_creates_account_and_application_together(): void
+    public function test_buyer_registration_waits_for_the_administrator(): void
     {
         $this->withSession([
             'pending_registration' => [
@@ -218,34 +218,46 @@ class PrivacyAndSellerOrdersTest extends TestCase
             'otp_code' => '654321',
             'otp_expires_at' => now()->addMinutes(10),
         ])->post(route('otp.verify'), ['otp_code' => '654321'])
-            // No admin approval for buyers: straight into the shop, logged in.
-            ->assertRedirect(route('buyer.dashboard'));
+            ->assertRedirect(route('login'))
+            ->assertSessionHas('success', fn ($m) => str_contains($m, "administrator's approval"));
 
         $userId = DB::table('users')->where('email', 'newbuyer@example.com')->value('id');
 
         $this->assertNotNull($userId);
-        $this->assertDatabaseHas('buyer_applications', ['user_id' => $userId, 'status' => 'Approved']);
-        $this->assertSame($userId, session('user.id'));
-        $this->get(route('buyer.dashboard'))->assertOk();
+        $this->assertDatabaseHas('buyer_applications', ['user_id' => $userId, 'status' => 'Pending Verification']);
+        $this->assertNull(session('user.id'));
     }
 
-    public function test_a_buyer_left_pending_from_before_can_still_log_in(): void
+    public function test_pending_and_rejected_buyers_cannot_log_in_until_approved(): void
     {
+        Mail::fake();
         $buyer = $this->makeUser('buyer', ['email' => 'waiting@example.com', 'password' => bcrypt('password123')]);
-        DB::table('buyer_applications')->insert([
+        $appId = DB::table('buyer_applications')->insertGetId([
             'user_id' => $buyer->id, 'full_name' => $buyer->name, 'status' => 'Pending Verification',
             'created_at' => now(), 'updated_at' => now(),
         ]);
 
         $this->post(route('login.submit'), ['email' => 'waiting@example.com', 'password' => 'password123'])
+            ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
+        $this->assertNull(session('user.id'));
+
+        // The admin approves: an email goes out and the buyer can log in.
+        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'buyer']))->assertOk()->assertSee($buyer->name);
+        DB::table('buyer_applications')->where('id', $appId)->update(['status' => 'Approved']);
+        $this->flushSession();
+        $this->post(route('login.submit'), ['email' => 'waiting@example.com', 'password' => 'password123'])
             ->assertSessionMissing('error');
         $this->assertSame($buyer->id, session('user.id'));
     }
 
-    public function test_admin_applications_no_longer_list_buyers(): void
+    public function test_a_buyer_from_before_the_approval_step_can_still_log_in(): void
     {
-        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'buyer']))
-            ->assertOk()
-            ->assertDontSee('type=buyer', false);
+        // Old accounts have no application row at all.
+        $buyer = $this->makeUser('buyer', ['email' => 'legacy@example.com', 'password' => bcrypt('password123')]);
+        DB::table('buyer_applications')->where('user_id', $buyer->id)->delete();
+
+        $this->post(route('login.submit'), ['email' => 'legacy@example.com', 'password' => 'password123'])
+            ->assertSessionMissing('error');
+        $this->assertSame($buyer->id, session('user.id'));
     }
 }

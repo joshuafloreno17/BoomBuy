@@ -307,7 +307,7 @@
                                         !empty($delivery['rider_id'] ?? null) ||
                                         !empty($delivery['delivery_rider_id'] ?? null)
                                     ) &&
-                                    $status !== 'Delivered'
+                                    !in_array($status, \App\Support\OrderStatus::DONE, true)
                                 )
 
 

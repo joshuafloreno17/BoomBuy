@@ -165,8 +165,7 @@ class CourierFeaturesTest extends TestCase
         // A second parcel for the same center, so QC can send both at once.
         $other = $this->routedOrder($this->makeUser(), 'At Sorting Center', ['current_center_id' => $this->qc->id]);
 
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $id), ['status' => 'Processing'])->assertSessionHas('success');
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $id), ['status' => 'Dropped Off'])->assertSessionHas('success');
+        $this->shipFromSeller($this->seller, $id);
         $this->actingAsUser($this->qcStaff)->post(route('logistics.parcels.confirm-received', $id))->assertSessionHas('success');
 
         $this->actingAsUser($this->qcStaff)->get(route('logistics.parcels'))->assertOk()->assertSee('Dispatch all 2 to Santa Cruz Sorting Center');
@@ -186,7 +185,7 @@ class CourierFeaturesTest extends TestCase
         $this->assertSame('Ready to Collect', $this->orderStatus($id));
         $this->assertTrue($this->notified($buyer, 'Ready to Collect', $id));
         $this->actingAsUser($this->santaCruzStaff)
-            ->post(route('logistics.parcels.assign', $id), ['rider_id' => $this->santaCruzRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($id)), ['rider_id' => $this->santaCruzRider->id])
             ->assertSessionHas('error');
 
         $this->actingAsUser($buyer)->get(route('buyer.orders'))->assertOk()->assertSee('Ready to Collect');
@@ -197,7 +196,7 @@ class CourierFeaturesTest extends TestCase
         $this->actingAsUser($this->santaCruzStaff)->post(route('logistics.parcels.hand-to-buyer', $id), ['pickup_code' => DB::table('orders')->where('id', $id)->value('pickup_code')])->assertSessionHas('success');
 
         $done = DB::table('orders')->where('id', $id)->first();
-        $this->assertSame('Delivered', $done->status);
+        $this->assertSame('Completed', $done->status);
         $this->assertNotNull($done->buyer_received_at);
         $this->assertNotNull($done->cod_remitted_at);
         $this->assertSame($this->santaCruz->id, (int) $done->cod_remitted_center_id);

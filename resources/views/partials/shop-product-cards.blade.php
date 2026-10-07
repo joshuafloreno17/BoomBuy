@@ -13,6 +13,9 @@
             @if($product['free_shipping'] ?? false)
                 <span class="sp-free"><i class="bi bi-truck"></i> Free shipping</span>
             @endif
+            @if($product['discount'] ?? null)
+                <span class="sp-off">-{{ $product['discount'] }}%</span>
+            @endif
         </a>
 
         <button
@@ -55,7 +58,7 @@
                 @endif
             </span>
 
-            <span class="sp-price">₱{{ number_format($product['price']) }}</span>
+            <span class="sp-price">₱{{ number_format($product['price']) }}@if($product['original_price'] ?? null) <s class="sp-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
 
             <div class="sp-actions">
                 @if($product['stock'] <= 0)

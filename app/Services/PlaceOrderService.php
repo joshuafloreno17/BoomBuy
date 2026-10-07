@@ -138,7 +138,7 @@ class PlaceOrderService
                 );
             }
 
-            $variationLabel = $variation ? $variation->variation_type . ': ' . $variation->variation_value : null;
+            $variationLabel = $variation?->label();
 
             // A variation tracks its own stock; the product's stock only
             // applies when there is no variation.
@@ -263,6 +263,7 @@ class PlaceOrderService
                         DB::table('order_items')->insert([
                             'order_id' => $orderId,
                             'product_id' => $item['product_id'],
+                            'variation_id' => $item['variation_id'] ?? null,
                             'seller_id' => $item['seller_id'],
                             'product_name' => $item['product_name'],
                             'variation_label' => $item['variation_label'] ?? null,

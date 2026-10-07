@@ -9,8 +9,8 @@
     $images = $product->images()->get();
     $options = $product->variations()->orderBy('id')->get();
     $groups = $options->map(fn ($o) => [
-        'title' => 'Photos for ' . $o->variation_value,
-        'note' => 'The first one shows on the “' . $o->variation_value . '” button.',
+        'title' => 'Photos for ' . $o->shortLabel(),
+        'note' => 'The first one shows on the “' . $o->shortLabel() . '” button.',
         'photos' => $images->where('product_variation_id', $o->id),
         'room' => \App\Support\ProductPhotos::MAX_PER_OPTION - $images->where('product_variation_id', $o->id)->count(),
         'max' => \App\Support\ProductPhotos::MAX_PER_OPTION,

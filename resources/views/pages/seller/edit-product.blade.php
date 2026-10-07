@@ -343,11 +343,13 @@
                                 name="price"
                                 step="0.01"
                                 min="0"
-                                value="{{ old('price', $product->price ?? '') }}"
+                                value="{{ old('price', $product->regularPrice()) }}"
                                 required
                             >
 
                         </div>
+
+                        @include('partials.discount-field', ['discount' => $product->discount_percent])
 
                     </div>
 

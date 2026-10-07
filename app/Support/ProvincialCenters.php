@@ -68,7 +68,7 @@ class ProvincialCenters
         }
 
         $orders = DB::table('orders')
-            ->whereIn('status', ['Pending', 'Processing', 'Dropped Off', 'At Sorting Center', 'In Transit'])
+            ->whereIn('status', ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned', 'Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted'])
             ->get(['id', 'status', 'shipping_province', 'shipping_address']);
 
         foreach ($orders as $order) {
@@ -76,7 +76,7 @@ class ProvincialCenters
             $update = ['destination_center_id' => ParcelRoute::centerFor($buyerProvince)?->id];
 
             // Not at a center yet: it'll be dropped off at the seller's province center.
-            if (in_array($order->status, ['Pending', 'Processing', 'Dropped Off'], true)) {
+            if (in_array($order->status, ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned', 'Picked Up', 'Dropped Off'], true)) {
                 $sellerId = (int) DB::table('order_items')->where('order_id', $order->id)->value('seller_id');
                 $update['origin_center_id'] = ParcelRoute::centerFor(ParcelRoute::sellerLocation($sellerId)['province'])?->id;
             }

@@ -81,12 +81,14 @@
         </a>
     </section>
 
-    @if(isset($payoutBalance) && ($payoutBalance['available'] + $payoutBalance['on_hold'] + $payoutBalance['waiting_cash'] + $payoutBalance['paid_out']) > 0)
-        <a class="pd-cod" href="{{ route('seller.payouts') }}">
-            <i class="bi bi-wallet2"></i>
-            <span><strong>Payouts:</strong> {{ $peso($payoutBalance['available']) }} ready</span>
-            <span class="pd-cod-pending">· {{ $peso($payoutBalance['on_hold']) }} on hold while buyers can still return · {{ $peso($payoutBalance['waiting_cash']) }} COD not handed in yet</span>
-        </a>
+    @if(isset($codPayout) && ((float) $codPayout->pending > 0 || (float) $codPayout->released > 0))
+        <div class="pd-cod">
+            <i class="bi bi-cash-stack"></i>
+            <span><strong>Cash on Delivery:</strong> {{ $peso($codPayout->released) }} handed in at the Sorting Center</span>
+            @if((float) $codPayout->pending > 0)
+                <span class="pd-cod-pending">· {{ $peso($codPayout->pending) }} COD not handed in yet — still with riders</span>
+            @endif
+        </div>
     @endif
 
     <div class="pd-row">
@@ -117,12 +119,12 @@
             <div class="pd-todo">
                 <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $newOrders > 0 ? 'is-hot' : 'is-done' }}">
                     <span class="pd-todo-icon"><i class="bi bi-box-seam"></i></span>
-                    <span class="pd-todo-text"><strong>Pack and ship</strong><span>New orders to prepare</span></span>
+                    <span class="pd-todo-text"><strong>Accept new orders</strong><span>Check the stock, then accept</span></span>
                     <span class="pd-todo-count">{{ $newOrders }}</span>
                 </a>
                 <a href="{{ route('seller.orders', ['tab' => 'to-ship']) }}" class="pd-todo-item {{ $toDropOff > 0 ? '' : 'is-done' }}">
                     <span class="pd-todo-icon"><i class="bi bi-box-arrow-in-right"></i></span>
-                    <span class="pd-todo-text"><strong>Drop off at Sorting Center</strong><span>Being packed — bring them in next</span></span>
+                    <span class="pd-todo-text"><strong>Pack &amp; mark ready for pickup</strong><span>Accepted or being packed — a rider picks them up next</span></span>
                     <span class="pd-todo-count">{{ $toDropOff }}</span>
                 </a>
                 <a href="{{ route('seller.orders', ['tab' => 'returns']) }}" class="pd-todo-item {{ $pendingReturns > 0 ? 'is-hot' : 'is-done' }}">

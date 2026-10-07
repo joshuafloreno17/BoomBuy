@@ -57,12 +57,11 @@ class FullJourneyTest extends TestCase
             $this->assertSame(200, $response->status(), "{$step}: {$url} as admin returned {$response->status()}");
         }
 
-        // Riders only once one holds it.
-        $rider = DB::table('orders')->where('id', $id)->value('rider_id');
+        // The delivery rider, once the Sorting Center hands it over.
+        $rider = DB::table('orders')->where('id', $id)->value('delivery_rider_id');
         if ($rider) {
             $this->flushSession();
-            $user = $rider == $this->pickupRider->id ? $this->pickupRider : $this->deliveryRider;
-            $this->actingAsUser($user)->get(route('rider.delivery.details', $id))
+            $this->actingAsUser($this->deliveryRider)->get(route('rider.delivery.details', $id))
                 ->assertOk()
                 // The order date, not "N/A".
                 ->assertSee(\Illuminate\Support\Carbon::parse(DB::table('orders')->where('id', $id)->value('created_at'))->format('M j, Y'));
@@ -108,16 +107,15 @@ class FullJourneyTest extends TestCase
         $this->everyoneSeesTheOrder('Pending');
 
         // Seller prepares it
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $this->orderId), ['status' => 'Processing']);
-        $this->actingAsUser($this->seller)->post(route('seller.order.status', $this->orderId), ['status' => 'Dropped Off']);
-        $this->assertSame('Dropped Off', $this->orderNow());
-        $this->everyoneSeesTheOrder('Dropped Off');
+        $this->shipFromSeller($this->seller, $this->orderId, $this->pickupRider);
+        $this->assertSame('Picked Up', $this->orderNow());
+        $this->everyoneSeesTheOrder('Picked Up');
 
         // The seller brought it to the Sorting Center (head office staff here).
         $this->actingAsUser($this->logistics)->post(route('logistics.parcels.confirm-received', $this->orderId))->assertSessionHas('success');
         $this->everyoneSeesTheOrder('At Sorting Center');
         $this->actingAsUser($this->logistics)
-            ->post(route('logistics.parcels.assign', $this->orderId), ['rider_id' => $this->deliveryRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($this->orderId)), ['rider_id' => $this->deliveryRider->id])
             ->assertSessionHas('success');
         $this->everyoneSeesTheOrder('Assigned for Delivery');
 

@@ -98,3 +98,35 @@
 .bb-portal-side * {
     box-sizing: border-box;
 }
+
+/* Log out: an icon button at the right of the profile card. */
+.bb-side-user form.bb-side-logout-form {
+    width: auto;
+    margin: 0 0 0 auto;
+    flex-shrink: 0;
+}
+
+.bb-side-user .bb-side-logout.bb-side-logout {
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: #8a7f86;
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.bb-side-user .bb-side-logout.bb-side-logout:hover,
+.bb-side-user .bb-side-logout.bb-side-logout:focus-visible {
+    background: #fee2e2;
+    color: #dc2626;
+    outline: none;
+}
+

@@ -38,11 +38,10 @@ class DeliveryFlowTest extends TestCase
         $order = $this->makeOrder($buyer, $this->makeProduct($seller));
 
         // Seller packs it and drops it at the Sorting Center themselves
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Processing']);
-        $this->actingAsUser($seller)->post(route('seller.order.status', $order), ['status' => 'Dropped Off']);
-        $this->assertSame('Dropped Off', $this->orderStatus($order));
+        $this->shipFromSeller($seller, $order);
+        $this->assertSame('Picked Up', $this->orderStatus($order));
         $this->notified($buyer->id, 'Order Shipped');
-        $this->notified($logistics->id, 'Parcel Dropped Off');
+        $this->notified($logistics->id, 'Parcel Picked Up');
 
         // Sorting Center receives it and hands it to the delivery rider
         $this->actingAsUser($logistics)->get(route('logistics.parcels'))->assertOk()->assertSee('#' . $order);
@@ -50,7 +49,7 @@ class DeliveryFlowTest extends TestCase
         $this->assertSame('At Sorting Center', $this->orderStatus($order));
 
         $this->actingAsUser($logistics)
-            ->post(route('logistics.parcels.assign', $order), ['rider_id' => $deliveryRider->id])
+            ->post(route('logistics.parcels.assign', $this->sorted($order)), ['rider_id' => $deliveryRider->id])
             ->assertSessionHas('success');
         $this->assertSame('Assigned for Delivery', $this->orderStatus($order));
         $this->notified($deliveryRider->id, 'New Delivery Assignment');
@@ -79,12 +78,17 @@ class DeliveryFlowTest extends TestCase
         $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller));
 
         $this->actingAsUser($seller)
-            ->post(route('seller.order.status', $order), ['status' => 'Dropped Off'])
+            ->post(route('seller.order.status', $order), ['status' => 'Preparing'])
+            ->assertSessionHas('error');
+        $this->assertSame('Pending', $this->orderStatus($order));
+
+        $this->actingAsUser($seller)
+            ->post(route('seller.order.pickup', $order), ['pickup_date' => now()->toDateString()])
             ->assertSessionHas('error');
         $this->assertSame('Pending', $this->orderStatus($order));
 
         $this->actingAsUser($this->makeSeller('electronics'))
-            ->post(route('seller.order.status', $order), ['status' => 'Processing'])
+            ->post(route('seller.order.status', $order), ['status' => 'Confirmed'])
             ->assertSessionHas('error');
         $this->assertSame('Pending', $this->orderStatus($order));
     }
@@ -118,11 +122,11 @@ class DeliveryFlowTest extends TestCase
 
         foreach ([$pending, $suspended] as $rider) {
             $this->actingAsUser($logistics)
-                ->post(route('logistics.parcels.assign', $order), ['rider_id' => $rider->id])
+                ->post(route('logistics.parcels.assign', $this->sorted($order)), ['rider_id' => $rider->id])
                 ->assertSessionHas('error');
         }
 
-        $this->assertSame('At Sorting Center', $this->orderStatus($order));
+        $this->assertSame('Sorted', $this->orderStatus($order));
     }
 
     public function test_failed_delivery_needs_a_reason_and_is_retried_at_most_twice(): void
@@ -227,7 +231,7 @@ class DeliveryFlowTest extends TestCase
         $product = $this->makeProduct($this->makeSeller());
 
         $atCenter = $this->makeOrder($this->makeUser(), $product, 'At Sorting Center');
-        $withSeller = $this->makeOrder($this->makeUser(), $product, 'Processing');
+        $withSeller = $this->makeOrder($this->makeUser(), $product, 'Preparing');
 
         $this->actingAsUser($logistics)
             ->get(route('logistics.parcels', ['q' => '#' . $atCenter]))

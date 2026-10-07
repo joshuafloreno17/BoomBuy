@@ -14,7 +14,7 @@ class OrderStock
      * rider has picked the parcel up, stock only comes back through the
      * Returned to Seller → restock flow.
      */
-    public const RESTOCKABLE_ON_CANCEL = ['Pending', 'Processing'];
+    public const RESTOCKABLE_ON_CANCEL = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Processing'];
 
     /**
      * Put an order's items back into inventory and stamp restocked_at.
@@ -63,6 +63,17 @@ class OrderStock
     {
         $quantity ??= (int) $item->quantity;
 
+        // Orders since options got two parts save the exact option.
+        if (!empty($item->variation_id)) {
+            $exact = ProductVariation::where('id', $item->variation_id)->where('product_id', $item->product_id)->first();
+
+            if ($exact) {
+                $exact->increment('stock', $quantity);
+
+                return true;
+            }
+        }
+
         // Plain products carry no variation_label — restore the base
         // product's stock directly.
         if (empty($item->variation_label)) {
@@ -77,16 +88,7 @@ class OrderStock
         // checkout, not a variation_id — but that label is built from the
         // variation's own type/value, so it can be parsed back and matched.
         // Case-insensitive: older labels were saved as "color: red".
-        [$variationType, $variationValue] = array_pad(
-            explode(': ', $item->variation_label, 2),
-            2,
-            ''
-        );
-
-        $variation = ProductVariation::where('product_id', $item->product_id)
-            ->whereRaw('LOWER(variation_type) = ?', [strtolower(trim($variationType))])
-            ->whereRaw('LOWER(variation_value) = ?', [strtolower(trim($variationValue))])
-            ->first();
+        $variation = self::findByLabel((int) $item->product_id, (string) $item->variation_label);
 
         if (!$variation) {
             return false;
@@ -95,6 +97,29 @@ class OrderStock
         $variation->increment('stock', $quantity);
 
         return true;
+    }
+
+    /**
+     * The option a saved label names: "Color: Red", or "Color: Red · Size: M"
+     * for a two-part option. Case-insensitive (older labels were lowercase).
+     */
+    public static function findByLabel(int $productId, string $label): ?ProductVariation
+    {
+        $parts = array_map(
+            fn ($part) => array_map('trim', array_pad(explode(': ', $part, 2), 2, '')),
+            explode(' · ', $label, 2)
+        );
+
+        [$type1, $value1] = $parts[0];
+        [$type2, $value2] = $parts[1] ?? ['', ''];
+
+        return ProductVariation::where('product_id', $productId)
+            ->whereRaw('LOWER(variation_type) = ?', [strtolower($type1)])
+            ->whereRaw('LOWER(variation_value) = ?', [strtolower($value1)])
+            ->when($value2 !== '',
+                fn ($q) => $q->whereRaw('LOWER(option2_type) = ?', [strtolower($type2)])->whereRaw('LOWER(option2_value) = ?', [strtolower($value2)]),
+                fn ($q) => $q->whereNull('option2_value'))
+            ->first();
     }
 
     /**

@@ -78,7 +78,7 @@ class RegionalCentersTest extends TestCase
 
         $seller = $this->makeSeller();
         $seller->forceFill(['province' => 'Cavite', 'city_municipality' => 'Imus City'])->save();
-        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller), 'Processing', [
+        $order = $this->makeOrder($this->makeUser(), $this->makeProduct($seller), 'Preparing', [
             'shipping_province' => 'Laguna', 'shipping_city' => 'Santa Cruz',
         ]);
 

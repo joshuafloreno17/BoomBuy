@@ -18,7 +18,9 @@
 
 <div class="container">
 
-    <h1>Orders</h1>
+    <div style="display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;">
+        <h1>Orders</h1>
+    </div>
     <div class="subtitle">
         Track every BoomBuy order. Orders move forward through the seller, rider and Logistics flows; open an order to cancel it while it is still with the seller.
     </div>

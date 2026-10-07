@@ -105,13 +105,13 @@ class AdminController extends Controller
 
         $totalOrders = (int) $statusCounts->sum();
         $pendingCount = (int) ($statusCounts['Pending'] ?? 0);
-        $processingCount = (int) ($statusCounts['Processing'] ?? 0);
-        $deliveredCount = (int) ($statusCounts['Delivered'] ?? 0);
+        $processingCount = (int) (($statusCounts['Confirmed'] ?? 0) + ($statusCounts['Preparing'] ?? 0));
+        $deliveredCount = (int) (($statusCounts['Delivered'] ?? 0) + ($statusCounts['Completed'] ?? 0));
         $cancelledCount = (int) ($statusCounts['Cancelled'] ?? 0);
 
         // Product sales only — the delivery fee is passed on to the rider.
         $totalSales = DB::table('orders')
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->sum(DB::raw('total_amount - delivery_fee'));
 
         $totalProducts = Product::count();
@@ -171,7 +171,7 @@ class AdminController extends Controller
         $commissionRate = (float) PlatformSetting::get('commission_rate', '10');
 
         $deliveredTodaySales = (float) DB::table('orders')
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereRaw('DATE(COALESCE(delivered_at, updated_at)) = ?', [$today])
             ->sum(DB::raw('total_amount - delivery_fee'));
 
@@ -442,8 +442,11 @@ class AdminController extends Controller
                 );
         }
 
+        // The admin edits the regular price; the seller's "% off" stays.
+        $pricing = Product::pricing($price, $product->discount_percent);
+
         // Every option has to stay above ₱0 at the new base price.
-        if ($product->variations()->exists() && $price + (float) $product->variations()->min('price_adjustment') <= 0) {
+        if ($product->variations()->exists() && $pricing['price'] + (float) $product->variations()->min('price_adjustment') <= 0) {
             return back()
                 ->withInput()
                 ->with('error', 'At this price one of the product\'s options would cost ₱0 or less.');
@@ -452,7 +455,7 @@ class AdminController extends Controller
         $updateData = [
             'name' => $name,
             'category' => $categoryName,
-            'price' => $price,
+            ...$pricing,
             'stock' => $stock,
             'description' => $description,
         ];
@@ -680,6 +683,10 @@ class AdminController extends Controller
             PlatformSetting::set($key, (string) $request->validated($key));
         }
 
+        if ($request->has('free_shipping_min')) {
+            PlatformSetting::set(\App\Support\DeliveryFee::FREE_SHIPPING_KEY, (string) (float) $request->validated('free_shipping_min'));
+        }
+
         return back()->with('success', 'Delivery fees updated.');
     }
 
@@ -785,7 +792,7 @@ class AdminController extends Controller
             // Their listings leave the shop automatically; orders they still
             // have to pack can't move until they're back or are cancelled.
             $openOrders = DB::table('orders')
-                ->whereIn('status', ['Pending', 'Processing'])
+                ->whereIn('status', \App\Support\OrderStatus::WITH_SELLER)
                 ->whereExists(function ($q) use ($user) {
                     $q->select(DB::raw(1))
                         ->from('order_items')
@@ -818,12 +825,12 @@ class AdminController extends Controller
             ->pluck('total', 'status');
 
         $totalOrders = (int) $statusCounts->sum();
-        $completedOrders = (int) ($statusCounts['Delivered'] ?? 0);
+        $completedOrders = (int) (($statusCounts['Delivered'] ?? 0) + ($statusCounts['Completed'] ?? 0));
 
         // Delivered orders only, without the delivery fee (that goes to the
         // rider) — the same figure as the dashboard's Total Sales.
         $totalRevenue = (float) DB::table('orders')
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->sum(DB::raw('total_amount - delivery_fee'));
 
         $averageOrder = $completedOrders > 0 ? $totalRevenue / $completedOrders : 0;
@@ -836,7 +843,7 @@ class AdminController extends Controller
 
         $voucherDiscountsBySeller = DB::table('orders')
             ->join('vouchers', 'vouchers.code', '=', 'orders.voucher_code')
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->whereNotNull('vouchers.seller_id')
             ->select('vouchers.seller_id', DB::raw('SUM(orders.discount_amount) as discounts'))
             ->groupBy('vouchers.seller_id')
@@ -845,12 +852,12 @@ class AdminController extends Controller
         $sellerSales = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->join('users', 'users.id', '=', 'order_items.seller_id')
-            ->where('orders.status', 'Delivered')
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
             ->selectRaw('order_items.seller_id, users.name as seller_name, SUM(order_items.price * order_items.quantity) as sales')
             ->groupBy('order_items.seller_id', 'users.name')
             ->get()
             ->map(function ($row) {
-                // Same figures as the seller's own Reports and Payouts: after vouchers and
+                // Same figures as the seller's own Reports: after vouchers and
                 // refunds, commission at each order's saved rate.
                 $summary = \App\Support\SellerBalance::summary((int) $row->seller_id);
                 $sales = $summary['sales'];
@@ -963,6 +970,7 @@ class AdminController extends Controller
     // buyers are approved automatically when they sign up).
     public const APPLICATION_TYPES = [
         'seller' => 'Sellers',
+        'buyer' => 'Buyers',
         'logistics' => 'Logistics',
     ];
 
@@ -1067,12 +1075,12 @@ class AdminController extends Controller
         )->get()->groupBy('rider_id');
 
         $awaitingConfirmation = DB::table('orders')
-            ->where('status', 'Dropped Off')
+            ->whereIn('status', ['Dropped Off', 'Picked Up'])
             ->orderBy('updated_at')
             ->get();
 
         $awaitingAssignment = DB::table('orders')
-            ->where('status', 'At Sorting Center')
+            ->whereIn('status', ['At Sorting Center', 'Sorted'])
             ->orderBy('sorting_center_received_at')
             ->get();
 
@@ -1095,7 +1103,7 @@ class AdminController extends Controller
             ->count('users.id');
 
         $deliveredToday = DB::table('orders')
-            ->where('status', 'Delivered')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereDate('delivered_at', now()->toDateString())
             ->count();
 
@@ -1184,16 +1192,16 @@ class AdminController extends Controller
     // Tabs on the admin Orders page => the order statuses each one shows.
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
-        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Processing']],
-        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Dropped Off', 'At Sorting Center', 'In Transit', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect']],
+        'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect']],
         'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
-        'delivered' => ['label' => 'Delivered', 'statuses' => ['Delivered']],
+        'delivered' => ['label' => 'Delivered / Completed', 'statuses' => ['Delivered', 'Completed']],
         'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
     ];
 
     // The admin may only cancel while the items are still with the seller —
     // once it's at a Sorting Center it goes back through the Logistics return flow.
-    public const ADMIN_CANCELLABLE = ['Pending', 'Processing'];
+    public const ADMIN_CANCELLABLE = \App\Support\OrderStatus::WITH_SELLER;
 
     /** A parcel that hasn't moved at a Sorting Center for this many days counts as stuck. */
     public const STUCK_DAYS = 7;
@@ -1212,24 +1220,7 @@ class AdminController extends Controller
 
         $search = trim((string) request('q', ''));
 
-        // Search matches the order number, the buyer's name/phone on the
-        // order, or the buyer's account email.
-        $searched = DB::table('orders')
-            ->leftJoin('users as buyers', 'buyers.id', '=', 'orders.buyer_id')
-            ->when($search !== '', function ($query) use ($search) {
-                $number = ltrim($search, '#');
-                $like = '%' . $search . '%';
-
-                $query->where(function ($q) use ($number, $like) {
-                    if (ctype_digit($number)) {
-                        $q->orWhere('orders.id', (int) $number);
-                    }
-
-                    $q->orWhere('orders.shipping_name', 'like', $like)
-                        ->orWhere('orders.shipping_phone', 'like', $like)
-                        ->orWhere('buyers.email', 'like', $like);
-                });
-            });
+        $searched = $this->searchedOrders($search);
 
         // Per-tab counts for the current search.
         $statusCounts = (clone $searched)
@@ -1280,6 +1271,30 @@ class AdminController extends Controller
             'tabCounts' => $tabCounts,
             'search' => $search,
         ]);
+    }
+
+    /**
+     * Orders matching the Orders page search: the order number, the buyer's
+     * name/phone on the order, or the buyer's account email.
+     */
+    private function searchedOrders(string $search)
+    {
+        return DB::table('orders')
+            ->leftJoin('users as buyers', 'buyers.id', '=', 'orders.buyer_id')
+            ->when($search !== '', function ($query) use ($search) {
+                $number = ltrim($search, '#');
+                $like = '%' . $search . '%';
+
+                $query->where(function ($q) use ($number, $like) {
+                    if (ctype_digit($number)) {
+                        $q->orWhere('orders.id', (int) $number);
+                    }
+
+                    $q->orWhere('orders.shipping_name', 'like', $like)
+                        ->orWhere('orders.shipping_phone', 'like', $like)
+                        ->orWhere('buyers.email', 'like', $like);
+                });
+            });
     }
 
     public function orderDetails($id)
@@ -1389,7 +1404,7 @@ class AdminController extends Controller
         if (!in_array($order->status, self::ADMIN_CANCELLABLE)) {
             return back()->with(
                 'error',
-                'Only orders that are still with the seller (Pending or Processing) can be cancelled.'
+                'Only orders that are still with the seller (Pending, Confirmed or Preparing) can be cancelled.'
             );
         }
 
@@ -1483,105 +1498,6 @@ class AdminController extends Controller
     public function refundReturn($id, \App\Services\ReturnRefundService $returns)
     {
         return $this->adminAction(fn () => $returns->markRefunded((int) $id, (string) request('reference'), \App\Support\SupportAccount::id()));
-    }
-
-    /** Sellers' balances, and recording a payment to one of them. */
-    public function payouts()
-    {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        $sellers = DB::table('users')
-            ->join('seller_applications', 'seller_applications.user_id', '=', 'users.id')
-            ->where('users.role', 'seller')
-            ->where('seller_applications.status', 'Approved')
-            ->orderBy('seller_applications.business_name')
-            ->get(['users.id', 'users.name', 'users.email', 'seller_applications.business_name'])
-            ->unique('id')
-            ->map(function ($seller) {
-                $balance = \App\Support\SellerBalance::for((int) $seller->id);
-
-                return (object) [
-                    'id' => (int) $seller->id,
-                    'shop' => $seller->business_name ?: $seller->name,
-                    'email' => $seller->email,
-                    'balance' => $balance,
-                    'account' => \App\Support\SellerBalance::account((int) $seller->id),
-                ];
-            })
-            ->sortByDesc(fn ($s) => $s->balance['available'])
-            ->values();
-
-        $history = DB::table('seller_payouts')
-            ->join('users', 'users.id', '=', 'seller_payouts.seller_id')
-            ->orderByDesc('seller_payouts.paid_at')
-            ->limit(30)
-            ->get(['seller_payouts.*', 'users.name as seller_name']);
-
-        return view('pages.admin.payouts', [
-            'sellers' => $sellers,
-            'history' => $history,
-            'totalAvailable' => round($sellers->sum(fn ($s) => $s->balance['available']), 2),
-            'totalOnHold' => round($sellers->sum(fn ($s) => $s->balance['on_hold'] + $s->balance['waiting_cash']), 2),
-        ]);
-    }
-
-    public function storePayout($sellerId)
-    {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        $seller = DB::table('users')->where('id', $sellerId)->where('role', 'seller')->first();
-
-        if (!$seller) {
-            return back()->with('error', 'Seller not found.');
-        }
-
-        $amount = round((float) request('amount'), 2);
-        $reference = trim((string) request('reference'));
-        $account = \App\Support\SellerBalance::account((int) $sellerId);
-        $available = \App\Support\SellerBalance::for((int) $sellerId)['available'];
-
-        if (!$account['method'] || !$account['number']) {
-            return back()->with('error', $seller->name . ' has not set where to be paid yet (Seller → Payouts).');
-        }
-
-        if ($amount <= 0) {
-            return back()->with('error', 'Enter the amount you sent.');
-        }
-
-        if ($amount > $available + 0.001) {
-            return back()->with('error', 'That is more than their available balance of ₱' . number_format($available, 2) . '.');
-        }
-
-        if ($reference === '') {
-            return back()->with('error', 'Enter the transfer\'s reference number.');
-        }
-
-        DB::table('seller_payouts')->insert([
-            'seller_id' => (int) $sellerId,
-            'amount' => $amount,
-            'method' => $account['method'],
-            'account_name' => $account['name'],
-            'account_number' => $account['number'],
-            'reference' => Str::limit($reference, 100, ''),
-            'note' => trim((string) request('note')) ?: null,
-            'paid_by' => \App\Support\SupportAccount::id(),
-            'paid_at' => now(),
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-
-        createNotification(
-            (int) $sellerId,
-            'Payout Sent',
-            'BoomBuy sent you ₱' . number_format($amount, 2) . ' by ' . $account['method'] . ' (' . \App\Services\ReturnRefundService::masked($account['number']) . '). Reference: ' . $reference . '.',
-            'payout'
-        );
-
-        return back()->with('success', '₱' . number_format($amount, 2) . ' payout to ' . $seller->name . ' recorded.');
     }
 
     /** Runs an admin action and flashes its message (or the rule it broke). */

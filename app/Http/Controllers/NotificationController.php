@@ -106,10 +106,10 @@ class NotificationController extends Controller
         // A rider can only open a delivery that is (still) theirs — one the
         // Sorting Center gave to another rider would just be a 404.
         if (($user['role'] ?? '') === 'rider' && $orderId > 0) {
-            $delivery = DB::table('orders')->where('id', $orderId)->first(['rider_id', 'delivery_rider_id']);
+            $delivery = DB::table('orders')->where('id', $orderId)->first(['rider_id', 'delivery_rider_id', 'pickup_date']);
             $riderId = (int) $user['id'];
             $isMine = (int) ($delivery->delivery_rider_id ?? 0) === $riderId
-                || (empty($delivery->delivery_rider_id) && (int) $delivery->rider_id === $riderId);
+                || (empty($delivery->delivery_rider_id) && empty($delivery->pickup_date) && (int) $delivery->rider_id === $riderId);
 
             if (!$isMine) {
                 return redirect()->route('rider.deliveries')
@@ -172,12 +172,13 @@ class NotificationController extends Controller
                 $type === 'return_refund' => route('seller.orders', ['tab' => 'returns']),
                 $isOrder && $orderId > 0 => route('seller.order.details', $orderId),
                 $type === 'compliance_warning' => route('seller.dashboard'),
-                $type === 'payout' => route('seller.payouts'),
                 default => route('seller.notifications'),
             },
-            'rider' => $isOrder && $orderId > 0
-                ? route('rider.delivery.details', $orderId)
-                : route('rider.notifications'),
+            'rider' => match (true) {
+                $type === 'pickup' => route('rider.pickups'),
+                $isOrder && $orderId > 0 => route('rider.delivery.details', $orderId),
+                default => route('rider.notifications'),
+            },
             'logistics' => $isOrder || $type === 'parcel'
                 ? route('logistics.parcels')
                 : route('logistics.notifications'),

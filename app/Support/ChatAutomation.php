@@ -22,7 +22,10 @@ class ChatAutomation
 
     private const ORDER_TEXT = [
         'placed' => 'Thanks for your order #%d! We received it and will start preparing it soon.',
+        'confirmed' => 'Good news! We accepted your order #%d and will prepare it shortly.',
         'processing' => 'Good news! We are now preparing your order #%d.',
+        'ready_for_pickup' => 'Your order #%d is packed and waiting for the BoomBuy rider to pick it up.',
+        'picked_up' => 'Your order #%d was picked up by the rider and is on its way to the Sorting Center.',
         'dropped_off' => 'Your order #%d is packed and on its way — we dropped it off at the Sorting Center.',
         'out_for_delivery' => 'Your order #%d is out for delivery — it is on its way to you!',
         'delivered' => 'Your order #%d has been delivered. Enjoy, and please confirm once you have received it.',

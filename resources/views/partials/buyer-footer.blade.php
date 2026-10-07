@@ -13,7 +13,7 @@
             <a href="{{ $bbFooterBuyer ? route('buyer.dashboard') : route('home') }}" class="bb-footer-logo"><img src="{{ asset('images/icon.svg') }}" alt="" width="30" height="30"> BoomBuy</a>
             <p>Your everyday online marketplace — products from verified sellers, delivered to your door.</p>
             <div class="bb-footer-promises">
-                <span><i class="bi bi-truck"></i> Free shipping on orders ₱{{ number_format(\App\Support\DeliveryFee::FREE_SHIPPING_MIN) }} and up</span>
+                <span><i class="bi bi-truck"></i> Free shipping on orders ₱{{ number_format(\App\Support\DeliveryFee::freeShippingMin()) }} and up</span>
                 <span><i class="bi bi-wallet2"></i> GCash, Maya, card or cash on delivery</span>
                 <span><i class="bi bi-arrow-counterclockwise"></i> 7-day returns</span>
             </div>

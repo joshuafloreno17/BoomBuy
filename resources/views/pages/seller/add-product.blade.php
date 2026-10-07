@@ -231,6 +231,8 @@
 
                     </div>
 
+                    @include('partials.discount-field')
+
 
                     <!-- DESCRIPTION -->
                     <div class="form-group">
@@ -264,6 +266,8 @@
                         <div class="opt-type" id="optType" hidden>
                             <label for="variationType">Variation type</label>
                             <input type="text" id="variationType" placeholder="e.g. Color, Size, Mount" autocomplete="off">
+                            <label for="variationType2" style="margin-top:8px;">Second type <small>(optional — e.g. Size, for Color × Size)</small></label>
+                            <input type="text" id="variationType2" placeholder="Leave blank for one type" autocomplete="off">
                         </div>
 
                         <div id="variationRows" class="opt-list"></div>
@@ -310,16 +314,26 @@
         var rowsContainer = document.getElementById('variationRows');
         var typeBox = document.getElementById('optType');
         var typeInput = document.getElementById('variationType');
+        var typeInput2 = document.getElementById('variationType2');
         var addBtn = document.getElementById('addVariationBtn');
         var index = 0;
         var OPTION_MAX = {{ \App\Support\ProductPhotos::MAX_PER_OPTION }};
         var say = window.bbAlert || window.alert;
 
         // The one variation type goes on every option (the form sends it per option).
+        // A second type (Color × Size) adds a second value to every option row.
         function syncType() {
+            var second = typeInput2.value.trim();
             rowsContainer.querySelectorAll('.opt-type-field').forEach(function (i) { i.value = typeInput.value.trim(); });
+            rowsContainer.querySelectorAll('.opt-type2-field').forEach(function (i) { i.value = second; });
+            rowsContainer.querySelectorAll('.opt-second').forEach(function (label) {
+                label.hidden = second === '';
+                label.querySelector('span').textContent = second || 'Second';
+                label.querySelector('input').required = second !== '';
+            });
         }
         typeInput.addEventListener('input', syncType);
+        typeInput2.addEventListener('input', syncType);
 
         function renumber() {
             var cards = rowsContainer.querySelectorAll('.opt-card');
@@ -341,8 +355,10 @@
 
             card.innerHTML =
                 '<input type="hidden" class="opt-type-field" name="variations[' + index + '][type]">' +
+                '<input type="hidden" class="opt-type2-field" name="variations[' + index + '][type2]">' +
                 '<div class="opt-fields">' +
                     '<label class="opt-field opt-name"><span>Option <b data-opt-n></b> name</span><input type="text" name="variations[' + index + '][value]" placeholder="e.g. Red, XL, Air Vent" required></label>' +
+                    '<label class="opt-field opt-second" hidden><span>Second</span><input type="text" name="variations[' + index + '][value2]" placeholder="e.g. M"></label>' +
                     '<label class="opt-field"><span>Extra ₱ <small>· 0 = same</small></span><input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" value="0"></label>' +
                     '<label class="opt-field"><span>Stock</span><input type="number" min="0" name="variations[' + index + '][stock]" value="0"></label>' +
                     '<button type="button" class="opt-remove" aria-label="Remove this option" title="Remove option"><i class="bi bi-x-lg"></i></button>' +
@@ -405,6 +421,7 @@
             });
 
             rowsContainer.appendChild(card);
+            syncType();
             index++;
             syncType();
             renumber();

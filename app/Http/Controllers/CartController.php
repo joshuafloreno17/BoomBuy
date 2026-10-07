@@ -644,7 +644,7 @@ class CartController extends Controller
 
         // No ordering on an incomplete account (name, phone, address with a town).
         $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id']);
-        $freeShippingMin = DeliveryFee::FREE_SHIPPING_MIN;
+        $freeShippingMin = DeliveryFee::freeShippingMin();
 
         // Same split/fee/voucher math placeOrder will use.
         $planLines = [];

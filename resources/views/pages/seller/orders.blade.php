@@ -295,7 +295,7 @@
                             <div>
 
                                 <div class="total-label">
-                                    {{ in_array($order->status, ['Cancelled', 'Returned to Seller'], true) ? 'Order Value (not a sale)' : ($order->status === 'Delivered' ? 'Your Sales' : 'Order Value') }}
+                                    {{ in_array($order->status, ['Cancelled', 'Returned to Seller'], true) ? 'Order Value (not a sale)' : (in_array($order->status, \App\Support\OrderStatus::DONE, true) ? 'Your Sales' : 'Order Value') }}
                                 </div>
 
                                 <div class="total">
