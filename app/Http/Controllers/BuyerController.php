@@ -237,6 +237,8 @@ class BuyerController extends Controller
             'name' => $product->name,
             'category' => $product->category,
             'price' => (float) $product->price,
+            'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
+            'discount' => $product->isDiscounted() ? (int) $product->discount_percent : null,
             // The options' stock when the product has options (Product::SELLABLE_STOCK_SQL).
             'stock' => (int) ($product->sellable_stock ?? $product->stock),
             'image' => productImageUrl($product->image),

@@ -908,6 +908,35 @@ a { color: inherit; }
 .lp-join-card.is-sell em { background: #fff; color: var(--ink); }
 .lp-join-card.is-ride em { background: var(--accent); color: #fff; }
 
+/* Hover: the card lifts, its circle grows, the button nudges right. */
+.lp-join-card { transition: transform .25s cubic-bezier(.2,.7,.3,1), box-shadow .25s ease, border-color .25s ease; }
+.lp-join-card::after { transition: transform .45s cubic-bezier(.2,.7,.3,1); }
+.lp-join-card em { transition: transform .25s ease, background-color .25s ease, color .25s ease, box-shadow .25s ease; }
+
+.lp-join-card:hover,
+.lp-join-card:focus-visible { transform: translateY(-6px); outline: none; }
+.lp-join-card:hover::after,
+.lp-join-card:focus-visible::after { transform: scale(1.25); }
+.lp-join-card:hover em,
+.lp-join-card:focus-visible em { transform: translateX(6px); }
+
+.lp-join-card.is-sell:hover,
+.lp-join-card.is-sell:focus-visible { box-shadow: 0 22px 44px -18px rgba(232, 66, 15, .65); }
+.lp-join-card.is-sell:hover em,
+.lp-join-card.is-sell:focus-visible em { background: var(--ink); color: #fff; }
+
+.lp-join-card.is-ride:hover,
+.lp-join-card.is-ride:focus-visible { border-color: var(--accent); box-shadow: 0 22px 44px -20px rgba(27, 26, 31, .28); }
+.lp-join-card.is-ride:hover em,
+.lp-join-card.is-ride:focus-visible em { background: var(--accent-dark); box-shadow: 0 10px 20px -10px rgba(232, 66, 15, .8); }
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-join-card, .lp-join-card::after, .lp-join-card em { transition: none; }
+    .lp-join-card:hover, .lp-join-card:focus-visible,
+    .lp-join-card:hover::after, .lp-join-card:focus-visible::after,
+    .lp-join-card:hover em, .lp-join-card:focus-visible em { transform: none; }
+}
+
 /* ---------- Motion ---------- */
 .bb-reveal { opacity: 0; transform: translateY(18px); transition: opacity .6s cubic-bezier(.2,.7,.3,1), transform .6s cubic-bezier(.2,.7,.3,1); }
 .bb-reveal.bb-in-view { opacity: 1; transform: none; }

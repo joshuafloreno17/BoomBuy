@@ -334,3 +334,79 @@
 .bb-acct-logout:hover {
     background: #fff1f1;
 }
+
+/* Sidebar: "need help?" under My Purchases (the full help card is on the Me screen). */
+.bb-acct-helplink {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 12px;
+    border-top: 1px solid var(--line, #f0e2da);
+    color: #5e5759;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.bb-acct-helplink:hover { color: var(--accent-dark, #c2380f); }
+
+
+/* ---------- COD standing ---------- */
+.bb-acct-cod { position: relative; overflow: hidden; }
+.bb-acct-cod.is-near { border-color: #f5d98a; background: linear-gradient(180deg, #fffaf0 0%, #fff 60%); }
+.bb-acct-cod.is-blocked { border-color: #f5c2bd; background: linear-gradient(180deg, #fff5f4 0%, #fff 60%); }
+
+.bb-acct-cod .bb-acct-cod-top { display: flex; align-items: center; gap: 10px; }
+.bb-acct-cod-icon {
+    width: 36px; height: 36px; flex-shrink: 0;
+    display: grid; place-items: center;
+    border-radius: 11px;
+    background: var(--teal-bg, #e3f6f4); color: var(--teal-dark, #0a6f66);
+    font-size: 18px;
+}
+.bb-acct-cod.is-near .bb-acct-cod-icon { background: #fff1cc; color: #8a5a00; }
+.bb-acct-cod.is-blocked .bb-acct-cod-icon { background: #fdecea; color: #b42318; }
+
+.bb-acct-cod-title { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.2; }
+.bb-acct-cod-title strong { font-size: 14px; font-weight: 800; color: var(--ink, #1b1a1f); }
+.bb-acct-cod-title small { font-size: 11.5px; color: #8a7f86; }
+
+.bb-acct-cod-score { display: flex; align-items: center; gap: 12px; margin: 14px 0 10px; }
+.bb-acct-cod-num {
+    font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+    font-size: 34px; font-weight: 800; line-height: 1;
+    color: var(--ink, #1b1a1f);
+}
+.bb-acct-cod-num small { font-size: 18px; color: #8a7f86; }
+.bb-acct-cod.is-near .bb-acct-cod-num { color: #8a5a00; }
+.bb-acct-cod.is-blocked .bb-acct-cod-num { color: #b42318; }
+.bb-acct-cod-label { font-size: 12px; line-height: 1.35; color: #5e5759; }
+
+.bb-acct-meter.is-calm span.is-on { background: #9fb8b5; }
+.bb-acct-meter.is-near span.is-on { background: #d97706; }
+
+.bb-acct-cod .bb-acct-cod-msg {
+    display: flex; gap: 8px; align-items: flex-start;
+    margin: 12px 0 0; padding: 10px 12px;
+    border-radius: 12px;
+    background: #f7f4f2;
+    font-size: 12.5px; line-height: 1.45; color: #4a4449;
+}
+.bb-acct-cod .bb-acct-cod-msg i { margin-top: 1px; }
+.bb-acct-cod.is-near .bb-acct-cod-msg { background: #fff4d6; color: #6b4a00; }
+.bb-acct-cod.is-blocked .bb-acct-cod-msg { background: #fdecea; color: #8f1d14; }
+
+.bb-acct-cod-link {
+    display: inline-flex; align-items: center; gap: 6px;
+    margin-top: 12px;
+    font-size: 12.5px; font-weight: 700;
+    color: var(--accent-dark, #c2380f); text-decoration: none;
+}
+.bb-acct-cod-link:hover { text-decoration: underline; }
+
+/* Sidebar version: a little tighter. */
+.bb-acct-cod.is-compact { padding: 18px; }.bb-acct-cod .bb-acct-cod-top { justify-content: flex-start; }
+.bb-acct-cod-title { gap: 4px; align-items: flex-start; }
+.bb-acct-cod-title .bb-acct-pill { padding: 2px 8px; font-size: 10.5px; }
+.bb-acct-cod-num { display: inline-flex; align-items: baseline; gap: 1px; }

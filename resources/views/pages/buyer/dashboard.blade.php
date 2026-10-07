@@ -58,97 +58,60 @@
                         @endif
                     </span>
                 </div>
+                @if($cod['blocked'] || $cod['strikes'] >= $cod['limit'] - 1)
                 <a href="{{ route('buyer.account') }}" class="dash-cod-chip {{ $codClass }}" aria-label="Cash on Delivery standing: {{ $codLabel }}">
                     <i class="bi {{ $cod['blocked'] ? 'bi-slash-circle' : ($cod['strikes'] > 0 ? 'bi-exclamation-circle' : 'bi-check-lg') }}"></i>{{ $codLabel }}
                 </a>
+                @endif
             </section>
 
             {{-- HERO: rotating highlights (announcement, new arrivals, free shipping, COD) --}}
             @include('partials.buyer-hero-carousel', ['announcement' => $announcement, 'latest' => $discover['latest'] ?? []])
 
-            {{-- YOUR ORDERS --}}
+            {{-- YOUR ORDERS: one slim line each; the full tracker is on My Orders --}}
             @if(count($activeOrders) > 0)
-                <section class="dash-section">
-                    <div class="dash-section-head">
-                        <h2>Your orders</h2>
+                <section class="order-strip" aria-label="Your orders">
+                    <div class="order-strip-head">
+                        <strong><i class="bi bi-truck"></i> {{ count($activeOrders) }} {{ \Illuminate\Support\Str::plural('order', count($activeOrders)) }} on the way</strong>
                         <a href="{{ route('buyer.orders') }}" class="dash-link">All orders →</a>
                     </div>
-
                     @foreach($activeOrders as $order)
-                        <article class="order-row">
-                            <span class="order-thumb">
+                        <a href="{{ route('buyer.orders') }}#order-{{ $order['id'] }}" class="order-line">
+                            <span class="order-line-thumb">
                                 @if($order['image'])
                                     <img src="{{ $order['image'] }}" alt="" onerror="this.remove()">
                                 @endif
                                 <i class="bi {{ $order['icon'] }}"></i>
                             </span>
-
-                            <div class="order-info">
-                                <span class="order-meta">Order #{{ $order['id'] }} · ₱{{ number_format($order['total'], 2) }}</span>
-                                <span class="order-name">{{ $order['name'] }}</span>
-                                <x-status-pill :status="$order['status']" />
-                            </div>
-
-                            <div class="order-progress">
-                                <div class="order-steps" role="img" aria-label="Step {{ $order['step'] }} of 5">
-                                    @for($i = 1; $i <= 5; $i++)
-                                        <span class="{{ $i <= $order['step'] ? 'is-on' : '' }}"></span>
-                                    @endfor
-                                </div>
-                                <span class="order-note">{{ $order['note'] }}</span>
-                            </div>
-
-                            <div class="order-actions">
-                                @if($order['seller_id'])
-                                    <a href="{{ route('messages.thread', $order['seller_id']) }}" class="btn btn-ghost">
-                                        <i class="bi bi-chat-dots"></i> Chat seller
-                                    </a>
-                                @endif
-                                <a href="{{ route('buyer.orders') }}#order-{{ $order['id'] }}" class="btn btn-primary">Track order</a>
-                            </div>
-                        </article>
+                            <span class="order-line-text">
+                                <span class="order-line-name">{{ $order['name'] }}</span>
+                                <span class="order-line-note">Order #{{ $order['id'] }} · {{ $order['note'] }}</span>
+                            </span>
+                            <x-status-pill :status="$order['status']" />
+                            <span class="order-line-go">Track <i class="bi bi-chevron-right"></i></span>
+                        </a>
                     @endforeach
                 </section>
             @endif
-
-            {{-- BUY AGAIN --}}
-            @if(count($buyAgain) > 0)
-                <section class="dash-section">
-                    <div class="dash-section-head">
-                        <div>
-                            <h2>Buy again</h2>
-                            <p>From your delivered orders.</p>
-                        </div>
-                    </div>
-
-                    <div class="again-grid">
-                        @foreach($buyAgain as $product)
-                            <div class="again-card">
-                                <a href="{{ route('product.details', $product['slug']) }}" class="again-top">
-                                    <span class="again-thumb">
-                                        @if($product['image'])
-                                            <img src="{{ $product['image'] }}" alt="" onerror="this.remove()">
-                                        @endif
-                                        <i class="bi {{ $product['icon'] }}"></i>
-                                    </span>
-                                    <span style="min-width:0;">
-                                        <span class="again-name">{{ $product['name'] }}</span>
-                                        <span class="again-price">₱{{ number_format($product['price'], 2) }}</span>
-                                    </span>
-                                </a>
-                                <a href="{{ route('product.details', $product['slug']) }}" class="again-btn">
-                                    <i class="bi bi-arrow-repeat"></i> Buy again
-                                </a>
-                            </div>
-                        @endforeach
-                    </div>
-                </section>
-            @endif
-
+            {{-- SHOP BY CATEGORY --}}
+            <section class="dash-section">
+                <div class="dash-section-head">
+                    <h2>Shop by category</h2>
+                    <a href="{{ route('products') }}" class="dash-link">See all →</a>
+                </div>
+                <div class="cat-row">
+                    @foreach(\App\Support\Categories::LIST as $slug => $label)
+                        <a href="{{ route('products', ['category' => $slug]) }}" class="cat-chip">
+                            <span class="cat-chip-icon"><i class="bi {{ \App\Support\Categories::icon($slug) }}"></i></span>
+                            <span>{{ $label }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </section>
             {{-- DISCOVER --}}
             <section class="dash-section">
                 <div class="dash-section-head">
-                    <h2>Discover</h2>
+                    <h2>Products for you</h2>
                     <div class="discover-tabs" role="tablist" aria-label="Discover products">
                         @foreach($discoverTabs as $key => $tab)
                             <button
@@ -198,6 +161,7 @@
                                             </button>
 
                                             <span class="p-cat">{{ $product['category'] }}</span>
+                                            @if($product['discount'] ?? null)<span class="p-off">-{{ $product['discount'] }}%</span>@endif
                                         </div>
 
                                         <div class="p-body">
@@ -221,7 +185,7 @@
                                             </div>
 
                                             <div class="p-bottom">
-                                                <span class="p-price">₱{{ number_format($product['price']) }}</span>
+                                                <span class="p-price">₱{{ number_format($product['price']) }}@if($product['original_price'] ?? null) <s class="p-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
 
                                                 @if($product['stock'] <= 0)
                                                     <button type="button" class="btn" disabled>Sold out</button>
@@ -250,6 +214,41 @@
                     <a href="{{ route('products') }}" class="dash-link">Browse all products →</a>
                 </div>
             </section>
+
+            {{-- BUY AGAIN --}}
+            @if(count($buyAgain) > 0)
+                <section class="dash-section">
+                    <div class="dash-section-head">
+                        <div>
+                            <h2>Buy again</h2>
+                            <p>From your delivered orders.</p>
+                        </div>
+                    </div>
+
+                    <div class="again-grid">
+                        @foreach($buyAgain as $product)
+                            <div class="again-card">
+                                <a href="{{ route('product.details', $product['slug']) }}" class="again-top">
+                                    <span class="again-thumb">
+                                        @if($product['image'])
+                                            <img src="{{ $product['image'] }}" alt="" onerror="this.remove()">
+                                        @endif
+                                        <i class="bi {{ $product['icon'] }}"></i>
+                                    </span>
+                                    <span style="min-width:0;">
+                                        <span class="again-name">{{ $product['name'] }}</span>
+                                        <span class="again-price">₱{{ number_format($product['price'], 2) }}</span>
+                                    </span>
+                                </a>
+                                <a href="{{ route('product.details', $product['slug']) }}" class="again-btn">
+                                    <i class="bi bi-arrow-repeat"></i> Buy again
+                                </a>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
 
         </div>
 

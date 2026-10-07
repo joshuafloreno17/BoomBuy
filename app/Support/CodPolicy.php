@@ -74,7 +74,7 @@ class CodPolicy
     }
 
     /**
-     * @return array{strikes:int, limit:int, blocked:bool, available_at:?Carbon}
+     * @return array{strikes:int, limit:int, blocked:bool, available_at:?Carbon, next_drop_at:?Carbon}
      */
     public static function status(int $buyerId): array
     {
@@ -93,6 +93,8 @@ class CodPolicy
             'limit' => self::STRIKE_LIMIT,
             'blocked' => $blocked,
             'available_at' => $availableAt,
+            // When the oldest strike leaves the 30-day window (one fewer).
+            'next_drop_at' => $count > 0 ? $times[0]->copy()->addDays(self::WINDOW_DAYS) : null,
         ];
     }
 

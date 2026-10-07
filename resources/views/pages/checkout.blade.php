@@ -272,6 +272,16 @@
 
                     </div>
 
+                    @if(!$codBlocked && ($codStatus['strikes'] ?? 0) >= ($codStatus['limit'] ?? 3) - 1)
+                        <div class="payment-note is-warning">
+                            <i class="bi bi-exclamation-circle-fill"></i>
+                            <span>
+                                Heads up: you have <strong>{{ $codStatus['strikes'] }} of {{ $codStatus['limit'] }}</strong> cancelled or refused
+                                Cash on Delivery orders in the last 30 days. One more pauses Cash on Delivery on your account for a while.
+                            </span>
+                        </div>
+                    @endif
+
                     @if($codBlocked)
                         <div class="payment-note is-warning">
                             <i class="bi bi-exclamation-triangle-fill"></i>

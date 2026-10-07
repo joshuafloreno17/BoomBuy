@@ -23,6 +23,18 @@
                 'note' => count($orders ?? []) . ' ' . \Illuminate\Support\Str::plural('order', count($orders ?? [])),
             ])
 
+            {{-- Cash on Delivery: only when it is paused or one strike away. --}}
+            @if(!empty($codStatus) && ($codStatus['blocked'] || $codStatus['strikes'] >= $codStatus['limit'] - 1))
+                <div class="alert alert-error" style="background:#fff4d6;color:#7a5600;border-color:#f5d98a;">
+                    <i class="bi bi-exclamation-circle-fill"></i>
+                    @if($codStatus['blocked'])
+                        Cash on Delivery is paused on your account until <strong>{{ $codStatus['available_at']->format('M j, Y') }}</strong>, because of {{ $codStatus['strikes'] }} cancelled or refused orders in the last {{ \App\Support\CodPolicy::WINDOW_DAYS }} days. You can still pay with GCash, Maya or card.
+                    @else
+                        You have <strong>{{ $codStatus['strikes'] }} of {{ $codStatus['limit'] }}</strong> cancelled or refused Cash on Delivery orders in the last {{ \App\Support\CodPolicy::WINDOW_DAYS }} days. One more pauses Cash on Delivery on your account for a while.
+                    @endif
+                </div>
+            @endif
+
             <!-- SUCCESS -->
 
             @if(session('success'))
