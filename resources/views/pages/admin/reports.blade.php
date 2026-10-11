@@ -549,7 +549,7 @@
                                 <td>
 
                                     <span class="status {{ $statusClass }}">
-                                        {{ $status }}
+                                        {{ \App\Support\OrderStatus::label($status) }}
                                     </span>
 
                                 </td>

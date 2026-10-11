@@ -167,7 +167,7 @@
                             $closedLabels = [
                                 'cancelled' => 'Order Cancelled',
                                 'delivery failed' => 'Delivery Failed',
-                                'returned to seller' => 'Returned to Seller',
+                                'returned to seller' => 'Returned',
                             ];
 
                             $closedLabel = $closedLabels[$orderStatus] ?? 'Order Closed';

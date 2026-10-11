@@ -32,4 +32,21 @@ class OrderStatus
 
     /** Waiting for the seller's Sorting Center to confirm it arrived. */
     public const ARRIVING_FROM_SELLER = ['Picked Up', 'Dropped Off'];
+
+    /**
+     * What people see, in the ERP Flow's words, where it names the step
+     * differently from the stored status (the stored values stay as they
+     * are, so no order data changes).
+     */
+    public const LABELS = [
+        'Pending' => 'Placed',
+        'Assigned for Delivery' => 'Assigned to Rider',
+        'Returned to Seller' => 'Returned',
+    ];
+
+    /** "Pending" → "Placed"; every other status reads as it is. */
+    public static function label(?string $status): string
+    {
+        return self::LABELS[$status] ?? (string) $status;
+    }
 }

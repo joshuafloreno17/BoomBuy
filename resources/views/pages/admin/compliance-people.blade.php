@@ -123,7 +123,7 @@
                             @foreach($person['stuck'] as $order)
                                 <div class="issue-row">
                                     <div>
-                                        <strong>Order #{{ $order->id }} · {{ $order->status }}</strong>
+                                        <strong>Order #{{ $order->id }} · {{ \App\Support\OrderStatus::label($order->status) }}</strong>
                                         <span class="why">Last updated {{ \Illuminate\Support\Carbon::parse($order->updated_at)->diffForHumans() }} — {{ $order->shipping_address }}</span>
                                     </div>
                                     <a href="{{ route('admin.order.details', $order->id) }}" class="act"><i class="bi bi-eye"></i> View</a>

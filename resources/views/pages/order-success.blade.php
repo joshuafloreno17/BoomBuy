@@ -97,7 +97,7 @@
             </span>
 
             <span class="order-value">
-                {{ $order['status'] ?? 'Pending' }}
+                {{ \App\Support\OrderStatus::label($order['status'] ?? 'Pending') }}
             </span>
 
         </div>

@@ -43,7 +43,7 @@
                         <option value="">— None —</option>
                         @foreach($myOrders as $order)
                             <option value="{{ $order->id }}" {{ old('order_id') == $order->id ? 'selected' : '' }}>
-                                Order #{{ $order->id }} — ₱{{ number_format($order->total_amount, 2) }} ({{ $order->status }})
+                                Order #{{ $order->id }} — ₱{{ number_format($order->total_amount, 2) }} ({{ \App\Support\OrderStatus::label($order->status) }})
                             </option>
                         @endforeach
                     </select>

@@ -29,5 +29,5 @@
 @endphp
 
 <span {{ $attributes->merge(['class' => 'status-pill']) }} style="background:{{ $style['bg'] }}; color:{{ $style['color'] }};">
-    <i class="bi {{ $style['icon'] }}"></i>{{ $status }}
+    <i class="bi {{ $style['icon'] }}"></i>{{ \App\Support\OrderStatus::label($status) }}
 </span>

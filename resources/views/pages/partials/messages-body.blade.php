@@ -233,7 +233,7 @@
                             @if($message->order_id && !empty($orderCards[$message->order_id]))
                                 @php $oc = $orderCards[$message->order_id]; @endphp
                                 <a href="{{ $oc['url'] }}" class="chat-order">
-                                    <span><strong>Order #{{ $oc['id'] }}</strong><em class="chat-order-status">Now: {{ $oc['status'] }}</em></span>
+                                    <span><strong>Order #{{ $oc['id'] }}</strong><em class="chat-order-status">Now: {{ \App\Support\OrderStatus::label($oc['status']) }}</em></span>
                                     <b>View order <i class="bi bi-chevron-right"></i></b>
                                 </a>
                             @endif

@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => 'Rider Management — BoomBuy Logistics'])
 
     <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/logistics-riders.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/logistics-riders.css') }}">
 </head>
 
 <body>
@@ -179,11 +179,30 @@
                         <!-- DELIVERY AREAS -->
                         <div class="areas-section">
 
-                            <div class="areas-label">Delivery Areas</div>
+                            @php
+                                $areas = collect($riderAreas[$app->user_id] ?? []);
+                                $outside = $app->home_province ? $areas->where('province', '!=', $app->home_province) : collect();
+                            @endphp
+
+                            <div class="areas-label">
+                                Delivery Areas
+                                @if ($app->home_province)
+                                    <span class="area-home"><i class="bi bi-house-door"></i> Lives in {{ trim(($app->home_city ? $app->home_city . ', ' : '') . $app->home_province, ', ') }}</span>
+                                @endif
+                            </div>
+
+                            {{-- ERP Flow: parcels go to "the rider assigned to that area". --}}
+                            @if (!$app->home_province)
+                                <div class="area-warn"><i class="bi bi-exclamation-triangle-fill"></i> No home address yet — ask the rider to set it on their profile before giving them areas.</div>
+                            @elseif ($outside->isNotEmpty())
+                                <div class="area-warn"><i class="bi bi-exclamation-triangle-fill"></i> {{ $outside->count() }} {{ \Illuminate\Support\Str::plural('area', $outside->count()) }} outside {{ $app->home_province }}, where this rider lives. Remove {{ $outside->count() === 1 ? 'it' : 'them' }} and add towns in {{ $app->home_province }}.</div>
+                            @elseif ($areas->isEmpty() && $app->status === 'Approved')
+                                <div class="area-warn"><i class="bi bi-exclamation-triangle-fill"></i> No areas yet — this rider gets no pickups or deliveries until you add the towns they cover.</div>
+                            @endif
 
                             <div class="area-chips">
                                 @forelse (($riderAreas[$app->user_id] ?? []) as $area)
-                                    <span class="area-chip">
+                                    <span class="area-chip {{ $app->home_province && $area->province !== $app->home_province ? 'is-outside' : '' }}">
                                         {{ $area->city_municipality }}, {{ $area->province }}
                                         <form method="POST" action="{{ route('logistics.riders.areas.delete', $area->id) }}" style="display:inline;">
                                             @csrf
@@ -197,7 +216,7 @@
 
                             <form method="POST" action="{{ route('logistics.riders.areas.store', $app->user_id) }}" class="area-add-form">
                                 @csrf
-                                <select id="province-{{ $app->user_id }}" name="province" required>
+                                <select id="province-{{ $app->user_id }}" name="province" required data-only="{{ $app->home_province }}">
                                     <option value="">Select Province</option>
                                 </select>
                                 <select id="city-{{ $app->user_id }}" name="city_municipality" required disabled>
@@ -239,6 +258,16 @@
                 if (province.dataset.ready) return;
                 province.dataset.ready = '1';
                 initAddressCascade(province.id, 'city-' + province.id.slice('province-'.length));
+
+                // Only the province the rider lives in can be picked.
+                var only = province.dataset.only;
+                if (only) {
+                    Array.prototype.slice.call(province.options).forEach(function (o) {
+                        if (o.value !== only) o.remove();
+                    });
+                    province.value = only;
+                    province.dispatchEvent(new Event('change'));
+                }
             });
         }
 

@@ -278,6 +278,29 @@ class LogisticsScenariosTest extends TestCase
         $this->assertSame('Active', $rider->fresh()->status);
     }
 
+    public function test_L12b_a_rider_only_covers_towns_in_the_province_they_live_in(): void
+    {
+        // Lives in Calamba, Laguna: a Cebu town is refused even by head office.
+        $rider = $this->makeRider();
+        DB::table('users')->where('id', $rider->id)->update(['province' => 'Laguna', 'city_municipality' => 'Calamba City']);
+        $headOffice = $this->makeLogistics();
+
+        $this->as($headOffice)->post(route('logistics.riders.areas.store', $rider->id), ['province' => 'Cebu', 'city_municipality' => 'Cebu City'])
+            ->assertSessionHas('error', fn ($m) => str_contains($m, 'must be towns in Laguna'));
+        $this->assertSame(0, RiderArea::where('rider_id', $rider->id)->count());
+
+        $this->as($headOffice)->post(route('logistics.riders.areas.store', $rider->id), ['province' => 'Laguna', 'city_municipality' => 'Santa Cruz'])
+            ->assertSessionHas('success');
+
+        // An old area outside their province shows a warning on the Riders page.
+        RiderArea::create(['rider_id' => $rider->id, 'province' => 'Cebu', 'city_municipality' => 'Cebu City']);
+        $this->as($headOffice)->get(route('logistics.riders', ['status' => 'all']))
+            ->assertOk()
+            ->assertSee('Lives in Calamba City, Laguna')
+            ->assertSee('1 area outside Laguna')
+            ->assertSee('data-only="Laguna"', false);
+    }
+
     public function test_L13_second_click_on_the_same_parcel_is_refused(): void
     {
         $orderId = $this->parcel('Dropped Off');

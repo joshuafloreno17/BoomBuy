@@ -109,7 +109,7 @@
                     </option>
 
                     <option value="Assigned for Delivery">
-                        Assigned for Delivery
+                        Assigned to Rider
                     </option>
 
                     <option value="Out for Delivery">

@@ -359,7 +359,7 @@
             var DWELL = 2600, HOLD = 3800;
 
             var states = [
-                { icon: 'bi-cart-check', title: 'Order placed', status: 'Pending', tone: 'is-waiting' },
+                { icon: 'bi-cart-check', title: 'Order placed', status: 'Placed', tone: 'is-waiting' },
                 { icon: 'bi-box-seam', title: 'Packed by the seller', status: 'Ready for pickup', tone: '' },
                 { icon: 'bi-truck', title: 'On its way to you', status: 'Out for delivery', tone: '' },
                 { icon: 'bi-check2-circle', title: 'Delivered to your door', status: 'Delivered', tone: 'is-ok' }

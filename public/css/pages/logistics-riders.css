@@ -422,3 +422,34 @@ a { text-decoration: none; }
     border-color: var(--accent, #e8420f);
     color: #fff;
 }
+
+/* Where the rider lives, and areas that don't fit it (ERP: rider assigned to that area). */
+.area-home {
+    margin-left: 8px;
+    color: #6b6570;
+    font-size: 11.5px;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.area-warn {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin: 6px 0 10px;
+    padding: 9px 12px;
+    border: 1px solid #fde2c4;
+    border-radius: 10px;
+    background: #fff7ed;
+    color: #9a4a0b;
+    font-size: 12.5px;
+    font-weight: 600;
+    line-height: 1.45;
+}
+
+.area-chip.is-outside {
+    border-color: #fca5a5;
+    background: #fff1f2;
+    color: #be123c;
+}

@@ -220,7 +220,7 @@
              RETURNED TO SELLER
         ========================== --}}
 
-        <h2 class="section-heading"><i class="bi bi-arrow-return-left"></i> Returned to Seller ({{ count($returnedToSeller) }})</h2>
+        <h2 class="section-heading"><i class="bi bi-arrow-return-left"></i> Returned ({{ count($returnedToSeller) }})</h2>
 
         @forelse ($returnedToSeller as $order)
 

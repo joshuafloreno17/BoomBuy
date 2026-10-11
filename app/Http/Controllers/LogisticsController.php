@@ -540,7 +540,7 @@ class LogisticsController extends Controller
 
         $riderApplications = (clone $base)
             ->when($statuses[$statusKey]['status'], fn ($q, $status) => $q->where('rider_applications.status', $status))
-            ->select('rider_applications.*', 'users.email as user_email', 'users.status as account_status')
+            ->select('rider_applications.*', 'users.email as user_email', 'users.status as account_status', 'users.province as home_province', 'users.city_municipality as home_city')
             ->orderBy('rider_applications.created_at', $statusKey === 'pending' ? 'asc' : 'desc')
             ->paginate(15)
             ->withQueryString();
@@ -582,6 +582,12 @@ class LogisticsController extends Controller
 
         if (!$rider) {
             return back()->with('error', 'Rider not found.');
+        }
+
+        // A rider covers towns in the province they live in (ERP Flow:
+        // "Identify Rider Assigned to That Area") — not a far-off one.
+        if (!empty($rider->province) && $province !== $rider->province) {
+            return back()->with('error', $rider->name . ' lives in ' . $rider->province . ', so their areas must be towns in ' . $rider->province . '.');
         }
 
         // Staff give riders areas in their own center's province only.
