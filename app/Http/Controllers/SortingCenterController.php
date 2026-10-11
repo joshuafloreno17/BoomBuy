@@ -30,13 +30,18 @@ class SortingCenterController extends Controller
         $regionOrder = array_flip(array_keys(PhLocations::REGIONS));
         $sortKey = fn ($c) => sprintf('%02d', $regionOrder[$c->region] ?? 99) . $c->province;
 
+        // Every center is on the page; the search box filters the rows as
+        // you type. ?q= only decides which rows start out shown.
         $centers = SortingCenter::query()
             ->withCount('staff')
             ->get()
             ->sortBy($sortKey)
-            ->when($search !== '', fn ($list) => $list->filter(fn ($c) => stripos($c->name, $search) !== false
-                || stripos($c->town, $search) !== false
-                || stripos((string) PhLocations::regionLabel($c->region), $search) !== false))
+            ->each(function ($c) use ($search) {
+                $c->search_text = mb_strtolower(implode(' ', [
+                    $c->name, $c->town, $c->province, $c->address, PhLocations::regionLabel($c->region),
+                ]));
+                $c->matches_search = $search === '' || str_contains($c->search_text, mb_strtolower($search));
+            })
             ->values();
 
         // Parcels each center is holding or expecting right now.

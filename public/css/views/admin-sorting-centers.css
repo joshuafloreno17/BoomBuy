@@ -306,3 +306,8 @@
         height: 340px;
     }
 }
+
+/* Rows the live search filtered out (beats any phone card layout). */
+.sc-table tr[hidden] {
+    display: none;
+}

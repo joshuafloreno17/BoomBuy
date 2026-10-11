@@ -55,7 +55,7 @@
         {{-- WHERE THE CENTERS ARE --}}
         <section class="sc-card">
             <h2><i class="bi bi-map-fill"></i> Sorting Center Map</h2>
-            <p class="sc-note">One pin per province. A bigger pin holds more parcels right now; grey pins are closed centers.</p>
+            <p class="sc-note">One pin per province. A bigger pin holds more parcels right now; grey pins are closed centers. Zoom with the + / − buttons, Ctrl + scroll, or a pinch.</p>
             <div id="scMap" class="sc-map" role="img" aria-label="Map of the BoomBuy Sorting Centers"></div>
         </section>
 
@@ -103,10 +103,10 @@
         {{-- LIST --}}
         <section class="sc-card">
             <div class="sc-list-head">
-                <h2><i class="bi bi-building"></i> Centers ({{ count($centers) }})</h2>
+                <h2><i class="bi bi-building"></i> Centers (<span id="scCount">{{ $centers->where('matches_search', true)->count() }}</span>)</h2>
 
-                <form method="GET" action="{{ route('admin.sorting-centers') }}" class="sc-filter">
-                    <input type="search" name="q" value="{{ $search }}" placeholder="Search province, town or region" aria-label="Search centers">
+                <form method="GET" action="{{ route('admin.sorting-centers') }}" class="sc-filter" id="scFilter">
+                    <input type="search" name="q" value="{{ $search }}" placeholder="Search province, town or region" aria-label="Search centers" autocomplete="off">
                 </form>
             </div>
 
@@ -122,9 +122,9 @@
                             <th></th>
                         </tr>
                     </thead>
-                    <tbody>
-                        @forelse ($centers as $center)
-                            <tr class="{{ $center->is_active ? '' : 'is-closed' }}">
+                    <tbody id="scRows">
+                        @foreach ($centers as $center)
+                            <tr class="{{ $center->is_active ? '' : 'is-closed' }}" data-search="{{ $center->search_text }}" @if (!$center->matches_search) hidden @endif>
                                 <td>
                                     <strong>{{ $center->name }}</strong>
                                     <span>{{ $center->address ?: $center->town }}</span>
@@ -143,9 +143,8 @@
                                     </form>
                                 </td>
                             </tr>
-                        @empty
-                            <tr><td colspan="6" class="sc-empty">No Sorting Centers match.</td></tr>
-                        @endforelse
+                        @endforeach
+                        <tr id="scNoMatch" @if ($centers->contains('matches_search', true)) hidden @endif><td colspan="6" class="sc-empty">No Sorting Centers match.</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -187,6 +186,43 @@
 
 </div>
 
+<script>
+    // Live search: rows filter as you type, no Enter or reload needed.
+    (function () {
+        var form = document.getElementById('scFilter');
+        if (!form) return;
+
+        var input = form.querySelector('input[name="q"]');
+        var rows = Array.prototype.slice.call(document.querySelectorAll('#scRows tr[data-search]'));
+        var count = document.getElementById('scCount');
+        var noMatch = document.getElementById('scNoMatch');
+
+        function apply() {
+            var words = input.value.toLowerCase().trim().split(/\s+/).filter(Boolean);
+            var shown = 0;
+
+            rows.forEach(function (row) {
+                var text = row.dataset.search;
+                var match = words.every(function (w) { return text.indexOf(w) !== -1; });
+                row.hidden = !match;
+                if (match) shown++;
+            });
+
+            count.textContent = shown;
+            noMatch.hidden = shown > 0;
+
+            // Keep the search in the address bar so a reload keeps it.
+            var url = new URL(window.location.href);
+            if (input.value.trim()) url.searchParams.set('q', input.value.trim());
+            else url.searchParams.delete('q');
+            history.replaceState(null, '', url);
+        }
+
+        input.addEventListener('input', apply);
+        form.addEventListener('submit', function (e) { e.preventDefault(); apply(); });
+    })();
+</script>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
     // Pins for every center; the popup shows its town and parcel count.
@@ -199,6 +235,22 @@
             maxZoom: 12,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
+        // A plain scroll still scrolls the page. Ctrl + scroll, and a touchpad
+        // pinch (which browsers send as Ctrl + wheel), zoom the map instead
+        // of zooming the whole page.
+        var pinch = 0;
+        box.addEventListener('wheel', function (e) {
+            if (!e.ctrlKey) return;
+            e.preventDefault();
+
+            pinch += e.deltaY;
+            if (Math.abs(pinch) < 40) return;
+
+            var step = pinch < 0 ? 1 : -1;
+            pinch = 0;
+            map.setZoomAround(map.mouseEventToContainerPoint(e), map.getZoom() + step);
+        }, { passive: false });
 
         @json($mapPins).forEach(function (pin) {
             var popup = document.createElement('div');
