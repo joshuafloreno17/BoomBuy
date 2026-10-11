@@ -248,7 +248,7 @@ class SellerController extends MobileController
         try {
             $product = $products->create(
                 $sellerId,
-                $request->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
+                $request->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
                 null,
                 array_values((array) $request->input('variations', [])),
                 (array) $request->file('photos', []),
@@ -275,7 +275,7 @@ class SellerController extends MobileController
             $product = $products->update(
                 $product,
                 $sellerId,
-                $request->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
+                $request->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
                 null,
                 [
                     'add' => (array) $request->file('photos', []),

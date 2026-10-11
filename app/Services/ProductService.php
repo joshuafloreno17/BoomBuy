@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\ProductVariation;
 use App\Support\Categories;
+use App\Support\DeviceSpecs;
 use App\Support\ProductPhotos;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
@@ -99,9 +100,10 @@ class ProductService
             ...Product::pricing($price, $discount),
             'stock' => $stock,
             'description' => $description,
+            'specs' => DeviceSpecs::clean($input['specs'] ?? null, $categoryName),
         ]);
 
-        $stored = ['all' => $this->storeFiles($product, null, $general)];
+        $stored =['all' => $this->storeFiles($product, null, $general)];
 
         $seen = [];
 
@@ -213,6 +215,8 @@ class ProductService
             ...Product::pricing($price, $discount),
             'stock' => $stock,
             'description' => $description,
+            // Only when the form sent them, so other callers keep the specs.
+            ...(array_key_exists('specs', $input) ? ['specs' => DeviceSpecs::clean($input['specs'], $categoryName)] : []),
         ]);
 
         $removedPaths = $product->images()->whereIn('id', $remove)->pluck('path')->all();
@@ -241,6 +245,123 @@ class ProductService
         ProductPhotos::deleteUnused($removedPaths);
 
         return $product->fresh();
+    }
+
+    /**
+     * Storage sizes for a phone, tablet or laptop, added to every color (or
+     * as the only option when the product has none). A color with no second
+     * part yet keeps its row — it becomes the first chosen size, with its
+     * stock and photos — and gets one new row per other size. A combination
+     * that already exists is left alone.
+     *
+     * @param  array  $sizes  "128GB" => extra price on top of the color's price
+     * @param  int  $stock  stock for each new combination
+     * @return int  combinations added or converted
+     *
+     * @throws ActionFailed
+     */
+    public function addStorage(Product $product, array $sizes, int $stock): int
+    {
+        if (!DeviceSpecs::appliesTo($product->category)) {
+            throw new ActionFailed('Storage options are for Electronics products (phones, tablets, laptops).');
+        }
+
+        $chosen = [];
+
+        foreach ($sizes as $size => $extra) {
+            if (in_array($size, DeviceSpecs::STORAGE_SIZES, true)) {
+                $chosen[$size] = round((float) $extra, 2);
+            }
+        }
+
+        if (!$chosen) {
+            throw new ActionFailed('Tick at least one storage size.');
+        }
+
+        $chosen = array_replace(array_flip(DeviceSpecs::sortStorage(array_keys($chosen))), $chosen);
+        $stock = max(0, $stock);
+        $variations = $product->variations()->orderBy('id')->get();
+
+        $other = $variations->first(fn ($v) => $v->hasSecondOption() && !DeviceSpecs::isStorage($v->option2_type));
+
+        if ($other) {
+            throw new ActionFailed('This product already uses ' . $other->option2_type . ' as its second option. Storage can only be added to a product with colors (or no options yet).');
+        }
+
+        $tooCheap = fn (float $adjustment) => (float) $product->price + $adjustment <= 0;
+
+        return DB::transaction(function () use ($product, $variations, $chosen, $stock, $tooCheap) {
+            $added = 0;
+
+            // No options yet: storage is the only choice.
+            if ($variations->isEmpty() || $variations->every(fn ($v) => DeviceSpecs::isStorage($v->variation_type))) {
+                $have = $variations->pluck('variation_value')->all();
+
+                foreach ($chosen as $size => $extra) {
+                    if (in_array($size, $have, true)) {
+                        continue;
+                    }
+
+                    if ($tooCheap($extra)) {
+                        throw new ActionFailed($size . ' would cost ₱0 or less. Lower its discount.');
+                    }
+
+                    ProductVariation::create([
+                        'product_id' => $product->id,
+                        'variation_type' => DeviceSpecs::STORAGE_TYPE,
+                        'variation_value' => $size,
+                        'price_adjustment' => $extra,
+                        'stock' => $stock,
+                    ]);
+                    $added++;
+                }
+
+                return $added;
+            }
+
+            // Colors (or another first part): every color gets every size.
+            foreach ($variations->groupBy('variation_value') as $rows) {
+                $first = $rows->first();
+                $base = $rows->contains(fn ($v) => $v->hasSecondOption()) ? 0.0 : (float) $first->price_adjustment;
+                $have = $rows->pluck('option2_value')->filter()->all();
+                $plain = $rows->first(fn ($v) => !$v->hasSecondOption());
+
+                foreach ($chosen as $size => $extra) {
+                    if (in_array($size, $have, true)) {
+                        continue;
+                    }
+
+                    $adjustment = $base + $extra;
+
+                    if ($tooCheap($adjustment)) {
+                        throw new ActionFailed($first->variation_value . ' · ' . $size . ' would cost ₱0 or less. Lower its discount.');
+                    }
+
+                    if ($plain) {
+                        // The color's own row becomes its first size (keeps its stock and photos).
+                        $plain->update([
+                            'option2_type' => DeviceSpecs::STORAGE_TYPE,
+                            'option2_value' => $size,
+                            'price_adjustment' => $adjustment,
+                        ]);
+                        $plain = null;
+                    } else {
+                        ProductVariation::create([
+                            'product_id' => $product->id,
+                            'variation_type' => $first->variation_type,
+                            'variation_value' => $first->variation_value,
+                            'option2_type' => DeviceSpecs::STORAGE_TYPE,
+                            'option2_value' => $size,
+                            'price_adjustment' => $adjustment,
+                            'stock' => $stock,
+                        ]);
+                    }
+                    $added++;
+                }
+            }
+
+            return $added;
+        });
     }
 
     /** Put one photo first in its group (all options, or its option). */

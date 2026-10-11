@@ -407,6 +407,13 @@
                     </div>
 
 
+                    {{-- SPECIFICATIONS (phones, tablets, laptops) --}}
+                    @include('partials.device-specs-fields', [
+                        'specs' => $product->specs,
+                        'show' => \App\Support\DeviceSpecs::appliesTo($registeredCategory ? \App\Support\Categories::LIST[$registeredCategory] ?? null : $product->category),
+                    ])
+
+
                     {{-- ACTIONS --}}
                     <div class="actions">
 

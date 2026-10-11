@@ -119,6 +119,50 @@
                 @endif
             </div>
 
+            {{-- PHONES, TABLETS, LAPTOPS: storage for every color at once --}}
+            @if(\App\Support\DeviceSpecs::appliesTo($product->category))
+                @php
+                    $hasStorage = $variations->contains(fn ($v) => \App\Support\DeviceSpecs::isStorage($v->option2_type) || \App\Support\DeviceSpecs::isStorage($v->variation_type));
+                    $colorCount = $variations->reject(fn ($v) => \App\Support\DeviceSpecs::isStorage($v->variation_type))->pluck('variation_value')->unique()->count();
+                @endphp
+                <div class="card storage-card">
+                    <h2><i class="bi bi-device-ssd"></i> Storage (GB)</h2>
+                    <p class="card-sub">
+                        @if($colorCount)
+                            Tick the storage sizes this phone, tablet or laptop comes in. Each of your {{ $colorCount }} {{ \Illuminate\Support\Str::plural('color', $colorCount) }} gets every size you tick, priced at the color's price plus the extra below.
+                            @unless($hasStorage) Your current colors keep their stock and photos — they become the first size you tick. @endunless
+                        @else
+                            Tick the storage sizes buyers can choose from, with the extra price for each.
+                        @endif
+                    </p>
+
+                    <form method="POST" action="{{ route('seller.products.variations.storage', $product->id) }}">
+                        @csrf
+                        <div class="sb-sizes">
+                            @foreach(\App\Support\DeviceSpecs::STORAGE_SIZES as $size)
+                                @php $taken = $variations->contains(fn ($v) => $v->option2_value === $size || (\App\Support\DeviceSpecs::isStorage($v->variation_type) && $v->variation_value === $size)); @endphp
+                                <label class="sb-size {{ $taken ? 'is-taken' : '' }}">
+                                    <input type="checkbox" name="storage[{{ $size }}][on]" value="1" @checked(old('storage.' . $size . '.on'))>
+                                    <b>{{ $size }}</b>
+                                    @if($taken)
+                                        <small>added</small>
+                                    @endif
+                                    <span>+₱</span>
+                                    <input type="number" step="0.01" name="storage[{{ $size }}][extra]" value="{{ old('storage.' . $size . '.extra', 0) }}" aria-label="Extra price for {{ $size }}">
+                                </label>
+                            @endforeach
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="max-width:220px;">
+                                <label for="storage_stock">Stock for each new option</label>
+                                <input type="number" min="0" id="storage_stock" name="stock" value="{{ old('stock', 0) }}">
+                            </div>
+                        </div>
+                        <button type="submit" class="save-btn"><i class="bi bi-plus-lg"></i> Add storage</button>
+                    </form>
+                </div>
+            @endif
+
             {{-- ADD ONE --}}
             <div class="card">
                 <h2>Add an option</h2>

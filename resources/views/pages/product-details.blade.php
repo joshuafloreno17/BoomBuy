@@ -166,12 +166,19 @@
             </p>
 
 
+            @php
+                // Options can cost more or less: show the range until one is picked.
+                $optionPrices = $variations->map(fn ($v) => (float) $product->price + (float) $v->price_adjustment);
+                $priceLow = $optionPrices->isNotEmpty() ? $optionPrices->min() : (float) $product->price;
+                $priceHigh = $optionPrices->isNotEmpty() ? $optionPrices->max() : (float) $product->price;
+                $wasExtra = $product->isDiscounted() ? (float) $product->original_price - (float) $product->price : 0;
+            @endphp
             <div class="price">
 
-                ₱{{ number_format($product['price'] ?? 0) }}
+                <span id="pdPrice" data-base="{{ (float) $product->price }}">₱{{ number_format($priceLow) }}@if($priceHigh > $priceLow) – ₱{{ number_format($priceHigh) }}@endif</span>
 
                 @if($product->isDiscounted())
-                    <s class="price-was">₱{{ number_format($product->original_price) }}</s>
+                    <s class="price-was" id="pdPriceWas" data-extra="{{ $wasExtra }}">₱{{ number_format($priceLow + $wasExtra) }}@if($priceHigh > $priceLow) – ₱{{ number_format($priceHigh + $wasExtra) }}@endif</s>
                     <span class="price-off">-{{ $product->discount_percent }}%</span>
                 @endif
 
@@ -192,8 +199,10 @@
                         }
                     }
                 @endphp
-                <div class="variation-picker">
-                    <span class="quantity-label">Choose a {{ $variations->first()->kindLabel() }}</span>
+                <div class="variation-picker {{ $twoPart ? 'is-two-part' : '' }}">
+                    @unless($twoPart)
+                        <span class="quantity-label">Choose a {{ $variations->first()->kindLabel() }}</span>
+                    @endunless
 
                 @if($twoPart)
                     <div class="pd-part">
@@ -263,9 +272,11 @@
             @endif
 
 
-            <!-- QUANTITY -->
+            <!-- QUANTITY, and how many are available for what is picked -->
+            @php $availableNow = $variations->isNotEmpty() ? (int) $variations->sum('stock') : (int) $product->stock; @endphp
+            <div class="pd-qty-row">
 
-            <label class="quantity-label">
+            <label class="quantity-label" for="quantity">
 
                 Quantity
 
@@ -296,6 +307,10 @@
                 >
                     +
                 </button>
+
+            </div>
+
+            <span class="pd-available" id="pdAvailable" data-total="{{ $availableNow }}">{{ number_format($availableNow) }} {{ $availableNow === 1 ? 'piece' : 'pieces' }} available</span>
 
             </div>
 
@@ -417,40 +432,83 @@
                 </li>
             </ul>
 
-            {{-- SELLER --}}
-            @if($shop)
-                <div class="pd-seller">
-                    <a href="{{ $shop['url'] }}" class="pd-seller-avatar" aria-hidden="true" tabindex="-1">
-                        @if($shop['photo'])
-                            <img src="{{ $shop['photo'] }}" alt="">
-                        @else
-                            {{ $shop['initial'] }}
-                        @endif
-                    </a>
-                    <div class="pd-seller-info">
-                        <a href="{{ $shop['url'] }}" class="pd-seller-name">{{ $shop['name'] }}</a>
-                        <span class="pd-seller-meta">
-                            @if($shop['rating'])
-                                <i class="bi bi-star-fill"></i> {{ $shop['rating'] }} ·
-                            @endif
-                            {{ $shop['products'] }} {{ \Illuminate\Support\Str::plural('product', $shop['products']) }}
-                            @if($shop['location'])
-                                · {{ $shop['location'] }}
-                            @endif
-                        </span>
-                    </div>
-                    <div class="pd-seller-actions">
-                        @if($canMessageSeller)
-                            <a href="{{ route('messages.thread', [$product->seller_id, 'product' => $product->id]) }}" class="pd-seller-btn"><i class="bi bi-chat-dots"></i> Chat</a>
-                        @endif
-                        <a href="{{ $shop['url'] }}" class="pd-seller-btn is-dark">View shop</a>
-                    </div>
-                </div>
-            @endif
-
         </div>
 
     </section>
+
+
+    {{-- THE SHOP: who sells it, with Chat Now / View Shop and the shop's numbers --}}
+    @if($shop)
+        @php
+            $shopStats = [
+                ['Ratings', $shop['reviews'] ? number_format($shop['reviews']) . ($shop['rating'] ? ' (' . $shop['rating'] . '★)' : '') : 'No ratings yet'],
+                ['Response Rate', $shop['response_rate'] !== null ? $shop['response_rate'] . '%' : '—'],
+                ['Joined', $shop['joined_ago'] ?? '—'],
+                ['Products', number_format($shop['products'])],
+                ['Response Time', $shop['response_time'] ?? '—'],
+                ['Sold', number_format($shop['sold'])],
+            ];
+        @endphp
+        <section class="pd-shop-card" aria-label="About the shop">
+            <div class="pd-shop-main">
+                <a href="{{ $shop['url'] }}" class="pd-shop-avatar" aria-hidden="true" tabindex="-1">
+                    @if($shop['photo'])
+                        <img src="{{ $shop['photo'] }}" alt="">
+                    @else
+                        {{ $shop['initial'] }}
+                    @endif
+                </a>
+                <div class="pd-shop-who">
+                    <a href="{{ $shop['url'] }}" class="pd-shop-name">{{ $shop['name'] }}</a>
+                    @if($shop['location'])
+                        <span class="pd-shop-place"><i class="bi bi-geo-alt"></i> {{ $shop['location'] }}</span>
+                    @endif
+                    <div class="pd-shop-actions">
+                        @if($canMessageSeller)
+                            <a href="{{ route('messages.thread', [$product->seller_id, 'product' => $product->id]) }}" class="pd-shop-btn is-chat"><i class="bi bi-chat-dots-fill"></i> Chat Now</a>
+                        @elseif(!session('user') && !session('admin_logged_in'))
+                            <a href="{{ route('login') }}" class="pd-shop-btn is-chat"><i class="bi bi-chat-dots-fill"></i> Chat Now</a>
+                        @endif
+                        <a href="{{ $shop['url'] }}" class="pd-shop-btn"><i class="bi bi-shop"></i> View Shop</a>
+                    </div>
+                </div>
+            </div>
+            <dl class="pd-shop-stats">
+                @foreach($shopStats as [$label, $value])
+                    <div class="pd-shop-stat">
+                        <dt>{{ $label }}</dt>
+                        <dd>{{ $value }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        </section>
+    @endif
+
+
+    <!-- SPECIFICATIONS (phones, tablets, laptops) -->
+    @php
+        // Storage is picked as an option, so list the sizes it comes in here too.
+        $storageSizes = \App\Support\DeviceSpecs::sortStorage($variations->map(fn ($v) => \App\Support\DeviceSpecs::isStorage($v->option2_type)
+            ? $v->option2_value
+            : (\App\Support\DeviceSpecs::isStorage($v->variation_type) ? $v->variation_value : null))->filter());
+        $specTable = $specRows;
+        if ($storageSizes) {
+            $specTable = array_slice($specTable, 0, 3, true) + ['Storage' => implode(' / ', $storageSizes)] + array_slice($specTable, 3, null, true);
+        }
+    @endphp
+    @if($specTable)
+        <section class="specs-section" id="specs">
+            <h2>Specifications</h2>
+            <dl class="specs-table">
+                @foreach($specTable as $label => $value)
+                    <div class="specs-row">
+                        <dt>{{ $label }}</dt>
+                        <dd>{{ $value }}</dd>
+                    </div>
+                @endforeach
+            </dl>
+        </section>
+    @endif
 
 
     <!-- REVIEWS -->
@@ -588,10 +646,50 @@
         const input =
             document.getElementById('quantity');
 
-        input.value =
-            parseInt(input.value || 1) + 1;
+        // Not more than what is available for the current pick.
+        const available = parseInt(document.getElementById('pdAvailable')?.dataset.now || '0', 10);
+        const next = parseInt(input.value || 1) + 1;
+
+        input.value = available > 0 ? Math.min(next, available) : next;
 
         updateBuyNowQuantity();
+    }
+
+    // ---- Price and "N pieces available" for what is picked so far ----
+    function peso(amount) {
+        return '₱' + Math.round(amount).toLocaleString('en-PH');
+    }
+
+    // options: the option buttons that match the pick (all of them before any pick).
+    function showPick(options) {
+        const priceEl = document.getElementById('pdPrice');
+        const wasEl = document.getElementById('pdPriceWas');
+        const availableEl = document.getElementById('pdAvailable');
+        const base = parseFloat(priceEl.dataset.base) || 0;
+
+        const prices = options.map(function (s) { return base + (parseFloat(s.dataset.adjustment) || 0); });
+        const low = Math.min.apply(null, prices);
+        const high = Math.max.apply(null, prices);
+        const range = function (extra) { return peso(low + extra) + (high > low ? ' – ' + peso(high + extra) : ''); };
+
+        if (prices.length) {
+            priceEl.textContent = range(0);
+            if (wasEl) wasEl.textContent = range(parseFloat(wasEl.dataset.extra) || 0);
+        }
+
+        const stock = options.reduce(function (sum, s) { return sum + (parseInt(s.dataset.stock, 10) || 0); }, 0);
+        availableEl.dataset.now = stock;
+        availableEl.textContent = stock > 0
+            ? stock.toLocaleString('en-PH') + (stock === 1 ? ' piece' : ' pieces') + ' available'
+            : 'Out of stock';
+        availableEl.classList.toggle('is-out', stock <= 0);
+
+        // Keep the quantity within it.
+        const qty = document.getElementById('quantity');
+        if (stock > 0 && parseInt(qty.value, 10) > stock) {
+            qty.value = stock;
+            updateBuyNowQuantity();
+        }
     }
 
 
@@ -660,7 +758,6 @@
 
         // The row shows this option's photos, then the photos for all options.
         filterThumbs(swatch.dataset.photoGroup || swatch.dataset.id);
-        syncParts(swatch);
         const firstShown = allThumbs()[0];
         const imageUrl = swatch.dataset.image || (firstShown && firstShown.dataset.src) || img.dataset.fallbackSrc || '';
 
@@ -678,68 +775,100 @@
             fallback.style.display = 'flex';
         }
 
-        const infoEl = document.getElementById('variationInfo');
-
-        if (infoEl) {
-
-            const adjustment = parseFloat(swatch.dataset.adjustment) || 0;
-
-            let text = swatch.dataset.label;
-
-            if (adjustment > 0) {
-                text += ' (+₱' + adjustment.toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ')';
-            }
-
-            text += ' — ' + swatch.dataset.stock + ' in stock';
-
-            infoEl.textContent = text;
+        // One kind of option (just a color): its own price and stock.
+        if (!document.querySelector('.pd-part1')) {
+            showPick([swatch]);
         }
 
     }
 
-    // ---- Color × Size: two chip rows choose one combination button ----
+    // ---- Color × Storage (or Size): pick each part on its own, like a shop app ----
+    // Picking a color shows how many that color has and greys out the sizes it
+    // doesn't have (or has none left of); both picked = that exact option.
+    const pick = { v1: '', v2: '' };
+
     function comboSwatches() {
         return Array.prototype.slice.call(document.querySelectorAll('.variation-swatch'));
     }
 
-    // Light up the chips for the chosen combination, and mark sizes this color doesn't have (or has none left of).
-    function syncParts(swatch) {
-        if (!document.querySelector('.pd-part1')) return;
+    function inStock(s) {
+        return parseInt(s.dataset.stock, 10) > 0;
+    }
+
+    function matching() {
+        return comboSwatches().filter(function (s) {
+            return (!pick.v1 || s.dataset.v1 === pick.v1) && (!pick.v2 || s.dataset.v2 === pick.v2);
+        });
+    }
+
+    function renderParts(keepPhoto) {
+        const all = comboSwatches();
 
         document.querySelectorAll('.pd-part1').forEach(function (chip) {
-            chip.classList.toggle('active', chip.dataset.value === swatch.dataset.v1);
+            const options = all.filter(function (s) { return s.dataset.v1 === chip.dataset.value && (!pick.v2 || s.dataset.v2 === pick.v2); });
+            const open = options.some(inStock);
+            chip.classList.toggle('active', chip.dataset.value === pick.v1);
+            chip.classList.toggle('is-out', !open);
+            chip.disabled = !open;
         });
 
         document.querySelectorAll('.pd-part2').forEach(function (chip) {
-            const combo = comboSwatches().find(function (s) { return s.dataset.v1 === swatch.dataset.v1 && s.dataset.v2 === chip.dataset.value; });
-            chip.classList.toggle('active', chip.dataset.value === swatch.dataset.v2);
-            chip.classList.toggle('is-out', !combo || parseInt(combo.dataset.stock, 10) <= 0);
-            chip.disabled = !combo;
+            const options = all.filter(function (s) { return s.dataset.v2 === chip.dataset.value && (!pick.v1 || s.dataset.v1 === pick.v1); });
+            const open = options.some(inStock);
+            chip.classList.toggle('active', chip.dataset.value === pick.v2);
+            chip.classList.toggle('is-out', !open);
+            chip.disabled = !open;
         });
+
+        const options = matching();
+        const exact = pick.v1 && pick.v2 ? options[0] : null;
+
+        if (exact) {
+            // The exact option: its photo, and it goes to the cart / Buy Now.
+            selectVariation(all.indexOf(exact), keepPhoto);
+        } else {
+            if (pick.v1 && options.length) {
+                // Just a color: show that color's photo, nothing to buy yet.
+                selectVariation(all.indexOf(options.find(inStock) || options[0]), keepPhoto);
+            }
+            all.forEach(function (s) { s.classList.remove('active'); });
+            ['cartVariationId', 'buyNowVariationId'].forEach(function (id) {
+                const input = document.getElementById(id);
+                if (input) input.value = '';
+            });
+        }
+
+        showPick(options.length ? options : all);
+        document.querySelectorAll('.pd-part').forEach(function (part) { part.classList.remove('needs-pick'); });
+        const info = document.getElementById('variationInfo');
+        if (info) info.textContent = '';
     }
 
-    function pickPart(v1, v2) {
-        const swatches = comboSwatches();
-        // That exact pair, else this first part with whatever second part has stock, else any of it.
-        let index = swatches.findIndex(function (s) { return s.dataset.v1 === v1 && s.dataset.v2 === v2; });
-        if (index < 0) index = swatches.findIndex(function (s) { return s.dataset.v1 === v1 && parseInt(s.dataset.stock, 10) > 0; });
-        if (index < 0) index = swatches.findIndex(function (s) { return s.dataset.v1 === v1; });
-        if (index >= 0) selectVariation(index);
-    }
-
-    document.querySelectorAll('.pd-part1').forEach(function (chip) {
+    document.querySelectorAll('.pd-part1, .pd-part2').forEach(function (chip) {
         chip.addEventListener('click', function () {
-            const current = document.querySelector('.variation-swatch.active');
-            pickPart(chip.dataset.value, current ? current.dataset.v2 : '');
+            const key = chip.classList.contains('pd-part1') ? 'v1' : 'v2';
+            // Clicking the picked one again un-picks it.
+            pick[key] = pick[key] === chip.dataset.value ? '' : chip.dataset.value;
+            renderParts();
         });
     });
 
-    document.querySelectorAll('.pd-part2').forEach(function (chip) {
-        chip.addEventListener('click', function () {
-            const current = document.querySelector('.variation-swatch.active');
-            pickPart(current ? current.dataset.v1 : '', chip.dataset.value);
-        });
-    });
+    // Add to Cart / Buy Now before both parts are picked: say which one is missing.
+    document.addEventListener('submit', function (e) {
+        const form = e.target;
+        if (!document.querySelector('.pd-part1') || (form.id !== 'addToCartForm' && form.id !== 'buyNowForm')) return;
+        if (pick.v1 && pick.v2) return;
+
+        e.preventDefault();
+        e.stopImmediatePropagation();
+
+        const parts = document.querySelectorAll('.pd-part');
+        const missing = !pick.v1 ? parts[0] : parts[1];
+        missing.classList.add('needs-pick');
+        const info = document.getElementById('variationInfo');
+        if (info) info.textContent = 'Please select ' + missing.querySelector('.pd-part-label').textContent.trim() + '.';
+        missing.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, true);
 
     // ---- Photo thumbnails: click (or tap) shows the photo big. ----
     // Read fresh each time: a thumbnail whose photo fails to load removes itself.
@@ -851,7 +980,8 @@
 
         const swatches = document.querySelectorAll('.variation-swatch');
 
-        if (swatches.length === 0) {
+        // Two parts (Color × Storage) are picked with their own buttons.
+        if (swatches.length === 0 || document.querySelector('.pd-part1')) {
             return;
         }
 
@@ -912,7 +1042,13 @@
             if (owner >= 0) start = owner;
         }
 
-        selectVariation(start, true);
+        if (document.querySelector('.pd-part1')) {
+            // Two parts: start on the cover photo's color; the buyer picks the rest.
+            pick.v1 = document.querySelectorAll('.variation-swatch')[start].dataset.v1;
+            renderParts(true);
+        } else {
+            selectVariation(start, true);
+        }
 
         // The cover's thumbnail is hidden (a repeat of this option's photo, or another
         // option's): show the same picture if it is shown, else the first shown photo.

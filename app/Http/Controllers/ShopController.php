@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Support\Categories;
+use App\Support\DeviceSpecs;
 use App\Support\ProductPhotos;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -619,7 +620,7 @@ class ShopController extends Controller
             ->get();
 
         // The seller's card and more of their products.
-        $shop = $product->seller_id ? \App\Support\SellerShop::one((int) $product->seller_id) : null;
+        $shop = $product->seller_id ? \App\Support\SellerShop::card((int) $product->seller_id) : null;
 
         $moreFromSeller = $product->seller_id
             ? $visible()->where('seller_id', $product->seller_id)->latest()->take(4)->get()
@@ -669,6 +670,12 @@ class ShopController extends Controller
 
         // Photo row: each option's own photos, then the photos for all options.
         $variations = $variations->sortBy('id')->values();
+
+        // Storage reads smallest first (64GB, 256GB, 1TB), each color keeping its place.
+        $variations = DeviceSpecs::sortOptions($variations);
+
+        $specRows = DeviceSpecs::rows($product->specs);
+
         ['photos' => $gallery, 'variationPhotos' => $variationPhotos] = ProductPhotos::gallery($product, $variations);
 
         return view(
@@ -684,6 +691,7 @@ class ShopController extends Controller
                 'gallery',
                 'variationPhotos',
                 'canMessageSeller',
+                'specRows',
                 'ratingCounts',
                 'shop',
                 'moreFromSeller',

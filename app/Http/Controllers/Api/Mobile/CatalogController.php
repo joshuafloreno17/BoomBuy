@@ -7,6 +7,7 @@ use App\Models\Product;
 use App\Models\ProductVariation;
 use App\Support\Categories;
 use App\Support\DeliveryFee;
+use App\Support\DeviceSpecs;
 use App\Support\ParcelRoute;
 use App\Support\PhLocations;
 use App\Support\ProductPhotos;
@@ -197,7 +198,7 @@ class CatalogController extends MobileController
             return $this->fail('This product is no longer available.', 404);
         }
 
-        $variations = ProductVariation::where('product_id', $product->id)->orderBy('id')->get();
+        $variations = DeviceSpecs::sortOptions(ProductVariation::where('product_id', $product->id)->orderBy('id')->get());
         ['photos' => $gallery, 'variationPhotos' => $variationPhotos] = ProductPhotos::gallery($product, $variations);
 
         $reviews = DB::table('product_reviews')
@@ -240,6 +241,8 @@ class CatalogController extends MobileController
                 'name' => $product->name,
                 'category' => $product->category,
                 'description' => $product->description,
+                // Phones, tablets, laptops: [{label, value}] for a Specifications list.
+                'specs' => collect(DeviceSpecs::rows($product->specs))->map(fn ($value, $label) => ['label' => $label, 'value' => $value])->values(),
                 'price' => (float) $product->price,
                 'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
                 'discount' => $product->isDiscounted() ? (int) $product->discount_percent : null,

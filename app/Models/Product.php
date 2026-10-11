@@ -20,12 +20,15 @@ class Product extends Model
         'is_flagged',
         'flag_reason',
         'is_archived',
+        'specs',
     ];
 
     protected $casts = [
         'is_flagged' => 'boolean',
         'is_archived' => 'boolean',
         'discount_percent' => 'integer',
+        // Device details (RAM, screen…) — see App\Support\DeviceSpecs.
+        'specs' => 'array',
     ];
 
     public const MAX_DISCOUNT = 90;

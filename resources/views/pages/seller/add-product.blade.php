@@ -251,6 +251,10 @@
                     </div>
 
 
+                    <!-- SPECIFICATIONS (phones, tablets, laptops) -->
+                    @include('partials.device-specs-fields', ['specs' => null, 'show' => ($registeredCategory ?? null) === 'electronics' || old('category') === 'electronics'])
+
+
                     <!-- OPTIONS AND THEIR PHOTOS (optional) -->
                     <div class="form-group">
 
@@ -268,6 +272,36 @@
                             <input type="text" id="variationType" placeholder="e.g. Color, Size, Mount" autocomplete="off">
                             <label for="variationType2" style="margin-top:8px;">Second type <small>(optional — e.g. Size, for Color × Size)</small></label>
                             <input type="text" id="variationType2" placeholder="Leave blank for one type" autocomplete="off">
+                        </div>
+
+                        {{-- Phones, tablets, laptops: build Color × Storage options in one go. --}}
+                        <div class="storage-builder" id="storageBuilder" hidden>
+                            <div class="sb-head">
+                                <i class="bi bi-phone"></i>
+                                <div>
+                                    <strong>Quick setup: colors × storage</strong>
+                                    <small>Type the colors, tick the storage sizes with their extra price, then create the options. You can still edit each one below.</small>
+                                </div>
+                            </div>
+                            <label class="sb-field">
+                                <span>Colors <small>(separate with commas)</small></span>
+                                <input type="text" id="sbColors" placeholder="e.g. Maroon, White, Black, Blue">
+                            </label>
+                            <div class="sb-sizes">
+                                @foreach(\App\Support\DeviceSpecs::STORAGE_SIZES as $size)
+                                    <label class="sb-size">
+                                        <input type="checkbox" value="{{ $size }}">
+                                        <b>{{ $size }}</b>
+                                        <span>+₱</span>
+                                        <input type="number" step="0.01" value="0" aria-label="Extra price for {{ $size }}">
+                                    </label>
+                                @endforeach
+                            </div>
+                            <label class="sb-field sb-stock">
+                                <span>Stock for each one</span>
+                                <input type="number" id="sbStock" min="0" value="0">
+                            </label>
+                            <button type="button" class="opt-add-btn" id="sbCreate"><i class="bi bi-magic"></i> Create options</button>
                         </div>
 
                         <div id="variationRows" class="opt-list"></div>
@@ -426,9 +460,67 @@
             syncType();
             renumber();
             card.querySelector('input[name$="[value]"]').focus();
+            return card;
         }
 
-        addBtn.addEventListener('click', addRow);
+        addBtn.addEventListener('click', function () { addRow(); });
+
+        // ---- Quick setup for phones, tablets, laptops: Color × Storage ----
+        var builder = document.getElementById('storageBuilder');
+        var deviceType = document.getElementById('specDeviceType');
+
+        function syncBuilder() {
+            var box = document.getElementById('deviceSpecs');
+            builder.hidden = !deviceType || !deviceType.value || (box && box.hidden);
+        }
+        if (deviceType) deviceType.addEventListener('change', syncBuilder);
+        document.addEventListener('bb:device-category', syncBuilder);
+        syncBuilder();
+
+        document.getElementById('sbCreate').addEventListener('click', function () {
+            var colors = document.getElementById('sbColors').value.split(',')
+                .map(function (c) { return c.trim(); })
+                .filter(function (c, i, all) { return c && all.indexOf(c) === i; });
+            var sizes = Array.prototype.slice.call(builder.querySelectorAll('.sb-size'))
+                .filter(function (row) { return row.querySelector('input[type=checkbox]').checked; })
+                .map(function (row) {
+                    return { size: row.querySelector('input[type=checkbox]').value, extra: row.querySelector('input[type=number]').value || '0' };
+                });
+            var stock = document.getElementById('sbStock').value || '0';
+
+            if (!sizes.length) { say('Tick at least one storage size.'); return; }
+
+            var make = function () {
+                rowsContainer.textContent = '';
+                if (colors.length) {
+                    typeInput.value = 'Color';
+                    typeInput2.value = 'Storage';
+                } else {
+                    typeInput.value = 'Storage';
+                    typeInput2.value = '';
+                }
+                (colors.length ? colors : [null]).forEach(function (color) {
+                    sizes.forEach(function (s) {
+                        var card = addRow();
+                        var name = card.querySelector('input[name$="[value]"]');
+                        name.value = color || s.size;
+                        name.dispatchEvent(new Event('input'));
+                        if (color) card.querySelector('input[name$="[value2]"]').value = s.size;
+                        card.querySelector('input[name$="[price_adjustment]"]').value = s.extra;
+                        card.querySelector('input[name$="[stock]"]').value = stock;
+                    });
+                });
+                syncType();
+                renumber();
+            };
+
+            // Replacing options the seller already typed asks first.
+            if (rowsContainer.children.length && window.bbConfirm) {
+                window.bbConfirm('Replace the options below with ' + Math.max(colors.length, 1) * sizes.length + ' new ones?', make);
+            } else {
+                make();
+            }
+        });
 
         // Options need a type (Color, Size…) so buyers see "Choose a color".
         addBtn.form.addEventListener('submit', function (e) {

@@ -403,6 +403,9 @@ Route::post('/seller/products/{id}/variations', [SellerController::class, 'store
 
 Route::put('/seller/products/{id}/variations', [SellerController::class, 'updateVariations'])->name('seller.products.variations.update');
 
+// Phones, tablets, laptops: storage sizes for every color at once.
+Route::post('/seller/products/{id}/variations/storage', [SellerController::class, 'addStorage'])->whereNumber('id')->name('seller.products.variations.storage');
+
 Route::delete('/seller/products/{id}/variations/{variationId}', [SellerController::class, 'deleteVariation'])->name('seller.products.variations.delete');
 
 /*

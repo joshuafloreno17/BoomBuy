@@ -77,7 +77,7 @@ class ColorSizeScenariosTest extends TestCase
 
         $this->flushSession();
         $page = $this->actingAsUser($buyer)->get(route('product.details', Str::slug($product->name) . '-' . $product->id))->assertOk();
-        $page->assertSee('Choose a color and size')->assertSee('class="variation-swatch-part pd-part1"', false)->assertSee('data-v2="10"', false);
+        $page->assertSee('variation-picker is-two-part', false)->assertSee('pd-part-label">Size', false)->assertSee('class="variation-swatch-part pd-part1"', false)->assertSee('data-v2="10"', false);
 
         $this->post(route('cart.add', $product->id))->assertSessionHas('error', 'Please choose a color and size for Running Shoe first.');
         $this->post(route('cart.add', $product->id), ['variation_id' => $red10->id])->assertSessionHas('error'); // none left

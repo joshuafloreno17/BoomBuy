@@ -711,7 +711,10 @@ class SellerController extends Controller
             ->orderBy('variation_type')
             ->orderBy('variation_value')
             ->orderBy('option2_value')
-            ->get();
+            ->get()
+            // 64GB, 256GB, 1TB — by size, not alphabetically.
+            ->sortBy(fn ($v) => [$v->variation_type, $v->variation_value, \App\Support\DeviceSpecs::storageSize((string) $v->option2_value), (string) $v->option2_value])
+            ->values();
 
         return view(
             'pages.seller.variations',
@@ -778,6 +781,46 @@ class SellerController extends Controller
         }
 
         return back()->with('success', 'Variation added successfully.');
+    }
+
+    /**
+     * Phones, tablets, laptops: add storage sizes to every color in one go.
+     * storage[128GB][on], storage[128GB][extra], stock.
+     */
+    public function addStorage($id, ProductService $products)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$product) {
+            abort(404);
+        }
+
+        request()->validate([
+            'storage' => 'array',
+            'storage.*.extra' => 'nullable|numeric|min:-1000000|max:1000000',
+            'stock' => 'nullable|integer|min:0|max:100000',
+        ]);
+
+        $sizes = collect((array) request('storage', []))
+            ->filter(fn ($row) => !empty($row['on']))
+            ->map(fn ($row) => (float) ($row['extra'] ?? 0))
+            ->all();
+
+        try {
+            $added = $products->addStorage($product, $sizes, (int) request('stock', 0));
+        } catch (ActionFailed $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', $added
+            ? 'Storage added: ' . $added . ' option' . ($added === 1 ? '' : 's') . '. Set the stock of each one below.'
+            : 'Every color already has those storage sizes.');
     }
 
     /**
@@ -943,7 +986,7 @@ class SellerController extends Controller
         try {
             $product = $products->create(
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
+                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
                 request()->hasFile('image') ? request()->file('image') : null,
                 $this->variationsWithPhotos(),
                 (array) request()->file('photos', []),
@@ -1405,7 +1448,7 @@ class SellerController extends Controller
             $products->update(
                 $product,
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description'),
+                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
                 request()->hasFile('image') ? request()->file('image') : null,
                 [
                     'add' => (array) request()->file('photos', []),
