@@ -37,6 +37,8 @@ return Application::configure(basePath: dirname(__DIR__))
             PreventBackHistoryCache::class,
             AutoReceiveDeliveredOrders::class,
             ForgetFlashedPasswords::class,
+            // Inside the Android app: buyers, sellers and riders only.
+            \App\Http\Middleware\KeepAppToMobileRoles::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
