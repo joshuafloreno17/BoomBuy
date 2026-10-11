@@ -9,6 +9,7 @@ use App\Models\PlatformSetting;
 use App\Models\Product;
 use App\Models\RiderArea;
 use App\Models\User;
+use App\Support\AdminLogin;
 use App\Support\Categories;
 use App\Support\OrderStock;
 use App\Support\RiderRelease;
@@ -33,27 +34,10 @@ class AdminController extends Controller
     public function login()
     {
         $email = strtolower(trim(request('email')));
-        $password = trim(request('password'));
+        $password = (string) request('password');
 
-        if (
-            $email === 'admin@boombuy.com' &&
-            $password === 'admin123'
-        ) {
-
-            // Fresh session ID on privilege change (session fixation).
-            session()->regenerate();
-            session()->put('admin_logged_in', true);
-
-            // Make sure a real `users` row exists for the admin account —
-            // notifications and messaging both need a real user_id to attach to.
-            User::firstOrCreate(
-                ['email' => 'admin@boombuy.com'],
-                [
-                    'name' => 'Admin',
-                    'password' => Hash::make(Str::random(32)),
-                    'role' => 'admin',
-                ]
-            );
+        if (AdminLogin::attempt($email, $password)) {
+            AdminLogin::startSession();
 
             return redirect()
                 ->route('admin.dashboard')
@@ -275,6 +259,99 @@ class AdminController extends Controller
         return redirect()
             ->route('admin.login')
             ->with('success', 'Admin logged out successfully.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | MY ACCOUNT — the admin's own name, login email and password.
+    |--------------------------------------------------------------------------
+    */
+
+    public function account()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $admin = \App\Support\SupportAccount::user();
+
+        return view('pages.admin.account', compact('admin'));
+    }
+
+    public function updateAccount()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $admin = \App\Support\SupportAccount::user();
+
+        $name = trim((string) request('name'));
+        $email = strtolower(trim((string) request('email')));
+
+        if ($name === '' || $email === '') {
+            return back()->withInput()->with('error', 'Please enter your name and email.');
+        }
+
+        if (mb_strlen($name) > 100) {
+            return back()->withInput()->with('error', 'Name must be 100 characters or fewer.');
+        }
+
+        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+            return back()->withInput()->with('error', 'Please enter a valid email address.');
+        }
+
+        if (User::whereRaw('LOWER(email) = ?', [$email])->where('id', '!=', $admin->id)->exists()) {
+            return back()->withInput()->with('error', 'That email is already used by another account.');
+        }
+
+        // Changing the login email asks for the password, so an unattended
+        // browser can't hand the admin account to someone else.
+        if ($email !== strtolower($admin->email) && !Hash::check((string) request('current_password'), $admin->password)) {
+            return back()->withInput()->with('error', 'Enter your current password to change the login email.');
+        }
+
+        $admin->name = $name;
+        $admin->email = $email;
+        $admin->save();
+
+        return back()->with('success', 'Account details saved.');
+    }
+
+    public function updateAccountPassword()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $admin = \App\Support\SupportAccount::user();
+
+        $current = (string) request('current_password');
+        $new = (string) request('new_password');
+        $confirm = (string) request('new_password_confirmation');
+
+        if ($current === '' || $new === '' || $confirm === '') {
+            return back()->with('error', 'Please complete all password fields.');
+        }
+
+        if (!Hash::check($current, $admin->password)) {
+            return back()->with('error', 'Current password is incorrect.');
+        }
+
+        if (strlen($new) < 8) {
+            return back()->with('error', 'New password must be at least 8 characters.');
+        }
+
+        if ($new !== $confirm) {
+            return back()->with('error', 'New passwords do not match.');
+        }
+
+        $admin->password = Hash::make($new);
+        $admin->save();
+
+        \App\Support\LoginGate::passwordChanged($admin);
+
+        return back()->with('success', 'Password changed successfully.');
     }
 
     // Filter cards on the admin Products page.

@@ -189,6 +189,11 @@ Route::get('/admin', [AdminController::class, 'dashboard'])->name('admin.dashboa
 
 Route::post('/admin/logout', [AdminController::class, 'logout'])->name('admin.logout');
 
+// The admin's own name, login email and password.
+Route::get('/admin/account', [AdminController::class, 'account'])->name('admin.account');
+Route::post('/admin/account', [AdminController::class, 'updateAccount'])->middleware('throttle:10,1,admin-account')->name('admin.account.update');
+Route::post('/admin/account/password', [AdminController::class, 'updateAccountPassword'])->middleware('throttle:10,1,admin-account')->name('admin.account.password');
+
 
 /*
 |--------------------------------------------------------------------------

@@ -1,0 +1,109 @@
+/* Admin > My Account. Builds on admin-settings.css (cards, labels, buttons). */
+
+.account-page {
+    max-width: 760px;
+}
+
+.account-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: white;
+    border: 1px solid #ece4df;
+    border-radius: 15px;
+    padding: 22px 25px;
+    margin-bottom: 20px;
+    box-shadow: 0 5px 20px rgba(0,0,0,.05);
+}
+
+.account-avatar {
+    width: 56px;
+    height: 56px;
+    flex-shrink: 0;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: #ffe6db;
+    color: #c2380f;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.account-head > div {
+    min-width: 0;
+}
+
+.account-head h2 {
+    font-size: 19px;
+    overflow-wrap: anywhere;
+}
+
+.account-head p {
+    color: #6b6570;
+    font-size: 14px;
+    margin-top: 2px;
+    overflow-wrap: anywhere;
+}
+
+.account-head small {
+    display: block;
+    color: #8a7f86;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 16px;
+}
+
+.form-group input[type="email"],
+.form-group input[type="password"] {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #f0e2da;
+    border-radius: 9px;
+    font-family: inherit;
+    font-size: 13px;
+    outline: none;
+}
+
+.form-group input[type="email"]:focus,
+.form-group input[type="password"]:focus {
+    border-color: #f34f1d;
+    box-shadow: 0 0 0 3px rgba(243, 79, 29, .08);
+}
+
+.field-hint,
+.field-error {
+    display: block;
+    font-size: 12px;
+    margin-top: 6px;
+    color: #8a7f86;
+}
+
+.field-error {
+    color: #be123c;
+}
+
+.field-hint[hidden],
+.field-error[hidden],
+.form-group[hidden] {
+    display: none;
+}
+
+.show-passwords {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    color: #6b6570;
+    margin-bottom: 16px;
+    cursor: pointer;
+}
+
+@media (max-width: 640px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .account-head { padding: 18px; }
+}

@@ -33,23 +33,10 @@ class AuthController extends Controller
                 );
         }
 
-        // The Admin account isn't a real "role" a user registers for — it's a
-        // fixed set of credentials. Detect it here so Admin can use the same
-        // login form as everyone else instead of a separate page.
-        if ($email === 'admin@boombuy.com' && $password === 'admin123') {
-
-            // Fresh session ID on privilege change (session fixation).
-            session()->regenerate();
-            session()->put('admin_logged_in', true);
-
-            \App\Models\User::firstOrCreate(
-                ['email' => 'admin@boombuy.com'],
-                [
-                    'name' => 'Admin',
-                    'password' => Hash::make(Str::random(32)),
-                    'role' => 'admin',
-                ]
-            );
+        // The admin uses the same login form as everyone else; its email and
+        // password live on its `users` row (changed from Admin > My Account).
+        if (\App\Support\AdminLogin::attempt($email, $password)) {
+            \App\Support\AdminLogin::startSession();
 
             return redirect()
                 ->route('admin.dashboard')

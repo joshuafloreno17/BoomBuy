@@ -10,11 +10,12 @@ use App\Models\User;
  */
 class SupportAccount
 {
+    /** The admin's email on a fresh install; changed from Admin > My Account. */
     public const EMAIL = 'admin@boombuy.com';
 
     public static function user(): ?User
     {
-        return once(fn () => User::where('email', self::EMAIL)->first());
+        return once(fn () => User::where('role', 'admin')->orderBy('id')->first());
     }
 
     public static function id(): ?int
