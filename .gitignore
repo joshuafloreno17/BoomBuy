@@ -26,3 +26,6 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 views-backup.zip
+
+# The Android app (built in C:\BoombuyMobileApp\mobile, published to /app)
+/public/downloads/

@@ -149,6 +149,14 @@ class MobileApiTest extends TestCase
             ->assertRedirect(route('logistics.dashboard'));
     }
 
+    public function test_the_app_download_page_is_public(): void
+    {
+        $this->get('/app')
+            ->assertOk()
+            ->assertSee('BoomBuy for Android')
+            ->assertSee('logistics', false);
+    }
+
     // ---- Buyer -------------------------------------------------------------
 
     public function test_a_buyer_browses_fills_the_cart_and_checks_out(): void

@@ -663,6 +663,9 @@ Route::get('/categories', [ShopController::class, 'categories'])->name('categori
 
 Route::get('/policies', [ShopController::class, 'policies'])->name('policies');
 
+// Download page for the BoomBuy Android app (the APK is public/downloads/boombuy.apk).
+Route::view('/app', 'pages.app-download')->name('app.download');
+
 
 Route::post('/buyer/order/{orderId}/return-refund', [BuyerController::class, 'requestReturnRefund'])->name('buyer.return-refund.store');
 Route::post('/buyer/return-refund/{id}/cancel', [BuyerController::class, 'cancelReturnRefund'])->name('buyer.return-refund.cancel');
