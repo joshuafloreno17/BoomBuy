@@ -16,8 +16,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Browsing the shop: home, search and filters, a product, a seller's shop.
- * Same visibility rules as the website (Product::onSale).
+ * Browsing the shop: landing page, home, search and filters, a product, a
+ * seller's shop. Same visibility rules as the website (Product::onSale).
+ * Open to guests; a signed-in buyer also gets their wishlist and delivery fee.
  */
 class CatalogController extends MobileController
 {
@@ -27,7 +28,7 @@ class CatalogController extends MobileController
 
     public function home(Request $request): JsonResponse
     {
-        $buyerId = (int) $this->user($request)->id;
+        $buyerId = $this->viewerBuyerId($request);
         $wishlist = $this->wishlistIds($buyerId);
 
         $visible = fn () => Product::onSale()
@@ -59,6 +60,58 @@ class CatalogController extends MobileController
         ]);
     }
 
+    /**
+     * The website's landing page (ShopController::home) for the app: the
+     * hero products (best sellers, topped up with the newest), "Just
+     * listed", the first 8 categories with their notes, and the free
+     * shipping minimum. Open to guests.
+     */
+    public function landing(Request $request): JsonResponse
+    {
+        $wishlist = $this->wishlistIds($this->viewerBuyerId($request));
+
+        $visible = fn () => Product::onSale()
+            ->withSellableStock()
+            ->withSoldCount()
+            ->withCount(['reviews', 'variations'])
+            ->withAvg('reviews', 'rating');
+
+        $hero = $visible()->orderByDesc('sold_count')->orderByDesc('id')->take(4)->get()
+            ->filter(fn ($p) => (int) $p->sold_count > 0)
+            ->values();
+
+        if ($hero->count() < 4) {
+            $hero = $hero->concat($visible()->whereNotIn('products.id', $hero->pluck('id'))->latest()->take(4 - $hero->count())->get());
+        }
+
+        $justListed = $visible()->latest()->take(8)->get();
+        $shops = SellerShop::many($hero->pluck('seller_id')->concat($justListed->pluck('seller_id')));
+
+        $notes = [
+            'electronics' => 'Gadgets & devices',
+            'womens-fashion' => 'Style & clothing',
+            'mens-fashion' => 'Everyday style',
+            'kids-baby' => 'For little ones',
+            'home-living' => 'Home essentials',
+            'sports-outdoors' => 'Gear for moving',
+            'beauty-personal-care' => 'Skin, hair & more',
+            'food-beverages' => 'Snacks & pantry',
+        ];
+
+        return response()->json([
+            'hero' => $hero->map(fn ($p) => $this->productCard($p, $wishlist, $shops))->values(),
+            'just_listed' => $justListed->map(fn ($p) => $this->productCard($p, $wishlist, $shops))->values(),
+            'categories' => collect(array_slice(Categories::LIST, 0, 8, true))
+                ->map(fn ($label, $slug) => ['slug' => $slug, 'label' => $label, 'note' => $notes[$slug] ?? null])
+                ->values(),
+            'all_categories' => self::categoryList(),
+            'free_shipping_min' => DeliveryFee::freeShippingMin(),
+            'register_url' => route('register'),
+            'seller_register_url' => route('seller.register'),
+            'rider_apply_url' => route('rider.apply'),
+        ]);
+    }
+
     public function categories(): JsonResponse
     {
         $counts = Product::onSale()
@@ -78,7 +131,7 @@ class CatalogController extends MobileController
     /** ?search=&category=&min=&max=&rating=&in_stock=1&sort=&page=&seller= */
     public function products(Request $request): JsonResponse
     {
-        $buyerId = (int) $this->user($request)->id;
+        $buyerId = $this->viewerBuyerId($request);
 
         $category = (string) $request->query('category');
         $category = isset(Categories::LIST[$category]) ? $category : '';
@@ -137,7 +190,7 @@ class CatalogController extends MobileController
 
     public function product(Request $request, int $id): JsonResponse
     {
-        $buyerId = (int) $this->user($request)->id;
+        $buyerId = $this->viewerBuyerId($request);
         $product = Product::withSoldCount()->find($id);
 
         if (!$product || !$product->isPurchasable()) {

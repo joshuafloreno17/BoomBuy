@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Api\Mobile;
 
 use App\Exceptions\ActionFailed;
+use App\Support\ApiToken;
+use App\Support\LoginGate;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Support\Categories;
@@ -22,6 +24,21 @@ abstract class MobileController extends Controller
     protected function user(Request $request): object
     {
         return $request->attributes->get('apiUser');
+    }
+
+    /**
+     * The buyer looking at a public (guest) screen, or 0: a valid token of a
+     * buyer who may still log in. Never fails, so guests can browse.
+     */
+    protected function viewerBuyerId(Request $request): int
+    {
+        $user = $request->attributes->get('apiUser');
+
+        if (!$user && ($found = ApiToken::find($request->bearerToken()))) {
+            $user = LoginGate::blockReason($found['user']) ? null : $found['user'];
+        }
+
+        return $user && $user->role === 'buyer' ? (int) $user->id : 0;
     }
 
     /** The user the way the website's session holds it (what the services expect). */

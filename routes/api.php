@@ -33,6 +33,16 @@ Route::prefix('mobile/v1')->group(function () {
         'roles' => \App\Support\MobileAccess::ROLES,
     ]));
 
+    // The shop for everyone, signed in or not (like the website's landing
+    // page and shop). A buyer's token, when sent, adds their wishlist.
+    Route::middleware('throttle:120,1,api-public')->prefix('shop')->group(function () {
+        Route::get('/landing', [CatalogController::class, 'landing']);
+        Route::get('/categories', [CatalogController::class, 'categories']);
+        Route::get('/products', [CatalogController::class, 'products']);
+        Route::get('/products/{id}', [CatalogController::class, 'product'])->whereNumber('id');
+        Route::get('/shops/{id}', [CatalogController::class, 'shop'])->whereNumber('id');
+    });
+
     // Every mobile role.
     Route::middleware(['api.token', 'throttle:180,1,api'])->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);

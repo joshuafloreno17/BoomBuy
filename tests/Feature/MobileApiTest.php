@@ -157,6 +157,41 @@ class MobileApiTest extends TestCase
             ->assertSee('logistics', false);
     }
 
+    // ---- Guests -----------------------------------------------------------
+
+    public function test_guests_see_the_landing_page_and_browse_the_shop(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['name' => 'Running Shoes']);
+        $hidden = $this->makeProduct($this->makeSeller(), ['name' => 'Archived Item', 'is_archived' => true]);
+
+        $this->getJson(self::API . '/shop/landing')
+            ->assertOk()
+            ->assertJsonPath('hero.0.id', $product->id)
+            ->assertJsonPath('just_listed.0.name', 'Running Shoes')
+            ->assertJsonCount(8, 'categories')
+            ->assertJsonPath('categories.0.note', 'Gadgets & devices');
+
+        $this->getJson(self::API . '/shop/products?search=shoes')->assertOk()->assertJsonCount(1, 'products');
+        $this->getJson(self::API . "/shop/products/{$product->id}")->assertOk()->assertJsonPath('product.in_wishlist', false);
+        $this->getJson(self::API . "/shop/products/{$hidden->id}")->assertNotFound();
+
+        // Buying still needs an account.
+        $this->getJson(self::API . '/buyer/cart')->assertUnauthorized();
+        $this->postJson(self::API . '/buyer/cart', ['product_id' => $product->id])->assertUnauthorized();
+    }
+
+    public function test_a_signed_in_buyer_sees_their_wishlist_on_the_public_shop(): void
+    {
+        $buyer = $this->makeUser('buyer');
+        $product = $this->makeProduct($this->makeSeller());
+        DB::table('wishlists')->insert(['user_id' => $buyer->id, 'product_id' => $product->id, 'created_at' => now(), 'updated_at' => now()]);
+
+        $this->as($this->tokenFor($buyer))->getJson(self::API . "/shop/products/{$product->id}")->assertOk()->assertJsonPath('product.in_wishlist', true);
+
+        // A bad token is simply a guest here, never an error.
+        $this->withHeader('Authorization', 'Bearer 1|nope')->getJson(self::API . '/shop/landing')->assertOk();
+    }
+
     // ---- Buyer -------------------------------------------------------------
 
     public function test_a_buyer_browses_fills_the_cart_and_checks_out(): void
