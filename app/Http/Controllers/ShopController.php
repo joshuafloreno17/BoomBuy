@@ -213,6 +213,11 @@ class ShopController extends Controller
 
     private const SHOP_PER_PAGE = 24;
 
+    /** Product page rows: "From the same shop" and "You may also like". */
+    private const SAME_SHOP = 12;
+
+    private const ALSO_LIKE = 12;
+
     private const SHOP_SORTS = ['newest', 'price_low', 'price_high', 'rating'];
 
     public function sellerShop(int $seller)
@@ -608,22 +613,42 @@ class ShopController extends Controller
             ->mapWithKeys(fn ($stars) => [$stars => $reviews->where('rating', $stars)->count()])
             ->all();
 
+        // Cards under the product, like a shop app: rating and items sold too.
         $visible = fn () => Product::onSale()
-            ->where('id', '!=', $product->id);
+            ->withSoldCount()
+            ->withCount('reviews')
+            ->withAvg('reviews', 'rating')
+            ->where('products.id', '!=', $product->id);
 
-        // Similar products: same category (old category names included), any seller.
+        // "You may also like": the same category first (old category names
+        // included), best sellers first, then other shops' products to fill
+        // the grid.
         $categorySlug = Categories::slug($product->category);
-        $relatedProducts = $visible()
-            ->whereIn('category', self::categoryMap()[$categorySlug] ?? [$product->category])
+        $sameCategory = self::categoryMap()[$categorySlug] ?? [$product->category];
+        // Other shops only — this shop's products are in "From the same shop".
+        $otherShops = fn () => $visible()->when($product->seller_id, fn ($q) => $q->where(fn ($w) => $w->where('seller_id', '!=', $product->seller_id)->orWhereNull('seller_id')));
+
+        $relatedProducts = $otherShops()
+            ->whereIn('category', $sameCategory)
+            ->orderByDesc('sold_count')
             ->latest()
-            ->take(4)
+            ->take(self::ALSO_LIKE)
             ->get();
+
+        if ($relatedProducts->count() < self::ALSO_LIKE) {
+            $relatedProducts = $relatedProducts->concat($otherShops()
+                ->whereNotIn('category', $sameCategory)
+                ->orderByDesc('sold_count')
+                ->latest()
+                ->take(self::ALSO_LIKE - $relatedProducts->count())
+                ->get());
+        }
 
         // The seller's card and more of their products.
         $shop = $product->seller_id ? \App\Support\SellerShop::card((int) $product->seller_id) : null;
 
         $moreFromSeller = $product->seller_id
-            ? $visible()->where('seller_id', $product->seller_id)->latest()->take(4)->get()
+            ? $visible()->where('seller_id', $product->seller_id)->orderByDesc('sold_count')->latest()->take(self::SAME_SHOP)->get()
             : collect();
 
         $deliveryFee = \App\Support\DeliveryFee::baseFee();

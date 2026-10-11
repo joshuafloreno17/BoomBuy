@@ -591,43 +591,67 @@
     </section>
 
 
-    <!-- MORE FROM THIS SHOP + SIMILAR PRODUCTS -->
+    <!-- FROM THE SAME SHOP (a row that scrolls) + YOU MAY ALSO LIKE (a grid) -->
 
     @foreach([
-        ['title' => $shop ? 'More from ' . $shop['name'] : null, 'items' => $moreFromSeller, 'link' => $shop['url'] ?? null, 'linkText' => 'View shop'],
-        ['title' => 'Similar products', 'items' => $relatedProducts, 'link' => $pdCategorySlug ? route('products', ['category' => $pdCategorySlug]) : null, 'linkText' => 'See all'],
+        ['key' => 'same-shop', 'title' => 'From the same shop', 'items' => $shop ? $moreFromSeller : collect(), 'link' => $shop['url'] ?? null, 'row' => true],
+        ['key' => 'also-like', 'title' => 'You may also like', 'items' => $relatedProducts, 'link' => $pdCategorySlug ? route('products', ['category' => $pdCategorySlug]) : null, 'row' => false],
     ] as $rail)
 
-        @if($rail['title'] && $rail['items']->count() > 0)
+        @if($rail['items']->count() > 0)
 
-            <section class="related-section">
+            <section class="related-section {{ $rail['row'] ? 'is-row' : 'is-grid' }}" aria-labelledby="rail-{{ $rail['key'] }}">
 
                 <div class="related-head">
-                    <h2>{{ $rail['title'] }}</h2>
+                    <h2 id="rail-{{ $rail['key'] }}">{{ $rail['title'] }}</h2>
                     @if($rail['link'])
-                        <a href="{{ $rail['link'] }}">{{ $rail['linkText'] }} →</a>
+                        <a href="{{ $rail['link'] }}">See All <i class="bi bi-chevron-right"></i></a>
                     @endif
                 </div>
 
-                <div class="related-grid">
+                <div class="related-track-wrap">
+                    @if($rail['row'])
+                        <button type="button" class="related-nav is-prev" data-rail-step="-1" aria-label="Previous products" hidden><i class="bi bi-chevron-left"></i></button>
+                    @endif
 
-                    @foreach($rail['items'] as $related)
+                    <div class="{{ $rail['row'] ? 'related-row' : 'related-grid' }}">
 
-                        <a href="{{ route('product.details', \Illuminate\Support\Str::slug($related->name) . '-' . $related->id) }}" class="related-card">
+                        @foreach($rail['items'] as $related)
+                            @php
+                                $relRating = (int) ($related->reviews_count ?? 0) > 0 ? round((float) $related->reviews_avg_rating, 1) : null;
+                                $relSold = (int) ($related->sold_count ?? 0);
+                            @endphp
 
-                            <div class="related-image">
-                                <x-product-thumb :image="$related->image" :category="$related->category" size="200" style="width:100%; height:100%; border-radius:0;" />
-                            </div>
+                            <a href="{{ route('product.details', \Illuminate\Support\Str::slug($related->name) . '-' . $related->id) }}" class="related-card">
 
-                            <div class="related-info">
-                                <div class="related-name">{{ $related->name }}</div>
-                                <div class="related-price">₱{{ number_format($related->price) }}</div>
-                            </div>
+                                <div class="related-image">
+                                    <x-product-thumb :image="$related->image" :category="$related->category" size="200" style="width:100%; height:100%; border-radius:0;" />
+                                    @if($related->isDiscounted())
+                                        <span class="related-off">-{{ $related->discount_percent }}%</span>
+                                    @endif
+                                </div>
 
-                        </a>
+                                <div class="related-info">
+                                    <div class="related-name">{{ $related->name }}</div>
+                                    <div class="related-price">₱{{ number_format($related->price) }}</div>
+                                    <div class="related-meta">
+                                        @if($relRating)
+                                            <span class="related-stars"><i class="bi bi-star-fill"></i> {{ number_format($relRating, 1) }}</span>
+                                        @endif
+                                        @if($relSold > 0)
+                                            <span class="related-sold">{{ $relSold >= 1000 ? number_format($relSold / 1000, 1) . 'K+' : $relSold }} sold</span>
+                                        @endif
+                                    </div>
+                                </div>
 
-                    @endforeach
+                            </a>
+                        @endforeach
 
+                    </div>
+
+                    @if($rail['row'])
+                        <button type="button" class="related-nav is-next" data-rail-step="1" aria-label="More products" hidden><i class="bi bi-chevron-right"></i></button>
+                    @endif
                 </div>
 
             </section>
@@ -635,6 +659,32 @@
         @endif
 
     @endforeach
+
+    <script>
+        // "From the same shop": ‹ › arrows show only when the row scrolls.
+        document.querySelectorAll('.related-section.is-row').forEach(function (section) {
+            var row = section.querySelector('.related-row');
+            var prev = section.querySelector('.related-nav.is-prev');
+            var next = section.querySelector('.related-nav.is-next');
+            if (!row || !prev || !next) return;
+
+            function sync() {
+                var max = row.scrollWidth - row.clientWidth;
+                prev.hidden = row.scrollLeft <= 4;
+                next.hidden = row.scrollLeft >= max - 4;
+            }
+
+            [prev, next].forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    row.scrollBy({ left: row.clientWidth * 0.9 * parseInt(btn.dataset.railStep, 10), behavior: 'smooth' });
+                });
+            });
+
+            row.addEventListener('scroll', sync, { passive: true });
+            window.addEventListener('resize', sync);
+            sync();
+        });
+    </script>
 
 </main>
 
