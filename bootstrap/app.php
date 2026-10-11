@@ -15,6 +15,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         web: __DIR__.'/../routes/web.php',
+        api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
     )
@@ -24,6 +25,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Trust the tunnel's X-Forwarded-* headers so links and redirects use
         // https://boombuy.store instead of http:// or localhost.
         $middleware->trustProxies(at: ['127.0.0.1', '::1']);
+
+        // The mobile app's Bearer-token sign-in (routes/api.php).
+        $middleware->alias(['api.token' => \App\Http\Middleware\AuthenticateApiToken::class]);
 
         $middleware->web(append: [
             RestoreRememberedLogin::class,

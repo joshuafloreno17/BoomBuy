@@ -154,6 +154,8 @@ class LoginGate
     public static function passwordChanged(object $user, bool $keepThisBrowser = false): void
     {
         self::forgetEverywhere((int) $user->id);
+        // The mobile app signs out everywhere too.
+        ApiToken::revokeAll((int) $user->id);
 
         if ($keepThisBrowser && request()->hasCookie(self::REMEMBER_COOKIE)) {
             self::remember($user);
