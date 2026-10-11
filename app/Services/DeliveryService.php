@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Storage;
  * A rider's work on an order — the last leg, from the Sorting Center to the
  * buyer (the first leg, seller → Sorting Center, is PickupService): Assigned
  * for Delivery → Out for Delivery → Delivered or Delivery Failed (a refusal
- * included). Used by the rider web pages and meant for the mobile app.
+ * included). Used by the rider web pages.
  */
 class DeliveryService
 {
