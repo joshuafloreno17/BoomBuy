@@ -229,7 +229,7 @@
                         </div>
 
                         <div class="field" style="grid-column: 1 / -1;">
-                            <label for="profile_province">Shop address</label>
+                            <label for="profile_province_search">Shop address</label>
                             @include('partials.address-fields', ['id' => 'profile', 'value' => old('address', $dbUser->address ?? '')])
                             <span class="field-hint">Your town decides which Sorting Center you drop parcels at, and the delivery fee buyers pay.</span>
                         </div>

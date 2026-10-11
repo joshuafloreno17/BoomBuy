@@ -54,3 +54,102 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ---- Type-to-search Province / City (like the search bar's suggestions) ---- */
+.af-combo {
+    position: relative;
+}
+
+/* The real <select> stays for the form, out of sight. */
+.af-combo .af-native {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.addr-fields .af-combo-input {
+    width: 100%;
+    padding: 11px 36px 11px 12px;
+    border: 1px solid #e6dad3;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1b1a1f;
+    font-family: inherit;
+    font-size: 14px;
+    text-overflow: ellipsis;
+}
+
+.addr-fields .af-combo-input::placeholder { color: #a99ea4; }
+
+.addr-fields .af-combo-input:focus {
+    outline: none;
+    border-color: #e8420f;
+    box-shadow: 0 0 0 3px rgba(232, 66, 15, .1);
+}
+
+.addr-fields .af-combo-input:disabled {
+    background: #faf6f3;
+    color: #a99ea4;
+    cursor: not-allowed;
+}
+
+.af-combo-caret {
+    position: absolute;
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
+    color: #8a7f86;
+    font-size: 13px;
+    cursor: pointer;
+    transition: transform .15s ease;
+}
+
+.af-combo.is-open .af-combo-caret { transform: translateY(-50%) rotate(180deg); }
+
+.af-combo-list {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 4000;
+    max-height: 280px;
+    overflow-y: auto;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: #fff;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    box-shadow: 0 18px 40px -12px rgba(27, 26, 31, .22);
+}
+
+.af-combo-list[hidden] { display: none; }
+
+.af-combo-option {
+    padding: 9px 12px;
+    border-radius: 8px;
+    color: #1b1a1f;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.af-combo-option b { color: #c2380f; font-weight: 800; }
+
+.af-combo-option.is-active { background: #fff1ea; }
+
+.af-combo-option.is-chosen { font-weight: 700; }
+
+.af-combo-option.is-chosen::after {
+    content: '\2713';
+    float: right;
+    color: #e8420f;
+}
+
+.af-combo-empty {
+    padding: 10px 12px;
+    color: #8a7f86;
+    font-size: 13px;
+}

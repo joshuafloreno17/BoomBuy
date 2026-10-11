@@ -53,11 +53,13 @@ class CheckoutTest extends TestCase
         // No phone, and an address with no town ("N/A").
         $buyer = $this->makeUser('buyer', ['phone' => null, 'address' => 'N/A']);
 
+        // The phone blocks it; the profile address doesn't — the checkout's own
+        // Province → City fields give the order its address.
         $this->actingAsUser($buyer, $cart)->get(route('checkout'))
             ->assertOk()
             ->assertSee('Complete your account to place an order')
             ->assertSee('A mobile number the rider can call')
-            ->assertSee('A delivery address with your province and city/municipality')
+            ->assertDontSee('A delivery address with your province and city/municipality')
             ->assertSee('disabled', false);
 
         // Even posting the form directly is refused.
@@ -72,6 +74,28 @@ class CheckoutTest extends TestCase
         $this->actingAsUser($buyer, $cart)->get(route('checkout'))->assertDontSee('Complete your account to place an order');
         $this->actingAsUser($buyer, $cart)->post(route('checkout.place'), $form)->assertRedirect();
         $this->assertDatabaseCount('orders', 1);
+    }
+
+    public function test_the_address_typed_at_checkout_is_enough(): void
+    {
+        $product = $this->makeProduct($this->makeSeller());
+        $cart = ['cart' => ["{$product->id}:0" => 1]];
+        // Profile address without a town, but a phone.
+        $buyer = $this->makeUser('buyer', ['phone' => '09171234567', 'address' => '123 Test Street, Testville']);
+
+        $this->actingAsUser($buyer, $cart)->get(route('checkout'))
+            ->assertOk()
+            ->assertDontSee('Complete your account to place an order');
+
+        // An address with no town is still refused…
+        $this->actingAsUser($buyer, $cart)->post(route('checkout.place'), ['address' => '123 Test Street, Testville', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'])
+            ->assertSessionHas('error');
+        $this->assertDatabaseCount('orders', 0);
+
+        // …and the Province → City picked at checkout goes through.
+        $this->actingAsUser($buyer, $cart)->post(route('checkout.place'), ['address' => '123 Test Street, Real, Calamba City, Laguna', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'])
+            ->assertRedirect();
+        $this->assertDatabaseHas('orders', ['buyer_id' => $buyer->id, 'shipping_address' => '123 Test Street, Real, Calamba City, Laguna']);
     }
 
     public function test_a_saved_default_address_counts_for_a_complete_account(): void

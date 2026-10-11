@@ -14,7 +14,11 @@ class BuyerProfile
     public const PHONE_PATTERN = '/^[0-9+\-\s]{7,20}$/';
 
     /** @return string[] what's missing, in words for the buyer; empty when complete */
-    public static function missing(int $buyerId): array
+    /**
+     * $needAddress false: the web checkout, which has its own Province → City
+     * → street fields and checks that address when the order is placed.
+     */
+    public static function missing(int $buyerId, bool $needAddress = true): array
     {
         $buyer = DB::table('users')->where('id', $buyerId)->first(['name', 'phone', 'address']);
 
@@ -35,7 +39,7 @@ class BuyerProfile
         $address = DB::table('buyer_addresses')->where('user_id', $buyerId)->where('is_default', true)->value('address')
             ?? $buyer->address;
 
-        if (!PhLocations::locate($address)) {
+        if ($needAddress && !PhLocations::locate($address)) {
             $missing[] = 'A delivery address with your province and city/municipality';
         }
 

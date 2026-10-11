@@ -141,7 +141,7 @@
 
                 <div class="form-group">
 
-                    <label for="ship_province">
+                    <label for="ship_province_search">
                         Delivery Address
                     </label>
 

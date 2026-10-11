@@ -642,8 +642,9 @@ class CartController extends Controller
 
         $codStatus = CodPolicy::status((int) $user['id']);
 
-        // No ordering on an incomplete account (name, phone, address with a town).
-        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id']);
+        // No ordering on an incomplete account (name, phone). The address is
+        // the one typed on this page, checked when the order is placed.
+        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id'], false);
         $freeShippingMin = DeliveryFee::freeShippingMin();
 
         // Same split/fee/voucher math placeOrder will use.
@@ -747,7 +748,8 @@ class CartController extends Controller
         }
 
         // The checkout page already blocks this; the server makes sure.
-        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id']);
+        // (The posted address is checked for a town by PlaceOrderService.)
+        $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id'], false);
 
         if ($missingInfo) {
             return redirect()

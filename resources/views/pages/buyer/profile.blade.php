@@ -145,7 +145,7 @@
                     </div>
 
                     <div class="field" style="grid-column: 1 / -1;">
-                        <label for="profile_province">Address</label>
+                        <label for="profile_province_search">Address</label>
                         @include('partials.address-fields', ['id' => 'profile', 'value' => $dbUser->address ?? ''])
                         <span class="field-hint">Used at checkout until you save addresses below.</span>
                     </div>
@@ -220,7 +220,7 @@
                                 <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XX XXX XXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
                             </div>
                             <div class="field" style="grid-column: 1 / -1;">
-                                <label for="addr_province">Complete Address</label>
+                                <label for="addr_province_search">Complete Address</label>
                                 @include('partials.address-fields', ['id' => 'addr', 'value' => old('address')])
                                 @error('address')
                                     <span class="field-hint" style="color:#be123c;">{{ $message }}</span>

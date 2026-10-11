@@ -517,3 +517,42 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 .eta-row strong {
     color: #0a6f66;
 }
+
+/* The generic ".form-group label / input" rules made each option a block and
+   its radio full width (the dot floated above the text). Keep them a row. */
+.form-group .fulfillment-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    margin-bottom: 0;
+    font-size: inherit;
+    font-weight: inherit;
+    color: inherit;
+}
+
+.form-group .fulfillment-option input[type="radio"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    accent-color: #e8420f;
+    cursor: pointer;
+}
+
+.form-group .fulfillment-option > span { flex: 1; min-width: 0; }
+.form-group .fulfillment-option.is-disabled input[type="radio"] { cursor: not-allowed; }
+
+.addr-pick-option input[type="radio"] {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 2px 0 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+}
