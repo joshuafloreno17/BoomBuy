@@ -27,6 +27,10 @@ class LoginGate
     public static function blockReason(object $user): ?string
     {
         if (($user->status ?? 'Active') !== 'Active') {
+            if ($user->status === 'Pending Activation') {
+                return 'Your rider account is not activated yet. Open the activation link we emailed you to set your password.';
+            }
+
             return $user->status === 'Suspended'
                 ? 'Your account has been suspended. Please contact BoomBuy support for assistance.'
                 : 'Your account has been deactivated. Please contact BoomBuy support for assistance.';
@@ -49,7 +53,9 @@ class LoginGate
 
             if (!$application || $application->status !== 'Approved') {
                 return ($application->status ?? null) === 'Rejected'
-                    ? 'Your ' . $user->role . ' application was not approved. You can apply again with the same email from the Register page, or contact support.'
+                    ? 'Your ' . $user->role . ' application was not approved.'
+                        . (!empty($application->admin_remarks) ? ' Reason: ' . $application->admin_remarks : '')
+                        . ' You can apply again with the same email from the Register page, or contact support.'
                     : 'Your ' . $user->role . ' account is still pending verification. We will notify you once it has been approved.';
             }
         }

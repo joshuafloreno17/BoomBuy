@@ -47,12 +47,12 @@
 
                 <div class="field">
                     <label for="last_name">Last Name</label>
-                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                 </div>
 
                 <div class="field">
                     <label for="first_name">First Name</label>
-                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                 </div>
 
                 <div class="field">
@@ -71,7 +71,7 @@
 
                 <div class="field">
                     <label for="birthdate">Birthday</label>
-                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" max="{{ now()->subYears(13)->toDateString() }}" required>
+                    <input type="date" id="birthdate" name="birthdate" value="{{ old('birthdate') }}" max="{{ now()->subYears(18)->toDateString() }}" required>
                 </div>
 
                 <div class="field">
@@ -96,6 +96,10 @@
                         type="text"
                         id="phone"
                         name="phone"
+                        inputmode="tel"
+                        maxlength="16"
+                        pattern="\s*(09|\+639)(\s*\d){9}\s*"
+                        title="09XXXXXXXXX or +639XXXXXXXXX"
                         value="{{ old('phone') }}"
                         placeholder="09XX XXX XXXX"
                         required
@@ -104,7 +108,7 @@
 
                 <div class="field field-full">
                     <label for="id_photo">Upload Valid ID</label>
-                    <input type="file" id="id_photo" name="id_photo" accept=".jpg,.jpeg,.png,.webp,.pdf" required>
+                    <input type="file" id="id_photo" name="id_photo" accept=".jpg,.jpeg,.png,.pdf" required>
                     <span class="field-hint">Any government-issued ID, used to verify your identity as a buyer.</span>
                 </div>
 
@@ -141,6 +145,8 @@
                             type="password"
                             id="password"
                             name="password"
+                            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                            title="At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character."
                             minlength="8"
                             required
                         >
@@ -151,7 +157,7 @@
                             aria-label="Show password"
                         ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
                     </div>
-                    <span class="field-hint">At least 8 characters.</span>
+                    <span class="field-hint">At least 8 characters, with an uppercase letter, a lowercase letter, a number and a special character (e.g. @, #, !).</span>
                 </div>
 
                 <div class="field">

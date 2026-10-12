@@ -85,9 +85,9 @@ class RiderScenariosTest extends TestCase
 
         $this->post(route('rider.apply.submit'), [
             'last_name' => 'Reyes', 'first_name' => 'Jun', 'sex' => 'Male', 'birthdate' => '1995-03-03',
-            'email' => $rejected->email, 'password' => 'secret123', 'password_confirmation' => 'secret123',
+            'email' => $rejected->email, 'password' => 'Secret@123', 'password_confirmation' => 'Secret@123',
             'phone' => $rejected->phone, 'province' => 'Laguna', 'city_municipality' => 'Santa Cruz', 'barangay' => 'Poblacion',
-            'street_address' => '2 Rizal St', 'vehicle_type' => 'Motorcycle', 'vehicle_model' => 'Honda Beat', 'plate_number' => 'XYZ 9876',
+            'street_address' => '2 Rizal St', 'vehicle_type' => 'Motorcycle', 'vehicle_model' => 'Honda Beat', 'plate_number' => 'XYZ 9876', 'drivers_license_no' => 'D05-19-123456', 'license_expiry' => '2031-08-09',
             'national_id' => $this->png(), 'drivers_license' => $this->png(), 'profile_selfie' => $this->png(),
             'proof_of_address' => $this->pdf(), 'or_cr' => $this->pdf(), 'terms' => '1',
         ])->assertSessionHasNoErrors()->assertRedirect();

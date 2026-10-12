@@ -180,12 +180,12 @@
 
                     <div class="form-group">
                         <label for="last_name">Last Name <span class="required">*</span></label>
-                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                     </div>
 
                     <div class="form-group">
                         <label for="first_name">First Name <span class="required">*</span></label>
-                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                     </div>
 
                     <div class="form-group">
@@ -222,6 +222,10 @@
                             type="text"
                             id="phone"
                             name="phone"
+                            inputmode="tel"
+                            maxlength="16"
+                            pattern="\s*(09|\+639)(\s*\d){9}\s*"
+                            title="09XXXXXXXXX or +639XXXXXXXXX"
                             value="{{ old('phone') }}"
                             placeholder="09XXXXXXXXX"
                             required
@@ -348,6 +352,45 @@
 
                     </div>
 
+
+                    <div class="form-group">
+
+                        <label for="drivers_license_no">
+                            Driver's License No. <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="text"
+                            id="drivers_license_no"
+                            name="drivers_license_no"
+                            value="{{ old('drivers_license_no') }}"
+                            placeholder="A00-00-000000"
+                            maxlength="13"
+                            pattern="[A-Za-z]\d{2}-?\d{2}-?\d{6}"
+                            title="1 letter and 11 digits: A00-00-000000"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="license_expiry">
+                            License Expiry Date <span class="required">*</span>
+                        </label>
+
+                        <input
+                            type="date"
+                            id="license_expiry"
+                            name="license_expiry"
+                            value="{{ old('license_expiry') }}"
+                            min="{{ now()->toDateString() }}"
+                            required
+                        >
+
+                    </div>
+
                 </div>
 
             </section>
@@ -389,7 +432,7 @@
                                 type="file"
                                 id="national_id"
                                 name="national_id"
-                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onchange="showFileName(this, 'national_id-name')"
                                 required
                             >
@@ -419,7 +462,7 @@
                                 type="file"
                                 id="drivers_license"
                                 name="drivers_license"
-                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onchange="showFileName(this, 'drivers_license-name')"
                                 required
                             >
@@ -449,7 +492,7 @@
                                 type="file"
                                 id="profile_selfie"
                                 name="profile_selfie"
-                                accept=".jpg,.jpeg,.png,.webp"
+                                accept=".jpg,.jpeg,.png"
                                 onchange="showFileName(this, 'profile_selfie-name')"
                                 required
                             >
@@ -479,7 +522,7 @@
                                 type="file"
                                 id="proof_of_address"
                                 name="proof_of_address"
-                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onchange="showFileName(this, 'proof_of_address-name')"
                                 required
                             >
@@ -509,7 +552,7 @@
                                 type="file"
                                 id="or_cr"
                                 name="or_cr"
-                                accept=".jpg,.jpeg,.png,.webp,.pdf"
+                                accept=".jpg,.jpeg,.png,.pdf"
                                 onchange="showFileName(this, 'or_cr-name')"
                                 required
                             >
@@ -557,6 +600,8 @@
             type="password"
             id="password"
             name="password"
+            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+            title="At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character."
             placeholder="Create a password"
             autocomplete="new-password"
             minlength="8"
@@ -570,7 +615,7 @@
             aria-label="Show password"
         ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
     </div>
-    <span class="field-hint">At least 8 characters.</span>
+    <span class="field-hint">At least 8 characters, with an uppercase letter, a lowercase letter, a number and a special character (e.g. @, #, !).</span>
 </div>
 
 {{-- CONFIRM PASSWORD --}}

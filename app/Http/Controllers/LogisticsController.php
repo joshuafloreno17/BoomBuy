@@ -6,6 +6,8 @@ use App\Models\Notification;
 use App\Models\RiderArea;
 use App\Models\SortingCenter;
 use App\Models\User;
+use App\Support\RegistrationRules;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -16,6 +18,8 @@ use App\Services\SortingCenterService;
 use App\Exceptions\ActionFailed;
 use App\Http\Requests\ProfilePhotoRequest;
 use App\Services\ProfilePhotoService;
+use App\Http\Requests\AddRiderRequest;
+use App\Services\RiderAccountService;
 
 class LogisticsController extends Controller
 {
@@ -34,65 +38,72 @@ class LogisticsController extends Controller
         $birthdate = $request->input('birthdate');
         $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
-        $passwordConfirmation = $request->input('password_confirmation');
         $phone = trim($request->input('phone'));
         $province = trim($request->input('province'));
         $cityMunicipality = trim($request->input('city_municipality'));
         $barangay = trim($request->input('barangay'));
         $streetAddress = trim($request->input('street_address'));
         $businessName = trim($request->input('business_name'));
+        $region = (string) $request->input('region');
 
         $name = formatFullName($firstName, $middleInitial, $lastName);
         $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
 
-        // VALIDATION
-        if (
-            empty($lastName) ||
-            empty($firstName) ||
-            empty($sex) ||
-            empty($birthdate) ||
-            empty($email) ||
-            empty($password) ||
-            empty($passwordConfirmation) ||
-            empty($phone) ||
-            empty($province) ||
-            empty($cityMunicipality) ||
-            empty($barangay) ||
-            empty($streetAddress) ||
-            empty($businessName)
-        ) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please complete all fields.');
-        }
+        // VALIDATION — the same field rules as every other registration form.
+        $request->validate([
+            'last_name' => RegistrationRules::name(),
+            'first_name' => RegistrationRules::name(),
+            'middle_initial' => ['nullable', 'string', 'max:5', 'regex:/^[\p{L}. ]*$/u'],
+            'sex' => ['required', 'in:Male,Female'],
+            'birthdate' => ['required', 'date'],
+            'email' => ['required', 'email:filter', 'max:255'],
+            'phone' => RegistrationRules::phone(),
+            'region' => RegistrationRules::region(),
+            'province' => RegistrationRules::provinceInRegion($region),
+            'city_municipality' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'street_address' => ['required', 'string', 'max:255'],
+            'postal_code' => RegistrationRules::postalCode(),
+            'password' => RegistrationRules::password(),
+            'terms' => ['accepted'],
+            'business_name' => ['required', 'string', 'min:2', 'max:100'],
+            'sec_registration_no' => RegistrationRules::secNo(),
+            'tin' => RegistrationRules::tin(),
+            'position' => ['required', 'string', 'max:100'],
+            'service_areas' => RegistrationRules::serviceAreas(),
+            'service_areas.*' => ['string', Rule::in(\App\Support\PhLocations::REGION_NAMES)],
+            'sec_certificate' => RegistrationRules::document(),
+            'bir_2303' => RegistrationRules::document(),
+            'business_permit' => RegistrationRules::document(),
+            'id_photo' => RegistrationRules::document(),
+        ], RegistrationRules::messages() + [
+            'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
+            'service_areas.required' => 'Choose at least one region you deliver in.',
+            'service_areas.min' => 'Choose at least one region you deliver in.',
+        ], [
+            'business_name' => 'company name',
+            'first_name' => 'contact person first name',
+            'last_name' => 'contact person last name',
+            'sec_registration_no' => 'SEC registration number',
+            'tin' => 'TIN',
+            'service_areas' => 'service areas',
+            'sec_certificate' => 'SEC Certificate',
+            'bir_2303' => 'BIR Form 2303',
+            'business_permit' => "Mayor's / Business Permit",
+            'id_photo' => 'valid ID',
+        ]);
 
-        if (!request('terms')) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
-        }
+        $secNo = strtoupper(trim((string) $request->input('sec_registration_no')));
+        $tin = RegistrationRules::normalizeTin($request->input('tin'));
+        // Kept in the order of the region list, without repeats.
+        $serviceAreas = array_values(array_intersect(\App\Support\PhLocations::REGION_NAMES, (array) $request->input('service_areas')));
+
+        $phone = RegistrationRules::normalizePhone($phone);
 
         if ($birthdateError = birthdateError($birthdate, 18)) {
             return back()
                 ->withInput()
                 ->with('error', $birthdateError);
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please enter a valid email address.');
-        }
-
-        if (strlen($password) < 8) {
-            return back()
-                ->withInput()
-                ->with('error', 'Password must be at least 8 characters.');
-        }
-
-        if ($password !== $passwordConfirmation) {
-            return back()
-                ->withInput()
-                ->with('error', 'Passwords do not match.');
         }
 
         // A rejected applicant may apply again with the same email.
@@ -104,34 +115,37 @@ class LogisticsController extends Controller
                 ->with('error', 'Email is already registered.');
         }
 
-        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
+        if (RegistrationRules::phoneTaken($phone, $reapplying?->id)) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');
         }
 
-        $request->validate([
-            'id_photo' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,webp,pdf',
-                'max:10240',
-            ],
-            'business_permit' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,webp,pdf',
-                'max:10240',
-            ],
-        ], [], [
-            'id_photo' => 'valid ID',
-            'business_permit' => 'business/DTI permit',
-        ]);
+        // One account per company.
+        if (DB::table('logistics_applications')->whereRaw('LOWER(business_name) = ?', [mb_strtolower($businessName)])->when($reapplying, fn ($q) => $q->where('user_id', '!=', $reapplying->id))->exists()) {
+            return back()
+                ->withInput()
+                ->with('error', 'This company is already registered.');
+        }
+
+        if (RegistrationRules::secNoTaken($secNo, $reapplying?->id)) {
+            return back()
+                ->withInput()
+                ->with('error', 'This SEC registration number is already in use.');
+        }
+
+        if (RegistrationRules::tinTaken($tin, $reapplying?->id)) {
+            return back()
+                ->withInput()
+                ->with('error', 'This TIN is already registered.');
+        }
 
         $folder = 'logistics-applications/' . (string) Str::uuid();
 
         $idPhotoPath = $request->file('id_photo')->store($folder, 'local');
         $businessPermitPath = $request->file('business_permit')->store($folder, 'local');
+        $secCertificatePath = $request->file('sec_certificate')->store($folder, 'local');
+        $bir2303Path = $request->file('bir_2303')->store($folder, 'local');
 
         session()->put('pending_registration', [
             'name' => $name,
@@ -153,9 +167,17 @@ class LogisticsController extends Controller
             'business_name' => $businessName,
             'id_photo' => $idPhotoPath,
             'business_permit' => $businessPermitPath,
+            'sec_certificate' => $secCertificatePath,
+            'bir_2303' => $bir2303Path,
+            'sec_registration_no' => $secNo,
+            'tin' => $tin,
+            'position' => trim((string) $request->input('position')),
+            'region' => $region,
+            'postal_code' => trim((string) $request->input('postal_code')),
+            'service_areas' => $serviceAreas,
         ]);
 
-        if (!generateAndSendOtp($email, $name)) {
+        if (!sendRegistrationOtp($email, $name)) {
             return back()
                 ->withInput()
                 ->with('error', 'We could not send the verification code right now. Please try again in a moment.');
@@ -512,9 +534,12 @@ class LogisticsController extends Controller
         // A center's staff see the riders of their own province only.
         $riderProvinces = $this->riderProvinces($user);
 
+        // Riders a company added itself are only that company's; the others go by province.
         $base = DB::table('rider_applications')
             ->join('users', 'users.id', '=', 'rider_applications.user_id')
-            ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))
+            ->where(fn ($visible) => $visible->where('rider_applications.created_by', $user['id'])
+                ->orWhere(fn ($applied) => $applied->whereNull('rider_applications.created_by')
+                    ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))))
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . $search . '%';
 
@@ -561,6 +586,63 @@ class LogisticsController extends Controller
             'pages.logistics.riders',
             compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'deliveryLoad')
         );
+    }
+
+    /** The Add Rider form: the company adds a rider itself, who then activates by email. */
+    public function createRider()
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        return view('pages.logistics.rider-create', compact('user'));
+    }
+
+    public function storeRider(AddRiderRequest $request, RiderAccountService $accounts)
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        try {
+            $rider = $accounts->create((int) $user['id'], $request->validated(), [
+                'drivers_license' => $request->file('drivers_license'),
+                'or_cr' => $request->file('or_cr'),
+            ]);
+        } catch (ActionFailed $e) {
+            return back()->withInput()->with('error', $e->getMessage());
+        }
+
+        return redirect()
+            ->route('logistics.riders', ['status' => 'all'])
+            ->with('success', $rider->name . ' was added. An activation email was sent to ' . $rider->email . '.');
+    }
+
+    public function resendRiderActivation($riderUserId, RiderAccountService $accounts)
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $createdBy = DB::table('rider_applications')->where('user_id', $riderUserId)->value('created_by');
+
+        if ((int) $createdBy !== (int) $user['id']) {
+            return back()->with('error', self::NOT_YOUR_RIDER);
+        }
+
+        try {
+            $accounts->sendActivation((int) $riderUserId);
+        } catch (ActionFailed $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        return back()->with('success', 'A new activation email was sent. The earlier link no longer works.');
     }
 
     public function storeRiderArea($riderId)
@@ -1139,6 +1221,13 @@ class LogisticsController extends Controller
     /** May this staff member decide on / manage this rider? */
     private function coversRider(array $user, int $riderUserId): bool
     {
+        // A rider a company added belongs to that company only.
+        $createdBy = DB::table('rider_applications')->where('user_id', $riderUserId)->latest('id')->value('created_by');
+
+        if ($createdBy) {
+            return (int) $createdBy === (int) $user['id'];
+        }
+
         $provinces = $this->riderProvinces($user);
 
         if ($provinces === null) {
@@ -1337,6 +1426,11 @@ class LogisticsController extends Controller
 
         if (!$this->coversRider($user, (int) $rider->id)) {
             return back()->with('error', $this->isUnassigned($user) ? self::NOT_ASSIGNED : self::NOT_YOUR_RIDER);
+        }
+
+        // Only the rider can activate their account, by setting a password from the email.
+        if ($rider->status === 'Pending Activation') {
+            return back()->with('error', $rider->name . ' has not activated their account yet. Use Resend Activation instead.');
         }
 
         DB::table('users')->where('id', $userId)->update(['status' => $status]);

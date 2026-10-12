@@ -14,6 +14,8 @@ use App\Exceptions\ActionFailed;
 use App\Http\Requests\ProfilePhotoRequest;
 use App\Services\ProfilePhotoService;
 use App\Http\Requests\RiderApplicationRequest;
+use App\Services\RiderAccountService;
+use App\Support\RegistrationRules;
 
 class RiderController extends Controller
 {
@@ -456,6 +458,35 @@ class RiderController extends Controller
         return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to'));
     }
 
+    /** A rider added by a logistics company opens the emailed link to set their password. */
+    public function showActivation(string $token, RiderAccountService $accounts)
+    {
+        $application = $accounts->findByToken($token);
+
+        return view('pages.rider.activate', [
+            'token' => $token,
+            'problem' => is_string($application) ? $application : null,
+            'riderName' => is_object($application) ? $application->full_name : null,
+        ]);
+    }
+
+    public function activate(Request $request, string $token, RiderAccountService $accounts)
+    {
+        $application = $accounts->findByToken($token);
+
+        if (is_string($application)) {
+            return redirect()->route('rider.activate', $token);
+        }
+
+        $request->validate([
+            'password' => RegistrationRules::password(),
+        ], RegistrationRules::messages());
+
+        $accounts->activate($application, $request->input('password'));
+
+        return redirect()->route('login')->with('success', 'Your rider account is active. You can now log in with your email and new password.');
+    }
+
     public function showApply()
     {
         $application = null;
@@ -564,6 +595,8 @@ class RiderController extends Controller
         'vehicle_type' => $validated['vehicle_type'],
         'vehicle_model' => $validated['vehicle_model'],
         'plate_number' => $validated['plate_number'],
+        'drivers_license_no' => $validated['drivers_license_no'],
+        'license_expiry' => $validated['license_expiry'],
 
         'email' => strtolower(trim($validated['email'])),
 
@@ -591,7 +624,7 @@ class RiderController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    $otpSent = generateAndSendOtp(
+    $otpSent = sendRegistrationOtp(
         $validated['email'],
         $riderFullName
     );

@@ -4,6 +4,12 @@
     @include('partials.head', ['title' => 'Logistics / Sorting Center Registration — BoomBuy'])
 
     <link rel="stylesheet" href="{{ vasset('css/views/logistics-register.css') }}">
+    <style>
+        .field-label { display: block; font-size: 12px; font-weight: 700; color: #4a4449; margin-bottom: 8px; }
+        .service-areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; }
+        .service-area { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; font-weight: 500; color: #1b1a1f; cursor: pointer; margin: 0; }
+        .service-area input { width: auto; margin-top: 2px; accent-color: #e8420f; }
+    </style>
 </head>
 <body>
 
@@ -43,16 +49,16 @@
 
             <div class="form-grid">
 
-                <div class="section-label">Personal Information</div>
+                <div class="section-label">Contact Person</div>
 
                 <div class="field">
-                    <label for="last_name">Last Name</label>
-                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" required>
+                    <label for="last_name">Contact Person Last Name</label>
+                    <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                 </div>
 
                 <div class="field">
-                    <label for="first_name">First Name</label>
-                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" required>
+                    <label for="first_name">Contact Person First Name</label>
+                    <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" minlength="2" maxlength="50" pattern="[A-Za-zÀ-ÖØ-öø-ÿÑñ][A-Za-zÀ-ÖØ-öø-ÿÑñ .'\-]{1,49}" title="2 to 50 letters. Spaces, hyphens (-), apostrophes (') and periods (.) are allowed." required>
                 </div>
 
                 <div class="field">
@@ -80,6 +86,11 @@
                 </div>
 
                 <div class="field">
+                    <label for="position">Position</label>
+                    <input type="text" id="position" name="position" value="{{ old('position') }}" maxlength="100" placeholder="e.g. Operations Manager" required>
+                </div>
+
+                <div class="field">
                     <label for="email">Email Address</label>
                     <input
                         type="email"
@@ -96,13 +107,27 @@
                         type="text"
                         id="phone"
                         name="phone"
+                        inputmode="tel"
+                        maxlength="16"
+                        pattern="\s*(09|\+639)(\s*\d){9}\s*"
+                        title="09XXXXXXXXX or +639XXXXXXXXX"
                         value="{{ old('phone') }}"
                         placeholder="09XX XXX XXXX"
                         required
                     >
                 </div>
 
-                <div class="section-label">Address</div>
+                <div class="section-label">Company Address</div>
+
+                <div class="field">
+                    <label for="region">Region</label>
+                    <select id="region" name="region" required>
+                        <option value="">Select Region</option>
+                        @foreach (\App\Support\PhLocations::REGION_NAMES as $regionName)
+                            <option value="{{ $regionName }}" {{ old('region') === $regionName ? 'selected' : '' }}>{{ $regionName }}</option>
+                        @endforeach
+                    </select>
+                </div>
 
                 <div class="field">
                     <label for="province">Province</label>
@@ -128,11 +153,39 @@
                     <input type="text" id="street_address" name="street_address" value="{{ old('street_address') }}" required>
                 </div>
 
+                <div class="field">
+                    <label for="postal_code">Postal Code</label>
+                    <input type="text" id="postal_code" name="postal_code" value="{{ old('postal_code') }}" inputmode="numeric" minlength="4" maxlength="4" pattern="\d{4}" title="Exactly 4 digits" placeholder="e.g. 1603" required>
+                </div>
+
                 <div class="section-label">Business Information</div>
 
                 <div class="field field-full">
-                    <label for="business_name">Business Name</label>
-                    <input type="text" id="business_name" name="business_name" value="{{ old('business_name') }}" placeholder="e.g. Juan's Logistics Hub" required>
+                    <label for="business_name">Company Name</label>
+                    <input type="text" id="business_name" name="business_name" value="{{ old('business_name') }}" maxlength="100" placeholder="e.g. Bilis Hatid Express Inc." required>
+                </div>
+
+                <div class="field">
+                    <label for="sec_registration_no">SEC Registration No.</label>
+                    <input type="text" id="sec_registration_no" name="sec_registration_no" value="{{ old('sec_registration_no') }}" maxlength="11" pattern="[A-Za-z]{2}\d{9}" title="2 letters followed by 9 digits, e.g. CS202012345" placeholder="CS202012345" required>
+                </div>
+
+                <div class="field">
+                    <label for="tin">TIN</label>
+                    <input type="text" id="tin" name="tin" value="{{ old('tin') }}" inputmode="numeric" maxlength="15" pattern="\d{3}-?\d{3}-?\d{3}-?\d{3}" title="12 digits: 000-000-000-000" placeholder="000-000-000-000" required>
+                    <span class="field-hint">9-digit TIN plus the 3-digit branch code (000 for the main office).</span>
+                </div>
+
+                <div class="field field-full">
+                    <span class="field-label" id="service-areas-label">Service Areas <span style="font-weight:500; color:#8a7f86;">(choose at least one region)</span></span>
+                    <div class="service-areas" role="group" aria-labelledby="service-areas-label">
+                        @foreach (\App\Support\PhLocations::REGION_NAMES as $regionName)
+                            <label class="service-area">
+                                <input type="checkbox" name="service_areas[]" value="{{ $regionName }}" {{ in_array($regionName, (array) old('service_areas', []), true) ? 'checked' : '' }}>
+                                <span>{{ $regionName }}</span>
+                            </label>
+                        @endforeach
+                    </div>
                 </div>
 
                 <div class="section-label">
@@ -141,12 +194,40 @@
                 </div>
 
                 <div class="field">
-                    <label for="id_photo">Upload Valid ID</label>
+                    <label for="sec_certificate">SEC Certificate</label>
+                    <input
+                        type="file"
+                        id="sec_certificate"
+                        name="sec_certificate"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onchange="showFileName(this, 'sec_certificate-name')"
+                        required
+                    >
+                    <span class="field-hint">SEC Certificate of Registration.</span>
+                    <span class="file-name" id="sec_certificate-name"></span>
+                </div>
+
+                <div class="field">
+                    <label for="bir_2303">BIR Form 2303</label>
+                    <input
+                        type="file"
+                        id="bir_2303"
+                        name="bir_2303"
+                        accept=".jpg,.jpeg,.png,.pdf"
+                        onchange="showFileName(this, 'bir_2303-name')"
+                        required
+                    >
+                    <span class="field-hint">BIR Certificate of Registration (Form 2303).</span>
+                    <span class="file-name" id="bir_2303-name"></span>
+                </div>
+
+                <div class="field">
+                    <label for="id_photo">Valid ID of Authorized Representative</label>
                     <input
                         type="file"
                         id="id_photo"
                         name="id_photo"
-                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        accept=".jpg,.jpeg,.png,.pdf"
                         onchange="showFileName(this, 'id_photo-name')"
                         required
                     >
@@ -155,16 +236,16 @@
                 </div>
 
                 <div class="field">
-                    <label for="business_permit">Upload Business / DTI Permit</label>
+                    <label for="business_permit">Mayor's / Business Permit</label>
                     <input
                         type="file"
                         id="business_permit"
                         name="business_permit"
-                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        accept=".jpg,.jpeg,.png,.pdf"
                         onchange="showFileName(this, 'business_permit-name')"
                         required
                     >
-                    <span class="field-hint">DTI registration, business permit, or proof of logistics operation</span>
+                    <span class="field-hint">JPG, PNG or PDF, up to 5 MB each.</span>
                     <span class="file-name" id="business_permit-name"></span>
                 </div>
 
@@ -175,6 +256,8 @@
                             type="password"
                             id="password"
                             name="password"
+                            pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
+                            title="At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character."
                             minlength="8"
                             required
                         >
@@ -185,7 +268,7 @@
                             aria-label="Show password"
                         ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
                     </div>
-                    <span class="field-hint">At least 8 characters.</span>
+                    <span class="field-hint">At least 8 characters, with an uppercase letter, a lowercase letter, a number and a special character (e.g. @, #, !).</span>
                 </div>
 
                 <div class="field">
@@ -242,6 +325,18 @@
     <script src="{{ asset('js/pages/registration-fields.js') }}"></script>
     <script>
         initAddressCascade('province', 'city_municipality', @json(old('city_municipality')));
+        initRegionFilter('region', 'province', 'city_municipality', 'barangay', @json(\App\Support\PhLocations::provincesByRegionName()));
+
+        // At least one service area: the first checkbox carries the rule.
+        (function () {
+            var boxes = document.querySelectorAll('input[name="service_areas[]"]');
+            function check() {
+                var any = Array.prototype.some.call(boxes, function (box) { return box.checked; });
+                boxes[0].setCustomValidity(any ? '' : 'Choose at least one region you deliver in.');
+            }
+            boxes.forEach(function (box) { box.addEventListener('change', check); });
+            check();
+        })();
         initAgeCalc('birthdate', 'age');
 
         function showFileName(input, targetId) {

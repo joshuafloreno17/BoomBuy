@@ -726,6 +726,15 @@ Route::get('/rider/apply', [RiderController::class, 'showApply'])->name('rider.a
 Route::post('/rider/apply', [RiderController::class, 'submitApply'])->middleware('throttle:5,10,register')->name('rider.apply.submit');
 
 
+// =========================
+// RIDER ACCOUNT ACTIVATION (riders added by a logistics company)
+// =========================
+
+Route::get('/rider/activate/{token}', [RiderController::class, 'showActivation'])->name('rider.activate');
+
+Route::post('/rider/activate/{token}', [RiderController::class, 'activate'])->middleware('throttle:10,10,rider-activate')->name('rider.activate.submit');
+
+
 // Buyer Registration Page
 Route::get('/buyer/register', [BuyerController::class, 'showRegister'])->name('buyer.register');
 
@@ -846,6 +855,14 @@ Route::get('/logistics/riders/{id}/document/{field}', [LogisticsController::clas
 
 
 Route::post('/logistics/riders/{userId}/toggle-status', [LogisticsController::class, 'toggleRiderStatus'])->name('logistics.riders.toggle-status');
+
+
+// Logistics adds a rider itself; the rider activates by email.
+Route::get('/logistics/riders/create', [LogisticsController::class, 'createRider'])->name('logistics.riders.create');
+
+Route::post('/logistics/riders/create', [LogisticsController::class, 'storeRider'])->name('logistics.riders.store');
+
+Route::post('/logistics/riders/{userId}/resend-activation', [LogisticsController::class, 'resendRiderActivation'])->middleware('throttle:5,10,rider-activation')->name('logistics.riders.resend-activation');
 
 
 // Verify OTP Page

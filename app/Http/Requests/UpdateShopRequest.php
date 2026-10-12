@@ -15,7 +15,7 @@ class UpdateShopRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'business_name' => 'required|string|min:3|max:60',
+            'business_name' => 'required|string|min:3|max:30',
             'shop_description' => 'nullable|string|max:500',
         ];
     }
@@ -25,6 +25,7 @@ class UpdateShopRequest extends FormRequest
         return [
             'business_name.required' => 'Please enter your shop name.',
             'business_name.min' => 'Your shop name needs at least 3 characters.',
+            'business_name.max' => 'Your shop name can have at most 30 characters.',
         ];
     }
 }

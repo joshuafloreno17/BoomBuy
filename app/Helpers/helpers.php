@@ -272,22 +272,54 @@ if (!function_exists('isValidProductImage')) {
 
 if (!function_exists('generateAndSendOtp')) {
 
-    function generateAndSendOtp($email, $name)
+    function generateAndSendOtp($email, $name, ?string $otpCode = null)
     {
-        $otpCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+        $otpCode ??= str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
 
         session()->put('otp_code', $otpCode);
         session()->put('otp_email', $email);
-        session()->put('otp_expires_at', now()->addMinutes(10));
+        session()->put('otp_expires_at', now()->addMinutes(5));
         session()->put('otp_attempts', 0);
 
         try {
-            \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\OtpMail($otpCode, $name));
+            \Illuminate\Support\Facades\Mail::to($email)->send(new \App\Mail\OtpMail($otpCode, $name, 5));
             return true;
         } catch (\Throwable $e) {
             report($e);
             return false;
         }
+    }
+}
+
+if (!function_exists('sendRegistrationOtp')) {
+
+    /**
+     * The OTP for a registration form. The same email sent again within 30
+     * seconds (a double-clicked Register button) keeps the code already
+     * emailed instead of sending another one. Cache::add is atomic, so this
+     * also holds when the clicks arrive at the same time.
+     */
+    function sendRegistrationOtp(string $email, string $name): bool
+    {
+        $key = 'registration-otp:' . strtolower($email);
+        $code = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+
+        if (!\Illuminate\Support\Facades\Cache::add($key, $code, now()->addSeconds(30))) {
+            session()->put('otp_code', (string) \Illuminate\Support\Facades\Cache::get($key, $code));
+            session()->put('otp_email', $email);
+            session()->put('otp_expires_at', now()->addMinutes(5));
+            session()->put('otp_attempts', 0);
+
+            return true;
+        }
+
+        if (!generateAndSendOtp($email, $name, $code)) {
+            \Illuminate\Support\Facades\Cache::forget($key);
+
+            return false;
+        }
+
+        return true;
     }
 }
 

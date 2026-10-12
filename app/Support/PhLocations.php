@@ -27,6 +27,38 @@ class PhLocations
         'Sulu', 'Tawi-Tawi',
     ];
 
+    /** Official names of the regions in REGIONS, as registration forms show and store them. */
+    public const REGION_NAMES = [
+        'ncr' => 'National Capital Region (NCR)',
+        'car' => 'Cordillera Administrative Region (CAR)',
+        'ilocos' => 'Region I (Ilocos Region)',
+        'cagayan-valley' => 'Region II (Cagayan Valley)',
+        'central-luzon' => 'Region III (Central Luzon)',
+        'calabarzon' => 'Region IV-A (CALABARZON)',
+        'mimaropa' => 'MIMAROPA Region',
+        'bicol' => 'Region V (Bicol Region)',
+        'western-visayas' => 'Region VI (Western Visayas)',
+        'central-visayas' => 'Region VII (Central Visayas)',
+        'eastern-visayas' => 'Region VIII (Eastern Visayas)',
+        'zamboanga' => 'Region IX (Zamboanga Peninsula)',
+        'northern-mindanao' => 'Region X (Northern Mindanao)',
+        'davao' => 'Region XI (Davao Region)',
+        'soccsksargen' => 'Region XII (SOCCSKSARGEN)',
+        'caraga' => 'Region XIII (Caraga)',
+        'barmm' => 'Bangsamoro Autonomous Region in Muslim Mindanao (BARMM)',
+    ];
+
+    /** Official region name => its provinces, for the Region -> Province dropdowns. */
+    public static function provincesByRegionName(): array
+    {
+        $map = [];
+        foreach (self::REGION_NAMES as $key => $name) {
+            $map[$name] = self::REGIONS[$key]['provinces'];
+        }
+
+        return $map;
+    }
+
     /**
      * The 17 regions: name, the provinces they cover, and the city of the
      * region's BoomBuy Sorting Center ([province, city]).

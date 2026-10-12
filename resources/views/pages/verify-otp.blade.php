@@ -18,7 +18,7 @@
 
         <h1 style="font-size:20px; color:#1b1a1f;">Enter Verification Code</h1>
         <p style="color:#6b6570; font-size:14px;">
-            We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 10 minutes.
+            We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 5 minutes.
         </p>
 
         @if ($errors->any())

@@ -36,8 +36,8 @@ class GuestScenariosTest extends TestCase
             'sex' => 'Male',
             'birthdate' => '2000-05-10',
             'email' => 'juan' . strtolower(Str::random(4)) . '@example.com',
-            'password' => 'secret123',
-            'password_confirmation' => 'secret123',
+            'password' => 'Secret@123',
+            'password_confirmation' => 'Secret@123',
             'phone' => '0917' . random_int(1000000, 9999999),
             'province' => 'Laguna',
             'city_municipality' => 'Santa Cruz',
@@ -174,7 +174,7 @@ class GuestScenariosTest extends TestCase
         $this->assertSame($user->id, session('user.id'));
     }
 
-    public function test_G08_otp_wrong_five_times_resend_throttle_and_ten_minute_expiry(): void
+    public function test_G08_otp_wrong_five_times_resend_throttle_and_five_minute_expiry(): void
     {
         $form = $this->registrationBase(['id_photo' => $this->png('id.png')]);
         $this->post(route('buyer.register.submit'), $form);
@@ -196,9 +196,9 @@ class GuestScenariosTest extends TestCase
         $this->post(route('otp.resend'))->assertRedirect();
         $this->post(route('otp.resend'))->assertStatus(429);
 
-        // A fresh code expires after 10 minutes.
+        // A fresh code expires after 5 minutes.
         $fresh = session('otp_code');
-        $this->travel(11)->minutes();
+        $this->travel(6)->minutes();
         $this->post(route('otp.verify'), ['otp_code' => $fresh])->assertSessionHas('error');
         $this->assertFalse(User::where('email', $form['email'])->exists());
     }
@@ -207,18 +207,18 @@ class GuestScenariosTest extends TestCase
     {
         $existing = $this->makeUser('buyer');
 
-        $this->post(route('buyer.register.submit'), $this->registrationBase(['email' => $existing->email]))
+        $this->post(route('buyer.register.submit'), $this->registrationBase(['email' => $existing->email, 'id_photo' => $this->png()]))
             ->assertSessionHas('error', 'Email is already registered.')
             ->assertSessionHasInput('first_name', 'Juan');
 
-        $this->post(route('buyer.register.submit'), $this->registrationBase(['phone' => $existing->phone]))
+        $this->post(route('buyer.register.submit'), $this->registrationBase(['phone' => $existing->phone, 'id_photo' => $this->png()]))
             ->assertSessionHas('error', 'This phone number is already registered.');
 
         $this->post(route('buyer.register.submit'), $this->registrationBase(['password' => 'short', 'password_confirmation' => 'short']))
-            ->assertSessionHas('error', 'Password must be at least 8 characters.');
+            ->assertSessionHasErrors(['password' => 'Password must be at least 8 characters.']);
 
         $this->post(route('buyer.register.submit'), $this->registrationBase(['password_confirmation' => 'different1']))
-            ->assertSessionHas('error', 'Passwords do not match.');
+            ->assertSessionHasErrors(['password' => 'Passwords do not match.']);
 
         // What was typed comes back — the password should not be kept in the session.
         $this->assertNull(session()->getOldInput('password'), 'The password is flashed back into the session as old input.');
@@ -226,12 +226,12 @@ class GuestScenariosTest extends TestCase
 
     public function test_G09b_birthdays_in_the_future_or_too_young_are_refused(): void
     {
-        $this->post(route('buyer.register.submit'), $this->registrationBase(['birthdate' => now()->addYear()->toDateString()]))
+        $this->post(route('buyer.register.submit'), $this->registrationBase(['birthdate' => now()->addYear()->toDateString(), 'id_photo' => $this->png()]))
             ->assertSessionHas('error', 'Please enter a valid birthday.');
-        $this->post(route('buyer.register.submit'), $this->registrationBase(['birthdate' => now()->subYears(10)->toDateString()]))
-            ->assertSessionHas('error', 'You must be at least 13 years old to register.');
+        $this->post(route('buyer.register.submit'), $this->registrationBase(['birthdate' => now()->subYears(17)->toDateString(), 'id_photo' => $this->png()]))
+            ->assertSessionHas('error', 'You must be at least 18 years old to register.');
 
-        $sellerForm = ['business_name' => 'Teen Shop', 'business_category' => 'shoes', 'national_id' => $this->png(), 'business_permit' => $this->pdf()];
+        $sellerForm = ['business_name' => 'Teen Shop', 'business_category' => 'shoes', 'seller_type' => 'Individual', 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 'national_id' => $this->png(), 'business_permit' => $this->pdf()];
         $this->post(route('seller.register.submit'), $this->registrationBase($sellerForm + ['birthdate' => now()->subYears(16)->toDateString()]))
             ->assertSessionHas('error', 'You must be at least 18 years old to register.');
 
@@ -247,7 +247,7 @@ class GuestScenariosTest extends TestCase
     {
         $form = $this->registrationBase([
             'business_name' => 'Juan Shoes',
-            'business_category' => 'shoes',
+            'business_category' => 'shoes', 'seller_type' => 'Individual', 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 
             'national_id' => $this->png('id.png'),
             'business_permit' => $this->pdf('permit.pdf'),
         ]);
@@ -255,7 +255,7 @@ class GuestScenariosTest extends TestCase
         $this->post(route('seller.register.submit'), $form)->assertRedirect(route('otp.show'));
         $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('login'));
 
-        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => 'secret123'])
+        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => 'Secret@123'])
             ->assertSessionHas('error', 'Your seller account is still pending verification. We will notify you once it has been approved.');
         $this->assertNull(session('user'));
     }
@@ -266,6 +266,8 @@ class GuestScenariosTest extends TestCase
             'vehicle_type' => 'Motorcycle',
             'vehicle_model' => 'Honda Click',
             'plate_number' => 'ABC 1234',
+            'drivers_license_no' => 'N01-23-456789',
+            'license_expiry' => now()->addYears(3)->toDateString(),
             'national_id' => $this->png('id.png'),
             'drivers_license' => $this->png('license.png'),
             'profile_selfie' => $this->png('selfie.png'),
@@ -289,12 +291,13 @@ class GuestScenariosTest extends TestCase
             'business_name' => 'Laguna Hub',
             'id_photo' => $this->png('id.png'),
             'business_permit' => $this->pdf('permit.pdf'),
+            'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 'sec_registration_no' => 'CS' . random_int(100000000, 999999999), 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'position' => 'Operations Manager', 'service_areas' => ['Region IV-A (CALABARZON)'], 'sec_certificate' => $this->pdf('sec.pdf'), 'bir_2303' => $this->pdf('bir.pdf'),
         ]);
 
         $this->post(route('logistics.register.submit'), $form)->assertRedirect(route('otp.show'));
         $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('login'));
 
-        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => 'secret123'])
+        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => 'Secret@123'])
             ->assertSessionHas('error');
         $this->assertNull(session('user'));
     }

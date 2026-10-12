@@ -15,9 +15,14 @@
 
         <div class="container">
 
-            <div class="page-header">
-                <h1>Rider Management</h1>
-                <p>Review rider applications and manage active rider accounts.</p>
+            <div class="page-header" style="display:flex; gap:12px; align-items:flex-end; justify-content:space-between; flex-wrap:wrap;">
+                <div>
+                    <h1>Rider Management</h1>
+                    <p>Review rider applications, add your own riders and manage active rider accounts.</p>
+                </div>
+                <a href="{{ route('logistics.riders.create') }}" class="approve-btn" style="text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
+                    <i class="bi bi-person-plus-fill"></i> Add Rider
+                </a>
             </div>
 
             @if (session('success'))
@@ -64,7 +69,9 @@
 
                 @php
                     $statusClass = 'status-' . strtolower(str_replace(' ', '-', $app->status));
-                    $accountStatusClass = 'status-' . strtolower($app->account_status ?? 'active');
+                    $accountStatusClass = ($app->account_status ?? 'Active') === 'Pending Activation'
+                        ? 'status-pending-verification'
+                        : 'status-' . strtolower($app->account_status ?? 'active');
                 @endphp
 
                 <div class="app-card">
@@ -99,6 +106,21 @@
                             <strong>Plate Number</strong>
                             {{ $app->plate_number }}
                         </div>
+                        @if ($app->drivers_license_no)
+                            <div>
+                                <strong>Driver's License</strong>
+                                {{ $app->drivers_license_no }}
+                                @if ($app->license_expiry)
+                                    <span style="color:#8a7f86;">(expires {{ \Illuminate\Support\Carbon::parse($app->license_expiry)->format('M d, Y') }})</span>
+                                @endif
+                            </div>
+                        @endif
+                        @if ($app->created_by)
+                            <div>
+                                <strong>Added by</strong>
+                                Your company
+                            </div>
+                        @endif
                         <div>
                             <strong>Applied</strong>
                             {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
@@ -156,7 +178,14 @@
 
                         <div class="app-actions">
 
-                            @if (($app->account_status ?? 'Active') === 'Active')
+                            @if (($app->account_status ?? 'Active') === 'Pending Activation')
+
+                                <form class="status-form" method="POST" action="{{ route('logistics.riders.resend-activation', $app->user_id) }}">
+                                    @csrf
+                                    <button type="submit" class="activate-btn"><i class="bi bi-envelope-fill"></i> Resend Activation</button>
+                                </form>
+
+                            @elseif (($app->account_status ?? 'Active') === 'Active')
 
                                 <form class="status-form" method="POST" action="{{ route('logistics.riders.toggle-status', $app->user_id) }}" data-confirm="Deactivate {{ $app->full_name }}? They will be logged out and can no longer receive parcels." data-confirm-ok="Deactivate" data-confirm-danger>
                                     @csrf

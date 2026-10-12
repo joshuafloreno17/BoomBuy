@@ -1244,9 +1244,9 @@ class AdminController extends Controller
         };
 
         $allowedFields = match ($type) {
-            'seller' => ['national_id', 'business_permit'],
+            'seller' => array_keys(\App\Support\SellerTypes::DOCUMENTS),
             'buyer' => ['id_photo'],
-            'logistics' => ['id_photo', 'business_permit'],
+            'logistics' => ['id_photo', 'business_permit', 'sec_certificate', 'bir_2303'],
         };
 
         if (!in_array($field, $allowedFields)) {

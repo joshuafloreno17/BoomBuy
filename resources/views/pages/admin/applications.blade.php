@@ -47,9 +47,9 @@
             $typeIcons = ['seller' => 'bi-shop', 'buyer' => 'bi-bag', 'logistics' => 'bi-box-seam'];
             $typeNouns = ['seller' => 'seller', 'buyer' => 'buyer', 'logistics' => 'logistics'];
             $docLabels = [
-                'seller' => ['national_id' => 'Valid Government ID', 'business_permit' => 'Proof of Business'],
+                'seller' => \App\Support\SellerTypes::DOCUMENTS,
                 'buyer' => ['id_photo' => 'Valid ID'],
-                'logistics' => ['id_photo' => 'Valid ID', 'business_permit' => 'Business/DTI Permit'],
+                'logistics' => ['sec_certificate' => 'SEC Certificate', 'bir_2303' => 'BIR Form 2303', 'business_permit' => "Mayor's / Business Permit", 'id_photo' => 'Valid ID of Representative'],
             ];
         @endphp
 
@@ -127,6 +127,24 @@
                             {{ $categories[$app->business_category] ?? $app->business_category }}
                         </div>
                     @endif
+                    @if (!empty($app->seller_type))
+                        <div>
+                            <strong>Seller Type</strong>
+                            {{ $app->seller_type }}
+                        </div>
+                    @endif
+                    @if (!empty($app->sec_registration_no))
+                        <div>
+                            <strong>SEC Registration No.</strong>
+                            {{ $app->sec_registration_no }}
+                        </div>
+                    @endif
+                    @if (!empty($app->tin))
+                        <div>
+                            <strong>TIN</strong>
+                            {{ $app->tin }}
+                        </div>
+                    @endif
                     <div>
                         <strong>Phone</strong>
                         {{ $app->phone }}
@@ -135,6 +153,24 @@
                         <strong>Address</strong>
                         {{ $app->address }}
                     </div>
+                    @if (!empty($app->position))
+                        <div>
+                            <strong>Contact Person</strong>
+                            {{ $app->full_name }} · {{ $app->position }}
+                        </div>
+                    @endif
+                    @if (!empty($app->service_areas))
+                        <div>
+                            <strong>Service Areas</strong>
+                            {{ implode(', ', (array) json_decode($app->service_areas, true)) }}
+                        </div>
+                    @endif
+                    @if (!empty($app->region) || !empty($app->postal_code))
+                        <div>
+                            <strong>Region / Postal Code</strong>
+                            {{ $app->region ?? '—' }} · {{ $app->postal_code ?? '—' }}
+                        </div>
+                    @endif
                     <div>
                         <strong>Applied</strong>
                         {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
@@ -150,6 +186,8 @@
 
                 <div class="documents">
                     @foreach ($docLabels[$type] as $field => $label)
+                        {{-- A seller only uploads the documents of their seller type. --}}
+                        @continue($type === 'seller' && empty($app->$field) && !in_array($field, \App\Support\SellerTypes::REQUIRED_DOCUMENTS[$app->seller_type ?? ''] ?? ['national_id', 'business_permit'], true))
                         @if (!empty($app->$field))
                             <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}">
                                 <i class="bi bi-file-earmark-text"></i> {{ $label }}

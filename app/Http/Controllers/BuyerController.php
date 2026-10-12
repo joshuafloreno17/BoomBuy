@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Product;
 use App\Models\User;
 use App\Support\CodPolicy;
+use App\Support\RegistrationRules;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -947,7 +948,6 @@ class BuyerController extends Controller
         $birthdate = request('birthdate');
         $email = strtolower(trim(request('email')));
         $password = request('password');
-        $passwordConfirmation = request('password_confirmation');
         $phone = trim(request('phone'));
         $province = trim(request('province'));
         $cityMunicipality = trim(request('city_municipality'));
@@ -957,53 +957,32 @@ class BuyerController extends Controller
         $name = formatFullName($firstName, $middleInitial, $lastName);
         $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
 
-        // VALIDATION
-        if (
-            empty($lastName) ||
-            empty($firstName) ||
-            empty($sex) ||
-            empty($birthdate) ||
-            empty($email) ||
-            empty($password) ||
-            empty($passwordConfirmation) ||
-            empty($phone) ||
-            empty($province) ||
-            empty($cityMunicipality) ||
-            empty($barangay) ||
-            empty($streetAddress)
-        ) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please complete all fields.');
-        }
+        // VALIDATION — the same field rules as every other registration form.
+        $request->validate([
+            'last_name' => RegistrationRules::name(),
+            'first_name' => RegistrationRules::name(),
+            'middle_initial' => ['nullable', 'string', 'max:5', 'regex:/^[\p{L}. ]*$/u'],
+            'sex' => ['required', 'in:Male,Female'],
+            'birthdate' => ['required', 'date'],
+            'email' => ['required', 'email:filter', 'max:255'],
+            'phone' => RegistrationRules::phone(),
+            'province' => ['required', 'string', 'max:255'],
+            'city_municipality' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'street_address' => ['required', 'string', 'max:255'],
+            'password' => RegistrationRules::password(),
+            'terms' => ['accepted'],
+            'id_photo' => RegistrationRules::document(),
+        ], RegistrationRules::messages() + [
+            'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
+        ], ['id_photo' => 'valid ID']);
 
-        if (!request('terms')) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
-        }
+        $phone = RegistrationRules::normalizePhone($phone);
 
-        if ($birthdateError = birthdateError($birthdate, 13)) {
+        if ($birthdateError = birthdateError($birthdate, 18)) {
             return back()
                 ->withInput()
                 ->with('error', $birthdateError);
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please enter a valid email address.');
-        }
-
-        if (strlen($password) < 8) {
-            return back()
-                ->withInput()
-                ->with('error', 'Password must be at least 8 characters.');
-        }
-
-        if ($password !== $passwordConfirmation) {
-            return back()
-                ->withInput()
-                ->with('error', 'Passwords do not match.');
         }
 
         $reapplying = \App\Support\RejectedApplicant::find($email, 'buyer');
@@ -1016,23 +995,11 @@ class BuyerController extends Controller
         }
 
         // CHECK EXISTING PHONE NUMBER
-        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
+        if (RegistrationRules::phoneTaken($phone, $reapplying?->id)) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');
         }
-
-        // VALID ID UPLOAD
-        $request->validate([
-            'id_photo' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,webp,pdf',
-                'max:10240',
-            ],
-        ], [], [
-            'id_photo' => 'valid ID',
-        ]);
 
         $idPhotoPath = $request
             ->file('id_photo')
@@ -1059,7 +1026,7 @@ class BuyerController extends Controller
             'role' => 'buyer',
         ]);
 
-        if (!generateAndSendOtp($email, $name)) {
+        if (!sendRegistrationOtp($email, $name)) {
             return back()
                 ->withInput()
                 ->with('error', 'We could not send the verification code right now. Please try again in a moment.');

@@ -506,6 +506,14 @@ class AuthController extends Controller
                 'business_category' =>
                     $pending['business_category'] ?? null,
 
+                'seller_type' => $pending['seller_type'] ?? null,
+                'tin' => $pending['tin'] ?? null,
+                'region' => $pending['region'] ?? null,
+                'postal_code' => $pending['postal_code'] ?? null,
+                'dti_certificate' => $pending['dti_certificate'] ?? null,
+                'sec_certificate' => $pending['sec_certificate'] ?? null,
+                'bir_2303' => $pending['bir_2303'] ?? null,
+
                 'status' =>
                     'Pending Verification',
 
@@ -552,6 +560,9 @@ class AuthController extends Controller
 
                 'plate_number' =>
                     $pending['plate_number'],
+
+                'drivers_license_no' => $pending['drivers_license_no'] ?? null,
+                'license_expiry' => $pending['license_expiry'] ?? null,
 
                 'national_id' =>
                     $pending['national_id'],
@@ -612,6 +623,14 @@ class AuthController extends Controller
                 'address' => $pending['address'] ?? null,
                 'id_photo' => $pending['id_photo'] ?? null,
                 'business_permit' => $pending['business_permit'] ?? null,
+                'sec_certificate' => $pending['sec_certificate'] ?? null,
+                'bir_2303' => $pending['bir_2303'] ?? null,
+                'sec_registration_no' => $pending['sec_registration_no'] ?? null,
+                'tin' => $pending['tin'] ?? null,
+                'position' => $pending['position'] ?? null,
+                'region' => $pending['region'] ?? null,
+                'postal_code' => $pending['postal_code'] ?? null,
+                'service_areas' => !empty($pending['service_areas']) ? json_encode($pending['service_areas']) : null,
                 'status' => 'Pending Verification',
                 'admin_remarks' => null,
                 'reviewed_at' => null,

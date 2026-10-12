@@ -130,7 +130,7 @@
                         <div class="form-grid">
                             <div class="field">
                                 <label for="business_name">Shop Name</label>
-                                <input type="text" id="business_name" name="business_name" minlength="3" maxlength="60" required
+                                <input type="text" id="business_name" name="business_name" minlength="3" maxlength="30" required
                                        value="{{ old('business_name', $application->business_name ?? '') }}">
                             </div>
                             <div class="field">

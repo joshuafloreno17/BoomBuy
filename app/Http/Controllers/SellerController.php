@@ -9,6 +9,9 @@ use App\Models\ProductVariation;
 use App\Models\User;
 use App\Models\Voucher;
 use App\Support\CodPolicy;
+use App\Support\RegistrationRules;
+use App\Support\SellerTypes;
+use Illuminate\Validation\Rule;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -1596,7 +1599,6 @@ class SellerController extends Controller
         $birthdate = $request->input('birthdate');
         $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
-        $passwordConfirmation = $request->input('password_confirmation');
         $phone = trim($request->input('phone'));
         $province = trim($request->input('province'));
         $cityMunicipality = trim($request->input('city_municipality'));
@@ -1604,59 +1606,55 @@ class SellerController extends Controller
         $streetAddress = trim($request->input('street_address'));
         $businessName = trim($request->input('business_name'));
         $businessCategory = $request->input('business_category');
+        $sellerType = (string) $request->input('seller_type');
+        $region = (string) $request->input('region');
+        $postalCode = trim((string) $request->input('postal_code'));
 
         $name = formatFullName($firstName, $middleInitial, $lastName);
         $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
 
-        // VALIDATION
-        if (
-            empty($lastName) ||
-            empty($firstName) ||
-            empty($sex) ||
-            empty($birthdate) ||
-            empty($email) ||
-            empty($password) ||
-            empty($passwordConfirmation) ||
-            empty($phone) ||
-            empty($province) ||
-            empty($cityMunicipality) ||
-            empty($barangay) ||
-            empty($streetAddress) ||
-            empty($businessName) ||
-            empty($businessCategory)
-        ) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please complete all fields.');
-        }
+        // VALIDATION — the same field rules as every other registration form.
+        $request->validate([
+            'last_name' => RegistrationRules::name(),
+            'first_name' => RegistrationRules::name(),
+            'middle_initial' => ['nullable', 'string', 'max:5', 'regex:/^[\p{L}. ]*$/u'],
+            'sex' => ['required', 'in:Male,Female'],
+            'birthdate' => ['required', 'date'],
+            'email' => ['required', 'email:filter', 'max:255'],
+            'phone' => RegistrationRules::phone(),
+            'region' => RegistrationRules::region(),
+            'province' => RegistrationRules::provinceInRegion($region),
+            'city_municipality' => ['required', 'string', 'max:255'],
+            'barangay' => ['required', 'string', 'max:255'],
+            'street_address' => ['required', 'string', 'max:255'],
+            'postal_code' => RegistrationRules::postalCode(),
+            'password' => RegistrationRules::password(),
+            'terms' => ['accepted'],
+            'business_name' => RegistrationRules::shopName(),
+            'business_category' => ['required', 'string', 'max:255'],
+            'seller_type' => ['required', Rule::in(SellerTypes::TYPES)],
+            'tin' => RegistrationRules::tin(),
+            // Each seller type uploads its own documents; the business permit is optional.
+            'national_id' => RegistrationRules::document(),
+            'dti_certificate' => ['nullable', 'required_if:seller_type,' . SellerTypes::SOLE_PROPRIETORSHIP, 'file', 'mimes:' . RegistrationRules::DOCUMENT_TYPES, 'max:' . RegistrationRules::DOCUMENT_MAX_KB],
+            'sec_certificate' => ['nullable', 'required_if:seller_type,' . SellerTypes::CORPORATION, 'file', 'mimes:' . RegistrationRules::DOCUMENT_TYPES, 'max:' . RegistrationRules::DOCUMENT_MAX_KB],
+            'bir_2303' => ['nullable', 'required_if:seller_type,' . SellerTypes::SOLE_PROPRIETORSHIP . ',' . SellerTypes::CORPORATION, 'file', 'mimes:' . RegistrationRules::DOCUMENT_TYPES, 'max:' . RegistrationRules::DOCUMENT_MAX_KB],
+            'business_permit' => ['nullable', 'file', 'mimes:' . RegistrationRules::DOCUMENT_TYPES, 'max:' . RegistrationRules::DOCUMENT_MAX_KB],
+        ], RegistrationRules::messages() + [
+            'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
+            'dti_certificate.required_if' => 'The DTI Certificate is required for a Sole Proprietorship.',
+            'sec_certificate.required_if' => 'The SEC Certificate is required for a Corporation.',
+            'bir_2303.required_if' => 'The BIR Form 2303 is required for a Sole Proprietorship or Corporation.',
+        ], ['business_name' => 'shop name', 'business_category' => 'shop category', 'seller_type' => 'seller type', 'tin' => 'TIN', 'national_id' => 'government-issued ID', 'dti_certificate' => 'DTI Certificate', 'sec_certificate' => 'SEC Certificate', 'bir_2303' => 'BIR Form 2303', 'business_permit' => "Mayor's / Business Permit"]);
 
-        if (!request('terms')) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please agree to the Terms & Conditions and Privacy Policy.');
-        }
+        $tin = RegistrationRules::normalizeTin($request->input('tin'));
+
+        $phone = RegistrationRules::normalizePhone($phone);
 
         if ($birthdateError = birthdateError($birthdate, 18)) {
             return back()
                 ->withInput()
                 ->with('error', $birthdateError);
-        }
-        if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please enter a valid email address.');
-        }
-
-        if (strlen($password) < 8) {
-            return back()
-                ->withInput()
-                ->with('error', 'Password must be at least 8 characters.');
-        }
-
-        if ($password !== $passwordConfirmation) {
-            return back()
-                ->withInput()
-                ->with('error', 'Passwords do not match.');
         }
 
         // CHECK EXISTING EMAIL — a rejected applicant may apply again with theirs.
@@ -1669,7 +1667,7 @@ class SellerController extends Controller
         }
 
         // CHECK EXISTING PHONE NUMBER
-        if (User::where('phone', $phone)->when($reapplying, fn ($q) => $q->where('id', '!=', $reapplying->id))->exists()) {
+        if (RegistrationRules::phoneTaken($phone, $reapplying?->id)) {
             return back()
                 ->withInput()
                 ->with('error', 'This phone number is already registered.');
@@ -1682,38 +1680,23 @@ class SellerController extends Controller
                 ->with('error', 'Another shop already uses that name. Please choose a different one.');
         }
 
-        // SELLER VERIFICATION DOCUMENTS
-        $request->validate([
-            'national_id' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,webp,pdf',
-                'max:10240',
-            ],
-
-            'business_permit' => [
-                'required',
-                'file',
-                'mimes:jpg,jpeg,png,webp,pdf',
-                'max:10240',
-            ],
-        ], [], [
-            'national_id' => 'valid government ID',
-            'business_permit' => 'proof of business',
-        ]);
+        // One TIN per business.
+        if (RegistrationRules::tinTaken($tin, $reapplying?->id)) {
+            return back()
+                ->withInput()
+                ->with('error', 'This TIN is already registered.');
+        }
 
         // Store the documents now (private disk) — the account itself is only
         // created once the OTP is verified, so we keep the file paths in the
         // pending_registration session data alongside the rest of the form.
         $folder = 'seller-applications/' . (string) Str::uuid();
 
-        $nationalIdPath = $request
-            ->file('national_id')
-            ->store($folder, 'local');
-
-        $businessPermitPath = $request
-            ->file('business_permit')
-            ->store($folder, 'local');
+        // Only the documents of the chosen seller type (plus the optional permit) are kept.
+        $documents = [];
+        foreach (SellerTypes::documentsFor($sellerType) as $field) {
+            $documents[$field] = $request->hasFile($field) ? $request->file($field)->store($folder, 'local') : null;
+        }
 
         // Hold registration data until OTP is verified — walang naka-save sa DB pa
         session()->put('pending_registration', [
@@ -1733,13 +1716,16 @@ class SellerController extends Controller
             'barangay' => $barangay,
             'street_address' => $streetAddress,
             'role' => 'seller',
-            'national_id' => $nationalIdPath,
-            'business_permit' => $businessPermitPath,
+            ...$documents,
             'business_name' => $businessName,
             'business_category' => $businessCategory,
+            'seller_type' => $sellerType,
+            'tin' => $tin,
+            'region' => $region,
+            'postal_code' => $postalCode,
         ]);
 
-        if (!generateAndSendOtp($email, $name)) {
+        if (!sendRegistrationOtp($email, $name)) {
             return back()
                 ->withInput()
                 ->with('error', 'We could not send the verification code right now. Please try again in a moment.');

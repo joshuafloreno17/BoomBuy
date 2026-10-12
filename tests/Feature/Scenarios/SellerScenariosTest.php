@@ -78,9 +78,9 @@ class SellerScenariosTest extends TestCase
 
         $this->post(route('seller.register.submit'), [
             'last_name' => 'Santos', 'first_name' => 'Ana', 'sex' => 'Female', 'birthdate' => '1999-01-01',
-            'email' => 'again@seller.test', 'password' => 'secret123', 'password_confirmation' => 'secret123',
+            'email' => 'again@seller.test', 'password' => 'Secret@123', 'password_confirmation' => 'Secret@123',
             'phone' => '09170000001', 'province' => 'Laguna', 'city_municipality' => 'Santa Cruz', 'barangay' => 'Poblacion',
-            'street_address' => '1 Rizal St', 'business_name' => 'Ana Shoes', 'business_category' => 'shoes', 'terms' => '1',
+            'street_address' => '1 Rizal St', 'business_name' => 'Ana Shoes', 'business_category' => 'shoes', 'seller_type' => 'Individual', 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 'terms' => '1',
             'national_id' => $this->png(), 'business_permit' => $this->pdf(),
         ])->assertRedirect(route('otp.show'));
 
@@ -91,9 +91,9 @@ class SellerScenariosTest extends TestCase
         $latest = DB::table('seller_applications')->where('user_id', $rejected->id)->orderByDesc('id')->first();
         $this->assertSame('Pending Verification', $latest->status);
         $this->assertSame('Ana Shoes', $latest->business_name);
-        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('secret123', $rejected->fresh()->password));
+        $this->assertTrue(\Illuminate\Support\Facades\Hash::check('Secret@123', $rejected->fresh()->password));
 
-        $this->post(route('login.submit'), ['email' => 'again@seller.test', 'password' => 'secret123'])
+        $this->post(route('login.submit'), ['email' => 'again@seller.test', 'password' => 'Secret@123'])
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
     }
 
@@ -101,9 +101,9 @@ class SellerScenariosTest extends TestCase
     {
         $this->post(route('seller.register.submit'), [
             'last_name' => 'Santos', 'first_name' => 'Ana', 'sex' => 'Female', 'birthdate' => '1999-01-01',
-            'email' => $this->seller->email, 'password' => 'secret123', 'password_confirmation' => 'secret123',
+            'email' => $this->seller->email, 'password' => 'Secret@123', 'password_confirmation' => 'Secret@123',
             'phone' => '09170000003', 'province' => 'Laguna', 'city_municipality' => 'Santa Cruz', 'barangay' => 'Poblacion',
-            'street_address' => '1 Rizal St', 'business_name' => 'Another Shop', 'business_category' => 'shoes', 'terms' => '1',
+            'street_address' => '1 Rizal St', 'business_name' => 'Another Shop', 'business_category' => 'shoes', 'seller_type' => 'Individual', 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 'terms' => '1',
             'national_id' => $this->png(), 'business_permit' => $this->pdf(),
         ])->assertSessionHas('error', 'Email is already registered.');
     }
@@ -444,9 +444,9 @@ class SellerScenariosTest extends TestCase
     {
         $this->post(route('seller.register.submit'), [
             'last_name' => 'Santos', 'first_name' => 'Ana', 'sex' => 'Female', 'birthdate' => '1999-01-01',
-            'email' => 'ana@new.test', 'password' => 'secret123', 'password_confirmation' => 'secret123',
+            'email' => 'ana@new.test', 'password' => 'Secret@123', 'password_confirmation' => 'Secret@123',
             'phone' => '09170000002', 'province' => 'Laguna', 'city_municipality' => 'Santa Cruz', 'barangay' => 'Poblacion',
-            'street_address' => '1 Rizal St', 'business_name' => 'Santa Cruz Kicks', 'business_category' => 'shoes', 'terms' => '1',
+            'street_address' => '1 Rizal St', 'business_name' => 'Santa Cruz Kicks', 'business_category' => 'shoes', 'seller_type' => 'Individual', 'tin' => sprintf('%03d-%03d-%03d-000', random_int(100, 999), random_int(100, 999), random_int(100, 999)), 'region' => 'Region IV-A (CALABARZON)', 'postal_code' => '4009', 'terms' => '1',
             'national_id' => $this->png(), 'business_permit' => $this->pdf(),
         ])->assertSessionHas('error');
     }

@@ -55,6 +55,16 @@
                     {{ $user['name'] ?? 'Rider' }}!
                 </h1>
 
+                @php
+                    // Riders a logistics company added show that company.
+                    $riderCompany = \App\Services\RiderAccountService::companyName(
+                        \Illuminate\Support\Facades\DB::table('rider_applications')->where('user_id', $user['id'] ?? 0)->latest('id')->value('created_by')
+                    );
+                @endphp
+                @if ($riderCompany)
+                    <p style="font-weight:700;"><i class="bi bi-building"></i> {{ $riderCompany }}</p>
+                @endif
+
                 <p>
                     Manage your deliveries, claim available orders,
                     and keep track of your delivery progress.
