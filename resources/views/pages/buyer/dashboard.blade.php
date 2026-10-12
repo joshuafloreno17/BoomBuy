@@ -190,14 +190,15 @@
                                                 @if($product['stock'] <= 0)
                                                     <button type="button" class="btn" disabled>Sold out</button>
                                                 @elseif($product['has_variations'])
-                                                    <a href="{{ route('product.details', $product['slug']) }}" class="btn btn-dark" aria-label="Choose options for {{ $product['name'] }}">
-                                                        <i class="bi bi-sliders"></i><span class="btn-label">Options</span>
+                                                    {{-- Needs a color/size: straight to the product page to choose it (same as the Shop cards). --}}
+                                                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart">
+                                                        <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
                                                     </a>
                                                 @else
                                                     <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart>
                                                         @csrf
                                                         <button type="submit" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart">
-                                                            <i class="bi bi-plus-lg"></i><span class="btn-label">Add</span>
+                                                            <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
                                                         </button>
                                                     </form>
                                                 @endif

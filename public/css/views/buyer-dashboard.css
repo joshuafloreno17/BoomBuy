@@ -853,11 +853,16 @@ button {
         font-size: 11px;
     }
 
+    /* The old price drops under the price so the cart button stays inside the card. */
     .p-price {
+        min-width: 0;
         font-size: 18px;
+        line-height: 1.15;
+        white-space: normal;
     }
 
     .p-bottom .btn {
+        flex-shrink: 0;
         min-width: 42px;
         padding: 0 12px;
     }
@@ -1065,6 +1070,14 @@ a.again-top:hover .again-name {
     font-size: 13px;
     font-weight: 600;
     color: #8a7f86;
+}
+
+@media (max-width: 900px) {
+    .p-was {
+        display: block;
+        margin-left: 0;
+        font-size: 11px;
+    }
 }
 
 .p-off {
