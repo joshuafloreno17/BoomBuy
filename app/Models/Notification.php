@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Support\PushNotifications;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Notification extends Model
@@ -21,6 +22,17 @@ class Notification extends Model
     protected $casts = [
         'read_at' => 'datetime',
     ];
+
+    protected static function booted(): void
+    {
+        // Also as a push notification on the user's phone (the BoomBuy app),
+        // after the page has been sent so nobody waits on Firebase.
+        static::created(function (Notification $notification) {
+            if (PushNotifications::enabled()) {
+                dispatch(fn () => PushNotifications::send($notification))->afterResponse();
+            }
+        });
+    }
 
     /**
      * User who owns this notification.

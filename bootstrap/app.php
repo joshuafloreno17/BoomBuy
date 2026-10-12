@@ -39,7 +39,12 @@ return Application::configure(basePath: dirname(__DIR__))
             ForgetFlashedPasswords::class,
             // Inside the Android app: buyers, sellers and riders only.
             \App\Http\Middleware\KeepAppToMobileRoles::class,
+            // ...and their phone gets their notifications as push notifications.
+            \App\Http\Middleware\RememberPushToken::class,
         ]);
+
+        // Set by the app itself (not by this site), so it isn't encrypted.
+        $middleware->encryptCookies(except: [\App\Support\PushNotifications::COOKIE]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(
