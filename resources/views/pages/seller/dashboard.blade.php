@@ -35,6 +35,9 @@
         $shortPeso = fn ($v) => $v >= 1000 ? '₱' . rtrim(rtrim(number_format($v / 1000, 1), '0'), '.') . 'k' : '₱' . number_format($v);
         $deliveredCount = (int) ($deliveredToday->orders ?? 0);
         $ratingCount = (int) ($rating->total ?? 0);
+        $weekEmpty = $salesTrend->sum('revenue') <= 0;
+        // Orange goes to the tile that needs the seller: orders to ship first, then today's sales; all calm when both are zero.
+        $hotKpi = $pendingOrders > 0 ? 'ship' : ((float) ($deliveredToday->revenue ?? 0) > 0 ? 'sales' : null);
     @endphp
 
     <header class="pd-head">
@@ -47,7 +50,7 @@
             'unread' => $unreadNotes,
             'allUrl' => route('seller.notifications'),
         ])
-        <a href="{{ route('seller.products.create') }}" class="pd-btn pd-btn-primary"><i class="bi bi-plus-lg"></i> Add product</a>
+        <a href="{{ route('seller.products.create') }}" class="pd-btn pd-btn-primary pd-head-add"><i class="bi bi-plus-lg"></i> Add product</a>
     </header>
 
     @if(session('success'))
@@ -59,12 +62,12 @@
     @endif
 
     <section class="pd-kpis" aria-label="Your shop at a glance">
-        <div class="pd-kpi is-accent">
+        <div @class(['pd-kpi', 'is-accent' => $hotKpi === 'sales'])>
             <span class="pd-kpi-label">Sales today</span>
             <span class="pd-kpi-value">{{ $peso($deliveredToday->revenue ?? 0) }}</span>
             <span class="pd-kpi-note">{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered</span>
         </div>
-        <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-kpi">
+        <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" @class(['pd-kpi', 'is-accent' => $hotKpi === 'ship'])>
             <span class="pd-kpi-label">To ship</span>
             <span class="pd-kpi-value">{{ $pendingOrders }}</span>
             <span class="pd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : 'All caught up' }}</span>
@@ -82,22 +85,35 @@
     </section>
 
     @if(isset($codPayout) && ((float) $codPayout->pending > 0 || (float) $codPayout->released > 0))
-        <div class="pd-cod">
+        {{-- The money still with riders is what to watch, so it gets the big number. --}}
+        <a href="{{ route('seller.orders', ['tab' => 'completed']) }}" class="pd-cod">
             <i class="bi bi-cash-stack"></i>
-            <span><strong>Cash on Delivery:</strong> {{ $peso($codPayout->released) }} handed in at the Sorting Center</span>
-            @if((float) $codPayout->pending > 0)
-                <span class="pd-cod-pending">· {{ $peso($codPayout->pending) }} COD not handed in yet — still with riders</span>
-            @endif
-        </div>
+            <span class="pd-cod-main">
+                @if((float) $codPayout->pending > 0)
+                    <span class="pd-cod-label">Cash on Delivery still with riders</span>
+                    <strong class="pd-cod-amount">{{ $peso($codPayout->pending) }}</strong>
+                    @if((float) $codPayout->released > 0)
+                        <span class="pd-cod-sub">{{ $peso($codPayout->released) }} already handed in at the Sorting Center</span>
+                    @endif
+                @else
+                    <span class="pd-cod-label">Cash on Delivery handed in at the Sorting Center</span>
+                    <strong class="pd-cod-amount">{{ $peso($codPayout->released) }}</strong>
+                    <span class="pd-cod-sub">Nothing still with riders</span>
+                @endif
+            </span>
+            <span class="pd-cod-go">See orders <i class="bi bi-arrow-right"></i></span>
+        </a>
     @endif
 
     <div class="pd-row">
-        <section class="pd-card pd-grow-2" aria-labelledby="week-title">
+        <section @class(['pd-card', 'pd-grow-2', 'pd-week', 'is-empty' => $weekEmpty]) aria-labelledby="week-title">
             <div class="pd-card-head">
                 <h2 class="pd-card-title" id="week-title">Sales this week</h2>
                 <a href="{{ route('seller.reports') }}" class="pd-link">Full report →</a>
             </div>
-            <div class="pd-bars {{ $salesTrend->sum('revenue') > 0 ? '' : 'pd-bars-empty' }}" data-empty="No delivered sales this week yet" role="img" aria-label="Delivered sales for the last 7 days">
+            {{-- Phones: one short line instead of an empty chart. --}}
+            <p class="pd-week-empty"><i class="bi bi-graph-up-arrow"></i><span><strong>No delivered sales this week yet.</strong> Share your shop link to get your first sale.</span></p>
+            <div class="pd-bars {{ $weekEmpty ? 'pd-bars-empty' : '' }}" data-empty="No delivered sales this week yet" role="img" aria-label="Delivered sales for the last 7 days">
                 @foreach($salesTrend as $day)
                     <div class="pd-bar {{ $loop->last ? 'is-today' : '' }}">
                         <span class="pd-bar-amount">{{ (float) $day->revenue > 0 ? $shortPeso((float) $day->revenue) : '' }}</span>

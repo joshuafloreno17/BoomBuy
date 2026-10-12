@@ -308,7 +308,7 @@ class CourierFeaturesTest extends TestCase
         $this->assertNotNull(DB::table('orders')->where('id', $id)->value('cod_collected_at'));
 
         $this->actingAsUser($this->santaCruzRider)->get(route('rider.dashboard'))->assertOk()->assertSee('Cash to hand in: ₱500.00');
-        $this->actingAsUser($this->seller)->get(route('seller.dashboard'))->assertOk()->assertSee('COD not handed in yet');
+        $this->actingAsUser($this->seller)->get(route('seller.dashboard'))->assertOk()->assertSee('Cash on Delivery still with riders');
 
         // QC never had this rider's delivery; Santa Cruz receives the money.
         $this->actingAsUser($this->qcStaff)->post(route('logistics.riders.receive-cod', $this->santaCruzRider->id))->assertSessionHas('error');

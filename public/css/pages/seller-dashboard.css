@@ -621,6 +621,122 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     color: #8a6d00;
 }
 
+.pd-cod > .bi {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: #fdecb5;
+    font-size: 19px;
+}
+
+.pd-cod-main {
+    flex: 1 1 200px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.pd-cod-label {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.pd-cod-amount {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: #4d3b00;
+}
+
+.pd-cod-sub {
+    font-size: 12.5px;
+    color: #8a6d00;
+}
+
+.pd-cod-go {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: #c2380f;
+    font-size: 13px;
+    font-weight: 800;
+}
+
+.pd-week-empty {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    /* Greeting on top; Add product then the bell at the right under it.
+       (.pd prefix: portal-dash.css loads after this file and sets .pd-head to flex.) */
+    .pd .pd-head {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto auto;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .pd .pd-head-text {
+        grid-column: 1 / -1;
+        grid-row: 1;
+    }
+
+    .pd .pd-head-add {
+        grid-column: 2;
+        grid-row: 2;
+        white-space: nowrap;
+    }
+
+    .pd .pd-head > .pd-pop {
+        grid-column: 3;
+        grid-row: 2;
+    }
+
+    .pd-cod {
+        gap: 12px;
+        padding: 14px;
+        border-radius: 14px;
+    }
+
+    .pd-cod-go {
+        flex-basis: 100%;
+        padding-top: 10px;
+        border-top: 1px solid #f3e1a6;
+    }
+
+    /* No sales this week: one short line instead of an empty chart. */
+    .pd-week.is-empty .pd-bars,
+    .pd-week.is-empty .pd-bar-days {
+        display: none;
+    }
+
+    .pd-week.is-empty .pd-week-empty {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        margin: 0;
+        color: #5e5759;
+        font-size: 13.5px;
+        line-height: 1.45;
+    }
+
+    .pd-week-empty .bi {
+        color: #e8420f;
+        font-size: 18px;
+    }
+
+    .pd-week-empty strong {
+        display: block;
+        color: #1b1a1f;
+    }
+}
+
 /* The payout banner is a link to the Payouts page. */
 a.pd-cod {
     text-decoration: none;
