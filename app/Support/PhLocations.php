@@ -206,7 +206,8 @@ class PhLocations
     public static function locate(?string $address): ?array
     {
         // Drop a trailing country and ZIP code: "..., Laguna 4009, Philippines".
-        $text = ' ' . self::normalize((string) $address) . ' ';
+        // Bracketed notes such as "(Landmark: near the Calamba road)" are not part of the place.
+        $text = ' ' . self::normalize(preg_replace('/\([^)]*\)/', ' ', (string) $address)) . ' ';
         $text = preg_replace('/( philippines| ph| \d{4})+ $/', ' ', $text);
 
         if (trim($text) === '') {

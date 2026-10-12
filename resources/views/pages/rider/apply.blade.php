@@ -225,7 +225,7 @@
                             inputmode="tel"
                             maxlength="16"
                             pattern="\s*(09|\+639)(\s*\d){9}\s*"
-                            title="09XXXXXXXXX or +639XXXXXXXXX"
+                            title="Enter all 11 digits of your mobile number."
                             value="{{ old('phone') }}"
                             placeholder="09XXXXXXXXX"
                             required

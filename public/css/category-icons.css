@@ -1,0 +1,31 @@
+/*
+ * Category icons Bootstrap Icons doesn't have (shirt, sneaker, paw, lipstick).
+ * Used like a normal icon: <i class="bi bbi-shirt"></i> — takes the text color
+ * and font-size, same as the bi-* icons. Map: App\Support\Categories::ICONS.
+ */
+
+.bi[class*="bbi-"]::before {
+    content: "";
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    background-color: currentColor;
+    -webkit-mask: var(--bbi) center / contain no-repeat;
+    mask: var(--bbi) center / contain no-repeat;
+}
+
+.bbi-shirt {
+    --bbi: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M8.5 2.5 3.6 4.6a1 1 0 0 0-.5.5L.8 9.6a1 1 0 0 0 .4 1.3l2.6 1.5a1 1 0 0 0 1.3-.3l.9-1.2V20.5a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V10.9l.9 1.2a1 1 0 0 0 1.3.3l2.6-1.5a1 1 0 0 0 .4-1.3l-2.3-4.5a1 1 0 0 0-.5-.5L15.5 2.5C15 4.3 13.6 5.5 12 5.5S9 4.3 8.5 2.5z"/></svg>');
+}
+
+.bbi-sneaker {
+    --bbi: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M1.5 16.5V9.2c0-.9.9-1.5 1.7-1.1 1.2.6 2.6.9 4 .9.8 0 1.4-.5 1.7-1.2l.4-1a1 1 0 0 1 1.5-.4l1.3 1-1.2 1.4 1 .8 1.2-1.4 1.1.9-1.2 1.4 1 .8 1.3-1.5c1.3 1 2.9 1.7 4.6 2l.9.2c1.9.4 3.2 2 3.2 3.9v.6z"/><path d="M1.5 18h21v1.5a1 1 0 0 1-1 1h-19a1 1 0 0 1-1-1z"/></svg>');
+}
+
+.bbi-paw {
+    --bbi: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><ellipse cx="4.6" cy="10.2" rx="2.2" ry="2.7"/><ellipse cx="9" cy="5.2" rx="2.3" ry="2.9"/><ellipse cx="15" cy="5.2" rx="2.3" ry="2.9"/><ellipse cx="19.4" cy="10.2" rx="2.2" ry="2.7"/><path d="M12 10.8c-3.4 0-6.8 4.6-6.8 7.6 0 1.9 1.4 2.9 3.1 2.9 1.5 0 2.3-.7 3.7-.7s2.2.7 3.7.7c1.7 0 3.1-1 3.1-2.9 0-3-3.4-7.6-6.8-7.6z"/></svg>');
+}
+
+.bbi-lipstick {
+    --bbi: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M10 9.5V4.3c0-.4.2-.7.5-.9l3-1.8c.7-.4 1.5.1 1.5.9v7z"/><path d="M8.5 11a1 1 0 0 1 1-1h5a1 1 0 0 1 1 1v2h-7z"/><path d="M7 14.5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v7a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1z"/></svg>');
+}

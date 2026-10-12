@@ -952,10 +952,23 @@ class BuyerController extends Controller
         $province = trim(request('province'));
         $cityMunicipality = trim(request('city_municipality'));
         $barangay = trim(request('barangay'));
-        $streetAddress = trim(request('street_address'));
+
+        // The sign-up form asks for the street and the building separately;
+        // together they make up the street part ("123 Rizal St, Camella Homes").
+        $street = trim((string) request('street'));
+        if ($street !== '') {
+            $request->merge(['street_address' => implode(', ', array_filter([
+                $street,
+                trim((string) request('building')),
+            ]))]);
+        }
+        $streetAddress = trim((string) $request->input('street_address'));
+        $postalCode = trim((string) request('postal_code'));
 
         $name = formatFullName($firstName, $middleInitial, $lastName);
-        $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ');
+        // A trailing postal code is understood by the Sorting Center lookup ("…, Laguna 4009").
+        $address = trim($streetAddress . ', ' . $barangay . ', ' . $cityMunicipality . ', ' . $province, ', ')
+            . ($postalCode !== '' ? ' ' . $postalCode : '');
 
         // VALIDATION — the same field rules as every other registration form.
         $request->validate([
@@ -970,12 +983,15 @@ class BuyerController extends Controller
             'city_municipality' => ['required', 'string', 'max:255'],
             'barangay' => ['required', 'string', 'max:255'],
             'street_address' => ['required', 'string', 'max:255'],
+            'street' => ['nullable', 'string', 'max:100'],
+            'building' => ['nullable', 'string', 'max:100'],
+            'postal_code' => ['nullable', 'regex:/^\d{4}$/'],
             'password' => RegistrationRules::password(),
             'terms' => ['accepted'],
             'id_photo' => RegistrationRules::document(),
         ], RegistrationRules::messages() + [
             'terms.accepted' => 'Please agree to the Terms & Conditions and Privacy Policy.',
-        ], ['id_photo' => 'valid ID']);
+        ], ['id_photo' => 'valid ID', 'street_address' => 'street', 'building' => 'building / subdivision']);
 
         $phone = RegistrationRules::normalizePhone($phone);
 

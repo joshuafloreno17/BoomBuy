@@ -28,22 +28,25 @@ class Categories
         'garden-outdoor' => 'Garden & Outdoor',
     ];
 
-    /** Bootstrap Icons per category — the same mapping as the landing page. */
+    /**
+     * Icon per category — the same mapping as the landing page.
+     * bi-* = Bootstrap Icons; bbi-* = our own drawings in public/css/category-icons.css.
+     */
     public const ICONS = [
         'electronics' => 'bi-phone',
-        'womens-fashion' => 'bi-handbag',
-        'mens-fashion' => 'bi-bag-fill',
+        'womens-fashion' => 'bi-handbag-fill',
+        'mens-fashion' => 'bbi-shirt',
         'kids-baby' => 'bi-balloon-heart-fill',
         'home-living' => 'bi-house-door-fill',
-        'sports-outdoors' => 'bi-trophy-fill',
-        'beauty-personal-care' => 'bi-stars',
+        'sports-outdoors' => 'bi-bicycle',
+        'beauty-personal-care' => 'bbi-lipstick',
         'food-beverages' => 'bi-cup-hot-fill',
         'automotive' => 'bi-car-front-fill',
-        'office-school' => 'bi-backpack2-fill',
-        'pet-supplies' => 'bi-heart-fill',
+        'office-school' => 'bi-pencil-fill',
+        'pet-supplies' => 'bbi-paw',
         'toys-games-hobbies' => 'bi-controller',
         'jewelry-accessories' => 'bi-gem',
-        'shoes' => 'bi-tag-fill',
+        'shoes' => 'bbi-sneaker',
         'tools-home-improvement' => 'bi-tools',
         'garden-outdoor' => 'bi-flower1',
     ];

@@ -34,7 +34,7 @@ class RegistrationRules
     {
         return ['required', 'string', function ($attribute, $value, $fail) {
             if (!preg_match(self::PHONE_PATTERN, self::stripSpaces($value))) {
-                $fail('Please enter a valid Philippine mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
+                $fail('Please enter a valid Philippine mobile number.');
             }
         }];
     }

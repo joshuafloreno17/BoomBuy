@@ -223,7 +223,7 @@
                                 id="phone"
                                 name="phone"
                                 value="{{ old('phone', $dbUser->phone ?? '') }}"
-                                placeholder="09XX XXX XXXX"
+                                placeholder="09XXXXXXXXX"
                                 required
                             >
                         </div>

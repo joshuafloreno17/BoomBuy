@@ -139,7 +139,7 @@
                             id="phone"
                             name="phone"
                             value="{{ old('phone', $dbUser->phone ?? '') }}"
-                            placeholder="09XX XXX XXXX"
+                            placeholder="09XXXXXXXXX"
                             required
                         >
                     </div>
@@ -217,7 +217,7 @@
                             </div>
                             <div class="field">
                                 <label for="addr_phone">Phone Number</label>
-                                <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XX XXX XXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
+                                <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XXXXXXXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
                             </div>
                             <div class="field" style="grid-column: 1 / -1;">
                                 <label for="addr_province_search">Complete Address</label>

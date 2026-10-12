@@ -86,7 +86,7 @@
                     </div>
                     <div class="field">
                         <label for="phone">Mobile Number</label>
-                        <input type="text" id="phone" name="phone" value="{{ old('phone') }}" inputmode="tel" maxlength="16" pattern="\s*(09|\+639)(\s*\d){9}\s*" title="09XXXXXXXXX or +639XXXXXXXXX" placeholder="09XXXXXXXXX" required>
+                        <input type="text" id="phone" name="phone" value="{{ old('phone') }}" inputmode="tel" maxlength="16" pattern="\s*(09|\+639)(\s*\d){9}\s*" title="Enter all 11 digits of your mobile number." placeholder="09XXXXXXXXX" required>
                     </div>
                 </div>
 

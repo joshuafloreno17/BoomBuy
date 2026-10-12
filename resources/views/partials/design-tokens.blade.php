@@ -1,4 +1,5 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+<link rel="stylesheet" href="{{ vasset('css/category-icons.css') }}">
 
 {{-- Site-wide notice (e.g. "your session timed out") shown as a toast on whatever page comes next. --}}
 @if(session('bb_notice'))

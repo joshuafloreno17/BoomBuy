@@ -1033,3 +1033,79 @@ a { color: inherit; }
         padding-bottom: 0;
     }
 }
+/* ---------- Button hover effects (landing only) ---------- */
+
+.lp-btn {
+    position: relative;
+    overflow: hidden;
+    transition: background .2s ease, border-color .2s ease, color .2s ease,
+                transform .25s cubic-bezier(.2, .7, .3, 1), box-shadow .25s ease;
+}
+
+.lp-btn:hover { transform: translateY(-2px); }
+.lp-btn:active { transform: translateY(0) scale(.98); }
+
+.lp-btn-primary:hover { box-shadow: 0 16px 30px rgba(232, 66, 15, .32); }
+
+/* A light sweeps across the orange buttons. */
+.lp-btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -60%;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .35), transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+
+.lp-btn-primary:hover::after {
+    left: 130%;
+    transition: left .6s ease;
+}
+
+.lp-btn i { transition: transform .25s ease; }
+.lp-btn:hover i { transform: translateX(4px); }
+
+.lp-btn-ghost:hover {
+    background: var(--accent-tint);
+    box-shadow: 0 10px 22px rgba(27, 26, 31, .08);
+}
+
+.lp-search button { transition: background .2s ease, transform .2s ease; }
+.lp-search button:hover { background: var(--accent); }
+.lp-search button:active { transform: scale(.96); }
+
+/* "See all categories →": underline grows in from the left. */
+.lp-more {
+    background: linear-gradient(currentColor, currentColor) left bottom / 0 2px no-repeat;
+    transition: background-size .25s ease, color .2s ease;
+}
+
+.lp-more:hover {
+    text-decoration: none;
+    background-size: 100% 2px;
+}
+
+.bb-navbar .bb-login-link,
+.bb-navbar .bb-register-link,
+.bb-navbar .bb-nav-search-btn {
+    transition: background .2s ease, color .2s ease, border-color .2s ease,
+                transform .2s ease, box-shadow .2s ease;
+}
+
+.bb-navbar .bb-login-link:hover,
+.bb-navbar .bb-register-link:hover { transform: translateY(-1px); }
+.bb-navbar .bb-register-link:hover { box-shadow: 0 8px 18px rgba(232, 66, 15, .28); }
+.bb-navbar .bb-login-link:active,
+.bb-navbar .bb-register-link:active,
+.bb-navbar .bb-nav-search-btn:active { transform: scale(.96); }
+
+@media (prefers-reduced-motion: reduce) {
+    .lp-btn, .lp-btn i, .lp-btn-primary::after, .lp-search button,
+    .bb-navbar .bb-login-link, .bb-navbar .bb-register-link { transition: none; }
+    .lp-btn:hover, .lp-btn:hover i,
+    .bb-navbar .bb-login-link:hover, .bb-navbar .bb-register-link:hover { transform: none; }
+    .lp-btn-primary::after { display: none; }
+}
