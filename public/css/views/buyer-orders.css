@@ -968,3 +968,238 @@
 .order-track-eta strong {
     font-weight: 800;
 }
+
+/* =========================
+   PHONES: "BOLD SUNRISE" ORDERS (760px and below)
+   In-progress orders get an orange status card, delivered ones a green
+   banner; colours go through variables so a dark mode can swap them later.
+========================= */
+
+.orders {
+    --bo-surface: #fff;
+    --bo-shadow: 0 8px 22px -16px rgba(27, 26, 31, 0.35);
+    --bo-hero: linear-gradient(150deg, #ff7a3d 0%, #e8420f 55%, #b8340d 100%);
+    --bo-done: linear-gradient(150deg, #1f9a8d 0%, #0d7f74 55%, #0a5c55 100%);
+}
+
+.order-done {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .order-card {
+        padding: 16px;
+        border: 0;
+        border-radius: 22px;
+        background: var(--bo-surface);
+        box-shadow: var(--bo-shadow);
+    }
+
+    .order-header {
+        flex-direction: row;
+        align-items: center;
+        padding-bottom: 14px;
+    }
+
+    .order-id {
+        font-size: 16px;
+        font-weight: 800;
+    }
+
+    .date {
+        font-size: 12.5px;
+    }
+
+    /* In progress: orange status card, the status line as its headline */
+    .order-track {
+        position: relative;
+        overflow: hidden;
+        gap: 10px;
+        margin: 14px 0 6px;
+        padding: 16px;
+        border-radius: 20px;
+        background: var(--bo-hero);
+        color: #fff;
+    }
+
+    .order-track::before {
+        content: "";
+        position: absolute;
+        right: -50px;
+        top: -60px;
+        width: 170px;
+        height: 170px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+    }
+
+    .order-track > * {
+        position: relative;
+    }
+
+    .order-track-note {
+        color: #fff;
+        font-size: 13px;
+    }
+
+    .order-track-note i {
+        color: #fff;
+    }
+
+    .order-track > .order-track-note:not(.order-track-eta) {
+        order: -1;
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .order-track > .order-track-note:not(.order-track-eta) i {
+        display: none;
+    }
+
+    .order-track-eta,
+    .order-track-eta strong {
+        color: #fff;
+    }
+
+    .order-track-eta {
+        padding: 9px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.16);
+    }
+
+    .order-track-steps span {
+        background: rgba(255, 255, 255, 0.3);
+    }
+
+    .order-track-steps span.is-on {
+        background: #fff;
+    }
+
+    /* Delivered, waiting for the buyer: green banner */
+    .order-done {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin: 14px 0 6px;
+        padding: 16px;
+        border-radius: 20px;
+        background: var(--bo-done);
+        color: #fff;
+        font-size: 12.5px;
+        font-weight: 600;
+    }
+
+    .order-done-icon {
+        width: 46px;
+        height: 46px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 15px;
+        background: #fff;
+        color: #0d7f74;
+        font-size: 24px;
+    }
+
+    .order-done-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .order-done-text strong {
+        display: block;
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .order-done-photo {
+        flex-basis: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 44px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.18);
+        color: #fff;
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+    }
+
+    /* Buttons: finger-sized, rounder; Order Received is the big dark one */
+    .order-footer {
+        align-items: stretch;
+    }
+
+    .footer-actions {
+        width: 100%;
+    }
+
+    .track-btn,
+    .received-btn,
+    .cancel-order-btn,
+    .return-btn {
+        min-height: 44px;
+        border-radius: 14px;
+        font-size: 13px;
+    }
+
+    .footer-actions form:has(.received-btn) {
+        order: -1;
+        flex-basis: 100%;
+    }
+
+    .received-btn {
+        width: 100%;
+        min-height: 52px;
+        background: #1b1a1f;
+        font-size: 15px;
+    }
+
+    .received-btn:hover {
+        background: #3a3940;
+    }
+
+    /* Timeline in the tracking panel: bigger dots with a soft ring */
+    .tracking-title {
+        font-size: 18px;
+    }
+
+    .order-card .order-timeline-dot {
+        width: 14px;
+        height: 14px;
+        margin-top: 2px;
+    }
+
+    .order-card .order-timeline li.is-latest .order-timeline-dot {
+        width: 18px;
+        height: 18px;
+        margin-top: 0;
+        margin-left: -2px;
+        box-shadow: 0 0 0 6px #ffe6db;
+    }
+
+    .order-card .order-timeline li:not(:last-child)::before {
+        left: 6px;
+        background: #e8420f;
+    }
+
+    .order-card .order-proof-link {
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 14px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 760px) {
+    .order-track-labels {
+        color: rgba(255, 255, 255, 0.85);
+    }
+}

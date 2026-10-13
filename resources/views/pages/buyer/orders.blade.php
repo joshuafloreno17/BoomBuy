@@ -258,6 +258,22 @@
                                 </div>
                             @endif
 
+                            {{-- Phones: delivered and waiting for the buyer to confirm — green banner. --}}
+                            @if(($order['status'] ?? '') === 'Delivered' && empty($order['buyer_received_at']))
+                                <div class="order-done">
+                                    <span class="order-done-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                                    <span class="order-done-text">
+                                        <strong>Your order has arrived</strong>
+                                        Check it, then tap Order Received below.
+                                    </span>
+                                    @if(!empty($order['delivery_proof']))
+                                        <a href="{{ route('orders.delivery-proof', $order['id']) }}" target="_blank" rel="noopener" class="order-done-photo">
+                                            <i class="bi bi-camera-fill"></i> See the delivery photo
+                                        </a>
+                                    @endif
+                                </div>
+                            @endif
+
                             <!-- ITEMS -->
 
                             <div class="items">
