@@ -1512,3 +1512,35 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     .related-section.is-grid .related-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .related-nav { display: none; }
 }
+
+/* Share button on the photo: phones only (the page shows it only where the phone can share). */
+.pd-share {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    .pd-share:not([hidden]) {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 3;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.92);
+        color: #1b1a1f;
+        font-size: 15px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.14);
+        transform: none;
+    }
+
+    .pd-share:active {
+        background: #fff1ea;
+        color: #e8420f;
+    }
+}

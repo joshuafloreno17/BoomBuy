@@ -65,6 +65,27 @@
             <button type="button" class="gallery-nav next" onclick="galleryStep(1)" aria-label="Next photo">›</button>
         @endif
 
+        {{-- Phones: share this product (only where the phone can share: the app, mobile browsers). --}}
+        <button type="button" class="pd-share" id="pdShare" aria-label="Share this product" hidden><i class="bi bi-share-fill"></i></button>
+        <script>
+            (function () {
+                var btn = document.getElementById('pdShare');
+                // The Android app gives pages a BoomBuyShare channel; phone browsers have navigator.share.
+                var share = window.BoomBuyShare
+                    ? function (data) { BoomBuyShare.postMessage(JSON.stringify(data)); }
+                    : (navigator.share ? function (data) { navigator.share(data).catch(function () {}); } : null);
+                if (!share) return;
+                btn.hidden = false;
+                btn.addEventListener('click', function () {
+                    share({
+                        title: @json($product['name'] ?? 'BoomBuy'),
+                        text: @json(($product['name'] ?? 'Check this out') . ' on BoomBuy'),
+                        url: location.origin + location.pathname
+                    });
+                });
+            })();
+        </script>
+
         <img
             id="mainProductImage"
             @if($productImageUrl) src="{{ $productImageUrl }}" @endif

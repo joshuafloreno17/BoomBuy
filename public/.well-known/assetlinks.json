@@ -1,0 +1,10 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "store.boombuy.app",
+      "sha256_cert_fingerprints": ["6E:34:87:26:B4:54:11:2A:B7:E4:54:E0:05:07:59:73:E0:58:B4:10:65:60:66:D4:AD:54:9E:61:C2:8D:0F:01"]
+    }
+  }
+]
