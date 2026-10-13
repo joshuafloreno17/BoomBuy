@@ -171,6 +171,7 @@
 @endphp
 
 {{-- 📱 Bottom tab bar on phones --}}
+<link rel="stylesheet" href="{{ vasset('css/partials/phone-tabbar.css') }}">
 <nav class="bb-stabbar" aria-label="Main">
     <a href="{{ route('seller.dashboard') }}" @class(['active' => $sTab === 'home']) @if($sTab === 'home') aria-current="page" @endif>
         <i class="bi {{ $sTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home

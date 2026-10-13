@@ -87,4 +87,102 @@
 
 </aside>
 
+@php
+    // Phones get a bottom tab bar instead of the icon rail; the rest of the menu sits under "More".
+    $rTab = match ($active) {
+        'dashboard' => 'home',
+        'pickups' => 'pickups',
+        'deliveries' => 'deliveries',
+        'profit' => 'profit',
+        default => 'more',
+    };
+    $rCount = fn ($n) => $n > 99 ? '99+' : $n;
+    $rUnread = $riderUnreadNotifications + $riderUnreadMessages;
+@endphp
+
+{{-- 📱 Bottom tab bar on phones --}}
+<link rel="stylesheet" href="{{ vasset('css/partials/phone-tabbar.css') }}">
+<nav class="bb-stabbar" aria-label="Main">
+    <a href="{{ route('rider.dashboard') }}" @class(['active' => $rTab === 'home']) @if($rTab === 'home') aria-current="page" @endif>
+        <i class="bi {{ $rTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home
+    </a>
+    <a href="{{ route('rider.pickups') }}" @class(['active' => $rTab === 'pickups']) @if($rTab === 'pickups') aria-current="page" @endif>
+        <i class="bi bi-box-arrow-in-down"></i>Pickups
+    </a>
+    <a href="{{ route('rider.deliveries') }}" @class(['active' => $rTab === 'deliveries']) @if($rTab === 'deliveries') aria-current="page" @endif>
+        <i class="bi {{ $rTab === 'deliveries' ? 'bi-truck-front-fill' : 'bi-truck' }}"></i>Deliveries
+    </a>
+    <a href="{{ route('rider.profit') }}" @class(['active' => $rTab === 'profit']) @if($rTab === 'profit') aria-current="page" @endif>
+        <i class="bi bi-cash-stack"></i>Profit
+    </a>
+    <button type="button" @class(['active' => $rTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $rUnread > 0 ? ' (' . $rUnread . ' unread)' : '' }}">
+        @if($rUnread > 0)
+            <span class="bb-stabbar-dot"></span>
+        @endif
+        <i class="bi bi-list"></i>More
+    </button>
+</nav>
+
+<div class="bb-smore" id="bbSmore" role="dialog" aria-modal="true" aria-label="More" hidden>
+    <div class="bb-smore-backdrop" data-smore-close></div>
+    <div class="bb-smore-sheet">
+        <div class="bb-smore-head">
+            <span class="bb-side-avatar">{{ mb_strtoupper(mb_substr($user['name'] ?? 'R', 0, 1)) }}</span>
+            <span class="bb-smore-who"><strong>{{ $user['name'] ?? 'Rider' }}</strong><small>Rider</small></span>
+            <button type="button" class="bb-smore-x" data-smore-close aria-label="Close"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div class="bb-smore-grid">
+            <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
+                <i class="bi bi-chat-dots-fill"></i>Messages
+                @if($riderUnreadMessages > 0)
+                    <span class="bb-stabbar-count">{{ $rCount($riderUnreadMessages) }}</span>
+                @endif
+            </a>
+            <a href="{{ route('rider.notifications') }}" @class(['active' => $active === 'notifications'])>
+                <i class="bi bi-bell-fill"></i>Notifications
+                @if($riderUnreadNotifications > 0)
+                    <span class="bb-stabbar-count">{{ $rCount($riderUnreadNotifications) }}</span>
+                @endif
+            </a>
+            <a href="{{ route('rider.deliveries.history') }}" @class(['active' => $active === 'history'])><i class="bi bi-clock-history"></i>History</a>
+            <a href="{{ route('complaints.index') }}" @class(['active' => $active === 'complaints'])><i class="bi bi-exclamation-triangle-fill"></i>Complaints</a>
+            <a href="{{ route('rider.profile') }}" @class(['active' => $active === 'profile'])><i class="bi bi-person-fill"></i>My Profile</a>
+            <form action="{{ route('logout') }}" method="POST" onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');">
+                @csrf
+                <button type="submit"><i class="bi bi-box-arrow-right"></i>Log out</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.body.classList.add('has-bb-stabbar');
+
+    (function () {
+        var sheet = document.getElementById('bbSmore');
+        var opener = document.querySelector('[data-smore-open]');
+        if (!sheet || !opener) return;
+
+        function close() {
+            sheet.hidden = true;
+            document.body.classList.remove('bb-smore-open');
+            opener.focus();
+        }
+
+        opener.addEventListener('click', function () {
+            sheet.hidden = false;
+            document.body.classList.add('bb-smore-open');
+            sheet.querySelector('.bb-smore-x').focus();
+        });
+
+        sheet.addEventListener('click', function (e) {
+            if (e.target.closest('[data-smore-close]')) close();
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape' && !sheet.hidden) close();
+        });
+    })();
+</script>
+
 @include('partials.confirm-modal')
