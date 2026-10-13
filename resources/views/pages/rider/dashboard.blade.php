@@ -40,6 +40,55 @@
 
             @include('partials.announcement-banner')
 
+            {{-- PHONES: orange hero (greeting + today's job) and three tiles, instead of the welcome, shortcuts and stats below. --}}
+            @php
+                $greetHour = (int) now()->format('G');
+                $toDeliverCount = count($myDeliveryAssignments ?? []);
+                $pickupTotal = $pickupCounts['available'] + $pickupCounts['mine'];
+                $riderUnreadNotifications = \App\Support\Inbox::unreadNotifications((int) $user['id']);
+            @endphp
+            <section class="rd-hero" aria-label="Today">
+                <div class="rd-hero-top">
+                    <span class="rd-hero-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($user['name'] ?? 'R', 0, 1)) }}</span>
+                    <span class="rd-hero-who">
+                        <span class="rd-hero-greet" data-greet>{{ $greetHour >= 5 && $greetHour < 12 ? 'Good morning' : ($greetHour >= 12 && $greetHour < 18 ? 'Good afternoon' : 'Good evening') }}</span>
+                        <strong>{{ $user['name'] ?? 'Rider' }}</strong>
+                    </span>
+                    <a href="{{ route('rider.notifications') }}" class="rd-hero-bell" aria-label="Notifications{{ $riderUnreadNotifications > 0 ? ', ' . $riderUnreadNotifications . ' unread' : '' }}">
+                        <i class="bi bi-bell"></i>
+                        @if($riderUnreadNotifications > 0)
+                            <span>{{ $riderUnreadNotifications > 99 ? '99+' : $riderUnreadNotifications }}</span>
+                        @endif
+                    </a>
+                </div>
+                <div class="rd-hero-today">
+                    <span class="rd-hero-today-icon" aria-hidden="true"><i class="bi bi-truck"></i></span>
+                    @if($toDeliverCount > 0)
+                        <span><strong>{{ $toDeliverCount }} {{ $toDeliverCount === 1 ? 'parcel' : 'parcels' }} to deliver</strong>{{ $inTransitCount > 0 ? $inTransitCount . ' out for delivery now' : 'Pick them up at the Sorting Center' }}</span>
+                    @else
+                        <span><strong>No deliveries right now</strong>Parcels from the Sorting Center show up here.</span>
+                    @endif
+                </div>
+            </section>
+
+            <div class="rd-tiles">
+                <a href="{{ route('rider.deliveries') }}" class="rd-tile">
+                    <span class="rd-tile-icon is-orange" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
+                    <strong>{{ $toDeliverCount }}</strong>
+                    <span>To deliver</span>
+                </a>
+                <a href="{{ route('rider.pickups') }}" class="rd-tile">
+                    <span class="rd-tile-icon is-yellow" aria-hidden="true"><i class="bi bi-box-arrow-in-down"></i></span>
+                    <strong>{{ $pickupTotal }}</strong>
+                    <span>Pickups</span>
+                </a>
+                <a href="{{ route('rider.deliveries.history') }}" class="rd-tile">
+                    <span class="rd-tile-icon is-teal" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+                    <strong>{{ $deliveredCount }}</strong>
+                    <span>Delivered</span>
+                </a>
+            </div>
+
             <!-- =====================================================
                  WELCOME
             ===================================================== -->
@@ -217,7 +266,7 @@
             </section>
 
             @if(isset($codHeld) && $codHeld->isNotEmpty())
-                <div class="cod-remit">
+                <div class="cod-remit rd-cod">
                     <i class="bi bi-cash-stack"></i>
                     <div>
                         <strong>Cash to hand in: ₱{{ number_format((float) $codHeld->sum('total_amount'), 2) }}</strong>
@@ -238,7 +287,7 @@
                 </div>
             </div>
 
-            <a href="{{ route('rider.pickups') }}" class="cod-remit" style="text-decoration:none;color:inherit;margin-bottom:24px">
+            <a href="{{ route('rider.pickups') }}" class="cod-remit rd-pickup" style="text-decoration:none;color:inherit;margin-bottom:24px">
                 <i class="bi bi-box-arrow-in-down"></i>
                 <div>
                     <strong>
@@ -415,6 +464,22 @@
 
     @include('partials.pwa-register')
     @include('partials.confirm-modal')
+
+    <script>
+        // Phones: the greeting follows the phone's own clock and changes on its own.
+        (function () {
+            var greet = document.querySelector('[data-greet]');
+            if (!greet) return;
+
+            function setGreeting() {
+                var h = new Date().getHours();
+                greet.textContent = h >= 5 && h < 12 ? 'Good morning' : (h >= 12 && h < 18 ? 'Good afternoon' : 'Good evening');
+            }
+
+            setGreeting();
+            setInterval(setGreeting, 60000);
+        })();
+    </script>
 
 </body>
 
