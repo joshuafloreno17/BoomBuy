@@ -1251,7 +1251,7 @@ select {
     .shop-toast {
         top: auto;
         right: 16px;
-        bottom: calc(84px + env(safe-area-inset-bottom));
+        bottom: calc(96px + env(safe-area-inset-bottom));
     }
 }
 

@@ -1118,3 +1118,271 @@ a.again-top:hover .again-name {
     .cat-chip { transition: none; }
     .cat-chip:hover { transform: none; }
 }
+
+/* =========================
+   PHONES: "BOLD SUNRISE" HOME (760px and below)
+   Colours go through variables so a dark mode can swap them later.
+========================= */
+
+.dash {
+    --bb-surface: #fff;
+    --bb-shadow: 0 8px 22px -16px rgba(27, 26, 31, 0.35);
+    --bb-sub: #5e5759;
+}
+
+.dash-greet-time,
+.sale-strip {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    /* Greeting: time of day over the name */
+    .dash-greet-time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 2px;
+        color: var(--bb-sub);
+        font-size: 13px;
+        font-style: normal;
+        font-weight: 700;
+    }
+
+    .dash-greet-time i {
+        color: #f5a70b;
+        font-size: 14px;
+    }
+
+    .dash-greet-time.is-night i {
+        color: #6b6fd4;
+    }
+
+    .dash-greet-text strong {
+        font-size: 24px;
+    }
+
+    .dash-greet-avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 16px;
+        background: linear-gradient(150deg, #ff7a3d, var(--accent) 55%, #b8340d);
+        box-shadow: 0 8px 18px -10px rgba(232, 66, 15, 0.7);
+    }
+
+    .dash-section-head h2 {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 19px;
+    }
+
+    /* Hero banner: rounder, with depth */
+    .dash-hero {
+        border-radius: 22px;
+        box-shadow: 0 16px 30px -22px rgba(232, 66, 15, 0.6);
+    }
+
+    /* Categories: coloured circles in a side-scrolling row */
+    .cat-row {
+        display: flex;
+        gap: 6px;
+        margin: 0 -16px;
+        padding: 2px 16px 4px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+    }
+
+    .cat-row::-webkit-scrollbar {
+        display: none;
+    }
+
+    .cat-chip {
+        flex: 0 0 74px;
+        gap: 7px;
+        padding: 0;
+        border: 0;
+        background: none;
+        font-size: 11.5px;
+        line-height: 1.2;
+        scroll-snap-align: start;
+    }
+
+    .cat-chip:hover {
+        transform: none;
+        box-shadow: none;
+    }
+
+    .cat-chip-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        font-size: 23px;
+        transition: transform 0.15s ease;
+    }
+
+    .cat-chip:active .cat-chip-icon {
+        transform: scale(0.92);
+    }
+
+    .cat-chip:nth-child(5n+1) .cat-chip-icon { background: #ffe6db; color: #c2380f; }
+    .cat-chip:nth-child(5n+2) .cat-chip-icon { background: #e3f6f4; color: #0a6f66; }
+    .cat-chip:nth-child(5n+3) .cat-chip-icon { background: #fce7f3; color: #a3195b; }
+    .cat-chip:nth-child(5n+4) .cat-chip-icon { background: #e8efff; color: #2747a8; }
+    .cat-chip:nth-child(5n+5) .cat-chip-icon { background: #fff4d6; color: #7a4f00; }
+
+    /* On sale strip */
+    .sale-strip {
+        display: flex;
+    }
+
+    .sale-strip-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 9px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 14px;
+        display: grid;
+        place-items: center;
+    }
+
+    .sale-row {
+        display: flex;
+        gap: 12px;
+        margin: 0 -16px;
+        padding: 2px 16px 14px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+    }
+
+    .sale-row::-webkit-scrollbar {
+        display: none;
+    }
+
+    .sale-card {
+        flex: 0 0 142px;
+        display: flex;
+        flex-direction: column;
+        border-radius: 18px;
+        background: var(--bb-surface);
+        box-shadow: var(--bb-shadow);
+        overflow: hidden;
+        color: var(--ink);
+        scroll-snap-align: start;
+        transition: transform 0.15s ease;
+    }
+
+    .sale-card:active {
+        transform: scale(0.97);
+    }
+
+    .sale-media {
+        position: relative;
+        height: 112px;
+        background: #fff1ea;
+        color: #e2a08a;
+        font-size: 38px;
+        display: grid;
+        place-items: center;
+    }
+
+    .sale-media img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .sale-off {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: var(--accent);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 800;
+    }
+
+    .sale-body {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        padding: 10px 12px 12px;
+    }
+
+    .sale-name {
+        font-size: 13px;
+        font-weight: 700;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .sale-price {
+        font-family: var(--font-display);
+        font-size: 17px;
+        font-weight: 800;
+        color: var(--accent-dark);
+    }
+
+    .sale-was {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--bb-sub);
+    }
+
+    /* Product cards: soft shadow instead of a border, press feedback */
+    .p-card {
+        border: 0;
+        border-radius: 20px;
+        background: var(--bb-surface);
+        box-shadow: var(--bb-shadow);
+    }
+
+    .p-card:active {
+        transform: scale(0.98);
+    }
+
+    .p-media {
+        height: 150px;
+    }
+
+    .p-heart {
+        width: 44px;
+        height: 44px;
+    }
+
+    .p-bottom .btn {
+        min-width: 44px;
+        min-height: 44px;
+        border-radius: 14px;
+    }
+
+    .p-bottom .btn i {
+        font-size: 18px;
+    }
+
+    .discover-tab {
+        min-height: 36px;
+    }
+
+    /* Slim order line and buy-again cards match the new cards */
+    .order-strip,
+    .again-card {
+        border: 0;
+        box-shadow: var(--bb-shadow);
+    }
+}
+
+@media (max-width: 760px) and (prefers-reduced-motion: reduce) {
+    .sale-card,
+    .cat-chip-icon,
+    .p-card {
+        transition: none;
+    }
+}

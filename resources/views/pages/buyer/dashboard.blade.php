@@ -49,6 +49,12 @@
                     @endif
                 </span>
                 <div class="dash-greet-text">
+                    {{-- Follows the phone's clock (script below); the server's hour is only the first guess. --}}
+                    @php $greetHour = (int) now()->format('G'); @endphp
+                    <em class="dash-greet-time" data-greet-time>
+                        <i class="bi {{ $greetHour >= 5 && $greetHour < 18 ? 'bi-sun-fill' : 'bi-moon-stars-fill' }}" aria-hidden="true"></i>
+                        <span>{{ $greetHour >= 5 && $greetHour < 12 ? 'Good morning' : ($greetHour >= 12 && $greetHour < 18 ? 'Good afternoon' : 'Good evening') }}</span>
+                    </em>
                     <strong>Hi, {{ \Illuminate\Support\Str::of($panel['name'])->before(' ') }}!</strong>
                     <span>
                         @if($panel['active_orders'] > 0)
@@ -108,6 +114,35 @@
                     @endforeach
                 </div>
             </section>
+
+            {{-- ON SALE (phones): products with a discount, side-scrolling --}}
+            @if(count($onSale) > 0)
+                <section class="dash-section sale-strip" aria-labelledby="sale-title">
+                    <div class="dash-section-head">
+                        <h2 id="sale-title"><span class="sale-strip-icon" aria-hidden="true"><i class="bi bi-tag-fill"></i></span>On sale</h2>
+                        <a href="{{ route('products') }}" class="dash-link">See all →</a>
+                    </div>
+                    <div class="sale-row">
+                        @foreach($onSale as $product)
+                            <a href="{{ route('product.details', $product['slug']) }}" class="sale-card">
+                                <span class="sale-media">
+                                    @if($product['image'])
+                                        <img src="{{ $product['image'] }}" alt="" loading="lazy" onerror="this.remove()">
+                                    @endif
+                                    <i class="bi {{ $product['icon'] }}" aria-hidden="true"></i>
+                                    <span class="sale-off">-{{ $product['discount'] }}%</span>
+                                </span>
+                                <span class="sale-body">
+                                    <span class="sale-name">{{ $product['name'] }}</span>
+                                    <span class="sale-price">₱{{ number_format($product['price']) }}</span>
+                                    <s class="sale-was">₱{{ number_format($product['original_price']) }}</s>
+                                </span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
+
             {{-- DISCOVER --}}
             <section class="dash-section">
                 <div class="dash-section-head">
@@ -259,6 +294,22 @@
     <script>
     (function () {
         var token = document.querySelector('meta[name="csrf-token"]').content;
+
+        /* Greeting follows the phone's clock and changes on its own */
+        var greet = document.querySelector('[data-greet-time]');
+
+        function setGreeting() {
+            var h = new Date().getHours();
+            var day = h >= 5 && h < 18;
+            greet.querySelector('span').textContent = h >= 5 && h < 12 ? 'Good morning' : (day ? 'Good afternoon' : 'Good evening');
+            greet.querySelector('i').className = 'bi ' + (day ? 'bi-sun-fill' : 'bi-moon-stars-fill');
+            greet.classList.toggle('is-night', !day);
+        }
+
+        if (greet) {
+            setGreeting();
+            setInterval(setGreeting, 60000);
+        }
 
         /* Discover tabs */
         var tabs = Array.prototype.slice.call(document.querySelectorAll('[data-discover-tab]'));

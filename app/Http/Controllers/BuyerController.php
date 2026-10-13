@@ -160,11 +160,22 @@ class BuyerController extends Controller
             'budget' => $toCards($visible()->where('price', '<', 1000)->latest()->take(6)->get()),
         ];
 
+        // "On sale" strip on phones: products the seller has discounted, biggest discount first.
+        $onSale = $toCards(
+            $visible()
+                ->where('discount_percent', '>', 0)
+                ->whereNotNull('original_price')
+                ->orderByDesc('discount_percent')
+                ->latest()
+                ->take(8)
+                ->get()
+        );
+
         $panel = $this->accountPanelData($user);
 
         return view(
             'pages.buyer.dashboard',
-            compact('user', 'activeOrders', 'buyAgain', 'discover', 'panel')
+            compact('user', 'activeOrders', 'buyAgain', 'discover', 'onSale', 'panel')
         );
     }
 
