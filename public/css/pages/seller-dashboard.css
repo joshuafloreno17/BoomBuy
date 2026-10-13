@@ -668,72 +668,339 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     font-weight: 800;
 }
 
+/* =========================
+   PHONES: "BOLD SUNRISE" SELLER HOME (760px and below)
+   Phone-only parts (.pd-head-m, .pd-kpi-m, .pd-clear) stay hidden on bigger screens.
+   Selectors start with .pd because portal-dash.css loads after this file.
+   Colours go through variables so a dark mode can swap them later.
+========================= */
+
+.pd {
+    --sd-surface: #fff;
+    --sd-shadow: 0 8px 22px -16px rgba(27, 26, 31, 0.35);
+    --sd-sub: #5e5759;
+    --sd-hero: linear-gradient(150deg, #ff7a3d 0%, #e8420f 50%, #b8340d 100%);
+}
+
+.pd .pd-head-m,
+.pd .pd-kpi-m,
+.pd .pd-clear,
 .pd-week-empty {
     display: none;
 }
 
 @media (max-width: 760px) {
-    /* Greeting on top; Add product then the bell at the right under it.
-       (.pd prefix: portal-dash.css loads after this file and sets .pd-head to flex.) */
+    /* Header → orange hero card: avatar, greeting + shop, Add product, bell;
+       then today's sales and the rating. */
     .pd .pd-head {
+        position: relative;
+        overflow: hidden;
         display: grid;
-        grid-template-columns: minmax(0, 1fr) auto auto;
+        grid-template-columns: auto minmax(0, 1fr) auto auto;
         align-items: center;
-        gap: 10px;
+        gap: 14px 10px;
+        padding: 18px 16px;
+        border-radius: 24px;
+        background: var(--sd-hero);
+        color: #fff;
+        box-shadow: 0 16px 30px -22px rgba(232, 66, 15, 0.7);
+    }
+
+    .pd .pd-head::before {
+        content: "";
+        position: absolute;
+        right: -60px;
+        top: -50px;
+        width: 200px;
+        height: 200px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        pointer-events: none;
+    }
+
+    .pd .pd-head > * {
+        position: relative;
+    }
+
+    .pd .pd-head-m {
+        display: flex;
+    }
+
+    .pd .pd-head-avatar {
+        grid-column: 1;
+        grid-row: 1;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 14px;
+        background: #fff;
+        color: #c2380f;
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 19px;
+        font-weight: 800;
     }
 
     .pd .pd-head-text {
-        grid-column: 1 / -1;
-        grid-row: 1;
-    }
-
-    .pd .pd-head-add {
         grid-column: 2;
-        grid-row: 2;
-        white-space: nowrap;
+        grid-row: 1;
+        min-width: 0;
     }
 
-    .pd .pd-head > .pd-pop {
-        grid-column: 3;
-        grid-row: 2;
-    }
-
-    .pd-cod {
-        gap: 12px;
-        padding: 14px;
-        border-radius: 14px;
-    }
-
-    .pd-cod-go {
-        flex-basis: 100%;
-        padding-top: 10px;
-        border-top: 1px solid #f3e1a6;
-    }
-
-    /* No sales this week: one short line instead of an empty chart. */
-    .pd-week.is-empty .pd-bars,
-    .pd-week.is-empty .pd-bar-days {
+    .pd .pd-eyebrow,
+    .pd .pd-greet-sep {
         display: none;
     }
 
-    .pd-week.is-empty .pd-week-empty {
-        display: flex;
-        align-items: flex-start;
-        gap: 10px;
+    .pd .pd-title {
         margin: 0;
-        color: #5e5759;
-        font-size: 13.5px;
-        line-height: 1.45;
+        font-size: 19px;
     }
 
-    .pd-week-empty .bi {
-        color: #e8420f;
+    .pd .pd-greet {
+        display: block;
+        font-family: 'Figtree', sans-serif;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .pd .pd-shop {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .pd .pd-head-add {
+        grid-column: 3;
+        grid-row: 1;
+        height: 44px;
+        padding: 0 12px;
+        gap: 5px;
+        border: 0;
+        border-radius: 14px;
+        background: #fff;
+        color: #c2380f;
+        font-size: 13px;
+        font-weight: 800;
+    }
+
+    .pd .pd-head > .pd-pop {
+        grid-column: 4;
+        grid-row: 1;
+    }
+
+    .pd .pd-head .pd-icon-btn {
+        border: 0;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.2);
+        color: #fff;
+    }
+
+    .pd .pd-head .pd-icon-btn em {
+        border-color: #e8420f;
+        background: #1b1a1f;
+    }
+
+    .pd .pd-head-today {
+        grid-column: 1 / -1;
+        align-items: center;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.16);
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 1.35;
+    }
+
+    .pd .pd-head-today strong {
+        display: block;
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .pd .pd-head-today-icon {
+        width: 42px;
+        height: 42px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 13px;
+        background: rgba(255, 255, 255, 0.22);
+        font-size: 19px;
+    }
+
+    .pd .pd-head-rating {
+        grid-column: 1 / -1;
+        align-items: center;
+        gap: 7px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .pd .pd-head-rating i {
+        color: #ffd25e;
+    }
+
+    /* KPI tiles → three cards with coloured icons (Sales and Rating are in the hero) */
+    .pd .pd-kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .pd .pd-kpis .pd-kpi-sales,
+    .pd .pd-kpis .pd-kpi-rating,
+    .pd .pd-kpis .pd-kpi-note {
+        display: none;
+    }
+
+    .pd .pd-kpis .pd-kpi-m {
+        display: flex;
+    }
+
+    .pd .pd-kpis .pd-kpi {
+        gap: 6px;
+        padding: 12px;
+        border: 0;
+        border-radius: 18px;
+        background: var(--sd-surface);
+        box-shadow: var(--sd-shadow);
+        color: #1b1a1f;
+    }
+
+    .pd .pd-kpis .pd-kpi.is-accent {
+        background: var(--sd-hero);
+        color: #fff;
+    }
+
+    .pd .pd-kpis .pd-kpi-label {
+        order: 3;
+        font-size: 12px;
+        font-weight: 700;
+        opacity: 1;
+        color: var(--sd-sub);
+    }
+
+    .pd .pd-kpis .pd-kpi.is-accent .pd-kpi-label {
+        color: #fff;
+    }
+
+    .pd .pd-kpis .pd-kpi-value {
+        order: 2;
+        margin: 0;
+        font-size: 24px;
+        line-height: 1;
+    }
+
+    .pd .pd-kpi-icon {
+        order: 1;
+        width: 34px;
+        height: 34px;
+        display: grid;
+        place-items: center;
+        align-items: center;
+        justify-content: center;
+        border-radius: 11px;
+        font-size: 16px;
+    }
+
+    .pd .pd-kpi-icon.is-orange { background: #fff1ea; color: #c2380f; }
+    .pd .pd-kpi-icon.is-teal { background: #e3f6f4; color: #0a6f66; }
+    .pd .pd-kpi-icon.is-yellow { background: #fff4d6; color: #7a4f00; }
+
+    .pd .pd-kpi.is-accent .pd-kpi-icon {
+        background: rgba(255, 255, 255, 0.22);
+        color: #fff;
+    }
+
+    /* COD → dark card */
+    .pd .pd-cod {
+        gap: 12px;
+        padding: 16px;
+        border: 0;
+        border-radius: 20px;
+        background: #1b1a1f;
+        color: #fff;
+        box-shadow: 0 14px 30px -18px rgba(27, 26, 31, 0.6);
+    }
+
+    .pd .pd-cod > .bi {
+        width: 46px;
+        height: 46px;
+        border-radius: 15px;
+        background: #ffd25e;
+        color: #1b1a1f;
+    }
+
+    .pd .pd-cod-label {
+        color: #d6d0d3;
+    }
+
+    .pd .pd-cod-amount {
+        color: #fff;
+    }
+
+    .pd .pd-cod-sub {
+        color: #9fdccb;
+    }
+
+    .pd .pd-cod-go {
+        flex-basis: 100%;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+        color: #ffb08a;
+    }
+
+    /* Nothing waiting: "All caught up" replaces the list of zeros */
+    .pd .pd-clear {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 20px;
+        background: #e3f6f4;
+        color: #0a5c55;
+        font-size: 12.5px;
+        font-weight: 600;
+    }
+
+    .pd .pd-clear strong {
+        display: block;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .pd .pd-clear-icon {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        display: grid;
+        place-items: center;
+        border-radius: 50%;
+        background: #0d9488;
+        color: #fff;
         font-size: 18px;
     }
 
-    .pd-week-empty strong {
-        display: block;
-        color: #1b1a1f;
+    .pd .pd-todo-card.is-clear {
+        display: none;
+    }
+
+    /* No sales this week: the hero already says so, so the empty chart goes. */
+    .pd .pd-week.is-empty {
+        display: none;
+    }
+
+    /* Cards: soft shadow instead of a border */
+    .pd .pd-card {
+        border: 0;
+        border-radius: 20px;
+        background: var(--sd-surface);
+        box-shadow: var(--sd-shadow);
     }
 }
 

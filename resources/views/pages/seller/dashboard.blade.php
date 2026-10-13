@@ -28,8 +28,9 @@
     @include('partials.announcement-banner')
 
     @php
+        // First guess from the server; the script at the bottom switches it to the viewer's own clock.
         $hour = (int) now()->format('G');
-        $greeting = $hour < 12 ? 'Good morning' : ($hour < 18 ? 'Good afternoon' : 'Good evening');
+        $greeting = $hour >= 5 && $hour < 12 ? 'Good morning' : ($hour >= 12 && $hour < 18 ? 'Good afternoon' : 'Good evening');
         $weekMax = max(1, (float) $salesTrend->max('revenue'));
         $peso = fn ($v) => '₱' . number_format((float) $v, (float) $v == floor((float) $v) ? 0 : 2);
         $shortPeso = fn ($v) => $v >= 1000 ? '₱' . rtrim(rtrim(number_format($v / 1000, 1), '0'), '.') . 'k' : '₱' . number_format($v);
@@ -38,12 +39,15 @@
         $weekEmpty = $salesTrend->sum('revenue') <= 0;
         // Orange goes to the tile that needs the seller: orders to ship first, then today's sales; all calm when both are zero.
         $hotKpi = $pendingOrders > 0 ? 'ship' : ((float) ($deliveredToday->revenue ?? 0) > 0 ? 'sales' : null);
+        $allClear = $newOrders + $toDropOff + $pendingReturns + $lowStockCount === 0;
     @endphp
 
+    {{-- On phones this header becomes the orange hero card (the pd-head-m parts show only there). --}}
     <header class="pd-head">
+        <span class="pd-head-m pd-head-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shopName, 0, 1)) }}</span>
         <div class="pd-head-text">
             <p class="pd-eyebrow">{{ now()->format('l, F j') }}</p>
-            <h1 class="pd-title">{{ $greeting }}, {{ $shopName }}</h1>
+            <h1 class="pd-title"><span class="pd-greet" data-greet>{{ $greeting }}</span><span class="pd-greet-sep">, </span><span class="pd-shop">{{ $shopName }}</span></h1>
         </div>
         @include('partials.notification-popover', [
             'notes' => $recentNotes,
@@ -51,6 +55,19 @@
             'allUrl' => route('seller.notifications'),
         ])
         <a href="{{ route('seller.products.create') }}" class="pd-btn pd-btn-primary pd-head-add"><i class="bi bi-plus-lg"></i> Add product</a>
+
+        <div class="pd-head-m pd-head-today">
+            <span class="pd-head-today-icon" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
+            @if((float) ($deliveredToday->revenue ?? 0) > 0)
+                <span><strong>{{ $peso($deliveredToday->revenue) }} sales today</strong>{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered</span>
+            @else
+                <span><strong>No sales yet today</strong>Delivered orders show up here as they come in.</span>
+            @endif
+        </div>
+        <a href="{{ route('seller.reviews') }}" class="pd-head-m pd-head-rating">
+            <i class="bi bi-star-fill" aria-hidden="true"></i>
+            {{ $ratingCount > 0 ? number_format((float) $rating->average, 1) . ' shop rating · ' . $ratingCount . ' ' . ($ratingCount === 1 ? 'review' : 'reviews') : 'No reviews yet' }}
+        </a>
     </header>
 
     @if(session('success'))
@@ -62,22 +79,30 @@
     @endif
 
     <section class="pd-kpis" aria-label="Your shop at a glance">
-        <div @class(['pd-kpi', 'is-accent' => $hotKpi === 'sales'])>
+        {{-- Phones: Sales today and Shop rating live in the hero; Low stock takes a tile instead. --}}
+        <div @class(['pd-kpi', 'pd-kpi-sales', 'is-accent' => $hotKpi === 'sales'])>
             <span class="pd-kpi-label">Sales today</span>
             <span class="pd-kpi-value">{{ $peso($deliveredToday->revenue ?? 0) }}</span>
             <span class="pd-kpi-note">{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered</span>
         </div>
         <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" @class(['pd-kpi', 'is-accent' => $hotKpi === 'ship'])>
+            <span class="pd-kpi-m pd-kpi-icon is-orange" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
             <span class="pd-kpi-label">To ship</span>
             <span class="pd-kpi-value">{{ $pendingOrders }}</span>
             <span class="pd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : 'All caught up' }}</span>
         </a>
         <a href="#my-products" class="pd-kpi">
+            <span class="pd-kpi-m pd-kpi-icon is-teal" aria-hidden="true"><i class="bi bi-grid"></i></span>
             <span class="pd-kpi-label">Products live</span>
             <span class="pd-kpi-value">{{ $totalProducts }}</span>
             <span class="pd-kpi-note">{{ $lowStockCount > 0 ? $lowStockCount . ' low on stock' : 'Stock looks good' }}</span>
         </a>
-        <a href="{{ route('seller.reviews') }}" class="pd-kpi">
+        <a href="#my-products" class="pd-kpi pd-kpi-m pd-kpi-lowstock">
+            <span class="pd-kpi-icon is-yellow" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
+            <span class="pd-kpi-label">Low stock</span>
+            <span class="pd-kpi-value">{{ $lowStockCount }}</span>
+        </a>
+        <a href="{{ route('seller.reviews') }}" class="pd-kpi pd-kpi-rating">
             <span class="pd-kpi-label">Shop rating</span>
             <span class="pd-kpi-value">{{ $ratingCount > 0 ? number_format((float) $rating->average, 1) : '—' }}</span>
             <span class="pd-kpi-note">{{ $ratingCount > 0 ? 'from ' . $ratingCount . ' ' . ($ratingCount === 1 ? 'review' : 'reviews') : 'No reviews yet' }}</span>
@@ -105,6 +130,14 @@
         </a>
     @endif
 
+    {{-- Phones, nothing waiting: one calm line instead of a list of zeros. --}}
+    @if($allClear)
+        <div class="pd-clear">
+            <span class="pd-clear-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+            <span><strong>All caught up</strong>No new orders, pickups, returns or low stock.</span>
+        </div>
+    @endif
+
     <div class="pd-row">
         <section @class(['pd-card', 'pd-grow-2', 'pd-week', 'is-empty' => $weekEmpty]) aria-labelledby="week-title">
             <div class="pd-card-head">
@@ -128,7 +161,7 @@
             </div>
         </section>
 
-        <section class="pd-card pd-grow-1" aria-labelledby="todo-title">
+        <section @class(['pd-card', 'pd-grow-1', 'pd-todo-card', 'is-clear' => $allClear]) aria-labelledby="todo-title">
             <div class="pd-card-head">
                 <h2 class="pd-card-title" id="todo-title">Needs your action</h2>
             </div>
@@ -536,6 +569,20 @@
 
 
     <script>
+        // Greeting follows the viewer's own clock and changes on its own.
+        (function () {
+            var greet = document.querySelector('[data-greet]');
+            if (!greet) return;
+
+            function setGreeting() {
+                var h = new Date().getHours();
+                greet.textContent = h >= 5 && h < 12 ? 'Good morning' : (h >= 12 && h < 18 ? 'Good afternoon' : 'Good evening');
+            }
+
+            setGreeting();
+            setInterval(setGreeting, 60000);
+        })();
+
         // Instant filter over the seller's own product rows (all already on the page).
         (function () {
             var input = document.getElementById('productSearch');
