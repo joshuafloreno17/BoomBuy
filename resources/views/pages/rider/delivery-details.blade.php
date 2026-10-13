@@ -17,8 +17,53 @@
 <main class="main">
 <div class="details-wrap">
 
+{{-- PHONES: back + order header, the "Deliver to" card (call, chat, map) and the cash to collect.
+     They replace the title bar and the info card below, which stay on bigger screens. --}}
+@php
+    $mStatus = $delivery['status'] ?? 'Pending';
+    $mPhone = preg_replace('/[^0-9+]/', '', (string) ($delivery['phone'] ?? ''));
+    $mAddress = trim((string) ($delivery['address'] ?? ''));
+    $mItems = collect($delivery['items'] ?? [])->sum(fn ($item) => (int) ($item['quantity'] ?? 1));
+    $mCod = \App\Support\CodPolicy::isCod($delivery['payment_method'] ?? '');
+@endphp
+<div class="dd-m dd-head">
+    <a href="{{ route('rider.deliveries') }}" class="dd-back" aria-label="Back to My Deliveries"><i class="bi bi-chevron-left"></i></a>
+    <span class="dd-head-text">
+        <strong>Order #{{ $delivery['id'] ?? 'N/A' }}</strong>
+        <span>{{ $mItems }} {{ $mItems === 1 ? 'item' : 'items' }} · {{ $mCod ? 'COD' : ($delivery['payment'] ?? 'Paid') }}</span>
+    </span>
+    <x-status-pill :status="$mStatus" />
+</div>
 
-<div class="topbar">
+<section class="dd-m dd-to" aria-label="Deliver to">
+    <span class="dd-to-label">Deliver to</span>
+    <strong class="dd-to-name">{{ $delivery['buyer_name'] ?? 'Customer' }}</strong>
+    <span class="dd-to-address">{{ $mAddress !== '' ? $mAddress : 'No address provided' }}</span>
+    <span class="dd-to-actions">
+        @if($mPhone !== '')
+            <a href="tel:{{ $mPhone }}" class="is-main"><i class="bi bi-telephone-fill"></i> Call</a>
+        @endif
+        @if(!empty($delivery['buyer_id']))
+            <a href="{{ route('messages.thread', $delivery['buyer_id']) }}"><i class="bi bi-chat-dots-fill"></i> Chat</a>
+        @endif
+        @if($mAddress !== '')
+            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ urlencode($mAddress) }}" target="_blank" rel="noopener"><i class="bi bi-geo-alt-fill"></i> Map</a>
+        @endif
+    </span>
+</section>
+
+@if($mCod && in_array($mStatus, ['Assigned for Delivery', 'Out for Delivery'], true))
+    <div class="dd-m dd-cash">
+        <span class="dd-cash-icon" aria-hidden="true"><i class="bi bi-cash"></i></span>
+        <span>
+            <small>Collect in cash</small>
+            <strong>₱{{ number_format((float) ($delivery['total_amount'] ?? 0), 2) }}</strong>
+        </span>
+    </div>
+@endif
+
+
+<div class="topbar dd-desk">
 
     <div>
 
@@ -63,9 +108,9 @@
 @endif
 
 
-<!-- ORDER INFORMATION -->
+<!-- ORDER INFORMATION (phones: the Deliver to card above) -->
 
-<div class="card">
+<div class="card dd-desk">
 
     <div class="header">
 
@@ -286,6 +331,16 @@
 
                 @csrf
 
+                {{-- Phones: big buttons that pick the status in the menu below (hidden there). --}}
+                <div class="dd-m dd-choose" role="group" aria-label="New status">
+                    @if($currentStatus === 'Assigned for Delivery')
+                        <button type="button" class="is-go" data-pick-status="Out for Delivery"><i class="bi bi-truck"></i> Out for Delivery</button>
+                    @else
+                        <button type="button" class="is-fail" data-pick-status="Delivery Failed">Can’t deliver</button>
+                        <button type="button" class="is-done" data-pick-status="Delivered"><i class="bi bi-check-lg"></i> Delivered</button>
+                    @endif
+                </div>
+
                 <select name="status" id="deliveryStatusSelect" required onchange="document.getElementById('failureReasonBox').style.display = this.value === 'Delivery Failed' ? 'block' : 'none'; var proof = document.getElementById('proofBox'); proof.style.display = this.value === 'Delivered' ? 'block' : 'none'; document.getElementById('deliveryProof').required = this.value === 'Delivered';">
 
                     <option value="">
@@ -374,6 +429,30 @@
                             document.getElementById('failureDetails').required = false;
                         }
                     });
+
+                    // Phones: a big button picks the status, then the submit button says what it will do.
+                    (function () {
+                        var select = document.getElementById('deliveryStatusSelect');
+                        var form = select.form;
+                        var submit = form.querySelector('.update-btn');
+                        var labels = {
+                            'Out for Delivery': 'Confirm: Out for Delivery',
+                            'Delivered': 'Confirm delivered',
+                            'Delivery Failed': 'Confirm: can’t deliver'
+                        };
+
+                        form.querySelectorAll('[data-pick-status]').forEach(function (button) {
+                            button.addEventListener('click', function () {
+                                select.value = button.dataset.pickStatus;
+                                select.dispatchEvent(new Event('change'));
+                                form.querySelectorAll('[data-pick-status]').forEach(function (other) {
+                                    other.classList.toggle('is-picked', other === button);
+                                });
+                                form.classList.add('dd-picked');
+                                submit.innerHTML = '<i class="bi bi-check2-circle"></i> ' + labels[select.value];
+                            });
+                        });
+                    })();
                 </script>
 
                 <link rel="stylesheet" href="{{ vasset('css/views/rider-delivery-details-2.css') }}">
@@ -396,7 +475,7 @@
 
 <a
     href="{{ route('rider.deliveries') }}"
-    class="back-btn"
+    class="back-btn dd-desk"
 >
     ← Back to My Deliveries
 </a>
