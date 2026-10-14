@@ -36,7 +36,7 @@ class ParcelRoute
             return null;
         }
 
-        $open = fn (array $provinces) => SortingCenter::where('is_active', true)->whereIn('province', $provinces);
+        $open = fn (array $provinces) => SortingCenter::centers()->where('is_active', true)->whereIn('province', $provinces);
 
         if ($own = $open([$province])->orderBy('id')->first()) {
             return $own;
@@ -62,6 +62,39 @@ class ParcelRoute
         ));
 
         return $open($sameIsland)->orderBy('id')->first();
+    }
+
+    /**
+     * The open delivery branch of this center in the buyer's town, if there
+     * is one with staff to receive parcels. None → the center's own riders
+     * deliver from the center.
+     */
+    public static function branchFor(?int $centerId, ?string $province, ?string $city): ?SortingCenter
+    {
+        if (!$centerId || !$province || !$city) {
+            return null;
+        }
+
+        return SortingCenter::where('parent_id', $centerId)
+            ->where('is_active', true)
+            ->where('province', $province)
+            ->get()
+            ->filter(fn ($branch) => PhLocations::sameTown($branch->city_municipality, $city))
+            ->first(fn ($branch) => DB::table('users')->where('role', 'logistics')->where('status', 'Active')->where('sorting_center_id', $branch->id)->exists());
+    }
+
+    /** The branch, if it is open and has staff to take parcels in. */
+    public static function usableBranch($branchId): ?SortingCenter
+    {
+        if (empty($branchId)) {
+            return null;
+        }
+
+        $branch = SortingCenter::whereNotNull('parent_id')->where('is_active', true)->find($branchId);
+
+        return $branch && DB::table('users')->where('role', 'logistics')->where('status', 'Active')->where('sorting_center_id', $branch->id)->exists()
+            ? $branch
+            : null;
     }
 
     /** Days from order to arrival by distance: [earliest, latest]. */

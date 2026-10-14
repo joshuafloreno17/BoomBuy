@@ -198,9 +198,26 @@ trait BuildsBoomBuyData
         $this->actingAsUser($seller)->post(route("seller.order.pickup", $orderId), ["pickup_date" => now()->toDateString()])->assertSessionHas("success");
 
         $rider ??= $this->makeRider();
-        $pickups = app(\App\Services\PickupService::class);
-        $pickups->assignByCenter($orderId, $rider->id);
-        $pickups->pickedUp($rider->id, $orderId);
+        $this->riderAcceptsPickup($orderId, $rider);
+        app(\App\Services\PickupService::class)->pickedUp($rider->id, $orderId);
+    }
+
+    /**
+     * The rider covers the seller's town and accepts the waiting pickup (a
+     * seller without a town is placed in Quezon City first).
+     */
+    protected function riderAcceptsPickup(int $orderId, User $rider): void
+    {
+        $sellerId = (int) DB::table('order_items')->where('order_id', $orderId)->value('seller_id');
+        $town = \App\Support\ParcelRoute::sellerLocation($sellerId);
+
+        if (!$town['province'] || !$town['city']) {
+            $town = ['province' => 'Metro Manila (NCR)', 'city' => 'Quezon City'];
+            DB::table('users')->where('id', $sellerId)->update(['province' => $town['province'], 'city_municipality' => $town['city']]);
+        }
+
+        \App\Models\RiderArea::firstOrCreate(['rider_id' => $rider->id, 'province' => $town['province'], 'city_municipality' => $town['city']]);
+        app(\App\Services\PickupService::class)->accept($rider->id, $orderId);
     }
 
     /** Sorts a parcel that is waiting at the center that delivers it (the step before assigning a rider). */

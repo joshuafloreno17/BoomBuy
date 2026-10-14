@@ -207,14 +207,19 @@ class LogisticsController extends Controller
             'Ready for Pickup' => 'Waiting at the seller for a pickup rider',
             'Dropped Off' => 'Dropped off by the seller — confirm arrival',
             'Picked Up' => 'Picked up by a rider — confirm arrival',
+            'Received at Branch' => 'At the seller\'s branch — send to the Sorting Center',
+            'To Sorting Center' => 'On the truck from a branch — confirm arrival',
             'At Sorting Center' => 'At a Sorting Center',
             'In Transit' => 'Between Sorting Centers',
-            'Sorted' => 'Sorted by area — assign a rider',
+            'Sorted' => 'Sorted by area — assign a rider, or send to a branch',
+            'To Branch' => 'On the truck to a delivery branch',
+            'At Branch' => 'At a delivery branch — assign a rider',
             'Assigned for Delivery' => 'Delivery rider assigned',
             'Out for Delivery' => 'With the rider, on the way to the buyer',
             'Delivery Failed' => 'Needs a reschedule or return',
             'Ready to Collect' => 'Waiting at a center for the buyer to pick up',
             'Returning' => 'Going back to the seller\'s Sorting Center',
+            'Returning to Branch' => 'Going back to the branch in the seller\'s town',
             'Return Ready' => 'Waiting for the seller to collect a return',
         ];
 
@@ -229,6 +234,8 @@ class LogisticsController extends Controller
                 $query->where(fn ($q) => $q->where('origin_center_id', $myCenter->id)
                     ->orWhere('destination_center_id', $myCenter->id)
                     ->orWhere('current_center_id', $myCenter->id)
+                    ->orWhere('branch_id', $myCenter->id)
+                    ->orWhere('origin_branch_id', $myCenter->id)
                     ->orWhere(fn ($w) => $w->whereNull('origin_center_id')->whereNull('destination_center_id')));
             }
         };
@@ -300,7 +307,7 @@ class LogisticsController extends Controller
                 'icon' => 'bi-envelope-paper-fill',
                 'label' => 'Confirm arrivals',
                 'hint' => 'Parcels riders picked up from sellers, and parcels sent here from other centers.',
-                'count' => count($queues['awaitingConfirmation']) + count($queues['incoming']),
+                'count' => count($queues['awaitingConfirmation']) + count($queues['incoming']) + count($queues['incomingToBranch']),
                 'url' => route('logistics.parcels') . '#awaiting-confirmation',
             ],
             [
@@ -318,18 +325,25 @@ class LogisticsController extends Controller
                 'url' => route('logistics.parcels') . '#to-sort',
             ],
             [
+                'icon' => 'bi-box-arrow-up-right',
+                'label' => 'Send to Sorting Center',
+                'hint' => 'Parcels riders brought to this branch — truck them to the Sorting Center.',
+                'count' => count($queues['toCenter']),
+                'url' => route('logistics.parcels') . '#to-center',
+            ],
+            [
+                'icon' => 'bi-truck',
+                'label' => 'Send to branches',
+                'hint' => 'Sorted parcels for a town with a BoomBuy branch — truck them there.',
+                'count' => count($queues['toBranch']),
+                'url' => route('logistics.parcels') . '#to-branch',
+            ],
+            [
                 'icon' => 'bi-inbox-fill',
                 'label' => 'Assign riders',
                 'hint' => 'Sorted parcels — give each to the rider who covers its area.',
                 'count' => count($queues['awaitingAssignment']),
                 'url' => route('logistics.parcels') . '#awaiting-assignment',
-            ],
-            [
-                'icon' => 'bi-box-arrow-in-down',
-                'label' => 'Assign pickup riders',
-                'hint' => 'Sellers\' parcels ready for pickup that no rider accepted yet.',
-                'count' => count($queues['pickupsNeedRider']),
-                'url' => route('logistics.parcels') . '#pickups-need-rider',
             ],
             [
                 'icon' => 'bi-exclamation-triangle-fill',
@@ -539,7 +553,8 @@ class LogisticsController extends Controller
             ->join('users', 'users.id', '=', 'rider_applications.user_id')
             ->where(fn ($visible) => $visible->where('rider_applications.created_by', $user['id'])
                 ->orWhere(fn ($applied) => $applied->whereNull('rider_applications.created_by')
-                    ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))))
+                    ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))
+                    ->when($this->branchTown($user), fn ($q, $town) => $this->riderInTown($q, $town))))
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . $search . '%';
 
@@ -679,6 +694,12 @@ class LogisticsController extends Controller
             return back()->with('error', $riderProvinces === [] ? self::NOT_ASSIGNED : 'You can only assign areas in ' . implode(', ', $riderProvinces) . '.');
         }
 
+        $town = $this->branchTown($user);
+
+        if ($town && !\App\Support\PhLocations::sameTown($cityMunicipality, $town['city'])) {
+            return back()->with('error', 'Your branch covers ' . $town['city'] . ' only, so its riders get areas there.');
+        }
+
         RiderArea::firstOrCreate([
             'rider_id' => $riderId,
             'province' => $province,
@@ -714,12 +735,6 @@ class LogisticsController extends Controller
         return $this->parcelAction(fn (?int $myCenter) => $centers->sort((int) $id, $myCenter));
     }
 
-    /** Give a seller's waiting pickup to a rider. */
-    public function assignPickup($id, \App\Services\PickupService $pickups)
-    {
-        return $this->parcelAction(fn (?int $myCenter) => $pickups->assignByCenter((int) $id, request("rider_id"), $myCenter));
-    }
-
     public function parcels()
     {
         $user = requireUserRole('logistics');
@@ -739,7 +754,9 @@ class LogisticsController extends Controller
             'incoming' => $incoming,
             'toSort' => $toSort,
             'awaitingAssignment' => $awaitingAssignment,
-            'pickupsNeedRider' => $pickupsNeedRider,
+            'toBranch' => $toBranch,
+            'incomingToBranch' => $incomingToBranch,
+            'toCenter' => $toCenter,
             'failedDeliveries' => $failedDeliveries,
             'onTheRoad' => $onTheRoad,
             'readyToCollect' => $readyToCollect,
@@ -749,6 +766,8 @@ class LogisticsController extends Controller
         ] = $this->parcelQueues($myCenter, $search, $unassigned);
 
         $centerNames = SortingCenter::pluck('name', 'id');
+        $isBranch = (bool) $myCenter?->isBranch();
+        $isHeadOffice = !$myCenter && !$unassigned;
 
         // Cash on Delivery money riders collected for this center's
         // deliveries and haven't handed in yet.
@@ -773,7 +792,9 @@ class LogisticsController extends Controller
                 ->merge($incoming->pluck('id'))
                 ->merge($toSort->pluck('id'))
                 ->merge($awaitingAssignment->pluck('id'))
-                ->merge($pickupsNeedRider->pluck('id'))
+                ->merge($toBranch->pluck('id'))
+                ->merge($incomingToBranch->pluck('id'))
+                ->merge($toCenter->pluck('id'))
                 ->merge($failedDeliveries->pluck('id'))
                 ->merge($onTheRoad->pluck('id'))
                 ->merge($readyToCollect->pluck('id'))
@@ -807,7 +828,10 @@ class LogisticsController extends Controller
         // center's region. (No riders there yet → everyone, so a parcel is
         // never stuck.) Head office picks from all.
         if ($myCenter) {
-            $ownRiderIds = $riderAreas->whereIn('province', $myCenter->provinces)->pluck('rider_id')->unique();
+            $ownRiderIds = $riderAreas->whereIn('province', $myCenter->provinces)
+                ->filter(fn ($area) => !$myCenter->isBranch() || \App\Support\PhLocations::sameTown($area->city_municipality, $myCenter->city_municipality))
+                ->pluck('rider_id')
+                ->unique();
 
             if ($ownRiderIds->isNotEmpty()) {
                 $activeRiders = $activeRiders->whereIn('id', $ownRiderIds)->values();
@@ -816,21 +840,13 @@ class LogisticsController extends Controller
         }
 
         // For each parcel that needs a rider, suggest riders covering the
-        // buyer's town, then the rest of the buyer's province. (For a pickup:
-        // the seller's town.)
+        // buyer's town, then the rest of the buyer's province.
         $suggestedRidersByOrder = [];
 
-        foreach ($toSort->merge($awaitingAssignment)->merge($failedDeliveries)->merge($pickupsNeedRider) as $order) {
-
-            if ($order->status === 'Ready for Pickup') {
-                $sellerId = (int) DB::table('order_items')->where('order_id', $order->id)->value('seller_id');
-                $town = \App\Support\ParcelRoute::sellerLocation($sellerId);
-                $town = $town['province'] ? $town : null;
-            } else {
-                $town = $order->shipping_province
-                    ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
-                    : \App\Support\PhLocations::locate($order->shipping_address);
-            }
+        foreach ($toSort->merge($awaitingAssignment)->merge($failedDeliveries) as $order) {
+            $town = $order->shipping_province
+                ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+                : \App\Support\PhLocations::locate($order->shipping_address);
 
             $matches = $riderAreas
                 ->filter(fn ($area) => $town && $area->province === $town['province'])
@@ -858,7 +874,11 @@ class LogisticsController extends Controller
                 'incoming',
                 'toSort',
                 'awaitingAssignment',
-                'pickupsNeedRider',
+                'toBranch',
+                'incomingToBranch',
+                'toCenter',
+                'isBranch',
+                'isHeadOffice',
                 'failedDeliveries',
                 'onTheRoad',
                 'elsewhere',
@@ -911,6 +931,31 @@ class LogisticsController extends Controller
     public function confirmParcelArrival($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmArrival((int) $id, $myCenter));
+    }
+
+    public function sendParcelToCenter($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->sendToCenter((int) $id, $myCenter));
+    }
+
+    public function sendAllToCenter(SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->sendAllToCenter($myCenter));
+    }
+
+    public function dispatchParcelToBranch($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->dispatchToBranch((int) $id, $myCenter));
+    }
+
+    public function dispatchAllToBranch(SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->dispatchAllToBranch((int) request('branch_id'), $myCenter));
+    }
+
+    public function confirmParcelAtBranch($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->confirmAtBranch((int) $id, $myCenter));
     }
 
     public function dispatchAllParcels(SortingCenterService $center)
@@ -1041,9 +1086,11 @@ class LogisticsController extends Controller
             if ($none) {
                 $query->whereRaw('1 = 0');
             } elseif ($myCenter) {
-                $query->where(fn ($q) => $q->where('destination_center_id', $myCenter->id)
-                    ->orWhere(fn ($w) => $w->whereNull('destination_center_id')
-                        ->where(fn ($o) => $o->where('origin_center_id', $myCenter->id)->orWhereNull('origin_center_id'))));
+                // A parcel for a branch's town is the branch's, not the center's.
+                $query->where(fn ($q) => $q->where('branch_id', $myCenter->id)
+                    ->orWhere(fn ($c) => $c->whereNull('branch_id')->where(fn ($d) => $d->where('destination_center_id', $myCenter->id)
+                        ->orWhere(fn ($w) => $w->whereNull('destination_center_id')
+                            ->where(fn ($o) => $o->where('origin_center_id', $myCenter->id)->orWhereNull('origin_center_id'))))));
             }
         };
 
@@ -1052,10 +1099,20 @@ class LogisticsController extends Controller
 
             // Dropped off by the seller at this center (or, on older orders,
             // brought in by a pickup rider) — confirm it arrived.
+            // With a branch in the seller's town: the rider brings it there,
+            // and the branch's truck brings it here.
             'awaitingConfirmation' => $matching()
-                ->whereIn('status', ['Dropped Off', 'Picked Up'])
-                ->where($mine('origin_center_id'))
+                ->where(fn ($q) => $q->where(fn ($direct) => $direct->whereIn('status', ['Dropped Off', 'Picked Up'])->whereNull('origin_branch_id')->where($mine('origin_center_id')))
+                    ->orWhere(fn ($truck) => $truck->where('status', 'To Sorting Center')->where($mine('origin_center_id')))
+                    ->orWhere(fn ($rider) => $rider->where('status', 'Picked Up')->whereNotNull('origin_branch_id')->where($mine('origin_branch_id'))))
                 ->orderBy('updated_at')
+                ->get(),
+
+            // (at the seller's branch) collected from riders, to send to the center
+            'toCenter' => $matching()
+                ->where('status', 'Received at Branch')
+                ->where($mine('current_center_id'))
+                ->orderBy('origin_branch_received_at')
                 ->get(),
 
             // Received here, but the buyer lives in another center's town.
@@ -1086,19 +1143,28 @@ class LogisticsController extends Controller
                 ->orderBy('sorting_center_received_at')
                 ->get(),
 
-            // …then give it to the rider who covers that area.
-            'awaitingAssignment' => $matching()
+            // …then, for a town with a branch, truck it to that branch…
+            'toBranch' => $matching()
                 ->where('status', 'Sorted')
+                ->whereNotNull('branch_id')
                 ->where($mine('current_center_id'))
+                ->orderBy('branch_id')
                 ->orderBy('updated_at')
                 ->get(),
 
-            // Sellers' parcels ready for pickup that no rider accepted yet.
-            'pickupsNeedRider' => $matching()
-                ->where('status', 'Ready for Pickup')
-                ->whereNull('rider_id')
-                ->where($mine('origin_center_id'))
-                ->orderBy('pickup_date')
+            // (at the branch: parcels on the truck from the center)
+            'incomingToBranch' => $matching()
+                ->where('status', 'To Branch')
+                ->where($mine('branch_id'))
+                ->orderBy('branch_dispatched_at')
+                ->get(),
+
+            // …and give it to the rider who covers that area.
+            'awaitingAssignment' => $matching()
+                ->where(fn ($q) => $q->where(fn ($s) => $s->where('status', 'Sorted')->whereNull('branch_id'))
+                    ->orWhere('status', 'At Branch'))
+                ->where($mine('current_center_id'))
+                ->orderBy('updated_at')
                 ->get(),
 
             'failedDeliveries' => $matching()
@@ -1124,8 +1190,8 @@ class LogisticsController extends Controller
 
             // Returned parcels on their way back here, to this center's sellers.
             'incomingReturns' => $matching()
-                ->where('status', 'Returning')
-                ->where($mine('origin_center_id'))
+                ->where(fn ($q) => $q->where(fn ($center) => $center->where('status', 'Returning')->where($mine('origin_center_id')))
+                    ->orWhere(fn ($branch) => $branch->where('status', 'Returning to Branch')->where($mine('origin_branch_id'))))
                 ->orderBy('dispatched_at')
                 ->get(),
 
@@ -1207,6 +1273,31 @@ class LogisticsController extends Controller
         return $this->staffCenter($user)?->provinces;
     }
 
+    /**
+     * A branch's staff look after the riders of the branch's town only.
+     *
+     * @return array{province: string, city: string}|null
+     */
+    private function branchTown(array $user): ?array
+    {
+        $center = $this->staffCenter($user);
+
+        return $center && $center->isBranch() ? ['province' => $center->province, 'city' => $center->city_municipality] : null;
+    }
+
+    /** A rider (or applicant) living in, or covering, this town. */
+    private function riderInTown($query, array $town, string $userIdColumn = 'users.id'): void
+    {
+        $query->where(fn ($q) => $q->whereExists(fn ($home) => $home->select(DB::raw(1))->from('users as rider_home')
+                ->whereColumn('rider_home.id', $userIdColumn)
+                ->where('rider_home.province', $town['province'])
+                ->where('rider_home.city_municipality', $town['city']))
+            ->orWhereExists(fn ($areas) => $areas->select(DB::raw(1))->from('rider_areas')
+                ->whereColumn('rider_areas.rider_id', $userIdColumn)
+                ->where('rider_areas.province', $town['province'])
+                ->where('rider_areas.city_municipality', $town['city'])));
+    }
+
     /** A rider (or applicant) living in, or covering an area in, one of these provinces. */
     private function riderInProvinces($query, array $provinces, string $userIdColumn = 'users.id'): void
     {
@@ -1240,6 +1331,10 @@ class LogisticsController extends Controller
 
         $query = DB::table('users')->where('users.id', $riderUserId);
         $this->riderInProvinces($query, $provinces);
+
+        if ($town = $this->branchTown($user)) {
+            $this->riderInTown($query, $town);
+        }
 
         return $query->exists();
     }

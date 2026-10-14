@@ -28,7 +28,7 @@ use Illuminate\Support\Facades\DB;
 class SortingCenterService
 {
     /** Parcels sitting at a center that the admin may send back when they're stuck there. */
-    public const ADMIN_RETURNABLE = ['At Sorting Center', 'Sorted', 'Ready to Collect', 'Delivery Failed'];
+    public const ADMIN_RETURNABLE = ['At Sorting Center', 'Sorted', 'At Branch', 'Ready to Collect', 'Delivery Failed'];
 
     /** After this many failed attempts a parcel goes back to the seller. */
     public const MAX_DELIVERY_ATTEMPTS = 2;
@@ -42,8 +42,13 @@ class SortingCenterService
     {
         $order = $this->parcel($orderId);
 
-        if (!in_array($order->status, ['Dropped Off', 'Picked Up'], true)) {
+        if (!in_array($order->status, ['Dropped Off', 'Picked Up', 'To Sorting Center'], true)) {
             throw new ActionFailed('This parcel is not awaiting Sorting Center confirmation.');
+        }
+
+        // Picked up in a town with a branch: the rider brings it there first.
+        if ($order->status === 'Picked Up' && !empty($order->origin_branch_id)) {
+            return $this->receiveAtSellerBranch($order, $centerId);
         }
 
         $this->mustBeAt($order->origin_center_id, $centerId, 'was dropped off at another Sorting Center');
@@ -314,8 +319,14 @@ class SortingCenterService
 
         $area = self::deliveryArea($order);
 
+        // The buyer's town has a branch: it goes there by truck, and the
+        // branch's riders deliver it.
+        $town = self::deliveryTown($order);
+        $branch = ParcelRoute::branchFor($order->current_center_id ? (int) $order->current_center_id : null, $town['province'] ?? null, $town['city'] ?? null);
+
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'At Sorting Center')->update([
             'status' => 'Sorted',
+            'branch_id' => $branch?->id,
             'updated_at' => now(),
         ]);
 
@@ -323,19 +334,221 @@ class SortingCenterService
             throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
         }
 
-        OrderTimeline::log($orderId, 'Sorted', 'Sorted for delivery to ' . ($area ?: 'your area'), null, $order->current_center_id ? (int) $order->current_center_id : null);
+        OrderTimeline::log($orderId, 'Sorted', 'Sorted for delivery to ' . ($area ?: 'your area'), $branch ? 'Goes to ' . $branch->name : null, $order->current_center_id ? (int) $order->current_center_id : null);
 
-        return 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . '. Next: assign the rider for that area.';
+        return $branch
+            ? 'Parcel #' . $orderId . ' sorted to ' . $branch->name . '. Next: dispatch it to that branch.'
+            : 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . '. Next: assign the rider for that area.';
+    }
+
+    /**
+     * The branch in the seller's town got the parcel from the pickup rider.
+     * It collects the day's parcels there, then sends them to its center.
+     *
+     * @throws ActionFailed
+     */
+    private function receiveAtSellerBranch(object $order, ?int $centerId): string
+    {
+        $orderId = (int) $order->id;
+        $branchId = (int) $order->origin_branch_id;
+
+        $this->mustBeAt($branchId, $centerId, 'is being brought to another branch');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Picked Up')->update([
+            'status' => 'Received at Branch',
+            'current_center_id' => $branchId,
+            'origin_branch_received_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        $branchName = ParcelRoute::centerName($branchId);
+        $centerName = ParcelRoute::centerName($order->origin_center_id ? (int) $order->origin_center_id : null) ?? 'the Sorting Center';
+
+        OrderTimeline::log($orderId, 'Received at Branch', 'Received at ' . $branchName, null, $branchId);
+        notifyOrderSellers($orderId, 'Parcel at Branch', 'Order #' . $orderId . ' was received at ' . $branchName . '.');
+        createNotification((int) $order->buyer_id, 'Parcel at Branch', 'Your order #' . $orderId . ' was received at ' . $branchName . ' and goes to ' . $centerName . ' next.', 'order', $orderId);
+
+        return 'Parcel #' . $orderId . ' received. Next: send it to ' . $centerName . '.';
+    }
+
+    /**
+     * Truck a parcel the seller's branch collected to its Sorting Center.
+     *
+     * @throws ActionFailed
+     */
+    public function sendToCenter(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'Received at Branch') {
+            throw new ActionFailed('This parcel is not waiting at a branch to go to the Sorting Center.');
+        }
+
+        $this->mustBeAt($order->current_center_id, $centerId, 'is at another branch');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Received at Branch')->update([
+            'status' => 'To Sorting Center',
+            'sent_to_center_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        $centerName = ParcelRoute::centerName($order->origin_center_id ? (int) $order->origin_center_id : null) ?? 'the Sorting Center';
+        $branchName = ParcelRoute::centerName($order->current_center_id ? (int) $order->current_center_id : null) ?? 'the branch';
+
+        OrderTimeline::log($orderId, 'To Sorting Center', 'On its way to ' . $centerName, 'Trucked from ' . $branchName, $order->current_center_id ? (int) $order->current_center_id : null);
+        ParcelRoute::notifyCenter($order->origin_center_id ? (int) $order->origin_center_id : null, 'Incoming Parcel', 'Order #' . $orderId . ' is on the truck from ' . $branchName . '. Confirm when it arrives.', 'parcel', $orderId);
+
+        return 'Parcel #' . $orderId . ' sent to ' . $centerName . '.';
+    }
+
+    /**
+     * Put every parcel this branch collected on the truck to the Sorting Center.
+     *
+     * @throws ActionFailed
+     */
+    public function sendAllToCenter(?int $centerId = null): string
+    {
+        $ids = DB::table('orders')
+            ->where('status', 'Received at Branch')
+            ->when($centerId, fn ($q) => $q->where('current_center_id', $centerId))
+            ->orderBy('id')
+            ->pluck('id');
+
+        if ($ids->isEmpty()) {
+            throw new ActionFailed('There is nothing here waiting to go to the Sorting Center.');
+        }
+
+        foreach ($ids as $id) {
+            $this->sendToCenter((int) $id, $centerId);
+        }
+
+        return $ids->count() . ' parcel(s) sent to the Sorting Center (order #' . $ids->implode(', #') . ').';
+    }
+
+    /**
+     * Truck a sorted parcel to the branch in the buyer's town.
+     *
+     * @throws ActionFailed
+     */
+    public function dispatchToBranch(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'Sorted' || empty($order->branch_id)) {
+            throw new ActionFailed('This parcel is not waiting to go to a branch.');
+        }
+
+        $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Sorted')->update([
+            'status' => 'To Branch',
+            'branch_dispatched_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        $branchName = ParcelRoute::centerName((int) $order->branch_id);
+        $fromName = ParcelRoute::centerName($order->current_center_id ? (int) $order->current_center_id : null) ?? 'the Sorting Center';
+
+        OrderTimeline::log($orderId, 'To Branch', 'On its way to ' . $branchName, 'Trucked from ' . $fromName, $order->current_center_id ? (int) $order->current_center_id : null);
+        createNotification((int) $order->buyer_id, 'Parcel Near You', 'Your order #' . $orderId . ' is on its way to ' . $branchName . ', the BoomBuy branch in your town.', 'order', $orderId);
+        ParcelRoute::notifyCenter((int) $order->branch_id, 'Incoming Parcel', 'Order #' . $orderId . ' is on the truck from ' . $fromName . '. Confirm when it arrives.', 'parcel', $orderId);
+
+        return 'Parcel #' . $orderId . ' dispatched to ' . $branchName . '.';
+    }
+
+    /**
+     * Put every sorted parcel here for one branch on the same truck.
+     *
+     * @throws ActionFailed
+     */
+    public function dispatchAllToBranch(int $branchId, ?int $centerId = null): string
+    {
+        $ids = DB::table('orders')
+            ->where('status', 'Sorted')
+            ->where('branch_id', $branchId)
+            ->when($centerId, fn ($q) => $q->where('current_center_id', $centerId))
+            ->orderBy('id')
+            ->pluck('id');
+
+        if ($ids->isEmpty()) {
+            throw new ActionFailed('There is nothing here waiting to go to that branch.');
+        }
+
+        foreach ($ids as $id) {
+            $this->dispatchToBranch((int) $id, $centerId);
+        }
+
+        return $ids->count() . ' parcel(s) dispatched to ' . ParcelRoute::centerName($branchId) . ' (order #' . $ids->implode(', #') . ').';
+    }
+
+    /**
+     * The branch got a parcel off the truck. Its riders deliver it from here.
+     *
+     * @throws ActionFailed
+     */
+    public function confirmAtBranch(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'To Branch') {
+            throw new ActionFailed('This parcel is not on its way to a branch.');
+        }
+
+        $this->mustBeAt($order->branch_id, $centerId, 'is headed to another branch');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'To Branch')->update([
+            'status' => 'At Branch',
+            'current_center_id' => $order->branch_id,
+            'at_branch_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        $branchName = ParcelRoute::centerName((int) $order->branch_id);
+
+        OrderTimeline::log($orderId, 'At Branch', 'Arrived at ' . $branchName, null, (int) $order->branch_id);
+        createNotification((int) $order->buyer_id, 'Parcel at Your Branch', 'Your order #' . $orderId . ' arrived at ' . $branchName . ' and will be given to a rider for delivery shortly.', 'order', $orderId);
+
+        return 'Parcel #' . $orderId . ' is here. Next: assign the rider for its area.';
     }
 
     /** The parcel's delivery area: "Santa Cruz, Laguna", read from its address. */
     public static function deliveryArea(object $order): ?string
     {
-        $town = !empty($order->shipping_province)
-            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
-            : \App\Support\PhLocations::locate((string) $order->shipping_address);
+        $town = self::deliveryTown($order);
 
         return $town ? trim(($town['city'] ? $town['city'] . ', ' : '') . $town['province'], ', ') : null;
+    }
+
+    /** @return array{province: string, city: ?string}|null the buyer's town */
+    public static function deliveryTown(object $order): ?array
+    {
+        return !empty($order->shipping_province)
+            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
+            : \App\Support\PhLocations::locate((string) $order->shipping_address);
+    }
+
+    /** Where the delivery riders of this parcel work from: its branch, else the buyer's center. */
+    public static function deliveringCenterId(object $order): ?int
+    {
+        $id = ($order->branch_id ?? null) ?: ($order->destination_center_id ?: $order->current_center_id);
+
+        return $id ? (int) $id : null;
     }
 
     /**
@@ -349,11 +562,18 @@ class SortingCenterService
 
         $order = $this->parcel($orderId);
 
-        if (!in_array($order->status, ['At Sorting Center', 'Sorted'], true)) {
+        if (!in_array($order->status, ['At Sorting Center', 'Sorted', 'To Branch', 'At Branch'], true)) {
             throw new ActionFailed('This parcel is not awaiting assignment.');
         }
 
-        if ($this->needsTransfer($order)) {
+        // A parcel for a branch's town is delivered by that branch's riders.
+        if (!empty($order->branch_id) && $order->status !== 'At Branch') {
+            throw new ActionFailed($order->status === 'Sorted'
+                ? 'Dispatch this parcel to ' . ParcelRoute::centerName((int) $order->branch_id) . ' first — that branch\'s riders deliver it.'
+                : 'This parcel is still on its way to ' . ParcelRoute::centerName((int) $order->branch_id) . '. The branch assigns its rider once it arrives.');
+        }
+
+        if ($order->status !== 'At Branch' && $this->needsTransfer($order)) {
             throw new ActionFailed('Dispatch this parcel to ' . ParcelRoute::centerName((int) $order->destination_center_id) . ' first — that center delivers it to the buyer.');
         }
 
@@ -361,19 +581,20 @@ class SortingCenterService
             throw new ActionFailed('The buyer chose to pick this parcel up at the Sorting Center — no rider needed.');
         }
 
-        if ($order->status !== 'Sorted') {
+        if (!in_array($order->status, ['Sorted', 'At Branch'], true)) {
             throw new ActionFailed('Sort this parcel by its delivery area first.');
         }
 
         $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
 
         $rider = $this->riderOrFail($riderId);
-        $this->handTo($orderId, 'Sorted', (int) $rider->id);
+        $this->handTo($orderId, $order->status, (int) $rider->id);
+        $pickupPlace = ParcelRoute::centerName($order->current_center_id ? (int) $order->current_center_id : null) ?? 'the Sorting Center';
 
         createNotification(
             (int) $rider->id,
             'New Delivery Assignment',
-            'You have been assigned to deliver Order #' . $orderId . '. Please pick it up from the Sorting Center.',
+            'You have been assigned to deliver Order #' . $orderId . '. Please pick it up from ' . $pickupPlace . '.',
             'delivery',
             $orderId
         );
@@ -408,7 +629,7 @@ class SortingCenterService
             throw new ActionFailed('This parcel was already confirmed back at the Sorting Center.');
         }
 
-        $here = $order->destination_center_id ?: $order->current_center_id;
+        $here = self::deliveringCenterId($order);
         $this->mustBeAt($here, $centerId, 'is handled by another Sorting Center');
         $here = $here ?: $centerId;
 
@@ -456,7 +677,7 @@ class SortingCenterService
 
         $order = $this->parcel($orderId);
 
-        $this->mustBeAt($order->destination_center_id ?: $order->current_center_id, $centerId, 'is handled by another Sorting Center');
+        $this->mustBeAt(self::deliveringCenterId($order), $centerId, 'is handled by another Sorting Center');
 
         if ($order->status !== 'Delivery Failed') {
             throw new ActionFailed('This parcel is not marked as a failed delivery.');
@@ -522,18 +743,34 @@ class SortingCenterService
 
         $here = $here ?: $centerId;
         $origin = $order->origin_center_id;
-        $travels = $origin && $here && (int) $origin !== (int) $here;
 
-        $updated = DB::table('orders')->where('id', $orderId)->where('status', $order->status)->update($travels ? [
-            'status' => 'Returning',
-            'current_center_id' => null,
-            'dispatched_at' => now(),
-            'updated_at' => now(),
-        ] : [
-            'status' => 'Return Ready',
-            'current_center_id' => $here ?: $origin,
-            'updated_at' => now(),
-        ]);
+        // Back the way it came: to the seller's center, then on to the
+        // branch in the seller's town (when it has one), where the seller
+        // collects it.
+        $sellerBranch = ParcelRoute::usableBranch($order->origin_branch_id ?? null);
+        $atSellerBranch = $sellerBranch && $here && (int) $here === $sellerBranch->id;
+        $travels = !$atSellerBranch && $origin && $here && (int) $origin !== (int) $here;
+        $toBranch = !$atSellerBranch && !$travels && $sellerBranch;
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', $order->status)->update(match (true) {
+            $travels => [
+                'status' => 'Returning',
+                'current_center_id' => null,
+                'dispatched_at' => now(),
+                'updated_at' => now(),
+            ],
+            (bool) $toBranch => [
+                'status' => 'Returning to Branch',
+                'current_center_id' => null,
+                'dispatched_at' => now(),
+                'updated_at' => now(),
+            ],
+            default => [
+                'status' => 'Return Ready',
+                'current_center_id' => $here ?: $origin,
+                'updated_at' => now(),
+            ],
+        });
 
         if (!$updated) {
             throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
@@ -549,8 +786,8 @@ class SortingCenterService
 
         OrderTimeline::log(
             $orderId,
-            $travels ? 'Returning' : 'Return Ready',
-            $travels ? 'Going back to the seller via ' . $originName : 'Returned — waiting for the seller to collect it',
+            $travels ? 'Returning' : ($toBranch ? 'Returning to Branch' : 'Return Ready'),
+            $travels ? 'Going back to the seller via ' . $originName : ($toBranch ? 'Going back to the seller via ' . $sellerBranch->name : 'Returned — waiting for the seller to collect it'),
             $why,
             $here ? (int) $here : null
         );
@@ -563,15 +800,17 @@ class SortingCenterService
             $orderId
         );
 
-        if ($travels) {
-            ParcelRoute::notifyCenter((int) $origin, 'Incoming Return', 'Order #' . $orderId . ' is coming back to you for its seller (' . strtolower($why) . '). Confirm when it arrives.', 'parcel', $orderId);
+        if ($travels || $toBranch) {
+            ParcelRoute::notifyCenter($travels ? (int) $origin : $sellerBranch->id, 'Incoming Return', 'Order #' . $orderId . ' is coming back to you for its seller (' . strtolower($why) . '). Confirm when it arrives.', 'parcel', $orderId);
         } else {
             $this->tellSellerToCollect($orderId, $here ? (int) $here : null, $why);
         }
 
-        return $travels
-            ? 'Parcel #' . $orderId . ' sent back to ' . $originName . ' for the seller.'
-            : 'Parcel #' . $orderId . ' is waiting here for the seller to collect it.';
+        return match (true) {
+            $travels => 'Parcel #' . $orderId . ' sent back to ' . $originName . ' for the seller.',
+            (bool) $toBranch => 'Parcel #' . $orderId . ' sent to ' . $sellerBranch->name . ' for the seller.',
+            default => 'Parcel #' . $orderId . ' is waiting here for the seller to collect it.',
+        };
     }
 
     /**
@@ -583,11 +822,36 @@ class SortingCenterService
     {
         $order = $this->parcel($orderId);
 
+        if ($order->status === 'Returning to Branch') {
+            return $this->returnAtSellerBranch($order, $centerId);
+        }
+
         if ($order->status !== 'Returning') {
             throw new ActionFailed('This parcel is not on its way back.');
         }
 
         $this->mustBeAt($order->origin_center_id, $centerId, 'is going back to another Sorting Center');
+
+        // The seller's town has a branch: the center sends it on there.
+        if ($sellerBranch = ParcelRoute::usableBranch($order->origin_branch_id ?? null)) {
+            $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Returning')->update([
+                'status' => 'Returning to Branch',
+                'current_center_id' => null,
+                'dispatched_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            if (!$updated) {
+                throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+            }
+
+            $hereName = ParcelRoute::centerName((int) $order->origin_center_id);
+
+            OrderTimeline::log($orderId, 'Returning to Branch', 'Back at ' . $hereName . ' — sent on to ' . $sellerBranch->name, null, (int) $order->origin_center_id);
+            ParcelRoute::notifyCenter($sellerBranch->id, 'Incoming Return', 'Order #' . $orderId . ' is coming back to you for its seller. Confirm when it arrives.', 'parcel', $orderId);
+
+            return 'Returned parcel #' . $orderId . ' is here and was sent on to ' . $sellerBranch->name . ', where the seller collects it.';
+        }
 
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Returning')->update([
             'status' => 'Return Ready',
@@ -603,6 +867,35 @@ class SortingCenterService
 
         OrderTimeline::log($orderId, 'Return Ready', 'Back at ' . $hereName . ' — waiting for the seller', null, (int) $order->origin_center_id);
         $this->tellSellerToCollect($orderId, (int) $order->origin_center_id, null);
+
+        return 'Returned parcel #' . $orderId . ' is here. The seller has been told to collect it.';
+    }
+
+    /**
+     * A returned parcel reached the branch in the seller's town: it waits
+     * there for the seller.
+     *
+     * @throws ActionFailed
+     */
+    private function returnAtSellerBranch(object $order, ?int $centerId): string
+    {
+        $orderId = (int) $order->id;
+        $branchId = (int) $order->origin_branch_id;
+
+        $this->mustBeAt($branchId, $centerId, 'is going back to another branch');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Returning to Branch')->update([
+            'status' => 'Return Ready',
+            'current_center_id' => $branchId,
+            'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        OrderTimeline::log($orderId, 'Return Ready', 'Back at ' . ParcelRoute::centerName($branchId) . ' — waiting for the seller', null, $branchId);
+        $this->tellSellerToCollect($orderId, $branchId, null);
 
         return 'Returned parcel #' . $orderId . ' is here. The seller has been told to collect it.';
     }
@@ -654,7 +947,7 @@ class SortingCenterService
             throw new ActionFailed('This rider has no Cash on Delivery money to hand in here.');
         }
 
-        $receivingCenter = $centerId ?: ($orders->first()->destination_center_id ?: $orders->first()->current_center_id);
+        $receivingCenter = $centerId ?: self::deliveringCenterId($orders->first());
 
         DB::table('orders')
             ->whereIn('id', $orders->pluck('id'))
@@ -680,11 +973,12 @@ class SortingCenterService
             ->where('delivery_rider_id', $riderId)
             ->whereNotNull('cod_collected_at')
             ->whereNull('cod_remitted_at')
-            ->when($centerId, fn ($q) => $q->where(fn ($w) => $w->where('destination_center_id', $centerId)
-                ->orWhere('current_center_id', $centerId)
-                ->orWhere(fn ($n) => $n->whereNull('destination_center_id')->where('origin_center_id', $centerId))))
+            ->when($centerId, fn ($q) => $q->where(fn ($w) => $w->where('branch_id', $centerId)
+                ->orWhere(fn ($c) => $c->whereNull('branch_id')->where(fn ($o) => $o->where('destination_center_id', $centerId)
+                    ->orWhere('current_center_id', $centerId)
+                    ->orWhere(fn ($n) => $n->whereNull('destination_center_id')->where('origin_center_id', $centerId))))))
             ->orderBy('cod_collected_at')
-            ->get(['id', 'total_amount', 'destination_center_id', 'current_center_id', 'cod_collected_at']);
+            ->get(['id', 'total_amount', 'branch_id', 'destination_center_id', 'current_center_id', 'cod_collected_at']);
     }
 
     /** A rider the Sorting Center may hand parcels to: active, with an approved application. */

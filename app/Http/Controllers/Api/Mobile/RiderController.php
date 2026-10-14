@@ -261,7 +261,8 @@ class RiderController extends MobileController
         ];
 
         if ($full) {
-            $center = $order->destination_center_id ? SortingCenter::find($order->destination_center_id) : null;
+            $centerId = \App\Services\SortingCenterService::deliveringCenterId($order);
+            $center = $centerId ? SortingCenter::find($centerId) : null;
 
             $json['items'] = $items->map(fn ($i) => [
                 'name' => $i->product_name,

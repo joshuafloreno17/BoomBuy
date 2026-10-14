@@ -34,9 +34,9 @@ class SellerController extends MobileController
     private const TABS = [
         'to_process' => ['Pending', 'Confirmed'],
         'to_ship' => ['Preparing', 'Ready for Pickup', 'Pickup Assigned'],
-        'shipped' => ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed'],
+        'shipped' => ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed'],
         'completed' => ['Delivered', 'Completed'],
-        'cancelled' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller'],
+        'cancelled' => ['Cancelled', 'Returning', 'Returning to Branch', 'Return Ready', 'Returned to Seller'],
     ];
 
     public function dashboard(Request $request): JsonResponse

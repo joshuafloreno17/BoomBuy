@@ -311,3 +311,13 @@
 .sc-table tr[hidden] {
     display: none;
 }
+
+.sc-warn {
+    color: #b45309;
+    font-style: normal;
+    font-size: 0.85em;
+}
+
+#branches .sc-table-wrap {
+    margin-top: 18px;
+}

@@ -56,11 +56,19 @@
 
             {{-- JUMP LINKS --}}
             <nav class="section-jump" aria-label="Parcel sections">
-                <a href="#pickups-need-rider" class="{{ count($pickupsNeedRider) ? 'has-work' : '' }}">Pickups <span>{{ count($pickupsNeedRider) }}</span></a>
                 <a href="#awaiting-confirmation" class="{{ count($awaitingConfirmation) ? 'has-work' : '' }}">Arrivals <span>{{ count($awaitingConfirmation) }}</span></a>
+                @if ($isBranch || $isHeadOffice)
+                    <a href="#to-center" class="{{ count($toCenter) ? 'has-work' : '' }}">To center <span>{{ count($toCenter) }}</span></a>
+                @endif
                 <a href="#to-dispatch" class="{{ count($toDispatch) ? 'has-work' : '' }}">To dispatch <span>{{ count($toDispatch) }}</span></a>
                 <a href="#incoming" class="{{ count($incoming) ? 'has-work' : '' }}">Incoming <span>{{ count($incoming) }}</span></a>
                 <a href="#to-sort" class="{{ count($toSort) ? 'has-work' : '' }}">To sort <span>{{ count($toSort) }}</span></a>
+                @unless ($isBranch)
+                    <a href="#to-branch" class="{{ count($toBranch) ? 'has-work' : '' }}">To branches <span>{{ count($toBranch) }}</span></a>
+                @endunless
+                @if ($isBranch || $isHeadOffice)
+                    <a href="#from-center" class="{{ count($incomingToBranch) ? 'has-work' : '' }}">From center <span>{{ count($incomingToBranch) }}</span></a>
+                @endif
                 <a href="#awaiting-assignment" class="{{ count($awaitingAssignment) ? 'has-work' : '' }}">Assign rider <span>{{ count($awaitingAssignment) }}</span></a>
                 <a href="#failed-deliveries" class="{{ count($failedDeliveries) ? 'has-work' : '' }}">Failed <span>{{ count($failedDeliveries) }}</span></a>
                 <a href="#on-the-road">On the road <span>{{ count($onTheRoad) }}</span></a>
@@ -111,7 +119,7 @@
                     @include('pages.logistics.partials.parcel-route', ['order' => $order])
 
                     <div class="parcel-meta">
-                        <i class="bi bi-clock"></i> {{ $order->status === 'Dropped Off' ? 'Dropped off by the seller' : 'Picked up by a rider' }} {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
+                        <i class="bi bi-clock"></i> {{ match ($order->status) { 'Dropped Off' => 'Dropped off by the seller', 'To Sorting Center' => 'Sent by ' . ($centerNames[$order->current_center_id] ?? 'a branch'), default => 'Picked up by a rider' } }} {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
                     </div>
 
                     <div class="app-actions">
@@ -128,10 +136,54 @@
                 <div class="empty">
                     <div class="empty-icon"><i class="bi bi-box-seam-fill"></i></div>
                     <h3>{{ $search !== '' ? 'No matches here' : 'No Drop-offs Waiting' }}</h3>
-                    <p>Parcels sellers drop off here will appear until you confirm them.</p>
+                    <p>Parcels pickup riders bring here (or a branch's truck brings in) appear until you confirm them.</p>
                 </div>
 
             @endforelse
+
+            {{-- AT THE SELLER'S BRANCH: TRUCK IT TO THE SORTING CENTER --}}
+            @if ($isBranch || $isHeadOffice)
+                <h2 class="section-heading" id="to-center"><i class="bi bi-box-arrow-up-right"></i> To the Sorting Center ({{ count($toCenter) }})</h2>
+
+                @if (count($toCenter) > 1 && $isBranch)
+                    <div class="dispatch-batch">
+                        <form method="POST" action="{{ route('logistics.parcels.to-center-all') }}" data-confirm="Send all {{ count($toCenter) }} parcel(s) to {{ $centerNames[$toCenter->first()->origin_center_id] ?? 'the Sorting Center' }}?" data-confirm-ok="Send All">
+                            @csrf
+                            <button type="submit" class="approve-btn"><i class="bi bi-truck"></i> Send all {{ count($toCenter) }} to {{ $centerNames[$toCenter->first()->origin_center_id] ?? 'the Sorting Center' }}</button>
+                        </form>
+                    </div>
+                @endif
+
+                @forelse ($toCenter as $order)
+                    <div class="app-card">
+                        <div class="app-card-top">
+                            <div>
+                                <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
+                                <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
+                            </div>
+                            <x-status-pill :status="$order->status" />
+                        </div>
+                        <div class="parcel-meta">
+                            <i class="bi bi-clock"></i> Received {{ $order->origin_branch_received_at ? \Carbon\Carbon::parse($order->origin_branch_received_at)->diffForHumans() : '' }}
+                            @if ($isHeadOffice)
+                                at {{ $centerNames[$order->current_center_id] ?? 'a branch' }}
+                            @endif
+                        </div>
+                        <div class="app-actions">
+                            <form method="POST" action="{{ route('logistics.parcels.to-center', $order->id) }}">
+                                @csrf
+                                <button type="submit" class="approve-btn"><i class="bi bi-truck"></i> Send to {{ $centerNames[$order->origin_center_id] ?? 'the Sorting Center' }}</button>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty">
+                        <div class="empty-icon"><i class="bi bi-box-arrow-up-right"></i></div>
+                        <h3>{{ $search !== '' ? 'No matches here' : 'Nothing to Send' }}</h3>
+                        <p>Parcels pickup riders bring to this branch wait here for the truck to the Sorting Center.</p>
+                    </div>
+                @endforelse
+            @endif
 
             {{-- 2. RECEIVED HERE, BUYER IS IN ANOTHER TOWN --}}
             <h2 class="section-heading" id="to-dispatch"><i class="bi bi-send-fill"></i> To Dispatch ({{ count($toDispatch) }})</h2>
@@ -222,49 +274,6 @@
 
             @endforelse
 
-            {{-- PICKUPS NO RIDER ACCEPTED --}}
-            <h2 class="section-heading" id="pickups-need-rider"><i class="bi bi-box-arrow-in-down"></i> Pickups Needing a Rider ({{ count($pickupsNeedRider) }})</h2>
-
-            @forelse ($pickupsNeedRider as $order)
-                @php $suggested = $suggestedRidersByOrder[$order->id] ?? collect(); @endphp
-                <div class="app-card">
-                    <div class="app-card-top">
-                        <div>
-                            <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
-                            <div class="app-email">Pickup day: {{ $order->pickup_date ? \Carbon\Carbon::parse($order->pickup_date)->format('D, M j') : 'any day' }}</div>
-                        </div>
-                        <x-status-pill status="Ready for Pickup" />
-                    </div>
-                    <div class="parcel-meta">
-                        <i class="bi bi-shop"></i> Waiting at the seller since {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
-                        @if ($suggested->isNotEmpty())
-                            · <i class="bi bi-geo-alt-fill"></i> Covers the seller's area: {{ $suggested->pluck('name')->join(', ') }}
-                        @endif
-                    </div>
-                    <div class="app-actions">
-                        <form class="assign-form" method="POST" action="{{ route('logistics.parcels.assign-pickup', $order->id) }}">
-                            @csrf
-                            <select name="rider_id" required>
-                                <option value="">Select Rider</option>
-                                @foreach ($suggested as $rider)
-                                    <option value="{{ $rider->id }}">{{ $rider->name }} (area match)</option>
-                                @endforeach
-                                @foreach ($activeRiders->whereNotIn('id', $suggested->pluck('id')) as $rider)
-                                    <option value="{{ $rider->id }}">{{ $rider->name }}</option>
-                                @endforeach
-                            </select>
-                            <button type="submit" class="approve-btn">Assign Pickup</button>
-                        </form>
-                    </div>
-                </div>
-            @empty
-                <div class="empty">
-                    <div class="empty-icon"><i class="bi bi-box-arrow-in-down"></i></div>
-                    <h3>{{ $search !== '' ? 'No matches here' : 'No Pickups Waiting' }}</h3>
-                    <p>Parcels sellers marked ready for pickup that no rider accepted will appear here.</p>
-                </div>
-            @endforelse
-
             {{-- TO SORT --}}
             <h2 class="section-heading" id="to-sort"><i class="bi bi-diagram-3-fill"></i> To Sort ({{ count($toSort) }})</h2>
 
@@ -299,6 +308,88 @@
                 </div>
             @endforelse
 
+            {{-- SORTED FOR A TOWN WITH A BRANCH: TRUCK IT THERE --}}
+            @unless ($isBranch)
+                <h2 class="section-heading" id="to-branch"><i class="bi bi-truck"></i> To Branches ({{ count($toBranch) }})</h2>
+
+                {{-- One truck per branch when several parcels go the same way. --}}
+                @if (count($toBranch) > 1)
+                    <div class="dispatch-batch">
+                        @foreach ($toBranch->groupBy('branch_id') as $branchId => $group)
+                            <form method="POST" action="{{ route('logistics.parcels.to-branch-all') }}" data-confirm="Send all {{ count($group) }} parcel(s) to {{ $centerNames[$branchId] ?? 'that branch' }}?" data-confirm-ok="Send All">
+                                @csrf
+                                <input type="hidden" name="branch_id" value="{{ $branchId }}">
+                                <button type="submit" class="approve-btn"><i class="bi bi-truck"></i> Send all {{ count($group) }} to {{ $centerNames[$branchId] ?? 'branch' }}</button>
+                            </form>
+                        @endforeach
+                    </div>
+                @endif
+
+                @forelse ($toBranch as $order)
+                    <div class="app-card">
+                        <div class="app-card-top">
+                            <div>
+                                <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
+                                <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
+                            </div>
+                            <x-status-pill :status="$order->status" />
+                        </div>
+                        <div class="parcel-meta">
+                            <i class="bi bi-geo-alt-fill"></i> Delivery area: <strong>{{ \App\Services\SortingCenterService::deliveryArea($order) ?? 'Unknown' }}</strong>
+                            · <i class="bi bi-shop-window"></i> Branch: <strong>{{ $centerNames[$order->branch_id] ?? 'Branch' }}</strong>
+                        </div>
+                        <div class="app-actions">
+                            <form method="POST" action="{{ route('logistics.parcels.to-branch', $order->id) }}">
+                                @csrf
+                                <button type="submit" class="approve-btn"><i class="bi bi-truck"></i> Send to {{ $centerNames[$order->branch_id] ?? 'branch' }}</button>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty">
+                        <div class="empty-icon"><i class="bi bi-truck"></i></div>
+                        <h3>{{ $search !== '' ? 'No matches here' : 'Nothing for the Branches' }}</h3>
+                        <p>Sorted parcels for a town with a BoomBuy branch wait here for the truck. That branch's riders deliver them.</p>
+                    </div>
+                @endforelse
+            @endunless
+
+            {{-- AT A BRANCH: ON THE TRUCK FROM THE CENTER --}}
+            @if ($isBranch || $isHeadOffice)
+                <h2 class="section-heading" id="from-center"><i class="bi bi-truck"></i> From the Sorting Center ({{ count($incomingToBranch) }})</h2>
+
+                @forelse ($incomingToBranch as $order)
+                    <div class="app-card">
+                        <div class="app-card-top">
+                            <div>
+                                <div class="app-name">Order #{{ $order->id }} · {{ \App\Support\Waybill::number((int) $order->id) }}</div>
+                                <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
+                            </div>
+                            <x-status-pill :status="$order->status" />
+                        </div>
+                        <div class="parcel-meta">
+                            <i class="bi bi-clock"></i> Sent {{ $order->branch_dispatched_at ? \Carbon\Carbon::parse($order->branch_dispatched_at)->diffForHumans() : '' }}
+                            from {{ $centerNames[$order->destination_center_id] ?? 'the Sorting Center' }}
+                            @if ($isHeadOffice)
+                                · <i class="bi bi-shop-window"></i> To {{ $centerNames[$order->branch_id] ?? 'branch' }}
+                            @endif
+                        </div>
+                        <div class="app-actions">
+                            <form method="POST" action="{{ route('logistics.parcels.at-branch', $order->id) }}">
+                                @csrf
+                                <button type="submit" class="approve-btn"><i class="bi bi-check-circle-fill"></i> Confirm Arrival</button>
+                            </form>
+                        </div>
+                    </div>
+                @empty
+                    <div class="empty">
+                        <div class="empty-icon"><i class="bi bi-truck"></i></div>
+                        <h3>{{ $search !== '' ? 'No matches here' : 'Nothing on the Truck' }}</h3>
+                        <p>Parcels the Sorting Center sends to this branch appear here until you confirm they arrived.</p>
+                    </div>
+                @endforelse
+            @endif
+
             {{-- 2. AWAITING ASSIGNMENT --}}
             <h2 class="section-heading" id="awaiting-assignment"><i class="bi bi-inbox-fill"></i> Awaiting Assignment ({{ count($awaitingAssignment) }})</h2>
 
@@ -315,15 +406,16 @@
                             <div class="app-name">Order #{{ $order->id }}</div>
                             <div class="app-email">{{ $order->shipping_name }} — {{ $order->shipping_address }}</div>
                         </div>
-                        <x-status-pill status="Sorted" />
+                        <x-status-pill :status="$order->status" />
                     </div>
 
                     @include('pages.logistics.partials.parcel-route', ['order' => $order])
 
+                    @php $arrivedAt = $order->status === 'At Branch' ? $order->at_branch_at : $order->sorting_center_received_at; @endphp
                     <div class="parcel-meta">
                         <i class="bi bi-diagram-3-fill"></i> Area: <strong>{{ \App\Services\SortingCenterService::deliveryArea($order) ?? 'Unknown' }}</strong>
                         · <i class="bi bi-clock"></i>
-                        Arrived {{ $order->sorting_center_received_at ? \Carbon\Carbon::parse($order->sorting_center_received_at)->diffForHumans() : 'recently' }}
+                        Arrived {{ $arrivedAt ? \Carbon\Carbon::parse($arrivedAt)->diffForHumans() : 'recently' }}
                         @if ($suggested->isNotEmpty())
                             · <i class="bi bi-geo-alt-fill"></i> Area match: {{ $suggested->pluck('name')->join(', ') }}
                         @endif

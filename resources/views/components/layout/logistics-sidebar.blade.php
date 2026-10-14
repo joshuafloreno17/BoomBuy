@@ -26,6 +26,19 @@
                 <span>Incoming Parcels</span>
             </a>
 
+            @php
+                // Sorting Center staff and head office open branches; a branch's staff don't.
+                $sideStaff = \Illuminate\Support\Facades\DB::table('users')->where('id', $user['id'] ?? 0)->first(['sorting_center_id', 'is_head_office']);
+                $sideCenter = $sideStaff && $sideStaff->sorting_center_id ? \App\Models\SortingCenter::find($sideStaff->sorting_center_id) : null;
+                $managesBranches = $sideCenter ? !$sideCenter->isBranch() : (bool) ($sideStaff->is_head_office ?? false);
+            @endphp
+            @if ($managesBranches)
+                <a href="{{ route('logistics.branches') }}" class="logistics-sidebar-link {{ $active === 'branches' ? 'active' : '' }}">
+                    <span class="sidebar-icon"><i class="bi bi-shop-window"></i></span>
+                    <span>Branches</span>
+                </a>
+            @endif
+
             <a href="{{ route('logistics.profile') }}" class="logistics-sidebar-link {{ $active === 'profile' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-person-fill"></i></span>
                 <span>My Profile</span>

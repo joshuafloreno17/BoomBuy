@@ -47,7 +47,8 @@ class RiderRelease
             ->whereIn('id', $held->pluck('id'))
             ->whereIn('status', ['Assigned for Delivery', 'Out for Delivery'])
             ->update([
-                'status' => 'Sorted',
+                // Back where it waits for a rider: its branch, else the center.
+                'status' => DB::raw("CASE WHEN branch_id IS NULL THEN 'Sorted' ELSE 'At Branch' END"),
                 'delivery_rider_id' => null,
                 'updated_at' => now(),
             ]);

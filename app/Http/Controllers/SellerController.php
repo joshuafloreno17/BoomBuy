@@ -1009,9 +1009,9 @@ class SellerController extends Controller
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Confirmed']],
         'to-ship' => ['label' => 'To Ship', 'statuses' => ['Preparing', 'Ready for Pickup', 'Pickup Assigned']],
-        'shipped' => ['label' => 'Shipped', 'statuses' => ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed']],
+        'shipped' => ['label' => 'Shipped', 'statuses' => ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect', 'Delivery Failed']],
         'completed' => ['label' => 'Delivered / Completed', 'statuses' => ['Delivered', 'Completed']],
-        'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
+        'cancelled' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Returning to Branch', 'Return Ready', 'Returned to Seller']],
         'returns' => ['label' => 'Return Requests', 'statuses' => null],
     ];
     public function orders()

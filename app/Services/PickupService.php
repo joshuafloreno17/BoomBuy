@@ -65,10 +65,14 @@ class PickupService
 
         $route = app(SellerOrderService::class)->ensureRoute($order, $sellerId);
 
+        // The branch in the seller's town collects the parcels picked up there.
+        $branch = ParcelRoute::branchFor($route['origin_center_id'], $seller['province'], $seller['city']);
+
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Preparing')->update([
             'status' => 'Ready for Pickup',
             'pickup_date' => $date,
             'rider_id' => null,
+            'origin_branch_id' => $branch?->id,
             'updated_at' => now(),
         ]);
 
@@ -86,11 +90,9 @@ class PickupService
             createNotification((int) $riderId, 'New Pickup Request', 'Order #' . $orderId . ' is ready for pickup in ' . $town . ' (' . $day . '). Accept it under Items for Pickup.', 'pickup', $orderId);
         }
 
-        // No rider covers this town: the seller's Sorting Center assigns one.
+        // No rider covers this town yet: it waits until a rider there accepts it.
         if ($riders->isEmpty()) {
-            ParcelRoute::notifyCenter($route['origin_center_id'], 'Pickup Needs a Rider', 'Order #' . $orderId . ' in ' . ($town ?: 'a seller\'s town') . ' is ready for pickup (' . $day . '), but no rider covers that area. Assign one on the Parcels page.', 'parcel', $orderId);
-
-            return 'Marked ready for pickup (' . $day . '). Your Sorting Center will assign a rider — you\'ll be told who is coming.';
+            return 'Marked ready for pickup (' . $day . '). No rider covers your area yet — riders there will see it once one does.';
         }
 
         return 'Marked ready for pickup (' . $day . '). Riders in your area were notified — you\'ll be told when one accepts.';
@@ -213,53 +215,19 @@ class PickupService
             throw new ActionFailed('This pickup was just updated. Please refresh and try again.');
         }
 
-        $centerId = $order->origin_center_id ? (int) $order->origin_center_id : null;
+        // Where the rider brings it: the branch in the seller's town, else the center.
+        $toBranch = !empty($order->origin_branch_id);
+        $centerId = $toBranch ? (int) $order->origin_branch_id : ($order->origin_center_id ? (int) $order->origin_center_id : null);
         $center = ParcelRoute::centerName($centerId) ?? 'the Sorting Center';
 
         OrderTimeline::log($orderId, 'Picked Up', $title, 'On the way to ' . $center, $centerId);
         createNotification((int) $order->buyer_id, 'Order Shipped', 'Your order #' . $orderId . ' was picked up from the seller and is on its way to ' . $center . '.', 'order', $orderId);
         notifyOrderSellers($orderId, 'Order Picked Up', 'The rider picked up order #' . $orderId . ' and is bringing it to ' . $center . '.');
-        createNotification((int) $order->rider_id, 'Bring Parcel to Sorting Center', 'Order #' . $orderId . ' is picked up. Bring it to ' . $center . '.', 'pickup', $orderId);
-        ParcelRoute::notifyCenter($centerId, 'Parcel Picked Up', 'A rider picked up order #' . $orderId . ' from the seller. Confirm once it arrives at your Sorting Center.', 'parcel', $orderId);
+        createNotification((int) $order->rider_id, $toBranch ? 'Bring Parcel to Branch' : 'Bring Parcel to Sorting Center', 'Order #' . $orderId . ' is picked up. Bring it to ' . $center . '.', 'pickup', $orderId);
+        ParcelRoute::notifyCenter($centerId, 'Parcel Picked Up', 'A rider picked up order #' . $orderId . ' from the seller. Confirm once it arrives at your ' . ($toBranch ? 'branch' : 'Sorting Center') . '.', 'parcel', $orderId);
         \App\Support\ChatAutomation::orderUpdate($orderId, 'picked_up');
 
         return $center;
-    }
-
-    /**
-     * The Sorting Center gives a waiting pickup to one of its riders (when no
-     * rider covers the seller's town, or nobody accepted it).
-     *
-     * @throws ActionFailed
-     */
-    public function assignByCenter(int $orderId, $riderId, ?int $centerId = null): string
-    {
-        $order = DB::table('orders')->where('id', $orderId)->first();
-
-        if (!$order || $order->status !== 'Ready for Pickup' || !empty($order->rider_id)) {
-            throw new ActionFailed('This pickup is no longer waiting for a rider.');
-        }
-
-        if ($centerId !== null && $order->origin_center_id && (int) $order->origin_center_id !== $centerId) {
-            throw new ActionFailed('This pickup belongs to another Sorting Center.');
-        }
-
-        $rider = app(SortingCenterService::class)->assignableRider($riderId);
-
-        if (!$rider) {
-            throw new ActionFailed('Please choose an active, approved rider.');
-        }
-
-        $claimed = DB::table('orders')->where('id', $orderId)->where('status', 'Ready for Pickup')->whereNull('rider_id')
-            ->update(['rider_id' => $rider->id, 'status' => 'Pickup Assigned', 'updated_at' => now()]);
-
-        if (!$claimed) {
-            throw new ActionFailed('A rider just accepted this pickup. Please refresh.');
-        }
-
-        $this->assigned($orderId, (int) $rider->id);
-
-        return 'Pickup of order #' . $orderId . ' assigned to ' . $rider->name . '.';
     }
 
     /** Tells the rider and the seller who is collecting the parcel. */

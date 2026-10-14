@@ -164,7 +164,7 @@ class SortingCenterJourneyTest extends TestCase
         $this->actingAsUser($seller)->post(route('seller.order.status', $id), ['status' => 'Preparing'])->assertSessionHas('success');
         $this->actingAsUser($seller)->post(route('seller.order.pickup', $id), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
         $pickupRider = $this->makeRider();
-        app(\App\Services\PickupService::class)->assignByCenter($id, $pickupRider->id);
+        $this->riderAcceptsPickup($id, $pickupRider);
         $this->actingAsUser($pickupRider)->post(route('rider.pickup.picked-up', $id))->assertSessionHas('success');
         $this->assertSame('Picked Up', $this->orderStatus($id));
 

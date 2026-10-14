@@ -150,6 +150,80 @@
             </div>
         </section>
 
+        {{-- DELIVERY BRANCHES --}}
+        <section class="sc-card" id="branches">
+            <h2><i class="bi bi-shop-window"></i> Delivery Branches ({{ count($branches) }})</h2>
+            <p class="sc-note">Like a courier's local branch: the province's center sorts a parcel by town and trucks it to the branch in the buyer's town, whose riders deliver it. Towns without a branch get their parcels straight from the center. A branch needs staff (below) before parcels go there.</p>
+
+            <form method="POST" action="{{ route('admin.sorting-centers.branches.store') }}" class="sc-add">
+                @csrf
+
+                <label>
+                    <span>Sorting Center</span>
+                    <select name="parent_id" id="brCenter" required>
+                        <option value="">Select center</option>
+                        @foreach ($centers->sortBy('province') as $center)
+                            <option value="{{ $center->id }}" data-province="{{ $center->province }}" @selected((int) old('parent_id') === $center->id)>{{ $center->name }}</option>
+                        @endforeach
+                    </select>
+                </label>
+
+                <label>
+                    <span>Town of the branch</span>
+                    <select name="city_municipality" id="brCity" required data-old="{{ old('city_municipality') }}">
+                        <option value="">Select a center first</option>
+                    </select>
+                </label>
+
+                <label class="sc-add-wide">
+                    <span>Street address <em>(optional)</em></span>
+                    <input type="text" name="address" maxlength="255" value="{{ old('address') }}" placeholder="e.g. P. Guevarra St., Poblacion, Santa Cruz, Laguna">
+                </label>
+
+                <button type="submit"><i class="bi bi-shop-window"></i> Open Branch</button>
+            </form>
+
+            @if (count($branches))
+                <div class="sc-table-wrap">
+                    <table class="sc-table">
+                        <thead>
+                            <tr>
+                                <th>Branch</th>
+                                <th>Center</th>
+                                <th>Staff</th>
+                                <th>Parcels now</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($branches as $branch)
+                                <tr class="{{ $branch->is_active ? '' : 'is-closed' }}">
+                                    <td>
+                                        <strong>{{ $branch->name }}</strong>
+                                        <span>{{ $branch->address ?: $branch->town }}</span>
+                                    </td>
+                                    <td class="sc-serves">{{ $branch->parent->name ?? '—' }}</td>
+                                    <td>{{ $branch->staff_count }}@if (!$branch->staff_count) <em class="sc-warn">· needs staff</em>@endif</td>
+                                    <td>{{ $parcelCounts[$branch->id] ?? 0 }}</td>
+                                    <td>
+                                        <span class="sc-pill {{ $branch->is_active ? 'is-open' : 'is-closed' }}">{{ $branch->is_active ? 'Open' : 'Closed' }}</span>
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ route('admin.sorting-centers.toggle', $branch->id) }}"
+                                            @if ($branch->is_active) data-confirm="Close {{ $branch->name }}? New parcels for {{ $branch->town }} will be delivered from {{ $branch->parent->name ?? 'the center' }}." data-confirm-ok="Close Branch" data-confirm-danger @endif>
+                                            @csrf
+                                            <button type="submit" class="sc-toggle">{{ $branch->is_active ? 'Close' : 'Reopen' }}</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @endif
+        </section>
+
         {{-- STAFF --}}
         <section class="sc-card">
             <h2><i class="bi bi-people-fill"></i> Logistics Staff</h2>
@@ -309,6 +383,19 @@
         region.addEventListener('change', function () { province.dataset.old = ''; city.dataset.old = ''; fillProvinces(); });
         province.addEventListener('change', function () { city.dataset.old = ''; fillCities(); });
         fillProvinces();
+
+        // Branch form: the center's province → its towns.
+        var brCenter = document.getElementById('brCenter');
+        var brCity = document.getElementById('brCity');
+        if (brCenter && brCity) {
+            var fillBranchTowns = function () {
+                var picked = brCenter.options[brCenter.selectedIndex];
+                var towns = window.PSGC_DATA[picked ? picked.dataset.province : ''] || [];
+                options(brCity, towns, towns.length ? 'Select city/municipality' : 'Select a center first', brCity.dataset.old);
+            };
+            brCenter.addEventListener('change', function () { brCity.dataset.old = ''; fillBranchTowns(); });
+            fillBranchTowns();
+        }
     })();
 </script>
 

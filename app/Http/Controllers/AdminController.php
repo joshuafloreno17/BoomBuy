@@ -1152,12 +1152,12 @@ class AdminController extends Controller
         )->get()->groupBy('rider_id');
 
         $awaitingConfirmation = DB::table('orders')
-            ->whereIn('status', ['Dropped Off', 'Picked Up'])
+            ->whereIn('status', ['Dropped Off', 'Picked Up', 'To Sorting Center'])
             ->orderBy('updated_at')
             ->get();
 
         $awaitingAssignment = DB::table('orders')
-            ->whereIn('status', ['At Sorting Center', 'Sorted'])
+            ->whereIn('status', ['At Sorting Center', 'Sorted', 'At Branch'])
             ->orderBy('sorting_center_received_at')
             ->get();
 
@@ -1270,10 +1270,10 @@ class AdminController extends Controller
     public const ORDER_TABS = [
         'all' => ['label' => 'All', 'statuses' => null],
         'to-process' => ['label' => 'To Process', 'statuses' => ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned']],
-        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect']],
+        'in-transit' => ['label' => 'In Transit', 'statuses' => ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect']],
         'failed' => ['label' => 'Failed Delivery', 'statuses' => ['Delivery Failed']],
         'delivered' => ['label' => 'Delivered / Completed', 'statuses' => ['Delivered', 'Completed']],
-        'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Return Ready', 'Returned to Seller']],
+        'closed' => ['label' => 'Cancelled / Returned', 'statuses' => ['Cancelled', 'Returning', 'Returning to Branch', 'Return Ready', 'Returned to Seller']],
     ];
 
     // The admin may only cancel while the items are still with the seller —

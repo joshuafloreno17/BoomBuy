@@ -30,8 +30,8 @@ class OrderStatus
     /** Waiting for a rider to collect it from the seller. */
     public const AWAITING_PICKUP = ['Ready for Pickup', 'Pickup Assigned'];
 
-    /** Waiting for the seller's Sorting Center to confirm it arrived. */
-    public const ARRIVING_FROM_SELLER = ['Picked Up', 'Dropped Off'];
+    /** Waiting for the seller's Sorting Center (or branch) to confirm it arrived. */
+    public const ARRIVING_FROM_SELLER = ['Picked Up', 'Dropped Off', 'To Sorting Center'];
 
     /**
      * What people see, in the ERP Flow's words, where it names the step

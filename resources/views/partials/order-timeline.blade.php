@@ -20,7 +20,7 @@
             @php
                 $tone = match ($step->status) {
                     'Delivered', 'Completed' => 'is-done',
-                    'Cancelled', 'Delivery Failed', 'Returning', 'Return Ready', 'Returned to Seller' => 'is-bad',
+                    'Cancelled', 'Delivery Failed', 'Returning', 'Returning to Branch', 'Return Ready', 'Returned to Seller' => 'is-bad',
                     default => '',
                 };
             @endphp

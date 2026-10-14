@@ -18,7 +18,7 @@ class ProvincialCenters
         $centers = [];
 
         foreach (array_keys(PhLocations::all()) as $province) {
-            $existing = SortingCenter::where('province', $province)->orderBy('id')->get();
+            $existing = SortingCenter::centers()->where('province', $province)->orderBy('id')->get();
             $center = $existing->first();
 
             // Any extra center in the same province folds into the first.

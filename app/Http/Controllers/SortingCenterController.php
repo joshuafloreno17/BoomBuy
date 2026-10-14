@@ -32,7 +32,7 @@ class SortingCenterController extends Controller
 
         // Every center is on the page; the search box filters the rows as
         // you type. ?q= only decides which rows start out shown.
-        $centers = SortingCenter::query()
+        $centers = SortingCenter::centers()
             ->withCount('staff')
             ->get()
             ->sortBy($sortKey)
@@ -46,7 +46,7 @@ class SortingCenterController extends Controller
 
         // Parcels each center is holding or expecting right now.
         $parcelCounts = DB::table('orders')
-            ->whereIn('status', ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted'])
+            ->whereIn('status', ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch'])
             ->selectRaw('COALESCE(current_center_id, CASE WHEN status = ? THEN destination_center_id ELSE origin_center_id END) as center_id, COUNT(*) as total', ['In Transit'])
             ->groupBy('center_id')
             ->pluck('total', 'center_id');
@@ -56,16 +56,25 @@ class SortingCenterController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email', 'status', 'sorting_center_id', 'is_head_office']);
 
-        $allCenters = SortingCenter::get(['id', 'name', 'region', 'province'])->sortBy($sortKey)->values();
+        $allCenters = SortingCenter::get(['id', 'parent_id', 'name', 'region', 'province'])->sortBy(fn ($c) => $sortKey($c) . ($c->parent_id ? '1' : '0') . $c->name)->values();
+
+        // Delivery branches: the center trucks a town's parcels there, and
+        // the branch's riders deliver them.
+        $branches = SortingCenter::whereNotNull('parent_id')
+            ->with('parent:id,name')
+            ->withCount('staff')
+            ->orderBy('province')
+            ->orderBy('city_municipality')
+            ->get();
 
         $stats = [
-            'centers' => SortingCenter::where('is_active', true)->distinct()->count('province'),
+            'centers' => SortingCenter::centers()->where('is_active', true)->distinct()->count('province'),
             'provinces' => count(PhLocations::all()),
             'staff' => $staff->whereNotNull('sorting_center_id')->count(),
         ];
 
         // One pin per center on the map, at its province.
-        $mapPins = SortingCenter::get(['id', 'name', 'province', 'city_municipality', 'is_active'])
+        $mapPins = SortingCenter::centers()->get(['id', 'name', 'province', 'city_municipality', 'is_active'])
             ->map(function ($center) use ($parcelCounts) {
                 $point = PhCoordinates::forProvince($center->province);
 
@@ -85,7 +94,7 @@ class SortingCenterController extends Controller
         $provinces = PhLocations::all();
 
         return view('pages.admin.sorting-centers', compact(
-            'centers', 'parcelCounts', 'staff', 'allCenters', 'stats', 'regions', 'provinces', 'search', 'mapPins'
+            'centers', 'parcelCounts', 'staff', 'allCenters', 'branches', 'stats', 'regions', 'provinces', 'search', 'mapPins'
         ));
     }
 
@@ -115,7 +124,7 @@ class SortingCenterController extends Controller
             return back()->withInput()->with('error', 'Pick a city/municipality from the list for that province.');
         }
 
-        $center = SortingCenter::where('province', $data['province'])->orderBy('id')->first();
+        $center = SortingCenter::centers()->where('province', $data['province'])->orderBy('id')->first();
         $isNew = !$center;
         $center ??= new SortingCenter(['province' => $data['province'], 'is_active' => true]);
 
@@ -131,6 +140,52 @@ class SortingCenterController extends Controller
             : $center->name . ' is now in ' . $center->town . '.');
     }
 
+    /**
+     * Open a delivery branch of a province's center in one of its towns.
+     * Parcels for that town go there once it has staff to receive them.
+     */
+    public function storeBranch()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $data = request()->validate([
+            'parent_id' => ['required', 'integer', 'exists:sorting_centers,id'],
+            'city_municipality' => ['required', 'string', 'max:120'],
+            'address' => ['nullable', 'string', 'max:255'],
+        ]);
+
+        $center = SortingCenter::centers()->find($data['parent_id']);
+
+        if (!$center) {
+            return back()->withInput()->with('error', 'Pick a province\'s Sorting Center for the branch.');
+        }
+
+        if (!PhLocations::exists($center->province, $data['city_municipality'])) {
+            return back()->withInput()->with('error', 'Pick a town in ' . $center->area . ' for the branch.');
+        }
+
+        $taken = SortingCenter::where('parent_id', $center->id)->get()
+            ->first(fn ($b) => PhLocations::sameTown($b->city_municipality, $data['city_municipality']));
+
+        if ($taken) {
+            return back()->withInput()->with('error', $data['city_municipality'] . ' already has ' . $taken->name . '.');
+        }
+
+        $branch = SortingCenter::create([
+            'parent_id' => $center->id,
+            'name' => SortingCenter::branchNameFor($data['city_municipality']),
+            'region' => $center->region,
+            'province' => $center->province,
+            'city_municipality' => $data['city_municipality'],
+            'address' => trim((string) ($data['address'] ?? '')) ?: $data['city_municipality'] . ', ' . PhLocations::provinceLabel($center->province),
+            'is_active' => true,
+        ]);
+
+        return back()->with('success', $branch->name . ' is open. Assign its staff below — parcels for ' . $branch->town . ' go there once it has staff.');
+    }
+
     public function toggle($id)
     {
         if (!session()->get('admin_logged_in')) {
@@ -139,6 +194,12 @@ class SortingCenterController extends Controller
 
         $center = SortingCenter::findOrFail($id);
         $center->update(['is_active' => !$center->is_active]);
+
+        if ($center->isBranch()) {
+            return back()->with('success', $center->name . ($center->is_active
+                ? ' is open again.'
+                : ' is closed. New parcels for ' . $center->town . ' are delivered from ' . ($center->parent->name ?? 'the Sorting Center') . ' (parcels already there stay).'));
+        }
 
         return back()->with('success', $center->name . ($center->is_active
             ? ' is open again.'

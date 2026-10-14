@@ -261,6 +261,7 @@ Route::post('/admin/settings/delivery-fee', [AdminController::class, 'updateDeli
 Route::get('/admin/sorting-centers', [SortingCenterController::class, 'index'])->name('admin.sorting-centers');
 Route::post('/admin/sorting-centers', [SortingCenterController::class, 'store'])->name('admin.sorting-centers.store');
 Route::post('/admin/sorting-centers/{id}/toggle', [SortingCenterController::class, 'toggle'])->name('admin.sorting-centers.toggle');
+Route::post('/admin/sorting-centers/branches', [SortingCenterController::class, 'storeBranch'])->name('admin.sorting-centers.branches.store');
 Route::post('/admin/sorting-centers/staff/{userId}', [SortingCenterController::class, 'assignStaff'])->name('admin.sorting-centers.staff');
 
 
@@ -808,6 +809,10 @@ Route::post('/logistics/riders/areas/{areaId}/delete', [LogisticsController::cla
 */
 
 Route::get('/logistics/parcels', [LogisticsController::class, 'parcels'])->name('logistics.parcels');
+Route::get('/logistics/branches', [\App\Http\Controllers\LogisticsBranchController::class, 'index'])->name('logistics.branches');
+Route::post('/logistics/branches', [\App\Http\Controllers\LogisticsBranchController::class, 'store'])->name('logistics.branches.store');
+Route::post('/logistics/branches/{id}/staff', [\App\Http\Controllers\LogisticsBranchController::class, 'storeStaff'])->whereNumber('id')->name('logistics.branches.staff');
+Route::post('/logistics/branches/{id}/toggle', [\App\Http\Controllers\LogisticsBranchController::class, 'toggle'])->whereNumber('id')->name('logistics.branches.toggle');
 
 
 Route::post('/logistics/parcels/{id}/confirm-received', [LogisticsController::class, 'confirmParcelReceived'])->name('logistics.parcels.confirm-received');
@@ -818,11 +823,15 @@ Route::get('/logistics/scan/{code}', [LogisticsController::class, 'scanParcel'])
 
 Route::post('/logistics/parcels/{id}/dispatch', [LogisticsController::class, 'dispatchParcel'])->name('logistics.parcels.dispatch');
 Route::post('/logistics/parcels/{id}/sort', [LogisticsController::class, 'sortParcel'])->whereNumber('id')->name('logistics.parcels.sort');
-Route::post('/logistics/parcels/{id}/assign-pickup', [LogisticsController::class, 'assignPickup'])->whereNumber('id')->name('logistics.parcels.assign-pickup');
 
 Route::post('/logistics/parcels/{id}/confirm-arrival', [LogisticsController::class, 'confirmParcelArrival'])->name('logistics.parcels.confirm-arrival');
 
 Route::post('/logistics/parcels/dispatch-all', [LogisticsController::class, 'dispatchAllParcels'])->name('logistics.parcels.dispatch-all');
+Route::post('/logistics/parcels/{id}/to-branch', [LogisticsController::class, 'dispatchParcelToBranch'])->whereNumber('id')->name('logistics.parcels.to-branch');
+Route::post('/logistics/parcels/{id}/to-center', [LogisticsController::class, 'sendParcelToCenter'])->whereNumber('id')->name('logistics.parcels.to-center');
+Route::post('/logistics/parcels/to-center-all', [LogisticsController::class, 'sendAllToCenter'])->name('logistics.parcels.to-center-all');
+Route::post('/logistics/parcels/to-branch-all', [LogisticsController::class, 'dispatchAllToBranch'])->name('logistics.parcels.to-branch-all');
+Route::post('/logistics/parcels/{id}/at-branch', [LogisticsController::class, 'confirmParcelAtBranch'])->whereNumber('id')->name('logistics.parcels.at-branch');
 
 Route::post('/logistics/parcels/{id}/hand-to-buyer', [LogisticsController::class, 'handParcelToBuyer'])->name('logistics.parcels.hand-to-buyer');
 

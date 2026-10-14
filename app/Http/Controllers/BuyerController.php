@@ -27,9 +27,13 @@ class BuyerController extends Controller
         'Pickup Assigned' => [2, 'A rider is on the way to collect it from the seller.'],
         'Picked Up' => [3, 'Picked up by the rider — heading to the Sorting Center.'],
         'Dropped Off' => [3, 'Seller dropped it off — heading into the Sorting Center.'],
+        'Received at Branch' => [3, 'At the BoomBuy branch in the seller\'s town — going to the Sorting Center next.'],
+        'To Sorting Center' => [3, 'On the truck to the Sorting Center.'],
         'In Transit' => [3, 'On its way to the Sorting Center near you.'],
         'At Sorting Center' => [3, 'At the Sorting Center.'],
         'Sorted' => [3, 'Sorted for your area — a rider will be assigned next.'],
+        'To Branch' => [3, 'On the truck to the BoomBuy branch in your town.'],
+        'At Branch' => [3, 'At the BoomBuy branch in your town — a rider will be assigned next.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
         'Ready to Collect' => [4, 'Ready at the Sorting Center — give the staff your pickup code to collect it.'],
@@ -38,7 +42,7 @@ class BuyerController extends Controller
 
     private const TO_SHIP_STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'];
 
-    private const TO_RECEIVE_STATUSES = ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
+    private const TO_RECEIVE_STATUSES = ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
 
     public function dashboard()
     {

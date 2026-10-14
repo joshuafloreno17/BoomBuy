@@ -292,7 +292,7 @@
                                 None yet — mark it Ready for Pickup when it is packed
                             @elseif(($order['status'] ?? '') === 'Ready for Pickup')
                                 Waiting for a pickup rider
-                            @elseif(in_array($order['status'] ?? '', ['Picked Up', 'Dropped Off', 'At Sorting Center', 'In Transit', 'Sorted'], true))
+                            @elseif(in_array($order['status'] ?? '', ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch'], true))
                                 The Sorting Center will assign a delivery rider
                             @else
                                 Not yet applicable
@@ -335,8 +335,12 @@
                         'Pickup Assigned' => 1,
                         'Picked Up' => 2,
                         'Dropped Off' => 2,
+                        'Received at Branch' => 2,
+                        'To Sorting Center' => 2,
                         'At Sorting Center' => 3,
                         'Sorted' => 3,
+                        'To Branch' => 3,
+                        'At Branch' => 3,
                         'In Transit' => 3,
                         'Assigned for Delivery' => 3,
                         'Out for Delivery' => 3,
@@ -350,11 +354,15 @@
                     $canCancel = in_array($currentStatus, \App\Support\OrderStatus::WITH_SELLER, true) || $unclaimedPickup;
                     $canConfirmPickup = !empty($order['rider_id']) && in_array($currentStatus, ['Pickup Assigned', 'Picked Up'], true) && empty($order['seller_confirmed_pickup_at']);
 
-                    // The rider brings the parcel to the Sorting Center of the seller's province.
+                    // The rider brings the parcel to the branch in the seller's town,
+                    // else to the Sorting Center of the seller's province.
                     $sellerTown = \App\Support\ParcelRoute::sellerLocation((int) $user['id']);
                     $dropOffCenter = !empty($order['origin_center_id'])
                         ? \App\Models\SortingCenter::find($order['origin_center_id'])
                         : \App\Support\ParcelRoute::centerFor($sellerTown['province'], $sellerTown['city']);
+                    $dropOffCenter = (!empty($order['origin_branch_id']) ? \App\Models\SortingCenter::find($order['origin_branch_id']) : null)
+                        ?? \App\Support\ParcelRoute::branchFor($dropOffCenter?->id, $sellerTown['province'], $sellerTown['city'])
+                        ?? $dropOffCenter;
 
                     $stoppedStatus = !isset($stepOf[$currentStatus]);
                     $currentStep = $stepOf[$currentStatus] ?? -1;
@@ -442,7 +450,7 @@
                                 <i class="bi bi-box-arrow-up"></i> Mark as Ready for Pickup
                             </button>
                             <p class="status-next-note">
-                                <i class="bi bi-bell"></i> Riders in your area are notified. If none covers your town, your Sorting Center assigns one.
+                                <i class="bi bi-bell"></i> Riders in your area are notified, and the first to accept collects it. If none covers your town yet, it waits until one does.
                             </p>
                         </form>
 
@@ -453,7 +461,7 @@
                             @if($allDone)
                                 {{ $currentStatus === 'Completed' ? 'The buyer confirmed they received this order. Transaction completed.' : 'This order has been delivered. Waiting for the buyer to confirm they received it.' }}
                             @elseif($unclaimedPickup)
-                                Ready for pickup{{ !empty($order['pickup_date']) ? ' on ' . \Illuminate\Support\Carbon::parse($order['pickup_date'])->format('l, M j') : '' }}. Waiting for a rider to be assigned — you'll be told who is coming.
+                                Ready for pickup{{ !empty($order['pickup_date']) ? ' on ' . \Illuminate\Support\Carbon::parse($order['pickup_date'])->format('l, M j') : '' }}. Waiting for a rider in your area to accept it — you'll be told who is coming.
                             @elseif($currentStatus === 'Pickup Assigned')
                                 {{ $assignedRider->name ?? 'A rider' }} will pick it up{{ !empty($order['pickup_date']) ? ' on ' . \Illuminate\Support\Carbon::parse($order['pickup_date'])->format('l, M j') : '' }}. Hand over the packed parcel, then confirm the pickup below.
                             @elseif($currentStatus === 'Picked Up')

@@ -103,7 +103,7 @@ class PickupScenariosTest extends TestCase
         $this->actingAsUser($this->buyer)->get(route('buyer.orders'))->assertOk();
     }
 
-    public function test_P02_no_rider_in_town_means_the_sorting_center_assigns_one(): void
+    public function test_P02_no_rider_in_town_waits_until_a_rider_there_accepts(): void
     {
         $staff = $this->staffAt($this->laguna);
         $id = $this->preparing();
@@ -112,14 +112,17 @@ class PickupScenariosTest extends TestCase
         $this->book($id, now()->addDays(10)->toDateString())->assertSessionHas('error');
         $this->book($id, now()->subDay()->toDateString())->assertSessionHas('error');
 
-        // No rider covers the town: still ready for pickup; the center is asked to assign one.
-        $this->book($id)->assertSessionHas('success', fn ($m) => str_contains($m, 'Sorting Center will assign a rider'));
+        // No rider covers the town: still ready for pickup. The Sorting Center
+        // doesn't assign pickups (not in the ERP) — a rider accepts it.
+        $this->book($id)->assertSessionHas('success', fn ($m) => str_contains($m, 'No rider covers your area yet'));
         $this->assertSame('Ready for Pickup', DB::table('orders')->where('id', $id)->value('status'));
-        $this->assertTrue($this->notifiedWith($staff, 'Pickup Needs a Rider'));
+        $this->assertFalse($this->notifiedWith($staff, 'Pickup Needs a Rider'));
+        $this->actingAsUser($staff)->get(route('logistics.parcels'))->assertOk()->assertDontSee('Pickups Needing a Rider')->assertDontSee('Assign Pickup');
 
-        $rider = $this->makeRider();
-        $this->actingAsUser($staff)->get(route('logistics.parcels'))->assertSee('Pickups Needing a Rider (1)')->assertSee('Assign Pickup');
-        $this->actingAsUser($staff)->post(route('logistics.parcels.assign-pickup', $id), ['rider_id' => $rider->id])->assertSessionHas('success');
+        // A rider who gets the seller's town sees it and accepts it.
+        $rider = $this->riderFor($this->laguna);
+        $this->actingAsUser($rider)->get(route('rider.pickups'))->assertSee('Order #' . $id)->assertSee('Accept pickup');
+        $this->actingAsUser($rider)->post(route('rider.pickup.accept', $id))->assertSessionHas('success');
         $this->assertSame('Pickup Assigned', DB::table('orders')->where('id', $id)->value('status'));
         $this->assertTrue($this->notifiedWith($rider, 'Pickup Assigned to You'));
         $this->actingAsUser($rider)->get(route('rider.pickups'))->assertSee('Order #' . $id)->assertSee('Picked up');
