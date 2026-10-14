@@ -103,3 +103,46 @@
 .order-proof-link:hover {
     background: #d2f0ec;
 }
+
+/* =========================
+   ROUTE MODE — every stop listed; reached ones light up, the rest wait in grey.
+========================= */
+
+.order-timeline.is-route li:not(:last-child)::before {
+    background: #eadfd9;
+}
+
+/* Line between two reached stops. */
+.order-timeline.is-route li.is-reached:not(.is-latest):not(:last-child)::before {
+    background: #f4a487;
+}
+
+.order-timeline.is-route li.is-ahead .order-timeline-dot {
+    background: #ffffff;
+    border: 2px solid #d9cdc6;
+    box-shadow: none;
+}
+
+.order-timeline.is-route li.is-reached .order-timeline-body strong {
+    color: #1b1a1f;
+    font-weight: 600;
+}
+
+.order-timeline.is-route li.is-latest .order-timeline-body strong {
+    font-weight: 800;
+}
+
+.order-timeline.is-route li.is-ahead .order-timeline-body strong {
+    color: #a39a9f;
+    font-weight: 600;
+}
+
+.order-timeline-body .order-timeline-next {
+    color: #b8aeb3;
+    font-size: 12px;
+}
+
+.order-timeline-body .order-timeline-next.is-next {
+    color: #c2380f;
+    font-weight: 700;
+}

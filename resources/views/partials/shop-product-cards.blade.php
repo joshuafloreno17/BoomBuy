@@ -64,11 +64,11 @@
                 @if($product['stock'] <= 0)
                     <button type="button" class="sp-btn sp-btn-full" disabled>Sold out</button>
                 @elseif($product['has_variations'])
-                    {{-- Needs a color/size: straight to the product page to choose it. --}}
-                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" class="sp-btn sp-btn-outline" aria-label="Add {{ $product['name'] }} to cart">
+                    {{-- Needs a color/size: a popup to choose it (the product page without JavaScript). --}}
+                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="sp-btn sp-btn-outline" aria-label="Add {{ $product['name'] }} to cart" aria-haspopup="dialog">
                         <i class="bi bi-cart-plus"></i><span class="sp-btn-label">Add to cart</span>
                     </a>
-                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" class="sp-btn sp-btn-buy" aria-label="Buy {{ $product['name'] }} now">Buy now</a>
+                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="sp-btn sp-btn-buy" aria-label="Buy {{ $product['name'] }} now" aria-haspopup="dialog">Buy now</a>
                 @else
                     <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart data-name="{{ $product['name'] }}" data-price="₱{{ number_format($product['price']) }}">
                         @csrf

@@ -83,7 +83,11 @@
         <div class="page-alert" role="status"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
     @endif
 
+    <div class="notif-layout">
+
     {{-- Kinds the buyer has none of stay hidden (unless picked). --}}
+    <aside class="notif-side">
+    <p class="side-label">Show</p>
     <nav class="chip-row" aria-label="Filter notifications">
         @foreach($chips as $key => [$label, $icon])
             @continue(!in_array($key, ['all', 'unread']) && !$counts[$key] && $filter !== $key)
@@ -93,10 +97,13 @@
                 @if($filter === $key) aria-current="true" @endif
             >
                 <i class="bi {{ $icon }}" @if($key === 'unread') style="font-size:8px" @endif></i>
-                {{ $label }} <small>{{ number_format($counts[$key]) }}</small>
+                <span class="chip-label">{{ $label }}</span> <small>{{ number_format($counts[$key]) }}</small>
             </a>
         @endforeach
     </nav>
+    </aside>
+
+    <div class="notif-main">
 
     @if($notifications->count())
 
@@ -119,7 +126,9 @@
                                 <span class="note-top">
                                     <span class="note-title">{{ $notification->title }}</span>
                                     <time class="note-time" datetime="{{ $notification->created_at?->toIso8601String() }}" title="{{ $notification->created_at?->format('M d, Y • h:i A') }}">
-                                        @if($notification->created_at?->isToday())
+                                        @if($notification->created_at?->gt(now()->subMinute()))
+                                            Just now
+                                        @elseif($notification->created_at?->isToday())
                                             {{ $notification->created_at->diffForHumans(null, true, true) }} ago
                                         @else
                                             {{ $notification->created_at?->format('g:i A') }}
@@ -155,6 +164,9 @@
         </div>
 
     @endif
+
+    </div>
+    </div>
 
 </main>
 

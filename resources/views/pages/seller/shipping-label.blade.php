@@ -15,8 +15,8 @@
 </div>
 
 <p class="label-help">
-    Print this, stick it on the parcel, then bring it to
-    <strong>{{ $origin->name ?? 'your Sorting Center' }}</strong>. The staff scan the QR code to receive it.
+    Print this and stick it on the parcel. A rider picks it up and brings it to
+    <strong>{{ $origin->name ?? 'your Sorting Center' }}</strong>, where the staff scan the QR code.
 </p>
 
 <article class="label" aria-label="Shipping label {{ $waybill }}">
@@ -38,15 +38,21 @@
         </div>
     </section>
 
+    @php
+        // "BoomBuy Sorting Center – Cebu" → "Cebu": the short place name is what sorters read.
+        $centerPlace = fn ($center) => $center ? trim(preg_replace('/^BoomBuy Sorting Center\s*[–-]\s*/u', '', $center->name)) : '—';
+        $toCenter = $destination ?? $origin;
+    @endphp
+
     <section class="label-route">
         <div>
-            <span>From center</span>
-            <strong>{{ $origin->name ?? '—' }}</strong>
+            <span>From sorting center</span>
+            <strong>{{ $centerPlace($origin) }}</strong>
         </div>
         <i class="bi bi-arrow-right" aria-hidden="true"></i>
         <div>
-            <span>To center</span>
-            <strong>{{ $destination->name ?? ($origin->name ?? '—') }}</strong>
+            <span>To sorting center</span>
+            <strong>{{ $centerPlace($toCenter) }}</strong>
         </div>
     </section>
 
@@ -62,6 +68,33 @@
         <strong>{{ $shopName }}</strong>
         <p>{{ $seller->address }}</p>
         <p>{{ $seller->phone }}</p>
+    </section>
+
+    {{-- What's inside, so the rider and the buyer can check the parcel. --}}
+    <section class="label-contents">
+        <span>Contents</span>
+        <ul>
+            @foreach($items->take(4) as $item)
+                <li>
+                    <b>{{ $item->quantity }}×</b>
+                    {{ $item->product_name }}@if(!empty($item->variation_label)) <em>({{ $item->variation_label }})</em>@endif
+                </li>
+            @endforeach
+            @if($items->count() > 4)
+                <li class="label-more">+ {{ $items->count() - 4 }} more item(s)</li>
+            @endif
+        </ul>
+    </section>
+
+    <section class="label-sign">
+        <div>
+            <span>Received by (name &amp; signature)</span>
+            <i class="label-line"></i>
+        </div>
+        <div>
+            <span>Date</span>
+            <i class="label-line"></i>
+        </div>
     </section>
 
     <footer class="label-foot">

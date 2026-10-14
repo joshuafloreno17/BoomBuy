@@ -102,9 +102,48 @@ class ShopAndAccountTest extends TestCase
             ->assertSee('Stride Footwear Co.')
             ->assertSee('1 sold')
             ->assertDontSee('Gone Galoshes')
-            // Buy now on a product with options goes to its page to choose one.
+            // A product with options opens the quick-add popup (its page without JavaScript).
             ->assertDontSee('data-pick="buy"', false)
-            ->assertSee('?choose=1', false);
+            ->assertSee('?choose=1', false)
+            ->assertSee('data-quick-add="' . route('product.options', $sized->id) . '"', false)
+            ->assertSee('js/quick-add.js', false);
+    }
+
+    public function test_quick_add_options_and_adding_a_chosen_option(): void
+    {
+        $seller = $this->makeSeller('electronics');
+        $phone = $this->makeProduct($seller, ['name' => 'Pocket Phone', 'price' => 1000]);
+        \App\Models\ProductVariation::create(['product_id' => $phone->id, 'variation_type' => 'Color', 'variation_value' => 'Black', 'option2_type' => 'Storage', 'option2_value' => '256GB', 'price_adjustment' => 0, 'stock' => 3]);
+        $big = \App\Models\ProductVariation::create(['product_id' => $phone->id, 'variation_type' => 'Color', 'variation_value' => 'Black', 'option2_type' => 'Storage', 'option2_value' => '512GB', 'price_adjustment' => 500, 'stock' => 2]);
+
+        $this->getJson(route('product.options', $phone->id))
+            ->assertOk()
+            ->assertJsonPath('name', 'Pocket Phone')
+            ->assertJsonPath('type1', 'Color')
+            ->assertJsonPath('type2', 'Storage')
+            ->assertJsonCount(2, 'variations')
+            ->assertJsonFragment(['id' => $big->id, 'value1' => 'Black', 'value2' => '512GB', 'price' => 1500.0, 'stock' => 2])
+            ->assertJsonPath('add_url', route('cart.add', $phone->id));
+
+        // An archived product has no popup.
+        $gone = $this->makeProduct($seller, ['name' => 'Old Phone', 'is_archived' => true]);
+        $this->getJson(route('product.options', $gone->id))->assertNotFound();
+
+        // The popup's add: the chosen option and quantity, as JSON.
+        $buyer = $this->makeUser();
+        $this->actingAsUser($buyer)
+            ->postJson(route('cart.add', $phone->id), ['variation_id' => $big->id, 'quantity' => 2])
+            ->assertOk()
+            ->assertJson(['ok' => true, 'cart_count' => 2]);
+        $this->actingAsUser($buyer)
+            ->postJson(route('cart.add', $phone->id), ['variation_id' => $big->id, 'quantity' => 1])
+            ->assertStatus(422)
+            ->assertJson(['ok' => false]);
+
+        // Reopened: it says what's already in the cart, and the delivery.
+        $this->actingAsUser($buyer)->getJson(route('product.options', $phone->id))
+            ->assertJsonFragment(['id' => $big->id, 'in_cart' => 2])
+            ->assertJsonStructure(['delivery' => ['fee', 'free_min', 'to', 'eta']]);
     }
 
     public function test_shop_lists_every_category_but_a_seller_shop_only_its_own(): void

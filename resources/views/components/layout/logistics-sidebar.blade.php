@@ -24,6 +24,11 @@
             <a href="{{ route('logistics.parcels') }}" class="logistics-sidebar-link {{ $active === 'parcels' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-box-seam-fill"></i></span>
                 <span>Incoming Parcels</span>
+                @if($logisticsParcelsToActOn > 0)
+                    <span class="sidebar-notification-badge" title="Parcels waiting for you">
+                        {{ $logisticsParcelsToActOn > 99 ? '99+' : $logisticsParcelsToActOn }}
+                    </span>
+                @endif
             </a>
 
             @php

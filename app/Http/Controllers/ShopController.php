@@ -532,6 +532,89 @@ class ShopController extends Controller
         ]);
     }
 
+    /**
+     * Delivery for this product: a logged-in buyer sees the fee to their own
+     * default address (by distance from the seller's town) and when it
+     * arrives; everyone else "from ₱…".
+     *
+     * @return array{fee: float, free_min: float, to: ?string, eta: ?string}
+     */
+    private function delivery(Product $product): array
+    {
+        $delivery = [
+            'fee' => \App\Support\DeliveryFee::baseFee(),
+            'free_min' => \App\Support\DeliveryFee::freeShippingMin(),
+            'to' => null,
+            'eta' => null,
+        ];
+        $viewer = session()->get('user');
+
+        if ($viewer && ($viewer['role'] ?? '') === 'buyer' && $product->seller_id) {
+            $buyerAddress = \App\Models\BuyerAddress::where('user_id', $viewer['id'])->where('is_default', true)->value('address')
+                ?? DB::table('users')->where('id', $viewer['id'])->value('address');
+            $town = \App\Support\PhLocations::locate($buyerAddress);
+
+            if ($town) {
+                $zone = \App\Support\ParcelRoute::zone(\App\Support\ParcelRoute::sellerLocation((int) $product->seller_id), $town);
+                $delivery['fee'] = \App\Support\DeliveryFee::zoneFee($zone);
+                $delivery['to'] = trim(($town['city'] ? $town['city'] . ', ' : '') . str_replace(' (NCR)', '', $town['province']));
+                $delivery['eta'] = \App\Support\ParcelRoute::etaLabel($zone);
+            }
+        }
+
+        return $delivery;
+    }
+
+    /**
+     * What the shop card's "Add to cart" popup needs to choose an option:
+     * the options (two groups at most, e.g. Color × Storage), each one's
+     * price, stock and photo.
+     */
+    public function options($id)
+    {
+        $product = Product::find((int) $id);
+
+        if (!$product || !$product->isPurchasable()) {
+            return response()->json(['ok' => false, 'message' => 'This product is no longer available.'], 404);
+        }
+
+        $variations = DeviceSpecs::sortOptions(\App\Models\ProductVariation::where('product_id', $product->id)->get()->sortBy('id')->values());
+        ['variationPhotos' => $variationPhotos] = ProductPhotos::gallery($product, $variations);
+        $cover = productImageUrl($product->image);
+        $first = $variations->first();
+        $delivery = $this->delivery($product);
+        // How many of each option are already in this buyer's cart ("productId:variationId" => qty).
+        $cart = session()->get('cart', []);
+
+        return response()->json([
+            'ok' => true,
+            'id' => $product->id,
+            'name' => $product->name,
+            'shop' => \App\Support\SellerShop::many(collect([$product->seller_id]))->get($product->seller_id)['name'] ?? null,
+            'url' => route('product.details', Str::slug($product->name) . '-' . $product->id),
+            'image' => $cover,
+            'icon' => Categories::icon($product->category),
+            'price' => (float) $product->price,
+            'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
+            'stock' => (int) $product->stock,
+            'type1' => $first?->variation_type,
+            'type2' => $first && $first->hasSecondOption() ? $first->option2_type : null,
+            'variations' => $variations->map(fn ($v) => [
+                'id' => $v->id,
+                'value1' => $v->variation_value,
+                'value2' => $v->hasSecondOption() ? $v->option2_value : null,
+                'adjust' => (float) $v->price_adjustment,
+                'price' => (float) $product->price + (float) $v->price_adjustment,
+                'stock' => (int) $v->stock,
+                'photo' => $variationPhotos[$v->id] ?? null,
+                'in_cart' => (int) ($cart[$product->id . ':' . $v->id] ?? 0),
+            ])->values(),
+            'delivery' => $delivery,
+            'add_url' => route('cart.add', $product->id),
+            'buy_url' => route('buy.now', $product->id),
+        ]);
+    }
+
     public function productDetails($id)
     {
         // "123" or "product-name-123" — the id decides, so two products with
@@ -651,27 +734,7 @@ class ShopController extends Controller
             ? $visible()->where('seller_id', $product->seller_id)->orderByDesc('sold_count')->latest()->take(self::SAME_SHOP)->get()
             : collect();
 
-        $deliveryFee = \App\Support\DeliveryFee::baseFee();
-        $freeDeliveryMin = \App\Support\DeliveryFee::freeShippingMin();
-
-        // A logged-in buyer sees the fee to their own default address
-        // (by distance from the seller's town); everyone else "from ₱…".
-        $deliveryTo = null;
-        $deliveryEta = null;
-        $viewer = session()->get('user');
-
-        if ($viewer && ($viewer['role'] ?? '') === 'buyer' && $product->seller_id) {
-            $buyerAddress = \App\Models\BuyerAddress::where('user_id', $viewer['id'])->where('is_default', true)->value('address')
-                ?? DB::table('users')->where('id', $viewer['id'])->value('address');
-            $town = \App\Support\PhLocations::locate($buyerAddress);
-
-            if ($town) {
-                $zone = \App\Support\ParcelRoute::zone(\App\Support\ParcelRoute::sellerLocation((int) $product->seller_id), $town);
-                $deliveryFee = \App\Support\DeliveryFee::zoneFee($zone);
-                $deliveryTo = trim(($town['city'] ? $town['city'] . ', ' : '') . str_replace(' (NCR)', '', $town['province']));
-                $deliveryEta = \App\Support\ParcelRoute::etaLabel($zone);
-            }
-        }
+        ['fee' => $deliveryFee, 'free_min' => $freeDeliveryMin, 'to' => $deliveryTo, 'eta' => $deliveryEta] = $this->delivery($product);
 
         // Wishlist state (false for guests)
         $sessionUser = session()->get('user');

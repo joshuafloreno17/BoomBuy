@@ -1,7 +1,7 @@
 /* Moved out of resources/views/partials/buyer-footer.blade.php */
 
 .bb-footer {
-    margin-top: 48px;
+    margin-top: 32px;
     border-top: 1px solid #f0e2da;
     background: #fff;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -11,7 +11,7 @@
 .bb-footer-inner {
     max-width: 1320px;
     margin: 0 auto;
-    padding: 40px 24px 0;
+    padding: 26px 24px 0;
     display: grid;
     grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
     gap: 32px;
@@ -33,7 +33,7 @@
 }
 
 .bb-footer-brand p {
-    margin: 8px 0 14px;
+    margin: 6px 0 10px;
     max-width: 320px;
     font-size: 13px;
     line-height: 1.6;
@@ -57,7 +57,7 @@
 }
 
 .bb-footer h4 {
-    margin: 4px 0 12px;
+    margin: 2px 0 10px;
     color: #1b1a1f;
     font-size: 13px;
     font-weight: 800;
@@ -87,7 +87,7 @@
     padding: 0;
     display: flex;
     flex-direction: column;
-    gap: 9px;
+    gap: 6px;
 }
 
 .bb-footer ul a {
@@ -103,8 +103,8 @@
 
 .bb-footer-bottom {
     max-width: 1320px;
-    margin: 28px auto 0;
-    padding: 16px 24px 22px;
+    margin: 20px auto 0;
+    padding: 12px 24px 14px;
     border-top: 1px solid #f0e2da;
     display: flex;
     justify-content: space-between;

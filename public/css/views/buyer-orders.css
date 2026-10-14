@@ -1203,3 +1203,14 @@
         color: rgba(255, 255, 255, 0.85);
     }
 }
+
+/* Route mode: the grey line and hollow dots ahead win over the phone styles above. */
+@media (max-width: 760px) {
+    .order-card .order-timeline.is-route li:not(:last-child)::before {
+        background: #eadfd9;
+    }
+
+    .order-card .order-timeline.is-route li.is-reached:not(.is-latest):not(:last-child)::before {
+        background: #e8420f;
+    }
+}

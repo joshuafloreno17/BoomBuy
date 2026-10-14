@@ -89,7 +89,7 @@
             <span class="pd-kpi-m pd-kpi-icon is-orange" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
             <span class="pd-kpi-label">To ship</span>
             <span class="pd-kpi-value">{{ $pendingOrders }}</span>
-            <span class="pd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : 'All caught up' }}</span>
+            <span class="pd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : ($pendingOrders > 0 ? 'All from today' : 'All caught up') }}</span>
         </a>
         <a href="#my-products" class="pd-kpi">
             <span class="pd-kpi-m pd-kpi-icon is-teal" aria-hidden="true"><i class="bi bi-grid"></i></span>

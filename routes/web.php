@@ -465,7 +465,7 @@ Route::post('/seller/order/{id}/confirm-pickup', [SellerController::class, 'conf
 Route::post('/seller/order/{id}/pickup', [SellerController::class, 'requestPickup'])->whereNumber('id')->name('seller.order.pickup');
 
 
-// Printable shipping label (waybill no. + QR) to stick on the parcel before drop-off.
+// Printable shipping label (waybill no. + QR) to stick on the parcel before rider pickup.
 Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'])->whereNumber('id')->name('seller.order.label');
 
 
@@ -551,6 +551,7 @@ Route::get('/', [ShopController::class, 'home'])->name('home');
 */
 
 Route::get('/product-details/{id}', [ShopController::class, 'productDetails'])->name('product.details');
+Route::get('/products/{id}/options', [ShopController::class, 'options'])->whereNumber('id')->name('product.options');
 
 /*
 |--------------------------------------------------------------------------

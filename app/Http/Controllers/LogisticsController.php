@@ -1239,6 +1239,19 @@ class LogisticsController extends Controller
         ];
     }
 
+    /**
+     * Parcels waiting on this staff member's center right now (confirm,
+     * send on, sort, assign, failed deliveries, incoming returns) — the
+     * sidebar's Incoming Parcels badge.
+     */
+    public function parcelsToActOn(array $user): int
+    {
+        $queues = $this->parcelQueues($this->staffCenter($user), '', $this->isUnassigned($user));
+
+        return collect(['awaitingConfirmation', 'toCenter', 'toDispatch', 'incoming', 'toSort', 'toBranch', 'incomingToBranch', 'awaitingAssignment', 'failedDeliveries', 'incomingReturns'])
+            ->sum(fn ($queue) => count($queues[$queue]));
+    }
+
     /** The center this logistics account works at; null = head office (all centers) — or not assigned, see isUnassigned(). */
     private function staffCenter(array $user): ?SortingCenter
     {

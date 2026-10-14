@@ -1,0 +1,655 @@
+/* =========================================================
+   Quick add to cart: the shop card's option popup (a bottom
+   sheet on phones), the photo that flies to the cart icon,
+   and the "Added to your cart" card under it.
+========================================================= */
+
+.qa-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 3000;
+    background: rgba(27, 26, 31, 0.48);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+}
+
+.qa-backdrop.is-open {
+    opacity: 1;
+}
+
+.qa-dialog {
+    position: relative;
+    width: 640px;
+    max-width: 100%;
+    max-height: calc(100vh - 48px);
+    display: flex;
+    flex-direction: column;
+    background: #ffffff;
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(27, 26, 31, 0.28);
+    overflow: hidden;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1b1a1f;
+    transform: translateY(12px) scale(0.98);
+    transition: transform 0.2s ease;
+}
+
+.qa-backdrop.is-open .qa-dialog {
+    transform: none;
+}
+
+.qa-grab {
+    display: none;
+}
+
+.qa-head {
+    position: relative;
+    display: flex;
+    gap: 20px;
+    padding: 24px 24px 20px;
+    border-bottom: 1px solid #f3e6df;
+}
+
+.qa-photo {
+    width: 132px;
+    height: 132px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    border: 1px solid #f0e2da;
+    background: #fde9e0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    color: #e8846a;
+    font-size: 40px;
+}
+
+.qa-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.qa-info {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+    padding-right: 44px;
+}
+
+.qa-shop {
+    color: #6b6570;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.qa-name {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.qa-price {
+    margin-top: 4px;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    color: #c2380f;
+}
+
+.qa-price s {
+    margin-left: 8px;
+    font-family: 'Figtree', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    color: #8a7f86;
+}
+
+.qa-stock {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0f766e;
+}
+
+.qa-stock.is-low {
+    color: #b45309;
+}
+
+.qa-stock.is-out {
+    color: #dc2626;
+}
+
+.qa-picked {
+    font-size: 13px;
+    color: #6b6570;
+}
+
+.qa-picked strong {
+    color: #1b1a1f;
+}
+
+.qa-details {
+    align-self: flex-start;
+    margin-top: 2px;
+    color: #c2380f;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.qa-details:hover {
+    text-decoration: underline;
+}
+
+.qa-close {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    width: 40px;
+    height: 40px;
+    border-radius: 999px;
+    border: 1px solid #f0e2da;
+    background: #ffffff;
+    color: #4a4449;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.qa-close:hover {
+    background: #fff8f3;
+}
+
+.qa-body {
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.qa-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.qa-label {
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #6b6570;
+}
+
+.qa-chips {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.qa-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    background: #ffffff;
+    color: #1b1a1f;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: border-color 0.12s ease, background 0.12s ease;
+}
+
+.qa-chip:hover {
+    border-color: #f2b8a1;
+}
+
+.qa-chip[aria-pressed="true"] {
+    border: 2px solid #e8420f;
+    padding: 0 15px;
+    background: #fff1ea;
+    color: #c2380f;
+}
+
+.qa-chip:disabled {
+    cursor: not-allowed;
+    color: #b9b0b4;
+    background: #faf7f5;
+    text-decoration: line-through;
+}
+
+.qa-chip img {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    object-fit: cover;
+}
+
+.qa-dot {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.14);
+}
+
+.qa-chip:disabled .qa-dot {
+    opacity: 0.4;
+}
+
+.qa-delivery,
+.qa-incart {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.4;
+}
+
+.qa-delivery {
+    background: #f4faf8;
+    color: #0f5e57;
+}
+
+.qa-incart {
+    background: #fff8e1;
+    color: #7a5d00;
+}
+
+.qa-delivery i,
+.qa-incart i {
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+.qa-chip small {
+    color: #8a7f86;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.qa-qty-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.qa-qty {
+    display: flex;
+    align-items: center;
+    border: 1px solid #f0e2da;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+.qa-qty button {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    background: #fff8f3;
+    color: #4a4449;
+    font-size: 20px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.qa-qty button:disabled {
+    color: #cfc6ca;
+    cursor: not-allowed;
+}
+
+.qa-qty output {
+    width: 52px;
+    text-align: center;
+    font-weight: 800;
+    font-size: 16px;
+}
+
+.qa-error {
+    margin: 0;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.qa-foot {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+    padding: 16px 24px 24px;
+    background: #fffaf7;
+    border-top: 1px solid #f3e6df;
+}
+
+.qa-btn {
+    height: 52px;
+    border-radius: 14px;
+    font: inherit;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.qa-btn-cart {
+    border: 2px solid #1b1a1f;
+    background: #ffffff;
+    color: #1b1a1f;
+}
+
+.qa-btn-cart:hover {
+    background: #1b1a1f;
+    color: #ffffff;
+}
+
+.qa-btn-buy {
+    border: 0;
+    background: #c2380f;
+    color: #ffffff;
+}
+
+.qa-btn-buy:hover {
+    background: #a52f0c;
+}
+
+.qa-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+}
+
+.qa-loading {
+    padding: 60px 24px;
+    text-align: center;
+    color: #6b6570;
+    font-weight: 600;
+}
+
+/* ---------- the photo flying to the cart ---------- */
+
+.qa-fly {
+    position: fixed;
+    z-index: 3100;
+    pointer-events: none;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fde9e0;
+    box-shadow: 0 10px 30px rgba(194, 56, 15, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e8846a;
+    font-size: 32px;
+}
+
+.qa-fly img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.qa-cart-bump {
+    animation: qa-bump 0.45s ease;
+}
+
+@keyframes qa-bump {
+    0% { transform: scale(1); }
+    35% { transform: scale(1.28); }
+    65% { transform: scale(0.92); }
+    100% { transform: scale(1); }
+}
+
+/* ---------- "Added to your cart" card ---------- */
+
+.qa-added {
+    position: fixed;
+    z-index: 3050;
+    width: 380px;
+    max-width: calc(100vw - 24px);
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 18px;
+    box-shadow: 0 18px 44px rgba(27, 26, 31, 0.18);
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #1b1a1f;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.qa-added.is-shown {
+    opacity: 1;
+    transform: none;
+}
+
+.qa-added-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #0f766e;
+    font-weight: 800;
+    font-size: 15px;
+}
+
+.qa-added-item {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.qa-added-thumb {
+    width: 64px;
+    height: 64px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    background: #fde9e0;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #e8846a;
+    font-size: 24px;
+}
+
+.qa-added-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.qa-added-text {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    min-width: 0;
+}
+
+.qa-added-text strong {
+    font-size: 15px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.qa-added-text span {
+    color: #6b6570;
+    font-size: 13px;
+}
+
+.qa-added-text b {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-weight: 800;
+    color: #c2380f;
+    font-size: 18px;
+}
+
+.qa-added-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.qa-added-actions a,
+.qa-added-actions button {
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font: inherit;
+    font-weight: 800;
+    font-size: 14px;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.qa-added-actions button {
+    border: 1px solid #f0e2da;
+    background: #ffffff;
+    color: #1b1a1f;
+}
+
+.qa-added-actions a {
+    border: 0;
+    background: #c2380f;
+    color: #ffffff;
+}
+
+/* ---------- phones: a bottom sheet ---------- */
+
+@media (max-width: 640px) {
+    .qa-backdrop {
+        align-items: flex-end;
+        padding: 0;
+    }
+
+    .qa-dialog {
+        width: 100%;
+        max-height: 88vh;
+        border-radius: 22px 22px 0 0;
+        transform: translateY(100%);
+        transition: transform 0.25s ease;
+    }
+
+    .qa-grab {
+        display: flex;
+        justify-content: center;
+        padding-top: 10px;
+    }
+
+    .qa-grab span {
+        width: 44px;
+        height: 5px;
+        border-radius: 999px;
+        background: #e6d8d0;
+    }
+
+    .qa-head {
+        gap: 14px;
+        padding: 12px 18px 16px;
+    }
+
+    .qa-photo {
+        width: 96px;
+        height: 96px;
+    }
+
+    .qa-info {
+        padding-right: 36px;
+    }
+
+    .qa-name {
+        font-size: 16px;
+        font-family: 'Figtree', sans-serif;
+    }
+
+    .qa-price {
+        font-size: 24px;
+    }
+
+    .qa-close {
+        top: 10px;
+        right: 12px;
+        border: 0;
+        width: 44px;
+        height: 44px;
+    }
+
+    .qa-body {
+        padding: 16px 18px;
+        gap: 16px;
+    }
+
+    .qa-chips {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .qa-chip {
+        justify-content: center;
+        min-height: 48px;
+        padding: 0 10px;
+    }
+
+    .qa-chip[aria-pressed="true"] {
+        padding: 0 9px;
+    }
+
+    .qa-foot {
+        gap: 10px;
+        padding: 12px 18px calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .qa-btn {
+        height: 50px;
+        font-size: 15px;
+    }
+
+    .qa-added {
+        left: 12px !important;
+        right: 12px;
+        top: auto !important;
+        bottom: calc(16px + env(safe-area-inset-bottom));
+        width: auto;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .qa-backdrop,
+    .qa-dialog,
+    .qa-added {
+        transition: none;
+    }
+
+    .qa-cart-bump {
+        animation: none;
+    }
+}

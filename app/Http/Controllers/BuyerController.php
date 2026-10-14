@@ -733,9 +733,17 @@ class BuyerController extends Controller
         // Each order's trip so far: when and where (Sorting Centers included).
         $timelines = \App\Support\OrderTimeline::forOrders(array_map('intval', array_column($orders, 'id')));
 
+        // …and the stops still ahead of it (seller's center → buyer's center → door).
+        $routeCenters = \App\Models\SortingCenter::whereIn('id', collect($orders)
+            ->flatMap(fn ($o) => [$o['origin_center_id'] ?? null, $o['destination_center_id'] ?? null, $o['origin_branch_id'] ?? null, $o['branch_id'] ?? null])
+            ->filter()->unique())->get(['id', 'name'])->keyBy('id');
+        $routePlans = collect($orders)->mapWithKeys(fn ($o) => [
+            $o['id'] => \App\Support\OrderTimeline::plan($o, $timelines[$o['id']] ?? collect(), $routeCenters),
+        ]);
+
         return view(
             'pages.buyer.orders',
-            compact('user', 'orders', 'codStatus', 'cancelReasons', 'timelines', 'returnRequests', 'dropOffCenters', 'lastRefundTo')
+            compact('user', 'orders', 'codStatus', 'cancelReasons', 'timelines', 'routePlans', 'returnRequests', 'dropOffCenters', 'lastRefundTo')
         );
     }
 

@@ -38,6 +38,13 @@ class ViewServiceProvider extends ServiceProvider
             });
         }
 
+        // Parcels waiting on the staff member's center.
+        View::composer('components.layout.logistics-sidebar', function ($view) {
+            $user = $view->getData()['user'] ?? [];
+
+            $view->with('logisticsParcelsToActOn', empty($user['id']) ? 0 : app(\App\Http\Controllers\LogisticsController::class)->parcelsToActOn($user));
+        });
+
         // The seller's card shows the shop name.
         View::composer('components.layout.seller-sidebar', function ($view) {
             $user = $view->getData()['user'] ?? [];
@@ -47,6 +54,14 @@ class ViewServiceProvider extends ServiceProvider
                 ->value('business_name');
 
             $view->with('sellerCardName', $shopName ?: ($user['name'] ?? 'Seller'));
+
+            // Orders still with the seller (accept / pack) — same as the dashboard's "To ship".
+            $view->with('sellerOrdersToShip', DB::table('order_items')
+                ->join('orders', 'orders.id', '=', 'order_items.order_id')
+                ->where('order_items.seller_id', $user['id'] ?? null)
+                ->whereIn('orders.status', \App\Support\OrderStatus::WITH_SELLER)
+                ->distinct()
+                ->count('orders.id'));
         });
 
         View::composer('components.layout.admin-sidebar', function ($view) {

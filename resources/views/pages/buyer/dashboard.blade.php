@@ -225,8 +225,8 @@
                                                 @if($product['stock'] <= 0)
                                                     <button type="button" class="btn" disabled>Sold out</button>
                                                 @elseif($product['has_variations'])
-                                                    {{-- Needs a color/size: straight to the product page to choose it (same as the Shop cards). --}}
-                                                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart">
+                                                    {{-- Needs a color/size: a popup to choose it (same as the Shop cards). --}}
+                                                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart" aria-haspopup="dialog">
                                                         <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
                                                     </a>
                                                 @else
@@ -362,52 +362,10 @@
                 });
         });
 
-        /* Add to cart without leaving the page */
-        document.querySelectorAll('[data-add-cart]').forEach(function (form) {
-            form.addEventListener('submit', function (e) {
-                e.preventDefault();
-
-                var button = form.querySelector('button');
-                var original = button.innerHTML;
-                button.disabled = true;
-
-                fetch(form.getAttribute('action'), {
-                    method: 'POST',
-                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                    body: new FormData(form)
-                })
-                    .then(function (res) { return res.json(); })
-                    .then(function (data) {
-                        // Only say "Added" when the server actually added it.
-                        if (!data.ok) {
-                            button.innerHTML = original;
-                            button.disabled = false;
-                            if (window.bbAlert) bbAlert(data.message || 'Could not add this item to your cart.');
-                            return;
-                        }
-
-                        button.innerHTML = '<i class="bi bi-check-lg"></i><span class="btn-label">Added</span>';
-
-                        var badge = document.getElementById('cartCount');
-                        if (badge && data.cart_count) {
-                            badge.textContent = data.cart_count;
-                            badge.style.display = '';
-                        }
-
-                        setTimeout(function () {
-                            button.innerHTML = original;
-                            button.disabled = false;
-                        }, 1400);
-                    })
-                    .catch(function () {
-                        button.innerHTML = original;
-                        button.disabled = false;
-                        if (window.bbAlert) bbAlert('Could not add this item to your cart. Please try again.');
-                    });
-            });
-        });
     })();
     </script>
+
+    @include('partials.quick-add')
 
     @include('partials.buyer-footer')
 

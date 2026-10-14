@@ -40,6 +40,17 @@
             <span class="label-text">
                 Orders
             </span>
+
+            @if($sellerOrdersToShip > 0)
+
+                <span class="notification-badge">
+                    {{ $sellerOrdersToShip > 99
+                        ? '99+'
+                        : $sellerOrdersToShip }}
+                </span>
+
+            @endif
+
         </a>
 
         <a
@@ -176,7 +187,10 @@
     <a href="{{ route('seller.dashboard') }}" @class(['active' => $sTab === 'home']) @if($sTab === 'home') aria-current="page" @endif>
         <i class="bi {{ $sTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home
     </a>
-    <a href="{{ route('seller.orders') }}" @class(['active' => $sTab === 'orders']) @if($sTab === 'orders') aria-current="page" @endif>
+    <a href="{{ route('seller.orders') }}" @class(['active' => $sTab === 'orders']) @if($sTab === 'orders') aria-current="page" @endif aria-label="Orders{{ $sellerOrdersToShip > 0 ? ' (' . $sellerOrdersToShip . ' to ship)' : '' }}">
+        @if($sellerOrdersToShip > 0)
+            <span class="bb-stabbar-count">{{ $sCount($sellerOrdersToShip) }}</span>
+        @endif
         <i class="bi {{ $sTab === 'orders' ? 'bi-box-seam-fill' : 'bi-box-seam' }}"></i>Orders
     </a>
     <a href="{{ route('seller.dashboard') }}#my-products" @class(['active' => $sTab === 'products']) @if($sTab === 'products') aria-current="page" @endif>

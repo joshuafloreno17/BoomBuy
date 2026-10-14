@@ -170,17 +170,71 @@ body {
 }
 
 .label-route strong {
-    font-size: 13px;
+    margin-top: 2px;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: .3px;
+    text-transform: uppercase;
+}
+
+.label-route i {
+    font-size: 20px;
 }
 
 .label-party.is-to strong {
     font-size: 16px;
 }
 
+.label-contents {
+    flex: 1;
+}
+
+.label-contents ul {
+    margin: 4px 0 0;
+    padding: 0;
+    list-style: none;
+    font-size: 11px;
+    line-height: 1.45;
+}
+
+.label-contents li {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.label-contents em {
+    font-style: normal;
+    color: #4b4550;
+}
+
+.label-contents .label-more {
+    color: #4b4550;
+    font-weight: 700;
+}
+
+.label-sign {
+    display: flex;
+    gap: 14px;
+}
+
+.label-sign > div:first-child {
+    flex: 2;
+}
+
+.label-sign > div:last-child {
+    flex: 1;
+}
+
+.label-line {
+    display: block;
+    height: 22px;
+    border-bottom: 1px solid #1b1a1f;
+}
+
 .label-foot {
     display: flex;
     justify-content: space-between;
-    margin-top: auto;
 }
 
 .label-foot > div:last-child {

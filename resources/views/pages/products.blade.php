@@ -299,14 +299,6 @@
     </main>
 
 
-    <div class="shop-toast" id="shopToast" role="status" aria-live="polite">
-        <span class="shop-toast-icon"><i class="bi bi-check-lg" id="shopToastIcon"></i></span>
-        <span class="shop-toast-text">
-            <strong id="shopToastTitle"></strong>
-            <span id="shopToastSub"></span>
-        </span>
-        <a href="{{ route('cart') }}" id="shopToastLink">View cart</a>
-    </div>
 
     <script>
     (function () {
@@ -477,77 +469,6 @@
             liveLoad(location.href, false);
         });
 
-        /* ---------- toast ---------- */
-
-        var toast = document.getElementById('shopToast');
-        var toastTimer = null;
-
-        function showToast(ok, title, sub) {
-            toast.classList.toggle('is-error', !ok);
-            document.getElementById('shopToastIcon').className = 'bi ' + (ok ? 'bi-check-lg' : 'bi-exclamation-lg');
-            document.getElementById('shopToastTitle').textContent = title;
-            document.getElementById('shopToastSub').textContent = sub || '';
-            document.getElementById('shopToastLink').hidden = !ok;
-            toast.classList.add('is-shown');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(function () { toast.classList.remove('is-shown'); }, 3500);
-        }
-
-        /* ---------- add to cart (only reports success when the server says so) ---------- */
-
-        document.addEventListener('submit', function (e) {
-            var form = e.target.closest('[data-add-cart]');
-            if (!form) return;
-            e.preventDefault();
-
-            var button = form.querySelector('button');
-            var original = button.innerHTML;
-            button.disabled = true;
-
-            fetch(form.getAttribute('action'), {
-                method: 'POST',
-                headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
-                body: new FormData(form)
-            })
-                .then(function (res) {
-                    return res.json().then(function (data) { return { status: res.status, data: data }; });
-                })
-                .then(function (result) {
-                    if (result.status === 401 && result.data.login) {
-                        window.location.href = result.data.login;
-                        return;
-                    }
-
-                    if (!result.data.ok) {
-                        button.innerHTML = original;
-                        button.disabled = false;
-                        showToast(false, 'Could not add to cart', result.data.message);
-                        return;
-                    }
-
-                    button.classList.add('is-added');
-                    button.innerHTML = '<i class="bi bi-check-lg"></i><span class="sp-btn-label">Added</span>';
-                    showToast(true, 'Added to cart', form.dataset.name + ' · ' + form.dataset.price);
-
-                    var badge = document.getElementById('cartCount');
-                    if (badge && result.data.cart_count) {
-                        badge.textContent = result.data.cart_count;
-                        badge.style.display = '';
-                    }
-
-                    setTimeout(function () {
-                        button.classList.remove('is-added');
-                        button.innerHTML = original;
-                        button.disabled = false;
-                    }, 1800);
-                })
-                .catch(function () {
-                    button.innerHTML = original;
-                    button.disabled = false;
-                    showToast(false, 'Could not add to cart', 'Please check your connection and try again.');
-                });
-        });
-
         /* ---------- wishlist hearts ---------- */
 
         document.addEventListener('click', function (e) {
@@ -611,6 +532,8 @@
         });
     })();
     </script>
+
+    @include('partials.quick-add')
 
     @include('partials.buyer-footer')
 

@@ -648,6 +648,14 @@
 
                                         <button
                                             type="button"
+                                            class="track-btn is-ghost"
+                                            onclick="toggleTracking('{{ $trackingId }}')"
+                                        >
+                                            <i class="bi bi-receipt"></i> View Details
+                                        </button>
+
+                                        <button
+                                            type="button"
                                             class="return-btn"
                                             onclick="openReturnRefund('{{ $order['id'] }}')"
                                         >
@@ -877,7 +885,7 @@
     <i class="bi bi-geo-alt-fill"></i> Order Tracking
 </div>
 
-@include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect(), 'proof' => !empty($order['delivery_proof']) ? route('orders.delivery-proof', $order['id']) : null])
+@include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect(), 'plan' => $routePlans[$order['id']] ?? null, 'eta' => $order['eta'] ?? null,'proof' => !empty($order['delivery_proof']) ? route('orders.delivery-proof', $order['id']) : null])
 
 @if($showRider || $orderGroup === 'delivered')
 
