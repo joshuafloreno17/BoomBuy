@@ -14,6 +14,8 @@
             <span>Dashboard</span>
         </a>
 
+        <div class="menu-group">People</div>
+
         <a href="{{ route('admin.accounts') }}" @class(['active' => $active === 'accounts'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
             <span>Accounts</span>
@@ -24,15 +26,7 @@
             <span>Applications</span>
         </a>
 
-        <a href="{{ route('admin.logistics') }}" @class(['active' => $active === 'logistics'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-            <span>Logistics</span>
-        </a>
-
-        <a href="{{ route('admin.sorting-centers') }}" @class(['active' => $active === 'sorting-centers'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Sorting Centers</span>
-        </a>
+        <div class="menu-group">Marketplace</div>
 
         <a href="{{ route('admin.orders') }}" @class(['active' => $active === 'orders'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>
@@ -44,10 +38,35 @@
             <span>Products</span>
         </a>
 
+        <a href="{{ route('admin.returns') }}" @class(['active' => $active === 'returns'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
+            <span>Returns</span>
+
+            @if($returnsWaitingCount > 0)
+                <span class="notification-badge">
+                    {{ $returnsWaitingCount > 99 ? '99+' : $returnsWaitingCount }}
+                </span>
+            @endif
+        </a>
+
         <a href="{{ route('admin.reports') }}" @class(['active' => $active === 'reports'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
             <span>Reports</span>
         </a>
+
+        <div class="menu-group">Delivery</div>
+
+        <a href="{{ route('admin.logistics') }}" @class(['active' => $active === 'logistics'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <span>Logistics</span>
+        </a>
+
+        <a href="{{ route('admin.sorting-centers') }}" @class(['active' => $active === 'sorting-centers'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+            <span>Sorting Centers</span>
+        </a>
+
+        <div class="menu-group">Trust &amp; Safety</div>
 
         <a href="{{ route('admin.compliance') }}" @class(['active' => $active === 'compliance'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V4l-8 2-8-2v8c0 6 8 10 8 10z"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -65,16 +84,7 @@
             @endif
         </a>
 
-        <a href="{{ route('admin.returns') }}" @class(['active' => $active === 'returns'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 14 4 9 9 4"/><path d="M20 20v-7a4 4 0 0 0-4-4H4"/></svg>
-            <span>Returns</span>
-
-            @if($returnsWaitingCount > 0)
-                <span class="notification-badge">
-                    {{ $returnsWaitingCount > 99 ? '99+' : $returnsWaitingCount }}
-                </span>
-            @endif
-        </a>
+        <div class="menu-group">Inbox</div>
 
         <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -97,6 +107,8 @@
                 </span>
             @endif
         </a>
+
+        <div class="menu-group">System</div>
 
         <a href="{{ route('admin.settings') }}" @class(['active' => $active === 'settings'])>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
