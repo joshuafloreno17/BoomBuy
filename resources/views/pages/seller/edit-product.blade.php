@@ -94,6 +94,12 @@
 
                     @method('PUT')
 
+                    {{-- Wide screens: what the product is on the left; price, stock and Save on the right (stays in view). --}}
+                    <div class="ap-layout">
+
+                    <div class="ap-main">
+                    <section class="ap-card">
+                    <h2 class="ap-card-title">Product details</h2>
 
                     {{-- PRODUCT NAME --}}
                     <div class="form-group">
@@ -112,6 +118,40 @@
 
                     </div>
 
+                    {{-- DESCRIPTION --}}
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Enter product description..."
+                            required
+                        >{{ old('description', $product->description ?? '') }}</textarea>
+
+                    </div>
+                    </section>
+
+                    <section class="ap-card ap-photos">
+                    {{-- MORE PHOTOS --}}
+                    @include('partials.product-photos-field', ['product' => $product])
+                    </section>
+
+                    <section class="ap-card">
+                    {{-- SPECIFICATIONS (phones, tablets, laptops) --}}
+                    @include('partials.device-specs-fields', [
+                        'specs' => $product->specs,
+                        'show' => \App\Support\DeviceSpecs::appliesTo($registeredCategory ? \App\Support\Categories::LIST[$registeredCategory] ?? null : $product->category),
+                    ])
+                    </section>
+                    </div>{{-- .ap-main --}}
+
+                    <aside class="ap-side">
+                    <section class="ap-card">
+                    <h2 class="ap-card-title">Price &amp; stock</h2>
 
                     {{-- CATEGORY + PRICE --}}
                     <div class="row">
@@ -385,34 +425,7 @@
                         </div>
 
                     </div>
-
-                    {{-- MORE PHOTOS --}}
-                    @include('partials.product-photos-field', ['product' => $product])
-
-
-                    {{-- DESCRIPTION --}}
-                    <div class="form-group">
-
-                        <label for="description">
-                            Description
-                        </label>
-
-                        <textarea
-                            id="description"
-                            name="description"
-                            placeholder="Enter product description..."
-                            required
-                        >{{ old('description', $product->description ?? '') }}</textarea>
-
-                    </div>
-
-
-                    {{-- SPECIFICATIONS (phones, tablets, laptops) --}}
-                    @include('partials.device-specs-fields', [
-                        'specs' => $product->specs,
-                        'show' => \App\Support\DeviceSpecs::appliesTo($registeredCategory ? \App\Support\Categories::LIST[$registeredCategory] ?? null : $product->category),
-                    ])
-
+                    </section>
 
                     {{-- ACTIONS --}}
                     <div class="actions">
@@ -433,6 +446,9 @@
                         </button>
 
                     </div>
+                    </aside>
+
+                    </div>{{-- .ap-layout --}}
 
                 </form>
 

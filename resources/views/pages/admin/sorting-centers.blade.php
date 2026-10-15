@@ -304,11 +304,33 @@
         var box = document.getElementById('scMap');
         if (!box || !window.L) return;
 
-        var map = L.map(box, { scrollWheelZoom: false }).setView([12.3, 122.5], 5);
+        // The Philippines only: the map can't drift off to neighbouring countries.
+        var philippines = L.latLngBounds([4.2, 115.5], [21.5, 127.5]);
+        var map = L.map(box, {
+            scrollWheelZoom: false,
+            maxBounds: philippines.pad(0.15),
+            maxBoundsViscosity: 1,
+            zoomSnap: 0.25
+        }).fitBounds(philippines);
+        map.setMinZoom(map.getZoom());
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 12,
             attribution: '&copy; OpenStreetMap contributors'
         }).addTo(map);
+
+        // The box can still change size after the page lays out (fonts,
+        // sidebar, window): measure again and keep the whole country in view.
+        if (window.ResizeObserver) {
+            var lastWidth = 0;
+            new ResizeObserver(function () {
+                if (!box.clientWidth || box.clientWidth === lastWidth) return;
+                lastWidth = box.clientWidth;
+                map.invalidateSize();
+                map.setMinZoom(0);
+                map.fitBounds(philippines);
+                map.setMinZoom(map.getZoom());
+            }).observe(box);
+        }
 
         // A plain scroll still scrolls the page. Ctrl + scroll, and a touchpad
         // pinch (which browsers send as Ctrl + wheel), zoom the map instead

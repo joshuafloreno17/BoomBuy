@@ -288,3 +288,97 @@ footer strong {
     color: #c2380f;
     text-decoration: none;
 }
+
+/* ===== TWO COLUMNS (wide screens) =====
+   What the product is on the left; price, stock and Save on the right,
+   staying in view while the left side scrolls. */
+
+.card:has(.ap-layout) {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.ap-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 22px;
+    align-items: start;
+}
+
+.ap-main,
+.ap-side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.ap-side {
+    position: sticky;
+    top: 24px;
+}
+
+.ap-card {
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 15px 35px rgba(39, 84, 150, 0.06);
+}
+
+.ap-card > .form-group:last-child,
+.ap-card > .row:last-child .form-group {
+    margin-bottom: 0;
+}
+
+.ap-card-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 18px;
+    color: #1b1a1f;
+}
+
+/* The side column is narrow: one field per row. */
+.ap-side .row {
+    grid-template-columns: 1fr;
+    gap: 0;
+}
+
+.ap-side .actions {
+    margin-top: 0;
+    justify-content: stretch;
+}
+
+.ap-side .actions .save-btn {
+    flex: 1;
+    padding: 13px 17px;
+    font-size: 13px;
+}
+
+@media (max-width: 1200px) {
+    .ap-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ap-side {
+        position: static;
+    }
+
+    .ap-side .row {
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+}
+
+@media (max-width: 600px) {
+    .ap-card {
+        padding: 20px;
+    }
+
+    .ap-side .row {
+        grid-template-columns: 1fr;
+    }
+}

@@ -57,6 +57,13 @@
                     @csrf
 
 
+                    {{-- Wide screens: what the product is on the left; price, stock, photos and Save on the right (stays in view). --}}
+                    <div class="ap-layout">
+
+                    <div class="ap-main">
+                    <section class="ap-card">
+                    <h2 class="ap-card-title">Product details</h2>
+
                     <!-- PRODUCT NAME -->
                     <div class="form-group">
 
@@ -74,6 +81,113 @@
                         >
 
                     </div>
+
+                    <!-- DESCRIPTION -->
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                            name="description"
+                            placeholder="Enter product description..."
+                            required
+                        >{{ old('description') }}</textarea>
+
+                    </div>
+
+                    </section>
+
+                    <section class="ap-card">
+                    <!-- SPECIFICATIONS (phones, tablets, laptops) -->
+                    @include('partials.device-specs-fields', ['specs' => null, 'show' => ($registeredCategory ?? null) === 'electronics' || old('category') === 'electronics'])
+
+
+                    <!-- OPTIONS AND THEIR PHOTOS (optional) -->
+                    <div class="form-group">
+
+                        <label>
+                            Options and their photos <span style="font-weight:500; color:#8a7f86;">(optional · up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} photos each)</span>
+                        </label>
+
+                        <div class="opt-intro">
+                            Does it come in different colors, sizes or kinds? Add each one as an option with its own photos. Buyers see only that option's photos after picking it.
+                            Leave the photos empty when every option looks the same (like sizes).
+                        </div>
+
+                        <div class="opt-type" id="optType" hidden>
+                            <label for="variationType">Variation type</label>
+                            <input type="text" id="variationType" placeholder="e.g. Color, Size, Mount" autocomplete="off">
+                            <label for="variationType2" style="margin-top:8px;">Second type <small>(optional — e.g. Size, for Color × Size)</small></label>
+                            <input type="text" id="variationType2" placeholder="Leave blank for one type" autocomplete="off">
+                        </div>
+
+                        {{-- Phones, tablets, laptops: build Color × Storage options in one go. --}}
+                        <div class="storage-builder" id="storageBuilder" hidden>
+                            <div class="sb-head">
+                                <i class="bi bi-phone"></i>
+                                <div>
+                                    <strong>Quick setup: colors × storage</strong>
+                                    <small>Type the colors, tick the storage sizes with their extra price, then create the options. You can still edit each one below.</small>
+                                </div>
+                            </div>
+                            <label class="sb-field">
+                                <span>Colors <small>(separate with commas)</small></span>
+                                <input type="text" id="sbColors" placeholder="e.g. Maroon, White, Black, Blue">
+                            </label>
+                            <div class="sb-sizes">
+                                @foreach(\App\Support\DeviceSpecs::STORAGE_SIZES as $size)
+                                    <label class="sb-size">
+                                        <input type="checkbox" value="{{ $size }}">
+                                        <b>{{ $size }}</b>
+                                        <span>+₱</span>
+                                        <input type="number" step="0.01" value="0" aria-label="Extra price for {{ $size }}">
+                                    </label>
+                                @endforeach
+                            </div>
+                            <label class="sb-field sb-stock">
+                                <span>Stock for each one</span>
+                                <input type="number" id="sbStock" min="0" value="0">
+                            </label>
+                            <button type="button" class="opt-add-btn" id="sbCreate"><i class="bi bi-magic"></i> Create options</button>
+                        </div>
+
+                        <div id="variationRows" class="opt-list"></div>
+
+                        <button type="button" id="addVariationBtn" class="opt-add-btn">+ Add option</button>
+
+                    </div>
+                    </section>
+                    </div>{{-- .ap-main --}}
+
+                    <aside class="ap-side">
+                    <section class="ap-card">
+                    <h2 class="ap-card-title">Price &amp; stock</h2>
+
+                    <!-- PRICE -->
+                    <div class="form-group">
+
+                        <label for="price">
+                            Price
+                        </label>
+
+                        <input
+                            type="number"
+                            id="price"
+                            name="price"
+                            value="{{ old('price') }}"
+                            min="1"
+                            step="0.01"
+                            placeholder="Example: 15000"
+                            required
+                        >
+
+                    </div>
+
+                    @include('partials.discount-field')
+
 
                     <!-- QUANTITY / STOCK -->
                     <div class="form-group">
@@ -210,109 +324,12 @@
 @endif
                     </div>
 
+                    </section>
 
-                    <!-- PRICE -->
-                    <div class="form-group">
-
-                        <label for="price">
-                            Price
-                        </label>
-
-                        <input
-                            type="number"
-                            id="price"
-                            name="price"
-                            value="{{ old('price') }}"
-                            min="1"
-                            step="0.01"
-                            placeholder="Example: 15000"
-                            required
-                        >
-
-                    </div>
-
-                    @include('partials.discount-field')
-
-
-                    <!-- DESCRIPTION -->
-                    <div class="form-group">
-
-                        <label for="description">
-                            Description
-                        </label>
-
-                        <textarea
-                            id="description"
-                            name="description"
-                            placeholder="Enter product description..."
-                            required
-                        >{{ old('description') }}</textarea>
-
-                    </div>
-
-
-                    <!-- SPECIFICATIONS (phones, tablets, laptops) -->
-                    @include('partials.device-specs-fields', ['specs' => null, 'show' => ($registeredCategory ?? null) === 'electronics' || old('category') === 'electronics'])
-
-
-                    <!-- OPTIONS AND THEIR PHOTOS (optional) -->
-                    <div class="form-group">
-
-                        <label>
-                            Options and their photos <span style="font-weight:500; color:#8a7f86;">(optional · up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} photos each)</span>
-                        </label>
-
-                        <div class="opt-intro">
-                            Does it come in different colors, sizes or kinds? Add each one as an option with its own photos. Buyers see only that option's photos after picking it.
-                            Leave the photos empty when every option looks the same (like sizes).
-                        </div>
-
-                        <div class="opt-type" id="optType" hidden>
-                            <label for="variationType">Variation type</label>
-                            <input type="text" id="variationType" placeholder="e.g. Color, Size, Mount" autocomplete="off">
-                            <label for="variationType2" style="margin-top:8px;">Second type <small>(optional — e.g. Size, for Color × Size)</small></label>
-                            <input type="text" id="variationType2" placeholder="Leave blank for one type" autocomplete="off">
-                        </div>
-
-                        {{-- Phones, tablets, laptops: build Color × Storage options in one go. --}}
-                        <div class="storage-builder" id="storageBuilder" hidden>
-                            <div class="sb-head">
-                                <i class="bi bi-phone"></i>
-                                <div>
-                                    <strong>Quick setup: colors × storage</strong>
-                                    <small>Type the colors, tick the storage sizes with their extra price, then create the options. You can still edit each one below.</small>
-                                </div>
-                            </div>
-                            <label class="sb-field">
-                                <span>Colors <small>(separate with commas)</small></span>
-                                <input type="text" id="sbColors" placeholder="e.g. Maroon, White, Black, Blue">
-                            </label>
-                            <div class="sb-sizes">
-                                @foreach(\App\Support\DeviceSpecs::STORAGE_SIZES as $size)
-                                    <label class="sb-size">
-                                        <input type="checkbox" value="{{ $size }}">
-                                        <b>{{ $size }}</b>
-                                        <span>+₱</span>
-                                        <input type="number" step="0.01" value="0" aria-label="Extra price for {{ $size }}">
-                                    </label>
-                                @endforeach
-                            </div>
-                            <label class="sb-field sb-stock">
-                                <span>Stock for each one</span>
-                                <input type="number" id="sbStock" min="0" value="0">
-                            </label>
-                            <button type="button" class="opt-add-btn" id="sbCreate"><i class="bi bi-magic"></i> Create options</button>
-                        </div>
-
-                        <div id="variationRows" class="opt-list"></div>
-
-                        <button type="button" id="addVariationBtn" class="opt-add-btn">+ Add option</button>
-
-                    </div>
-
-
+                    <section class="ap-card">
                     <!-- PHOTOS FOR ALL OPTIONS (or the product's photos when it has no options) -->
                     @include('partials.product-photos-uploader')
+                    </section>
 
                     <!-- BUTTONS -->
                     <div class="buttons">
@@ -332,6 +349,9 @@
                         </a>
 
                     </div>
+                    </aside>
+
+                    </div>{{-- .ap-layout --}}
 
                 </form>
 

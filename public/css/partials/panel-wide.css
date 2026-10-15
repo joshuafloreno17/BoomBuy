@@ -1,0 +1,28 @@
+/*
+ * Seller, admin and logistics panel pages use the whole screen beside the
+ * sidebar instead of a narrow column in the middle (loaded by each panel
+ * sidebar). Phones keep each page's own spacing.
+ */
+@media (min-width: 901px) {
+    :is(.main-content, .main) > :is(.container, .pd, .page, .account-page) {
+        width: calc(100% - 80px);
+        max-width: 1600px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    /* The admin's .main already has side padding of its own. */
+    .main {
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+    .main > :is(.container, .pd, .page, .account-page) {
+        width: 100%;
+    }
+
+    /* Messages: the chat fills the space beside the sidebar too. */
+    :is(.main-content, .main) .chat-container {
+        max-width: 1680px;
+    }
+}

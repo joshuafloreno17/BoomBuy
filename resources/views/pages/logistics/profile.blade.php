@@ -37,6 +37,11 @@
                 $initial = strtoupper(substr($displayName, 0, 1));
             @endphp
 
+            {{-- Wide screens: who you are on the left (stays in view), forms on the right. --}}
+            <div class="profile-layout">
+
+            <aside class="profile-aside">
+
             <div class="profile-header">
 
                 <form
@@ -77,7 +82,7 @@
 
                 </form>
 
-                <div>
+                <div class="profile-id">
                     <h2>{{ $displayName }}</h2>
                     <p>{{ $dbUser->email ?? ($user['email'] ?? '') }}</p>
                     @if(!empty($dbUser->created_at))
@@ -113,6 +118,11 @@
                     </div>
                 </div>
             @endif
+
+            </aside>
+
+            <div class="profile-main">
+
 
             <!-- PROFILE INFORMATION -->
 
@@ -261,6 +271,10 @@
                 </form>
 
             </div>
+            </div>{{-- .profile-main --}}
+
+            </div>{{-- .profile-layout --}}
+
 
         </div>
 

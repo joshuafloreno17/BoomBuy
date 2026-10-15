@@ -29,7 +29,8 @@
 
 @once
 <style>
-    .pg-group { margin-bottom: 18px; }
+    .pg-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; }
+    .pg-group { margin-bottom: 18px; min-width: 0; }
     .pg-title { font-weight: 700; font-size: 13.5px; }
     .pg-title small { font-weight: 500; color: #8a7f86; }
     .pg-note { margin: 2px 0 8px; font-size: 12.5px; color: #8a7f86; }
@@ -53,6 +54,8 @@
         Tick “Remove” to take a photo off when you save.
     </p>
 
+    {{-- Option groups side by side when there is room. --}}
+    <div class="pg-groups">
     @foreach($groups as $group)
         <div class="pg-group">
             <div class="pg-title">{{ $group['title'] }} <small>· {{ $group['photos']->count() }}/{{ $group['max'] }}</small></div>
@@ -89,6 +92,7 @@
             @endif
         </div>
     @endforeach
+    </div>
 </div>
 
 @once

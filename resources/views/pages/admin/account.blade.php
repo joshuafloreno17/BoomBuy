@@ -40,6 +40,9 @@
             </div>
         </div>
 
+        {{-- Wide screens: the two forms side by side. --}}
+        <div class="account-cards">
+
         <!-- ACCOUNT DETAILS -->
 
         <div class="card">
@@ -105,6 +108,7 @@
                 <button type="submit" class="save-btn">Update Password</button>
             </form>
         </div>
+        </div>{{-- .account-cards --}}
 
     </div>
 

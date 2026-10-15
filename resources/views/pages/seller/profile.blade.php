@@ -36,6 +36,11 @@
                 $initial = strtoupper(substr($displayName, 0, 1));
             @endphp
 
+            {{-- Wide screens: who you are on the left (stays in view), forms on the right. --}}
+            <div class="profile-layout">
+
+            <aside class="profile-aside">
+
             <div class="profile-header">
 
                 <form
@@ -76,7 +81,7 @@
 
                 </form>
 
-                <div>
+                <div class="profile-id">
                     <h2>{{ $displayName }}</h2>
                     <p>{{ $dbUser->email ?? ($user['email'] ?? '') }}</p>
                     @if(!empty($dbUser->created_at))
@@ -114,6 +119,16 @@
                 </div>
 
             </div>
+
+            @if($application)
+                <a href="{{ route('shop.seller', $user['id']) }}" class="aside-link">
+                    <i class="bi bi-shop"></i> View my shop <span aria-hidden="true">→</span>
+                </a>
+            @endif
+
+            </aside>
+
+            <div class="profile-main">
 
             @if($application)
                 <!-- SHOP PROFILE: name + about text shown on the shop page; category stays as registered -->
@@ -184,7 +199,7 @@
 
             <!-- PROFILE INFORMATION -->
 
-            <div class="card">
+            <div class="card card-wide">
 
                 <h3>Profile Information</h3>
                 <p class="card-sub">Update your name, phone number, and address.</p>
@@ -192,7 +207,7 @@
                 <form method="POST" action="{{ route('seller.profile.update') }}">
                     @csrf
 
-                    <div class="form-grid">
+                    <div class="form-grid info-grid">
 
                         <div class="field">
                             <label for="name">Full Name</label>
@@ -246,13 +261,15 @@
 
             <!-- CHANGE PASSWORD -->
 
-            <div class="card">
+            <div class="card card-wide">
 
                 <h3>Change Password</h3>
                 <p class="card-sub">Update your account password.</p>
 
                 <form method="POST" action="{{ route('seller.profile.password') }}" id="passwordForm">
                     @csrf
+
+                    <div class="form-grid password-grid">
 
                     <div class="field">
                         <label for="current_password">Current Password</label>
@@ -271,8 +288,6 @@
                             ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
                         </div>
                     </div>
-
-                    <div class="form-grid">
 
                         <div class="field">
                             <label for="new_password">New Password</label>
@@ -324,6 +339,10 @@
                 </form>
 
             </div>
+
+            </div>{{-- .profile-main --}}
+
+            </div>{{-- .profile-layout --}}
 
         </div>
 

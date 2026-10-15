@@ -143,3 +143,7 @@
 </aside>
 
 @include('partials.confirm-modal')
+
+@once
+    <link rel="stylesheet" href="{{ vasset('css/partials/panel-wide.css') }}">
+@endonce

@@ -296,3 +296,58 @@ a { text-decoration: none; color: inherit; }
     .form-grid { grid-template-columns: 1fr; }
     .stats-row { grid-template-columns: 1fr; }
 }
+
+/* Wide screens: profile + business info on the left (stays in view), forms on the right. */
+.profile-layout {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 24px;
+    align-items: start;
+}
+
+.profile-aside {
+    position: sticky;
+    top: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.profile-aside > .profile-header,
+.profile-aside > .card,
+.profile-main > .card {
+    margin-bottom: 0;
+}
+
+.profile-aside .profile-header {
+    flex-direction: column;
+    text-align: center;
+    padding: 30px 22px 24px;
+}
+
+.profile-aside .profile-avatar {
+    width: 96px;
+    height: 96px;
+    font-size: 38px;
+}
+
+.profile-aside .profile-header h2 { font-size: 20px; }
+
+.profile-aside .form-grid { grid-template-columns: 1fr; }
+
+.profile-main {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (max-width: 1280px) {
+    .profile-layout { grid-template-columns: 1fr; }
+    .profile-aside { position: static; }
+    .profile-aside .profile-header { flex-direction: row; text-align: left; padding: 24px; }
+    .profile-aside .profile-avatar { width: 72px; height: 72px; font-size: 28px; }
+}
+
+@media (max-width: 560px) {
+    .profile-aside .profile-header { flex-direction: column; text-align: center; }
+}

@@ -765,3 +765,81 @@ textarea {
 .storage-builder .sb-size b { font-size: 13px; min-width: 44px; }
 .storage-builder .sb-size span { font-size: 12px; color: #8a7f86; }
 .storage-builder .sb-size input[type="number"] { min-height: 32px; padding: 4px 8px; font-size: 12.5px; }
+
+/* =========================
+   TWO COLUMNS (wide screens)
+   What the product is on the left; price, stock, photos and the Save
+   button on the right, staying in view while the left side scrolls.
+========================= */
+
+.form-box:has(.ap-layout) {
+    background: none;
+    border: none;
+    box-shadow: none;
+    padding: 0;
+}
+
+.ap-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: 22px;
+    align-items: start;
+}
+
+.ap-main,
+.ap-side {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-width: 0;
+}
+
+.ap-side {
+    position: sticky;
+    top: 24px;
+}
+
+.ap-card {
+    background: #ffffff;
+    border: 1px solid #f0e2da;
+    border-radius: 16px;
+    padding: 26px;
+    box-shadow: 0 15px 35px rgba(39, 84, 150, 0.06);
+}
+
+.ap-card > .form-group:last-child,
+.ap-card > :last-child .form-group:last-child {
+    margin-bottom: 0;
+}
+
+.ap-card-title {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 18px;
+    color: #1b1a1f;
+}
+
+.ap-side .buttons {
+    margin-top: 0;
+}
+
+.ap-side .buttons .save {
+    flex: 1;
+}
+
+@media (max-width: 1200px) {
+    .ap-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .ap-side {
+        position: static;
+    }
+}
+
+@media (max-width: 600px) {
+    .ap-card {
+        padding: 20px;
+    }
+}
