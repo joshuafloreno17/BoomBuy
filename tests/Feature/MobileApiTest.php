@@ -253,9 +253,17 @@ class MobileApiTest extends TestCase
             ->assertJsonPath('orders.0.id', $order)
             ->assertJsonPath('orders.0.can.cancel', true);
 
+        // The whole trip, as on the website: placed (reached) first, delivered still ahead last.
+        $trip = $this->as($token)->getJson(self::API . "/buyer/orders/{$order}")->assertOk()->json('order.trip');
+        $this->assertSame('Order placed', $trip[0]['title']);
+        $this->assertTrue($trip[0]['done'] && $trip[0]['current']);
+        $this->assertSame('Delivered', end($trip)['title']);
+        $this->assertFalse(end($trip)['done']);
+
         $this->as($token)->postJson(self::API . "/buyer/orders/{$order}/cancel", ['reason' => 'Changed my mind'])
             ->assertOk()
-            ->assertJsonPath('order.status', 'Cancelled');
+            ->assertJsonPath('order.status', 'Cancelled')
+            ->assertJsonPath('order.trip', null);
 
         // Someone else's order is not found.
         $this->as($this->tokenFor($this->makeUser('buyer')))->getJson(self::API . "/buyer/orders/{$order}")->assertNotFound();

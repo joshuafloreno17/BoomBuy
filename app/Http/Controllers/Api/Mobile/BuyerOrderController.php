@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api\Mobile;
 
 use App\Models\Product;
 use App\Models\ProductVariation;
+use App\Models\SortingCenter;
 use App\Services\BuyerOrderService;
 use App\Services\ReturnRefundService;
 use App\Support\AutoReceive;
@@ -261,12 +262,16 @@ class BuyerOrderController extends MobileController
         $reviews = DB::table('product_reviews')->where('buyer_id', $buyerId)->whereIn('order_id', $ids)->get()->keyBy(fn ($r) => $r->order_id . ':' . $r->product_id);
         $returns = DB::table('return_refund_requests')->where('buyer_id', $buyerId)->whereIn('order_id', $ids)->orderByDesc('id')->get()->groupBy('order_id');
         $timelines = $full ? OrderTimeline::forOrders($ids) : collect();
+        // Sorting Centers / branches on each order's route, for the stops still ahead.
+        $routeCenters = $full ? SortingCenter::whereIn('id', $orders
+            ->flatMap(fn ($o) => [$o->origin_center_id ?? null, $o->destination_center_id ?? null, $o->origin_branch_id ?? null, $o->branch_id ?? null])
+            ->filter()->unique())->get(['id', 'name'])->keyBy('id') : collect();
         $riders = DB::table('users')
             ->whereIn('id', $orders->map(fn ($o) => $o->delivery_rider_id ?: $o->rider_id)->filter()->unique())
             ->get(['id', 'name', 'phone', 'profile_photo'])
             ->keyBy('id');
 
-        return $orders->map(function ($order) use ($items, $products, $shops, $reviews, $returns, $timelines, $riders, $full) {
+        return $orders->map(function ($order) use ($items, $products, $shops, $reviews, $returns, $timelines, $routeCenters, $riders, $full) {
             $lines = $items->get($order->id, collect());
             $first = $lines->first();
             $done = in_array($order->status, OrderStatus::DONE, true);
@@ -342,6 +347,14 @@ class BuyerOrderController extends MobileController
                     'detail' => $s->detail,
                     'at' => self::iso($s->at),
                 ])->reverse()->values(),
+                // The whole trip, oldest stop first: reached and still ahead (null when off the normal route).
+                'trip' => OrderTimeline::plan($order, collect($timelines->get($order->id, [])), $routeCenters)?->map(fn ($s) => [
+                    'title' => $s->title,
+                    'detail' => $s->detail,
+                    'at' => self::iso($s->at),
+                    'done' => $s->done,
+                    'current' => $s->current,
+                ])->values(),
                 'returns' => $returns->get($order->id, collect())->map(fn ($r) => [
                     'id' => (int) $r->id,
                     'order_item_id' => (int) $r->order_item_id,
