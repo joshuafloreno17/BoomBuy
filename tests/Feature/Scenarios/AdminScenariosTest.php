@@ -79,7 +79,7 @@ class AdminScenariosTest extends TestCase
     {
         $this->makeOrder($this->buyerAt(), $this->shoes, 'Pending');
 
-        $this->admin()->get(route('admin.accounts', ['role' => 'seller']))->assertOk()
+        $this->admin()->followingRedirects()->get(route('admin.accounts', ['role' => 'seller']))->assertOk()
             ->assertViewHas('users', fn ($p) => $p->total() === 1);
 
         $this->post(route('admin.accounts.status', $this->seller->id), ['status' => 'Suspended'])

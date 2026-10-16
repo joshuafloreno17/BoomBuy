@@ -246,6 +246,11 @@ Route::post('/admin/products/{id}/unarchive', [AdminController::class, 'unarchiv
 |--------------------------------------------------------------------------
 */
 
+// People by role: each with an Accounts tab and an Applications tab.
+Route::get('/admin/buyers', [AdminController::class, 'buyers'])->name('admin.buyers');
+Route::get('/admin/sellers', [AdminController::class, 'sellers'])->name('admin.sellers');
+
+// Old address: sends ?role= to Buyers, Sellers or Logistics → Staff & Riders.
 Route::get('/admin/accounts', [AdminController::class, 'accounts'])->name('admin.accounts');
 
 

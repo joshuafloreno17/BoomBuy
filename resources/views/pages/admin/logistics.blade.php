@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'Logistics Overview — BoomBuy Admin'])
+    @include('partials.head', ['title' => 'Logistics — BoomBuy Admin'])
 
     <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-logistics.css') }}">
@@ -19,11 +19,7 @@
 
     <div class="container">
 
-        <div class="header">
-            <small>Admin Panel</small>
-            <h1>Logistics Overview</h1>
-            <p>A read-only view of rider vetting and parcel operations. Riders and parcels are managed by the Logistics Center.</p>
-        </div>
+        @include('partials.admin-section-head', ['section' => $section])
 
         <div class="readonly-note">
             <i class="bi bi-eye-fill"></i> This is a read-only view — approving riders, assigning parcels, and rescheduling deliveries are handled by Logistics staff.

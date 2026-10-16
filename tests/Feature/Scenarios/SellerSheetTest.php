@@ -461,7 +461,7 @@ class SellerSheetTest extends TestCase
         $user = $this->pendingSeller();
         $id = $this->applicationId($user);
 
-        $this->asAdmin()->get(route('admin.applications', ['type' => 'seller']))
+        $this->asAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'seller']))
             ->assertOk()
             ->assertSee('Maria Clara Handicrafts')
             ->assertSee('mariaclara.santos@example.com')
@@ -512,7 +512,7 @@ class SellerSheetTest extends TestCase
         $this->assertSame(1, User::where('email', 'roberto.villanueva@example.com')->count());
         $id = $this->applicationId($user);
         $this->assertSame('Pending Verification', DB::table('seller_applications')->where('id', $id)->value('status'));
-        $this->asAdmin()->get(route('admin.applications', ['type' => 'seller']))->assertSee('RV Gadget Hub');
+        $this->asAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'seller']))->assertSee('RV Gadget Hub');
         $this->asAdmin()->get(route('admin.applications.document', ['seller', $id, 'sec_certificate']))->assertOk();
     }
 

@@ -18,10 +18,19 @@ class SortingCenterController extends Controller
     /** The staff select's value for "Head office (all centers)". */
     public const HEAD_OFFICE = 'head-office';
 
-    public function index()
+    /**
+     * Shown as the Sorting Centers and Branches tabs of Admin → Logistics
+     * ($section from AdminController::logistics). The old address sends
+     * people there.
+     */
+    public function index(?array $section = null)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
+        }
+
+        if ($section === null) {
+            return redirect()->route('admin.logistics', array_filter(['tab' => 'centers', 'q' => request('q')]));
         }
 
         $search = trim((string) request('q', ''));
@@ -94,7 +103,7 @@ class SortingCenterController extends Controller
         $provinces = PhLocations::all();
 
         return view('pages.admin.sorting-centers', compact(
-            'centers', 'parcelCounts', 'staff', 'allCenters', 'branches', 'stats', 'regions', 'provinces', 'search', 'mapPins'
+            'centers', 'parcelCounts', 'staff', 'allCenters', 'branches', 'stats', 'regions', 'provinces', 'search', 'mapPins', 'section'
         ));
     }
 

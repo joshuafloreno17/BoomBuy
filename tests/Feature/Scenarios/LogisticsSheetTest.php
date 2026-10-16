@@ -440,7 +440,7 @@ class LogisticsSheetTest extends TestCase
         $user = $this->pendingCompany();
         $id = $this->applicationId($user);
 
-        $this->asAdmin()->get(route('admin.applications', ['type' => 'logistics']))
+        $this->asAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'logistics']))
             ->assertOk()->assertSee('Bilis Hatid Express Inc.')->assertSee('operations@bilishatid.example.com')->assertSee('Pending')
             // All details of the sheet's form, as entered.
             ->assertSee('CS202012345')->assertSee('234-567-890-000')->assertSee('Operations Manager');
@@ -489,7 +489,7 @@ class LogisticsSheetTest extends TestCase
         $this->assertSame(1, User::where('email', 'admin@agilacargo.example.com')->count());
         $id = $this->applicationId($user);
         $this->assertSame('Pending Verification', DB::table('logistics_applications')->where('id', $id)->value('status'));
-        $this->asAdmin()->get(route('admin.applications', ['type' => 'logistics']))->assertSee('Agila Cargo Movers Corp.');
+        $this->asAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'logistics']))->assertSee('Agila Cargo Movers Corp.');
         $this->asAdmin()->get(route('admin.applications.document', ['logistics', $id, 'business_permit']))->assertOk();
     }
 

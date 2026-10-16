@@ -9,7 +9,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Account Registrations — BoomBuy</title>
+    <title>{{ ['buyers' => 'Buyers', 'sellers' => 'Sellers', 'logistics' => 'Logistics'][$section['key']] }} — BoomBuy Admin</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
@@ -23,17 +23,13 @@
 
 <div class="layout">
 
-    <x-layout.admin-sidebar active="applications" />
+    <x-layout.admin-sidebar :active="$section['key']" />
 
     <main class="main">
 
     <div class="container">
 
-        <div class="page-header">
-            <small>Admin Panel</small>
-            <h1>Account Registrations</h1>
-            <p>Review uploaded IDs and documents, then approve or reject applicants before they can log in. Rider applications are managed by the Logistics Center — see the <a href="{{ route('admin.logistics') }}" style="color:#db5a33; font-weight:600;">Logistics overview</a> for a read-only view.</p>
-        </div>
+        @include('partials.admin-section-head', ['section' => $section])
 
         @if (session('success'))
             <div class="success-box"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
@@ -53,19 +49,7 @@
             ];
         @endphp
 
-        {{-- TYPE TABS (badge = waiting for review) --}}
-        <div class="tabs" id="liveTabs">
-            @foreach ($types as $key => $label)
-                <a href="{{ route('admin.applications', ['type' => $key]) }}" class="tab-btn {{ $type === $key ? 'active' : '' }}">
-                    <i class="bi {{ $typeIcons[$key] }}"></i> {{ $label }}
-                    @if ($pendingCounts[$key] > 0)
-                        <span class="pending-dot" title="Waiting for review">{{ $pendingCounts[$key] }}</span>
-                    @endif
-                </a>
-            @endforeach
-        </div>
-
-        {{-- STATUS + SEARCH --}}
+        {{-- STATUS + SEARCH (this section's applicants only) --}}
         <div class="filter-row">
             <div class="status-chips" id="liveChips">
                 @foreach ($statuses as $key => $definition)
@@ -75,7 +59,7 @@
                             : ($statusCounts[$definition['status']] ?? 0);
                     @endphp
                     <a
-                        href="{{ route('admin.applications', array_filter(['type' => $type, 'status' => $key, 'q' => $search])) }}"
+                        href="{{ route($section['route'], $section['params'] + array_filter(['status' => $key, 'q' => $search])) }}"
                         class="status-chip {{ $statusKey === $key ? 'active' : '' }} {{ $key === 'pending' && $chipCount > 0 ? 'has-work' : '' }}"
                     >
                         {{ $definition['label'] }} ({{ $chipCount }})
@@ -83,14 +67,16 @@
                 @endforeach
             </div>
 
-            <form method="GET" action="{{ route('admin.applications') }}" class="app-search" data-live-search data-live-target="#liveTabs, #liveChips, #liveClear, #liveResults">
-                <input type="hidden" name="type" value="{{ $type }}">
+            <form method="GET" action="{{ route($section['route']) }}" class="app-search" data-live-search data-live-target="#liveChips, #liveClear, #liveResults">
+                @foreach ($section['params'] as $paramName => $paramValue)
+                    <input type="hidden" name="{{ $paramName }}" value="{{ $paramValue }}">
+                @endforeach
                 <input type="hidden" name="status" value="{{ $statusKey }}">
                 <input type="search" name="q" value="{{ $search }}" placeholder="Search name, email, phone{{ $type !== 'buyer' ? ' or business' : '' }}" aria-label="Search applications">
                 <button type="submit" aria-label="Search"><i class="bi bi-search"></i></button>
                 <span id="liveClear" style="display:contents;">
                 @if ($search !== '')
-                    <a href="{{ route('admin.applications', ['type' => $type, 'status' => $statusKey]) }}" title="Clear search"><i class="bi bi-x-lg"></i></a>
+                    <a href="{{ route($section['route'], $section['params'] + ['status' => $statusKey]) }}" title="Clear search"><i class="bi bi-x-lg"></i></a>
                 @endif
                 </span>
             </form>

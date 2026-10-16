@@ -119,7 +119,7 @@
                                                 <div class="product-meta">
                                                     #{{ $product['id'] }} ·
                                                     @if($product['seller_id'])
-                                                        <a href="{{ route('admin.accounts', ['q' => $product['seller_name']]) }}">{{ $product['seller_name'] ?? 'Unknown seller' }}</a>
+                                                        <a href="{{ route('admin.sellers', ['q' => $product['seller_name']]) }}">{{ $product['seller_name'] ?? 'Unknown seller' }}</a>
                                                     @else
                                                         No seller
                                                     @endif

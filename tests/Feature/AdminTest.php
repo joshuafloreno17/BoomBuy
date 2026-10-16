@@ -67,7 +67,10 @@ class AdminTest extends TestCase
         $this->pendingSellerApplication();
 
         $routes = [
-            route('admin.dashboard'), route('admin.accounts'), route('admin.applications'),
+            route('admin.dashboard'), route('admin.buyers'), route('admin.buyers', ['tab' => 'applications']),
+            route('admin.sellers'), route('admin.sellers', ['tab' => 'applications']),
+            route('admin.logistics', ['tab' => 'centers']), route('admin.logistics', ['tab' => 'branches']),
+            route('admin.logistics', ['tab' => 'staff']), route('admin.logistics', ['tab' => 'staff', 'view' => 'riders']),
             route('admin.compliance'), route('admin.logistics'), route('admin.orders'),
             route('admin.order.details', $orderId), route('admin.products'),
             route('admin.products.edit', $product->id), route('admin.reports'),
@@ -251,12 +254,12 @@ class AdminTest extends TestCase
         $buyer = $this->makeUser('buyer', ['name' => 'Carla Buyer']);
         $rider = $this->makeRider();
 
-        $this->actingAsAdmin()->get(route('admin.accounts', ['role' => 'rider']))
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.accounts', ['role' => 'rider']))
             ->assertOk()
             ->assertSee($rider->email)
             ->assertDontSee($buyer->email);
 
-        $this->actingAsAdmin()->get(route('admin.accounts', ['q' => 'Carla']))
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.accounts', ['q' => 'Carla']))
             ->assertSee($buyer->email)
             ->assertDontSee($rider->email);
     }
@@ -285,12 +288,12 @@ class AdminTest extends TestCase
         [$pendingUser] = $this->pendingSellerApplication();
         $approvedSeller = $this->makeSeller('electronics', 'Volt Shop');
 
-        $this->actingAsAdmin()->get(route('admin.applications'))
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.applications'))
             ->assertOk()
             ->assertSee($pendingUser->email)
             ->assertDontSee($approvedSeller->email);
 
-        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'seller', 'status' => 'all', 'q' => 'Volt']))
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'seller', 'status' => 'all', 'q' => 'Volt']))
             ->assertSee($approvedSeller->email)
             ->assertDontSee($pendingUser->email);
     }

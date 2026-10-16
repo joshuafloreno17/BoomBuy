@@ -390,7 +390,7 @@ class SortingCenterJourneyTest extends TestCase
         $this->actingAsUser($headOffice)->get(route('logistics.parcels'))->assertSee('Head office')->assertSee('Order #' . $id);
 
         // Admin: page, open a center, assign staff, change a fee.
-        $this->actingAsAdmin()->get(route('admin.sorting-centers'))->assertOk()->assertSee('Santa Cruz Sorting Center');
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.sorting-centers'))->assertOk()->assertSee('Santa Cruz Sorting Center');
         // A new province's center.
         $this->actingAsAdmin()->post(route('admin.sorting-centers.store'), ['region' => 'davao', 'province' => 'Davao del Sur', 'city_municipality' => 'Davao City'])
             ->assertSessionHas('success');

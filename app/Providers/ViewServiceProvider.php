@@ -73,6 +73,10 @@ class ViewServiceProvider extends ServiceProvider
                 'pendingComplaintsCount' => Complaint::where('status', 'Pending')->count(),
                 // Disputes to decide and refunds to send.
                 'returnsWaitingCount' => DB::table('return_refund_requests')->whereIn('status', ['disputed', 'refund_pending', 'refund_processing'])->count(),
+                // Applications waiting for review, per People section.
+                'pendingApplications' => collect(['buyer', 'seller', 'logistics'])->mapWithKeys(fn ($type) => [
+                    $type => DB::table($type . '_applications')->where('status', 'Pending Verification')->count(),
+                ]),
             ]);
         });
 

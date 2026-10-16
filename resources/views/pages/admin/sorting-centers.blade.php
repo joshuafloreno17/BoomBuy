@@ -1,7 +1,17 @@
+    // Center form (Sorting Centers tab): region → its provinces → that
+    // province's cities/municipalities. Branch form (Branches tab): the
+    // center's province → its towns. Each tab has only its own form.
+    (function () {
+        if (!window.PSGC_DATA) return;
+
+        var regions = 
+        var region = document.getElementById('scRegion');
+        var province = document.getElementById('scProvince');
+        var city = document.getElementById('scCity');
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'Sorting Centers — BoomBuy Admin'])
+    @include('partials.head', ['title' => 'Logistics — BoomBuy Admin'])
 
     <link rel="stylesheet" href="{{ vasset('css/admin-sidebar.css') }}">
     <link rel="stylesheet" href="{{ asset('css/pages/admin-logistics.css') }}">
@@ -13,17 +23,13 @@
 
 <div class="layout">
 
-    <x-layout.admin-sidebar active="sorting-centers" />
+    <x-layout.admin-sidebar active="logistics" />
 
     <main class="main">
 
     <div class="container">
 
-        <div class="header">
-            <small>Admin Panel</small>
-            <h1>Sorting Centers</h1>
-            <p>One BoomBuy Sorting Center per province, covering the whole country. Sellers drop parcels at their province's center; a parcel for a buyer in another province is sent on to that province's center, whose riders deliver it.</p>
-        </div>
+        @include('partials.admin-section-head', ['section' => $section])
 
         @if (session('success'))
             <div class="sc-flash is-ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
@@ -36,6 +42,8 @@
         @if ($errors->any())
             <div class="sc-flash is-error"><i class="bi bi-x-circle-fill"></i> {{ $errors->first() }}</div>
         @endif
+
+        @if ($section['tab'] === 'centers')
 
         <div class="stats">
             <div class="stat-card">
@@ -105,7 +113,8 @@
             <div class="sc-list-head">
                 <h2><i class="bi bi-building"></i> Centers (<span id="scCount">{{ $centers->where('matches_search', true)->count() }}</span>)</h2>
 
-                <form method="GET" action="{{ route('admin.sorting-centers') }}" class="sc-filter" id="scFilter">
+                <form method="GET" action="{{ route('admin.logistics') }}" class="sc-filter" id="scFilter">
+                    <input type="hidden" name="tab" value="centers">
                     <input type="search" name="q" value="{{ $search }}" placeholder="Search province, town or region" aria-label="Search centers" autocomplete="off">
                 </form>
             </div>
@@ -149,6 +158,9 @@
                 </table>
             </div>
         </section>
+        @endif
+
+        @if ($section['tab'] === 'branches')
 
         {{-- DELIVERY BRANCHES --}}
         <section class="sc-card" id="branches">
@@ -223,6 +235,7 @@
                 </div>
             @endif
         </section>
+        @endif
 
         {{-- STAFF --}}
         <section class="sc-card">
@@ -368,13 +381,16 @@
 </script>
 <script src="{{ asset('js/data/psgc-data.js') }}"></script>
 <script>
-    // Region → its provinces → that province's cities/municipalities.
+    // Center form (Sorting Centers tab): region → its provinces → that
+    // province's cities/municipalities. Branch form (Branches tab): the
+    // center's province → its towns. Each tab has only its own form.
     (function () {
+        if (!window.PSGC_DATA) return;
+
         var regions = @json(collect($regions)->map(fn ($r) => $r['provinces']));
         var region = document.getElementById('scRegion');
         var province = document.getElementById('scProvince');
         var city = document.getElementById('scCity');
-        if (!region || !province || !city || !window.PSGC_DATA) return;
 
         function options(select, values, placeholder, selected) {
             select.innerHTML = '';
@@ -402,9 +418,11 @@
             options(city, towns, towns.length ? 'Select city/municipality' : 'Select a province first', city.dataset.old);
         }
 
-        region.addEventListener('change', function () { province.dataset.old = ''; city.dataset.old = ''; fillProvinces(); });
-        province.addEventListener('change', function () { city.dataset.old = ''; fillCities(); });
-        fillProvinces();
+        if (region && province && city) {
+            region.addEventListener('change', function () { province.dataset.old = ''; city.dataset.old = ''; fillProvinces(); });
+            province.addEventListener('change', function () { city.dataset.old = ''; fillCities(); });
+            fillProvinces();
+        }
 
         // Branch form: the center's province → its towns.
         var brCenter = document.getElementById('brCenter');

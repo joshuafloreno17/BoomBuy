@@ -9,7 +9,7 @@
         content="width=device-width, initial-scale=1.0"
     >
 
-    <title>Manage Accounts — BoomBuy</title>
+    <title>{{ ['buyers' => 'Buyers', 'sellers' => 'Sellers', 'logistics' => 'Logistics'][$section['key']] }} — BoomBuy Admin</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
@@ -22,7 +22,7 @@
 
 <div class="layout">
 
-    <x-layout.admin-sidebar active="accounts" />
+    <x-layout.admin-sidebar :active="$section['key']" />
 
 
     <!-- MAIN -->
@@ -31,19 +31,7 @@
 
         <!-- HEADER -->
 
-        <div class="page-header">
-
-            <small>Admin Panel</small>
-
-            <h1>
-                Manage Accounts
-            </h1>
-
-            <p>
-                View and manage Buyer, Seller, Rider and Logistics accounts. Pending sellers and logistics partners are under Applications.
-            </p>
-
-        </div>
+        @include('partials.admin-section-head', ['section' => $section])
 
 
         <!-- SUCCESS -->
@@ -70,39 +58,12 @@
         @endif
 
 
-        <!-- ROLE FILTERS (each card filters the table) -->
+        <!-- SEARCH (this section's role only) -->
 
-        @php
-            $roleCards = [
-                'all' => ['Total Accounts', $roleCounts->sum()],
-                'buyer' => ['Buyers', $roleCounts['buyer'] ?? 0],
-                'seller' => ['Sellers', $roleCounts['seller'] ?? 0],
-                'rider' => ['Riders', $roleCounts['rider'] ?? 0],
-                'logistics' => ['Logistics', $roleCounts['logistics'] ?? 0],
-            ];
-        @endphp
-
-        <div class="stats" id="liveStats">
-
-            @foreach($roleCards as $key => [$label, $count])
-                <a
-                    href="{{ route('admin.accounts', array_filter(['role' => $key === 'all' ? null : $key, 'status' => $status === 'all' ? null : $status, 'q' => $search])) }}"
-                    class="stat-card {{ $role === $key ? 'active' : '' }}"
-                >
-                    <span>{{ $label }}</span>
-                    <strong>{{ number_format($count) }}</strong>
-                </a>
+        <form method="GET" action="{{ route($section['route']) }}" class="account-toolbar" data-live-search data-live-target="#liveClear, #liveResults">
+            @foreach($section['params'] as $paramName => $paramValue)
+                <input type="hidden" name="{{ $paramName }}" value="{{ $paramValue }}">
             @endforeach
-
-        </div>
-
-
-        <!-- SEARCH -->
-
-        <form method="GET" action="{{ route('admin.accounts') }}" class="account-toolbar" data-live-search data-live-target="#liveStats, #liveClear, #liveResults">
-            @if($role !== 'all')
-                <input type="hidden" name="role" value="{{ $role }}">
-            @endif
 
             <div class="account-search">
                 <i class="bi bi-search"></i>
@@ -119,8 +80,8 @@
             <button type="submit" class="toolbar-btn"><i class="bi bi-search"></i> Search</button>
 
             <span id="liveClear" style="display:contents;">
-            @if($search !== '' || $status !== 'all' || $role !== 'all')
-                <a href="{{ route('admin.accounts') }}" class="toolbar-btn light"><i class="bi bi-x-lg"></i> Clear</a>
+            @if($search !== '' || $status !== 'all')
+                <a href="{{ route($section['route'], $section['params']) }}" class="toolbar-btn light"><i class="bi bi-x-lg"></i> Clear</a>
             @endif
             </span>
         </form>
@@ -382,7 +343,7 @@
                     </h3>
 
                     <p>
-                        {{ $search !== "" || $status !== "all" || $role !== "all" ? "No accounts match these filters." : "Accounts will appear here after registration." }}
+                        {{ $search !== "" || $status !== "all" ? "No accounts match these filters." : "Accounts will appear here after registration." }}
                     </p>
 
                 </div>

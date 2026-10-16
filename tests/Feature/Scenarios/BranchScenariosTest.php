@@ -360,7 +360,7 @@ class BranchScenariosTest extends TestCase
         $this->actingAsAdmin()->post(route('admin.sorting-centers.branches.store'), ['parent_id' => $this->laguna->id, 'city_municipality' => 'Pagsanjan'])->assertSessionHas('error');
         $this->actingAsAdmin()->post(route('admin.sorting-centers.branches.store'), ['parent_id' => $this->laguna->id, 'city_municipality' => 'Cebu City'])->assertSessionHas('error');
 
-        $this->actingAsAdmin()->get(route('admin.sorting-centers'))->assertOk()->assertSee('Delivery Branches (2)')->assertSee('BoomBuy Branch – Pagsanjan');
+        $this->actingAsAdmin()->get(route('admin.logistics', ['tab' => 'branches']))->assertOk()->assertSee('Delivery Branches (2)')->assertSee('BoomBuy Branch – Pagsanjan');
 
         // Branches never count as a province's center.
         $this->assertSame($this->laguna->id, \App\Support\ParcelRoute::centerFor('Laguna', 'Santa Cruz')->id);

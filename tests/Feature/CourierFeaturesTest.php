@@ -333,7 +333,7 @@ class CourierFeaturesTest extends TestCase
     {
         $this->routedOrder($this->makeUser(), 'At Sorting Center', ['current_center_id' => $this->qc->id]);
 
-        $response = $this->actingAsAdmin()->get(route('admin.sorting-centers'))->assertOk()->assertSee('id="scMap"', false);
+        $response = $this->actingAsAdmin()->followingRedirects()->get(route('admin.sorting-centers'))->assertOk()->assertSee('id="scMap"', false);
         $pins = collect($response->viewData('mapPins'))->keyBy('name');
 
         $this->assertCount(2, $pins);

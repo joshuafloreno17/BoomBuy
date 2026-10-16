@@ -242,7 +242,7 @@ class PrivacyAndSellerOrdersTest extends TestCase
         $this->assertNull(session('user.id'));
 
         // The admin approves: an email goes out and the buyer can log in.
-        $this->actingAsAdmin()->get(route('admin.applications', ['type' => 'buyer']))->assertOk()->assertSee($buyer->name);
+        $this->actingAsAdmin()->followingRedirects()->get(route('admin.applications', ['type' => 'buyer']))->assertOk()->assertSee($buyer->name);
         DB::table('buyer_applications')->where('id', $appId)->update(['status' => 'Approved']);
         $this->flushSession();
         $this->post(route('login.submit'), ['email' => 'waiting@example.com', 'password' => 'password123'])

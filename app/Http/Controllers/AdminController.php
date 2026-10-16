@@ -211,9 +211,30 @@ class AdminController extends Controller
         $pendingComplaints = DB::table('complaints')->where('status', 'Pending')->count();
         $suspendedSellers = DB::table('users')->where('role', 'seller')->where('status', 'Suspended')->count();
 
+        // New accounts per month by role, last 6 months (chart).
+        $months = collect(range(5, 0))->map(fn ($back) => now()->startOfMonth()->subMonths($back));
+        $joined = DB::table('users')
+            ->whereIn('role', ['buyer', 'seller', 'logistics', 'rider'])
+            ->where('created_at', '>=', $months->first())
+            ->get(['role', 'created_at'])
+            ->countBy(fn ($u) => substr((string) $u->created_at, 0, 7) . '|' . $u->role);
+        $registrations = $months->map(fn ($month) => [
+            'label' => $month->format('M'),
+            'counts' => collect(['buyer', 'seller', 'logistics', 'rider'])->mapWithKeys(fn ($role) => [
+                $role => (int) ($joined[$month->format('Y-m') . '|' . $role] ?? 0),
+            ])->all(),
+        ])->all();
+
+        // Every application's status, per type (donuts).
+        $applicationStatus = collect(['buyer', 'seller', 'logistics'])->mapWithKeys(fn ($type) => [
+            $type => DB::table($type . '_applications')->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status'),
+        ])->all();
+
         return view(
             'pages.admin.dashboard',
             compact(
+                'registrations',
+                'applicationStatus',
                 'users',
                 'orders',
                 'sellerProductsForDashboard',
@@ -650,15 +671,89 @@ class AdminController extends Controller
         );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | PEOPLE SECTIONS
+    |--------------------------------------------------------------------------
+    | The sidebar groups people by role: Buyers, Sellers and Logistics. Each
+    | section reuses the accounts and applications pages, locked to its role,
+    | with tabs on top. The old /admin/accounts, /admin/applications and
+    | /admin/sorting-centers links send people to the matching tab.
+    */
+
+    /** Logistics section tabs, in order. */
+    public const LOGISTICS_TABS = [
+        'overview' => 'Overview',
+        'centers' => 'Sorting Centers',
+        'branches' => 'Branches',
+        'staff' => 'Staff & Riders',
+    ];
+
+    /** Staff & Riders: what each chip lists. */
+    public const LOGISTICS_STAFF_VIEWS = [
+        'applications' => 'Applications',
+        'staff' => 'Staff',
+        'riders' => 'Riders',
+    ];
+
+    public function buyers()
+    {
+        return $this->peopleSection('buyers', 'buyer');
+    }
+
+    public function sellers()
+    {
+        return $this->peopleSection('sellers', 'seller');
+    }
+
+    /** Buyers or Sellers: an Accounts tab and an Applications tab. */
+    private function peopleSection(string $key, string $role)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $tab = request('tab') === 'applications' ? 'applications' : 'accounts';
+        $section = ['key' => $key, 'tab' => $tab, 'route' => 'admin.' . $key, 'params' => ['tab' => $tab]];
+
+        return $tab === 'applications'
+            ? $this->applicationsPage($role, $section)
+            : $this->accountsPage($role, $section);
+    }
+
+    /** Where an old Accounts link (?role=) belongs now. */
     public function accounts()
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
-        $roles = ['buyer', 'seller', 'rider', 'logistics'];
+        $keep = array_filter(['status' => request('status'), 'q' => request('q')]);
+        $role = request('role');
 
-        $role = in_array(request('role'), $roles) ? request('role') : 'all';
+        // A search with no role (the dashboard's search box): open the
+        // section where someone matches, buyers first.
+        if (!$role && ($search = trim((string) request('q'))) !== '') {
+            $like = '%' . $search . '%';
+            $found = DB::table('users')
+                ->whereIn('role', ['buyer', 'seller', 'logistics', 'rider'])
+                ->where(fn ($q) => $q->where('name', 'like', $like)->orWhere('email', 'like', $like)->orWhere('phone', 'like', $like))
+                ->distinct()
+                ->pluck('role');
+            $role = collect(['buyer', 'seller', 'logistics', 'rider'])->first(fn ($r) => $found->contains($r));
+        }
+
+        return redirect()->route(...match ($role) {
+            'seller' => ['admin.sellers', $keep],
+            'logistics' => ['admin.logistics', ['tab' => 'staff', 'view' => 'staff'] + $keep],
+            'rider' => ['admin.logistics', ['tab' => 'staff', 'view' => 'riders'] + $keep],
+            default => ['admin.buyers', $keep],
+        });
+    }
+
+    private function accountsPage(string $role, array $section)
+    {
+        $role = in_array($role, ['buyer', 'seller', 'rider', 'logistics'], true) ? $role : 'buyer';
         $status = in_array(request('status'), ['Active', 'Suspended', 'Deactivated']) ? request('status') : 'all';
         $search = trim((string) request('q', ''));
 
@@ -713,7 +808,7 @@ class AdminController extends Controller
 
         return view(
             'pages.admin.accounts',
-            compact('users', 'roleCounts', 'role', 'status', 'search')
+            compact('users', 'roleCounts', 'role', 'status', 'search', 'section')
         );
     }
 
@@ -1059,12 +1154,31 @@ class AdminController extends Controller
         'rejected' => ['label' => 'Rejected', 'status' => 'Rejected'],
     ];
 
+    /** Where an old Applications link (?type=) belongs now. */
     public function applications()
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
         }
 
+        $keep = array_filter(['status' => request('status'), 'q' => request('q')]);
+        $type = request('type');
+
+        // No type: the first one with something waiting.
+        if (!array_key_exists((string) $type, self::APPLICATION_TYPES)) {
+            $type = collect(array_keys(self::APPLICATION_TYPES))
+                ->first(fn ($key) => DB::table($key . '_applications')->where('status', 'Pending Verification')->exists()) ?? 'seller';
+        }
+
+        return redirect()->route(...match ($type) {
+            'buyer' => ['admin.buyers', ['tab' => 'applications'] + $keep],
+            'logistics' => ['admin.logistics', ['tab' => 'staff', 'view' => 'applications'] + $keep],
+            default => ['admin.sellers', ['tab' => 'applications'] + $keep],
+        });
+    }
+
+    private function applicationsPage(string $type, array $section)
+    {
         // Pending counts per type, so the admin sees where work is waiting.
         $pendingCounts = [];
 
@@ -1072,13 +1186,6 @@ class AdminController extends Controller
             $pendingCounts[$key] = DB::table($key . '_applications')
                 ->where('status', 'Pending Verification')
                 ->count();
-        }
-
-        // Default to the first type that has something to review.
-        $type = request('type');
-
-        if (!array_key_exists((string) $type, self::APPLICATION_TYPES)) {
-            $type = collect($pendingCounts)->filter()->keys()->first() ?? 'seller';
         }
 
         // Opens on Pending while something is waiting for review, else All.
@@ -1131,13 +1238,38 @@ class AdminController extends Controller
             'pendingCounts' => $pendingCounts,
             'search' => $search,
             'categories' => Categories::LIST,
+            'section' => $section,
         ]);
     }
 
-    public function logistics()
+    /**
+     * Logistics: Overview (parcels and riders, read-only), Sorting Centers,
+     * Branches, and Staff & Riders (logistics applications, staff accounts,
+     * rider accounts).
+     */
+    public function logistics(SortingCenterController $centers)
     {
         if (!session()->get('admin_logged_in')) {
             return redirect()->route('admin.login');
+        }
+
+        $tab = array_key_exists((string) request('tab'), self::LOGISTICS_TABS) ? request('tab') : 'overview';
+        $section = ['key' => 'logistics', 'tab' => $tab, 'route' => 'admin.logistics', 'params' => ['tab' => $tab]];
+
+        if ($tab === 'centers' || $tab === 'branches') {
+            return $centers->index($section);
+        }
+
+        if ($tab === 'staff') {
+            $view = array_key_exists((string) request('view'), self::LOGISTICS_STAFF_VIEWS) ? request('view') : 'applications';
+            $section['view'] = $view;
+            $section['params']['view'] = $view;
+
+            return match ($view) {
+                'staff' => $this->accountsPage('logistics', $section),
+                'riders' => $this->accountsPage('rider', $section),
+                default => $this->applicationsPage('logistics', $section),
+            };
         }
 
         $riderApplications = DB::table('rider_applications')
@@ -1194,7 +1326,8 @@ class AdminController extends Controller
                 'failedDeliveries',
                 'returnedToSeller',
                 'activeRiders',
-                'deliveredToday'
+                'deliveredToday',
+                'section'
             )
         );
     }

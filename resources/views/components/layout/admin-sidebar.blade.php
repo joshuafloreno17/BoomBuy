@@ -16,14 +16,28 @@
 
         <div class="menu-group">People</div>
 
-        <a href="{{ route('admin.accounts') }}" @class(['active' => $active === 'accounts'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-            <span>Accounts</span>
+        <a href="{{ route('admin.buyers') }}" @class(['active' => $active === 'buyers'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            <span>Buyers</span>
+            @if($pendingApplications['buyer'] > 0)
+                <span class="notification-badge">{{ $pendingApplications['buyer'] }}</span>
+            @endif
         </a>
 
-        <a href="{{ route('admin.applications') }}" @class(['active' => $active === 'applications'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
-            <span>Applications</span>
+        <a href="{{ route('admin.sellers') }}" @class(['active' => $active === 'sellers'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/></svg>
+            <span>Sellers</span>
+            @if($pendingApplications['seller'] > 0)
+                <span class="notification-badge">{{ $pendingApplications['seller'] }}</span>
+            @endif
+        </a>
+
+        <a href="{{ route('admin.logistics') }}" @class(['active' => $active === 'logistics'])>
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            <span>Logistics</span>
+            @if($pendingApplications['logistics'] > 0)
+                <span class="notification-badge">{{ $pendingApplications['logistics'] }}</span>
+            @endif
         </a>
 
         <div class="menu-group">Marketplace</div>
@@ -54,17 +68,6 @@
             <span>Reports</span>
         </a>
 
-        <div class="menu-group">Delivery</div>
-
-        <a href="{{ route('admin.logistics') }}" @class(['active' => $active === 'logistics'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
-            <span>Logistics</span>
-        </a>
-
-        <a href="{{ route('admin.sorting-centers') }}" @class(['active' => $active === 'sorting-centers'])>
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-            <span>Sorting Centers</span>
-        </a>
 
         <div class="menu-group">Trust &amp; Safety</div>
 
