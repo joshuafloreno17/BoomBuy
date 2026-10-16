@@ -8,7 +8,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title') — BoomBuy</title>
-    <link rel="icon" href="{{ asset('images/icon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ vasset('images/icon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
@@ -170,7 +170,7 @@
 </head>
 <body>
     <header class="err-top">
-        <a href="{{ url('/') }}" class="err-logo"><img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
+        <a href="{{ url('/') }}" class="err-logo"><img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
     </header>
 
     <main class="err-main">

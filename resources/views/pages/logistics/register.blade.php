@@ -14,7 +14,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ route('home') }}" class="logo"><img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
+        <a href="{{ route('home') }}" class="logo"><img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
         <a href="{{ route('register') }}" class="back-btn">← Back</a>
     </nav>
 

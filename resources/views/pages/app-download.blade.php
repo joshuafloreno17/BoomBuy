@@ -21,7 +21,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BoomBuy App — Download for Android</title>
     <meta name="description" content="Download the BoomBuy app for Android: shop, sell and deliver on BoomBuy.">
-    <link rel="icon" href="{{ asset('images/icon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ vasset('images/icon.svg') }}" type="image/svg+xml">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
@@ -135,13 +135,13 @@
 </head>
 <body>
     <header class="top">
-        <a href="{{ url('/') }}" class="logo"><img src="{{ asset('images/icon.svg') }}" alt="" width="32" height="32"><span>BoomBuy</span></a>
+        <a href="{{ url('/') }}" class="logo"><img src="{{ vasset('images/icon.svg') }}" alt="" width="32" height="32"><span>BoomBuy</span></a>
     </header>
 
     <main class="wrap">
         <section class="hero">
             <div class="card">
-                <img src="{{ asset('images/icon-192.png') }}" alt="BoomBuy app icon" class="app-icon" width="84" height="84">
+                <img src="{{ vasset('images/icon-192.png') }}" alt="BoomBuy app icon" class="app-icon" width="84" height="84">
                 <h1>BoomBuy for Android</h1>
                 <p class="lead">Shop, sell and deliver from your phone. Log in with the same BoomBuy account you use on the website.</p>
 

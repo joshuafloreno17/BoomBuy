@@ -30,7 +30,7 @@
 
     <aside class="reg-side">
         <a href="{{ route('home') }}" class="reg-logo">
-            <span class="reg-logo-tile"><img src="{{ asset('images/icon.svg') }}" alt="" width="32" height="32"></span>
+            <span class="reg-logo-tile"><img src="{{ vasset('images/icon.svg') }}" alt="" width="32" height="32"></span>
             BoomBuy
         </a>
 

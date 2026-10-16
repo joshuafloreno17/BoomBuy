@@ -3,7 +3,7 @@
 <aside class="sidebar">
 
     <a href="{{ route('admin.dashboard') }}" class="bb-side-brand">
-        <img src="{{ asset('images/icon.svg') }}" alt="" width="36" height="36">
+        <img src="{{ vasset('images/icon.svg') }}" alt="" width="36" height="36">
         <span class="bb-side-name">BoomBuy <small>Admin</small></span>
     </a>
 

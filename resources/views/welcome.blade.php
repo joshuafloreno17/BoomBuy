@@ -9,13 +9,13 @@
     <meta property="og:type" content="website">
     <meta property="og:title" content="BoomBuy — Shop Everything You Love">
     <meta property="og:description" content="Discover amazing products from trusted sellers all in one place. From gadgets and fashion to everyday essentials, BoomBuy makes online shopping simple, convenient, and exciting.">
-    <meta property="og:image" content="{{ asset('images/boombuy-logo.png') }}">
+    <meta property="og:image" content="{{ vasset('images/boombuy-logo.png') }}">
     <meta property="og:url" content="{{ url('/') }}">
 
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="BoomBuy — Shop Everything You Love">
     <meta name="twitter:description" content="Discover amazing products from trusted sellers all in one place. From gadgets and fashion to everyday essentials, BoomBuy makes online shopping simple, convenient, and exciting.">
-    <meta name="twitter:image" content="{{ asset('images/boombuy-logo.png') }}">
+    <meta name="twitter:image" content="{{ vasset('images/boombuy-logo.png') }}">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap">

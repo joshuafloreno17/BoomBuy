@@ -5,7 +5,7 @@
     <div class="bb-nav-left">
 
     <a href="{{ $bbNavUser ? route('buyer.dashboard') : route('home') }}" class="bb-logo">
-        <img src="{{ asset('images/icon.svg') }}" alt="" width="34" height="34">
+        <img src="{{ vasset('images/icon.svg') }}" alt="" width="34" height="34">
         BoomBuy
     </a>
 

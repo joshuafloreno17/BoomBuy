@@ -9,7 +9,7 @@
 
     <div class="choose-page">
 
-        <a href="{{ route('home') }}" class="choose-logo"><img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
+        <a href="{{ route('home') }}" class="choose-logo"><img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
 
         <div class="choose-header">
             <small>Get Started</small>

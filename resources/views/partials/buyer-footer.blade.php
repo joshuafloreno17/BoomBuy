@@ -10,7 +10,7 @@
     <div class="bb-footer-inner">
 
         <div class="bb-footer-brand">
-            <a href="{{ $bbFooterBuyer ? route('buyer.dashboard') : route('home') }}" class="bb-footer-logo"><img src="{{ asset('images/icon.svg') }}" alt="" width="30" height="30"> BoomBuy</a>
+            <a href="{{ $bbFooterBuyer ? route('buyer.dashboard') : route('home') }}" class="bb-footer-logo"><img src="{{ vasset('images/icon.svg') }}" alt="" width="30" height="30"> BoomBuy</a>
             <p>Your everyday online marketplace — products from verified sellers, delivered to your door.</p>
             <div class="bb-footer-promises">
                 <span><i class="bi bi-truck"></i> Free shipping on orders ₱{{ number_format(\App\Support\DeliveryFee::freeShippingMin()) }} and up</span>

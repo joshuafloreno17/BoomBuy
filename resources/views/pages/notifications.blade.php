@@ -50,7 +50,7 @@
     @include('partials.buyer-navbar', ['activeNav' => 'notifications'])
 @else
     <nav class="notification-navbar">
-        <a href="{{ route('buyer.dashboard') }}" class="brand"><img src="{{ asset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
+        <a href="{{ route('buyer.dashboard') }}" class="brand"><img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span></a>
         <a href="{{ route('buyer.dashboard') }}" class="back-btn">← Back to Home</a>
     </nav>
 @endif

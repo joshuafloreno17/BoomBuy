@@ -23,7 +23,7 @@
 
     <header class="label-head">
         <div class="label-brand">
-            <img src="{{ asset('images/icon.svg') }}" alt="" width="26" height="26">
+            <img src="{{ vasset('images/icon.svg') }}" alt="" width="26" height="26">
             BoomBuy
         </div>
         <div class="label-service">{{ $isCod ? 'COD' : 'PAID' }}</div>
