@@ -2,7 +2,7 @@
    SIDEBAR (shared across all admin pages)
 ========================= */
 
-@import url('portal-sidebar.css?v=6');
+@import url('portal-sidebar.css?v=7');
 
 .sidebar {
     width: 245px;

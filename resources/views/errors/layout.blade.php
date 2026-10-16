@@ -59,7 +59,7 @@
         .err-logo { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
         .bb-logo-mark { width: 32px; height: 32px; border-radius: 9px; }
         .bb-logo-word { color: var(--ink); }
-        .bb-logo-wordmark { display: block; width: auto; height: 40px; }
+        .bb-logo-wordmark { display: block; width: auto; height: 46px; }
 
         .err-main {
             flex: 1;
@@ -171,7 +171,7 @@
 </head>
 <body>
     <header class="err-top">
-        <a href="{{ url('/') }}" class="err-logo"><img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="117" height="40"></a>
+        <a href="{{ url('/') }}" class="err-logo"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46"></a>
     </header>
 
     <main class="err-main">

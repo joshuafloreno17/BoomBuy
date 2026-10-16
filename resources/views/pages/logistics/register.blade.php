@@ -14,7 +14,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ route('home') }}" class="logo"><img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="117" height="40"></a>
+        <a href="{{ route('home') }}" class="logo"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46"></a>
         <a href="{{ route('register') }}" class="back-btn">← Back</a>
     </nav>
 

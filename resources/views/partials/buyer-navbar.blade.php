@@ -5,7 +5,7 @@
     <div class="bb-nav-left">
 
     <a href="{{ $bbNavUser ? route('buyer.dashboard') : route('home') }}" class="bb-logo">
-        <img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="106" height="36">
+        <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
     </a>
 
     <div class="bb-nav-links">

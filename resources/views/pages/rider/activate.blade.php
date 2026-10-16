@@ -14,7 +14,7 @@
     <div style="max-width:420px; margin:60px auto; background:#fff; border-radius:16px; border:1px solid #e9e4fa; padding:32px; text-align:center;">
 
         <div style="font-size:22px; font-weight:800; margin-bottom:16px;">
-            <img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="117" height="40">
+            <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
         </div>
 
         @if ($problem)
