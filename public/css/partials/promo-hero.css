@@ -140,6 +140,18 @@
     white-space: nowrap;
 }
 
+/* Icon art (category of the week, announcements, selling): a big glyph on a soft disc. */
+.ph-icon {
+    width: min(200px, 100%);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: rgba(255, 255, 255, .22);
+    color: var(--ph-big);
+    font-size: 92px;
+}
+
 .ph-photo {
     width: min(240px, 100%);
     aspect-ratio: 1;
@@ -337,6 +349,11 @@
     .ph-title { font-size: 26px; }
     .ph-text { font-size: 13.5px; }
     .ph-big { font-size: 56px; }
+
+    .ph-icon {
+        width: 92px;
+        font-size: 44px;
+    }
 
     .ph-photo {
         width: 104px;

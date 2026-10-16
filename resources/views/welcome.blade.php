@@ -71,7 +71,7 @@
 
                 {{-- Promo banners from Admin → Promo Banners (automatic slides when none are live). --}}
                 <div class="lp-hero-promo">
-                    @include('partials.promo-hero', ['layout' => 'stacked'])
+                    @include('partials.promo-hero', ['layout' => 'stacked', 'forGuests' => true])
                 </div>
             </section>
         </div>

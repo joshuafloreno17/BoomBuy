@@ -143,7 +143,35 @@ class PromoBannerTest extends TestCase
 
         // The mug may be in "Featured products" lower on the page, but never as a hero slide.
         $hero = \App\Support\PromoHero::build();
-        $this->assertSame(['Photo Watch'], array_column($hero['main'], 'title'));
+        $this->assertSame(['Photo Watch', 'Shoes', 'Shop faster in the BoomBuy app'], array_column($hero['main'], 'title'));
+        $this->assertSame('Category of the week', $hero['main'][1]['eyebrow']);
+
+        // Guests (landing page) also get the "sell on BoomBuy" slide.
+        $guest = \App\Support\PromoHero::build(false, true);
+        $this->assertSame('Open your shop on BoomBuy', end($guest['main'])['title']);
+        $page->assertSee('Become a seller');
+    }
+
+    public function test_admin_banners_come_first_then_the_automatic_slides(): void
+    {
+        $seller = $this->makeSeller();
+        $this->makeProduct($seller, ['name' => 'Photo Watch', 'image' => 'products/watch.png']);
+        $this->banner(['title' => 'Christmas Sale']);
+
+        $titles = array_column(\App\Support\PromoHero::build()['main'], 'title');
+
+        $this->assertSame('Christmas Sale', $titles[0]);
+        $this->assertContains('Photo Watch', $titles);
+        $this->assertGreaterThan(1, count($titles), 'there is always something to rotate');
+    }
+
+    public function test_the_app_slide_is_not_shown_inside_the_android_app(): void
+    {
+        $this->get(route('home'))->assertOk()->assertSee('Shop faster in the BoomBuy app');
+
+        // (withHeader sticks for the rest of the test, so the app request goes last.)
+        $this->withHeader('User-Agent', 'Mozilla/5.0 (Linux; Android 16) ' . \App\Support\MobileAccess::APP_USER_AGENT . '/1.2.0')->get(route('home'))->assertOk()
+            ->assertDontSee('Shop faster in the BoomBuy app');
     }
 
     public function test_admin_edits_toggles_and_deletes_a_banner(): void

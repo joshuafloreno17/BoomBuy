@@ -43,7 +43,7 @@ class ShopAndAccountTest extends TestCase
 
         $this->assertSame(
             ['Popular Sneakers', 'Steady Sandals', 'Brand New Boots'],
-            array_column($hero['main'], 'title')
+            array_slice(array_column($hero['main'], 'title'), 0, 3)
         );
 
         $this->get('/')

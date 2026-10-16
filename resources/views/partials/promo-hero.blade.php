@@ -4,6 +4,7 @@
     Banners; empty spots get automatic slides (App\Support\PromoHero).
 
     Needs: $promo (ViewServiceProvider), $layout = 'wide' (buyer home) | 'stacked' (landing hero column).
+    Optional: $withAnnouncement (buyer home), $forGuests (landing: adds "sell on BoomBuy").
 --}}
 @php
     $layout = $layout ?? 'wide';
@@ -47,6 +48,8 @@
                         <span class="ph-art ph-photo" aria-hidden="true"><img src="{{ $s['image'] }}" alt="" loading="{{ $i === 0 ? 'eager' : 'lazy' }}" onerror="this.parentNode.remove()"></span>
                     @elseif($s['big'])
                         <span class="ph-art ph-big" aria-hidden="true">{{ $s['big'] }}</span>
+                    @elseif($s['icon'])
+                        <span class="ph-art ph-icon" aria-hidden="true"><i class="bi {{ $s['icon'] }}"></i></span>
                     @endif
                 </a>
             @endforeach
@@ -90,7 +93,7 @@
 
 @once
 <script>
-    // Promo hero carousel: fades every 6s, arrows and dots, pauses on hover/focus or a hidden tab.
+    // Promo hero carousel: fades every 5s, arrows and dots, pauses on hover/focus or a hidden tab.
     document.querySelectorAll('[data-ph-carousel]').forEach(function (root) {
         var slides = root.querySelectorAll('[data-ph-slide]');
         var dots = root.querySelectorAll('[data-ph-dot]');
@@ -118,7 +121,7 @@
             if (still) return;
             timer = setInterval(function () {
                 if (!paused && !document.hidden) show(current + 1);
-            }, 6000);
+            }, 5000);
         }
 
         root.querySelector('[data-ph-prev]').addEventListener('click', function () { show(current - 1); restart(); });
