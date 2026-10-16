@@ -2,7 +2,7 @@
    LOGISTICS SIDEBAR (shared)
 ========================================================= */
 
-@import url('portal-sidebar.css?v=4');
+@import url('portal-sidebar.css?v=6');
 
 .logistics-sidebar {
     position: fixed;
@@ -185,5 +185,12 @@
     footer {
         width: calc(100% - 64px);
         margin-left: 64px;
+    }
+}
+
+/* Collapsed rail: no room for the wordmark, show the square icon. */
+@media (max-width: 800px) {
+    .logistics-sidebar .bb-side-brand .bb-side-icon {
+        display: block;
     }
 }

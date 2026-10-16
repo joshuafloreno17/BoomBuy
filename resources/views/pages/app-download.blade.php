@@ -53,6 +53,7 @@
         .top { padding: 20px 24px; }
         .logo { display: inline-flex; align-items: center; gap: 9px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; font-weight: 800; }
         .logo img { width: 32px; height: 32px; border-radius: 9px; }
+        .logo img.bb-logo-wordmark { width: auto; height: 40px; border-radius: 0; }
 
         .wrap { max-width: 1040px; margin: 0 auto; padding: 8px 16px 64px; }
 
@@ -135,7 +136,7 @@
 </head>
 <body>
     <header class="top">
-        <a href="{{ url('/') }}" class="logo"><img src="{{ vasset('images/icon.svg') }}" alt="" width="32" height="32"><span>BoomBuy</span></a>
+        <a href="{{ url('/') }}" class="logo"><img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="117" height="40"></a>
     </header>
 
     <main class="wrap">

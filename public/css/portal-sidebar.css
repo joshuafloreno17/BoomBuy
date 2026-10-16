@@ -20,7 +20,22 @@
     border-radius: 10px;
 }
 
+/* Wide sidebar: the wordmark. Collapsed rail (each sidebar CSS): the square icon instead. */
+.bb-side-brand .bb-side-icon {
+    display: none;
+}
+
+.bb-side-brand .bb-side-wordmark {
+    display: block;
+    width: auto;
+    height: 40px;
+    border-radius: 0;
+}
+
 .bb-side-name {
+    display: inline-flex;
+    align-items: flex-end;
+    gap: 6px;
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     font-size: 21px;
     font-weight: 800;

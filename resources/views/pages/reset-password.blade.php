@@ -14,7 +14,7 @@
 <nav class="navbar">
 
     <a href="/" class="logo">
-        <img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-logo-mark" width="32" height="32"><span class="bb-logo-word">BoomBuy</span>
+        <img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="117" height="40">
     </a>
 
 </nav>

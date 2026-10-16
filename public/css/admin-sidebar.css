@@ -2,7 +2,7 @@
    SIDEBAR (shared across all admin pages)
 ========================= */
 
-@import url('portal-sidebar.css?v=4');
+@import url('portal-sidebar.css?v=6');
 
 .sidebar {
     width: 245px;
@@ -231,4 +231,11 @@
 .main > .footer {
     order: 2;
     margin-top: 0;
+}
+
+/* Collapsed rail: no room for the wordmark, show the square icon. */
+@media (max-width: 750px) {
+    .sidebar .bb-side-brand .bb-side-icon {
+        display: block;
+    }
 }

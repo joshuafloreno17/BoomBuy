@@ -91,6 +91,8 @@
     .bb-logo-mark { width: 32px; height: 32px; flex: none; border-radius: 9px; vertical-align: middle; }
     :is(a, div):has(> .bb-logo-mark) { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
     .bb-logo-word { color: #221a3a !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
+    /* Wordmark: the cart-in-the-"oo" logo as one image (auth, error and simple pages). */
+    .bb-logo-wordmark { display: block; width: auto; height: 40px; }
 
     .status-pill {
         display: inline-flex;

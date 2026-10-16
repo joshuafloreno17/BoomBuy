@@ -5,8 +5,8 @@
     <div class="rider-sidebar-top">
 
         <a href="{{ route('rider.dashboard') }}" class="bb-side-brand">
-            <img src="{{ vasset('images/icon.svg') }}" alt="" width="36" height="36">
-            <span class="bb-side-name">BoomBuy <small>Rider</small></span>
+            <img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-side-icon" width="36" height="36">
+            <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark-compact.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="117" height="40"> <small>Rider</small></span>
         </a>
 
         <nav class="rider-sidebar-nav">

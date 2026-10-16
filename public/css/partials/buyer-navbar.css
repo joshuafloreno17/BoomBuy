@@ -51,6 +51,13 @@
     border-radius: 10px;
 }
 
+/* The cart-in-the-"oo" wordmark replaces the icon + text. */
+.bb-logo img.bb-logo-wordmark {
+    width: auto;
+    height: 36px;
+    border-radius: 0;
+}
+
 .bb-nav-links {
     display: flex;
     align-items: center;
