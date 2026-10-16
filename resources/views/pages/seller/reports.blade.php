@@ -156,12 +156,12 @@
                     datasets: [{
                         label: 'Revenue (₱)',
                         data: dailyRevenue,
-                        borderColor: '#e8420f',
-                        backgroundColor: 'rgba(232,66,15,0.1)',
+                        borderColor: '#6d4ad1',
+                        backgroundColor: 'rgba(109,74,209,0.1)',
                         tension: 0.3,
                         fill: true,
                         pointRadius: dailyLabels.length > 45 ? 0 : 3,
-                        pointBackgroundColor: '#e8420f',
+                        pointBackgroundColor: '#6d4ad1',
                     }]
                 },
                 options: {
@@ -180,8 +180,8 @@
                     datasets: [{
                         label: 'Revenue (₱)',
                         data: productRevenue,
-                        backgroundColor: '#f4a582',
-                        hoverBackgroundColor: '#e8420f',
+                        backgroundColor: '#b5a4e2',
+                        hoverBackgroundColor: '#6d4ad1',
                         borderRadius: 6,
                         maxBarThickness: 28,
                     }]

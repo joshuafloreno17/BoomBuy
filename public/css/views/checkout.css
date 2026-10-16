@@ -11,8 +11,8 @@
 
         body {
             font-family: 'Figtree', -apple-system, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
         }
 
         .container {
@@ -30,7 +30,7 @@
 
         .card {
             background: #ffffff;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 18px;
             padding: 28px;
             box-shadow: 0 12px 30px rgba(39, 84, 150, 0.07);
@@ -49,7 +49,7 @@
             display: block;
             font-size: 12px;
             font-weight: 700;
-            color: #4a4449;
+            color: #463c5e;
             margin-bottom: 8px;
         }
 
@@ -57,16 +57,16 @@
         .form-group select {
             width: 100%;
             padding: 13px 14px;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 9px;
-            background: #fff8f3;
+            background: #f8f6fe;
             outline: none;
             font-size: 13px;
         }
 
         .form-group input:focus,
         .form-group select:focus {
-            border-color: #e8420f;
+            border-color: #6d4ad1;
             background: #ffffff;
             box-shadow:
                 0 0 0 3px
@@ -95,24 +95,24 @@
         .payment-option label {
             display: block;
             padding: 13px 14px;
-            border: 1.5px solid #f0e2da;
+            border: 1.5px solid #e9e4fa;
             border-radius: 10px;
-            background: #fff8f3;
+            background: #f8f6fe;
             font-size: 13px;
             font-weight: 700;
-            color: #4a4449;
+            color: #463c5e;
             cursor: pointer;
             transition: 0.15s ease;
         }
 
         .payment-option input:checked + label {
-            border-color: #e8420f;
-            background: #fff1ea;
-            color: #c2380f;
+            border-color: #6d4ad1;
+            background: #eee8ff;
+            color: #5536b5;
         }
 
         .payment-option input:focus-visible + label {
-            box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.18);
+            box-shadow: 0 0 0 3px rgba(109, 74, 209, 0.18);
         }
 
         .payment-option.is-disabled label {
@@ -134,8 +134,8 @@
             padding: 11px 13px;
 
             border-radius: 10px;
-            background: #f7f4f2;
-            color: #4a4449;
+            background: #f4f3f6;
+            color: #463c5e;
 
             font-size: 12px;
             line-height: 1.5;
@@ -171,7 +171,7 @@
             justify-content: space-between;
             gap: 15px;
             padding: 16px 0;
-            border-bottom: 1px solid #f6eee9;
+            border-bottom: 1px solid #f1edfa;
         }
 
         .product-info {
@@ -183,7 +183,7 @@
             width: 48px;
             height: 48px;
             border-radius: 10px;
-            background: #fff1ea;
+            background: #eee8ff;
             overflow: hidden;
             flex-shrink: 0;
 
@@ -203,7 +203,7 @@
 
         .product-qty {
             font-size: 11px;
-            color: #6b6570;
+            color: #645a80;
         }
 
         .product-price {
@@ -218,11 +218,11 @@
             margin-top: 10px;
 
             font-size: 13px;
-            color: #6b6570;
+            color: #645a80;
         }
 
         .subtotal-row strong {
-            color: #1b1a1f;
+            color: #221a3a;
         }
 
         .total-row {
@@ -230,7 +230,7 @@
             justify-content: space-between;
             margin-top: 22px;
             padding-top: 20px;
-            border-top: 1px solid #f0e2da;
+            border-top: 1px solid #e9e4fa;
         }
 
         .total-label {
@@ -241,13 +241,13 @@
         .total-price {
             font-size: 22px;
             font-weight: 700;
-            color: #e8420f;
+            color: #6d4ad1;
         }
 
         .place-order {
             width: 100%;
             border: none;
-            background: #e8420f;
+            background: #6d4ad1;
             color: white;
             padding: 15px;
             border-radius: 10px;
@@ -258,12 +258,12 @@
         }
 
         .place-order:hover {
-            background: #c2380f;
+            background: #5536b5;
         }
 
         .secure {
             text-align: center;
-            color: #8a7f86;
+            color: #857ca0;
             font-size: 11px;
             margin-top: 15px;
         }
@@ -302,8 +302,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     border-radius: 16px !important;
 }
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }
 
     /* Saved addresses */
@@ -319,7 +319,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         align-items: flex-start;
         gap: 10px;
         padding: 12px 14px;
-        border: 1px solid #e8d6cc;
+        border: 1px solid #ddd5f2;
         border-radius: 12px;
         background: #fff;
         cursor: pointer;
@@ -327,13 +327,13 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     }
 
     .addr-pick-option:has(input:checked) {
-        border-color: #1b1a1f;
-        background: #fff8f3;
+        border-color: #221a3a;
+        background: #f8f6fe;
     }
 
     .addr-pick-option input {
         margin-top: 3px;
-        accent-color: #c2380f;
+        accent-color: #5536b5;
     }
 
     .addr-pick-option span {
@@ -345,14 +345,14 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     .addr-pick-option strong {
         font-size: 13.5px;
-        color: #1b1a1f;
+        color: #221a3a;
     }
 
     .addr-pick-option em {
         margin-left: 6px;
         padding: 1px 7px;
         border-radius: 999px;
-        background: #1b1a1f;
+        background: #221a3a;
         color: #fff;
         font-size: 10.5px;
         font-style: normal;
@@ -360,7 +360,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
     .addr-pick-option small {
         font-size: 12px;
-        color: #5e5759;
+        color: #574e70;
         overflow-wrap: anywhere;
     }
 
@@ -371,7 +371,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         margin-bottom: 16px;
         font-size: 12.5px;
         font-weight: 700;
-        color: #c2380f;
+        color: #5536b5;
         text-decoration: none;
     }
 
@@ -435,7 +435,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     gap: 7px;
     padding: 9px 14px;
     border-radius: 10px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     font-size: 13px;
     font-weight: 800;
@@ -443,11 +443,11 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 }
 
 .profile-gate-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .place-order:disabled {
-    background: #d9cdc6 !important;
+    background: #ccc8d7 !important;
     box-shadow: none !important;
     transform: none !important;
     cursor: not-allowed;
@@ -471,34 +471,34 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     gap: 12px;
     align-items: flex-start;
     padding: 12px 14px;
-    border: 1.5px solid #f0e2da;
+    border: 1.5px solid #e9e4fa;
     border-radius: 12px;
     background: #ffffff;
     cursor: pointer;
 }
 
 .fulfillment-option:has(input:checked) {
-    border-color: #e8420f;
-    background: #fff7f2;
+    border-color: #6d4ad1;
+    background: #f6f4fd;
 }
 
 .fulfillment-option input {
     margin-top: 3px;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
 }
 
 .fulfillment-option strong {
     display: flex;
     align-items: center;
     gap: 6px;
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 14px;
 }
 
 .fulfillment-option small {
     display: block;
     margin-top: 2px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -539,7 +539,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     border: 0;
     background: none;
     box-shadow: none;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
     cursor: pointer;
 }
 

@@ -3,7 +3,7 @@
     if (window.Chart) {
         Chart.defaults.font.family = "'Figtree', -apple-system, BlinkMacSystemFont, sans-serif";
         Chart.defaults.font.size = 11;
-        Chart.defaults.color = '#6b6570';
+        Chart.defaults.color = '#645a80';
         Chart.defaults.maintainAspectRatio = false;
         Chart.defaults.plugins.legend.display = false;
         Chart.defaults.plugins.tooltip.padding = 10;

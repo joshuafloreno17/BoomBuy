@@ -10,7 +10,7 @@
 
 .money-tile {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 16px 18px;
     min-width: 0;
@@ -18,7 +18,7 @@
 
 .money-tile span {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11.5px;
     font-weight: 600;
     margin-bottom: 6px;
@@ -33,18 +33,18 @@
 .money-tile small {
     display: block;
     margin-top: 4px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     line-height: 1.4;
 }
 
 .money-tile.is-key {
-    border-color: #e8420f;
-    background: #fff1ea;
+    border-color: #6d4ad1;
+    background: #eee8ff;
 }
 
 .money-tile.is-key strong {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .money-tabs {
@@ -60,32 +60,32 @@
     gap: 6px;
     padding: 7px 13px;
     border-radius: 999px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 12.5px;
     font-weight: 700;
 }
 
 .money-tabs a b {
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
     font-variant-numeric: tabular-nums;
 }
 
 .money-tabs a.active {
-    background: #1b1a1f;
-    border-color: #1b1a1f;
+    background: #221a3a;
+    border-color: #221a3a;
     color: #ffffff;
 }
 
 .money-tabs a.active b {
-    color: #ffd9c7;
+    color: #dfd7f6;
 }
 
 .money-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 14px;
@@ -99,7 +99,7 @@
 }
 
 .money-card .sub {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12.5px;
     margin-bottom: 12px;
 }
@@ -117,7 +117,7 @@
 }
 
 .money-meta {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 3px;
 }
@@ -144,7 +144,7 @@
 
 .money-pill.is-good { background: #e3f6f4; color: #0a6f66; }
 .money-pill.is-bad { background: #fff1f2; color: #be123c; }
-.money-pill.is-wait { background: #f3eef0; color: #6b6570; }
+.money-pill.is-wait { background: #efedf4; color: #645a80; }
 
 .money-grid {
     display: grid;
@@ -152,7 +152,7 @@
     gap: 10px 18px;
     margin: 14px 0;
     padding: 12px 14px;
-    background: #fff8f3;
+    background: #f8f6fe;
     border-radius: 12px;
 }
 
@@ -163,7 +163,7 @@
 
 .money-grid dt,
 .money-grid .k {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -172,15 +172,15 @@
 }
 
 .money-grid .v {
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 600;
     overflow-wrap: anywhere;
 }
 
 .money-note {
     font-size: 12.5px;
-    color: #4a4449;
-    background: #fff8f3;
+    color: #463c5e;
+    background: #f8f6fe;
     border-left: 3px solid #f5b70b;
     padding: 9px 12px;
     border-radius: 8px;
@@ -201,7 +201,7 @@
     gap: 4px;
     font-size: 11.5px;
     font-weight: 700;
-    color: #6b6570;
+    color: #645a80;
     flex: 1 1 180px;
     min-width: 0;
 }
@@ -211,12 +211,12 @@
 .money-form textarea {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .money-form textarea {
@@ -228,8 +228,8 @@
 .money-form select:focus,
 .money-form textarea:focus {
     outline: none;
-    border-color: #e8420f;
-    box-shadow: 0 0 0 3px #ffe6db;
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 3px #e6dcff;
 }
 
 .money-btn {
@@ -240,24 +240,24 @@
     font-size: 12.5px;
     font-weight: 800;
     cursor: pointer;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     white-space: nowrap;
 }
 
 .money-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .money-btn.is-quiet {
     background: #ffffff;
-    color: #1b1a1f;
-    border: 1px solid #f0e2da;
+    color: #221a3a;
+    border: 1px solid #e9e4fa;
 }
 
 .money-btn.is-quiet:hover {
-    border-color: #e8420f;
-    color: #c2380f;
+    border-color: #6d4ad1;
+    color: #5536b5;
 }
 
 .money-btn.is-danger {
@@ -265,7 +265,7 @@
 }
 
 .money-btn:focus-visible {
-    outline: 2px solid #1b1a1f;
+    outline: 2px solid #221a3a;
     outline-offset: 2px;
 }
 
@@ -281,18 +281,18 @@
 
 .money-table th {
     text-align: left;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10.5px;
     letter-spacing: .05em;
     text-transform: uppercase;
     padding: 8px 10px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
     white-space: nowrap;
 }
 
 .money-table td {
     padding: 10px;
-    border-bottom: 1px solid #f6ece6;
+    border-bottom: 1px solid #ebe8f4;
     vertical-align: top;
 }
 
@@ -305,7 +305,7 @@
 
 .money-empty {
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 13px;
     padding: 28px 12px;
 }

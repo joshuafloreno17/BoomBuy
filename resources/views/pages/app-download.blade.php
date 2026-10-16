@@ -27,13 +27,13 @@
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
         :root {
-            --ink: #1b1a1f;
-            --muted: #5e5759;
-            --line: #f0e2da;
-            --cream: #fff8f3;
-            --accent: #e8420f;
-            --accent-dark: #c2380f;
-            --soft: #fff1ea;
+            --ink: #221a3a;
+            --muted: #574e70;
+            --line: #e9e4fa;
+            --cream: #f8f6fe;
+            --accent: #6d4ad1;
+            --accent-dark: #5536b5;
+            --soft: #eee8ff;
         }
 
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -43,7 +43,7 @@
             font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at 15% 10%, rgba(232, 66, 15, 0.10), transparent 32%),
+                radial-gradient(circle at 15% 10%, rgba(109, 74, 209, 0.10), transparent 32%),
                 radial-gradient(circle at 85% 90%, rgba(245, 183, 11, 0.10), transparent 30%),
                 var(--cream);
         }
@@ -69,11 +69,11 @@
             background: #fff;
             border: 1px solid var(--line);
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(232, 66, 15, 0.08);
+            box-shadow: 0 20px 50px rgba(109, 74, 209, 0.08);
             padding: 32px;
         }
 
-        .app-icon { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 10px 24px rgba(232, 66, 15, .25); }
+        .app-icon { width: 84px; height: 84px; border-radius: 22px; box-shadow: 0 10px 24px rgba(109, 74, 209, .25); }
 
         h1 { margin-top: 18px; font-family: 'Bricolage Grotesque', sans-serif; font-size: 40px; line-height: 1.05; font-weight: 800; }
         .lead { margin-top: 10px; font-size: 16px; line-height: 1.6; color: var(--muted); max-width: 520px; }
@@ -85,7 +85,7 @@
         .btn {
             display: inline-flex; align-items: center; justify-content: center; gap: 10px;
             min-height: 54px; padding: 0 24px; border-radius: 14px;
-            font-size: 16px; font-weight: 800; border: 1px solid #f0cfc4; background: #fff; color: var(--accent-dark);
+            font-size: 16px; font-weight: 800; border: 1px solid #d9d2ea; background: #fff; color: var(--accent-dark);
         }
         .btn:hover { background: var(--soft); }
         .btn.main { background: var(--accent); border-color: var(--accent); color: #fff; }
@@ -225,7 +225,7 @@
                 qr.make();
                 box.innerHTML = qr.createSvgTag({ cellSize: 6, margin: 0, scalable: true });
             } catch (e) {
-                box.innerHTML = '<p style="padding:70px 10px;color:#5e5759">Open {{ $pageUrl }} on your phone.</p>';
+                box.innerHTML = '<p style="padding:70px 10px;color:#574e70">Open {{ $pageUrl }} on your phone.</p>';
             }
         })();
     </script>

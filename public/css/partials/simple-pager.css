@@ -14,14 +14,14 @@
     gap: 6px;
     padding: 9px 16px;
     border-radius: 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     background: #fff;
-    color: var(--accent, #e8420f);
+    color: var(--accent, #6d4ad1);
     font-weight: 700;
     font-size: 14px;
     text-decoration: none;
 }
-.bb-pager-btn:hover { background: #fff1ea; }
-.bb-pager-btn.is-disabled { color: #c9b3ac; background: #fbf7f6; cursor: default; }
-.bb-pager-info { color: #7c5f57; font-size: 14px; font-weight: 600; }
-.bb-pager-info small { color: #8a7f86; font-weight: 500; }
+.bb-pager-btn:hover { background: #eee8ff; }
+.bb-pager-btn.is-disabled { color: #b5b0c5; background: #f8f7fa; cursor: default; }
+.bb-pager-info { color: #635c77; font-size: 14px; font-weight: 600; }
+.bb-pager-info small { color: #857ca0; font-weight: 500; }

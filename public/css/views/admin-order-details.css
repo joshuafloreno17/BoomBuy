@@ -9,8 +9,8 @@
         body {
             margin: 0;
             font-family: 'Figtree', Arial, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
         }
 
         .container {
@@ -24,7 +24,7 @@
             align-items: center;
             gap: 6px;
             margin-bottom: 18px;
-            color: #6b6570;
+            color: #645a80;
             text-decoration: none;
             font-weight: 700;
             font-size: 13px;
@@ -42,7 +42,7 @@
         }
 
         .subtitle {
-            color: #6b6570;
+            color: #645a80;
             margin-bottom: 22px;
             display: flex;
             gap: 10px;
@@ -65,7 +65,7 @@
 
         .card {
             background: white;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 16px;
             padding: 20px 22px;
             margin-bottom: 16px;
@@ -78,7 +78,7 @@
         }
 
         .label {
-            color: #8a7f86;
+            color: #857ca0;
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
@@ -87,14 +87,14 @@
         }
 
         .info {
-            color: #4a4449;
+            color: #463c5e;
             font-size: 14px;
             line-height: 1.65;
             word-break: break-word;
         }
 
         .muted {
-            color: #6b6570;
+            color: #645a80;
         }
 
         .mini-badge {
@@ -114,7 +114,7 @@
             justify-content: space-between;
             gap: 12px;
             padding: 10px 0;
-            border-bottom: 1px solid #f6eee9;
+            border-bottom: 1px solid #f1edfa;
             font-size: 14px;
         }
 
@@ -130,17 +130,17 @@
             display: flex;
             justify-content: space-between;
             font-size: 14px;
-            color: #4a4449;
+            color: #463c5e;
             padding: 4px 0;
         }
 
         .sum-line.total {
             margin-top: 8px;
             padding-top: 12px;
-            border-top: 1px solid #f6eee9;
+            border-top: 1px solid #f1edfa;
             font-size: 18px;
             font-weight: 800;
-            color: #1b1a1f;
+            color: #221a3a;
         }
 
         .timeline {
@@ -154,16 +154,16 @@
             gap: 10px;
             padding: 7px 0;
             font-size: 14px;
-            color: #4a4449;
+            color: #463c5e;
         }
 
         .timeline i {
-            color: var(--accent, #e8420f);
+            color: var(--accent, #6d4ad1);
         }
 
         .timeline .when {
             margin-left: auto;
-            color: #6b6570;
+            color: #645a80;
             white-space: nowrap;
             font-size: 13px;
         }
@@ -172,8 +172,8 @@
             margin-top: 10px;
             padding: 12px 14px;
             border-radius: 12px;
-            background: #fff1ea;
-            color: #7c3b26;
+            background: #eee8ff;
+            color: #4d3d79;
             font-size: 14px;
         }
 
@@ -181,7 +181,7 @@
             width: 100%;
             min-height: 80px;
             padding: 12px 14px;
-            border: 1px solid #e8d6cc;
+            border: 1px solid #ddd5f2;
             border-radius: 12px;
             font-family: inherit;
             font-size: 14px;

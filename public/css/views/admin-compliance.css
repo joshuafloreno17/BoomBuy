@@ -15,9 +15,9 @@
     gap: 6px;
     padding: 10px 14px;
     border-radius: 12px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     background: #fff;
-    color: #5e5759;
+    color: #574e70;
     font-size: 13px;
     font-weight: 700;
     white-space: nowrap;
@@ -27,16 +27,16 @@
     min-width: 22px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #f0e2da;
+    background: #e9e4fa;
     font-size: 11px;
     text-align: center;
 }
 
-.view-chip.has-work .n { background: #e8420f; color: #fff; }
+.view-chip.has-work .n { background: #6d4ad1; color: #fff; }
 
 .view-chip.active {
-    background: #e8420f;
-    border-color: #e8420f;
+    background: #6d4ad1;
+    border-color: #6d4ad1;
     color: #fff;
 }
 
@@ -45,8 +45,8 @@
 /* Sellers with problems: full cards */
 .issue-card {
     background: #fff;
-    border: 1px solid #f6c9bb;
-    border-left: 4px solid #e8420f;
+    border: 1px solid #d6cded;
+    border-left: 4px solid #6d4ad1;
     border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 14px;
@@ -64,20 +64,20 @@
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     font-size: 18px;
     font-weight: 700;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .shop-name a { color: inherit; }
-.shop-name a:hover { color: #e8420f; }
+.shop-name a:hover { color: #6d4ad1; }
 
 .owner {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 2px;
 }
 
 .meta-line {
-    color: #5e5759;
+    color: #574e70;
     font-size: 12px;
     margin-top: 6px;
 }
@@ -92,7 +92,7 @@
 .issue-block {
     margin-top: 14px;
     padding-top: 12px;
-    border-top: 1px solid #f6eee9;
+    border-top: 1px solid #f1edfa;
 }
 
 .issue-label {
@@ -110,7 +110,7 @@
     align-items: center;
     gap: 12px;
     padding: 8px 0;
-    border-bottom: 1px dashed #f0e2da;
+    border-bottom: 1px dashed #e9e4fa;
     font-size: 13px;
 }
 
@@ -118,7 +118,7 @@
 
 .issue-row .why {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-top: 2px;
 }
@@ -133,10 +133,10 @@
     gap: 5px;
     height: 32px;
     padding: 0 11px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 9px !important;
     background: #fff;
-    color: #5e5759;
+    color: #574e70;
     font-size: 12px;
     font-weight: 700;
     font-family: inherit;
@@ -144,7 +144,7 @@
     white-space: nowrap;
 }
 
-.act:hover { background: #fff8f3; transform: none !important; }
+.act:hover { background: #f8f6fe; transform: none !important; }
 .act.warn { color: #b45309; border-color: #f5dcae; }
 .act.danger { color: #dc2626; border-color: #fbd5d5; }
 .act.good { color: #15803d; border-color: #bbebca; }
@@ -163,7 +163,7 @@
     font-size: 18px;
 }
 
-.clean-heading span { color: #6b6570; font-size: 12px; }
+.clean-heading span { color: #645a80; font-size: 12px; }
 
 .ok-note {
     color: #15803d;
@@ -178,10 +178,10 @@ dialog.warn-dialog {
     border-radius: 18px;
     padding: 22px;
     width: min(440px, 92vw);
-    box-shadow: 0 24px 60px rgba(27, 26, 31, .25);
+    box-shadow: 0 24px 60px rgba(34, 26, 58, .25);
 }
 
-dialog.warn-dialog::backdrop { background: rgba(27, 26, 31, .45); }
+dialog.warn-dialog::backdrop { background: rgba(34, 26, 58, .45); }
 
 .warn-dialog h3 {
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
@@ -189,20 +189,20 @@ dialog.warn-dialog::backdrop { background: rgba(27, 26, 31, .45); }
     margin-bottom: 4px;
 }
 
-.warn-dialog p { color: #6b6570; font-size: 13px; margin-bottom: 12px; }
+.warn-dialog p { color: #645a80; font-size: 13px; margin-bottom: 12px; }
 
 .warn-dialog textarea {
     width: 100%;
     min-height: 110px;
     padding: 12px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 12px;
     font-family: inherit;
     font-size: 13px;
     resize: vertical;
 }
 
-.warn-dialog textarea:focus { outline: none; border-color: #e8420f; }
+.warn-dialog textarea:focus { outline: none; border-color: #6d4ad1; }
 
 .dialog-actions {
     display: flex;
@@ -212,8 +212,8 @@ dialog.warn-dialog::backdrop { background: rgba(27, 26, 31, .45); }
 }
 
 .dialog-actions .send {
-    background: #e8420f;
-    border-color: #e8420f;
+    background: #6d4ad1;
+    border-color: #6d4ad1;
     color: #fff;
 }
 
@@ -241,7 +241,7 @@ table { min-width: 760px; }
     padding: 5px;
     width: fit-content;
     max-width: 100%;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     background: #ffffff;
 }
@@ -252,18 +252,18 @@ table { min-width: 760px; }
     gap: 7px;
     padding: 9px 16px;
     border-radius: 10px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
 }
 
 .compliance-tabs a:hover {
-    background: #fff4ee;
-    color: #1b1a1f;
+    background: #f4f0fd;
+    color: #221a3a;
 }
 
 .compliance-tabs a.active {
-    background: #1b1a1f;
+    background: #221a3a;
     color: #ffffff;
 }

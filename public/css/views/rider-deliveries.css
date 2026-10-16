@@ -17,8 +17,8 @@ body {
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -116,7 +116,7 @@ select {
 
     font-family: 'Bricolage Grotesque', sans-serif;
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-size: 32px;
     font-weight: 800;
@@ -128,7 +128,7 @@ select {
 
     margin-top: 5px;
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 13px;
 
@@ -144,13 +144,13 @@ select {
 
     background: #ffffff;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     padding: 10px 15px;
 
     border-radius: 11px;
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
 
@@ -159,7 +159,7 @@ select {
 
 .profile strong {
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-weight: 800;
 }
@@ -213,7 +213,7 @@ select {
 
     background: #ffffff;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     padding: 16px 18px;
 
@@ -224,7 +224,7 @@ select {
 
 .filter-box label {
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
     font-weight: 700;
@@ -236,7 +236,7 @@ select {
 
     padding: 9px 12px;
 
-    border: 1px solid #f3d8d0;
+    border: 1px solid #dbd4ef;
 
     border-radius: 9px;
 
@@ -244,7 +244,7 @@ select {
 
     background: #ffffff;
 
-    color: #4a4449;
+    color: #463c5e;
 
     font-size: 12px;
 
@@ -253,9 +253,9 @@ select {
 
 .filter-box select:focus {
 
-    border-color: #ef4715;
+    border-color: #7556cc;
 
-    box-shadow: 0 0 0 3px rgba(232, 66, 15, .08);
+    box-shadow: 0 0 0 3px rgba(109, 74, 209, .08);
 }
 
 /* =========================================================
@@ -280,7 +280,7 @@ select {
 
     background: #ffffff;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     border-radius: 15px;
 
@@ -296,7 +296,7 @@ select {
     transform: translateY(-2px);
 
     box-shadow:
-        0 10px 28px rgba(232, 66, 15, .08);
+        0 10px 28px rgba(109, 74, 209, .08);
 }
 
 .delivery-header {
@@ -313,7 +313,7 @@ select {
 
 .order-id {
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-family: 'Bricolage Grotesque', sans-serif;
 
@@ -346,9 +346,9 @@ select {
 
 .status.transit {
 
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .status.pending {
@@ -360,9 +360,9 @@ select {
 
 .status.ready {
 
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 /* =========================================================
@@ -371,7 +371,7 @@ select {
 
 .info {
 
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 
     padding-top: 13px;
 }
@@ -393,14 +393,14 @@ select {
 
 .info-label {
 
-    color: #6b6570;
+    color: #645a80;
 
     flex-shrink: 0;
 }
 
 .info-value {
 
-    color: #4a4449;
+    color: #463c5e;
 
     font-weight: 600;
 
@@ -460,7 +460,7 @@ select {
 
 .view-btn {
 
-    background: #ef4715;
+    background: #7556cc;
 
     color: #ffffff;
 
@@ -469,7 +469,7 @@ select {
 
 .view-btn:hover {
 
-    background: #cf370b;
+    background: #5a36be;
 }
 
 /* CLAIM */
@@ -499,18 +499,18 @@ select {
 
 .status-btn {
 
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #e8420f;
+    color: #6d4ad1;
 
-    border: 1px solid #f6cfc4;
+    border: 1px solid #dbd3ef;
 
     flex: 1;
 }
 
 .status-btn:hover {
 
-    background: #ffe3da;
+    background: #e6dffa;
 }
 
 /* =========================================================
@@ -521,7 +521,7 @@ select {
 
     background: #ffffff;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     border-radius: 15px;
 
@@ -529,7 +529,7 @@ select {
 
     text-align: center;
 
-    box-shadow: 0 6px 20px rgba(232, 66, 15, .04);
+    box-shadow: 0 6px 20px rgba(109, 74, 209, .04);
 }
 
 .empty-icon {
@@ -544,7 +544,7 @@ select {
 
     margin: 0 auto 13px;
 
-    background: #fff1ea;
+    background: #eee8ff;
 
     border-radius: 16px;
 
@@ -553,7 +553,7 @@ select {
 
 .empty h2 {
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-family: 'Bricolage Grotesque', sans-serif;
 
@@ -565,7 +565,7 @@ select {
 
 .empty p {
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
 }
@@ -580,7 +580,7 @@ select {
 
     padding-top: 22px;
 
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 
     display: flex;
 
@@ -588,14 +588,14 @@ select {
 
     gap: 15px;
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 11px;
 }
 
 .page-footer strong {
 
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 /* =========================================================

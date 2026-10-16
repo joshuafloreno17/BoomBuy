@@ -6,18 +6,18 @@
     <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/pages/logistics-riders.css') }}">
     <style>
-        .add-rider { background: #fff; border: 1px solid #f0e2da; border-radius: 16px; padding: 24px; }
+        .add-rider { background: #fff; border: 1px solid #e9e4fa; border-radius: 16px; padding: 24px; }
         .add-rider h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; margin: 22px 0 12px; }
         .add-rider h2:first-of-type { margin-top: 0; }
         .add-rider .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px 16px; }
         .add-rider .field { display: flex; flex-direction: column; gap: 6px; }
-        .add-rider label { color: #4a4449; font-size: 12px; font-weight: 800; }
-        .add-rider label .opt { color: #8a7f86; font-weight: 500; }
-        .add-rider input, .add-rider select { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #f0e2da; border-radius: 10px; font: inherit; font-size: 13px; background: #fff; }
-        .add-rider input[type=file] { border-style: dashed; background: #fff8f3; }
-        .add-rider .hint { color: #8a7f86; font-size: 11px; }
+        .add-rider label { color: #463c5e; font-size: 12px; font-weight: 800; }
+        .add-rider label .opt { color: #857ca0; font-weight: 500; }
+        .add-rider input, .add-rider select { width: 100%; box-sizing: border-box; padding: 11px 12px; border: 1px solid #e9e4fa; border-radius: 10px; font: inherit; font-size: 13px; background: #fff; }
+        .add-rider input[type=file] { border-style: dashed; background: #f8f6fe; }
+        .add-rider .hint { color: #857ca0; font-size: 11px; }
         .add-rider .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 22px; flex-wrap: wrap; }
-        .add-rider .cancel { padding: 11px 18px; border-radius: 10px; border: 1px solid #f0e2da; color: #4a4449; text-decoration: none; font-weight: 700; font-size: 13px; }
+        .add-rider .cancel { padding: 11px 18px; border-radius: 10px; border: 1px solid #e9e4fa; color: #463c5e; text-decoration: none; font-weight: 700; font-size: 13px; }
         .add-rider .error-list { background: #fff1f2; border: 1px solid #fecdd3; color: #be123c; border-radius: 10px; padding: 12px 14px; font-size: 13px; margin-bottom: 16px; }
         @media (max-width: 640px) { .add-rider .grid { grid-template-columns: minmax(0, 1fr); } .add-rider { padding: 18px; } }
     </style>

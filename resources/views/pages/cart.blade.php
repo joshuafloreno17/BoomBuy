@@ -388,9 +388,9 @@
                             type="text"
                             name="voucher_code"
                             placeholder="Voucher code"
-                            style="flex:1; padding:9px 11px; border:1px solid #f0e2da; border-radius:8px; font-family:inherit; font-size:12px; text-transform:uppercase;"
+                            style="flex:1; padding:9px 11px; border:1px solid #e9e4fa; border-radius:8px; font-family:inherit; font-size:12px; text-transform:uppercase;"
                         >
-                        <button type="submit" style="border:none; background:#1b1a1f; color:white; padding:9px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+                        <button type="submit" style="border:none; background:#221a3a; color:white; padding:9px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
                             Apply
                         </button>
                     </form>

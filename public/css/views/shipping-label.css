@@ -3,8 +3,8 @@
 body {
     margin: 0;
     padding: 24px 16px 48px;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     font-family: 'Figtree', -apple-system, sans-serif;
 }
 
@@ -18,7 +18,7 @@ body {
 }
 
 .label-back {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -31,7 +31,7 @@ body {
     padding: 10px 16px;
     border: none;
     border-radius: 12px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     font-family: inherit;
     font-size: 13px;
@@ -40,13 +40,13 @@ body {
 }
 
 .label-print:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .label-help {
     max-width: 4in;
     margin: 0 auto 16px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -57,14 +57,14 @@ body {
     max-width: 100%;
     min-height: 6in;
     margin: 0 auto;
-    border: 2px solid #1b1a1f;
+    border: 2px solid #221a3a;
     background: #ffffff;
     display: flex;
     flex-direction: column;
 }
 
 .label > * {
-    border-bottom: 2px solid #1b1a1f;
+    border-bottom: 2px solid #221a3a;
     padding: 10px 12px;
 }
 
@@ -74,7 +74,7 @@ body {
 
 .label span {
     display: block;
-    color: #4b4550;
+    color: #453f56;
     font-size: 9px;
     font-weight: 700;
     letter-spacing: .6px;
@@ -111,7 +111,7 @@ body {
 
 .label-service {
     padding: 4px 12px;
-    border: 2px solid #1b1a1f;
+    border: 2px solid #221a3a;
     font-size: 16px;
     font-weight: 900;
     letter-spacing: 1px;
@@ -139,8 +139,8 @@ body {
 .label-qr.is-fallback {
     display: grid;
     place-items: center;
-    border: 1px dashed #8a7f86;
-    color: #6b6570;
+    border: 1px dashed #857ca0;
+    color: #645a80;
     font-size: 10px;
     text-align: center;
 }
@@ -156,7 +156,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #1b1a1f;
+    background: #221a3a;
     color: #ffffff;
 }
 
@@ -166,7 +166,7 @@ body {
 }
 
 .label-route span {
-    color: #d9cdc6;
+    color: #ccc8d7;
 }
 
 .label-route strong {
@@ -205,11 +205,11 @@ body {
 
 .label-contents em {
     font-style: normal;
-    color: #4b4550;
+    color: #453f56;
 }
 
 .label-contents .label-more {
-    color: #4b4550;
+    color: #453f56;
     font-weight: 700;
 }
 
@@ -229,7 +229,7 @@ body {
 .label-line {
     display: block;
     height: 22px;
-    border-bottom: 1px solid #1b1a1f;
+    border-bottom: 1px solid #221a3a;
 }
 
 .label-foot {

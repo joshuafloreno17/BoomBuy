@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     min-height: 100vh;
 }
 
@@ -48,7 +48,7 @@ a {
 }
 
 .header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 11px;
@@ -64,7 +64,7 @@ a {
 }
 
 .header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 14px;
     margin-top: 8px;
 }
@@ -74,7 +74,7 @@ a {
 ========================= */
 
 .error {
-    background: #fff1ea;
+    background: #eee8ff;
     color: #dc2626;
     border: 1px solid #ffd0d0;
     padding: 13px 16px;
@@ -99,7 +99,7 @@ a {
 
 .form-box {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 30px;
     box-shadow: 0 15px 35px rgba(39, 84, 150, 0.08);
@@ -114,30 +114,30 @@ label {
     font-size: 13px;
     font-weight: 700;
     margin-bottom: 8px;
-    color: #4a4449;
+    color: #463c5e;
 }
 
 input,
 select,
 textarea {
     width: 100%;
-    border: 1px solid #f0e2da;
-    background: #fff8f3;
+    border: 1px solid #e9e4fa;
+    background: #f8f6fe;
     padding: 12px 14px;
     border-radius: 8px;
     outline: none;
     font-family: 'Figtree', sans-serif;
     font-size: 13px;
-    color: #1b1a1f;
+    color: #221a3a;
     transition: 0.2s;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
     background: #ffffff;
-    box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.08);
+    box-shadow: 0 0 0 3px rgba(109, 74, 209, 0.08);
 }
 
 textarea {
@@ -150,8 +150,8 @@ textarea {
 ========================= */
 
 .image-upload {
-    border: 1.5px dashed #f3cfc4;
-    background: #fff8f3;
+    border: 1.5px dashed #dad3ed;
+    background: #f8f6fe;
     border-radius: 12px;
     padding: 22px;
     text-align: center;
@@ -159,8 +159,8 @@ textarea {
 }
 
 .image-upload:hover {
-    border-color: #e8420f;
-    background: #fff8f3;
+    border-color: #6d4ad1;
+    background: #f8f6fe;
 }
 
 .image-upload-icon {
@@ -171,13 +171,13 @@ textarea {
 .image-upload-title {
     font-size: 13px;
     font-weight: 700;
-    color: #4a4449;
+    color: #463c5e;
     margin-bottom: 5px;
 }
 
 .image-upload-text {
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
     margin-bottom: 14px;
 }
 
@@ -197,7 +197,7 @@ textarea {
     height: 160px;
     object-fit: cover;
     border-radius: 14px;
-    border: 1px solid #f3ddd6;
+    border: 1px solid #dfdaef;
     box-shadow: 0 8px 20px rgba(39, 84, 150, 0.08);
 }
 
@@ -219,7 +219,7 @@ textarea {
     padding: 0;
     border: 2px solid #fff;
     border-radius: 50%;
-    background: #1b1a1f;
+    background: #221a3a;
     color: #fff;
     font-size: 12px;
     cursor: pointer;
@@ -247,7 +247,7 @@ textarea {
 .preview-label {
     margin-top: 8px;
     font-size: 11px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 /* =========================
@@ -262,7 +262,7 @@ textarea {
 
 .save {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     padding: 13px 22px;
     border-radius: 12px;
@@ -273,13 +273,13 @@ textarea {
 }
 
 .save:hover {
-    background: #c2380f;
+    background: #5536b5;
     transform: translateY(-1px);
 }
 
 .cancel {
-    background: #f6eee9;
-    color: #7c5a50;
+    background: #f1edfa;
+    color: #6b6382;
     padding: 13px 22px;
     border-radius: 12px;
     font-size: 13px;
@@ -287,7 +287,7 @@ textarea {
 }
 
 .cancel:hover {
-    background: #f0e2da;
+    background: #e9e4fa;
 }
 
 /* =========================
@@ -350,7 +350,7 @@ textarea {
     margin-bottom: 6px;
     font-size: 11px;
     font-weight: 700;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .var-head[hidden] {
@@ -359,7 +359,7 @@ textarea {
 
 .var-head small {
     font-weight: 500;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .var-row {
@@ -380,7 +380,7 @@ textarea {
 .var-field input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-size: 12px;
     font-family: inherit;
@@ -388,7 +388,7 @@ textarea {
 }
 
 .var-field input:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .remove-variation-btn {
@@ -430,17 +430,17 @@ textarea {
     place-items: center;
     width: 44px;
     height: 38px;
-    border: 1.5px dashed #ecc9bd;
+    border: 1.5px dashed #d4cde6;
     border-radius: 8px;
-    background: #fff8f3;
-    color: #e8420f;
+    background: #f8f6fe;
+    color: #6d4ad1;
     font-size: 15px;
     overflow: hidden;
 }
 
 .var-photo:hover .var-photo-box,
 .var-photo:focus-within .var-photo-box {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .var-photo.has-photo .var-photo-box {
@@ -466,7 +466,7 @@ textarea {
         align-items: end;
         gap: 10px;
         padding: 12px;
-        border: 1px solid #f3e3dd;
+        border: 1px solid #e4e0f0;
         border-radius: 12px;
         margin-bottom: 10px;
     }
@@ -476,7 +476,7 @@ textarea {
         margin-bottom: 4px;
         font-size: 11px;
         font-weight: 700;
-        color: #5e5759;
+        color: #574e70;
     }
 
     .remove-variation-btn {
@@ -499,15 +499,15 @@ textarea {
 .var-photos-lbl {
     font-size: 11.5px;
     font-weight: 600;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .var-photos-lbl b {
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .var-photos-lbl small {
-    color: #8a7f86;
+    color: #857ca0;
     font-weight: 500;
 }
 
@@ -522,8 +522,8 @@ textarea {
     width: 56px;
     height: 56px;
     border-radius: 10px;
-    border: 1px solid #f0e2da;
-    background: #fff8f3;
+    border: 1px solid #e9e4fa;
+    background: #f8f6fe;
 }
 
 .var-photo-tile img {
@@ -549,10 +549,10 @@ textarea {
     align-items: center;
     justify-content: center;
     gap: 2px;
-    border: 1.5px dashed #ecc9bd;
+    border: 1.5px dashed #d4cde6;
     border-radius: 10px;
-    background: #fff8f3;
-    color: #e8420f;
+    background: #f8f6fe;
+    color: #6d4ad1;
     font-size: 11px;
     font-weight: 700;
     cursor: pointer;
@@ -560,7 +560,7 @@ textarea {
 
 .var-photos-add:hover,
 .var-photos-add:focus-within {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .var-photos-add[hidden] {
@@ -580,7 +580,7 @@ textarea {
 
 .opt-intro {
     margin-bottom: 12px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
@@ -613,7 +613,7 @@ textarea {
     display: grid;
     gap: 10px;
     padding: 14px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     background: #fff;
 }
@@ -635,18 +635,18 @@ textarea {
 .opt-field > span {
     font-size: 11.5px;
     font-weight: 700;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .opt-field small {
     font-weight: 500;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .opt-field input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
@@ -654,7 +654,7 @@ textarea {
 }
 
 .opt-field input:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .opt-remove {
@@ -664,8 +664,8 @@ textarea {
     place-items: center;
     border: 0;
     border-radius: 10px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     font-size: 14px;
     cursor: pointer;
 }
@@ -680,13 +680,13 @@ textarea {
 }
 
 .opt-card .var-photos-lbl {
-    color: #c2380f;
+    color: #5536b5;
     font-size: 12.5px;
     font-weight: 700;
 }
 
 .opt-card .var-photos-lbl b {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .opt-card .var-photo-tile,
@@ -701,7 +701,7 @@ textarea {
     left: 5px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-size: 10px;
     font-weight: 800;
@@ -713,10 +713,10 @@ textarea {
 
 .opt-add-btn {
     padding: 10px 14px;
-    border: 1px dashed #f0b8a5;
+    border: 1px dashed #c7bce5;
     border-radius: 10px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     font-family: inherit;
     font-size: 12.5px;
     font-weight: 700;
@@ -735,35 +735,35 @@ textarea {
 
 /* Quick setup for phones, tablets, laptops: Color × Storage */
 .storage-builder {
-    border: 1px dashed #f3b9a3;
-    background: #fff8f3;
+    border: 1px dashed #c7bbe7;
+    background: #f8f6fe;
     border-radius: 14px;
     padding: 16px;
     margin: 4px 0 14px;
 }
 .storage-builder[hidden] { display: none; }
 .storage-builder .sb-head { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 12px; }
-.storage-builder .sb-head > i { font-size: 20px; color: #f34f1d; }
-.storage-builder .sb-head strong { display: block; font-size: 14px; color: #1b1a1f; }
-.storage-builder .sb-head small { display: block; font-size: 12px; color: #6b6570; margin-top: 2px; line-height: 1.45; }
+.storage-builder .sb-head > i { font-size: 20px; color: #7a55e6; }
+.storage-builder .sb-head strong { display: block; font-size: 14px; color: #221a3a; }
+.storage-builder .sb-head small { display: block; font-size: 12px; color: #645a80; margin-top: 2px; line-height: 1.45; }
 .form-group .storage-builder .sb-field { display: flex; flex-direction: column; gap: 5px; margin: 0 0 12px; }
-.storage-builder .sb-field span { font-size: 12px; font-weight: 700; color: #1b1a1f; }
-.storage-builder .sb-field small { font-weight: 500; color: #8a7f86; }
+.storage-builder .sb-field span { font-size: 12px; font-weight: 700; color: #221a3a; }
+.storage-builder .sb-field small { font-weight: 500; color: #857ca0; }
 .storage-builder input[type="text"],
 .storage-builder input[type="number"] {
-    min-height: 40px; padding: 8px 11px; border: 1px solid #e8d6cc; border-radius: 10px;
+    min-height: 40px; padding: 8px 11px; border: 1px solid #ddd5f2; border-radius: 10px;
     font: inherit; font-size: 13.5px; background: #fff; width: 100%;
 }
 .storage-builder .sb-stock { max-width: 200px; }
 .storage-builder .sb-sizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-bottom: 12px; }
 .form-group .storage-builder .sb-size {
     display: flex; align-items: center; gap: 6px; margin: 0;
-    background: #fff; border: 1px solid #f0e2da; border-radius: 10px; padding: 6px 8px;
+    background: #fff; border: 1px solid #e9e4fa; border-radius: 10px; padding: 6px 8px;
     font-weight: 600; cursor: pointer;
 }
-.storage-builder .sb-size input[type="checkbox"] { width: 16px; height: 16px; accent-color: #f34f1d; flex-shrink: 0; }
+.storage-builder .sb-size input[type="checkbox"] { width: 16px; height: 16px; accent-color: #7a55e6; flex-shrink: 0; }
 .storage-builder .sb-size b { font-size: 13px; min-width: 44px; }
-.storage-builder .sb-size span { font-size: 12px; color: #8a7f86; }
+.storage-builder .sb-size span { font-size: 12px; color: #857ca0; }
 .storage-builder .sb-size input[type="number"] { min-height: 32px; padding: 4px 8px; font-size: 12.5px; }
 
 /* =========================
@@ -801,7 +801,7 @@ textarea {
 
 .ap-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 26px;
     box-shadow: 0 15px 35px rgba(39, 84, 150, 0.06);
@@ -817,7 +817,7 @@ textarea {
     font-size: 18px;
     font-weight: 800;
     margin-bottom: 18px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .ap-side .buttons {

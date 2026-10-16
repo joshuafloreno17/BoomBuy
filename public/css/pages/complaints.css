@@ -8,13 +8,13 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
     text-decoration: none;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .container {
@@ -28,7 +28,7 @@ a {
     margin-bottom: 20px;
     font-size: 13px;
     font-weight: 700;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .header {
@@ -41,7 +41,7 @@ a {
 }
 
 .header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -68,7 +68,7 @@ a {
 
 .card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
@@ -90,7 +90,7 @@ a {
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 7px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .form-group input[type="text"],
@@ -99,7 +99,7 @@ a {
 .form-group input[type="file"] {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
@@ -114,7 +114,7 @@ a {
 
 .submit-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 11px 20px;
     border-radius: 10px;
@@ -124,11 +124,11 @@ a {
 }
 
 .submit-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .complaint-item {
-    border: 1px solid #f0e6e2;
+    border: 1px solid #e7e4ee;
     border-radius: 12px;
     padding: 14px 16px;
     margin-bottom: 10px;
@@ -147,13 +147,13 @@ a {
 }
 
 .complaint-desc {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 4px;
 }
 
 .complaint-date {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     margin-top: 6px;
 }
@@ -173,17 +173,17 @@ a {
 .status-dismissed { background: #fff1f2; color: #be123c; }
 
 .admin-notes-box {
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     padding: 10px 12px;
     margin-top: 8px;
     font-size: 12px;
-    color: #4a4449;
+    color: #463c5e;
 }
 
 .empty-note {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;
@@ -192,6 +192,6 @@ a {
 .field-hint {
     display: block;
     margin-top: 6px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }

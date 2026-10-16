@@ -1,7 +1,7 @@
 {{-- "% off" next to the product's Price field; shows what buyers will pay. --}}
 @php $discountValue = old('discount_percent', $discount ?? ''); @endphp
 <div class="form-group">
-    <label for="discount_percent">Discount (% off) <small style="font-weight:500;color:var(--bb-muted,#6b6570)">· optional</small></label>
+    <label for="discount_percent">Discount (% off) <small style="font-weight:500;color:var(--bb-muted,#645a80)">· optional</small></label>
     <input
         type="number"
         id="discount_percent"
@@ -12,7 +12,7 @@
         step="1"
         placeholder="0 = no discount"
     >
-    <small id="discount-hint" style="display:block;margin-top:6px;color:var(--bb-muted,#6b6570);font-size:13px"></small>
+    <small id="discount-hint" style="display:block;margin-top:6px;color:var(--bb-muted,#645a80);font-size:13px"></small>
 </div>
 
 <script>
@@ -34,7 +34,7 @@
                 return;
             }
             d = Math.min(d, {{ \App\Models\Product::MAX_DISCOUNT }});
-            hint.innerHTML = 'Buyers pay <strong style="color:var(--bb-accent,#e8420f)">' + peso(Math.round(p * (100 - d)) / 100) +
+            hint.innerHTML = 'Buyers pay <strong style="color:var(--bb-accent,#6d4ad1)">' + peso(Math.round(p * (100 - d)) / 100) +
                 '</strong> instead of <s>' + peso(p) + '</s> (' + d + '% off).';
         }
 

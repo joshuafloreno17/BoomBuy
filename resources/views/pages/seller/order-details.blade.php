@@ -441,7 +441,7 @@
                         <form method="POST" action="{{ route('seller.order.pickup', $order['id']) }}">
                             @csrf
                             <label for="pickupDate" style="display:block;margin:0 0 4px;font-weight:700">Pickup day</label>
-                            <select id="pickupDate" name="pickup_date" required style="width:100%;max-width:280px;padding:9px 10px;border-radius:10px;border:1px solid var(--line,#f0e2da);margin-bottom:10px">
+                            <select id="pickupDate" name="pickup_date" required style="width:100%;max-width:280px;padding:9px 10px;border-radius:10px;border:1px solid var(--line,#e9e4fa);margin-bottom:10px">
                                 @foreach($pickupDays as $date => $label)
                                     <option value="{{ $date }}">{{ $label }}</option>
                                 @endforeach

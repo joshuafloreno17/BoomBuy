@@ -22,7 +22,7 @@
     left: 5px;
     width: 2px;
     /* Every step listed has happened: the line between them is orange too. */
-    background: #f4a487;
+    background: #b7a8e3;
 }
 
 .order-timeline-dot {
@@ -34,7 +34,7 @@
     margin-top: 3px;
     border-radius: 50%;
     /* Every step here already happened. */
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .order-timeline li.is-latest .order-timeline-dot {
@@ -42,8 +42,8 @@
     height: 14px;
     margin-top: 2px;
     margin-left: -1px;
-    background: #e8420f;
-    box-shadow: 0 0 0 5px rgba(232, 66, 15, .18);
+    background: #6d4ad1;
+    box-shadow: 0 0 0 5px rgba(109, 74, 209, .18);
 }
 
 .order-timeline li.is-done .order-timeline-dot {
@@ -66,22 +66,22 @@
 }
 
 .order-timeline-body strong {
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 700;
 }
 
 .order-timeline li:not(.is-latest) .order-timeline-body strong {
-    color: #4b4550;
+    color: #453f56;
     font-weight: 600;
 }
 
 .order-timeline-body span {
-    color: #6b6570;
+    color: #645a80;
     overflow-wrap: anywhere;
 }
 
 .order-timeline-body time {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
@@ -109,22 +109,22 @@
 ========================= */
 
 .order-timeline.is-route li:not(:last-child)::before {
-    background: #eadfd9;
+    background: #dfdbe8;
 }
 
 /* Line between two reached stops. */
 .order-timeline.is-route li.is-reached:not(.is-latest):not(:last-child)::before {
-    background: #f4a487;
+    background: #b7a8e3;
 }
 
 .order-timeline.is-route li.is-ahead .order-timeline-dot {
     background: #ffffff;
-    border: 2px solid #d9cdc6;
+    border: 2px solid #ccc8d7;
     box-shadow: none;
 }
 
 .order-timeline.is-route li.is-reached .order-timeline-body strong {
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 600;
 }
 
@@ -133,16 +133,16 @@
 }
 
 .order-timeline.is-route li.is-ahead .order-timeline-body strong {
-    color: #a39a9f;
+    color: #9992ab;
     font-weight: 600;
 }
 
 .order-timeline-body .order-timeline-next {
-    color: #b8aeb3;
+    color: #aea8be;
     font-size: 12px;
 }
 
 .order-timeline-body .order-timeline-next.is-next {
-    color: #c2380f;
+    color: #5536b5;
     font-weight: 700;
 }

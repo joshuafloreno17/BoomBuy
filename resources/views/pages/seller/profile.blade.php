@@ -136,7 +136,7 @@
                     <h3>Shop Profile</h3>
                     <p class="card-sub">
                         This is what buyers see on your shop page.
-                        <a href="{{ route('shop.seller', $user['id']) }}" style="color:#c2380f; font-weight:700;">View my shop →</a>
+                        <a href="{{ route('shop.seller', $user['id']) }}" style="color:#5536b5; font-weight:700;">View my shop →</a>
                     </p>
 
                     <form method="POST" action="{{ route('seller.shop.update') }}">
@@ -157,7 +157,7 @@
                                 <label for="shop_description">About Your Shop <span class="field-hint" style="display:inline;">(optional)</span></label>
                                 <textarea id="shop_description" name="shop_description" rows="3" maxlength="500"
                                           placeholder="What do you sell, and why should buyers choose your shop?"
-                                          style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #e8d6cc; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('shop_description', $application->shop_description ?? '') }}</textarea>
+                                          style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #ddd5f2; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('shop_description', $application->shop_description ?? '') }}</textarea>
                                 <span class="field-hint">Up to 500 characters. Shown at the top of your shop page.</span>
                             </div>
                         </div>
@@ -180,7 +180,7 @@
 
                         <label style="display:flex; align-items:center; gap:10px; margin-bottom:14px; font-weight:700; cursor:pointer;">
                             <input type="hidden" name="auto_reply_enabled" value="0">
-                            <input type="checkbox" name="auto_reply_enabled" value="1" style="width:18px; height:18px; accent-color:#e8420f;" @checked(old('auto_reply_enabled', $autoReply['enabled']))>
+                            <input type="checkbox" name="auto_reply_enabled" value="1" style="width:18px; height:18px; accent-color:#6d4ad1;" @checked(old('auto_reply_enabled', $autoReply['enabled']))>
                             Send an auto-reply
                         </label>
 
@@ -188,7 +188,7 @@
                             <label for="auto_reply_message">Message <span class="field-hint" style="display:inline;">(leave blank to use the default)</span></label>
                             <textarea id="auto_reply_message" name="auto_reply_message" rows="3" maxlength="{{ \App\Support\ChatAutomation::AUTO_REPLY_MAX }}"
                                       placeholder="{{ $autoReplyDefault }}"
-                                      style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #e8d6cc; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('auto_reply_message', $autoReply['custom']) }}</textarea>
+                                      style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #ddd5f2; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('auto_reply_message', $autoReply['custom']) }}</textarea>
                             <span class="field-hint">Up to {{ \App\Support\ChatAutomation::AUTO_REPLY_MAX }} characters.</span>
                         </div>
 

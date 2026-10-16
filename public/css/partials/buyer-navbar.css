@@ -6,7 +6,7 @@
     height: 72px;
 
     background: white;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 
     padding: 16px 7%;
 
@@ -42,7 +42,7 @@
     font-family: "Bricolage Grotesque", "Figtree", sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .bb-logo img {
@@ -63,7 +63,7 @@
 }
 
 .bb-nav-links a {
-    color: #4a4449;
+    color: #463c5e;
     font-size: 14.5px;
     font-weight: 600;
 
@@ -76,13 +76,13 @@
 }
 
 .bb-nav-links a:hover {
-    color: #1b1a1f;
-    background: #fff8f3;
+    color: #221a3a;
+    background: #f8f6fe;
 }
 
 .bb-nav-links a.active {
-    color: #c2380f;
-    background: #fff1ea;
+    color: #5536b5;
+    background: #eee8ff;
 }
 
 .bb-nav-search {
@@ -92,7 +92,7 @@
     height: 44px;
 
     background: #fff;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 12px;
     transition: border-color .15s ease, box-shadow .15s ease;
 
@@ -103,8 +103,8 @@
 }
 
 .bb-nav-search:focus-within {
-    border-color: #e8420f;
-    box-shadow: 0 0 0 4px rgba(232, 66, 15, .12);
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 4px rgba(109, 74, 209, .12);
 }
 
 .bb-nav-search input {
@@ -119,11 +119,11 @@
 
     font-family: inherit;
     font-size: 14.5px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .bb-nav-search input::placeholder {
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .bb-nav-search .bb-nav-search-btn {
@@ -135,7 +135,7 @@
 
     border: none;
     border-radius: 0 10px 10px 0;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     cursor: pointer;
 
@@ -149,7 +149,7 @@
 }
 
 .bb-nav-search .bb-nav-search-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 /* =========================
@@ -182,7 +182,7 @@
 
         background: #fff;
         border-radius: 24px;
-        box-shadow: 0 16px 40px -14px rgba(27, 26, 31, 0.35), 0 0 0 1px rgba(240, 226, 218, 0.7);
+        box-shadow: 0 16px 40px -14px rgba(34, 26, 58, 0.35), 0 0 0 1px rgba(233, 228, 250, 0.7);
 
         font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
     }
@@ -196,7 +196,7 @@
         justify-content: center;
         gap: 3px;
 
-        color: #5e5759;
+        color: #574e70;
         font-size: 11px;
         font-weight: 700;
         text-decoration: none;
@@ -218,11 +218,11 @@
 
     /* The active tab gets a soft pill behind its icon. */
     .bb-tabbar a.active i {
-        background: #ffe6db;
+        background: #e6dcff;
     }
 
     .bb-tabbar a.active {
-        color: #c2380f;
+        color: #5536b5;
         font-weight: 800;
     }
 
@@ -236,7 +236,7 @@
         padding: 0 4px;
 
         border-radius: 999px;
-        background: #c2380f;
+        background: #5536b5;
         color: #fff;
 
         font-size: 10px;
@@ -277,7 +277,7 @@
 .bb-nav-right .bb-cart-link {
     position: relative;
 
-    color: #6b6570;
+    color: #645a80;
     font-size: 18px;
 
     transition: 0.2s;
@@ -285,7 +285,7 @@
 
 .bb-nav-right .bb-cart-link:hover,
 .bb-nav-right .bb-cart-link.active {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-nav-right .bb-cart-number {
@@ -308,7 +308,7 @@
 
     padding: 6px 10px 6px 6px;
 
-    background: #fff1ea;
+    background: #eee8ff;
     border: none;
     cursor: pointer;
 
@@ -318,7 +318,7 @@
     font-size: 13px;
     font-weight: 700;
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     white-space: nowrap;
 
@@ -327,17 +327,17 @@
 
 .bb-user-chip:hover,
 .bb-account.is-open .bb-user-chip {
-    background: #ffe6db;
+    background: #e6dcff;
 }
 
 .bb-user-chip:focus-visible {
     outline: none;
-    box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.2);
+    box-shadow: 0 0 0 3px rgba(109, 74, 209, 0.2);
 }
 
 .bb-chip-caret {
     font-size: 10px;
-    color: #6b6570;
+    color: #645a80;
     transition: transform 0.2s ease;
 }
 
@@ -364,9 +364,9 @@
     width: 250px;
 
     background: #fff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
-    box-shadow: 0 18px 40px -12px rgba(27, 26, 31, 0.22);
+    box-shadow: 0 18px 40px -12px rgba(34, 26, 58, 0.22);
 
     padding: 6px;
 
@@ -390,7 +390,7 @@
     padding: 10px 10px 12px;
     margin-bottom: 4px;
 
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .bb-account-head .bb-user-avatar {
@@ -402,7 +402,7 @@
 .bb-account-name {
     font-size: 13.5px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -411,7 +411,7 @@
 
 .bb-account-email {
     font-size: 11.5px;
-    color: #6b6570;
+    color: #645a80;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -435,7 +435,7 @@
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: #1b1a1f;
+    color: #221a3a;
     text-align: left;
 }
 
@@ -443,7 +443,7 @@
 .bb-account-menu button i {
     width: 16px;
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .bb-account-menu a:hover,
@@ -451,21 +451,21 @@
 .bb-account-menu button:hover,
 .bb-account-menu button:focus-visible {
     outline: none;
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .bb-account-menu a.active {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-account-menu a.active i {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-account-menu form {
     margin: 4px 0 0;
     padding-top: 4px;
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 }
 
 .bb-account-menu .bb-account-logout,
@@ -487,7 +487,7 @@
 }
 
 .bb-hover.is-open > .bb-cart-link {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-pop {
@@ -501,9 +501,9 @@
     width: 370px;
 
     background: #fff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
-    box-shadow: 0 18px 40px -12px rgba(27, 26, 31, 0.22);
+    box-shadow: 0 18px 40px -12px rgba(34, 26, 58, 0.22);
 
     overflow: hidden;
 
@@ -520,13 +520,13 @@
     justify-content: space-between;
 
     padding: 12px 14px 10px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .bb-pop-head strong {
     font-size: 13.5px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .bb-pop-head form {
@@ -541,7 +541,7 @@
     font-family: inherit;
     font-size: 11.5px;
     font-weight: 700;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-pop-list {
@@ -555,7 +555,7 @@
 
     padding: 11px 14px;
 
-    border-bottom: 1px solid #fbf0ec;
+    border-bottom: 1px solid #f1eef9;
 
     color: inherit;
     transition: background 0.15s ease;
@@ -564,15 +564,15 @@
 .bb-notif-item:hover,
 .bb-notif-item:focus-visible {
     outline: none;
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .bb-notif-item.is-unread {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .bb-notif-item.is-unread:hover {
-    background: #ffece4;
+    background: #ede7fc;
 }
 
 .bb-notif-icon {
@@ -581,8 +581,8 @@
     flex-shrink: 0;
 
     border-radius: 10px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
 
     display: flex;
     align-items: center;
@@ -603,7 +603,7 @@
 
     font-size: 13px;
     font-weight: 700;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .bb-notif-title span {
@@ -617,7 +617,7 @@
     height: 7px;
     flex-shrink: 0;
     border-radius: 50%;
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .bb-notif-message {
@@ -625,7 +625,7 @@
 
     font-size: 12px;
     line-height: 1.45;
-    color: #4a4449;
+    color: #463c5e;
 
     display: -webkit-box;
     -webkit-line-clamp: 2;
@@ -636,21 +636,21 @@
 .bb-notif-time {
     margin-top: 4px;
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .bb-pop-empty {
     padding: 34px 20px;
     text-align: center;
     font-size: 13px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .bb-pop-empty i {
     display: block;
     margin-bottom: 8px;
     font-size: 24px;
-    color: #e2c9c1;
+    color: #ccc5de;
 }
 
 .bb-pop-all {
@@ -661,13 +661,13 @@
     text-align: center;
     font-size: 13px;
     font-weight: 700;
-    color: #e8420f;
+    color: #6d4ad1;
 
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .bb-pop-all:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 /* Invisible bridge over the gap between icon and panel, so moving the
@@ -684,7 +684,7 @@
 .bb-pop-head .bb-pop-link {
     font-size: 11.5px;
     font-weight: 700;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-pop-item {
@@ -693,7 +693,7 @@
     gap: 11px;
 
     padding: 10px 14px;
-    border-bottom: 1px solid #fbf0ec;
+    border-bottom: 1px solid #f1eef9;
 
     color: inherit;
     transition: background 0.15s ease;
@@ -702,11 +702,11 @@
 .bb-pop-item:hover,
 .bb-pop-item:focus-visible {
     outline: none;
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .bb-pop-item.is-unread {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .bb-pop-thumb {
@@ -715,14 +715,14 @@
     flex-shrink: 0;
 
     border-radius: 9px;
-    background: #fff1ea;
+    background: #eee8ff;
     object-fit: cover;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 16px;
 }
 
@@ -746,7 +746,7 @@
 
     font-size: 13px;
     font-weight: 700;
-    color: #1b1a1f;
+    color: #221a3a;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -757,7 +757,7 @@
     margin-top: 2px;
 
     font-size: 12px;
-    color: #6b6570;
+    color: #645a80;
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -765,7 +765,7 @@
 }
 
 .bb-pop-item.is-unread .bb-pop-sub {
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 600;
 }
 
@@ -773,7 +773,7 @@
     flex-shrink: 0;
     font-size: 12.5px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
     white-space: nowrap;
 }
 
@@ -783,13 +783,13 @@
     margin-top: 2px;
 
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
     white-space: nowrap;
 }
 
 .bb-pop-foot {
     padding: 12px 14px;
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .bb-pop-summary {
@@ -800,11 +800,11 @@
     margin-bottom: 10px;
 
     font-size: 12px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .bb-pop-summary strong {
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 13px;
 }
 
@@ -822,27 +822,27 @@
 
     padding: 9px 12px;
 
-    border: 1px solid #f3c6ba;
+    border: 1px solid #d4cceb;
     border-radius: 10px;
     background: #fff;
 
     font-size: 12.5px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .bb-pop-btn:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .bb-pop-btn.is-primary {
-    background: #e8420f;
-    border-color: #e8420f;
+    background: #6d4ad1;
+    border-color: #6d4ad1;
     color: #fff;
 }
 
 .bb-pop-btn.is-primary:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .bb-pop-empty .bb-pop-btn {
@@ -872,7 +872,7 @@
 
     border-radius: 50%;
 
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     display: flex;
@@ -918,9 +918,9 @@
 }
 
 .bb-login-link {
-    color: #e8420f;
+    color: #6d4ad1;
     background: #fff;
-    border: 1px solid #f7d9cf;
+    border: 1px solid #e1dbf1;
 
     padding: 9px 16px;
     border-radius: 10px;
@@ -933,11 +933,11 @@
 }
 
 .bb-login-link:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .bb-register-link {
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     padding: 10px 16px;
@@ -951,7 +951,7 @@
 }
 
 .bb-register-link:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 @media (max-width: 1100px) {

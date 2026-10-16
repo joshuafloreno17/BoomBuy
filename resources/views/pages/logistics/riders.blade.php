@@ -111,7 +111,7 @@
                                 <strong>Driver's License</strong>
                                 {{ $app->drivers_license_no }}
                                 @if ($app->license_expiry)
-                                    <span style="color:#8a7f86;">(expires {{ \Illuminate\Support\Carbon::parse($app->license_expiry)->format('M d, Y') }})</span>
+                                    <span style="color:#857ca0;">(expires {{ \Illuminate\Support\Carbon::parse($app->license_expiry)->format('M d, Y') }})</span>
                                 @endif
                             </div>
                         @endif

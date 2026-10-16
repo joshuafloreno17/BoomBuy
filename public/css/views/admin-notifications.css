@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -36,7 +36,7 @@ a {
 }
 
 .page-header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-size: 10px;
@@ -55,31 +55,31 @@ a {
     gap: 7px;
     padding: 10px 14px;
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     font-weight: 700;
     transition: 0.2s ease;
 }
 
 .back-button:hover {
-    color: #e8420f;
-    background: #fff1ea;
+    color: #6d4ad1;
+    background: #eee8ff;
 }
 
 /* NOTIFICATIONS */
 
 .notification-panel {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     overflow: hidden;
 }
 
 .notification-header {
     padding: 22px 24px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -92,7 +92,7 @@ a {
 }
 
 .notification-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-top: 4px;
 }
@@ -109,7 +109,7 @@ a {
 .notification-card {
     width: 100%;
     border: none;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     background: #ffffff;
     padding: 20px 24px;
     display: flex;
@@ -121,11 +121,11 @@ a {
 }
 
 .notification-card:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .notification-card.unread {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .notification-card.read {
@@ -138,8 +138,8 @@ a {
     width: 43px;
     height: 43px;
     border-radius: 12px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -154,18 +154,18 @@ a {
 .notification-title {
     font-size: 13px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .notification-message {
-    color: #6f5c56;
+    color: #5e596c;
     font-size: 11px;
     line-height: 1.6;
     margin-top: 5px;
 }
 
 .notification-date {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 9px;
     margin-top: 8px;
 }
@@ -180,7 +180,7 @@ a {
 .unread-dot {
     width: 7px;
     height: 7px;
-    background: #e8420f;
+    background: #6d4ad1;
     border-radius: 50%;
 }
 
@@ -188,8 +188,8 @@ a {
     display: inline-flex;
     padding: 4px 8px;
     border-radius: 999px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     font-size: 8px;
     font-weight: 800;
     text-transform: uppercase;
@@ -208,7 +208,7 @@ a {
 .empty-state {
     text-align: center;
     padding: 70px 20px;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .empty-icon {
@@ -216,8 +216,8 @@ a {
     height: 55px;
     margin: 0 auto 14px;
     border-radius: 15px;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -226,7 +226,7 @@ a {
 .empty-state h3 {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 18px;
-    color: #66534d;
+    color: #555063;
 }
 
 .empty-state p {

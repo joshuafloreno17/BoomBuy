@@ -7,7 +7,7 @@
 .sidebar {
     width: 245px;
     background: #ffffff;
-    border-right: 1px solid #f0e2da;
+    border-right: 1px solid #e9e4fa;
     padding: 24px 14px 16px;
     position: fixed;
     left: 0;
@@ -20,7 +20,7 @@
     flex-direction: column;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
     scrollbar-width: thin;
-    scrollbar-color: #f0e2da transparent;
+    scrollbar-color: #e9e4fa transparent;
 }
 
 .sidebar a {
@@ -41,7 +41,7 @@
     width: 100%;
     padding: 9px 12px;
     border-radius: 10px;
-    color: #5e5759;
+    color: #574e70;
     font-size: 14.5px;
     font-weight: 600;
     transition: background 0.15s ease, color 0.15s ease;
@@ -54,7 +54,7 @@
 /* Section labels: People, Marketplace, Delivery… */
 .sidebar .menu .menu-group {
     margin: 14px 12px 4px;
-    color: #a0959b;
+    color: #948da8;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 0.08em;
@@ -62,18 +62,18 @@
 }
 
 .sidebar .menu a:hover {
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 .sidebar .menu a.active {
-    background: #fff1ea;
-    color: #c2380f;
+    background: #eee8ff;
+    color: #5536b5;
     font-weight: 700;
 }
 
 .sidebar .menu a.active svg {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .sidebar .menu a .notification-badge {
@@ -82,7 +82,7 @@
     height: 20px;
     padding: 0 6px;
     border-radius: 999px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -105,7 +105,7 @@
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: #5e5759;
+    color: #574e70;
     font: inherit;
     font-size: 14px;
     font-weight: 600;
@@ -115,8 +115,8 @@
 }
 
 .sidebar .logout button:hover {
-    background: #fff8f3;
-    color: #c2380f;
+    background: #f8f6fe;
+    color: #5536b5;
 }
 
 /* =========================
@@ -152,7 +152,7 @@
         margin: 8px 6px;
         height: 1px;
         overflow: hidden;
-        background: #f0e2da;
+        background: #e9e4fa;
         color: transparent;
     }
 

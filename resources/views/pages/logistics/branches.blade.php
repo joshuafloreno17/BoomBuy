@@ -6,30 +6,30 @@
     <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/pages/logistics-riders.css') }}">
     <style>
-        .br-card { background: #fff; border: 1px solid #f0e2da; border-radius: 16px; padding: 22px; margin-bottom: 18px; }
+        .br-card { background: #fff; border: 1px solid #e9e4fa; border-radius: 16px; padding: 22px; margin-bottom: 18px; }
         .br-card h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 17px; margin: 0 0 6px; display: flex; align-items: center; gap: 8px; }
-        .br-note { color: #8a7f86; font-size: 13px; margin: 0 0 14px; }
+        .br-note { color: #857ca0; font-size: 13px; margin: 0 0 14px; }
         .br-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto; gap: 12px; align-items: end; }
-        .br-form label { display: flex; flex-direction: column; gap: 6px; color: #4a4449; font-size: 12px; font-weight: 800; }
-        .br-form label em { color: #8a7f86; font-weight: 500; font-style: normal; }
-        .br-form input, .br-form select { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #f0e2da; border-radius: 10px; font: inherit; font-size: 13px; background: #fff; }
-        .br-form button, .br-btn { padding: 10px 16px; border: 0; border-radius: 10px; background: #e8420f; color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
-        .br-btn.is-ghost { background: #fff; color: #4a4449; border: 1px solid #f0e2da; }
+        .br-form label { display: flex; flex-direction: column; gap: 6px; color: #463c5e; font-size: 12px; font-weight: 800; }
+        .br-form label em { color: #857ca0; font-weight: 500; font-style: normal; }
+        .br-form input, .br-form select { width: 100%; box-sizing: border-box; padding: 10px 12px; border: 1px solid #e9e4fa; border-radius: 10px; font: inherit; font-size: 13px; background: #fff; }
+        .br-form button, .br-btn { padding: 10px 16px; border: 0; border-radius: 10px; background: #6d4ad1; color: #fff; font: inherit; font-size: 13px; font-weight: 800; cursor: pointer; white-space: nowrap; }
+        .br-btn.is-ghost { background: #fff; color: #463c5e; border: 1px solid #e9e4fa; }
         .br-head { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; flex-wrap: wrap; }
         .br-head strong { font-size: 15px; }
-        .br-head span { display: block; color: #8a7f86; font-size: 12px; margin-top: 2px; }
+        .br-head span { display: block; color: #857ca0; font-size: 12px; margin-top: 2px; }
         .br-meta { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
-        .br-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #f6f1ee; color: #4a4449; }
+        .br-pill { font-size: 11px; font-weight: 800; padding: 4px 10px; border-radius: 999px; background: #f1eff5; color: #463c5e; }
         .br-pill.is-open { background: var(--teal-bg, #e6f6f1); color: var(--teal-dark, #0f766e); }
         .br-pill.is-closed { background: #fee2e2; color: #dc2626; }
         .br-pill.is-warn { background: #fff8e1; color: #8a6d00; }
         .br-staff { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; }
-        .br-staff li { font-size: 13px; color: #4a4449; }
-        .br-staff li span { color: #8a7f86; }
-        .br-add-staff { margin-top: 12px; border-top: 1px dashed #f0e2da; padding-top: 12px; }
-        .br-add-staff summary { cursor: pointer; font-weight: 800; font-size: 13px; color: #c2410c; }
+        .br-staff li { font-size: 13px; color: #463c5e; }
+        .br-staff li span { color: #857ca0; }
+        .br-add-staff { margin-top: 12px; border-top: 1px dashed #e9e4fa; padding-top: 12px; }
+        .br-add-staff summary { cursor: pointer; font-weight: 800; font-size: 13px; color: #5634b3; }
         .br-add-staff .br-form { grid-template-columns: repeat(3, minmax(0, 1fr)); margin-top: 12px; }
-        .br-empty { color: #8a7f86; text-align: center; padding: 18px; }
+        .br-empty { color: #857ca0; text-align: center; padding: 18px; }
         @media (max-width: 760px) { .br-form, .br-add-staff .br-form { grid-template-columns: minmax(0, 1fr); } }
     </style>
 </head>

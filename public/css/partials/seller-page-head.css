@@ -23,11 +23,11 @@
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
-    color: #db5a33;
+    color: #7b5ce0;
 }
 
 .sp-head-eyebrow a {
-    color: #6b6570;
+    color: #645a80;
     text-decoration: none;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .sp-head-eyebrow .sep {
-    color: #d9c2bb;
+    color: #c5bfd5;
 }
 
 .sp-head h1 {
@@ -54,7 +54,7 @@
     margin: 6px 0 0;
     font-family: var(--font-body);
     font-size: 13.5px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .sp-head-actions {

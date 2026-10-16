@@ -224,10 +224,10 @@
                 </div>
 
                 <div class="field" id="id-field">
-                    <span class="field-label" style="display:block;font-size:14px;font-weight:600;color:#1b1a1f;margin-bottom:6px">Valid ID</span>
+                    <span class="field-label" style="display:block;font-size:14px;font-weight:600;color:#221a3a;margin-bottom:6px">Valid ID</span>
                     <input type="file" id="id_photo" name="id_photo" class="reg-file-input" accept=".jpg,.jpeg,.png,.pdf" required>
                     <label for="id_photo" class="reg-drop" id="id-drop">
-                        <span class="reg-drop-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></svg></span>
+                        <span class="reg-drop-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6d4ad1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></svg></span>
                         <strong>Click or drop your ID here</strong>
                         <small>Any government-issued ID · JPG, PNG or PDF, up to 5 MB</small>
                     </label>
@@ -613,10 +613,10 @@
             sym: function (p) { return /[^A-Za-z0-9]/.test(p); }
         };
         var LEVELS = [
-            ['Not set', '#6b6570', '#ece4df'],
+            ['Not set', '#645a80', '#e3e1ea'],
             ['Weak', '#b42318', '#d92d20'],
             ['Fair', '#8a6200', '#f5b70b'],
-            ['Good', '#c2380f', '#e8420f'],
+            ['Good', '#5536b5', '#6d4ad1'],
             ['Strong', '#0a6f66', '#0d9488']
         ];
 
@@ -634,7 +634,7 @@
             label.textContent = LEVELS[level][0];
             label.style.color = LEVELS[level][1];
             document.querySelectorAll('#pw-bars span').forEach(function (bar, i) {
-                bar.style.background = i < level ? LEVELS[level][2] : '#ece4df';
+                bar.style.background = i < level ? LEVELS[level][2] : '#e3e1ea';
             });
         }
 

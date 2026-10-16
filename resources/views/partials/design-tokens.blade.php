@@ -16,13 +16,13 @@
             max-width: calc(100% - 32px);
             padding: 12px 14px 12px 16px;
             border-radius: 14px;
-            background: #1b1a1f;
+            background: #221a3a;
             color: #fff;
             font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 13.5px;
             font-weight: 600;
             line-height: 1.4;
-            box-shadow: 0 16px 40px rgba(27, 26, 31, 0.25);
+            box-shadow: 0 16px 40px rgba(34, 26, 58, 0.25);
             transform: translateX(-50%);
             animation: bb-notice-in 0.25s ease;
         }
@@ -66,17 +66,17 @@
 <style>
     /* "Sunrise Market" design system (all-light): warm cream ground, white surfaces, one orange accent. */
     :root {
-        --ink: #1b1a1f;
-        --muted: #6b6570;
-        --muted-2: #8a7f86;
-        --line: #f0e2da;
-        --cream: #fff8f3;
+        --ink: #221a3a;
+        --muted: #645a80;
+        --muted-2: #857ca0;
+        --line: #e9e4fa;
+        --cream: #f8f6fe;
         --paper: #ffffff;
-        --accent: #e8420f;
-        --accent-dark: #c2380f;
-        --accent-2: #db5a33;
-        --accent-soft: #ffe6db;
-        --accent-tint: #fff1ea;
+        --accent: #6d4ad1;
+        --accent-dark: #5536b5;
+        --accent-2: #7b5ce0;
+        --accent-soft: #e6dcff;
+        --accent-tint: #eee8ff;
         --gold: #f5b70b;
         --teal: #0d9488;
         --teal-dark: #0a6f66;
@@ -90,7 +90,7 @@
     /* Logo: BB bag icon + "BoomBuy" (used on auth, error and simple pages). */
     .bb-logo-mark { width: 32px; height: 32px; flex: none; border-radius: 9px; vertical-align: middle; }
     :is(a, div):has(> .bb-logo-mark) { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
-    .bb-logo-word { color: #1b1a1f !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
+    .bb-logo-word { color: #221a3a !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
 
     .status-pill {
         display: inline-flex;
@@ -117,18 +117,18 @@
         margin: 0 0 14px;
         padding: 10px 14px;
         background: #fff;
-        border: 1px solid #f0e2da;
+        border: 1px solid #e9e4fa;
         border-radius: 12px;
         font-size: 13px;
-        color: #5e5759;
+        color: #574e70;
     }
     .bb-mark-all button {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         border: none;
-        background: #fff1ea;
-        color: var(--accent-dark, #c2380f);
+        background: #eee8ff;
+        color: var(--accent-dark, #5536b5);
         font-weight: 700;
         font-size: 13px;
         font-family: inherit;

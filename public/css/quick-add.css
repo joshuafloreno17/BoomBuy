@@ -8,7 +8,7 @@
     position: fixed;
     inset: 0;
     z-index: 3000;
-    background: rgba(27, 26, 31, 0.48);
+    background: rgba(34, 26, 58, 0.48);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -30,10 +30,10 @@
     flex-direction: column;
     background: #ffffff;
     border-radius: 22px;
-    box-shadow: 0 24px 60px rgba(27, 26, 31, 0.28);
+    box-shadow: 0 24px 60px rgba(34, 26, 58, 0.28);
     overflow: hidden;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #1b1a1f;
+    color: #221a3a;
     transform: translateY(12px) scale(0.98);
     transition: transform 0.2s ease;
 }
@@ -51,7 +51,7 @@
     display: flex;
     gap: 20px;
     padding: 24px 24px 20px;
-    border-bottom: 1px solid #f3e6df;
+    border-bottom: 1px solid #e5e2f1;
 }
 
 .qa-photo {
@@ -59,13 +59,13 @@
     height: 132px;
     flex-shrink: 0;
     border-radius: 14px;
-    border: 1px solid #f0e2da;
-    background: #fde9e0;
+    border: 1px solid #e9e4fa;
+    background: #e9e4f9;
     display: flex;
     align-items: center;
     justify-content: center;
     overflow: hidden;
-    color: #e8846a;
+    color: #a391d6;
     font-size: 40px;
 }
 
@@ -84,7 +84,7 @@
 }
 
 .qa-shop {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     font-weight: 600;
 }
@@ -102,7 +102,7 @@
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     font-size: 28px;
     font-weight: 800;
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .qa-price s {
@@ -110,7 +110,7 @@
     font-family: 'Figtree', sans-serif;
     font-size: 14px;
     font-weight: 600;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .qa-stock {
@@ -129,17 +129,17 @@
 
 .qa-picked {
     font-size: 13px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .qa-picked strong {
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .qa-details {
     align-self: flex-start;
     margin-top: 2px;
-    color: #c2380f;
+    color: #5536b5;
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
@@ -156,9 +156,9 @@
     width: 40px;
     height: 40px;
     border-radius: 999px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     background: #ffffff;
-    color: #4a4449;
+    color: #463c5e;
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -167,7 +167,7 @@
 }
 
 .qa-close:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .qa-body {
@@ -189,7 +189,7 @@
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .qa-chips {
@@ -204,10 +204,10 @@
     gap: 8px;
     min-height: 44px;
     padding: 0 16px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 12px;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
     font: inherit;
     font-size: 14px;
     font-weight: 700;
@@ -216,20 +216,20 @@
 }
 
 .qa-chip:hover {
-    border-color: #f2b8a1;
+    border-color: #c6bae6;
 }
 
 .qa-chip[aria-pressed="true"] {
-    border: 2px solid #e8420f;
+    border: 2px solid #6d4ad1;
     padding: 0 15px;
-    background: #fff1ea;
-    color: #c2380f;
+    background: #eee8ff;
+    color: #5536b5;
 }
 
 .qa-chip:disabled {
     cursor: not-allowed;
-    color: #b9b0b4;
-    background: #faf7f5;
+    color: #b0aabf;
+    background: #f7f6f9;
     text-decoration: line-through;
 }
 
@@ -281,7 +281,7 @@
 }
 
 .qa-chip small {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     font-weight: 600;
 }
@@ -295,7 +295,7 @@
 .qa-qty {
     display: flex;
     align-items: center;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 12px;
     overflow: hidden;
 }
@@ -304,15 +304,15 @@
     width: 44px;
     height: 44px;
     border: 0;
-    background: #fff8f3;
-    color: #4a4449;
+    background: #f8f6fe;
+    color: #463c5e;
     font-size: 20px;
     font-weight: 800;
     cursor: pointer;
 }
 
 .qa-qty button:disabled {
-    color: #cfc6ca;
+    color: #c6c2d3;
     cursor: not-allowed;
 }
 
@@ -338,8 +338,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 12px;
     padding: 16px 24px 24px;
-    background: #fffaf7;
-    border-top: 1px solid #f3e6df;
+    background: #faf8fe;
+    border-top: 1px solid #e5e2f1;
 }
 
 .qa-btn {
@@ -356,24 +356,24 @@
 }
 
 .qa-btn-cart {
-    border: 2px solid #1b1a1f;
+    border: 2px solid #221a3a;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .qa-btn-cart:hover {
-    background: #1b1a1f;
+    background: #221a3a;
     color: #ffffff;
 }
 
 .qa-btn-buy {
     border: 0;
-    background: #c2380f;
+    background: #5536b5;
     color: #ffffff;
 }
 
 .qa-btn-buy:hover {
-    background: #a52f0c;
+    background: #4a2e98;
 }
 
 .qa-btn:disabled {
@@ -384,7 +384,7 @@
 .qa-loading {
     padding: 60px 24px;
     text-align: center;
-    color: #6b6570;
+    color: #645a80;
     font-weight: 600;
 }
 
@@ -396,12 +396,12 @@
     pointer-events: none;
     border-radius: 14px;
     overflow: hidden;
-    background: #fde9e0;
-    box-shadow: 0 10px 30px rgba(194, 56, 15, 0.35);
+    background: #e9e4f9;
+    box-shadow: 0 10px 30px rgba(85, 54, 181, 0.35);
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #e8846a;
+    color: #a391d6;
     font-size: 32px;
 }
 
@@ -430,15 +430,15 @@
     width: 380px;
     max-width: calc(100vw - 24px);
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
-    box-shadow: 0 18px 44px rgba(27, 26, 31, 0.18);
+    box-shadow: 0 18px 44px rgba(34, 26, 58, 0.18);
     padding: 18px;
     display: flex;
     flex-direction: column;
     gap: 14px;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-    color: #1b1a1f;
+    color: #221a3a;
     opacity: 0;
     transform: translateY(-8px);
     transition: opacity 0.2s ease, transform 0.2s ease;
@@ -469,12 +469,12 @@
     height: 64px;
     flex-shrink: 0;
     border-radius: 12px;
-    background: #fde9e0;
+    background: #e9e4f9;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #e8846a;
+    color: #a391d6;
     font-size: 24px;
 }
 
@@ -499,14 +499,14 @@
 }
 
 .qa-added-text span {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 }
 
 .qa-added-text b {
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     font-weight: 800;
-    color: #c2380f;
+    color: #5536b5;
     font-size: 18px;
 }
 
@@ -531,14 +531,14 @@
 }
 
 .qa-added-actions button {
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .qa-added-actions a {
     border: 0;
-    background: #c2380f;
+    background: #5536b5;
     color: #ffffff;
 }
 
@@ -568,7 +568,7 @@
         width: 44px;
         height: 5px;
         border-radius: 999px;
-        background: #e6d8d0;
+        background: #d7d3e3;
     }
 
     .qa-head {

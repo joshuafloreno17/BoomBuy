@@ -14,12 +14,12 @@
         @import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
         :root {
-            --ink: #1b1a1f;
-            --muted: #5e5759;
-            --line: #f0e2da;
-            --cream: #fff8f3;
-            --accent: #e8420f;
-            --accent-dark: #c2380f;
+            --ink: #221a3a;
+            --muted: #574e70;
+            --line: #e9e4fa;
+            --cream: #f8f6fe;
+            --accent: #6d4ad1;
+            --accent-dark: #5536b5;
         }
 
         * {
@@ -35,7 +35,7 @@
             font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--ink);
             background:
-                radial-gradient(circle at 15% 10%, rgba(232, 66, 15, 0.10), transparent 32%),
+                radial-gradient(circle at 15% 10%, rgba(109, 74, 209, 0.10), transparent 32%),
                 radial-gradient(circle at 85% 90%, rgba(245, 183, 11, 0.10), transparent 30%),
                 var(--cream);
         }
@@ -75,7 +75,7 @@
             background: #fff;
             border: 1px solid var(--line);
             border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(232, 66, 15, 0.08);
+            box-shadow: 0 20px 50px rgba(109, 74, 209, 0.08);
         }
 
         .err-icon {
@@ -85,7 +85,7 @@
             height: 76px;
             margin-bottom: 14px;
             border-radius: 22px;
-            background: #fff1ea;
+            background: #eee8ff;
             color: var(--accent);
             font-size: 34px;
         }
@@ -128,7 +128,7 @@
             gap: 8px;
             min-height: 46px;
             padding: 0 20px;
-            border: 1px solid #f0cfc4;
+            border: 1px solid #d9d2ea;
             border-radius: 12px;
             background: #fff;
             color: var(--accent-dark);
@@ -139,7 +139,7 @@
         }
 
         .err-btn:hover {
-            background: #fff1ea;
+            background: #eee8ff;
         }
 
         .err-btn.is-main {

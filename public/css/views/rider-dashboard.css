@@ -17,8 +17,8 @@ body {
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -57,7 +57,7 @@ input {
     width: 100%;
 
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
 
     padding: 30px;
@@ -67,7 +67,7 @@ input {
 }
 
 .welcome small {
-    color: #db5a33;
+    color: #7b5ce0;
 
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -87,7 +87,7 @@ input {
 .welcome p {
     margin-top: 9px;
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 14px;
     line-height: 1.6;
@@ -108,7 +108,7 @@ input {
 
 .quick-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
 
     padding: 18px;
@@ -120,7 +120,7 @@ input {
     transform: translateY(-2px);
 
     box-shadow:
-        0 8px 25px rgba(232, 66, 15, .08);
+        0 8px 25px rgba(109, 74, 209, .08);
 }
 
 .quick-card-icon {
@@ -131,7 +131,7 @@ input {
     align-items: center;
     justify-content: center;
 
-    background: #fff1ea;
+    background: #eee8ff;
     border-radius: 10px;
 
     margin-bottom: 12px;
@@ -142,7 +142,7 @@ input {
 .quick-card strong {
     display: block;
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-size: 14px;
 
@@ -150,7 +150,7 @@ input {
 }
 
 .quick-card span {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
     line-height: 1.5;
@@ -171,7 +171,7 @@ input {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
 
     padding: 20px;
@@ -183,7 +183,7 @@ input {
     transform: translateY(-2px);
 
     box-shadow:
-        0 8px 25px rgba(232, 66, 15, .08);
+        0 8px 25px rgba(109, 74, 209, .08);
 }
 
 .stat-icon {
@@ -194,7 +194,7 @@ input {
     align-items: center;
     justify-content: center;
 
-    background: #fff1ea;
+    background: #eee8ff;
     border-radius: 11px;
 
     margin-bottom: 12px;
@@ -203,7 +203,7 @@ input {
 }
 
 .stat-title {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
     font-weight: 600;
@@ -212,7 +212,7 @@ input {
 .stat-number {
     margin-top: 2px;
 
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 29px;
@@ -241,7 +241,7 @@ input {
 }
 
 .section-title p {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 13px;
     line-height: 1.5;
@@ -252,7 +252,7 @@ input {
 .view-all {
     flex-shrink: 0;
 
-    color: #e8420f;
+    color: #6d4ad1;
 
     font-size: 13px;
     font-weight: 800;
@@ -261,7 +261,7 @@ input {
 }
 
 .view-all:hover {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 /* =========================================================
@@ -279,7 +279,7 @@ input {
 
 .delivery-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 15px;
 
     padding: 20px;
@@ -293,7 +293,7 @@ input {
     transform: translateY(-2px);
 
     box-shadow:
-        0 8px 25px rgba(232, 66, 15, .08);
+        0 8px 25px rgba(109, 74, 209, .08);
 }
 
 .delivery-header {
@@ -307,7 +307,7 @@ input {
 }
 
 .delivery-id {
-    color: #1b1a1f;
+    color: #221a3a;
 
     font-family: 'Bricolage Grotesque', sans-serif;
 
@@ -331,13 +331,13 @@ input {
 }
 
 .status-available {
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
 }
 
 .status-picked {
-    background: #fff4ed;
-    color: #db5a33;
+    background: #f3effd;
+    color: #7b5ce0;
 }
 
 .status-way {
@@ -355,9 +355,9 @@ input {
 ========================================================= */
 
 .available-label {
-    background: #fff1ea;
-    border: 1px solid #f9d8ce;
-    color: #c84a27;
+    background: #eee8ff;
+    border: 1px solid #e1dbf3;
+    color: #6e53b8;
 
     padding: 11px 13px;
 
@@ -389,14 +389,14 @@ input {
 ========================================================= */
 
 .delivery-info {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
     line-height: 1.9;
 }
 
 .delivery-info strong {
-    color: #4a4449;
+    color: #463c5e;
 }
 
 /* =========================================================
@@ -434,7 +434,7 @@ input {
 }
 
 .view-btn {
-    background: #e8420f;
+    background: #6d4ad1;
 
     color: #ffffff;
 
@@ -442,7 +442,7 @@ input {
 }
 
 .view-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .claim-btn {
@@ -458,15 +458,15 @@ input {
 }
 
 .status-btn {
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #e8420f;
+    color: #6d4ad1;
 
-    border: 1px solid #f6cfc4;
+    border: 1px solid #dbd3ef;
 }
 
 .status-btn:hover {
-    background: #ffe3da;
+    background: #e6dffa;
 }
 
 /* =========================================================
@@ -475,14 +475,14 @@ input {
 
 .empty {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 15px;
 
     padding: 45px 20px;
 
     text-align: center;
 
-    color: #6b6570;
+    color: #645a80;
 
     margin-bottom: 35px;
 }
@@ -495,7 +495,7 @@ input {
     align-items: center;
     justify-content: center;
 
-    background: #fff1ea;
+    background: #eee8ff;
     border-radius: 16px;
 
     margin: 0 auto 12px;
@@ -504,7 +504,7 @@ input {
 }
 
 .empty-title {
-    color: #4a4449;
+    color: #463c5e;
 
     font-family: 'Bricolage Grotesque', sans-serif;
 
@@ -560,7 +560,7 @@ footer {
 
     background: #ffffff;
 
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 
     padding: 30px 7%;
 
@@ -569,13 +569,13 @@ footer {
 
     gap: 15px;
 
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 12px;
 }
 
 footer strong {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 /* =========================================================
@@ -748,9 +748,9 @@ body > footer {
 
 .main-content {
     --rd-surface: #fff;
-    --rd-shadow: 0 8px 22px -16px rgba(27, 26, 31, 0.35);
-    --rd-sub: #5e5759;
-    --rd-hero: linear-gradient(150deg, #ff7a3d 0%, #e8420f 50%, #b8340d 100%);
+    --rd-shadow: 0 8px 22px -16px rgba(34, 26, 58, 0.35);
+    --rd-sub: #574e70;
+    --rd-hero: linear-gradient(150deg, #9175df 0%, #6d4ad1 50%, #5333aa 100%);
 }
 
 .rd-hero,
@@ -817,7 +817,7 @@ body > footer {
         flex-shrink: 0;
         border-radius: 15px;
         background: #fff;
-        color: #c2380f;
+        color: #5536b5;
         display: grid;
         place-items: center;
         font-family: 'Bricolage Grotesque', sans-serif;
@@ -870,7 +870,7 @@ body > footer {
         padding: 0 5px;
         box-sizing: border-box;
         border-radius: 999px;
-        background: #1b1a1f;
+        background: #221a3a;
         color: #fff;
         font-size: 11px;
         font-weight: 800;
@@ -922,7 +922,7 @@ body > footer {
         border-radius: 18px !important;
         background: var(--rd-surface);
         box-shadow: var(--rd-shadow);
-        color: #1b1a1f;
+        color: #221a3a;
         text-decoration: none;
     }
 
@@ -948,7 +948,7 @@ body > footer {
         font-size: 17px;
     }
 
-    .rd-tile-icon.is-orange { background: #fff1ea; color: #c2380f; }
+    .rd-tile-icon.is-orange { background: #eee8ff; color: #5536b5; }
     .rd-tile-icon.is-yellow { background: #fff4d6; color: #7a4f00; }
     .rd-tile-icon.is-teal { background: #e3f6f4; color: #0a6f66; }
 
@@ -958,9 +958,9 @@ body > footer {
         padding: 16px;
         border: 0;
         border-radius: 20px;
-        background: #1b1a1f;
+        background: #221a3a;
         color: #fff;
-        box-shadow: 0 14px 30px -18px rgba(27, 26, 31, 0.6);
+        box-shadow: 0 14px 30px -18px rgba(34, 26, 58, 0.6);
     }
 
     .main-content .rd-cod > i {
@@ -969,7 +969,7 @@ body > footer {
         flex-shrink: 0;
         border-radius: 15px;
         background: #ffd25e;
-        color: #1b1a1f;
+        color: #221a3a;
         display: grid;
         place-items: center;
         font-size: 22px;
@@ -1024,7 +1024,7 @@ body > footer {
     }
 
     .main-content .rd-pickup strong {
-        color: #1b1a1f;
+        color: #221a3a;
         font-size: 14px;
     }
 
@@ -1078,7 +1078,7 @@ body > footer {
     .main-content .delivery-actions {
         margin-top: 12px;
         padding-top: 12px;
-        border-top: 1px solid #f6ece6;
+        border-top: 1px solid #ebe8f4;
     }
 
     .main-content .delivery-actions .view-btn {

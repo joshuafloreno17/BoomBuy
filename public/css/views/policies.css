@@ -10,8 +10,8 @@
 
         body {
             font-family: 'Figtree', -apple-system, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
         }
 
         .policies {
@@ -27,7 +27,7 @@
         }
 
         .policies .lead {
-            color: #6b6570;
+            color: #645a80;
             margin-bottom: 22px;
         }
 
@@ -41,22 +41,22 @@
         .policy-tabs a {
             padding: 9px 16px;
             border-radius: 999px;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             background: #fff;
-            color: #6f5850;
+            color: #5a546b;
             font-weight: 700;
             font-size: 14px;
             text-decoration: none;
         }
 
         .policy-tabs a:hover {
-            border-color: var(--accent, #e8420f);
-            color: var(--accent, #e8420f);
+            border-color: var(--accent, #6d4ad1);
+            color: var(--accent, #6d4ad1);
         }
 
         .policy-card {
             background: #fff;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 16px;
             padding: 26px 28px;
             margin-bottom: 18px;
@@ -73,7 +73,7 @@
         }
 
         .policy-card h2 i {
-            color: var(--accent, #e8420f);
+            color: var(--accent, #6d4ad1);
         }
 
         .terms-section {
@@ -91,7 +91,7 @@
 
         .terms-section p,
         .terms-section li {
-            color: #4a4449;
+            color: #463c5e;
             font-size: 14px;
             line-height: 1.7;
         }

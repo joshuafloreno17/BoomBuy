@@ -8,7 +8,7 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
+    background: #f8f6fe;
     color: #1f2937;
 }
 
@@ -37,7 +37,7 @@ a {
 }
 
 .header p {
-    color: #6b6570;
+    color: #645a80;
 }
 
 .success-box {
@@ -62,7 +62,7 @@ a {
 
 .card {
     background: white;
-    border: 1px solid #ece4df;
+    border: 1px solid #e3e1ea;
     border-radius: 15px;
     padding: 25px;
     margin-bottom: 20px;
@@ -75,7 +75,7 @@ a {
 }
 
 .card p.desc {
-    color: #6b6570;
+    color: #645a80;
     font-size: 14px;
     margin-bottom: 18px;
 }
@@ -89,14 +89,14 @@ a {
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 7px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .form-group input[type="text"],
 .form-group textarea {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
@@ -105,8 +105,8 @@ a {
 
 .form-group input[type="text"]:focus,
 .form-group textarea:focus {
-    border-color: #f34f1d;
-    box-shadow: 0 0 0 3px rgba(243, 79, 29, .08);
+    border-color: #7a55e6;
+    box-shadow: 0 0 0 3px rgba(122, 85, 230, .08);
 }
 
 .form-group textarea {
@@ -116,7 +116,7 @@ a {
 
 .save-btn {
     border: none;
-    background: #f34f1d;
+    background: #7a55e6;
     color: white;
     padding: 11px 18px;
     border-radius: 10px;
@@ -126,7 +126,7 @@ a {
 }
 
 .save-btn:hover {
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .announcement-list {
@@ -137,7 +137,7 @@ a {
 }
 
 .announcement-item {
-    border: 1px solid #f0e6e2;
+    border: 1px solid #e7e4ee;
     border-radius: 12px;
     padding: 14px 16px;
     display: flex;
@@ -156,13 +156,13 @@ a {
 }
 
 .announcement-message {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 4px;
 }
 
 .announcement-date {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     margin-top: 6px;
 }
@@ -183,8 +183,8 @@ a {
 }
 
 .mini-btn.toggle {
-    background: #fff1ea;
-    color: #d9471c;
+    background: #eee8ff;
+    color: #6f51c2;
 }
 
 .mini-btn.delete {
@@ -193,7 +193,7 @@ a {
 }
 
 .empty-note {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;

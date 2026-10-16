@@ -17,8 +17,8 @@ body {
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -60,7 +60,7 @@ a {
     gap: 16px;
 
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 
     padding: 24px;
@@ -74,7 +74,7 @@ a {
 
     border-radius: 50%;
 
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     display: flex;
@@ -109,7 +109,7 @@ a {
     height: 24px;
 
     background: white;
-    border: 2px solid #fff8f3;
+    border: 2px solid #f8f6fe;
     border-radius: 50%;
 
     display: flex;
@@ -124,7 +124,7 @@ a {
 }
 
 .avatar-camera:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .profile-header h2 {
@@ -132,13 +132,13 @@ a {
 }
 
 .profile-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 3px;
 }
 
 .member-since {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     margin-top: 4px;
 }
@@ -153,7 +153,7 @@ a {
 
 .stat-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
 
     padding: 18px 20px;
@@ -162,7 +162,7 @@ a {
 .stat-label {
     display: block;
 
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     font-weight: 700;
 
@@ -175,7 +175,7 @@ a {
 .stat-value {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 @media (max-width: 500px) {
@@ -186,7 +186,7 @@ a {
 
 .card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 
     padding: 26px;
@@ -201,7 +201,7 @@ a {
 }
 
 .card-sub {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-bottom: 20px;
 }
@@ -225,7 +225,7 @@ a {
 
     padding: 12px 14px;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
 
     font-size: 14px;
@@ -237,12 +237,12 @@ a {
 }
 
 .field input:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .field input:disabled {
-    background: #fff8f3;
-    color: #8a7f86;
+    background: #f8f6fe;
+    color: #857ca0;
     cursor: not-allowed;
 }
 
@@ -250,7 +250,7 @@ a {
     display: block;
 
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
 
     margin-top: 5px;
 }
@@ -287,7 +287,7 @@ a {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5e5759;
+    color: #574e70;
 
     cursor: pointer;
     padding: 5px;
@@ -315,7 +315,7 @@ a {
 }
 
 .save-btn {
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     border: none;
@@ -333,7 +333,7 @@ a {
 }
 
 .save-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 /* =========================
@@ -345,14 +345,14 @@ a {
     align-items: center;
     gap: 10px;
     padding: 14px 16px;
-    border: 1px dashed #e8d6cc;
+    border: 1px dashed #ddd5f2;
     border-radius: 12px;
     font-size: 13px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .addr-empty i {
-    color: #c2380f;
+    color: #5536b5;
     font-size: 18px;
 }
 
@@ -371,13 +371,13 @@ a {
     justify-content: space-between;
     gap: 14px;
     padding: 14px 16px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     background: #fff;
 }
 
 .addr-item.is-default {
-    border-color: #1b1a1f;
+    border-color: #221a3a;
 }
 
 .addr-text {
@@ -386,7 +386,7 @@ a {
     flex-direction: column;
     gap: 3px;
     font-size: 13px;
-    color: #4a4449;
+    color: #463c5e;
     overflow-wrap: anywhere;
 }
 
@@ -394,7 +394,7 @@ a {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 14px;
 }
 
@@ -404,14 +404,14 @@ a {
     gap: 4px;
     padding: 2px 8px;
     border-radius: 999px;
-    background: #1b1a1f;
+    background: #221a3a;
     color: #fff;
     font-size: 11px;
     font-weight: 800;
 }
 
 .addr-phone {
-    color: #5e5759;
+    color: #574e70;
     font-size: 12.5px;
 }
 
@@ -428,10 +428,10 @@ a {
 .addr-btn {
     min-height: 38px;
     padding: 0 12px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 10px;
     background: #fff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-family: inherit;
     font-size: 12.5px;
     font-weight: 700;
@@ -439,7 +439,7 @@ a {
 }
 
 .addr-btn:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .addr-btn.is-danger {
@@ -457,7 +457,7 @@ a {
     min-height: 40px;
     font-size: 13.5px;
     font-weight: 800;
-    color: #c2380f;
+    color: #5536b5;
     cursor: pointer;
     list-style: none;
 }
@@ -477,13 +477,13 @@ a {
     margin: 4px 0 14px;
     font-size: 13px;
     font-weight: 600;
-    color: #4a4449;
+    color: #463c5e;
 }
 
 .addr-default-check input {
     width: 17px;
     height: 17px;
-    accent-color: #c2380f;
+    accent-color: #5536b5;
 }
 
 @media (max-width: 600px) {

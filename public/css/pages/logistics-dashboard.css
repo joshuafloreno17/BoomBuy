@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a { text-decoration: none; }
@@ -30,7 +30,7 @@ a { text-decoration: none; }
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -47,7 +47,7 @@ a { text-decoration: none; }
 
 .status-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 22px 26px;
     margin-bottom: 20px;
@@ -80,7 +80,7 @@ a { text-decoration: none; }
 
 .stat-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 18px 20px;
 }
@@ -89,8 +89,8 @@ a { text-decoration: none; }
     width: 38px;
     height: 38px;
     border-radius: 11px;
-    background: #fff1ea;
-    color: var(--accent, #e8420f);
+    background: #eee8ff;
+    color: var(--accent, #6d4ad1);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -100,7 +100,7 @@ a { text-decoration: none; }
 
 .stat-label {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -111,7 +111,7 @@ a { text-decoration: none; }
 .stat-value {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 a.stat-card {
@@ -121,7 +121,7 @@ a.stat-card {
 }
 
 a.stat-card:hover {
-    border-color: #f3c3b3;
+    border-color: #d0c7ea;
 }
 
 .stat-note {
@@ -133,7 +133,7 @@ a.stat-card:hover {
 }
 
 .muted-sm {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 4px;
 }
@@ -156,7 +156,7 @@ a.stat-card:hover {
 .todo-card {
     display: block;
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 16px 18px;
     color: inherit;
@@ -164,13 +164,13 @@ a.stat-card:hover {
 }
 
 .todo-card:hover {
-    border-color: #f3c3b3;
+    border-color: #d0c7ea;
     transform: translateY(-1px);
 }
 
 .todo-card.has-work {
-    border-color: #f6b9a5;
-    background: #fff8f3;
+    border-color: #c9bdea;
+    background: #f8f6fe;
 }
 
 .todo-top {
@@ -184,26 +184,26 @@ a.stat-card:hover {
     width: 34px;
     height: 34px;
     border-radius: 10px;
-    background: #f6f0ee;
-    color: #9a7f77;
+    background: #f1eff5;
+    color: #827b96;
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
 .todo-card.has-work .todo-icon {
-    background: #fff1ea;
-    color: var(--accent, #e8420f);
+    background: #eee8ff;
+    color: var(--accent, #6d4ad1);
 }
 
 .todo-count {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
-    color: #b8a19a;
+    color: #a49eb4;
 }
 
 .todo-card.has-work .todo-count {
-    color: var(--accent, #e8420f);
+    color: var(--accent, #6d4ad1);
 }
 
 .todo-label {
@@ -217,7 +217,7 @@ a.stat-card:hover {
 }
 
 .todo-hint {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -232,7 +232,7 @@ a.stat-card:hover {
 
 .panel {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 20px 22px;
 }
@@ -247,7 +247,7 @@ a.stat-card:hover {
 
 .pipeline li {
     padding: 9px 0;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
 }
 
 .pipeline li:last-child {
@@ -263,7 +263,7 @@ a.stat-card:hover {
 
 .pipeline-bar {
     height: 6px;
-    background: #f6eee9;
+    background: #f1edfa;
     border-radius: 999px;
     margin: 8px 0 5px;
     overflow: hidden;
@@ -272,13 +272,13 @@ a.stat-card:hover {
 .pipeline-bar span {
     display: block;
     height: 100%;
-    background: var(--accent, #e8420f);
+    background: var(--accent, #6d4ad1);
     border-radius: 999px;
 }
 
 .pipeline-hint,
 .recent-sub {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
 }
 
@@ -287,7 +287,7 @@ a.stat-card:hover {
     justify-content: space-between;
     gap: 12px;
     padding: 10px 0;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     font-size: 13px;
 }
 
@@ -302,7 +302,7 @@ a.stat-card:hover {
 }
 
 .empty-note {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     padding: 18px 0;
 }
@@ -312,7 +312,7 @@ a.stat-card:hover {
     align-items: center;
     gap: 6px;
     margin-top: 14px;
-    color: var(--accent, #e8420f);
+    color: var(--accent, #6d4ad1);
     font-weight: 800;
     font-size: 13px;
 }

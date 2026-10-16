@@ -4,8 +4,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a { text-decoration: none; }
@@ -46,7 +46,7 @@ a { text-decoration: none; }
 
 .card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
@@ -70,13 +70,13 @@ a { text-decoration: none; }
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .form-group input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -84,7 +84,7 @@ a { text-decoration: none; }
 
 .save-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 11px 20px;
     border-radius: 10px;
@@ -93,23 +93,23 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.save-btn:hover { background: #c2380f; }
+.save-btn:hover { background: #5536b5; }
 
 table { width: 100%; border-collapse: collapse; }
 
 th {
-    background: #fff8f3;
-    color: #6b6570;
+    background: #f8f6fe;
+    color: #645a80;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
 }
 
 tr:last-child td { border-bottom: none; }
@@ -126,7 +126,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 .empty-message {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;
@@ -172,12 +172,12 @@ tr:last-child td { border-bottom: none; }
     font-family: 'Figtree', sans-serif;
     font-size: 12px;
     font-weight: 600;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .card-note {
     font-size: 12.5px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .var-tr {
@@ -186,17 +186,17 @@ tr:last-child td { border-bottom: none; }
     align-items: center;
     gap: 12px;
     padding: 10px 4px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
 }
 
 .var-th {
     padding: 8px 4px;
-    background: #fff8f3;
-    border-bottom: 1px solid #f0e2da;
+    background: #f8f6fe;
+    border-bottom: 1px solid #e9e4fa;
     border-radius: 10px 10px 0 0;
     font-size: 11px;
     font-weight: 700;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .var-photo {
@@ -206,10 +206,10 @@ tr:last-child td { border-bottom: none; }
     width: 44px;
     height: 44px;
     overflow: hidden;
-    border: 1px dashed #ecc9bd;
+    border: 1px dashed #d4cde6;
     border-radius: 10px;
-    background: #fff8f3;
-    color: #c9a69b;
+    background: #f8f6fe;
+    color: #b5afc8;
     font-size: 16px;
     cursor: pointer;
 }
@@ -229,7 +229,7 @@ tr:last-child td { border-bottom: none; }
 
 .var-photo:hover,
 .var-photo.is-changed {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .var-photo.is-changed::after {
@@ -261,7 +261,7 @@ tr:last-child td { border-bottom: none; }
 
 .var-name small {
     font-size: 11.5px;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .var-cell {
@@ -277,7 +277,7 @@ tr:last-child td { border-bottom: none; }
 .var-cell input {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -286,7 +286,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 .var-cell input:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .var-cell input.is-out {
@@ -351,7 +351,7 @@ tr:last-child td { border-bottom: none; }
             "remove remove remove";
         margin-bottom: 10px;
         padding: 12px;
-        border: 1px solid #f3e3dd;
+        border: 1px solid #e4e0f0;
         border-radius: 12px;
     }
 
@@ -366,7 +366,7 @@ tr:last-child td { border-bottom: none; }
         margin-bottom: 4px;
         font-size: 11px;
         font-weight: 700;
-        color: #5e5759;
+        color: #574e70;
     }
 
     .delete-btn span {
@@ -389,19 +389,19 @@ tr:last-child td { border-bottom: none; }
 }
 
 /* Storage (GB) for phones, tablets, laptops */
-.storage-card .card-sub { font-size: 13px; color: #6b6570; margin: 4px 0 14px; line-height: 1.5; }
-.storage-card h2 i { color: #f34f1d; margin-right: 4px; }
+.storage-card .card-sub { font-size: 13px; color: #645a80; margin: 4px 0 14px; line-height: 1.5; }
+.storage-card h2 i { color: #7a55e6; margin-right: 4px; }
 .storage-card .sb-sizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 14px; }
 .storage-card .sb-size {
     display: flex; align-items: center; gap: 6px;
-    background: #fff; border: 1px solid #f0e2da; border-radius: 10px; padding: 7px 9px;
+    background: #fff; border: 1px solid #e9e4fa; border-radius: 10px; padding: 7px 9px;
     font-weight: 600; cursor: pointer; margin: 0;
 }
 .storage-card .sb-size.is-taken { background: #f6fbfa; border-color: #cdebe7; }
-.storage-card .sb-size input[type="checkbox"] { width: 16px; height: 16px; accent-color: #f34f1d; flex-shrink: 0; }
-.storage-card .sb-size b { font-size: 13px; min-width: 44px; color: #1b1a1f; }
+.storage-card .sb-size input[type="checkbox"] { width: 16px; height: 16px; accent-color: #7a55e6; flex-shrink: 0; }
+.storage-card .sb-size b { font-size: 13px; min-width: 44px; color: #221a3a; }
 .storage-card .sb-size small { font-size: 10.5px; font-weight: 700; color: #0a6f66; }
-.storage-card .sb-size span { font-size: 12px; color: #8a7f86; margin-left: auto; }
+.storage-card .sb-size span { font-size: 12px; color: #857ca0; margin-left: auto; }
 .storage-card .sb-size input[type="number"] {
-    width: 74px; min-height: 32px; padding: 4px 7px; border: 1px solid #e8d6cc; border-radius: 8px; font: inherit; font-size: 12.5px;
+    width: 74px; min-height: 32px; padding: 4px 7px; border: 1px solid #ddd5f2; border-radius: 8px; font: inherit; font-size: 12.5px;
 }

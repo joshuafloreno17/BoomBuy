@@ -11,7 +11,7 @@
 body {
     font-family: 'Figtree', sans-serif;
     background: #f3f3f3;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .no-print {
@@ -21,7 +21,7 @@ body {
 
 .print-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 12px 24px;
     border-radius: 10px;
@@ -31,7 +31,7 @@ body {
 }
 
 .print-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .waybill {
@@ -39,7 +39,7 @@ body {
     min-height: 6in;
     margin: 0 auto 30px;
     background: white;
-    border: 2px dashed #1b1a1f;
+    border: 2px dashed #221a3a;
     padding: 20px;
 }
 
@@ -47,7 +47,7 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #1b1a1f;
+    border-bottom: 2px solid #221a3a;
     padding-bottom: 10px;
     margin-bottom: 12px;
 }
@@ -56,7 +56,7 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 20px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .waybill-order-id {
@@ -73,7 +73,7 @@ body {
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #6b6570;
+    color: #645a80;
     margin-bottom: 2px;
 }
 
@@ -83,8 +83,8 @@ body {
 }
 
 .waybill-items {
-    border-top: 1px dashed #1b1a1f;
-    border-bottom: 1px dashed #1b1a1f;
+    border-top: 1px dashed #221a3a;
+    border-bottom: 1px dashed #221a3a;
     padding: 10px 0;
     margin: 12px 0;
 }
@@ -107,7 +107,7 @@ body {
 .waybill-footer {
     text-align: center;
     font-size: 9px;
-    color: #6b6570;
+    color: #645a80;
     margin-top: 15px;
 }
 
@@ -121,7 +121,7 @@ body {
     }
 
     .waybill {
-        border: 2px solid #1b1a1f;
+        border: 2px solid #221a3a;
         margin: 0;
     }
 }

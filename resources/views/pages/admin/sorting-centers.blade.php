@@ -371,8 +371,8 @@
 
             L.circleMarker([pin.lat, pin.lng], {
                 radius: Math.min(16, 6 + pin.parcels),
-                color: pin.open ? '#c2410c' : '#8a7f86',
-                fillColor: pin.open ? '#e8420f' : '#c9c2c6',
+                color: pin.open ? '#5634b3' : '#857ca0',
+                fillColor: pin.open ? '#6d4ad1' : '#c2bdce',
                 fillOpacity: 0.85,
                 weight: 2
             }).bindPopup(popup).addTo(map);

@@ -10,27 +10,27 @@
 <style>
     .pu-grid { display: flex; flex-wrap: wrap; gap: 12px; }
     .pu-tile { position: relative; width: 112px; display: flex; flex-direction: column; gap: 6px; }
-    .pu-thumb { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; border: 1px solid #f0e2da; background: #fff8f3; }
+    .pu-thumb { width: 112px; height: 112px; border-radius: 14px; overflow: hidden; border: 1px solid #e9e4fa; background: #f8f6fe; }
     .pu-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pu-tile.is-cover .pu-thumb { border: 2px solid #e8420f; }
-    .pu-badge { position: absolute; top: 7px; left: 7px; padding: 2px 8px; border-radius: 999px; background: #e8420f; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
-    .pu-cover-btn { padding: 4px 0; border: 0; background: none; color: #c2380f; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-align: left; }
+    .pu-tile.is-cover .pu-thumb { border: 2px solid #6d4ad1; }
+    .pu-badge { position: absolute; top: 7px; left: 7px; padding: 2px 8px; border-radius: 999px; background: #6d4ad1; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
+    .pu-cover-btn { padding: 4px 0; border: 0; background: none; color: #5536b5; font-family: inherit; font-size: 12px; font-weight: 700; cursor: pointer; text-align: left; }
     .pu-cover-btn:hover { text-decoration: underline; }
-    .pu-remove { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 2px solid #fff; border-radius: 50%; background: #1b1a1f; color: #fff; font-size: 11px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.18); }
+    .pu-remove { position: absolute; top: -8px; right: -8px; width: 26px; height: 26px; display: grid; place-items: center; padding: 0; border: 2px solid #fff; border-radius: 50%; background: #221a3a; color: #fff; font-size: 11px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,.18); }
     .pu-remove:hover { background: #dc2626; }
-    .pu-add.pu-add { width: 112px; height: 112px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1.5px dashed #ecc9bd; border-radius: 14px; background: #fff8f3; color: #e8420f; font-size: 12.5px; font-weight: 700; text-align: center; cursor: pointer; }
-    .pu-add:hover, .pu-add:focus-within { border-color: #e8420f; background: #fff1ea; }
+    .pu-add.pu-add { width: 112px; height: 112px; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border: 1.5px dashed #d4cde6; border-radius: 14px; background: #f8f6fe; color: #6d4ad1; font-size: 12.5px; font-weight: 700; text-align: center; cursor: pointer; }
+    .pu-add:hover, .pu-add:focus-within { border-color: #6d4ad1; background: #eee8ff; }
     .pu-add i { font-size: 22px; }
-    .pu-add small { color: #8a7f86; font-weight: 600; font-size: 11px; }
+    .pu-add small { color: #857ca0; font-weight: 600; font-size: 11px; }
     .pu-add input { position: absolute; width: 1px; height: 1px; opacity: 0; }
-    .pu-hint { margin: 8px 0 0; font-size: 12.5px; color: #8a7f86; }
+    .pu-hint { margin: 8px 0 0; font-size: 12.5px; color: #857ca0; }
 </style>
 
 <style>
-    .cv-badge { position: absolute; top: 6px; left: 6px; z-index: 1; padding: 2px 8px; border-radius: 999px; background: #e8420f; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; pointer-events: none; }
-    .cv-set { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 1; padding: 2px 7px; white-space: nowrap; border: 0; border-radius: 999px; background: rgba(255,255,255,.92); color: #c2380f; font-family: inherit; font-size: 10.5px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
-    .cv-set:hover { background: #e8420f; color: #fff; transform: translateX(-50%); }
-    .cv-on .pu-thumb, .var-photo-tile.cv-on { outline: 2px solid #e8420f; outline-offset: 1px; }
+    .cv-badge { position: absolute; top: 6px; left: 6px; z-index: 1; padding: 2px 8px; border-radius: 999px; background: #6d4ad1; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; pointer-events: none; }
+    .cv-set { position: absolute; left: 50%; bottom: 4px; transform: translateX(-50%); z-index: 1; padding: 2px 7px; white-space: nowrap; border: 0; border-radius: 999px; background: rgba(255,255,255,.92); color: #5536b5; font-family: inherit; font-size: 10.5px; font-weight: 800; cursor: pointer; box-shadow: 0 2px 6px rgba(0,0,0,.15); }
+    .cv-set:hover { background: #6d4ad1; color: #fff; transform: translateX(-50%); }
+    .cv-on .pu-thumb, .var-photo-tile.cv-on { outline: 2px solid #6d4ad1; outline-offset: 1px; }
 </style>
 
 {{-- The Shop cover pick, sent as "all:N" or "opt:ROW:N"; empty = picked automatically. --}}
@@ -94,7 +94,7 @@ window.bbCover = (function () {
 })();
 </script>
 <div class="form-group">
-    <label for="photoPicker"><span id="photoTitle">Product Photos</span> <span style="font-weight:500; color:#8a7f86;">(up to {{ $maxPhotos }})</span></label>
+    <label for="photoPicker"><span id="photoTitle">Product Photos</span> <span style="font-weight:500; color:#857ca0;">(up to {{ $maxPhotos }})</span></label>
 
     {{-- What gets submitted, kept in the order shown (first = cover). --}}
     <input type="file" name="photos[]" id="photosField" multiple hidden>

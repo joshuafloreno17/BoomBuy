@@ -77,7 +77,7 @@
                     <div class="form-group">
                         <label for="free_shipping_min">Free delivery from (₱)</label>
                         <input type="text" id="free_shipping_min" name="free_shipping_min" value="{{ old('free_shipping_min', \App\Support\DeliveryFee::freeShippingMin()) }}" placeholder="{{ \App\Support\DeliveryFee::FREE_SHIPPING_MIN }}">
-                        <small style="color:#8a7f86; font-size:11px;">Items total per seller order.</small>
+                        <small style="color:#857ca0; font-size:11px;">Items total per seller order.</small>
                     </div>
                 </div>
 

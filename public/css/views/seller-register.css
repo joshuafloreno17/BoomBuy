@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 
     min-height: 100vh;
 }
@@ -23,7 +23,7 @@ a {
 
 .navbar {
     background: #ffffff;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
     padding: 18px 7%;
 
     display: flex;
@@ -35,17 +35,17 @@ a {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 23px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .logo span {
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .back-btn {
-    color: #6b6570;
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    color: #645a80;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
     padding: 9px 14px;
     border-radius: 9px;
 
@@ -56,9 +56,9 @@ a {
 }
 
 .back-btn:hover {
-    color: #e8420f;
-    border-color: #efb8a7;
-    background: #fff1ea;
+    color: #6d4ad1;
+    border-color: #c8bee5;
+    background: #eee8ff;
 }
 
 .wrapper {
@@ -77,7 +77,7 @@ a {
 
     background: white;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
 
     padding: 30px 40px;
@@ -91,7 +91,7 @@ a {
 
     margin: 0 auto 12px;
 
-    background: #fff1ea;
+    background: #eee8ff;
 
     border-radius: 14px;
 
@@ -103,7 +103,7 @@ a {
 }
 
 .eyebrow {
-    color: #db5a33;
+    color: #7b5ce0;
 
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -120,7 +120,7 @@ h1 {
 }
 
 .subtitle {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 
     margin-top: 6px;
@@ -188,7 +188,7 @@ h1 {
 
     padding: 12px 14px;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
 
     font-size: 14px;
@@ -201,12 +201,12 @@ h1 {
 
 .field input:focus,
 .field select:focus {
-    border-color: #e8420f;
+    border-color: #6d4ad1;
 }
 
 .field input[readonly] {
-    background: #fff8f3;
-    color: #6b6570;
+    background: #f8f6fe;
+    color: #645a80;
 }
 
 .form-grid .field-full {
@@ -216,7 +216,7 @@ h1 {
 .submit-btn {
     width: 100%;
 
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     border: none;
@@ -236,7 +236,7 @@ h1 {
 }
 
 .submit-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .footer-text {
@@ -244,11 +244,11 @@ h1 {
 
     font-size: 13px;
 
-    color: #6b6570;
+    color: #645a80;
 }
 
 .footer-text a {
-    color: #e8420f;
+    color: #6d4ad1;
     font-weight: 700;
 }
 
@@ -257,7 +257,7 @@ h1 {
 
     font-size: 12px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -265,7 +265,7 @@ h1 {
     margin: 10px 0 2px;
 
     padding-top: 12px;
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 }
 
 .section-label p {
@@ -273,7 +273,7 @@ h1 {
     font-weight: 400;
     text-transform: none;
     letter-spacing: 0;
-    color: #6b6570;
+    color: #645a80;
 
     margin-top: 4px;
     margin-bottom: 8px;
@@ -283,16 +283,16 @@ h1 {
     padding: 10px 14px;
 
     font-size: 12px;
-    color: #5e5759;
+    color: #574e70;
 
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .field-hint {
     display: block;
 
     font-size: 11px;
-    color: #8a7f86;
+    color: #857ca0;
 
     margin-top: 5px;
 }
@@ -317,7 +317,7 @@ h1 {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5e5759;
+    color: #574e70;
 
     cursor: pointer;
     padding: 5px;
@@ -365,17 +365,17 @@ h1 {
     margin-bottom: 6px;
 
     font-size: 12px;
-    color: #4a4449;
+    color: #463c5e;
     line-height: 1.5;
 }
 
 .terms-check input[type="checkbox"] {
     margin-top: 3px;
     width: auto;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
 }
 
 .terms-check a {
-    color: #e8420f;
+    color: #6d4ad1;
     font-weight: 700;
 }

@@ -302,7 +302,7 @@
                                             <div class="item-name">
                                                 {{ $item['name'] ?? 'Product' }}
                                                 @if(!empty($item['variation_label']))
-                                                    <span style="color:#6b6570; font-weight:400;">({{ $item['variation_label'] }})</span>
+                                                    <span style="color:#645a80; font-weight:400;">({{ $item['variation_label'] }})</span>
                                                 @endif
                                             </div>
 
@@ -712,7 +712,7 @@
                                                 @csrf
                                                 <label for="why-{{ $returnRequest->id }}" style="flex:1 1 220px; display:grid; gap:4px; font-size:11.5px; font-weight:700;">
                                                     Disagree? Tell BoomBuy why
-                                                    <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid #f0e2da; border-radius:8px; font:inherit;">
+                                                    <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid #e9e4fa; border-radius:8px; font:inherit;">
                                                 </label>
                                                 <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Ask BoomBuy to review</button>
                                             </form>
@@ -843,7 +843,7 @@
                                         <div class="return-form-group">
                                             <label for="refund-number-{{ $order['id'] }}">Mobile or account number</label>
                                             <input type="text" id="refund-number-{{ $order['id'] }}" name="refund_account_number" maxlength="60" required value="{{ $lastRefundTo->refund_account_number ?? '' }}" placeholder="09XXXXXXXXX">
-                                            <small style="display:block; margin-top:4px; color:#8a7f86;">BoomBuy sends the refund here — the item price less any voucher discount. The delivery fee isn't refunded.</small>
+                                            <small style="display:block; margin-top:4px; color:#857ca0;">BoomBuy sends the refund here — the item price less any voucher discount. The delivery fee isn't refunded.</small>
                                         </div>
 
                                         <div class="return-form-group">
@@ -1013,7 +1013,7 @@
 
                                             @else
 
-                                                <span style="color:#6b6570;">
+                                                <span style="color:#645a80;">
                                                     Rider not assigned yet
                                                 </span>
 

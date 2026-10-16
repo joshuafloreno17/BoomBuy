@@ -6,8 +6,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     min-height: 100vh;
 }
 
@@ -23,18 +23,18 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
     justify-content: center;
     padding: 60px 7%;
     background:
-        radial-gradient(circle at 80% 15%, #ffe5dc 0, transparent 35%),
-        linear-gradient(180deg, #ffffff, #fff8f3);
+        radial-gradient(circle at 80% 15%, #e7e0fb 0, transparent 35%),
+        linear-gradient(180deg, #ffffff, #f8f6fe);
 }
 
 .choose-logo {
     font-size: 27px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
     margin-bottom: 30px;
 }
 
-.choose-logo span { color: #1b1a1f; }
+.choose-logo span { color: #221a3a; }
 
 .choose-header {
     text-align: center;
@@ -43,8 +43,8 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 
 .choose-header small {
     display: inline-block;
-    color: #e8420f;
-    background: #fff1ea;
+    color: #6d4ad1;
+    background: #eee8ff;
     padding: 8px 13px;
     border-radius: 30px;
     font-size: 10px;
@@ -61,7 +61,7 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 }
 
 .choose-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 14px;
 }
 
@@ -75,7 +75,7 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 
 .choose-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 20px;
     padding: 34px 26px;
     width: 260px;
@@ -85,8 +85,8 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 
 .choose-card:hover {
     transform: translateY(-6px);
-    border-color: #f1c7ba;
-    box-shadow: 0 17px 34px rgba(72, 45, 35, 0.09);
+    border-color: #d3cbe9;
+    box-shadow: 0 17px 34px rgba(47, 40, 67, 0.09);
 }
 
 .choose-icon {
@@ -94,7 +94,7 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
     height: 64px;
     margin: 0 auto 18px;
     border-radius: 17px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -103,19 +103,19 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 }
 
 .choose-card:hover .choose-icon {
-    background: #ffe6db;
+    background: #e6dcff;
     transform: scale(1.05);
 }
 
 .choose-card h2 {
     font-size: 19px;
     margin-bottom: 8px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .choose-card p {
     font-size: 12px;
-    color: #6b6570;
+    color: #645a80;
     line-height: 1.6;
     margin-bottom: 22px;
     min-height: 38px;
@@ -123,18 +123,18 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 
 .choose-btn {
     display: inline-block;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     font-size: 12px;
     font-weight: 800;
     padding: 11px 20px;
     border-radius: 12px;
-    box-shadow: 0 10px 22px rgba(232, 66, 15, 0.16);
+    box-shadow: 0 10px 22px rgba(109, 74, 209, 0.16);
     transition: 0.2s ease;
 }
 
 .choose-card:hover .choose-btn {
-    background: #cf380b;
+    background: #5a36be;
 }
 
 .choose-card.disabled {
@@ -144,18 +144,18 @@ h1, h2, .logo { font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; }
 
 .choose-card.disabled:hover {
     transform: none;
-    border-color: #f0e2da;
+    border-color: #e9e4fa;
     box-shadow: none;
 }
 
 .choose-footer {
     margin-top: 36px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 }
 
 .choose-footer a {
-    color: #e8420f;
+    color: #6d4ad1;
     font-weight: 700;
 }
 

@@ -11,7 +11,7 @@
     width: 245px;
     height: 100vh;
     background: #ffffff;
-    border-right: 1px solid #f0e2da;
+    border-right: 1px solid #e9e4fa;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -52,7 +52,7 @@
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: #5e5759;
+    color: #574e70;
     font: inherit;
     font-size: 14.5px;
     font-weight: 600;
@@ -63,22 +63,22 @@
 
 .logistics-sidebar-link:hover,
 .logistics-sidebar-logout:hover {
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 .logistics-sidebar-logout:hover {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .logistics-sidebar-link.active {
-    background: #fff1ea;
-    color: #c2380f;
+    background: #eee8ff;
+    color: #5536b5;
     font-weight: 700;
 }
 
 .logistics-sidebar-link.active .sidebar-icon {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .sidebar-icon {
@@ -98,7 +98,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     border-radius: 999px;
     font-size: 11px;

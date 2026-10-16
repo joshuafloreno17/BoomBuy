@@ -66,7 +66,7 @@ a {
 .page-crumbs {
     font-size: 12.5px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .page-crumbs a:hover {
@@ -103,7 +103,7 @@ a {
 .page-count {
     font-size: 14px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .mark-all button {
@@ -112,7 +112,7 @@ a {
     gap: 6px;
     min-height: 38px;
     padding: 0 14px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 10px;
     background: #fff;
     color: var(--accent-dark);
@@ -123,8 +123,8 @@ a {
 }
 
 .mark-all button:hover {
-    background: #fff1ea;
-    border-color: #e8b5a4;
+    background: #eee8ff;
+    border-color: #c4badf;
 }
 
 .page-alert {
@@ -156,7 +156,7 @@ a {
     top: 96px;
     padding: 14px 10px;
     background: #fff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 }
 
@@ -196,7 +196,7 @@ a {
     min-height: 40px;
     padding: 0 16px 0 13px;
     border-radius: 999px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     background: #fff;
     color: var(--ink);
     font-size: 13px;
@@ -206,8 +206,8 @@ a {
 }
 
 .chip:hover {
-    border-color: #e8b5a4;
-    background: #fff8f3;
+    border-color: #c4badf;
+    background: #f8f6fe;
 }
 
 .chip i {
@@ -263,18 +263,18 @@ a {
         min-width: 24px;
         padding: 2px 8px;
         border-radius: 999px;
-        background: #f6ede8;
+        background: #edeaf4;
         text-align: center;
         opacity: 1;
-        color: #5e5759;
+        color: #574e70;
     }
 
     .notif-side .chip:hover {
-        background: #fff8f3;
+        background: #f8f6fe;
     }
 
     .notif-side .chip.active {
-        background: #fff1ea;
+        background: #eee8ff;
         color: var(--accent-dark);
         font-weight: 800;
     }
@@ -313,7 +313,7 @@ a {
 
 .day-list {
     background: #fff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     overflow: hidden;
 }
@@ -328,16 +328,16 @@ a {
 }
 
 .note + .note {
-    border-top: 1px solid #f8ebe7;
+    border-top: 1px solid #ede9f6;
 }
 
 .note:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 /* Unread = accent bar + bold title + dot; the card itself stays white. */
 .note.unread {
-    background: #fffcfa;
+    background: #fcfbfe;
 }
 
 .note.unread::before {
@@ -352,7 +352,7 @@ a {
 }
 
 .note.unread:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .note-icon {
@@ -362,7 +362,7 @@ a {
     width: 42px;
     height: 42px;
     border-radius: 12px;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent);
     font-size: 18px;
 }
@@ -411,7 +411,7 @@ a {
     margin-top: 3px;
     font-size: 13px;
     line-height: 1.5;
-    color: #5e5759;
+    color: #574e70;
     overflow-wrap: anywhere;
 }
 
@@ -431,7 +431,7 @@ a {
 }
 
 .note-go {
-    color: #c9aaa0;
+    color: #b8b2c9;
     font-size: 14px;
     transition: transform 0.2s ease, color 0.2s ease;
 }
@@ -449,7 +449,7 @@ a {
     padding: 48px 20px;
     text-align: center;
     background: #fff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 }
 
@@ -460,7 +460,7 @@ a {
     height: 64px;
     margin-bottom: 14px;
     border-radius: 18px;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent);
     font-size: 28px;
 }
@@ -474,7 +474,7 @@ a {
 .empty p {
     margin-top: 4px;
     font-size: 13.5px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .empty a {

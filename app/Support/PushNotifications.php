@@ -53,7 +53,7 @@ class PushNotifications
                         'data' => ['url' => route('notifications.open', $notification->id)],
                         'android' => [
                             'priority' => 'high',
-                            'notification' => ['channel_id' => 'boombuy', 'color' => '#F34F1D'],
+                            'notification' => ['channel_id' => 'boombuy', 'color' => '#7A55E6'],
                         ],
                     ],
                 ]);

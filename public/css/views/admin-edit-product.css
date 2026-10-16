@@ -11,8 +11,8 @@
 
         body {
             font-family: 'Figtree', -apple-system, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
         }
 
         a {
@@ -31,7 +31,7 @@
         }
 
         .header small {
-            color: #db5a33;
+            color: #7b5ce0;
             text-transform: uppercase;
             letter-spacing: 2px;
             font-size: 11px;
@@ -44,7 +44,7 @@
         }
 
         .header p {
-            color: #6b6570;
+            color: #645a80;
             font-size: 14px;
             margin-top: 8px;
         }
@@ -61,7 +61,7 @@
         }
 
         .error {
-            background: #fff1ea;
+            background: #eee8ff;
             color: #dc2626;
             border: 1px solid #ffd0d0;
             padding: 13px 16px;
@@ -72,7 +72,7 @@
 
         .form-box {
             background: white;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 16px;
             padding: 30px;
         }
@@ -92,8 +92,8 @@
         select,
         textarea {
             width: 100%;
-            border: 1px solid #f0e2da;
-            background: #fff8f3;
+            border: 1px solid #e9e4fa;
+            background: #f8f6fe;
             padding: 12px 14px;
             border-radius: 8px;
             outline: none;
@@ -104,7 +104,7 @@
         input:focus,
         select:focus,
         textarea:focus {
-            border-color: #e8420f;
+            border-color: #6d4ad1;
             background: white;
         }
 
@@ -114,7 +114,7 @@
         }
 
         .hint {
-            color: #8a7f86;
+            color: #857ca0;
             font-size: 11px;
             margin-top: 6px;
         }
@@ -125,7 +125,7 @@
             border-radius: 10px;
             object-fit: cover;
             margin-bottom: 10px;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
         }
 
         .buttons {
@@ -136,7 +136,7 @@
 
         .save-btn {
             border: none;
-            background: #e8420f;
+            background: #6d4ad1;
             color: white;
             padding: 13px 22px;
             border-radius: 8px;
@@ -146,12 +146,12 @@
         }
 
         .save-btn:hover {
-            background: #c2380f;
+            background: #5536b5;
         }
 
         .cancel-btn {
-            background: #f6eee9;
-            color: #7c5a50;
+            background: #f1edfa;
+            color: #6b6382;
             padding: 13px 22px;
             border-radius: 8px;
             font-size: 13px;
@@ -159,21 +159,21 @@
         }
 
         .cancel-btn:hover {
-            background: #f0e2da;
+            background: #e9e4fa;
         }
 
         footer {
             background: white;
-            border-top: 1px solid #f0e2da;
+            border-top: 1px solid #e9e4fa;
             padding: 30px 7%;
             display: flex;
             justify-content: space-between;
-            color: #6b6570;
+            color: #645a80;
             font-size: 12px;
         }
 
         footer strong {
-            color: #e8420f;
+            color: #6d4ad1;
         }
 
         @media (max-width: 600px) {
@@ -225,8 +225,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     border-radius: 16px !important;
 }
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }
 
 /* Keep the footer at the bottom of the screen even when the content is short. */

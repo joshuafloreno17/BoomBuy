@@ -84,7 +84,7 @@ button {
 .dash-section-head p {
     margin-top: 2px;
     font-size: 13.5px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .dash-link {
@@ -95,7 +95,7 @@ button {
 }
 
 .dash-link:hover {
-    color: #9e2a06;
+    color: #432791;
 }
 
 /* =========================
@@ -145,7 +145,7 @@ button {
 
 .dash-greet-text span {
     font-size: 12px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .dash-cod-chip {
@@ -172,7 +172,7 @@ button {
     position: relative;
     min-height: 250px;
     border-radius: 24px;
-    background: #ffe7de;
+    background: #e9e2fb;
     overflow: hidden;
 
     display: grid;
@@ -194,7 +194,7 @@ button {
     font-size: 11.5px;
     font-weight: 800;
     letter-spacing: 0.14em;
-    color: #a32c06;
+    color: #452895;
     text-transform: uppercase;
 }
 
@@ -207,7 +207,7 @@ button {
 
 .dash-hero p {
     font-size: 14.5px;
-    color: #4a4449;
+    color: #463c5e;
     max-width: 440px;
     line-height: 1.55;
 }
@@ -229,7 +229,7 @@ button {
 }
 
 .dash-hero-cta:hover {
-    background: #3a3940;
+    background: #393445;
 }
 
 .dash-hero-art {
@@ -242,12 +242,12 @@ button {
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 16px 30px -18px rgba(27, 26, 31, 0.45);
+    box-shadow: 0 16px 30px -18px rgba(34, 26, 58, 0.45);
 }
 
-.dash-hero-tile.t1 { left: 8%; top: 40px; width: 150px; height: 180px; background: #fff; color: #e8420f; font-size: 50px; transform: rotate(-7deg); }
-.dash-hero-tile.t2 { left: 36%; top: 24px; width: 160px; height: 200px; background: #e8420f; color: #fff; font-size: 54px; transform: rotate(4deg); }
-.dash-hero-tile.t3 { left: 66%; top: 70px; width: 130px; height: 150px; background: #f6eee9; color: #c2380f; font-size: 44px; transform: rotate(-3deg); }
+.dash-hero-tile.t1 { left: 8%; top: 40px; width: 150px; height: 180px; background: #fff; color: #6d4ad1; font-size: 50px; transform: rotate(-7deg); }
+.dash-hero-tile.t2 { left: 36%; top: 24px; width: 160px; height: 200px; background: #6d4ad1; color: #fff; font-size: 54px; transform: rotate(4deg); }
+.dash-hero-tile.t3 { left: 66%; top: 70px; width: 130px; height: 150px; background: #f1edfa; color: #5536b5; font-size: 44px; transform: rotate(-3deg); }
 
 /* =========================
    ACTIVE ORDERS
@@ -269,7 +269,7 @@ button {
     width: 64px;
     height: 64px;
     border-radius: 16px;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent-dark);
     font-size: 26px;
     overflow: hidden;
@@ -306,7 +306,7 @@ button {
 .order-meta {
     font-size: 12px;
     font-weight: 700;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .order-name {
@@ -332,7 +332,7 @@ button {
 .order-steps span {
     height: 6px;
     border-radius: 999px;
-    background: #f0e2da;
+    background: #e9e4fa;
 }
 
 .order-steps span.is-on {
@@ -341,7 +341,7 @@ button {
 
 .order-note {
     font-size: 12px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .order-actions {
@@ -371,18 +371,18 @@ button {
 }
 
 .btn-primary:hover {
-    background: #9e2a06;
+    background: #432791;
 }
 
 .btn-ghost {
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     background: #fff;
-    color: #4a4449;
+    color: #463c5e;
     font-weight: 700;
 }
 
 .btn-ghost:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .btn-dark {
@@ -392,12 +392,12 @@ button {
 }
 
 .btn-dark:hover {
-    background: #3a3940;
+    background: #393445;
 }
 
 .btn[disabled] {
-    background: #ece4e1;
-    color: #8a7f86;
+    background: #e5e2eb;
+    color: #857ca0;
     cursor: not-allowed;
 }
 
@@ -469,9 +469,9 @@ button {
 
 .again-btn {
     min-height: 40px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 10px;
-    background: #fff8f3;
+    background: #f8f6fe;
     color: var(--accent-dark);
     font-size: 12.5px;
     font-weight: 800;
@@ -482,7 +482,7 @@ button {
 }
 
 .again-btn:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 /* =========================
@@ -511,14 +511,14 @@ button {
     border: none;
     border-radius: 9px;
     background: transparent;
-    color: #4a4449;
+    color: #463c5e;
     font-size: 12.5px;
     font-weight: 700;
     cursor: pointer;
 }
 
 .discover-tab:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .discover-tab[aria-selected="true"] {
@@ -534,11 +534,11 @@ button {
 
 .discover-empty {
     padding: 40px 20px;
-    border: 1px dashed #e8d6cc;
+    border: 1px dashed #ddd5f2;
     border-radius: 18px;
     text-align: center;
     font-size: 13.5px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .p-card {
@@ -554,14 +554,14 @@ button {
 
 .p-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px -20px rgba(27, 26, 31, 0.35);
+    box-shadow: 0 14px 30px -20px rgba(34, 26, 58, 0.35);
 }
 
 .p-media {
     position: relative;
     height: 250px;
-    background: #fff1ea;
-    color: #e2a08a;
+    background: #eee8ff;
+    color: #b4a7d7;
     font-size: 64px;
     display: flex;
     align-items: center;
@@ -607,7 +607,7 @@ button {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(27, 26, 31, 0.1);
+    box-shadow: 0 2px 8px rgba(34, 26, 58, 0.1);
 }
 
 .p-body {
@@ -636,7 +636,7 @@ button {
     margin-top: 4px;
     font-size: 12px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .p-sub .bi-star-fill {
@@ -682,7 +682,7 @@ button {
     gap: 12px;
     flex-wrap: wrap;
     font-size: 13px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .dash-footer > * {
@@ -913,7 +913,7 @@ a.again-top {
 }
 
 a.again-top:hover .again-name {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 /* =========================
@@ -954,13 +954,13 @@ a.again-top:hover .again-name {
     gap: 14px;
     padding: 10px 12px;
     border-radius: 14px;
-    background: #fffaf7;
+    background: #faf8fe;
     color: var(--ink);
     text-decoration: none;
     transition: background .2s ease;
 }
 
-.order-line:hover { background: #fff1ea; }
+.order-line:hover { background: #eee8ff; }
 
 .order-line-thumb {
     position: relative;
@@ -971,7 +971,7 @@ a.again-top:hover .again-name {
     place-items: center;
     overflow: hidden;
     border-radius: 12px;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent-dark);
     font-size: 20px;
 }
@@ -1003,7 +1003,7 @@ a.again-top:hover .again-name {
 .order-line-note {
     overflow: hidden;
     font-size: 12.5px;
-    color: #5e5759;
+    color: #574e70;
     white-space: nowrap;
     text-overflow: ellipsis;
 }
@@ -1049,7 +1049,7 @@ a.again-top:hover .again-name {
 .cat-chip:hover {
     transform: translateY(-3px);
     border-color: var(--accent);
-    box-shadow: 0 12px 24px -16px rgba(232, 66, 15, .55);
+    box-shadow: 0 12px 24px -16px rgba(109, 74, 209, .55);
 }
 
 .cat-chip-icon {
@@ -1058,7 +1058,7 @@ a.again-top:hover .again-name {
     display: grid;
     place-items: center;
     border-radius: 14px;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent-dark);
     font-size: 20px;
 }
@@ -1069,7 +1069,7 @@ a.again-top:hover .again-name {
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 @media (max-width: 900px) {
@@ -1126,8 +1126,8 @@ a.again-top:hover .again-name {
 
 .dash {
     --bb-surface: #fff;
-    --bb-shadow: 0 8px 22px -16px rgba(27, 26, 31, 0.35);
-    --bb-sub: #5e5759;
+    --bb-shadow: 0 8px 22px -16px rgba(34, 26, 58, 0.35);
+    --bb-sub: #574e70;
 }
 
 .dash-greet-time,
@@ -1165,8 +1165,8 @@ a.again-top:hover .again-name {
         width: 50px;
         height: 50px;
         border-radius: 16px;
-        background: linear-gradient(150deg, #ff7a3d, var(--accent) 55%, #b8340d);
-        box-shadow: 0 8px 18px -10px rgba(232, 66, 15, 0.7);
+        background: linear-gradient(150deg, #9175df, var(--accent) 55%, #5333aa);
+        box-shadow: 0 8px 18px -10px rgba(109, 74, 209, 0.7);
     }
 
     .dash-section-head h2 {
@@ -1179,7 +1179,7 @@ a.again-top:hover .again-name {
     /* Hero banner: rounder, with depth */
     .dash-hero {
         border-radius: 22px;
-        box-shadow: 0 16px 30px -22px rgba(232, 66, 15, 0.6);
+        box-shadow: 0 16px 30px -22px rgba(109, 74, 209, 0.6);
     }
 
     /* Categories: coloured circles in a side-scrolling row */
@@ -1225,7 +1225,7 @@ a.again-top:hover .again-name {
         transform: scale(0.92);
     }
 
-    .cat-chip:nth-child(5n+1) .cat-chip-icon { background: #ffe6db; color: #c2380f; }
+    .cat-chip:nth-child(5n+1) .cat-chip-icon { background: #e6dcff; color: #5536b5; }
     .cat-chip:nth-child(5n+2) .cat-chip-icon { background: #e3f6f4; color: #0a6f66; }
     .cat-chip:nth-child(5n+3) .cat-chip-icon { background: #fce7f3; color: #a3195b; }
     .cat-chip:nth-child(5n+4) .cat-chip-icon { background: #e8efff; color: #2747a8; }
@@ -1281,8 +1281,8 @@ a.again-top:hover .again-name {
     .sale-media {
         position: relative;
         height: 112px;
-        background: #fff1ea;
-        color: #e2a08a;
+        background: #eee8ff;
+        color: #b4a7d7;
         font-size: 38px;
         display: grid;
         place-items: center;

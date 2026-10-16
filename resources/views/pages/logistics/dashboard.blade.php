@@ -88,7 +88,7 @@
                                         <tr>
                                             <td><span class="pd-strong">#{{ $parcel->id }}</span><div class="pd-sub" style="font-size:12.5px;">{{ $parcel->shipping_name }}</div></td>
                                             <td class="pd-sub">{{ \Illuminate\Support\Str::limit($parcel->shipping_address, 48) }}</td>
-                                            <td class="pd-hide-sm"><span class="pd-tag" @if($old) style="background:#ffe6db; color:#a3300c;" @endif>{{ $since->diffForHumans(null, true) }}</span></td>
+                                            <td class="pd-hide-sm"><span class="pd-tag" @if($old) style="background:#e6dcff; color:#4a2e96;" @endif>{{ $since->diffForHumans(null, true) }}</span></td>
                                             <td style="text-align:right;"><a href="{{ route('logistics.parcels') }}#awaiting-assignment" class="pd-btn pd-btn-primary pd-btn-sm">Assign rider</a></td>
                                         </tr>
                                     @endforeach

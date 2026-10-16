@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     min-height: 100vh;
 }
 
@@ -23,7 +23,7 @@ a {
     height: 72px;
     padding: 0 7%;
     background: white;
-    border-bottom: 1px solid #f9e9e4;
+    border-bottom: 1px solid #ebe7f6;
 
     display: flex;
     align-items: center;
@@ -38,17 +38,17 @@ a {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 25px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .logo span {
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .back-btn {
-    color: #6b6570;
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    color: #645a80;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
     padding: 9px 14px;
     border-radius: 9px;
 
@@ -59,9 +59,9 @@ a {
 }
 
 .back-btn:hover {
-    color: #e8420f;
-    border-color: #efb8a7;
-    background: #fff1ea;
+    color: #6d4ad1;
+    border-color: #c8bee5;
+    background: #eee8ff;
 }
 
 .page {
@@ -78,8 +78,8 @@ a {
 
 .page-header small {
     display: inline-block;
-    color: #e8420f;
-    background: #fff1ea;
+    color: #6d4ad1;
+    background: #eee8ff;
 
     padding: 7px 13px;
     border-radius: 30px;
@@ -100,7 +100,7 @@ a {
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     line-height: 1.7;
     max-width: 650px;
@@ -109,7 +109,7 @@ a {
 
 .status-box {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 15px 18px;
     margin-bottom: 25px;
@@ -121,7 +121,7 @@ a {
 }
 
 .status-label {
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     font-weight: 700;
 }
@@ -153,10 +153,10 @@ a {
 
 .application-form {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 20px;
     padding: 30px;
-    box-shadow: 0 15px 40px rgba(72, 45, 35, 0.06);
+    box-shadow: 0 15px 40px rgba(47, 40, 67, 0.06);
 }
 
 .section-title {
@@ -170,7 +170,7 @@ a {
     margin-bottom: 20px;
     padding-bottom: 12px;
 
-    border-bottom: 1px solid #f7e8e3;
+    border-bottom: 1px solid #eae6f5;
 }
 
 .section-title span {
@@ -182,7 +182,7 @@ a {
     justify-content: center;
 
     border-radius: 10px;
-    background: #fff1ea;
+    background: #eee8ff;
 
     font-size: 17px;
 }
@@ -207,14 +207,14 @@ a {
 }
 
 label {
-    color: #4a4449;
+    color: #463c5e;
     font-size: 11px;
     font-weight: 800;
     margin-bottom: 7px;
 }
 
 .required {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 input,
@@ -222,7 +222,7 @@ textarea,
 select {
     width: 100%;
 
-    border: 1px solid #ead7d1;
+    border: 1px solid #d9d4e7;
     background: #fffdfc;
 
     border-radius: 10px;
@@ -231,7 +231,7 @@ select {
 
     font-family: 'Figtree', sans-serif;
     font-size: 12px;
-    color: #1b1a1f;
+    color: #221a3a;
 
     outline: none;
 
@@ -246,9 +246,9 @@ textarea {
 input:focus,
 textarea:focus,
 select:focus {
-    border-color: #ef704b;
+    border-color: #947cd5;
     background: white;
-    box-shadow: 0 0 0 3px rgba(232, 66, 15, 0.07);
+    box-shadow: 0 0 0 3px rgba(109, 74, 209, 0.07);
 }
 
 .password-wrapper {
@@ -271,7 +271,7 @@ select:focus {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #5e5759;
+    color: #574e70;
 
     cursor: pointer;
     padding: 5px;
@@ -301,8 +301,8 @@ textarea.input-error {
 }
 
 .file-box {
-    border: 1px dashed #e5c8bf;
-    background: #fff8f3;
+    border: 1px dashed #cbc4e0;
+    background: #f8f6fe;
     border-radius: 11px;
     padding: 13px;
 }
@@ -315,7 +315,7 @@ textarea.input-error {
 }
 
 .file-help {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     line-height: 1.5;
     margin-top: 7px;
@@ -324,7 +324,7 @@ textarea.input-error {
 .field-hint {
     display: block;
 
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     line-height: 1.5;
 
@@ -349,40 +349,40 @@ textarea.input-error {
     gap: 8px;
 
     font-size: 12px;
-    color: #4a4449;
+    color: #463c5e;
     line-height: 1.5;
 }
 
 .terms-check input[type="checkbox"] {
     margin-top: 3px;
     width: auto;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
 }
 
 .terms-check a {
-    color: #e8420f;
+    color: #6d4ad1;
     font-weight: 700;
 }
 
 .requirements-note {
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
     border-radius: 12px;
     padding: 13px 15px;
     margin-bottom: 20px;
 
-    color: #76564c;
+    color: #665e7b;
     font-size: 10px;
     line-height: 1.6;
 }
 
 .requirements-note strong {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .submit-area {
     padding-top: 8px;
-    border-top: 1px solid #f7e8e3;
+    border-top: 1px solid #eae6f5;
 
     display: flex;
     align-items: center;
@@ -391,7 +391,7 @@ textarea.input-error {
 }
 
 .submit-note {
-    color: #6b6570;
+    color: #645a80;
     font-size: 10px;
     line-height: 1.5;
     max-width: 550px;
@@ -399,7 +399,7 @@ textarea.input-error {
 
 .submit-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
 
     padding: 13px 22px;
@@ -411,13 +411,13 @@ textarea.input-error {
 
     cursor: pointer;
 
-    box-shadow: 0 9px 22px rgba(232, 66, 15, 0.17);
+    box-shadow: 0 9px 22px rgba(109, 74, 209, 0.17);
 
     transition: .2s ease;
 }
 
 .submit-btn:hover {
-    background: #cf380b;
+    background: #5a36be;
     transform: translateY(-1px);
 }
 
@@ -449,7 +449,7 @@ textarea.input-error {
 
 footer {
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     padding: 0 20px 30px;
 }

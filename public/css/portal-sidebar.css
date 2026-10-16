@@ -9,7 +9,7 @@
     align-items: center;
     gap: 10px;
     padding: 2px 8px 22px;
-    color: #1b1a1f;
+    color: #221a3a;
     text-decoration: none;
 }
 
@@ -26,7 +26,7 @@
     font-weight: 800;
     line-height: 1;
     white-space: nowrap;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .bb-side-name small {
@@ -34,7 +34,7 @@
     font-family: 'Figtree', -apple-system, sans-serif;
     font-size: 12px;
     font-weight: 600;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .bb-side-user {
@@ -44,8 +44,8 @@
     padding: 12px;
     margin-bottom: 8px;
     border-radius: 14px;
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
 }
 
 .bb-side-avatar {
@@ -55,8 +55,8 @@
     display: grid;
     place-items: center;
     border-radius: 50%;
-    background: #ffe6db;
-    color: #c2380f;
+    background: #e6dcff;
+    color: #5536b5;
     font-family: 'Figtree', -apple-system, sans-serif;
     font-size: 14px;
     font-weight: 800;
@@ -71,7 +71,7 @@
 
 .bb-side-who strong {
     overflow: hidden;
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 13.5px;
     font-weight: 700;
     white-space: nowrap;
@@ -79,14 +79,14 @@
 }
 
 .bb-side-who small {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
 /* Thin, quiet scrollbar for tall menus on short screens. */
 .bb-portal-side {
     scrollbar-width: thin;
-    scrollbar-color: #f0e2da transparent;
+    scrollbar-color: #e9e4fa transparent;
 }
 
 /* Padding inside the set width/height — otherwise, on pages without a
@@ -116,7 +116,7 @@
     border: 0;
     border-radius: 10px;
     background: transparent;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 18px;
     line-height: 1;
     cursor: pointer;

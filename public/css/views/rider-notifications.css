@@ -10,7 +10,7 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
+    background: #f8f6fe;
     color: #222;
 }
 
@@ -36,7 +36,7 @@ a {
 
     padding: 25px 18px;
 
-    border-right: 1px solid #f0e2da;
+    border-right: 1px solid #e9e4fa;
 
     z-index: 100;
 
@@ -58,13 +58,13 @@ a {
 }
 
 .logo span {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .menu-title {
     font-size: 11px;
 
-    color: #8a7f86;
+    color: #857ca0;
 
     text-transform: uppercase;
 
@@ -88,7 +88,7 @@ a {
 
     gap: 9px;
 
-    color: #695c57;
+    color: #5d5967;
 
     padding: 13px 14px;
 
@@ -104,17 +104,17 @@ a {
 }
 
 .menu a:hover {
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
 }
 
 .menu a.active {
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
 
     font-weight: 700;
 
-    box-shadow: 0 5px 14px rgba(232, 66, 15, 0.18);
+    box-shadow: 0 5px 14px rgba(109, 74, 209, 0.18);
 }
 
 /* =========================
@@ -167,7 +167,7 @@ a {
 
     background: transparent;
 
-    color: #e8420f;
+    color: #6d4ad1;
 
     padding: 12px;
 
@@ -187,9 +187,9 @@ a {
 }
 
 .logout button:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #c13206;
+    color: #4f2fae;
 }
 
 /* =========================
@@ -238,7 +238,7 @@ a {
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
 
     margin-top: 5px;
 
@@ -252,7 +252,7 @@ a {
 
     border-radius: 10px;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     box-shadow: 0 3px 12px rgba(0, 0, 0, 0.04);
 
@@ -288,7 +288,7 @@ a {
 
     text-decoration: none;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     border-radius: 14px;
 
@@ -308,9 +308,9 @@ a {
 .notification-card:hover {
     transform: translateY(-1px);
 
-    box-shadow: 0 6px 20px rgba(232, 66, 15, 0.07);
+    box-shadow: 0 6px 20px rgba(109, 74, 209, 0.07);
 
-    border-color: #f4c8b9;
+    border-color: #d4cbeb;
 }
 
 /* =========================
@@ -318,9 +318,9 @@ a {
 ========================= */
 
 .notification-card.unread {
-    border-left: 4px solid #e8420f;
+    border-left: 4px solid #6d4ad1;
 
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 /* =========================
@@ -355,7 +355,7 @@ a {
 
     border-radius: 12px;
 
-    background: #fff1ea;
+    background: #eee8ff;
 
     display: flex;
 
@@ -381,7 +381,7 @@ a {
 }
 
 .notification-message {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 13px;
 
@@ -391,7 +391,7 @@ a {
 }
 
 .notification-time {
-    color: #8a7f86;
+    color: #857ca0;
 
     font-size: 10px;
 
@@ -416,15 +416,15 @@ a {
     width: 7px;
     height: 7px;
 
-    background: #e8420f;
+    background: #6d4ad1;
 
     border-radius: 50%;
 }
 
 .notification-type {
-    background: #fff1ea;
+    background: #eee8ff;
 
-    color: #d63c0d;
+    color: #5f39c5;
 
     padding: 5px 8px;
 
@@ -458,7 +458,7 @@ a {
 .empty {
     background: white;
 
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
 
     border-radius: 16px;
 
@@ -480,11 +480,11 @@ a {
 
     font-size: 22px;
 
-    color: #4a4449;
+    color: #463c5e;
 }
 
 .empty p {
-    color: #6b6570;
+    color: #645a80;
 
     font-size: 13px;
 
@@ -517,9 +517,9 @@ button {
 }
 
 ::selection {
-    background: #ffe6db;
+    background: #e6dcff;
 
-    color: #7c1a00;
+    color: #3d2488;
 }
 
 /* =========================
@@ -539,7 +539,7 @@ button {
 
         border-right: none;
 
-        border-bottom: 1px solid #f0e2da;
+        border-bottom: 1px solid #e9e4fa;
     }
 
     .logo {
@@ -601,7 +601,7 @@ button {
     }
 
     .logout button {
-        background: #fff1ea;
+        background: #eee8ff;
 
         text-align: center;
     }

@@ -126,12 +126,12 @@
 
 
         {{-- CHECK EXISTING APPLICATION STATUS --}}
-        <div class="status-check-box" style="background:#fff; border:1px solid #f0e2da; border-radius:14px; padding:18px; margin-bottom:20px;">
+        <div class="status-check-box" style="background:#fff; border:1px solid #e9e4fa; border-radius:14px; padding:18px; margin-bottom:20px;">
 
             <form method="GET" action="{{ route('rider.apply') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
 
                 <div style="flex:1; min-width:200px;">
-                    <label for="check_email" style="display:block; font-size:11px; font-weight:800; color:#4a4449; margin-bottom:6px;">
+                    <label for="check_email" style="display:block; font-size:11px; font-weight:800; color:#463c5e; margin-bottom:6px;">
                         Already applied? Check your status
                     </label>
                     <input
@@ -140,11 +140,11 @@
                         name="email"
                         value="{{ $checkedEmail ?? '' }}"
                         placeholder="Enter the email you applied with"
-                        style="width:100%; padding:10px 12px; border:1px solid #ead7d1; border-radius:8px; font-family:inherit; font-size:12px;"
+                        style="width:100%; padding:10px 12px; border:1px solid #d9d4e7; border-radius:8px; font-family:inherit; font-size:12px;"
                     >
                 </div>
 
-                <button type="submit" style="background:#fff1ea; color:#e8420f; border:1px solid #f0b8a5; border-radius:8px; padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;">
+                <button type="submit" style="background:#eee8ff; color:#6d4ad1; border:1px solid #c7bce5; border-radius:8px; padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;">
                     Check Status
                 </button>
 

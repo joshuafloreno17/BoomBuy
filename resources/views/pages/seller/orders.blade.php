@@ -259,7 +259,7 @@
                                         <div class="item-name">
                                             {{ $item->product_name }}
                                             @if(!empty($item->variation_label))
-                                                <span style="color:#95827b; font-weight:600;">({{ $item->variation_label }})</span>
+                                                <span style="color:#837e92; font-weight:600;">({{ $item->variation_label }})</span>
                                             @endif
                                         </div>
 
@@ -564,7 +564,7 @@
                                         <i class="bi bi-box-seam-fill"></i> Add back to stock
                                     </button>
                                 </form>
-                                <span style="font-size:12px; color:#6b6570;">Skip this if it came back damaged.</span>
+                                <span style="font-size:12px; color:#645a80;">Skip this if it came back damaged.</span>
                             </div>
 
                         @elseif(!empty($request->restocked_at))

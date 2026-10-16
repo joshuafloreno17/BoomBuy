@@ -109,7 +109,7 @@
                     <div class="form-group">
 
                         <label>
-                            Options and their photos <span style="font-weight:500; color:#8a7f86;">(optional · up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} photos each)</span>
+                            Options and their photos <span style="font-weight:500; color:#857ca0;">(optional · up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} photos each)</span>
                         </label>
 
                         <div class="opt-intro">
@@ -206,7 +206,7 @@
 
                         <div style="
                             margin-top: 7px;
-                            color: #8a7f86;
+                            color: #857ca0;
                             font-size: 11px;
                         ">
                             Enter the number of units available for sale. If you add variations below, each one keeps its own stock instead.
@@ -223,11 +223,11 @@
                         @if(!empty($registeredCategory))
     {{-- Locked: a seller only sells in the category they registered for. --}}
     <input type="hidden" name="category" value="{{ $registeredCategory }}">
-    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #e8d6cc; border-radius:10px; background:#fff8f3; font-weight:700; color:#1b1a1f;">
-        <i class="bi bi-lock-fill" style="color:#c2380f;"></i>
+    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #ddd5f2; border-radius:10px; background:#f8f6fe; font-weight:700; color:#221a3a;">
+        <i class="bi bi-lock-fill" style="color:#5536b5;"></i>
         {{ \App\Support\Categories::LIST[$registeredCategory] }}
     </div>
-    <small style="display:block; margin-top:6px; font-size:12px; color:#5e5759;">
+    <small style="display:block; margin-top:6px; font-size:12px; color:#574e70;">
         Your shop is registered for this category, so all your products go here.
     </small>
     

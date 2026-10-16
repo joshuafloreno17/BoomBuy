@@ -47,7 +47,7 @@ select {
 .shop-crumbs {
     font-size: 12.5px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .shop-crumbs a:hover {
@@ -77,7 +77,7 @@ select {
 .shop-count {
     font-size: 14px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .scope-chip {
@@ -163,7 +163,7 @@ select {
     max-width: 720px;
     font-size: 14px;
     line-height: 1.55;
-    color: #4a4449;
+    color: #463c5e;
     white-space: pre-line;
     overflow-wrap: anywhere;
 }
@@ -174,7 +174,7 @@ select {
     gap: 6px 16px;
     font-size: 13px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .seller-hero-meta .bi-star-fill {
@@ -226,7 +226,7 @@ select {
     min-height: 42px;
     padding: 0 16px 0 13px;
     border-radius: 999px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     background: #fff;
     color: var(--ink);
     font-size: 13px;
@@ -236,8 +236,8 @@ select {
 }
 
 .cat-chip:hover {
-    border-color: #e8b5a4;
-    background: #fff8f3;
+    border-color: #c4badf;
+    background: #f8f6fe;
 }
 
 .cat-chip i {
@@ -302,17 +302,17 @@ select {
     place-items: center;
     width: 42px;
     height: 42px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 50%;
     background: #fff;
     color: var(--ink);
     font-size: 15px;
     cursor: pointer;
-    box-shadow: 0 6px 16px rgba(27, 26, 31, 0.12);
+    box-shadow: 0 6px 16px rgba(34, 26, 58, 0.12);
 }
 
 .cat-arrow:hover {
-    border-color: #e8b5a4;
+    border-color: #c4badf;
     color: var(--accent-dark);
 }
 
@@ -333,11 +333,11 @@ select {
 .cat-chip.is-empty:not(.active) {
     border-style: dashed;
     background: transparent;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .cat-chip.is-empty:not(.active) i {
-    color: #c9aaa0;
+    color: #b8b2c9;
 }
 
 /* =========================
@@ -373,7 +373,7 @@ select {
     gap: 8px;
     font-size: 12.5px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .filter-chip {
@@ -390,7 +390,7 @@ select {
 }
 
 .filter-chip:hover {
-    background: #3a3940;
+    background: #393445;
 }
 
 .clear-link {
@@ -406,13 +406,13 @@ select {
     margin-left: auto;
     font-size: 13px;
     font-weight: 700;
-    color: #4a4449;
+    color: #463c5e;
 }
 
 .sort-control select {
     min-height: 42px;
     padding: 0 12px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 12px;
     background: #fff;
     font-size: 13px;
@@ -469,7 +469,7 @@ select {
     font-size: 12px;
     font-weight: 800;
     letter-spacing: 0.08em;
-    color: #5e5759;
+    color: #574e70;
     text-transform: uppercase;
 }
 
@@ -478,14 +478,14 @@ select {
     grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: 6px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .price-inputs input {
     min-width: 0;
     min-height: 40px;
     padding: 0 10px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 10px;
     font-size: 13px;
 }
@@ -500,11 +500,11 @@ select {
     min-height: 32px;
     padding: 0 11px;
     border-radius: 999px;
-    border: 1px solid #e8d6cc;
-    background: #fff8f3;
+    border: 1px solid #ddd5f2;
+    background: #f8f6fe;
     font-size: 12px;
     font-weight: 700;
-    color: #4a4449;
+    color: #463c5e;
     display: inline-flex;
     align-items: center;
 }
@@ -528,7 +528,7 @@ select {
 }
 
 .filter-apply:hover {
-    background: #f6eee9;
+    background: #f1edfa;
 }
 
 .filter-option {
@@ -591,14 +591,14 @@ select {
 
 .sp-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 30px -20px rgba(27, 26, 31, 0.35);
+    box-shadow: 0 14px 30px -20px rgba(34, 26, 58, 0.35);
 }
 
 .sp-media {
     position: relative;
     height: 190px;
-    background: #fff1ea;
-    color: #e2a08a;
+    background: #eee8ff;
+    color: #b4a7d7;
     font-size: 52px;
     display: flex;
     align-items: center;
@@ -628,7 +628,7 @@ select {
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    box-shadow: 0 2px 8px rgba(27, 26, 31, 0.1);
+    box-shadow: 0 2px 8px rgba(34, 26, 58, 0.1);
 }
 
 .sp-body {
@@ -670,7 +670,7 @@ select {
     align-items: center;
     gap: 5px;
     max-width: 100%;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11.5px;
     font-weight: 600;
     white-space: nowrap;
@@ -703,7 +703,7 @@ select {
 .sp-meta {
     font-size: 12px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .sp-meta .bi-star-fill {
@@ -751,7 +751,7 @@ select {
 }
 
 .sp-btn.sp-btn-buy:hover {
-    background: #9e2a06;
+    background: #432791;
 }
 
 .sp-btn {
@@ -759,8 +759,8 @@ select {
     padding: 0 13px;
     border-radius: 10px;
     border: none;
-    background: #ece4e1;
-    color: #8a7f86;
+    background: #e5e2eb;
+    color: #857ca0;
     font-size: 12.5px;
     font-weight: 800;
     white-space: nowrap;
@@ -782,7 +782,7 @@ select {
 }
 
 .sp-btn-dark:hover {
-    background: #3a3940;
+    background: #393445;
 }
 
 .sp-btn-outline {
@@ -792,7 +792,7 @@ select {
 }
 
 .sp-btn-outline:hover {
-    background: #f6eee9;
+    background: #f1edfa;
 }
 
 .sp-btn.is-added {
@@ -820,7 +820,7 @@ select {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: #fff1ea;
+    background: #eee8ff;
     color: var(--accent-dark);
     font-size: 30px;
     display: flex;
@@ -839,7 +839,7 @@ select {
     max-width: 460px;
     font-size: 14px;
     line-height: 1.6;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .shop-empty-actions {
@@ -869,18 +869,18 @@ select {
 }
 
 .btn-main:hover {
-    background: #9e2a06;
+    background: #432791;
 }
 
 .btn-soft {
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     background: #fff;
-    color: #4a4449;
+    color: #463c5e;
     font-weight: 700;
 }
 
 .btn-soft:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .load-more {
@@ -891,14 +891,14 @@ select {
     padding: 12px 0 4px;
     font-size: 13px;
     font-weight: 600;
-    color: #5e5759;
+    color: #574e70;
 }
 
 .load-bar {
     width: 240px;
     height: 5px;
     border-radius: 999px;
-    background: #f0e2da;
+    background: #e9e4fa;
     overflow: hidden;
 }
 
@@ -933,7 +933,7 @@ select {
     display: flex;
     align-items: center;
     gap: 12px;
-    box-shadow: 0 18px 40px -16px rgba(27, 26, 31, 0.55);
+    box-shadow: 0 18px 40px -16px rgba(34, 26, 58, 0.55);
 
     opacity: 0;
     transform: translateY(-8px);
@@ -1004,7 +1004,7 @@ select {
     gap: 12px;
     flex-wrap: wrap;
     font-size: 13px;
-    color: #5e5759;
+    color: #574e70;
 }
 
 /* =========================
@@ -1135,7 +1135,7 @@ select {
         height: 40px;
         border: none;
         border-radius: 50%;
-        background: #f3ede9;
+        background: #eceaf2;
         color: var(--ink);
         font-size: 15px;
         display: flex;
@@ -1172,7 +1172,7 @@ select {
     .filters-foot .btn-main,
     .filters-foot .btn-soft {
         min-height: 50px;
-        border: 1px solid #e8d6cc;
+        border: 1px solid #ddd5f2;
     }
 
     .filters-foot .btn-main {
@@ -1184,7 +1184,7 @@ select {
         position: fixed;
         inset: 0;
         z-index: 1000;
-        background: rgba(27, 26, 31, 0.5);
+        background: rgba(34, 26, 58, 0.5);
     }
 
     .sheet-backdrop.is-open {
@@ -1265,7 +1265,7 @@ select {
     z-index: 1;
     padding: 3px 9px;
     border-radius: 999px;
-    background: var(--accent, #e8420f);
+    background: var(--accent, #6d4ad1);
     color: #fff;
     font-size: 12px;
     font-weight: 800;
@@ -1276,5 +1276,5 @@ select {
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: var(--muted, #6b6570);
+    color: var(--muted, #645a80);
 }

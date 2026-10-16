@@ -127,7 +127,7 @@
 
             @php
                 // New accounts per month: grouped bars on one scale, rounded up to a tidy top.
-                $roleColors = ['buyer' => '#e8420f', 'seller' => '#f59e0b', 'logistics' => '#1b1a1f', 'rider' => '#a99da3'];
+                $roleColors = ['buyer' => '#6d4ad1', 'seller' => '#f59e0b', 'logistics' => '#221a3a', 'rider' => '#9d96b0'];
                 $roleNames = ['buyer' => 'Buyers', 'seller' => 'Sellers', 'logistics' => 'Logistics staff', 'rider' => 'Riders'];
                 $peak = max(1, collect($registrations)->flatMap(fn ($m) => $m['counts'])->max());
                 $step = max(1, (int) ceil($peak / 3 / (10 ** max(0, strlen((string) (int) ceil($peak / 3)) - 1))) * (10 ** max(0, strlen((string) (int) ceil($peak / 3)) - 1)));
@@ -158,8 +158,8 @@
                     <svg viewBox="0 0 660 230" role="img" style="width:100%; height:auto; display:block;"
                          aria-label="New accounts per month: {{ collect($registrations)->map(fn ($m) => $m['label'] . ' ' . collect($m['counts'])->map(fn ($c, $r) => $c . ' ' . strtolower($roleNames[$r]))->implode(', '))->implode('; ') }}">
                         @foreach ([0, $step, $step * 2, $top] as $tick)
-                            <line x1="44" x2="650" y1="{{ $y($tick) }}" y2="{{ $y($tick) }}" stroke="#f0e2da" @if($tick > 0) stroke-dasharray="3 4" @endif />
-                            <text x="36" y="{{ $y($tick) + 4 }}" text-anchor="end" font-size="11" fill="#8a7f86">{{ $tick }}</text>
+                            <line x1="44" x2="650" y1="{{ $y($tick) }}" y2="{{ $y($tick) }}" stroke="#e9e4fa" @if($tick > 0) stroke-dasharray="3 4" @endif />
+                            <text x="36" y="{{ $y($tick) + 4 }}" text-anchor="end" font-size="11" fill="#857ca0">{{ $tick }}</text>
                         @endforeach
                         @foreach ($registrations as $i => $month)
                             @php $x0 = 50 + $i * $slot + ($slot - $barW * 4 - 6) / 2; @endphp
@@ -170,14 +170,14 @@
                                         <title>{{ $month['label'] }}: {{ $v }} {{ strtolower($roleNames[$role]) }}</title>
                                     </rect>
                                     @if ($v === max($month['counts']) && $v > 0)
-                                        <text x="{{ $x0 + $r * ($barW + 2) + $barW / 2 }}" y="{{ $y($v) - 5 }}" text-anchor="middle" font-size="11" font-weight="700" fill="#1b1a1f">{{ $v }}</text>
+                                        <text x="{{ $x0 + $r * ($barW + 2) + $barW / 2 }}" y="{{ $y($v) - 5 }}" text-anchor="middle" font-size="11" font-weight="700" fill="#221a3a">{{ $v }}</text>
                                     @endif
                                 @endif
                             @endforeach
-                            <text x="{{ 50 + $i * $slot + $slot / 2 }}" y="220" text-anchor="middle" font-size="12" fill="{{ $loop->last ? '#1b1a1f' : '#8a7f86' }}" font-weight="{{ $loop->last ? 700 : 400 }}">{{ $month['label'] }}</text>
+                            <text x="{{ 50 + $i * $slot + $slot / 2 }}" y="220" text-anchor="middle" font-size="12" fill="{{ $loop->last ? '#221a3a' : '#857ca0' }}" font-weight="{{ $loop->last ? 700 : 400 }}">{{ $month['label'] }}</text>
                         @endforeach
                     </svg>
-                    <div style="display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px; font-size:12.5px; color:#6b6570;">
+                    <div style="display:flex; flex-wrap:wrap; gap:6px 16px; margin-top:8px; font-size:12.5px; color:#645a80;">
                         @foreach ($roleColors as $role => $color)
                             <span><i style="display:inline-block; width:10px; height:10px; border-radius:3px; background:{{ $color }}; margin-right:6px; vertical-align:-1px;"></i>{{ $roleNames[$role] }}</span>
                         @endforeach
@@ -198,7 +198,7 @@
                             @endphp
                             <a href="{{ $url }}" style="display:flex; align-items:center; gap:14px; color:inherit; text-decoration:none;">
                                 <svg viewBox="0 0 42 42" width="64" height="64" style="flex:none;" aria-label="{{ $title }}: {{ $total }}">
-                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#f0e2da" stroke-width="6"/>
+                                    <circle cx="21" cy="21" r="15.9" fill="none" stroke="#e9e4fa" stroke-width="6"/>
                                     @if ($total > 0)
                                         @foreach ($donutParts as $status => [$label, $color])
                                             @php $share = ($counts[$status] ?? 0) / $total * 100; @endphp
@@ -209,11 +209,11 @@
                                             @endif
                                         @endforeach
                                     @endif
-                                    <text x="21" y="24.5" text-anchor="middle" font-size="10" font-weight="800" fill="#1b1a1f">{{ $total }}</text>
+                                    <text x="21" y="24.5" text-anchor="middle" font-size="10" font-weight="800" fill="#221a3a">{{ $total }}</text>
                                 </svg>
                                 <span style="min-width:0;">
                                     <strong style="display:block; font-size:13.5px;">{{ $title }}</strong>
-                                    <span style="font-size:12.5px; color:#6b6570;">
+                                    <span style="font-size:12.5px; color:#645a80;">
                                         @foreach ($donutParts as $status => [$label, $color])
                                             <span style="white-space:nowrap;"><i style="display:inline-block; width:8px; height:8px; border-radius:50%; background:{{ $color }}; margin-right:4px;"></i>{{ $label }} {{ $counts[$status] ?? 0 }}</span>@if (!$loop->last) · @endif
                                         @endforeach
@@ -265,7 +265,7 @@
                                     @endphp
                                     <tr>
                                         <td>
-                                            <a href="{{ route('admin.order.details', $order['id']) }}" class="pd-strong" style="color:#1b1a1f;">#{{ $order['id'] }}</a>
+                                            <a href="{{ route('admin.order.details', $order['id']) }}" class="pd-strong" style="color:#221a3a;">#{{ $order['id'] }}</a>
                                             <div class="pd-sub" style="font-size:12.5px;">{{ \Carbon\Carbon::parse($order['created_at'])->format('M j, g:i A') }}</div>
                                         </td>
                                         <td class="pd-hide-sm">{{ $order['buyer_name'] }}</td>

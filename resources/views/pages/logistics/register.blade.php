@@ -5,10 +5,10 @@
 
     <link rel="stylesheet" href="{{ vasset('css/views/logistics-register.css') }}">
     <style>
-        .field-label { display: block; font-size: 12px; font-weight: 700; color: #4a4449; margin-bottom: 8px; }
+        .field-label { display: block; font-size: 12px; font-weight: 700; color: #463c5e; margin-bottom: 8px; }
         .service-areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; }
-        .service-area { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; font-weight: 500; color: #1b1a1f; cursor: pointer; margin: 0; }
-        .service-area input { width: auto; margin-top: 2px; accent-color: #e8420f; }
+        .service-area { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; font-weight: 500; color: #221a3a; cursor: pointer; margin: 0; }
+        .service-area input { width: auto; margin-top: 2px; accent-color: #6d4ad1; }
     </style>
 </head>
 <body>
@@ -177,7 +177,7 @@
                 </div>
 
                 <div class="field field-full">
-                    <span class="field-label" id="service-areas-label">Service Areas <span style="font-weight:500; color:#8a7f86;">(choose at least one region)</span></span>
+                    <span class="field-label" id="service-areas-label">Service Areas <span style="font-weight:500; color:#857ca0;">(choose at least one region)</span></span>
                     <div class="service-areas" role="group" aria-labelledby="service-areas-label">
                         @foreach (\App\Support\PhLocations::REGION_NAMES as $regionName)
                             <label class="service-area">

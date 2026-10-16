@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f6;
-    color: #1b1a1f;
+    background: #f9f7fe;
+    color: #221a3a;
 }
 
 /* =========================
@@ -25,7 +25,7 @@ body {
     width: 245px;
     height: 100vh;
     background: #ffffff;
-    border-right: 1px solid #f2e3df;
+    border-right: 1px solid #e5e1f0;
     padding: 30px 16px 20px;
     z-index: 100;
     display: flex;
@@ -44,7 +44,7 @@ body {
     width: 43px;
     height: 43px;
     border-radius: 12px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,12 +59,12 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .brand-subtitle {
     font-size: 10px;
-    color: #8a7f86;
+    color: #857ca0;
     margin-top: 3px;
 }
 
@@ -81,22 +81,22 @@ body {
     padding: 12px 14px;
     border-radius: 11px;
     text-decoration: none;
-    color: #5f514d;
+    color: #534f5d;
     font-size: 13px;
     font-weight: 600;
     transition: .18s ease;
 }
 
 .menu a:hover {
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     transform: translateX(2px);
 }
 
 .menu a.active {
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
-    box-shadow: 0 8px 18px rgba(232, 66, 15, .16);
+    box-shadow: 0 8px 18px rgba(109, 74, 209, .16);
 }
 
 .menu-icon {
@@ -115,7 +115,7 @@ body {
     height: 20px;
     padding: 0 6px;
     border-radius: 20px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     font-size: 10px;
     font-weight: 800;
@@ -126,20 +126,20 @@ body {
 
 .menu a.active .notification-badge {
     background: white;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .logout-area {
     margin-top: auto;
     padding-top: 18px;
-    border-top: 1px solid #f1dfda;
+    border-top: 1px solid #e1ddee;
 }
 
 .logout-btn {
     width: 100%;
     border: none;
     background: transparent;
-    color: #e8420f;
+    color: #6d4ad1;
     text-align: left;
     padding: 12px 14px;
     border-radius: 11px;
@@ -151,7 +151,7 @@ body {
 }
 
 .logout-btn:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 /* =========================
@@ -182,7 +182,7 @@ body {
 }
 
 .page-kicker {
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
@@ -194,33 +194,33 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 34px;
     line-height: 1;
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 800;
 }
 
 .subtitle {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 13px;
     margin-top: 8px;
 }
 
 .profile-pill {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     padding: 10px 15px;
     border-radius: 14px;
     display: flex;
     align-items: center;
     gap: 9px;
     font-size: 13px;
-    box-shadow: 0 5px 18px rgba(60, 30, 20, .04);
+    box-shadow: 0 5px 18px rgba(38, 31, 59, .04);
 }
 
 .profile-pill-icon {
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,10 +262,10 @@ body {
 
 .card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 17px;
     padding: 25px;
-    box-shadow: 0 5px 18px rgba(60, 30, 20, .035);
+    box-shadow: 0 5px 18px rgba(38, 31, 59, .035);
 }
 
 /* =========================
@@ -288,8 +288,8 @@ body {
     height: 122px;
     border-radius: 50%;
     overflow: hidden;
-    background: #fff1ea;
-    border: 5px solid #ffe1d7;
+    background: #eee8ff;
+    border: 5px solid #e8e2f8;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -309,7 +309,7 @@ body {
     width: 37px;
     height: 37px;
     border-radius: 50%;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     display: flex;
     align-items: center;
@@ -322,14 +322,14 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
     line-height: 1;
-    color: #1b1a1f;
+    color: #221a3a;
     margin-bottom: 9px;
 }
 
 .role-badge {
     display: inline-block;
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
     padding: 6px 13px;
     border-radius: 20px;
     font-size: 10px;
@@ -338,7 +338,7 @@ body {
 }
 
 .profile-description {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     margin-top: 12px;
 }
@@ -350,14 +350,14 @@ body {
 .upload-box {
     margin-top: 22px;
     padding-top: 20px;
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 }
 
 .upload-label {
     display: block;
-    background: #fff1ea;
-    color: #e8420f;
-    border: 1px solid #ffd7ca;
+    background: #eee8ff;
+    color: #6d4ad1;
+    border: 1px solid #e1d9f6;
     padding: 11px;
     border-radius: 10px;
     cursor: pointer;
@@ -369,13 +369,13 @@ body {
 }
 
 .upload-label:hover {
-    background: #ffe3db;
+    background: #e7e0fb;
 }
 
 .upload-submit-btn {
     display: block;
     width: 100%;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     border: none;
     padding: 11px;
@@ -388,7 +388,7 @@ body {
 }
 
 .upload-submit-btn:hover {
-    background: #cc370b;
+    background: #5935bb;
     transform: translateY(-1px);
 }
 
@@ -397,7 +397,7 @@ body {
 }
 
 .upload-note {
-    color: #aa9791;
+    color: #9994a7;
     font-size: 10px;
     margin-top: 8px;
 }
@@ -412,7 +412,7 @@ body {
     justify-content: center;
     text-align: center;
     text-decoration: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 12px;
     border-radius: 11px;
@@ -423,7 +423,7 @@ body {
 }
 
 .deliveries-btn:hover {
-    background: #cc370b;
+    background: #5935bb;
     transform: translateY(-1px);
 }
 
@@ -435,12 +435,12 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 23px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
     margin-bottom: 18px;
 }
 
 .info {
-    background: #fff8f3;
+    background: #f8f6fe;
     border-radius: 13px;
     padding: 4px 13px;
 }
@@ -451,7 +451,7 @@ body {
     justify-content: space-between;
     gap: 20px;
     padding: 14px 3px;
-    border-bottom: 1px solid #f2e8e5;
+    border-bottom: 1px solid #e9e7f0;
 }
 
 .info-row:last-child {
@@ -459,13 +459,13 @@ body {
 }
 
 .info-label {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     font-weight: 600;
 }
 
 .info-value {
-    color: #3d302d;
+    color: #322f3b;
     font-size: 12px;
     font-weight: 800;
     text-align: right;
@@ -475,7 +475,7 @@ body {
 .rider-id {
     font-family: monospace;
     font-size: 11px;
-    background: #f5eeeb;
+    background: #eeecf4;
     padding: 5px 8px;
     border-radius: 7px;
 }
@@ -495,8 +495,8 @@ body {
 }
 
 .stat {
-    background: #fff8f3;
-    border: 1px solid #f2e5e1;
+    background: #f8f6fe;
+    border: 1px solid #e7e3f0;
     border-radius: 13px;
     padding: 18px 10px;
     text-align: center;
@@ -504,7 +504,7 @@ body {
 }
 
 .stat:hover {
-    border-color: #f4c9bc;
+    border-color: #d6cdec;
     transform: translateY(-2px);
 }
 
@@ -513,7 +513,7 @@ body {
     height: 40px;
     margin: 0 auto 8px;
     border-radius: 11px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -525,11 +525,11 @@ body {
     font-size: 27px;
     line-height: 1;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .stat-label {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     margin-top: 5px;
     font-weight: 600;
@@ -613,8 +613,8 @@ body {
 }
 
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }
 
 /* =========================
@@ -643,7 +643,7 @@ body {
 }
 
 .pw-field span {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     font-weight: 700;
 }
@@ -651,22 +651,22 @@ body {
 .pw-field input {
     width: 100%;
     padding: 11px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     font-family: 'Figtree', sans-serif;
     font-size: 13px;
 }
 
 .pw-field input:focus {
     outline: none;
-    border-color: #e8420f;
-    box-shadow: 0 0 0 3px #ffe6db;
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 3px #e6dcff;
 }
 
 .pw-field small {
-    color: #aa9791;
+    color: #9994a7;
     font-size: 11px;
 }
 

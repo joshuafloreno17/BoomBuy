@@ -43,7 +43,7 @@
                                 data-product-id="{{ $product->id }}"
                                 aria-label="Remove from wishlist"
                                 onclick="removeFromWishlist(this)"
-                            ><svg viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
+                            ><svg viewBox="0 0 24 24" fill="#6d4ad1" stroke="#6d4ad1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
 
                             @if($product->image)
                                 <img
@@ -115,7 +115,7 @@
         @else
 
             <div class="empty-state">
-                <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#f4b3a3" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+                <div class="empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#c7bce8" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
                 <h2>Your wishlist is empty</h2>
                 <p>Save products you like by tapping the heart icon while browsing.</p>
                 <a href="{{ route('products') }}" class="shop-btn">Start Shopping</a>

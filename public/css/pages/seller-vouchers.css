@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a { text-decoration: none; }
@@ -33,14 +33,14 @@ a { text-decoration: none; }
 
 .page-header {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 25px 30px;
     margin-bottom: 20px;
 }
 
 .page-header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 11px;
@@ -75,7 +75,7 @@ a { text-decoration: none; }
 
 .card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
@@ -99,14 +99,14 @@ a { text-decoration: none; }
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .form-group input,
 .form-group select {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -114,7 +114,7 @@ a { text-decoration: none; }
 
 .save-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 11px 20px;
     border-radius: 10px;
@@ -123,7 +123,7 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.save-btn:hover { background: #c2380f; }
+.save-btn:hover { background: #5536b5; }
 
 table {
     width: 100%;
@@ -131,18 +131,18 @@ table {
 }
 
 th {
-    background: #fff8f3;
-    color: #6b6570;
+    background: #f8f6fe;
+    color: #645a80;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
 }
 
 tr:last-child td { border-bottom: none; }
@@ -150,10 +150,10 @@ tr:last-child td { border-bottom: none; }
 .voucher-code {
     font-family: monospace;
     font-weight: 800;
-    background: #fff1ea;
+    background: #eee8ff;
     padding: 3px 8px;
     border-radius: 6px;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .status-badge {
@@ -165,7 +165,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 .status-active { background: #f0fdf4; color: #15803d; }
-.status-inactive { background: #f3efed; color: #6f5a52; }
+.status-inactive { background: #efeef2; color: #5b566b; }
 
 .mini-btn {
     border: none;
@@ -177,11 +177,11 @@ tr:last-child td { border-bottom: none; }
     margin-right: 5px;
 }
 
-.mini-btn.toggle { background: #fff1ea; color: #d9471c; }
+.mini-btn.toggle { background: #eee8ff; color: #6f51c2; }
 .mini-btn.delete { background: #fff1f2; color: #be123c; }
 
 .empty-message {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;

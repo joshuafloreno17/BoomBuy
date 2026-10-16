@@ -9,8 +9,8 @@
         body {
             margin: 0;
             font-family: 'Figtree', Arial, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
         }
 
         .container {
@@ -25,7 +25,7 @@
         }
 
         .subtitle {
-            color: #6b6570;
+            color: #645a80;
             margin-bottom: 24px;
         }
 
@@ -61,13 +61,13 @@
             left: 14px;
             top: 50%;
             transform: translateY(-50%);
-            color: #8a7f86;
+            color: #857ca0;
         }
 
         .search-box input {
             width: 100%;
             padding: 12px 14px 12px 40px;
-            border: 1px solid #e8d6cc;
+            border: 1px solid #ddd5f2;
             border-radius: 12px;
             font-size: 14px;
             background: #fff;
@@ -76,7 +76,7 @@
 
         .search-box input:focus {
             outline: none;
-            border-color: var(--accent, #e8420f);
+            border-color: var(--accent, #6d4ad1);
         }
 
         .btn {
@@ -94,13 +94,13 @@
         }
 
         .btn-primary {
-            background: var(--accent, #e8420f);
+            background: var(--accent, #6d4ad1);
             color: #fff;
         }
 
         .btn-light {
-            background: #f6eee9;
-            color: #4a4449;
+            background: #f1edfa;
+            color: #463c5e;
         }
 
         /* Tabs */
@@ -117,9 +117,9 @@
             flex: 0 0 auto;
             padding: 9px 14px;
             border-radius: 999px;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             background: #fff;
-            color: #6f5850;
+            color: #5a546b;
             font-weight: 700;
             font-size: 13px;
             text-decoration: none;
@@ -132,15 +132,15 @@
             margin-left: 6px;
             padding: 1px 7px;
             border-radius: 999px;
-            background: #f0e2da;
-            color: #6b6570;
+            background: #e9e4fa;
+            color: #645a80;
             font-size: 12px;
             text-align: center;
         }
 
         .tab.active {
-            background: var(--accent, #e8420f);
-            border-color: var(--accent, #e8420f);
+            background: var(--accent, #6d4ad1);
+            border-color: var(--accent, #6d4ad1);
             color: #fff;
         }
 
@@ -152,21 +152,21 @@
         /* Order cards */
         .empty {
             background: white;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 16px;
             padding: 50px 20px;
             text-align: center;
-            color: #6b6570;
+            color: #645a80;
         }
 
         .empty i {
             font-size: 34px;
-            color: #e8b9aa;
+            color: #c8bfe0;
         }
 
         .order-card {
             background: white;
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 16px;
             padding: 18px 20px;
             margin-bottom: 14px;
@@ -186,7 +186,7 @@
         }
 
         .order-date {
-            color: #6b6570;
+            color: #645a80;
             font-size: 13px;
             margin-top: 2px;
         }
@@ -216,12 +216,12 @@
             gap: 18px;
             margin-top: 14px;
             padding-top: 14px;
-            border-top: 1px solid #f6eee9;
+            border-top: 1px solid #f1edfa;
             align-items: start;
         }
 
         .label {
-            color: #8a7f86;
+            color: #857ca0;
             font-size: 11px;
             font-weight: 800;
             text-transform: uppercase;
@@ -230,14 +230,14 @@
         }
 
         .info {
-            color: #4a4449;
+            color: #463c5e;
             font-size: 14px;
             line-height: 1.6;
             word-break: break-word;
         }
 
         .info .muted {
-            color: #6b6570;
+            color: #645a80;
         }
 
         .item-line {
@@ -258,7 +258,7 @@
         .order-total .amount {
             font-size: 19px;
             font-weight: 800;
-            color: #1b1a1f;
+            color: #221a3a;
         }
 
         .order-total .btn {

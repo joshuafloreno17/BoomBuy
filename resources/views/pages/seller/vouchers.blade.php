@@ -117,7 +117,7 @@
                                         : '₱' . number_format($voucher->discount_value, 2) }}
                                 </td>
                                 <td>₱{{ number_format($voucher->min_order_amount, 2) }}</td>
-                                <td>{{ $voucher->used_count }}{{ $voucher->max_uses ? ' / ' . $voucher->max_uses : '' }}<br><small style="color:#8a7f86;">{{ $voucher->per_buyer_limit ? $voucher->per_buyer_limit . ' per buyer' : 'no limit per buyer' }}</small></td>
+                                <td>{{ $voucher->used_count }}{{ $voucher->max_uses ? ' / ' . $voucher->max_uses : '' }}<br><small style="color:#857ca0;">{{ $voucher->per_buyer_limit ? $voucher->per_buyer_limit . ' per buyer' : 'no limit per buyer' }}</small></td>
                                 <td>{{ $voucher->expires_at ? $voucher->expires_at->format('M d, Y') : 'Never' }}</td>
                                 <td>
                                     <span class="status-badge {{ $voucher->is_active ? 'status-active' : 'status-inactive' }}">

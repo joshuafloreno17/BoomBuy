@@ -1,7 +1,7 @@
 /* Admin → Sorting Centers. Base layout comes from pages/admin-logistics.css. */
 
 .stat-card strong small {
-    color: #8a7f86;
+    color: #857ca0;
     font-family: 'Figtree', sans-serif;
     font-size: 12px;
     font-weight: 600;
@@ -9,7 +9,7 @@
 
 .footer {
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     margin: 30px 0;
 }
@@ -38,7 +38,7 @@
 
 .sc-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 20px;
@@ -53,11 +53,11 @@
 }
 
 .sc-card h2 i {
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .sc-note {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin: 6px 0 12px;
 }
@@ -79,7 +79,7 @@
 }
 
 .sc-add label em {
-    color: #8a7f86;
+    color: #857ca0;
     font-style: normal;
     font-weight: 500;
 }
@@ -95,10 +95,10 @@
 .sc-filter input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #dbd3d1;
+    border: 1px solid #d4d2da;
     border-radius: 10px;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-family: inherit;
     font-size: 13px;
 }
@@ -109,8 +109,8 @@
 .sc-filter select:focus,
 .sc-filter input:focus {
     outline: none;
-    border-color: #e8420f;
-    box-shadow: 0 0 0 3px rgba(232, 66, 15, .1);
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 3px rgba(109, 74, 209, .1);
 }
 
 .sc-add button,
@@ -118,7 +118,7 @@
     padding: 11px 18px;
     border: none;
     border-radius: 12px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     font-family: inherit;
     font-size: 13px;
@@ -133,7 +133,7 @@
 
 .sc-add button:hover,
 .sc-staff button:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 /* Staff */
@@ -143,7 +143,7 @@
     gap: 12px;
     align-items: center;
     padding: 12px 0;
-    border-top: 1px solid #f5ebe5;
+    border-top: 1px solid #eae7f3;
 }
 
 .sc-staff-who strong {
@@ -152,7 +152,7 @@
 }
 
 .sc-staff-who span {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     overflow-wrap: anywhere;
 }
@@ -192,18 +192,18 @@
 
 .sc-table th {
     padding: 10px 12px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     font-weight: 700;
     text-align: left;
     text-transform: uppercase;
     letter-spacing: .5px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .sc-table td {
     padding: 12px;
-    border-bottom: 1px solid #f5ebe5;
+    border-bottom: 1px solid #eae7f3;
     vertical-align: middle;
 }
 
@@ -212,7 +212,7 @@
 }
 
 .sc-table td span:not(.sc-pill) {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
@@ -235,15 +235,15 @@
 
 .sc-pill.is-closed {
     background: #f1f0ee;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .sc-toggle {
     padding: 6px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
     background: #ffffff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-family: inherit;
     font-size: 12px;
     font-weight: 700;
@@ -251,12 +251,12 @@
 }
 
 .sc-toggle:hover {
-    border-color: #e8420f;
-    color: #e8420f;
+    border-color: #6d4ad1;
+    color: #6d4ad1;
 }
 
 .sc-empty {
-    color: #8a7f86;
+    color: #857ca0;
     text-align: center;
 }
 
@@ -284,7 +284,7 @@
 
 .sc-table td.sc-serves {
     max-width: 320px;
-    color: #4b4550;
+    color: #453f56;
     font-size: 12px;
     line-height: 1.5;
 }
@@ -296,7 +296,7 @@
 .sc-map {
     height: 460px;
     border-radius: 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     overflow: hidden;
     z-index: 0;
 }

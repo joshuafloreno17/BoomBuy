@@ -11,7 +11,7 @@
     margin: 0 auto;
     padding: 28px 32px 48px;
     box-sizing: border-box;
-    color: #1b1a1f;
+    color: #221a3a;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -40,7 +40,7 @@
 
 .pd-eyebrow {
     margin: 0;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 13px;
     font-weight: 600;
     letter-spacing: .04em;
@@ -63,15 +63,15 @@
     gap: 8px;
     height: 44px;
     padding: 0 14px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 12px;
     background: #fff;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .pd-search:focus-within {
-    border-color: #e8420f;
-    box-shadow: 0 0 0 4px rgba(232, 66, 15, .12);
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 4px rgba(109, 74, 209, .12);
 }
 
 .pd-search input {
@@ -80,7 +80,7 @@
     border: 0;
     outline: 0;
     background: transparent;
-    color: #1b1a1f;
+    color: #221a3a;
     font: inherit;
 }
 
@@ -91,16 +91,16 @@
     flex: none;
     display: grid;
     place-items: center;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 12px;
     background: #fff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 18px;
 }
 
 .pd-icon-btn:hover {
-    border-color: #e8d6cc;
-    background: #fff8f3;
+    border-color: #ddd5f2;
+    background: #f8f6fe;
 }
 
 .pd-icon-btn em {
@@ -112,9 +112,9 @@
     padding: 0 5px;
     display: grid;
     place-items: center;
-    border: 2px solid #fff8f3;
+    border: 2px solid #f8f6fe;
     border-radius: 999px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-size: 10.5px;
     font-style: normal;
@@ -139,24 +139,24 @@
 }
 
 .pd-btn-primary {
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
 }
 
 .pd-btn-primary:hover {
-    background: #c2380f;
+    background: #5536b5;
     color: #fff;
 }
 
 .pd-btn-ghost {
-    border-color: #e8d6cc;
+    border-color: #ddd5f2;
     background: #fff;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .pd-btn-ghost:hover {
-    border-color: #e8420f;
-    color: #c2380f;
+    border-color: #6d4ad1;
+    color: #5536b5;
 }
 
 .pd-btn-sm {
@@ -177,20 +177,20 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
     background: #fff;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 a.pd-kpi:hover {
-    border-color: #e8d6cc;
-    box-shadow: 0 8px 22px rgba(27, 26, 31, .06);
+    border-color: #ddd5f2;
+    box-shadow: 0 8px 22px rgba(34, 26, 58, .06);
 }
 
 .pd-kpi.is-accent {
-    border-color: #e8420f;
-    background: #e8420f;
+    border-color: #6d4ad1;
+    background: #6d4ad1;
     color: #fff;
 }
 
@@ -225,7 +225,7 @@ a.pd-kpi:hover {
 .pd-card {
     min-width: 0;
     padding: 22px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
     background: #fff;
 }
@@ -250,7 +250,7 @@ a.pd-kpi:hover {
 }
 
 .pd-link {
-    color: #c2380f;
+    color: #5536b5;
     font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
@@ -261,7 +261,7 @@ a.pd-kpi:hover {
 }
 
 .pd-muted {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13.5px;
 }
 
@@ -278,13 +278,13 @@ a.pd-kpi:hover {
     gap: 12px;
     padding: 12px;
     border-radius: 12px;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     transition: background .15s ease;
 }
 
 a.pd-todo-item:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .pd-todo-icon {
@@ -294,14 +294,14 @@ a.pd-todo-item:hover {
     display: grid;
     place-items: center;
     border-radius: 10px;
-    background: #f2ece8;
-    color: #1b1a1f;
+    background: #ebe9f1;
+    color: #221a3a;
     font-size: 17px;
 }
 
 .pd-todo-item.is-hot .pd-todo-icon {
-    background: #ffe6db;
-    color: #c2380f;
+    background: #e6dcff;
+    color: #5536b5;
 }
 
 .pd-todo-text {
@@ -316,7 +316,7 @@ a.pd-todo-item:hover {
 
 .pd-todo-text span {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 12.5px;
 }
 
@@ -327,7 +327,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-todo-item.is-done .pd-todo-count {
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 /* ---------- Bar chart (7 bars, plain HTML) ---------- */
@@ -337,7 +337,7 @@ a.pd-todo-item:hover {
     gap: 12px;
     height: 220px;
     padding: 0 4px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .pd-bar {
@@ -352,7 +352,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-bar-amount {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
@@ -363,11 +363,11 @@ a.pd-todo-item:hover {
     max-width: 46px;
     min-height: 4px;
     border-radius: 10px 10px 4px 4px;
-    background: #ffd3c2;
+    background: #dcd4f5;
 }
 
 .pd-bar.is-today .pd-bar-fill {
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .pd-bar-days {
@@ -379,13 +379,13 @@ a.pd-todo-item:hover {
 .pd-bar-days span {
     flex: 1;
     min-width: 0;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
 }
 
 .pd-bar-days span.is-today {
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 700;
 }
 
@@ -394,7 +394,7 @@ a.pd-todo-item:hover {
     display: inline-flex;
     padding: 3px;
     border-radius: 10px;
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .pd-seg a,
@@ -403,7 +403,7 @@ a.pd-todo-item:hover {
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: #6b6570;
+    color: #645a80;
     font: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -412,7 +412,7 @@ a.pd-todo-item:hover {
 
 .pd-seg .is-on {
     background: #fff;
-    color: #1b1a1f;
+    color: #221a3a;
     font-weight: 700;
     box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 }
@@ -431,7 +431,7 @@ a.pd-todo-item:hover {
 
 .pd-table th {
     padding: 10px 8px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     font-weight: 600;
     letter-spacing: .05em;
@@ -441,7 +441,7 @@ a.pd-todo-item:hover {
 
 .pd-table td {
     padding: 14px 8px;
-    border-top: 1px solid #f6ece6;
+    border-top: 1px solid #ebe8f4;
     vertical-align: middle;
 }
 
@@ -450,7 +450,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-table tr.is-link:hover td {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .pd-strong {
@@ -458,14 +458,14 @@ a.pd-todo-item:hover {
 }
 
 .pd-sub {
-    color: #6b6570;
+    color: #645a80;
 }
 
 .pd-empty {
     padding: 28px 16px;
-    border: 1px dashed #e8d6cc;
+    border: 1px dashed #ddd5f2;
     border-radius: 14px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 14px;
     text-align: center;
 }
@@ -473,7 +473,7 @@ a.pd-todo-item:hover {
 .pd-empty i {
     display: block;
     margin-bottom: 6px;
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 24px;
 }
 
@@ -489,8 +489,8 @@ a.pd-todo-item:hover {
     align-items: center;
     gap: 10px 14px;
     padding: 14px 4px;
-    border-top: 1px solid #f6ece6;
-    color: #1b1a1f;
+    border-top: 1px solid #ebe8f4;
+    color: #221a3a;
 }
 
 .pd-list-row:first-child {
@@ -505,8 +505,8 @@ a.pd-todo-item:hover {
     place-items: center;
     overflow: hidden;
     border-radius: 50%;
-    background: #fff1ea;
-    color: #a3300c;
+    background: #eee8ff;
+    color: #4a2e96;
     font-size: 14px;
     font-weight: 700;
 }
@@ -528,15 +528,15 @@ a.pd-todo-item:hover {
 
 .pd-list-main span {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 }
 
 .pd-tag {
     padding: 5px 10px;
     border-radius: 999px;
-    background: #f3ece7;
-    color: #5e5759;
+    background: #ebe9f2;
+    color: #574e70;
     font-size: 12.5px;
     font-weight: 700;
     white-space: nowrap;
@@ -555,14 +555,14 @@ a.pd-todo-item:hover {
     align-items: center;
     gap: 6px;
     border-radius: 999px;
-    background: #fff1ea;
-    color: #1b1a1f;
+    background: #eee8ff;
+    color: #221a3a;
     font-size: 13px;
     font-weight: 600;
 }
 
 .pd-chip.is-on {
-    background: #1b1a1f;
+    background: #221a3a;
     color: #fff;
     font-weight: 700;
 }
@@ -573,7 +573,7 @@ a.pd-todo-item:hover {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 8px;
     padding: 8px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 18px;
     background: #fff;
 }
@@ -584,16 +584,16 @@ a.pd-todo-item:hover {
     gap: 2px;
     padding: 16px;
     border-radius: 12px;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a.pd-step:hover {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .pd-step.is-hot {
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
 }
 
@@ -702,7 +702,7 @@ a.pd-step:hover {
     left: 50%;
     top: 42%;
     transform: translate(-50%, -50%);
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 14px;
     text-align: center;
     white-space: nowrap;
@@ -728,7 +728,7 @@ a.pd-step:hover {
         align-items: center;
         gap: 6px 12px;
         padding: 12px 0;
-        border-top: 1px solid #f6ece6;
+        border-top: 1px solid #ebe8f4;
     }
     .pd-stack tbody tr:first-child { border-top: 0; }
     .pd-stack td { padding: 0; border: 0; }
@@ -761,10 +761,10 @@ a.pd-step:hover {
     z-index: 50;
     width: min(380px, calc(100vw - 32px));
     overflow: hidden;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     background: #fff;
-    box-shadow: 0 18px 40px rgba(27, 26, 31, .14);
+    box-shadow: 0 18px 40px rgba(34, 26, 58, .14);
     animation: pdPopIn .16s ease-out;
 }
 
@@ -782,7 +782,7 @@ a.pd-step:hover {
     justify-content: space-between;
     gap: 10px;
     padding: 14px 16px;
-    border-bottom: 1px solid #f6ece6;
+    border-bottom: 1px solid #ebe8f4;
 }
 
 .pd-pop-head strong {
@@ -796,8 +796,8 @@ a.pd-step:hover {
     padding: 6px 10px;
     border: 0;
     border-radius: 8px;
-    background: #fff1ea;
-    color: #c2380f;
+    background: #eee8ff;
+    color: #5536b5;
     font: inherit;
     font-size: 12.5px;
     font-weight: 700;
@@ -818,15 +818,15 @@ a.pd-step:hover {
     gap: 12px;
     padding: 10px;
     border-radius: 12px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .pd-pop-item:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 .pd-pop-item.is-unread {
-    background: #fff1ea;
+    background: #eee8ff;
 }
 
 .pd-pop-item.is-unread::after {
@@ -837,7 +837,7 @@ a.pd-step:hover {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .pd-pop-icon {
@@ -847,8 +847,8 @@ a.pd-step:hover {
     display: grid;
     place-items: center;
     border-radius: 10px;
-    background: #f3ece7;
-    color: #c2380f;
+    background: #ebe9f2;
+    color: #5536b5;
     font-size: 16px;
 }
 
@@ -865,7 +865,7 @@ a.pd-step:hover {
 .pd-pop-text span {
     display: block;
     margin-top: 2px;
-    color: #5e5759;
+    color: #574e70;
     font-size: 12.5px;
     line-height: 1.4;
 }
@@ -873,13 +873,13 @@ a.pd-step:hover {
 .pd-pop-text small {
     display: block;
     margin-top: 4px;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11.5px;
 }
 
 .pd-pop-empty {
     padding: 28px 16px;
-    color: #6b6570;
+    color: #645a80;
     font-size: 14px;
     text-align: center;
 }
@@ -887,22 +887,22 @@ a.pd-step:hover {
 .pd-pop-empty i {
     display: block;
     margin-bottom: 6px;
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 22px;
 }
 
 .pd-pop-all {
     display: block;
     padding: 12px;
-    border-top: 1px solid #f6ece6;
-    color: #c2380f;
+    border-top: 1px solid #ebe8f4;
+    color: #5536b5;
     font-size: 13.5px;
     font-weight: 700;
     text-align: center;
 }
 
 .pd-pop-all:hover {
-    background: #fff8f3;
+    background: #f8f6fe;
 }
 
 /* Phones: the bell sits on the left, so the panel spans the screen instead. */

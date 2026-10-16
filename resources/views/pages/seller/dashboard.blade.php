@@ -211,7 +211,7 @@
                             @endphp
                             <tr>
                                 <td>
-                                    <a href="{{ route('seller.order.details', $order->id) }}" class="pd-strong" style="color:#1b1a1f;">#{{ $order->id }}</a>
+                                    <a href="{{ route('seller.order.details', $order->id) }}" class="pd-strong" style="color:#221a3a;">#{{ $order->id }}</a>
                                     <div class="pd-sub" style="font-size:12.5px;">{{ \Carbon\Carbon::parse($order->created_at)->format('M j, g:i A') }}</div>
                                 </td>
                                 <td class="pd-hide-sm">{{ $order->shipping_name ?: 'Buyer' }}</td>
@@ -555,7 +555,7 @@
 
     @endif
 
-    <p id="productSearchEmpty" style="display:none; text-align:center; color:#6b6570; font-size:13px; margin:10px 0 24px;">
+    <p id="productSearchEmpty" style="display:none; text-align:center; color:#645a80; font-size:13px; margin:10px 0 24px;">
         No products match your search.
     </p>
 

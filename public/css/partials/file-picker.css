@@ -10,17 +10,17 @@
     gap: 12px;
     width: 100%;
     padding: 12px 14px;
-    border: 1.5px dashed #ecc9bd;
+    border: 1.5px dashed #d4cde6;
     border-radius: 12px;
-    background: #fff8f3;
+    background: #f8f6fe;
     cursor: pointer;
     transition: border-color 0.15s ease, background 0.15s ease;
 }
 
 .bb-file:hover,
 .bb-file:focus-within {
-    border-color: var(--accent, #e8420f);
-    background: #fff1ea;
+    border-color: var(--accent, #6d4ad1);
+    background: #eee8ff;
 }
 
 .bb-file.has-file {
@@ -49,8 +49,8 @@
     width: 38px;
     height: 38px;
     border-radius: 10px;
-    background: #fff1ea;
-    color: var(--accent, #e8420f);
+    background: #eee8ff;
+    color: var(--accent, #6d4ad1);
     font-size: 17px;
 }
 
@@ -71,7 +71,7 @@
 .bb-file-text strong {
     font-size: 13px;
     font-weight: 700;
-    color: var(--ink, #1b1a1f);
+    color: var(--ink, #221a3a);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -79,16 +79,16 @@
 
 .bb-file-text small {
     font-size: 11.5px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .bb-file-btn {
     flex-shrink: 0;
     padding: 7px 12px;
     border-radius: 9px;
-    border: 1px solid #f0cfc4;
+    border: 1px solid #d9d2ea;
     background: #fff;
-    color: var(--accent-dark, #c2380f);
+    color: var(--accent-dark, #5536b5);
     font-family: var(--font-body, inherit);
     font-size: 12px;
     font-weight: 700;

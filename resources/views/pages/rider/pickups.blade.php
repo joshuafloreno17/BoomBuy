@@ -12,10 +12,10 @@
     <style>
         .pickup-section { margin-top: 26px; }
         .pickup-section > h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 4px; font-size: 19px; }
-        .pickup-section > h2 .count { padding: 1px 9px; border-radius: 999px; background: var(--accent-soft, #fff1ea); color: var(--accent-dark, #c2380f); font-size: 13px; }
-        .pickup-section > p { margin: 0 0 14px; color: var(--muted, #6b6570); font-size: 14px; }
-        .pickup-day { font-weight: 800; color: var(--accent-dark, #c2380f); }
-        .pickup-empty { padding: 22px; border: 1px dashed var(--line, #f0e2da); border-radius: 16px; background: #fff; color: var(--muted, #6b6570); text-align: center; }
+        .pickup-section > h2 .count { padding: 1px 9px; border-radius: 999px; background: var(--accent-soft, #eee8ff); color: var(--accent-dark, #5536b5); font-size: 13px; }
+        .pickup-section > p { margin: 0 0 14px; color: var(--muted, #645a80); font-size: 14px; }
+        .pickup-day { font-weight: 800; color: var(--accent-dark, #5536b5); }
+        .pickup-empty { padding: 22px; border: 1px dashed var(--line, #e9e4fa); border-radius: 16px; background: #fff; color: var(--muted, #645a80); text-align: center; }
         .delivery-card form { flex: 1; margin: 0; }
         .delivery-card form .btn { width: 100%; border: 0; cursor: pointer; font: inherit; }
     </style>

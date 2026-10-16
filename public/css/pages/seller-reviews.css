@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a { text-decoration: none; }
@@ -36,7 +36,7 @@ a { text-decoration: none; }
 }
 
 .page-header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 11px;
@@ -71,7 +71,7 @@ a { text-decoration: none; }
 
 .review-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 16px;
@@ -91,7 +91,7 @@ a { text-decoration: none; }
 }
 
 .review-buyer {
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-top: 3px;
 }
@@ -103,15 +103,15 @@ a { text-decoration: none; }
 }
 
 .review-text {
-    color: #4b3a34;
+    color: #3b3748;
     font-size: 13px;
     line-height: 1.6;
     margin: 10px 0;
 }
 
 .reply-box {
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
     padding: 12px 14px;
     margin-top: 10px;
@@ -120,20 +120,20 @@ a { text-decoration: none; }
 .reply-box .reply-label {
     font-size: 11px;
     font-weight: 800;
-    color: #e8420f;
+    color: #6d4ad1;
     margin-bottom: 4px;
 }
 
 .reply-box .reply-text {
     font-size: 13px;
-    color: #4a4449;
+    color: #463c5e;
 }
 
 .reply-form textarea {
     width: 100%;
     min-height: 70px;
     padding: 10px 12px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
@@ -141,11 +141,11 @@ a { text-decoration: none; }
     resize: vertical;
 }
 
-.reply-form textarea:focus { border-color: #e8420f; }
+.reply-form textarea:focus { border-color: #6d4ad1; }
 
 .reply-form button {
     margin-top: 8px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     border: none;
     border-radius: 8px;
@@ -156,13 +156,13 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.reply-form button:hover { background: #c2380f; }
+.reply-form button:hover { background: #5536b5; }
 
 .empty {
     text-align: center;
     padding: 60px 20px;
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 }
 
@@ -170,7 +170,7 @@ a { text-decoration: none; }
 
 .empty h3 { font-family: 'Bricolage Grotesque', sans-serif; margin-bottom: 6px; }
 
-.empty p { color: #6b6570; font-size: 13px; }
+.empty p { color: #645a80; font-size: 13px; }
 
 @media (max-width: 900px) {
     .main-content { margin-left: 72px; width: calc(100% - 72px); }

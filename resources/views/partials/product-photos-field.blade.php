@@ -32,18 +32,18 @@
     .pg-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; }
     .pg-group { margin-bottom: 18px; min-width: 0; }
     .pg-title { font-weight: 700; font-size: 13.5px; }
-    .pg-title small { font-weight: 500; color: #8a7f86; }
-    .pg-note { margin: 2px 0 8px; font-size: 12.5px; color: #8a7f86; }
+    .pg-title small { font-weight: 500; color: #857ca0; }
+    .pg-note { margin: 2px 0 8px; font-size: 12.5px; color: #857ca0; }
     .pp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
     .pp-item { position: relative; width: 96px; display: flex; flex-direction: column; gap: 6px; }
-    .pp-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid #f0e2da; background: #fff8f3; }
+    .pp-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid #e9e4fa; background: #f8f6fe; }
     .pp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pp-item.is-cover .pp-thumb { border: 2px solid #e8420f; }
-    .pp-badge { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; background: #e8420f; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
-    .pp-opt.pp-opt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: #6b6570; cursor: pointer; }
-    .pp-opt input { width: 15px; height: 15px; margin: 0; accent-color: #e8420f; }
+    .pp-item.is-cover .pp-thumb { border: 2px solid #6d4ad1; }
+    .pp-badge { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; background: #6d4ad1; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
+    .pp-opt.pp-opt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: #645a80; cursor: pointer; }
+    .pp-opt input { width: 15px; height: 15px; margin: 0; accent-color: #6d4ad1; }
     .pp-item.is-removed .pp-thumb { opacity: .35; }
-    .pp-hint { margin: 6px 0 0; font-size: 12.5px; color: #8a7f86; }
+    .pp-hint { margin: 6px 0 0; font-size: 12.5px; color: #857ca0; }
 </style>
 @endonce
 

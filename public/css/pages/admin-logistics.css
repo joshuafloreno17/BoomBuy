@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a { text-decoration: none; }
@@ -34,7 +34,7 @@ a { text-decoration: none; }
 }
 
 .header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 10px;
@@ -48,7 +48,7 @@ a { text-decoration: none; }
 }
 
 .header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     margin-top: 6px;
 }
@@ -62,14 +62,14 @@ a { text-decoration: none; }
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-bottom: 8px;
 }

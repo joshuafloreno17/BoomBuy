@@ -51,7 +51,7 @@
             </div>
             <div class="stat-card">
                 <span>Need Attention</span>
-                <strong style="{{ $withIssues > 0 ? 'color:#e8420f;' : '' }}">{{ $withIssues }}</strong>
+                <strong style="{{ $withIssues > 0 ? 'color:#6d4ad1;' : '' }}">{{ $withIssues }}</strong>
             </div>
             <div class="stat-card">
                 <span>Suspended</span>

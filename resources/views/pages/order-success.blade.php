@@ -122,7 +122,7 @@
                 </span>
                 <span class="order-value">
                     {{ $order['pickup_center']->name }}<br>
-                    <small style="font-weight:500; color:#6b6570;">{{ $order['pickup_center']->address ?: $order['pickup_center']->town }}</small>
+                    <small style="font-weight:500; color:#645a80;">{{ $order['pickup_center']->address ?: $order['pickup_center']->town }}</small>
                 </span>
             </div>
         @endif
@@ -134,7 +134,7 @@
                 </span>
                 <span class="order-value" style="letter-spacing:.12em;">
                     {{ $order['pickup_code'] }}<br>
-                    <small style="font-weight:500; color:#6b6570; letter-spacing:0;">Give it to the staff when you collect. Keep it private.</small>
+                    <small style="font-weight:500; color:#645a80; letter-spacing:0;">Give it to the staff when you collect. Keep it private.</small>
                 </span>
             </div>
         @endif

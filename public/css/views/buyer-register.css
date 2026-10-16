@@ -10,13 +10,13 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
-    color: #29211f;
+    background: #f8f6fe;
+    color: #222028;
     min-height: 100vh;
 }
 
 a {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 [hidden] {
@@ -38,7 +38,7 @@ a {
     height: 100vh;
     overflow-y: auto;
 
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     padding: 44px 48px;
 
@@ -85,7 +85,7 @@ a {
     font-weight: 700;
     letter-spacing: 0.14em;
     text-transform: uppercase;
-    color: #ffe6db;
+    color: #e6dcff;
 }
 
 .reg-pitch h1 {
@@ -96,13 +96,13 @@ a {
 }
 
 .reg-pitch h1 span {
-    color: #ffe6db;
+    color: #e6dcff;
 }
 
 .reg-pitch p {
     font-size: 17px;
     line-height: 1.5;
-    color: #fff1ea;
+    color: #eee8ff;
 }
 
 .reg-perks {
@@ -123,7 +123,7 @@ a {
     width: 36px;
     height: 36px;
     border-radius: 10px;
-    background: #c2380f;
+    background: #5536b5;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -137,7 +137,7 @@ a {
 .reg-perks small {
     display: block;
     font-size: 14px;
-    color: #ffe6db;
+    color: #e6dcff;
 }
 
 /* ---------- Form side ---------- */
@@ -160,7 +160,7 @@ a {
     gap: 12px;
     flex-wrap: wrap;
     font-size: 15px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-top a {
@@ -173,18 +173,18 @@ a {
     gap: 6px;
     height: 44px;
     padding: 0 16px;
-    border: 1.5px solid #ece4df;
+    border: 1.5px solid #e3e1ea;
     border-radius: 12px;
     background: #fff;
-    color: #29211f !important;
+    color: #222028 !important;
     font-weight: 600 !important;
     text-decoration: none;
     transition: 0.15s;
 }
 
 .reg-back:hover {
-    border-color: #efb8a7;
-    background: #fff1ea;
+    border-color: #c8bee5;
+    background: #eee8ff;
 }
 
 .reg-head {
@@ -195,13 +195,13 @@ a {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 34px;
     font-weight: 800;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .reg-head p {
     margin-top: 6px;
     font-size: 15px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .error-box {
@@ -242,7 +242,7 @@ a {
     display: block;
     height: 6px;
     border-radius: 3px;
-    background: #ece4df;
+    background: #e3e1ea;
     transition: background 0.2s;
 }
 
@@ -255,7 +255,7 @@ a {
     background: none;
     text-align: left;
     font: 600 13px 'Figtree', sans-serif;
-    color: #6b6570;
+    color: #645a80;
     cursor: default;
 }
 
@@ -264,8 +264,8 @@ a {
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #ece4df;
-    color: #6b6570;
+    background: #e3e1ea;
+    color: #645a80;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -279,12 +279,12 @@ a {
 
 .reg-steps li.is-current .reg-step-bar,
 .reg-steps li.is-done .reg-step-bar {
-    background: #e8420f;
+    background: #6d4ad1;
 }
 
 .reg-steps li.is-current .reg-step-btn,
 .reg-steps li.is-done .reg-step-btn {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .reg-steps li.is-current .reg-step-btn {
@@ -293,8 +293,8 @@ a {
 
 .reg-steps li.is-current .reg-step-dot {
     background: #fff;
-    color: #c2380f;
-    border: 2px solid #e8420f;
+    color: #5536b5;
+    border: 2px solid #6d4ad1;
 }
 
 .reg-steps li.is-done .reg-step-btn {
@@ -302,7 +302,7 @@ a {
 }
 
 .reg-steps li.is-done .reg-step-dot {
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
 }
 
@@ -327,14 +327,14 @@ a {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 21px;
     font-weight: 700;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .reg-panel-sub {
     margin-top: 4px;
     font-size: 13px;
     font-weight: 500;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-grid {
@@ -357,7 +357,7 @@ a {
 }
 
 .req {
-    color: #c2380f;
+    color: #5536b5;
     font-weight: 700;
 }
 
@@ -368,8 +368,8 @@ a {
 }
 
 .reg-addr input#postal_code[readonly] {
-    background: #f7f2ef;
-    color: #1b1a1f;
+    background: #f2f0f6;
+    color: #221a3a;
 }
 
 .field {
@@ -381,7 +381,7 @@ a {
     display: block;
     font-size: 14px;
     font-weight: 600;
-    color: #1b1a1f;
+    color: #221a3a;
     margin-bottom: 6px;
     padding: 0;
 }
@@ -392,7 +392,7 @@ a {
 }
 
 .opt {
-    color: #6b6570;
+    color: #645a80;
     font-weight: 500;
 }
 
@@ -401,23 +401,23 @@ a {
     width: 100%;
     height: 50px;
     padding: 0 14px;
-    border: 1.5px solid #ece4df;
+    border: 1.5px solid #e3e1ea;
     border-radius: 12px;
     background: #fff;
     font: 500 15px 'Figtree', sans-serif;
-    color: #1b1a1f;
+    color: #221a3a;
     outline: none;
     transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 .field input::placeholder {
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .field input:focus,
 .field select:focus {
-    border-color: #e8420f;
-    box-shadow: 0 0 0 4px #ffe6db;
+    border-color: #6d4ad1;
+    box-shadow: 0 0 0 4px #e6dcff;
 }
 
 /* Edge adds its own eye button to password boxes; the page has one already. */
@@ -445,20 +445,20 @@ a {
 }
 
 .field input[readonly] {
-    background: #fff8f3;
+    background: #f8f6fe;
     font-weight: 700;
-    color: #29211f;
+    color: #222028;
 }
 
 .field select:disabled {
-    background: #f7f2ef;
-    color: #8a7f86;
+    background: #f2f0f6;
+    color: #857ca0;
 }
 
 .field .input-error,
 .field input.input-error {
     border-color: #d92d20 !important;
-    background: #fffbfa !important;
+    background: #fcfbfe !important;
 }
 
 .reg-err {
@@ -475,7 +475,7 @@ a {
     display: block;
     margin-top: 6px;
     font-size: 13px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 /* Sex pills */
@@ -488,7 +488,7 @@ a {
 .reg-pill {
     flex: 1;
     height: 50px;
-    border: 1.5px solid #ece4df;
+    border: 1.5px solid #e3e1ea;
     border-radius: 12px;
     background: #fff;
     display: flex;
@@ -504,17 +504,17 @@ a {
 .reg-pill input {
     width: 16px;
     height: 16px;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
 }
 
 .reg-pill:has(input:checked) {
-    border-color: #e8420f;
-    background: #fff1ea;
-    color: #c2380f;
+    border-color: #6d4ad1;
+    background: #eee8ff;
+    color: #5536b5;
 }
 
 .reg-pill:has(input:focus-visible) {
-    box-shadow: 0 0 0 4px #ffe6db;
+    box-shadow: 0 0 0 4px #e6dcff;
 }
 
 .reg-pills.input-error .reg-pill {
@@ -530,7 +530,7 @@ a {
     padding: 16px 18px;
     border-radius: 14px;
     background: #fff;
-    border: 1.5px solid #f0e2da;
+    border: 1.5px solid #e9e4fa;
 }
 
 .reg-note .reg-note-icon {
@@ -550,12 +550,12 @@ a {
     font-weight: 600;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-note strong {
     display: block;
-    color: #1b1a1f;
+    color: #221a3a;
     overflow-wrap: anywhere;
 }
 
@@ -581,7 +581,7 @@ a {
     align-items: center;
     gap: 8px;
     padding: 28px 16px;
-    border: 2px dashed #e8b7a3;
+    border: 2px dashed #c4badf;
     border-radius: 16px;
     background: #fff;
     text-align: center;
@@ -591,20 +591,20 @@ a {
 
 .reg-drop:hover,
 .reg-drop.is-over {
-    border-color: #e8420f;
-    background: #fff1ea;
+    border-color: #6d4ad1;
+    background: #eee8ff;
 }
 
 .reg-drop.input-error {
     border-color: #d92d20;
-    background: #fffbfa;
+    background: #fcfbfe;
 }
 
 .reg-drop-icon {
     width: 52px;
     height: 52px;
     border-radius: 14px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -612,12 +612,12 @@ a {
 
 .reg-drop strong {
     font-size: 16px;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .reg-drop small {
     font-size: 13px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-file {
@@ -649,7 +649,7 @@ a {
 
 .reg-file-info strong {
     display: block;
-    color: #1b1a1f;
+    color: #221a3a;
     overflow-wrap: anywhere;
 }
 
@@ -662,7 +662,7 @@ a {
 .reg-file label {
     height: 40px;
     padding: 0 14px;
-    border: 1.5px solid #ece4df;
+    border: 1.5px solid #e3e1ea;
     border-radius: 10px;
     background: #fff;
     display: flex;
@@ -683,7 +683,7 @@ a {
 }
 
 .reg-chips > span:first-child {
-    color: #6b6570;
+    color: #645a80;
     margin-right: 2px;
 }
 
@@ -691,7 +691,7 @@ a {
     padding: 4px 10px;
     border-radius: 999px;
     background: #fff;
-    border: 1px solid #ece4df;
+    border: 1px solid #e3e1ea;
 }
 
 /* Password */
@@ -712,7 +712,7 @@ a {
     height: 44px;
     border: 0;
     background: transparent;
-    color: #6b6570;
+    color: #645a80;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -720,7 +720,7 @@ a {
 }
 
 .password-toggle:hover {
-    color: #c2380f;
+    color: #5536b5;
 }
 
 .reg-strength {
@@ -730,7 +730,7 @@ a {
     padding: 16px 18px;
     border-radius: 14px;
     background: #fff;
-    border: 1.5px solid #f0e2da;
+    border: 1.5px solid #e9e4fa;
 }
 
 .reg-strength-head {
@@ -739,7 +739,7 @@ a {
     align-items: center;
     font-size: 13px;
     font-weight: 600;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-strength-head b {
@@ -755,7 +755,7 @@ a {
 .reg-strength-bars span {
     height: 6px;
     border-radius: 3px;
-    background: #ece4df;
+    background: #e3e1ea;
     transition: background 0.2s;
 }
 
@@ -772,7 +772,7 @@ a {
     align-items: center;
     font-size: 13px;
     font-weight: 600;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-rules li::before {
@@ -802,7 +802,7 @@ a {
 
 .reg-review {
     background: #fff;
-    border: 1.5px solid #f0e2da;
+    border: 1.5px solid #e9e4fa;
     border-radius: 16px;
     overflow: hidden;
 }
@@ -812,11 +812,11 @@ a {
     justify-content: space-between;
     align-items: center;
     padding: 12px 18px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 16px;
     font-weight: 700;
-    color: #1b1a1f;
+    color: #221a3a;
 }
 
 .reg-review-head button {
@@ -824,8 +824,8 @@ a {
     padding: 0 14px;
     border: 0;
     border-radius: 8px;
-    background: #fff1ea;
-    color: #c2380f;
+    background: #eee8ff;
+    color: #5536b5;
     font: 700 13px 'Figtree', sans-serif;
     cursor: pointer;
 }
@@ -842,7 +842,7 @@ a {
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .reg-review dd {
@@ -876,7 +876,7 @@ a {
     flex: none;
     width: 20px;
     height: 20px;
-    accent-color: #e8420f;
+    accent-color: #6d4ad1;
 }
 
 .terms-check a {
@@ -905,26 +905,26 @@ a {
 
 .reg-btn-ghost {
     padding: 0 26px;
-    border: 1.5px solid #ece4df;
+    border: 1.5px solid #e3e1ea;
     background: #fff;
-    color: #29211f;
+    color: #222028;
 }
 
 .reg-btn-ghost:hover {
-    border-color: #efb8a7;
+    border-color: #c8bee5;
 }
 
 .reg-btn-primary {
     flex: 1;
     border: 0;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-size: 17px;
-    box-shadow: 0 10px 22px -12px rgba(232, 66, 15, 0.9);
+    box-shadow: 0 10px 22px -12px rgba(109, 74, 209, 0.9);
 }
 
 .reg-btn-primary:hover {
-    background: #c2380f;
+    background: #5536b5;
 }
 
 .reg-btn-primary:disabled {
@@ -939,7 +939,7 @@ a {
     align-items: center;
     justify-content: center;
     font-size: 13px;
-    color: #6b6570;
+    color: #645a80;
     text-align: center;
 }
 

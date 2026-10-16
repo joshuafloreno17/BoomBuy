@@ -8,7 +8,7 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #fff8f3;
+    background: #f8f6fe;
     color: #222;
 }
 
@@ -22,7 +22,7 @@ a { text-decoration: none; }
 
 .page-header {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 25px 30px;
     margin-bottom: 20px;
@@ -39,7 +39,7 @@ a { text-decoration: none; }
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
     margin-top: 5px;
 }
@@ -59,13 +59,13 @@ a { text-decoration: none; }
 .filter-form label {
     font-size: 10px;
     font-weight: 800;
-    color: #8a7f86;
+    color: #857ca0;
     text-transform: uppercase;
 }
 
 .filter-form input[type="date"] {
     padding: 9px 11px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-family: inherit;
     font-size: 12px;
@@ -73,7 +73,7 @@ a { text-decoration: none; }
 
 .filter-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: white;
     padding: 10px 18px;
     border-radius: 9px;
@@ -82,7 +82,7 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.filter-btn:hover { background: #c2380f; }
+.filter-btn:hover { background: #5536b5; }
 
 .stats {
     display: grid;
@@ -93,14 +93,14 @@ a { text-decoration: none; }
 
 .stat-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     margin-bottom: 8px;
 }
@@ -113,7 +113,7 @@ a { text-decoration: none; }
 
 .panel {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 22px;
 }
@@ -130,24 +130,24 @@ table {
 }
 
 th {
-    background: #fff8f3;
-    color: #8a7f86;
+    background: #f8f6fe;
+    color: #857ca0;
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #f0e5e0;
+    border-bottom: 1px solid #e5e2ee;
 }
 
 td {
     padding: 12px 14px;
     font-size: 13px;
-    border-bottom: 1px solid #f5ece8;
+    border-bottom: 1px solid #eceaf3;
 }
 
 tr:last-child td { border-bottom: none; }
 
 .empty-message {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     text-align: center;
     padding: 20px 0;

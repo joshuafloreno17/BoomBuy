@@ -20,7 +20,7 @@
     <div class="waybill">
 
         <div class="waybill-header">
-            <div class="waybill-logo">Boom<span style="color:#1b1a1f;">Buy</span></div>
+            <div class="waybill-logo">Boom<span style="color:#221a3a;">Buy</span></div>
             <div class="waybill-order-id">Order #{{ $order['id'] }}</div>
         </div>
 

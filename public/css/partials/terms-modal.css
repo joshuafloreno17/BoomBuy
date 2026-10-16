@@ -4,7 +4,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(27, 26, 31, 0.55);
+    background: rgba(34, 26, 58, 0.55);
     z-index: 9999;
     padding: 20px;
     align-items: center;
@@ -44,17 +44,17 @@
     align-items: center;
     justify-content: space-between;
     padding: 20px 24px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .terms-header h2 {
-    color: #1b1a1f;
+    color: #221a3a;
     font-size: 23px;
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
 }
 
 .terms-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-top: 3px;
 }
@@ -64,23 +64,23 @@
     height: 34px;
     border: none;
     border-radius: 50%;
-    background: #fff1ea;
-    color: #6b6570;
+    background: #eee8ff;
+    color: #645a80;
     font-size: 20px;
     cursor: pointer;
     transition: 0.2s;
 }
 
 .close-terms:hover {
-    background: #ffe1d7;
-    color: #e8420f;
+    background: #e8e2f8;
+    color: #6d4ad1;
 }
 
 .terms-content {
     padding: 22px 24px;
     max-height: 55vh;
     overflow-y: auto;
-    color: #66514a;
+    color: #534e62;
     font-size: 12px;
     line-height: 1.7;
 }
@@ -90,12 +90,12 @@
 }
 
 .terms-content::-webkit-scrollbar-track {
-    background: #fff8f3;
+    background: #f8f6fe;
     border-radius: 10px;
 }
 
 .terms-content::-webkit-scrollbar-thumb {
-    background: #f3c5b6;
+    background: #d2c9ea;
     border-radius: 10px;
 }
 
@@ -108,7 +108,7 @@
 }
 
 .terms-section h3 {
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 14px;
     margin-bottom: 6px;
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
@@ -128,14 +128,14 @@
 
 .terms-footer {
     padding: 16px 24px 20px;
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
     display: flex;
     justify-content: flex-end;
 }
 
 .terms-close-btn {
     border: none;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #ffffff;
     padding: 11px 20px;
     border-radius: 10px;
@@ -146,7 +146,7 @@
 }
 
 .terms-close-btn:hover {
-    background: #c2380f;
+    background: #5536b5;
     transform: translateY(-1px);
 }
 

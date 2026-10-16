@@ -253,7 +253,7 @@
 
 
                 <div class="field">
-                    <label for="business_permit">Mayor's / Business Permit <span style="font-weight:500; color:#8a7f86;">(optional)</span></label>
+                    <label for="business_permit">Mayor's / Business Permit <span style="font-weight:500; color:#857ca0;">(optional)</span></label>
                     <input
                         type="file"
                         id="business_permit"

@@ -202,7 +202,7 @@
             @else
 
                 <div class="empty">
-                    <div class="empty-icon"><i class="bi bi-box-seam" style="font-size:40px; color:#e5c8bf;"></i></div>
+                    <div class="empty-icon"><i class="bi bi-box-seam" style="font-size:40px; color:#cbc4e0;"></i></div>
                     <h3>No products found</h3>
                     <p>
                         @if($search !== '' || $category !== 'all' || $state !== 'all')

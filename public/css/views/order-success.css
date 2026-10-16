@@ -11,8 +11,8 @@
 
         body {
             font-family: 'Figtree', -apple-system, sans-serif;
-            background: #fff8f3;
-            color: #1b1a1f;
+            background: #f8f6fe;
+            color: #221a3a;
 
             min-height: 100vh;
         }
@@ -29,7 +29,7 @@
 
             background: white;
 
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
             border-radius: 18px;
 
             padding: 45px;
@@ -58,7 +58,7 @@
         }
 
         .success-card small {
-            color: #db5a33;
+            color: #7b5ce0;
 
             text-transform: uppercase;
 
@@ -74,11 +74,11 @@
 
             margin-top: 8px;
 
-            color: #1b1a1f;
+            color: #221a3a;
         }
 
         .success-card p {
-            color: #6b6570;
+            color: #645a80;
 
             font-size: 14px;
 
@@ -88,9 +88,9 @@
         }
 
         .order-box {
-            background: #fff9f7;
+            background: #faf8fe;
 
-            border: 1px solid #f0e2da;
+            border: 1px solid #e9e4fa;
 
             border-radius: 12px;
 
@@ -110,7 +110,7 @@
 
             padding: 10px 0;
 
-            border-bottom: 1px solid #f0e2da;
+            border-bottom: 1px solid #e9e4fa;
 
             font-size: 13px;
         }
@@ -120,19 +120,19 @@
         }
 
         .order-label {
-            color: #6b6570;
+            color: #645a80;
         }
 
         .order-value {
             font-weight: 700;
 
-            color: #1b1a1f;
+            color: #221a3a;
 
             text-align: right;
         }
 
         .total {
-            color: #e8420f;
+            color: #6d4ad1;
 
             font-size: 18px;
         }
@@ -169,23 +169,23 @@
         }
 
         .btn-primary {
-            background: #e8420f;
+            background: #6d4ad1;
 
             color: white;
         }
 
         .btn-primary:hover {
-            background: #c2380f;
+            background: #5536b5;
         }
 
         .btn-secondary {
-            background: #fff1ea;
+            background: #eee8ff;
 
-            color: #e8420f;
+            color: #6d4ad1;
         }
 
         .btn-secondary:hover {
-            background: #ffe8e1;
+            background: #ebe5fb;
         }
 
         @media (max-width: 600px) {
@@ -230,6 +230,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     border-radius: 16px !important;
 }
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }

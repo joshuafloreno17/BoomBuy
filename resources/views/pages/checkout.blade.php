@@ -422,7 +422,7 @@
                     <strong id="etaValue">{{ $deliveryTo && $checkoutEta ? $checkoutEta : '—' }}</strong>
                 </div>
 
-                <div class="subtotal-row" style="font-size:11px; color:#6b6570;">
+                <div class="subtotal-row" style="font-size:11px; color:#645a80;">
                     <span>
                         <span id="deliveryZone">
                             @php $zoneLabels = collect($checkoutPlan['orders'])->pluck('zone')->unique()->map(fn ($z) => \App\Support\ParcelRoute::ZONES[$z] ?? $z); @endphp

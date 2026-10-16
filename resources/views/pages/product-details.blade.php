@@ -165,13 +165,13 @@
 
                     <i class="bi bi-star-fill" style="color: var(--gold);"></i> {{ $averageRating }}
 
-                    <span style="color:#6b6570;">
+                    <span style="color:#645a80;">
                         ({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})
                     </span>
 
                 @else
 
-                    <span style="color:#6b6570;">
+                    <span style="color:#645a80;">
                         No reviews yet
                     </span>
 
@@ -356,9 +356,9 @@
                         aria-label="{{ $isWishlisted ? 'Remove from wishlist' : 'Add to wishlist' }}"
                     >
                         @if($isWishlisted)
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#6d4ad1" stroke="#6d4ad1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         @else
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#6b6570" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#645a80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
                         @endif
                     </button>
 
@@ -591,9 +591,9 @@
                     @endif
 
                     @if(!empty($review->seller_reply))
-                        <div class="seller-reply-box" style="background:#fff8f3; border:1px solid #f0e2da; border-radius:10px; padding:10px 12px; margin-top:8px;">
-                            <div style="font-size:11px; font-weight:800; color:#c2380f; margin-bottom:3px;">Seller Reply</div>
-                            <div style="font-size:13px; color:#4a4449;">{{ $review->seller_reply }}</div>
+                        <div class="seller-reply-box" style="background:#f8f6fe; border:1px solid #e9e4fa; border-radius:10px; padding:10px 12px; margin-top:8px;">
+                            <div style="font-size:11px; font-weight:800; color:#5536b5; margin-bottom:3px;">Seller Reply</div>
+                            <div style="font-size:13px; color:#463c5e;">{{ $review->seller_reply }}</div>
                         </div>
                     @endif
 
@@ -1144,8 +1144,8 @@
 
         if (!form || !btn) return;
 
-        var HEART_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#e8420f" stroke="#e8420f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
-        var HEART_OUTLINE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#6b6570" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        var HEART_FILLED = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#6d4ad1" stroke="#6d4ad1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        var HEART_OUTLINE = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#645a80" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();

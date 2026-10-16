@@ -1,9 +1,9 @@
 @if($latestAnnouncement)
 
     <div style="
-        background: #fff4ee;
-        border: 1px solid #f7d9c5;
-        color: #7c3a12;
+        background: #f4f0fd;
+        border: 1px solid #dcd4f0;
+        color: #3e2b74;
         padding: 13px 18px;
         border-radius: 12px;
         margin-bottom: 20px;

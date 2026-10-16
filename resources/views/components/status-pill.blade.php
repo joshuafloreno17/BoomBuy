@@ -2,22 +2,22 @@
 
 @php
     $styles = [
-        'Pending' => ['bg' => '#f1f0ee', 'color' => '#6b6570', 'icon' => 'bi-hourglass-split'],
+        'Pending' => ['bg' => '#f1f0ee', 'color' => '#645a80', 'icon' => 'bi-hourglass-split'],
         'Confirmed' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-hand-thumbs-up-fill'],
         'Preparing' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-gear-fill'],
         'Processing' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-gear-fill'],
         'Ready for Pickup' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-box-seam-fill'],
         'Pickup Assigned' => ['bg' => '#fff8e1', 'color' => '#8a6d00', 'icon' => 'bi-person-check-fill'],
-        'Picked Up' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-bicycle'],
-        'Dropped Off' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-box-arrow-in-right'],
-        'Received at Branch' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-shop-window'],
+        'Picked Up' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-bicycle'],
+        'Dropped Off' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-box-arrow-in-right'],
+        'Received at Branch' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-shop-window'],
         'To Sorting Center' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-truck'],
-        'At Sorting Center' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-building'],
+        'At Sorting Center' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-building'],
         'In Transit' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-truck'],
-        'Sorted' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-diagram-3-fill'],
+        'Sorted' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-diagram-3-fill'],
         'To Branch' => ['bg' => '#eef1fb', 'color' => '#3f51b5', 'icon' => 'bi-truck'],
-        'At Branch' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-shop-window'],
-        'Assigned for Delivery' => ['bg' => '#fff1ea', 'color' => 'var(--accent-dark)', 'icon' => 'bi-person-check-fill'],
+        'At Branch' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-shop-window'],
+        'Assigned for Delivery' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-person-check-fill'],
         'Out for Delivery' => ['bg' => '#fff8e1', 'color' => '#8a6d00', 'icon' => 'bi-bicycle'],
         'Delivered' => ['bg' => 'var(--teal-bg)', 'color' => 'var(--teal-dark)', 'icon' => 'bi-check-circle-fill'],
         'Completed' => ['bg' => 'var(--teal-bg)', 'color' => 'var(--teal-dark)', 'icon' => 'bi-patch-check-fill'],
@@ -30,7 +30,7 @@
         'Cancelled' => ['bg' => '#fee2e2', 'color' => '#dc2626', 'icon' => 'bi-slash-circle-fill'],
     ];
 
-    $style = $styles[$status] ?? ['bg' => '#f1f0ee', 'color' => '#6b6570', 'icon' => 'bi-circle-fill'];
+    $style = $styles[$status] ?? ['bg' => '#f1f0ee', 'color' => '#645a80', 'icon' => 'bi-circle-fill'];
 @endphp
 
 <span {{ $attributes->merge(['class' => 'status-pill']) }} style="background:{{ $style['bg'] }}; color:{{ $style['color'] }};">

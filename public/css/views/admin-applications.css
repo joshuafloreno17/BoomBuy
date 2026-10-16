@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -31,7 +31,7 @@ a {
 }
 
 .page-header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 10px;
@@ -46,7 +46,7 @@ a {
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 }
 
@@ -80,8 +80,8 @@ a {
 
 .tab-btn {
     background: white;
-    border: 1px solid #f0e2da;
-    color: #5e5759;
+    border: 1px solid #e9e4fa;
+    color: #574e70;
     padding: 10px 18px;
     border-radius: 10px;
     font-size: 13px;
@@ -90,8 +90,8 @@ a {
 }
 
 .tab-btn.active {
-    background: #e8420f;
-    border-color: #e8420f;
+    background: #6d4ad1;
+    border-color: #6d4ad1;
     color: white;
 }
 
@@ -99,7 +99,7 @@ a {
 
 .app-card {
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 16px;
@@ -120,7 +120,7 @@ a {
 }
 
 .app-email {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
     margin-top: 2px;
 }
@@ -155,14 +155,14 @@ a {
     gap: 10px 20px;
 
     font-size: 12px;
-    color: #4a4449;
+    color: #463c5e;
 
     margin-bottom: 14px;
 }
 
 .app-details strong {
     display: block;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -180,9 +180,9 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #fff8f3;
-    border: 1px solid #f0e2da;
-    color: #e8420f;
+    background: #f8f6fe;
+    border: 1px solid #e9e4fa;
+    color: #6d4ad1;
     padding: 7px 12px;
     border-radius: 8px;
     font-size: 11px;
@@ -190,7 +190,7 @@ a {
 }
 
 .doc-link:hover {
-    background: #ffe6db;
+    background: #e6dcff;
 }
 
 .remarks-note {
@@ -208,7 +208,7 @@ a {
     gap: 10px;
     align-items: center;
     padding-top: 14px;
-    border-top: 1px solid #f6eee9;
+    border-top: 1px solid #f1edfa;
 }
 
 .approve-form,
@@ -221,7 +221,7 @@ a {
 
 .reject-form input[type="text"] {
     padding: 9px 11px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 8px;
     font-size: 11px;
     font-family: inherit;
@@ -263,7 +263,7 @@ a {
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
 }
 
@@ -279,13 +279,13 @@ a {
 }
 
 .empty p {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
 .footer {
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     margin: 30px 0;
 }
@@ -313,7 +313,7 @@ a.tab-btn {
     min-width: 20px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-size: 11px;
     text-align: center;
@@ -321,7 +321,7 @@ a.tab-btn {
 
 .tab-btn.active .pending-dot {
     background: #fff;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .filter-row {
@@ -341,24 +341,24 @@ a.tab-btn {
 .status-chip {
     padding: 7px 13px;
     border-radius: 999px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     background: #fff;
-    color: #5e5759;
+    color: #574e70;
     font-size: 12px;
     font-weight: 700;
     text-decoration: none;
 }
 
 .status-chip.active {
-    background: #fff1ea;
-    border-color: #e8420f;
-    color: #c2380f;
+    background: #eee8ff;
+    border-color: #6d4ad1;
+    color: #5536b5;
 }
 
 /* Pending with something waiting: solid, so it can't be missed. */
 .status-chip.has-work {
-    background: #e8420f;
-    border-color: #e8420f;
+    background: #6d4ad1;
+    border-color: #6d4ad1;
     color: #fff;
 }
 
@@ -372,7 +372,7 @@ a.tab-btn {
 .app-search input {
     flex: 1;
     padding: 10px 13px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 10px;
     font-size: 13px;
     font-family: inherit;
@@ -383,7 +383,7 @@ a.tab-btn {
     padding: 10px 14px;
     border: none;
     border-radius: 10px;
-    background: #e8420f;
+    background: #6d4ad1;
     color: #fff;
     font-weight: 700;
     font-size: 13px;
@@ -393,8 +393,8 @@ a.tab-btn {
 }
 
 .app-search a {
-    background: #f6eee9;
-    color: #4a4449;
+    background: #f1edfa;
+    color: #463c5e;
 }
 
 @media (max-width: 640px) {

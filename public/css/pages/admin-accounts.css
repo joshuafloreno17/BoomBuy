@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
 }
 
 a {
@@ -34,7 +34,7 @@ a {
 }
 
 .page-header small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 2px;
     font-size: 10px;
@@ -49,7 +49,7 @@ a {
 }
 
 .page-header p {
-    color: #6b6570;
+    color: #645a80;
     font-size: 13px;
 }
 
@@ -88,14 +88,14 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-bottom: 8px;
 }
@@ -109,7 +109,7 @@ a {
 
 .table-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 12px 30px rgba(39, 84, 150, 0.07);
@@ -117,7 +117,7 @@ a {
 
 .table-header {
     padding: 20px 22px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -129,7 +129,7 @@ a {
 }
 
 .table-header span {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
 }
 
@@ -145,18 +145,18 @@ table {
 }
 
 th {
-    background: #fff8f3;
-    color: #6b6570;
+    background: #f8f6fe;
+    color: #645a80;
     font-size: 11px;
     text-align: left;
     padding: 14px 20px;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 td {
     padding: 17px 20px;
     font-size: 13px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     vertical-align: middle;
 }
 
@@ -165,7 +165,7 @@ tr:last-child td {
 }
 
 tr:hover td {
-    background: #fffcfb;
+    background: #fcfcff;
 }
 
 /* USER */
@@ -181,7 +181,7 @@ tr:hover td {
     height: 38px;
     min-width: 38px;
     border-radius: 50%;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -193,7 +193,7 @@ tr:hover td {
 }
 
 .user-id {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     margin-top: 3px;
 }
@@ -209,8 +209,8 @@ tr:hover td {
 }
 
 .buyer {
-    background: #fff1ea;
-    color: #e8420f;
+    background: #eee8ff;
+    color: #6d4ad1;
 }
 
 .seller {
@@ -268,9 +268,9 @@ tr:hover td {
 }
 
 .status-select {
-    border: 1px solid #f1ded8;
-    background: #fff8f3;
-    color: #1b1a1f;
+    border: 1px solid #e0dbee;
+    background: #f8f6fe;
+    color: #221a3a;
     padding: 7px 9px;
     border-radius: 8px;
     font-family: inherit;
@@ -323,7 +323,7 @@ tr:hover td {
 }
 
 .empty p {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
@@ -331,7 +331,7 @@ tr:hover td {
 
 .footer {
     text-align: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11px;
     margin: 30px 0;
 }
@@ -380,8 +380,8 @@ button {
 }
 
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }
 
 /* Role filter cards + search toolbar */
@@ -393,16 +393,16 @@ a.stat-card {
 }
 
 a.stat-card:hover {
-    border-color: #f3c3b3;
+    border-color: #d0c7ea;
 }
 
 a.stat-card.active {
-    border-color: var(--accent, #e8420f);
-    box-shadow: 0 0 0 2px rgba(241, 63, 9, .12);
+    border-color: var(--accent, #6d4ad1);
+    box-shadow: 0 0 0 2px rgba(109, 74, 206, .12);
 }
 
 a.stat-card.active span {
-    color: var(--accent, #e8420f);
+    color: var(--accent, #6d4ad1);
     font-weight: 700;
 }
 
@@ -424,14 +424,14 @@ a.stat-card.active span {
     left: 14px;
     top: 50%;
     transform: translateY(-50%);
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 .account-search input,
 .account-toolbar select {
     width: 100%;
     padding: 11px 14px;
-    border: 1px solid #e8d6cc;
+    border: 1px solid #ddd5f2;
     border-radius: 12px;
     font-size: 13px;
     font-family: inherit;
@@ -449,7 +449,7 @@ a.stat-card.active span {
 .account-search input:focus,
 .account-toolbar select:focus {
     outline: none;
-    border-color: var(--accent, #e8420f);
+    border-color: var(--accent, #6d4ad1);
 }
 
 .toolbar-btn {
@@ -459,7 +459,7 @@ a.stat-card.active span {
     padding: 11px 16px;
     border: none;
     border-radius: 12px;
-    background: var(--accent, #e8420f);
+    background: var(--accent, #6d4ad1);
     color: #fff;
     font-weight: 700;
     font-size: 13px;
@@ -468,8 +468,8 @@ a.stat-card.active span {
 }
 
 .toolbar-btn.light {
-    background: #f6eee9;
-    color: #4a4449;
+    background: #f1edfa;
+    color: #463c5e;
 }
 
 @media (max-width: 1100px) {
@@ -499,14 +499,14 @@ a.stat-card.active span {
     justify-content: center;
     width: 34px;
     height: 34px;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 9px;
     background: #fff;
-    color: #c2380f;
+    color: #5536b5;
     font-size: 15px;
 }
 
 .message-btn:hover {
-    background: #fff1ea;
-    border-color: #e8b9aa;
+    background: #eee8ff;
+    border-color: #c8bfe0;
 }

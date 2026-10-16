@@ -14,8 +14,8 @@ html {
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #fff8f3;
-    color: #1b1a1f;
+    background: #f8f6fe;
+    color: #221a3a;
     overflow-x: hidden;
 }
 
@@ -42,7 +42,7 @@ a {
 }
 
 .topbar small {
-    color: #db5a33;
+    color: #7b5ce0;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     font-size: 10px;
@@ -67,7 +67,7 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 15px;
     padding: 22px;
     transition: 0.2s;
@@ -86,7 +86,7 @@ a {
 }
 
 .stat-title {
-    color: #6b6570;
+    color: #645a80;
     font-size: 12px;
 }
 
@@ -94,7 +94,7 @@ a {
     width: 38px;
     height: 38px;
     border-radius: 9px;
-    background: #fff1ea;
+    background: #eee8ff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -107,7 +107,7 @@ a {
 }
 
 .stat-sub {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 10px;
     margin-top: 7px;
 }
@@ -118,7 +118,7 @@ a {
 
 .panel {
     background: #ffffff;
-    border: 1px solid #f0e2da;
+    border: 1px solid #e9e4fa;
     border-radius: 15px;
     padding: 23px;
     margin-bottom: 20px;
@@ -137,7 +137,7 @@ a {
 }
 
 .panel-description {
-    color: #6b6570;
+    color: #645a80;
     font-size: 11px;
     margin-top: 5px;
 }
@@ -160,15 +160,15 @@ table {
 th {
     text-align: left;
     padding: 13px;
-    background: #fff8f3;
-    color: #6b6570;
+    background: #f8f6fe;
+    color: #645a80;
     font-size: 10px;
     letter-spacing: .5px;
 }
 
 td {
     padding: 14px 13px;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
     font-size: 12px;
 }
 
@@ -178,7 +178,7 @@ tr:last-child td {
 
 .amount {
     font-weight: 700;
-    color: #e8420f;
+    color: #6d4ad1;
 }
 
 .status {
@@ -195,8 +195,8 @@ tr:last-child td {
 }
 
 .processing {
-    background: #fff1ea;
-    color: #f34f1d;
+    background: #eee8ff;
+    color: #7a55e6;
 }
 
 .pending {
@@ -212,7 +212,7 @@ tr:last-child td {
 .empty-row {
     text-align: center;
     padding: 35px 15px !important;
-    color: #8a7f86;
+    color: #857ca0;
 }
 
 /* =========================
@@ -236,7 +236,7 @@ tr:last-child td {
     justify-content: space-around;
     gap: 14px;
     padding: 20px 10px 0;
-    border-bottom: 1px solid #f0e2da;
+    border-bottom: 1px solid #e9e4fa;
 }
 
 .bar-item {
@@ -251,24 +251,24 @@ tr:last-child td {
 
 .bar {
     width: 45px;
-    background: #e8420f;
+    background: #6d4ad1;
     border-radius: 7px 7px 0 0;
     min-height: 4px;
     transition: .2s;
 }
 
 .bar:hover {
-    background: #c4360b;
+    background: #5634b4;
 }
 
 .bar-label {
     font-size: 10px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .bar-value {
     font-size: 9px;
-    color: #6b6570;
+    color: #645a80;
 }
 
 .chart-empty {
@@ -277,7 +277,7 @@ tr:last-child td {
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
 }
 
@@ -287,7 +287,7 @@ tr:last-child td {
 
 .category {
     padding: 14px 0;
-    border-bottom: 1px solid #f6eee9;
+    border-bottom: 1px solid #f1edfa;
 }
 
 .category:last-child {
@@ -306,7 +306,7 @@ tr:last-child td {
 }
 
 .category-value {
-    color: #e8420f;
+    color: #6d4ad1;
     font-size: 11px;
     font-weight: 700;
 }
@@ -314,19 +314,19 @@ tr:last-child td {
 .progress {
     width: 100%;
     height: 7px;
-    background: #f6eee9;
+    background: #f1edfa;
     border-radius: 20px;
     overflow: hidden;
 }
 
 .progress-bar {
     height: 100%;
-    background: #e8420f;
+    background: #6d4ad1;
     border-radius: 20px;
 }
 
 .empty-message {
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 12px;
     padding: 20px 0;
     text-align: center;
@@ -341,7 +341,7 @@ tr:last-child td {
 }
 
 .seller-label {
-    color: #6b6570;
+    color: #645a80;
     font-size: 10px;
     margin-top: 3px;
 }
@@ -365,8 +365,8 @@ h3,
 }
 
 ::selection {
-    background: #ffe6db;
-    color: #7c1a00;
+    background: #e6dcff;
+    color: #3d2488;
 }
 
 /* =========================

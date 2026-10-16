@@ -160,7 +160,7 @@
                     <div>
                         <strong>Applied</strong>
                         {{ \Illuminate\Support\Carbon::parse($app->created_at)->format('M d, Y') }}
-                        <span style="color:#8a7f86;">({{ \Illuminate\Support\Carbon::parse($app->created_at)->diffForHumans() }})</span>
+                        <span style="color:#857ca0;">({{ \Illuminate\Support\Carbon::parse($app->created_at)->diffForHumans() }})</span>
                     </div>
                     @if ($app->reviewed_at)
                         <div>
@@ -196,7 +196,7 @@
                         <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => $type, 'id' => $app->id]) }}">
                             @csrf
                             @if ($type === 'seller')
-                                <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid #f0e2da; border-radius:8px; font-size:11px; font-family:inherit;">
+                                <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid #e9e4fa; border-radius:8px; font-size:11px; font-family:inherit;">
                                     <option value="">
                                         {{ empty($app->business_category) ? 'Registered Category…' : 'Change category…' }}
                                     </option>
@@ -231,7 +231,7 @@
         @empty
 
             <div class="empty">
-                <div class="empty-icon"><i class="bi {{ $typeIcons[$type] }}" style="font-size:40px; color:#e5c8bf;"></i></div>
+                <div class="empty-icon"><i class="bi {{ $typeIcons[$type] }}" style="font-size:40px; color:#cbc4e0;"></i></div>
                 <h3>
                     No {{ $statusKey === 'all' ? '' : strtolower($statuses[$statusKey]['label']) }} {{ $typeNouns[$type] }} applications
                 </h3>

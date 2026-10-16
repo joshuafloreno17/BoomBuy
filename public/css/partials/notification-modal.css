@@ -4,7 +4,7 @@
     display: none;
     position: fixed;
     inset: 0;
-    background: rgba(27, 26, 31, 0.5);
+    background: rgba(34, 26, 58, 0.5);
     z-index: 5000;
 
     align-items: center;
@@ -28,7 +28,7 @@
     max-height: calc(100vh - 40px);
     overflow-y: auto;
 
-    box-shadow: 0 30px 60px -20px rgba(27, 26, 31, 0.35);
+    box-shadow: 0 30px 60px -20px rgba(34, 26, 58, 0.35);
 
     animation: bbNotifPop 0.2s cubic-bezier(.3,1.4,.5,1);
 }
@@ -47,8 +47,8 @@
     height: 32px;
     border: none;
     border-radius: 50%;
-    background: #f3ede9;
-    color: var(--muted, #6b6570);
+    background: #eceaf2;
+    color: var(--muted, #645a80);
 
     display: flex;
     align-items: center;
@@ -60,8 +60,8 @@
 }
 
 .bb-notif-close:hover {
-    background: #e9e0da;
-    color: var(--ink, #1b1a1f);
+    background: #dfdce7;
+    color: var(--ink, #221a3a);
 }
 
 .bb-notif-icon {
@@ -70,8 +70,8 @@
     margin-bottom: 14px;
 
     border-radius: 13px;
-    background: #fff1ea;
-    color: var(--accent, #e8420f);
+    background: #eee8ff;
+    color: var(--accent, #6d4ad1);
 
     display: flex;
     align-items: center;
@@ -84,7 +84,7 @@
     font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
     font-size: 21px;
     font-weight: 800;
-    color: var(--ink, #1b1a1f);
+    color: var(--ink, #221a3a);
     line-height: 1.25;
 
     padding-right: 30px;
@@ -98,14 +98,14 @@
 
     margin-top: 8px;
 
-    color: #8a7f86;
+    color: #857ca0;
     font-size: 11.5px;
     font-weight: 600;
 }
 
 .bb-notif-type {
-    background: #fff1ea;
-    color: var(--accent, #e8420f);
+    background: #eee8ff;
+    color: var(--accent, #6d4ad1);
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 9.5px;
@@ -120,12 +120,12 @@
 .bb-notif-message {
     margin-top: 18px;
     padding-top: 18px;
-    border-top: 1px solid #f0e2da;
+    border-top: 1px solid #e9e4fa;
 
     font-family: var(--font-body, 'Figtree', sans-serif);
     font-size: 14px;
     line-height: 1.7;
-    color: #4a4449;
+    color: #463c5e;
     white-space: pre-line;
     overflow-wrap: anywhere;
 }
@@ -137,7 +137,7 @@
     padding: 11px 14px;
     border: none;
     border-radius: 10px;
-    background: var(--accent, #e8420f);
+    background: var(--accent, #6d4ad1);
     color: #fff;
 
     font-family: var(--font-body, 'Figtree', sans-serif);
@@ -149,5 +149,5 @@
 }
 
 .bb-notif-ok:hover {
-    background: var(--accent-dark, #c2380f);
+    background: var(--accent-dark, #5536b5);
 }
