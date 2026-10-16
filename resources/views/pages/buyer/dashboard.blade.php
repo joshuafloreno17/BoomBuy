@@ -19,10 +19,6 @@
         $codClass = $cod['blocked'] ? 'is-blocked' : ($cod['strikes'] > 0 ? 'is-warn' : 'is-good');
         $codLabel = $cod['blocked'] ? 'COD paused' : ($cod['strikes'] > 0 ? 'COD ' . $cod['strikes'] . '/' . $cod['limit'] : 'COD OK');
 
-        $announcement = \App\Models\PlatformAnnouncement::where('is_active', true)
-            ->orderByDesc('created_at')
-            ->first();
-
         $discoverTabs = [
             'latest' => ['label' => 'Latest', 'empty' => 'No products yet.'],
             'top' => ['label' => 'Top rated', 'empty' => 'No rated products yet — reviews show up here once buyers rate their orders.'],
@@ -71,8 +67,8 @@
                 @endif
             </section>
 
-            {{-- HERO: rotating highlights (announcement, new arrivals, free shipping, COD) --}}
-            @include('partials.buyer-hero-carousel', ['announcement' => $announcement, 'latest' => $discover['latest'] ?? []])
+            {{-- HERO: promo banners from Admin → Promo Banners (else the announcement, products, free shipping) --}}
+            @include('partials.promo-hero', ['layout' => 'wide', 'withAnnouncement' => true])
 
             {{-- YOUR ORDERS: one slim line each; the full tracker is on My Orders --}}
             @if(count($activeOrders) > 0)

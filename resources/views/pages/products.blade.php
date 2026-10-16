@@ -21,13 +21,13 @@
 
     @php
         $total = $paginator->total();
-        $hasFilters = $filters['min'] !== null || $filters['max'] !== null || $filters['rating'] || $filters['in_stock'];
-        $filterCount = (int) ($filters['min'] !== null || $filters['max'] !== null) + (int) (bool) $filters['rating'] + (int) $filters['in_stock'];
+        $hasFilters = $filters['min'] !== null || $filters['max'] !== null || $filters['rating'] || $filters['in_stock'] || $filters['deals'];
+        $filterCount = (int) ($filters['min'] !== null || $filters['max'] !== null) + (int) (bool) $filters['rating'] + (int) $filters['in_stock'] + (int) $filters['deals'];
         $peso = fn ($n) => '₱' . number_format($n);
 
         // Links that change one thing and keep the rest (always back to page 1).
         $with = fn (array $changes) => request()->fullUrlWithQuery(array_merge(['page' => null], $changes));
-        $clearFilters = $with(['min' => null, 'max' => null, 'rating' => null, 'in_stock' => null]);
+        $clearFilters = $with(['min' => null, 'max' => null, 'rating' => null, 'in_stock' => null, 'deals' => null]);
 
         $priceLabel = match (true) {
             $filters['min'] !== null && $filters['max'] !== null => $peso($filters['min']) . '–' . $peso($filters['max']),
@@ -176,6 +176,7 @@
                 <div class="filter-group">
                     <span class="filter-label">Availability</span>
                     <label class="filter-option"><input type="checkbox" name="in_stock" value="1" @checked($filters['in_stock']) data-autosubmit> In stock only</label>
+                    <label class="filter-option"><input type="checkbox" name="deals" value="1" @checked($filters['deals']) data-autosubmit> On sale only</label>
                 </div>
 
                 <div class="filters-foot">
@@ -208,6 +209,9 @@
                             @endif
                             @if($filters['in_stock'])
                                 <a href="{{ $with(['in_stock' => null]) }}" class="filter-chip" aria-label="Remove filter: In stock only">In stock only <i class="bi bi-x-lg"></i></a>
+                            @endif
+                            @if($filters['deals'])
+                                <a href="{{ $with(['deals' => null]) }}" class="filter-chip" aria-label="Remove filter: On sale only">On sale only <i class="bi bi-x-lg"></i></a>
                             @endif
                             <a href="{{ $clearFilters }}" class="clear-link">Clear all</a>
                         </div>

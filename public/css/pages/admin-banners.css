@@ -1,0 +1,227 @@
+/* Admin → Promo Banners. Cards, form groups and buttons come from admin-settings.css. */
+
+.bn-container {
+    max-width: 1240px;
+}
+
+.bn-preview {
+    margin-top: 6px;
+}
+
+.bn-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 18px;
+    align-items: start;
+}
+
+.bn-grid > .card {
+    min-width: 0;
+}
+
+.bn-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 14px;
+}
+
+.bn-item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    gap: 14px;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e9e4fa;
+    border-radius: 14px;
+}
+
+.bn-item.is-editing {
+    border-color: #7a55e6;
+    box-shadow: 0 0 0 3px rgba(122, 85, 230, .1);
+}
+
+.bn-thumb {
+    height: 60px;
+    border-radius: 10px;
+    overflow: hidden;
+    display: grid;
+    place-items: center;
+    background: var(--ph-bg);
+    color: var(--ph-ink);
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    text-align: center;
+    line-height: 1.05;
+    padding: 4px;
+}
+
+.bn-thumb-title {
+    font-size: 11.5px;
+    line-height: 1.15;
+    overflow-wrap: break-word;
+}
+
+.bn-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    background: #ffffff;
+    border-radius: 6px;
+}
+
+.bn-info {
+    min-width: 0;
+}
+
+.bn-info strong {
+    display: block;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.bn-info small {
+    display: block;
+    margin-top: 2px;
+    color: #645a80;
+    font-size: 12px;
+}
+
+.bn-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 6px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 11.5px;
+    font-weight: 800;
+}
+
+.bn-pill::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+}
+
+.bn-pill.is-live { background: #e9f9ef; color: #15803d; }
+.bn-pill.is-scheduled { background: #fff4d6; color: #a16207; }
+.bn-pill.is-ended,
+.bn-pill.is-off { background: #f1eff5; color: #645a80; }
+
+.bn-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 6px;
+}
+
+.bn-actions form {
+    margin: 0;
+}
+
+.bn-actions a.mini-btn {
+    display: inline-block;
+    text-decoration: none;
+}
+
+.bn-two {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.bn-opt {
+    margin-left: 4px;
+    color: #857ca0;
+    font-weight: 600;
+}
+
+#banner-form select,
+#banner-form input[type="date"],
+#banner-form input[type="number"] {
+    width: 100%;
+    padding: 11px 13px;
+    border: 1px solid #e9e4fa;
+    border-radius: 9px;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    color: #221a3a;
+    outline: none;
+}
+
+#banner-form select:focus,
+#banner-form input[type="date"]:focus,
+#banner-form input[type="number"]:focus {
+    border-color: #7a55e6;
+    box-shadow: 0 0 0 3px rgba(122, 85, 230, .08);
+}
+
+#banner-form textarea {
+    min-height: 70px;
+}
+
+.bn-order {
+    max-width: 220px;
+}
+
+.bn-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    font-weight: 600;
+    color: #463c5e;
+}
+
+.bn-current img {
+    width: 56px;
+    height: 56px;
+    object-fit: contain;
+    border: 1px solid #e9e4fa;
+    border-radius: 10px;
+    background: #ffffff;
+}
+
+.bn-buttons {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.bn-cancel {
+    color: #645a80;
+    font-size: 13px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+[data-bn-for][hidden] {
+    display: none;
+}
+
+@media (max-width: 1100px) {
+    .bn-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+@media (max-width: 600px) {
+    .bn-item {
+        grid-template-columns: 72px minmax(0, 1fr);
+    }
+
+    .bn-actions {
+        grid-column: 1 / -1;
+        justify-content: flex-start;
+    }
+
+    .bn-two {
+        grid-template-columns: 1fr;
+    }
+}

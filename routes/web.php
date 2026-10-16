@@ -14,6 +14,7 @@ use App\Http\Controllers\SellerController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\SortingCenterController;
+use App\Http\Controllers\PromoBannerController;
 
 // Helper functions (requireUserRole, cart helpers, OTP…) live in
 // app/Helpers/helpers.php, autoloaded via composer.json.
@@ -277,6 +278,14 @@ Route::post('/admin/settings/announcements/{id}/toggle', [AdminController::class
 
 
 Route::delete('/admin/settings/announcements/{id}', [AdminController::class, 'deleteAnnouncement'])->name('admin.settings.announcements.delete');
+
+
+// Promo Banners: the landing page / buyer home hero (main carousel + two side tiles).
+Route::get('/admin/banners', [PromoBannerController::class, 'index'])->name('admin.banners');
+Route::post('/admin/banners', [PromoBannerController::class, 'store'])->name('admin.banners.store');
+Route::post('/admin/banners/{id}', [PromoBannerController::class, 'update'])->whereNumber('id')->name('admin.banners.update');
+Route::post('/admin/banners/{id}/toggle', [PromoBannerController::class, 'toggle'])->whereNumber('id')->name('admin.banners.toggle');
+Route::delete('/admin/banners/{id}', [PromoBannerController::class, 'destroy'])->whereNumber('id')->name('admin.banners.delete');
 
 
 Route::post('/admin/settings/policies', [AdminController::class, 'updatePolicies'])->name('admin.settings.policies.update');

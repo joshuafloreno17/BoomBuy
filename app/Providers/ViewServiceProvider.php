@@ -87,6 +87,11 @@ class ViewServiceProvider extends ServiceProvider
             );
         });
 
+        // Promo hero (landing + buyer home): live admin banners, else automatic slides.
+        View::composer('partials.promo-hero', function ($view) {
+            $view->with('promo', \App\Support\PromoHero::build((bool) ($view->getData()['withAnnouncement'] ?? false)));
+        });
+
         View::composer('partials.buyer-footer', function ($view) {
             $user = session('user');
             $isBuyer = $user && ($user['role'] ?? '') === 'buyer';

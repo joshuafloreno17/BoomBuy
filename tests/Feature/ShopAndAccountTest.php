@@ -27,9 +27,10 @@ class ShopAndAccountTest extends TestCase
         $seller = $this->makeSeller('shoes');
         $buyer = $this->makeUser('buyer');
 
-        $popular = $this->makeProduct($seller, ['name' => 'Popular Sneakers']);
-        $steady = $this->makeProduct($seller, ['name' => 'Steady Sandals']);
-        $newest = $this->makeProduct($seller, ['name' => 'Brand New Boots']);
+        // The hero only uses products with a photo (no empty frames).
+        $popular = $this->makeProduct($seller, ['name' => 'Popular Sneakers', 'image' => 'products/a.png']);
+        $steady = $this->makeProduct($seller, ['name' => 'Steady Sandals', 'image' => 'products/b.png']);
+        $newest = $this->makeProduct($seller, ['name' => 'Brand New Boots', 'image' => 'products/c.png']);
 
         // Popular: 2 delivered; Steady: 1 delivered; a pending order doesn't count.
         $this->makeOrder($buyer, $popular, 'Delivered');
@@ -37,11 +38,12 @@ class ShopAndAccountTest extends TestCase
         $this->makeOrder($buyer, $steady, 'Delivered');
         $this->makeOrder($buyer, $newest, 'Pending');
 
-        $hero = $this->get('/')->assertOk()->viewData('heroProducts');
+        // No promo banner is live, so the hero's automatic slides are these products.
+        $hero = \App\Support\PromoHero::build();
 
         $this->assertSame(
             ['Popular Sneakers', 'Steady Sandals', 'Brand New Boots'],
-            $hero->pluck('name')->all()
+            array_column($hero['main'], 'title')
         );
 
         $this->get('/')

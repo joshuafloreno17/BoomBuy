@@ -69,51 +69,9 @@
                     </form>
                 </div>
 
-                <div class="lp-hero-art" aria-hidden="true" data-hero-art>
-                    <div class="lp-art-main">
-                        <i class="bi bi-bag-heart-fill lp-art-fallback"></i>
-                        {{-- Best sellers first, topped up with the newest; they take turns (script at the bottom). --}}
-                        @foreach ($heroProducts as $slide)
-                            @php $slideSold = (int) ($slide->sold_count ?? 0); @endphp
-                            <div class="lp-slide {{ $loop->first ? 'is-active' : '' }}" data-hero-slide>
-                                @if ($slideSold > 0)
-                                    <span class="lp-new-badge is-hot"><i class="bi bi-fire"></i> Best seller · {{ number_format($slideSold) }} sold</span>
-                                @else
-                                    <span class="lp-new-badge"><i class="bi bi-stars"></i> Just listed</span>
-                                @endif
-                                @if ($slide->image)
-                                    <img src="{{ productImageUrl($slide->image) }}" alt="" class="lp-slide-bg" onerror="this.remove()">
-                                    <img src="{{ productImageUrl($slide->image) }}" alt="" class="lp-slide-img" onerror="this.remove()">
-                                @else
-                                    <i class="bi {{ \App\Support\Categories::icon($slide->category) }} lp-slide-icon"></i>
-                                @endif
-                                <a href="{{ route('product.details', $slide->id) }}" class="lp-art-chip" tabindex="-1">
-                                    <span>
-                                        <strong>{{ \Illuminate\Support\Str::limit($slide->name, 28) }}</strong>
-                                        <small>{{ $featuredShops->get($slide->seller_id)['name'] ?? 'Just listed' }}</small>
-                                    </span>
-                                    <b>₱{{ number_format($slide->price) }}</b>
-                                </a>
-                            </div>
-                        @endforeach
-                        @if ($heroProducts->count() > 1)
-                            <div class="lp-slide-dots">
-                                @foreach ($heroProducts as $slide)
-                                    <span class="{{ $loop->first ? 'is-active' : '' }}"></span>
-                                @endforeach
-                            </div>
-                        @endif
-                    </div>
-                    <div class="lp-art-tile is-plain">
-                        <i class="bi bi-wallet2 lp-float"></i>
-                        <strong>Pay your way</strong>
-                        <span>GCash · Maya · Card · COD</span>
-                    </div>
-                    <div class="lp-art-tile is-accent">
-                        <span class="lp-road" aria-hidden="true"><i class="bi bi-truck"></i></span>
-                        <strong>Free shipping</strong>
-                        <span>on orders ₱{{ number_format($freeMin) }} and up</span>
-                    </div>
+                {{-- Promo banners from Admin → Promo Banners (automatic slides when none are live). --}}
+                <div class="lp-hero-promo">
+                    @include('partials.promo-hero', ['layout' => 'stacked'])
                 </div>
             </section>
         </div>
@@ -305,42 +263,6 @@
             els.forEach(function (el, i) {
                 el.style.transitionDelay = (i % 8) * 60 + 'ms';
                 io.observe(el);
-            });
-        })();
-    </script>
-
-    <script>
-        // Hero: the newest products take turns, and the cards lean toward the mouse.
-        (function () {
-            var art = document.querySelector('[data-hero-art]');
-            if (!art) return;
-            var still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            var slides = art.querySelectorAll('[data-hero-slide]');
-            var dots = art.querySelectorAll('.lp-slide-dots span');
-            var current = 0;
-
-            if (slides.length > 1 && !still) {
-                setInterval(function () {
-                    if (document.hidden) return;
-                    slides[current].classList.remove('is-active');
-                    if (dots[current]) dots[current].classList.remove('is-active');
-                    current = (current + 1) % slides.length;
-                    slides[current].classList.add('is-active');
-                    if (dots[current]) dots[current].classList.add('is-active');
-                }, 4500);
-            }
-
-            if (still || !window.matchMedia('(hover: hover) and (min-width: 900px)').matches) return;
-
-            art.addEventListener('mousemove', function (e) {
-                var r = art.getBoundingClientRect();
-                var x = (e.clientX - r.left) / r.width - 0.5;
-                var y = (e.clientY - r.top) / r.height - 0.5;
-                art.style.transform = 'perspective(1200px) rotateY(' + (x * 6) + 'deg) rotateX(' + (-y * 6) + 'deg)';
-            });
-
-            art.addEventListener('mouseleave', function () {
-                art.style.transform = '';
             });
         })();
     </script>

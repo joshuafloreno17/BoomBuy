@@ -44,34 +44,13 @@ class ShopController extends Controller
 
         $featuredProducts = Product::onSale()->withCount('reviews')->withAvg('reviews', 'rating')->latest()->take(4)->get();
 
-        // Hero: the best sellers (delivered units) take turns; until there are
-        // four of them, the newest products fill the remaining spots.
-        $heroProducts = Product::onSale()
-            ->withSoldCount()
-            ->orderByDesc('sold_count')
-            ->orderByDesc('id')
-            ->take(4)
-            ->get()
-            ->filter(fn ($product) => (int) $product->sold_count > 0)
-            ->values();
-
-        if ($heroProducts->count() < 4) {
-            $heroProducts = $heroProducts->concat(
-                Product::onSale()
-                    ->whereNotIn('id', $heroProducts->pluck('id'))
-                    ->latest()
-                    ->take(4 - $heroProducts->count())
-                    ->get()
-            );
-        }
-
         $featuredShops = \App\Support\SellerShop::many(
-            $featuredProducts->pluck('seller_id')->concat($heroProducts->pluck('seller_id'))
+            $featuredProducts->pluck('seller_id')
         );
 
 
         // Guest → Landing Page
-        return view('welcome', compact('featuredProducts', 'featuredShops', 'heroProducts'));
+        return view('welcome', compact('featuredProducts', 'featuredShops'));
     }
 
     // Category slug => every stored category name that belongs to it (old names included).
@@ -258,6 +237,8 @@ class ShopController extends Controller
 
         $rating = in_array((int) request('rating'), [3, 4], true) ? (int) request('rating') : 0;
         $inStock = request()->boolean('in_stock');
+        // Only products with a % off (the promo banners' "On sale" link).
+        $deals = request()->boolean('deals');
         $sort = in_array(request('sort'), self::SHOP_SORTS, true) ? request('sort') : 'newest';
 
         // Each word must appear somewhere in the name, category or
@@ -296,6 +277,7 @@ class ShopController extends Controller
             ->when($max !== null, fn ($q) => $q->where('price', '<=', $max))
             // Products with options count their options' stock, not their own.
             ->when($inStock, fn ($q) => $q->whereRaw(Product::SELLABLE_STOCK_SQL . ' > 0'))
+            ->when($deals, fn ($q) => $q->where('discount_percent', '>', 0)->whereNotNull('original_price'))
             ->when($rating, fn ($q) => $q->whereRaw('(select avg(rating) from product_reviews where product_reviews.product_id = products.id) >= ?', [$rating]));
 
         match ($sort) {
@@ -409,6 +391,7 @@ class ShopController extends Controller
             'max' => $max,
             'rating' => $rating,
             'in_stock' => $inStock,
+            'deals' => $deals,
             'sort' => $sort,
         ];
 

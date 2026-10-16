@@ -188,6 +188,12 @@ a { color: inherit; }
     cursor: pointer;
 }
 
+/* Promo banners (partials/promo-hero) in the hero's right column. */
+.lp-hero-promo {
+    flex: 1 1 420px;
+    min-width: 0;
+}
+
 .lp-hero-art {
     flex: 1 1 420px;
     display: grid;
