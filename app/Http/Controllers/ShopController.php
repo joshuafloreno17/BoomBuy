@@ -190,7 +190,7 @@ class ShopController extends Controller
         ];
     }
 
-    private const SHOP_PER_PAGE = 24;
+    private const SHOP_PER_PAGE = 96;
 
     /** Product page rows: "From the same shop" and "You may also like". */
     private const SAME_SHOP = 12;
