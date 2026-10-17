@@ -203,7 +203,7 @@ class DeliveryFlowTest extends TestCase
 
         foreach (['logistics.dashboard', 'logistics.parcels', 'logistics.riders', 'logistics.profile', 'logistics.notifications'] as $route) {
             $this->actingAsUser($logistics)->get(route($route))->assertOk();
-            $this->actingAsUser($buyer)->get(route($route))->assertRedirect(route('login'));
+            $this->actingAsUser($buyer)->get(route($route))->assertRedirect(route('logistics.login'));
         }
 
         foreach (['rider.dashboard', 'rider.deliveries', 'rider.deliveries.history', 'rider.profile', 'rider.profit', 'rider.notifications'] as $route) {

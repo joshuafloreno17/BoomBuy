@@ -218,12 +218,22 @@
                     <p>Register your shop, list your products and let our riders handle the delivery.</p>
                     <em>Become a seller →</em>
                 </a>
-                <a href="{{ route('rider.apply') }}" class="lp-join-card is-ride" id="ride">
-                    <small>For riders</small>
-                    <strong>Deliver on your own schedule</strong>
-                    <p>Flexible hours and deliveries near you. Apply with your license and vehicle details.</p>
-                    <em>Apply as a rider →</em>
-                </a>
+                @if(\App\Support\MobileAccess::isApp(request()))
+                    {{-- Inside the app riders apply right here. --}}
+                    <a href="{{ route('rider.apply') }}" class="lp-join-card is-ride" id="ride">
+                        <small>For riders</small>
+                        <strong>Deliver on your own schedule</strong>
+                        <p>Flexible hours and deliveries near you. Apply with your license and vehicle details.</p>
+                        <em>Apply as a rider →</em>
+                    </a>
+                @else
+                    <a href="{{ route('logistics.home') }}" class="lp-join-card is-ride" id="ride">
+                        <small>For sorting centers</small>
+                        <strong>Run a hub with BoomBuy Logistics</strong>
+                        <p>Sort parcels, manage deliveries and handle returns for your area.</p>
+                        <em>Go to BoomBuy Logistics →</em>
+                    </a>
+                @endif
             </section>
         </div>
 

@@ -57,6 +57,22 @@
 
         .wrap { max-width: 1040px; margin: 0 auto; padding: 8px 16px 64px; }
 
+        .notice {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            margin-bottom: 18px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 1px solid #bfe8e3;
+            background: #e3f6f4;
+            color: #0a6f66;
+            font-weight: 600;
+            line-height: 1.5;
+        }
+
+        .notice.is-error { border-color: var(--line); background: var(--soft); color: var(--accent-dark); }
+
         .hero {
             display: grid;
             grid-template-columns: 1.25fr 1fr;
@@ -140,6 +156,14 @@
     </header>
 
     <main class="wrap">
+        {{-- E.g. a rider sent here from a browser: riders use the app only. --}}
+        @if(session('error') || session('success'))
+            <p class="notice {{ session('error') ? 'is-error' : '' }}" role="status">
+                <i class="bi {{ session('error') ? 'bi-phone' : 'bi-check-circle' }}"></i>
+                {{ session('error') ?: session('success') }}
+            </p>
+        @endif
+
         <section class="hero">
             <div class="card">
                 <img src="{{ vasset('images/icon-192.png') }}" alt="BoomBuy app icon" class="app-icon" width="84" height="84">

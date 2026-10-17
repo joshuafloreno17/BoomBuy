@@ -484,7 +484,8 @@ class RiderController extends Controller
 
         $accounts->activate($application, $request->input('password'));
 
-        return redirect()->route('login')->with('success', 'Your rider account is active. You can now log in with your email and new password.');
+        // The emailed link may be opened in a browser; riders log in in the app.
+        return redirect()->route(\App\Support\MobileAccess::riderBlockedHere($request) ? 'app.download' : 'login')->with('success', 'Your rider account is active. You can now log in with your email and new password.');
     }
 
     public function showApply()

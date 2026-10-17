@@ -1,8 +1,13 @@
+@php
+    // The marketplace login (/login) and the BoomBuy Logistics login
+    // (/logistics/login) share this page; $portal says which one it is.
+    $isLogistics = ($portal ?? null) === 'logistics';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    @include('partials.head', ['title' => 'Login — BoomBuy'])
+    @include('partials.head', ['title' => $isLogistics ? 'Login — BoomBuy Logistics' : 'Login — BoomBuy'])
 
     <link rel="stylesheet" href="{{ vasset('css/views/login.css') }}">
 </head>
@@ -11,8 +16,11 @@
 
     <nav class="navbar">
 
-        <a href="/" class="logo">
+        <a href="{{ $isLogistics ? route('logistics.home') : route('home') }}" class="logo">
             <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
+            @if($isLogistics)
+                <span class="portal-tag">Logistics</span>
+            @endif
         </a>
 
     </nav>
@@ -27,7 +35,7 @@
                 <div class="login-header">
 
                     <div class="login-icon">
-                        <i class="bi bi-shield-lock-fill"></i>
+                        <i class="bi {{ $isLogistics ? 'bi-truck' : 'bi-shield-lock-fill' }}"></i>
                     </div>
 
                     <small>
@@ -35,12 +43,16 @@
                     </small>
 
                     <h1>
-                        Login to BoomBuy
+                        {{ $isLogistics ? 'Login to BoomBuy Logistics' : 'Login to BoomBuy' }}
                     </h1>
 
                     <p>
-                        Sign in to your account and
-                        continue using BoomBuy.
+                        @if($isLogistics)
+                            For sorting center and logistics staff.
+                        @else
+                            Sign in to your account and
+                            continue using BoomBuy.
+                        @endif
                     </p>
 
                 </div>
@@ -52,6 +64,14 @@
 
                     <div class="error-box">
                         {{ session('error') }}
+
+                        @if(session('portal_hint') === 'logistics')
+                            <a href="{{ route('logistics.login') }}" class="portal-switch">Go to BoomBuy Logistics login →</a>
+                        @elseif(session('portal_hint') === 'app')
+                            <a href="{{ route('app.download') }}" class="portal-switch">Get the BoomBuy app →</a>
+                        @elseif(session('portal_hint') === 'market')
+                            <a href="{{ route('login') }}" class="portal-switch">Go to BoomBuy marketplace login →</a>
+                        @endif
                     </div>
 
                 @endif
@@ -80,7 +100,7 @@
 
 
                 <form
-                    action="{{ route('login.submit') }}"
+                    action="{{ route($isLogistics ? 'logistics.login.submit' : 'login.submit') }}"
                     method="POST"
                 >
 
@@ -199,10 +219,18 @@
 
                     Don't have an account?
 
-                    <a href="{{ route('register') }}">
-                        Create one
+                    <a href="{{ route($isLogistics ? 'logistics.register' : 'register') }}">
+                        {{ $isLogistics ? 'Join BoomBuy Logistics' : 'Create one' }}
                     </a>
 
+                </div>
+
+                <div class="portal-other">
+                    @if($isLogistics)
+                        Buyer or seller? <a href="{{ route('login') }}">Log in to the marketplace</a>
+                    @elseif(!\App\Support\MobileAccess::isApp(request()))
+                        Logistics staff? <a href="{{ route('logistics.login') }}">BoomBuy Logistics login</a>
+                    @endif
                 </div>
 
 
@@ -212,7 +240,7 @@
             <div class="footer-text">
 
                 © 2026 BoomBuy ·
-                Shop smarter. Live better.
+                {{ $isLogistics ? 'Logistics — every parcel on its way.' : 'Shop smarter. Live better.' }}
 
             </div>
 

@@ -41,10 +41,12 @@ class KeepAppToMobileRoles
 
     private function signOut(): Response
     {
+        $role = session('user.role');
+
         LoginGate::forget(session('user.id'));
         session()->forget(['user', 'admin_logged_in']);
         session()->regenerate(true);
 
-        return redirect()->route('login')->with('error', MobileAccess::DESKTOP_ONLY_MESSAGE);
+        return redirect()->route(loginRouteFor($role))->with('error', MobileAccess::DESKTOP_ONLY_MESSAGE);
     }
 }

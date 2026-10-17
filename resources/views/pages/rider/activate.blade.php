@@ -21,7 +21,7 @@
 
             <h1 style="font-size:20px; color:#221a3a;">Link can't be used</h1>
             <p style="color:#be123c; font-size:14px; line-height:1.6;">{{ $problem }}</p>
-            <a href="{{ route('login') }}" style="color:#6d4ad1; font-size:13px;">Go to login</a>
+            <a href="{{ route('logistics.login') }}" style="color:#6d4ad1; font-size:13px;">Go to login</a>
 
         @else
 

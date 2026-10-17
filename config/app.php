@@ -67,6 +67,10 @@ return [
 
     'timezone' => env('APP_TIMEZONE', 'Asia/Manila'),
 
+    // Riders use the BoomBuy Android app only; browsers can't open rider
+    // pages (see App\Support\MobileAccess::riderBlockedHere).
+    'riders_app_only' => (bool) env('RIDERS_APP_ONLY', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

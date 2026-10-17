@@ -44,7 +44,7 @@ class EnsureAccountActive
         }
 
         return redirect()
-            ->route('login')
+            ->route(loginRouteFor($sessionUser['role'] ?? null))
             ->with('error', $message);
     }
 }

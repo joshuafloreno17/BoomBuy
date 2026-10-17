@@ -33,25 +33,29 @@
                 <span class="choose-btn">Continue as Seller</span>
             </a>
 
-            <a href="{{ route('rider.apply') }}" class="choose-card">
-                <div class="choose-icon"><i class="bi bi-bicycle"></i></div>
-                <h2>Rider</h2>
-                <p>Deliver orders and earn on your own schedule.</p>
-                <span class="choose-btn">Continue as Rider</span>
-            </a>
-
-            <a href="{{ route('logistics.register') }}" class="choose-card">
-                <div class="choose-icon"><i class="bi bi-truck"></i></div>
-                <h2>Logistics / Sorting Center</h2>
-                <p>Manage parcel sorting and rider delivery assignments.</p>
-                <span class="choose-btn">Continue as Logistics</span>
-            </a>
+            {{-- Riders sign up inside the BoomBuy app only. --}}
+            @if(\App\Support\MobileAccess::isApp(request()))
+                <a href="{{ route('rider.apply') }}" class="choose-card">
+                    <div class="choose-icon"><i class="bi bi-bicycle"></i></div>
+                    <h2>Rider</h2>
+                    <p>Deliver orders and earn on your own schedule.</p>
+                    <span class="choose-btn">Continue as Rider</span>
+                </a>
+            @endif
 
         </div>
 
         <div class="choose-footer">
             Already have an account? <a href="{{ route('login') }}">Log in</a>
         </div>
+
+        {{-- Sorting centers sign up on BoomBuy Logistics (a computer, not the app). --}}
+        @unless(\App\Support\MobileAccess::isApp(request()))
+            <a href="{{ route('logistics.home') }}" class="choose-portal">
+                <i class="bi bi-truck"></i>
+                <span>Run a sorting center? <strong>Go to BoomBuy Logistics →</strong></span>
+            </a>
+        @endunless
 
     </div>
 

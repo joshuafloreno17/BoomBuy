@@ -111,6 +111,17 @@ if (!function_exists('formatFullName')) {
 |--------------------------------------------------------------------------
 */
 
+if (!function_exists('loginRouteFor')) {
+
+    // The login page a role signs in on: logistics staff use the BoomBuy
+    // Logistics portal (/logistics/login); everyone else, riders included
+    // (they sign in inside the app), uses the marketplace login.
+    function loginRouteFor(?string $role): string
+    {
+        return $role === 'logistics' ? 'logistics.login' : 'login';
+    }
+}
+
 if (!function_exists('requireUserRole')) {
 
     function requireUserRole($role)
@@ -118,7 +129,7 @@ if (!function_exists('requireUserRole')) {
         $user = session()->get('user');
 
         if (!$user || ($user['role'] ?? '') !== $role) {
-            return redirect()->route('login');
+            return redirect()->route(loginRouteFor($role));
         }
 
         return $user;

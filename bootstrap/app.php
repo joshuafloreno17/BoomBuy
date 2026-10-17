@@ -39,6 +39,8 @@ return Application::configure(basePath: dirname(__DIR__))
             ForgetFlashedPasswords::class,
             // Inside the Android app: buyers, sellers and riders only.
             \App\Http\Middleware\KeepAppToMobileRoles::class,
+            // Riders, the other way round: the app only, never a browser.
+            \App\Http\Middleware\KeepRidersInApp::class,
             // ...and their phone gets their notifications as push notifications.
             \App\Http\Middleware\RememberPushToken::class,
         ]);

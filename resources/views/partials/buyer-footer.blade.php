@@ -65,7 +65,10 @@
     <div class="bb-footer-bottom">
         <span>© {{ date('Y') }} <strong>BoomBuy</strong> · Your Marketplace for Everything</span>
         @unless($bbFooterBuyer)
-            <a href="{{ route('register') }}" class="bb-footer-sell"><i class="bi bi-shop"></i> Sell on BoomBuy</a>
+            <span class="bb-footer-joins">
+                <a href="{{ route('register') }}" class="bb-footer-sell"><i class="bi bi-shop"></i> Sell on BoomBuy</a>
+                <a href="{{ route('logistics.home') }}" class="bb-footer-sell"><i class="bi bi-truck"></i> BoomBuy Logistics</a>
+            </span>
         @endunless
     </div>
 </footer>

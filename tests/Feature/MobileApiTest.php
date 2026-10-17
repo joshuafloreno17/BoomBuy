@@ -145,7 +145,7 @@ class MobileApiTest extends TestCase
             ->assertRedirect(route('seller.dashboard'));
 
         $this->flushSession();
-        $this->post(route('login.submit'), ['email' => $this->lowercaseEmail($this->makeLogistics()), 'password' => 'password123'])
+        $this->post(route('logistics.login.submit'), ['email' => $this->lowercaseEmail($this->makeLogistics()), 'password' => 'password123'])
             ->assertRedirect(route('logistics.dashboard'));
     }
 

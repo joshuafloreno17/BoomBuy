@@ -77,7 +77,7 @@ class LogisticsScenariosTest extends TestCase
         $this->assertTrue($this->notifiedWith($applicant, 'Sorting Center Assignment'));
 
         $this->flushSession();
-        $this->post(route('login.submit'), ['email' => $applicant->email, 'password' => 'password123'])->assertRedirect(route('logistics.dashboard'));
+        $this->post(route('logistics.login.submit'), ['email' => $applicant->email, 'password' => 'password123'])->assertRedirect(route('logistics.dashboard'));
     }
 
     public function test_L01b_an_account_not_yet_assigned_to_a_center_sees_no_parcels(): void

@@ -283,6 +283,46 @@ a {
     font-weight: 700;
 }
 
+/* Marketplace ↔ BoomBuy Logistics: which login page this is. */
+.logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.portal-tag {
+    background: #f1ecfd;
+    color: #6d4ad1 !important;
+    border: 1px solid #e0d6fb;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: .02em;
+}
+
+.portal-switch {
+    display: inline-block;
+    margin-top: 8px;
+    color: #be123c;
+    font-weight: 700;
+    text-decoration: underline;
+}
+
+.portal-other {
+    text-align: center;
+    color: #857ca0;
+    font-size: 12px;
+    margin-top: 12px;
+    padding-top: 14px;
+    border-top: 1px solid #f1edfa;
+}
+
+.portal-other a {
+    color: #6d4ad1;
+    font-weight: 700;
+}
+
 .admin-link {
     text-align: center;
     margin-top: 18px;

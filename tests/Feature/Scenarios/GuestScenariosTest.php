@@ -295,9 +295,9 @@ class GuestScenariosTest extends TestCase
         ]);
 
         $this->post(route('logistics.register.submit'), $form)->assertRedirect(route('otp.show'));
-        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('login'));
+        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('logistics.login'));
 
-        $this->post(route('login.submit'), ['email' => $form['email'], 'password' => 'Secret@123'])
+        $this->post(route('logistics.login.submit'), ['email' => $form['email'], 'password' => 'Secret@123'])
             ->assertSessionHas('error');
         $this->assertNull(session('user'));
     }

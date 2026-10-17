@@ -53,7 +53,7 @@ class RiderSheetTest extends TestCase
     {
         $this->flushSession();
 
-        return $this->post(route('login.submit'), ['email' => $email, 'password' => $password]);
+        return $this->post(route('logistics.login.submit'), ['email' => $email, 'password' => $password]);
     }
 
     private function asCompany(): static
@@ -441,8 +441,8 @@ class RiderSheetTest extends TestCase
     public function test_TC_RID_029_no_public_rider_registration(): void
     {
         // The Add Rider address sends a guest to the login page...
-        $this->get(route('logistics.riders.create'))->assertRedirect(route('login'));
-        $this->post(route('logistics.riders.store'), $this->pedro())->assertRedirect(route('login'));
+        $this->get(route('logistics.riders.create'))->assertRedirect(route('logistics.login'));
+        $this->post(route('logistics.riders.store'), $this->pedro())->assertRedirect(route('logistics.login'));
         $this->assertSame(0, User::where('role', 'rider')->count());
 
         // ...but riders can still apply on their own: the ERP list keeps that (option B).
@@ -469,8 +469,8 @@ class RiderSheetTest extends TestCase
         $this->login('admin@agilacargo.example.com', 'Agila#Cargo26')
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
         $this->assertNull(session('user'));
-        $this->get(route('logistics.riders.create'))->assertRedirect(route('login'));
-        $this->post(route('logistics.riders.store'), $this->pedro())->assertRedirect(route('login'));
+        $this->get(route('logistics.riders.create'))->assertRedirect(route('logistics.login'));
+        $this->post(route('logistics.riders.store'), $this->pedro())->assertRedirect(route('logistics.login'));
         $this->assertSame(0, User::where('role', 'rider')->count());
     }
 

@@ -132,6 +132,12 @@
     text-decoration: underline;
 }
 
+.bb-footer-joins {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 0 18px;
+}
+
 @media (max-width: 860px) {
     .bb-footer-inner {
         grid-template-columns: repeat(3, minmax(0, 1fr));

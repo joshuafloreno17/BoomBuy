@@ -270,7 +270,7 @@ class BranchScenariosTest extends TestCase
 
         $staff = User::where('email', 'branch.lumban@boombuy.test')->firstOrFail();
         $this->assertSame($lumban->id, (int) $staff->sorting_center_id);
-        $this->post(route('login'), ['email' => 'branch.lumban@boombuy.test', 'password' => 'password123'])->assertRedirect();
+        $this->post(route('logistics.login.submit'), ['email' => 'branch.lumban@boombuy.test', 'password' => 'password123'])->assertRedirect();
         $this->assertSame($staff->id, session('user.id'));
 
         // With staff, Lumban parcels now go to the branch.

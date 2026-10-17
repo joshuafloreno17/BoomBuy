@@ -118,7 +118,7 @@ class LogisticsSheetTest extends TestCase
     {
         $this->flushSession();
 
-        return $this->post(route('login.submit'), ['email' => $email, 'password' => $password]);
+        return $this->post(route('logistics.login.submit'), ['email' => $email, 'password' => $password]);
     }
 
     /** The registration form has an input with this name. */
@@ -284,7 +284,7 @@ class LogisticsSheetTest extends TestCase
             $this->register($this->account2());
         }
         Mail::assertSentCount(1);
-        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('login'));
+        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('logistics.login'));
         $this->assertSame(1, User::where('email', 'admin@agilacargo.example.com')->count());
     }
 
@@ -373,7 +373,7 @@ class LogisticsSheetTest extends TestCase
     {
         $this->register($this->account1());
         $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])
-            ->assertRedirect(route('login'))
+            ->assertRedirect(route('logistics.login'))
             ->assertSessionHas('success', fn ($m) => str_contains(strtolower($m), 'approv'));
         $user = User::where('email', 'operations@bilishatid.example.com')->first();
         $this->assertSame('Pending Verification', DB::table('logistics_applications')->where('user_id', $user->id)->value('status'));
@@ -416,13 +416,13 @@ class LogisticsSheetTest extends TestCase
         if ($first !== $second) {
             $this->post(route('otp.verify'), ['otp_code' => $first])->assertSessionHas('error');
         }
-        $this->post(route('otp.verify'), ['otp_code' => $second])->assertRedirect(route('login'));
+        $this->post(route('otp.verify'), ['otp_code' => $second])->assertRedirect(route('logistics.login'));
     }
 
     public function test_TC_LOG_037_log_in_before_verifying_the_email(): void
     {
         $this->register($this->account1());
-        $this->post(route('login.submit'), ['email' => 'operations@bilishatid.example.com', 'password' => 'Hatid@2026'])->assertSessionHas('error');
+        $this->post(route('logistics.login.submit'), ['email' => 'operations@bilishatid.example.com', 'password' => 'Hatid@2026'])->assertSessionHas('error');
         $this->assertNull(session('user'));
     }
 
@@ -432,7 +432,7 @@ class LogisticsSheetTest extends TestCase
         $this->login('operations@bilishatid.example.com', 'Hatid@2026')
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
         $this->assertNull(session('user'));
-        $this->get(route('logistics.riders.create'))->assertRedirect(route('login'));
+        $this->get(route('logistics.riders.create'))->assertRedirect(route('logistics.login'));
     }
 
     public function test_TC_LOG_039_new_application_appears_in_the_admins_pending_list(): void
@@ -484,7 +484,7 @@ class LogisticsSheetTest extends TestCase
 
         // ERP flow: apply again from the Register page with the same email and the new permit.
         $this->register($this->account2(['business_permit' => $this->pdf('mayors_permit_2026.pdf')]))->assertSessionHasNoErrors();
-        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('login'));
+        $this->post(route('otp.verify'), ['otp_code' => session('otp_code')])->assertRedirect(route('logistics.login'));
 
         $this->assertSame(1, User::where('email', 'admin@agilacargo.example.com')->count());
         $id = $this->applicationId($user);

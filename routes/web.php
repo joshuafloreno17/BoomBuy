@@ -25,9 +25,9 @@ use App\Http\Controllers\PromoBannerController;
 |--------------------------------------------------------------------------
 */
 
-Route::post('/rider/profile/photo', [RiderController::class, 'updatePhoto'])->name('rider.profile.photo');
-Route::post('/rider/profile/password', [RiderController::class, 'updatePassword'])->name('rider.profile.password');
-Route::post('/rider/profile', [RiderController::class, 'updateProfile'])->name('rider.profile.update');
+Route::post('/logistics/rider/profile/photo', [RiderController::class, 'updatePhoto'])->name('rider.profile.photo');
+Route::post('/logistics/rider/profile/password', [RiderController::class, 'updatePassword'])->name('rider.profile.password');
+Route::post('/logistics/rider/profile', [RiderController::class, 'updateProfile'])->name('rider.profile.update');
 
 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
@@ -489,12 +489,12 @@ Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'
 |--------------------------------------------------------------------------
 */
 
-Route::get('/rider', [RiderController::class, 'dashboard'])->name('rider.dashboard');
+Route::get('/logistics/rider', [RiderController::class, 'dashboard'])->name('rider.dashboard');
 
 // Items for pickup: sellers' pickup requests in the rider's areas.
-Route::get('/rider/pickups', [RiderController::class, 'pickups'])->name('rider.pickups');
-Route::post('/rider/pickup/{id}/accept', [RiderController::class, 'acceptPickup'])->whereNumber('id')->name('rider.pickup.accept');
-Route::post('/rider/pickup/{id}/picked-up', [RiderController::class, 'confirmPickup'])->whereNumber('id')->name('rider.pickup.picked-up');
+Route::get('/logistics/rider/pickups', [RiderController::class, 'pickups'])->name('rider.pickups');
+Route::post('/logistics/rider/pickup/{id}/accept', [RiderController::class, 'acceptPickup'])->whereNumber('id')->name('rider.pickup.accept');
+Route::post('/logistics/rider/pickup/{id}/picked-up', [RiderController::class, 'confirmPickup'])->whereNumber('id')->name('rider.pickup.picked-up');
 
 
 /*
@@ -503,7 +503,7 @@ Route::post('/rider/pickup/{id}/picked-up', [RiderController::class, 'confirmPic
 |--------------------------------------------------------------------------
 */
 
-Route::get('/rider/deliveries', [RiderController::class, 'deliveries'])->name('rider.deliveries');
+Route::get('/logistics/rider/deliveries', [RiderController::class, 'deliveries'])->name('rider.deliveries');
 
 /*
 |--------------------------------------------------------------------------
@@ -520,7 +520,7 @@ Route::get('/rider/deliveries', [RiderController::class, 'deliveries'])->name('r
 |--------------------------------------------------------------------------
 */
 
-Route::get('/rider/delivery/{id}', [RiderController::class, 'deliveryDetails'])->name('rider.delivery.details');
+Route::get('/logistics/rider/delivery/{id}', [RiderController::class, 'deliveryDetails'])->name('rider.delivery.details');
 
 
 /*
@@ -529,7 +529,7 @@ Route::get('/rider/delivery/{id}', [RiderController::class, 'deliveryDetails'])-
 |--------------------------------------------------------------------------
 */
 
-Route::post('/rider/delivery/{id}/status', [RiderController::class, 'updateStatus'])->name('rider.delivery.status');
+Route::post('/logistics/rider/delivery/{id}/status', [RiderController::class, 'updateStatus'])->name('rider.delivery.status');
 
 /*
 |--------------------------------------------------------------------------
@@ -537,13 +537,13 @@ Route::post('/rider/delivery/{id}/status', [RiderController::class, 'updateStatu
 |--------------------------------------------------------------------------
 */
 
-Route::get('/rider/profile', [RiderController::class, 'profile'])->name('rider.profile');
+Route::get('/logistics/rider/profile', [RiderController::class, 'profile'])->name('rider.profile');
 
 
-Route::get('/rider/profit', [RiderController::class, 'profit'])->name('rider.profit');
+Route::get('/logistics/rider/profit', [RiderController::class, 'profit'])->name('rider.profit');
 
 
-Route::get('/rider/deliveries/history', [RiderController::class, 'deliveryHistory'])->name('rider.deliveries.history');
+Route::get('/logistics/rider/deliveries/history', [RiderController::class, 'deliveryHistory'])->name('rider.deliveries.history');
 
 
 
@@ -732,23 +732,23 @@ Route::post('/admin/returns/{id}/refunded', [AdminController::class, 'refundRetu
 // RIDER APPLICATION
 // =========================
 
-Route::get('/rider/apply', [RiderController::class, 'showApply'])->name('rider.apply');
+Route::get('/logistics/rider/apply', [RiderController::class, 'showApply'])->name('rider.apply');
 
 
 // =========================
 // RIDER APPLICATION SUBMIT
 // =========================
 
-Route::post('/rider/apply', [RiderController::class, 'submitApply'])->middleware('throttle:5,10,register')->name('rider.apply.submit');
+Route::post('/logistics/rider/apply', [RiderController::class, 'submitApply'])->middleware('throttle:5,10,register')->name('rider.apply.submit');
 
 
 // =========================
 // RIDER ACCOUNT ACTIVATION (riders added by a logistics company)
 // =========================
 
-Route::get('/rider/activate/{token}', [RiderController::class, 'showActivation'])->name('rider.activate');
+Route::get('/logistics/rider/activate/{token}', [RiderController::class, 'showActivation'])->name('rider.activate');
 
-Route::post('/rider/activate/{token}', [RiderController::class, 'activate'])->middleware('throttle:10,10,rider-activate')->name('rider.activate.submit');
+Route::post('/logistics/rider/activate/{token}', [RiderController::class, 'activate'])->middleware('throttle:10,10,rider-activate')->name('rider.activate.submit');
 
 
 // Buyer Registration Page
@@ -767,6 +767,28 @@ Route::get('/seller/register', [SellerController::class, 'showRegister'])->name(
 Route::post('/seller/register', [SellerController::class, 'register'])->middleware('throttle:5,10,register')->name('seller.register.submit');
 
 
+/*
+|--------------------------------------------------------------------------
+| BOOMBUY LOGISTICS PORTAL (boombuy.store/logistics)
+|--------------------------------------------------------------------------
+| Its own landing page, login and sign-up, apart from the marketplace.
+| Logistics staff sign in here; buyers, sellers and the admin use /login.
+| Riders use the BoomBuy app only (see KeepRidersInApp). Same app and
+| database, so parcels still follow the orders.
+*/
+
+Route::get('/logistics', [AuthController::class, 'showLogisticsHome'])->name('logistics.home');
+
+Route::get('/logistics/login', [AuthController::class, 'showLogisticsLogin'])->name('logistics.login');
+
+Route::post('/logistics/login', [AuthController::class, 'login'])->middleware('throttle:10,1,login')->name('logistics.login.submit');
+
+
+// Rider pages used to live at /rider/... — old links and emails still work.
+Route::get('/rider/{path?}', fn (?string $path = null) => redirect('/logistics/rider' . ($path ? '/' . $path : ''), 301))
+    ->where('path', '.*');
+
+
 // Logistics Registration Page
 Route::get('/logistics/register', [LogisticsController::class, 'showRegister'])->name('logistics.register');
 
@@ -781,7 +803,7 @@ Route::post('/logistics/register', [LogisticsController::class, 'register'])->mi
 |--------------------------------------------------------------------------
 */
 
-Route::get('/logistics', [LogisticsController::class, 'dashboard'])->name('logistics.dashboard');
+Route::get('/logistics/dashboard', [LogisticsController::class, 'dashboard'])->name('logistics.dashboard');
 
 
 /*
@@ -934,9 +956,9 @@ Route::get('/logistics/notifications', [LogisticsController::class, 'notificatio
 Route::post('/logistics/notifications/{id}/read', [LogisticsController::class, 'markNotificationRead'])->name('logistics.notifications.read');
 
 
-Route::get('/rider/notifications', [RiderController::class, 'notifications'])->name('rider.notifications');
+Route::get('/logistics/rider/notifications', [RiderController::class, 'notifications'])->name('rider.notifications');
 
-Route::post('/rider/notifications/{id}/read', [RiderController::class, 'markNotificationRead'])->name('rider.notifications.read');
+Route::post('/logistics/rider/notifications/{id}/read', [RiderController::class, 'markNotificationRead'])->name('rider.notifications.read');
 
 
 /*

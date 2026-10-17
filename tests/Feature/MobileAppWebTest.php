@@ -30,13 +30,13 @@ class MobileAppWebTest extends TestCase
         $user->forceFill(['email' => strtolower($user->email)])->save();
 
         return $this->withHeader('User-Agent', $userAgent)
-            ->post(route('login.submit'), ['email' => $user->email, 'password' => 'password123']);
+            ->post(route($user->role === 'logistics' ? 'logistics.login.submit' : 'login.submit'), ['email' => $user->email, 'password' => 'password123']);
     }
 
     public function test_logistics_cannot_stay_signed_in_inside_the_app(): void
     {
         $this->loginFrom(self::APP, $this->makeLogistics())
-            ->assertRedirect(route('login'))
+            ->assertRedirect(route('logistics.login'))
             ->assertSessionHas('error', MobileAccess::DESKTOP_ONLY_MESSAGE);
 
         $this->assertNull(session('user'));

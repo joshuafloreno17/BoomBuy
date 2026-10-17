@@ -67,7 +67,7 @@ class RiderScenariosTest extends TestCase
         $applicant = $this->makeRider('Pending Verification');
         DB::table('users')->where('id', $applicant->id)->update(['province' => 'Laguna', 'city_municipality' => 'Santa Cruz']);
 
-        $this->post(route('login.submit'), ['email' => $applicant->email, 'password' => 'password123'])
+        $this->post(route('logistics.login.submit'), ['email' => $applicant->email, 'password' => 'password123'])
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'pending verification'));
 
         $applicationId = DB::table('rider_applications')->where('user_id', $applicant->id)->value('id');
@@ -75,7 +75,7 @@ class RiderScenariosTest extends TestCase
         Mail::assertSent(\App\Mail\ApplicationStatusMail::class);
 
         $this->flushSession();
-        $this->post(route('login.submit'), ['email' => $applicant->email, 'password' => 'password123'])
+        $this->post(route('logistics.login.submit'), ['email' => $applicant->email, 'password' => 'password123'])
             ->assertRedirect(route('rider.dashboard'));
     }
 

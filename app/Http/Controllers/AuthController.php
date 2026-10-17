@@ -16,6 +16,35 @@ class AuthController extends Controller
         return view('pages.login');
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | BOOMBUY LOGISTICS PORTAL (/logistics)
+    |--------------------------------------------------------------------------
+    */
+
+    public function showLogisticsHome()
+    {
+        // Already signed in to the portal: straight to the work.
+        $role = session('user.role');
+
+        if ($role === 'logistics') {
+            return redirect()->route('logistics.dashboard');
+        }
+
+        if ($role === 'rider') {
+            return redirect()->route('rider.dashboard');
+        }
+
+        return view('logistics-portal.home', [
+            'centerCount' => DB::table('sorting_centers')->where('is_active', true)->count(),
+        ]);
+    }
+
+    public function showLogisticsLogin()
+    {
+        return view('pages.login', ['portal' => 'logistics']);
+    }
+
     public function login()
     {
         $email = strtolower(trim(request('email')));
@@ -33,9 +62,14 @@ class AuthController extends Controller
                 );
         }
 
-        // The admin uses the same login form as everyone else; its email and
-        // password live on its `users` row (changed from Admin > My Account).
-        if (\App\Support\AdminLogin::attempt($email, $password)) {
+        // Two login pages: the marketplace (/login) for buyers, sellers and
+        // the admin, and BoomBuy Logistics (/logistics/login) for logistics
+        // staff and riders. Each one only lets its own accounts in.
+        $logisticsPortal = request()->routeIs('logistics.login.submit');
+
+        // The admin uses the same login form as buyers and sellers; its email
+        // and password live on its `users` row (changed from Admin > My Account).
+        if (!$logisticsPortal && \App\Support\AdminLogin::attempt($email, $password)) {
             \App\Support\AdminLogin::startSession();
 
             return redirect()
@@ -57,6 +91,23 @@ class AuthController extends Controller
             return back()
                 ->withInput()
                 ->with('error', 'Invalid email or password.');
+        }
+
+        // Riders sign in only inside the BoomBuy app (either login page there).
+        if ($user->role === 'rider') {
+            if (\App\Support\MobileAccess::riderBlockedHere(request())) {
+                return back()
+                    ->withInput()
+                    ->with('error', \App\Support\MobileAccess::RIDER_APP_ONLY_MESSAGE)
+                    ->with('portal_hint', 'app');
+            }
+        } elseif ($logisticsPortal !== ($user->role === 'logistics')) {
+            return back()
+                ->withInput()
+                ->with('error', $logisticsPortal
+                    ? 'This login is for BoomBuy Logistics staff. Buyers and sellers log in on the BoomBuy marketplace.'
+                    : 'Logistics staff log in on BoomBuy Logistics.')
+                ->with('portal_hint', $logisticsPortal ? 'market' : 'logistics');
         }
 
         // Suspended/deactivated accounts and unapproved applications.
@@ -341,7 +392,7 @@ class AuthController extends Controller
         session()->forget(['password_reset_user_id', 'password_reset_otp', 'password_reset_expires_at']);
 
         return redirect()
-            ->route('login')
+            ->route(loginRouteFor($user->role))
             ->with(
                 'success',
                 'Password successfully changed. You can now login.'
@@ -350,13 +401,15 @@ class AuthController extends Controller
 
     public function logout()
     {
+        $role = session('user.role');
+
         LoginGate::forget(session('user.id'));
 
         session()->forget('user');
         session()->regenerate(true);
 
         return redirect()
-            ->route('login')
+            ->route(loginRouteFor($role))
             ->with('success', 'You have been logged out.');
     }
 
@@ -726,7 +779,7 @@ class AuthController extends Controller
         if ($user->role === 'logistics') {
 
             return redirect()
-                ->route('login')
+                ->route('logistics.login')
                 ->with(
                     'success',
                     'Your Logistics account has been created! We\'re verifying your documents — you\'ll be able to log in once approved.'
