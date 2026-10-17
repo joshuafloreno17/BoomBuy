@@ -44,7 +44,7 @@
             color: var(--ink);
             background:
                 radial-gradient(circle at 15% 10%, rgba(109, 74, 209, 0.10), transparent 32%),
-                radial-gradient(circle at 85% 90%, rgba(245, 183, 11, 0.10), transparent 30%),
+                radial-gradient(circle at 85% 90%, rgba(154, 124, 240, 0.12), transparent 30%),
                 var(--cream);
         }
 
