@@ -432,7 +432,7 @@ h1 {
 
 .status.status-rejected {
     background: #fdeceb;
-    color: #c23b2c;
+    color: #dc2626;
 }
 
 .status.status-pending {
@@ -760,11 +760,11 @@ h1 {
 .btn-reject {
     background: #ffffff;
     color: #d6362b;
-    border: 1px solid #f4c9c3;
+    border: 1px solid #fecaca;
 }
 
 .btn-reject:hover {
-    background: #fff0ee;
+    background: #fef2f2;
     transform: translateY(-1px);
 }
 
@@ -863,7 +863,7 @@ h1 {
 }
 
 .btn-cancel {
-    background: #fff0ed;
+    background: #fef2f2;
     color: #716c7e;
 }
 

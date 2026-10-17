@@ -139,7 +139,7 @@
 
                 $donutParts = [
                     'Approved' => ['Approved', '#15803d'],
-                    'Pending Verification' => ['Pending', '#d97706'],
+                    'Pending Verification' => ['Pending', '#ca8a04'],
                     'Rejected' => ['Rejected', '#dc2626'],
                 ];
                 $donutLinks = [

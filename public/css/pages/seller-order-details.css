@@ -577,11 +577,11 @@ footer {
     margin-top: 18px;
     padding: 14px 16px;
 
-    border: 1px solid #f6d3cc;
+    border: 1px solid #fecaca;
     border-radius: 12px;
 
     background: #fff4f1;
-    color: #8c2a14;
+    color: #991b1b;
 
     font-size: 13px;
     line-height: 1.6;
@@ -589,7 +589,7 @@ footer {
 
 .status-stopped i {
     font-size: 18px;
-    color: #d63a1c;
+    color: #dc2626;
 }
 
 .status-stopped span {
@@ -607,7 +607,7 @@ footer {
 .status-cancel summary {
     width: fit-content;
 
-    color: #c2331a;
+    color: #b91c1c;
 
     font-size: 13px;
     font-weight: 700;
@@ -646,19 +646,19 @@ footer {
 
 .status-cancel textarea:focus {
     outline: none;
-    border-color: #d63a1c;
-    box-shadow: 0 0 0 3px rgba(214, 58, 28, .1);
+    border-color: #dc2626;
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, .1);
 }
 
 button.btn-danger {
     background: #ffffff;
-    color: #c2331a;
+    color: #b91c1c;
 
-    border: 1.5px solid #f2b8ab;
+    border: 1.5px solid #fca5a5;
 }
 
 button.btn-danger:hover {
-    background: #fff1ee;
+    background: #fef2f2;
     box-shadow: none;
 }
 

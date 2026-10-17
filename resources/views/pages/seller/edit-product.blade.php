@@ -220,7 +220,7 @@
         Your shop is registered for this category, so all your products go here.
     </small>
     @if(\App\Support\Categories::slug($product->category) !== $registeredCategory)
-        <small style="display:block; margin-top:6px; font-size:12px; font-weight:700; color:#8a4b00;">
+        <small style="display:block; margin-top:6px; font-size:12px; font-weight:700; color:#7a5600;">
             <i class="bi bi-exclamation-triangle-fill"></i>
             This product is listed under {{ $product->category }}. Saving moves it to {{ \App\Support\Categories::LIST[$registeredCategory] }}.
         </small>

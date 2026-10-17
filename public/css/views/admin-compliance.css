@@ -145,7 +145,7 @@
 }
 
 .act:hover { background: #f8f6fe; transform: none !important; }
-.act.warn { color: #b45309; border-color: #f5dcae; }
+.act.warn { color: #a16207; border-color: #f5dcae; }
 .act.danger { color: #dc2626; border-color: #fbd5d5; }
 .act.good { color: #15803d; border-color: #bbebca; }
 

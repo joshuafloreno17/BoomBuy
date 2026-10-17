@@ -31,7 +31,7 @@
             </p>
 
             @if ($errors->any())
-                <div style="background:#ffe5e0; color:#c0392b; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:left;">
+                <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px; text-align:left;">
                     @foreach ($errors->all() as $error)
                         <div>{{ $error }}</div>
                     @endforeach

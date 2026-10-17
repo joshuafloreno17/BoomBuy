@@ -80,9 +80,9 @@ a { text-decoration: none; }
 }
 
 .readonly-note {
-    background: #fff7ed;
-    border: 1px solid #fed7aa;
-    color: #9a5b1f;
+    background: #fefce8;
+    border: 1px solid #fde68a;
+    color: #7a5600;
     padding: 12px 15px;
     border-radius: 9px;
     font-size: 12px;

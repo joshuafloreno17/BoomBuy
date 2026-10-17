@@ -390,7 +390,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 }
 
 .address-locate.is-missing {
-    color: #b45309;
+    color: #a16207;
 }
 
 /* Account incomplete: what's missing, and no ordering until it's done */
@@ -401,15 +401,15 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     max-width: 1200px;
     margin: 0 auto 20px;
     padding: 16px 18px;
-    border: 1px solid #fcd9b6;
+    border: 1px solid #fde68a;
     border-radius: 14px;
-    background: #fff7ed;
-    color: #7c2d12;
+    background: #fefce8;
+    color: #7a4f00;
 }
 
 .profile-gate > i {
     font-size: 24px;
-    color: #ea580c;
+    color: #ca8a04;
 }
 
 .profile-gate strong {
@@ -455,7 +455,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 .place-order-blocked {
     margin-top: 8px;
-    color: #b45309;
+    color: #a16207;
     font-size: 12px;
     text-align: center;
 }
