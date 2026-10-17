@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'Logistics / Sorting Center Registration — BoomBuy'])
+    @include('partials.head', ['title' => 'Register a Sorting Center — BoomBuy Logistics'])
 
     <link rel="stylesheet" href="{{ vasset('css/views/logistics-register.css') }}">
     <style>
@@ -14,7 +14,7 @@
 <body>
 
     <nav class="navbar">
-        <a href="{{ route('logistics.home') }}" class="logo"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46"></a>
+        <a href="{{ route('logistics.home') }}" class="logo"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46"><span class="portal-tag">Logistics</span></a>
         <a href="{{ route('logistics.home') }}" class="back-btn">← Back</a>
     </nav>
 
@@ -26,7 +26,7 @@
 
         <div class="eyebrow">Partner with BoomBuy</div>
         <h1>Create your Logistics account</h1>
-        <p class="subtitle">Sign up to manage parcel sorting and rider delivery assignments.</p>
+        <p class="subtitle">Sign up to manage parcel sorting and deliveries for your area.</p>
 
         @if ($errors->any())
             <div class="error-box">

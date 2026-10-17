@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     @include('partials.head', ['title' => 'BoomBuy Logistics'])
-    <meta name="description" content="BoomBuy Logistics — the delivery side of BoomBuy. Riders pick up and deliver parcels; sorting centers sort them by area.">
+    <meta name="description" content="BoomBuy Logistics — the delivery side of BoomBuy. Parcels picked up from sellers, sorted at sorting centers and delivered to buyers.">
 
     <link rel="stylesheet" href="{{ vasset('css/views/logistics-portal.css') }}">
 </head>
@@ -55,7 +55,7 @@
                         </div>
                     </div>
                     <ol class="lg-steps">
-                        <li class="is-done"><span></span><div><strong>Picked up from seller</strong><small>Rider collected the packed parcel</small></div></li>
+                        <li class="is-done"><span></span><div><strong>Picked up from seller</strong><small>Courier collected the packed parcel</small></div></li>
                         <li class="is-done"><span></span><div><strong>At sorting center</strong><small>Scanned and sorted by area</small></div></li>
                         <li class="is-now"><span></span><div><strong>Out for delivery</strong><small>On the way to the buyer</small></div></li>
                         <li><span></span><div><strong>Delivered</strong><small>Photo proof + COD collected</small></div></li>
@@ -69,7 +69,7 @@
                 <div><strong>{{ number_format($centerCount) }}</strong><span>sorting centers</span></div>
                 <div><strong>Door to door</strong><span>seller pickup to buyer delivery</span></div>
                 <div><strong>Proof of delivery</strong><span>photo on every drop-off</span></div>
-                <div><strong>COD remittance</strong><span>tracked per rider</span></div>
+                <div><strong>COD remittance</strong><span>collected and remitted to the center</span></div>
             </div>
         </section>
 
@@ -79,10 +79,10 @@
                 <p class="lg-sub">From the seller's shop to the buyer's door in four steps.</p>
 
                 <div class="lg-flow">
-                    <div class="lg-flow-step"><span class="lg-num">1</span><i class="bi bi-shop"></i><strong>Pickup</strong><p>The seller packs the order and books a pickup. A rider in the area accepts it and collects the parcel.</p></div>
+                    <div class="lg-flow-step"><span class="lg-num">1</span><i class="bi bi-shop"></i><strong>Pickup</strong><p>The seller packs the order and books a pickup. A courier in the area collects the parcel.</p></div>
                     <div class="lg-flow-step"><span class="lg-num">2</span><i class="bi bi-upc-scan"></i><strong>Sorting</strong><p>The parcel is scanned in at the sorting center and sorted by the buyer's area.</p></div>
-                    <div class="lg-flow-step"><span class="lg-num">3</span><i class="bi bi-bicycle"></i><strong>Delivery</strong><p>The center assigns a rider who takes the parcel out for delivery.</p></div>
-                    <div class="lg-flow-step"><span class="lg-num">4</span><i class="bi bi-camera"></i><strong>Proof &amp; COD</strong><p>The rider takes a photo at drop-off, collects cash on delivery and remits it to the center.</p></div>
+                    <div class="lg-flow-step"><span class="lg-num">3</span><i class="bi bi-truck"></i><strong>Delivery</strong><p>The center assigns a courier who takes the parcel out for delivery.</p></div>
+                    <div class="lg-flow-step"><span class="lg-num">4</span><i class="bi bi-camera"></i><strong>Proof &amp; COD</strong><p>A photo is taken at drop-off, and cash on delivery is collected and remitted to the center.</p></div>
                 </div>
             </div>
         </section>
