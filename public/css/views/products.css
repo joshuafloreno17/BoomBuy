@@ -1343,3 +1343,29 @@ select {
 .shop-match-text { display: flex; flex-direction: column; min-width: 0; }
 .shop-match-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .shop-match-text small { color: #6b6385; }
+
+/* The store's own categories on its store page */
+.store-cats {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding: 2px 0 12px;
+    margin: 0 0 8px;
+    scrollbar-width: thin;
+}
+
+.store-cat {
+    flex: none;
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: 1px solid #e6defa;
+    background: #fff;
+    color: #3f2d86;
+    font-size: 14px;
+    font-weight: 600;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.store-cat.is-sub { font-weight: 500; color: #5b4f80; }
+.store-cat.is-active { background: #6d4ad1; border-color: #6d4ad1; color: #fff; }

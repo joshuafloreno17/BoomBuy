@@ -75,6 +75,12 @@ class Product extends Model
         return $this->hasMany(ProductVariation::class);
     }
 
+    /** The seller's own store categories (up to 3); none = "Uncategorized". */
+    public function storeCategories()
+    {
+        return $this->belongsToMany(StoreCategory::class, 'product_store_category')->withTimestamps();
+    }
+
     /** Extra photos after the cover (products.image), in the seller's order. */
     public function images()
     {

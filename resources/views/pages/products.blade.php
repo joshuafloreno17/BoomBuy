@@ -95,6 +95,18 @@
                     <a href="{{ route('messages.thread', $shop['id']) }}" class="btn-soft seller-hero-chat"><i class="bi bi-chat-dots"></i> Message seller</a>
                 @endif
             </section>
+
+            {{-- The store's own categories --}}
+            @if(($storeCategories ?? collect())->isNotEmpty())
+                <nav class="store-cats" aria-label="Store categories">
+                    <a href="{{ route('shop.seller', $shop['id']) }}" @class(['store-cat', 'is-active' => !($activeStoreCategory ?? null)])>All products</a>
+                    @foreach($storeCategories as $storeCat)
+                        <a href="{{ route('shop.seller', [$shop['id'], 'store_category' => $storeCat->id]) }}"
+                           @class(['store-cat', 'is-sub' => $storeCat->parent_id, 'is-active' => ($activeStoreCategory ?? null)?->id === $storeCat->id])
+                           data-store-category="{{ $storeCat->id }}">{{ $storeCat->parent_id ? '› ' : '' }}{{ $storeCat->name }}</a>
+                    @endforeach
+                </nav>
+            @endif
         @endif
 
         {{-- HEADER --}}

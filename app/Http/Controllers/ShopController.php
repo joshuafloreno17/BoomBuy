@@ -252,10 +252,26 @@ class ShopController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        // On a store page: one of the store's own categories (and its subcategories).
+        $storeCategory = null;
+        $storeCategoryIds = [];
+
+        if ($sellerId && request()->filled('store_category')) {
+            $storeCategory = \App\Models\StoreCategory::where('seller_id', $sellerId)->find((int) request('store_category'));
+
+            // A hidden or deleted category's link goes back to the store page.
+            if (!$storeCategory || !$storeCategory->isVisible()) {
+                return redirect()->route('shop.seller', $sellerId)->with('error', 'That store category is not available.');
+            }
+
+            $storeCategoryIds = \App\Models\StoreCategory::where('parent_id', $storeCategory->id)->where('is_hidden', false)->pluck('id')->push($storeCategory->id)->all();
+        }
+
         $query = Product::onSale()
             ->withSellableStock()
             ->withSoldCount()
             ->when($sellerId, fn ($q) => $q->where('seller_id', $sellerId))
+            ->when($storeCategoryIds, fn ($q) => $q->whereHas('storeCategories', fn ($c) => $c->whereIn('store_categories.id', $storeCategoryIds)))
             ->withCount(['reviews', 'variations'])
             ->withAvg('reviews', 'rating')
             // For the card's quick "choose a color/size" popup.
@@ -404,6 +420,8 @@ class ShopController extends Controller
             'totalProducts' => array_sum($categoryCounts->all()),
             // On /shop/{seller}: that shop's header instead of "All products".
             'shop' => $sellerId ? \App\Support\SellerShop::one($sellerId) : null,
+            'storeCategories' => $sellerId ? \App\Models\StoreCategory::ordered($sellerId, true) : collect(),
+            'activeStoreCategory' => $storeCategory,
             // Searching for a store's name finds the store too.
             'matchingShops' => !$sellerId && $search !== '' ? \App\Support\SellerShop::search($search) : collect(),
         ]);

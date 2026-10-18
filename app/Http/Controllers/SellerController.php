@@ -48,6 +48,7 @@ class SellerController extends Controller
             'seller_id',
             $user['id']
         )->where('is_archived', false)
+            ->with('storeCategories.parent')
             ->withAvg('reviews', 'rating')
             ->withCount(['reviews', 'variations'])
             // With options, the stock is theirs added up (what buyers can actually order).
@@ -1142,6 +1143,12 @@ class SellerController extends Controller
             return $user;
         }
 
+        $storeCategoryError = $this->storeCategoryError();
+
+        if ($storeCategoryError) {
+            return back()->withInput()->withErrors(['store_categories' => $storeCategoryError]);
+        }
+
         try {
             $product = $products->create(
                 (int) $user['id'],
@@ -1154,6 +1161,8 @@ class SellerController extends Controller
         } catch (ActionFailed $e) {
             return back()->withInput()->with('error', $e->getMessage());
         }
+
+        StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
 
         return redirect()
             ->route('seller.dashboard')
@@ -1603,6 +1612,12 @@ class SellerController extends Controller
             abort(403);
         }
 
+        $storeCategoryError = $this->storeCategoryError();
+
+        if ($storeCategoryError) {
+            return back()->withInput()->withErrors(['store_categories' => $storeCategoryError]);
+        }
+
         try {
             $products->update(
                 $product,
@@ -1621,9 +1636,28 @@ class SellerController extends Controller
             return back()->withInput()->with('error', $e->getMessage());
         }
 
+        // Forms that show the store categories send them (an empty list clears them).
+        if (request()->has('store_categories_sent')) {
+            StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
+        }
+
         return redirect()
             ->route('seller.dashboard')
             ->with('success', 'Product updated successfully!');
+    }
+
+    /** The store categories picked on the product form: at most 3, all the seller's own. */
+    private function storeCategoryError(): ?string
+    {
+        $ids = collect((array) request('store_categories', []))->map(fn ($id) => (int) $id)->filter()->unique();
+
+        if ($ids->count() > \App\Models\StoreCategory::MAX_PER_PRODUCT) {
+            return 'A product can be in at most ' . \App\Models\StoreCategory::MAX_PER_PRODUCT . ' store categories.';
+        }
+
+        $own = \App\Models\StoreCategory::where('seller_id', session('user.id'))->whereIn('id', $ids)->count();
+
+        return $own === $ids->count() ? null : 'Choose only your own store categories.';
     }
     public function deleteProduct($id)
     {

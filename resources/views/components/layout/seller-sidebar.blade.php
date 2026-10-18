@@ -27,6 +27,11 @@
             @endif
         </a>
 
+        <a href="{{ route('seller.store-categories') }}" @class(['active' => $active === 'store-categories'])>
+            <i class="bi bi-tags-fill"></i>
+            <span class="label-text">Store Categories</span>
+        </a>
+
         <a href="{{ route('seller.vouchers') }}" @class(['active' => $active === 'vouchers'])>
             <i class="bi bi-ticket-perforated-fill"></i>
             <span class="label-text">Vouchers</span>
@@ -154,6 +159,7 @@
                 @endif
             </a>
             <a href="{{ route('seller.reports') }}" @class(['active' => $active === 'reports'])><i class="bi bi-bar-chart-fill"></i>Reports</a>
+            <a href="{{ route('seller.store-categories') }}" @class(['active' => $active === 'store-categories'])><i class="bi bi-tags-fill"></i>Categories</a>
             <a href="{{ route('seller.vouchers') }}" @class(['active' => $active === 'vouchers'])><i class="bi bi-ticket-perforated-fill"></i>Vouchers</a>
             <a href="{{ route('seller.reviews') }}" @class(['active' => $active === 'reviews'])><i class="bi bi-star-fill"></i>Reviews</a>
             <a href="{{ route('complaints.index') }}" @class(['active' => $active === 'complaints'])><i class="bi bi-exclamation-triangle-fill"></i>Complaints</a>

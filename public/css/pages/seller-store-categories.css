@@ -1,0 +1,52 @@
+/* Seller → Store Categories (builds on seller-vouchers.css) */
+.scat-form-row { grid-template-columns: 2fr 1fr; }
+.scat-hint { font-weight: 500; color: #857ca0; }
+.scat-note { font-size: 13px; color: #645a80; margin: -4px 0 16px; line-height: 1.5; }
+
+.field-error {
+    display: block;
+    color: #be123c;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.scat-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 14px;
+    padding: 12px 0;
+    border-top: 1px solid #f0ecfb;
+}
+
+.scat-row.is-sub { padding-left: 28px; }
+.scat-row.is-hidden .scat-rename input { color: #857ca0; }
+
+.scat-rename {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1 1 260px;
+    min-width: 0;
+}
+
+.scat-rename input {
+    flex: 1;
+    min-width: 0;
+    padding: 9px 11px;
+    border: 1px solid #e9e4fa;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.scat-sub-icon { color: #9b8fc4; }
+.scat-count { font-size: 12px; color: #645a80; white-space: nowrap; }
+.scat-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.scat-actions form { display: inline; }
+
+@media (max-width: 760px) {
+    .scat-form-row { grid-template-columns: 1fr; }
+    .scat-row.is-sub { padding-left: 14px; }
+}

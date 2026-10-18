@@ -1013,3 +1013,5 @@ a.pd-cod:hover,
 a.pd-cod:focus-visible {
     border-color: #6d4ad1;
 }
+
+.store-cat-line { display: block; margin-top: 5px; font-size: 11px; color: #645a80; }

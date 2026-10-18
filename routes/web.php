@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShopController;
+use App\Http\Controllers\StoreCategoryController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -409,6 +410,15 @@ Route::post('/seller/vouchers/{id}/toggle', [SellerController::class, 'toggleVou
 
 
 Route::delete('/seller/vouchers/{id}', [SellerController::class, 'deleteVoucher'])->name('seller.vouchers.delete');
+
+// Store categories: the store's own categories for its shop page (2 levels, up to 3 per product)
+Route::get('/seller/store-categories', [StoreCategoryController::class, 'index'])->name('seller.store-categories');
+Route::post('/seller/store-categories', [StoreCategoryController::class, 'store'])->name('seller.store-categories.store');
+Route::put('/seller/store-categories/{id}', [StoreCategoryController::class, 'update'])->whereNumber('id')->name('seller.store-categories.update');
+Route::post('/seller/store-categories/{id}/move', [StoreCategoryController::class, 'move'])->whereNumber('id')->name('seller.store-categories.move');
+Route::post('/seller/store-categories/{id}/toggle', [StoreCategoryController::class, 'toggle'])->whereNumber('id')->name('seller.store-categories.toggle');
+Route::delete('/seller/store-categories/{id}', [StoreCategoryController::class, 'destroy'])->whereNumber('id')->name('seller.store-categories.delete');
+Route::post('/seller/products/{id}/store-categories', [StoreCategoryController::class, 'assign'])->whereNumber('id')->name('seller.products.store-categories');
 
 
 Route::get('/seller/products/{id}/variations', [SellerController::class, 'variations'])->name('seller.products.variations');

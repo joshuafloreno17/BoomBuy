@@ -462,6 +462,11 @@
                                     {{ $product->category ?? 'Other' }}
                                 </span>
 
+                                {{-- The store's own categories (none = Uncategorized) --}}
+                                <small class="store-cat-line" data-store-cats="{{ $product->id }}">
+                                    {{ $product->storeCategories->isNotEmpty() ? $product->storeCategories->map->fullName()->implode(', ') : 'Uncategorized' }}
+                                </small>
+
                             </td>
 
 

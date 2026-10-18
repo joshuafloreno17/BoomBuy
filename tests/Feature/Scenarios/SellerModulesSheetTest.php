@@ -299,4 +299,252 @@ class SellerModulesSheetTest extends TestCase
         $this->as($this->seller1())->get(route('seller.profile', ['user_id' => $this->seller2()->id]))->assertOk()
             ->assertDontSee('RV Gadget Hub')->assertDontSee('roberto.villanueva@example.com');
     }
+
+    /* ---------------------------------------------------------------
+     | S2 Store Categories
+     * --------------------------------------------------------------- */
+
+    /** CAT-1 Bags (P-01), CAT-2 Home Decor > CAT-3 Lamps (P-03) / CAT-4 Baskets (P-02), CAT-5 Kitchen & Dining (P-04). */
+    private function sheetCategories(): array
+    {
+        $make = fn (string $name, ?int $parent, int $order) => \App\Models\StoreCategory::create([
+            'seller_id' => $this->seller1()->id, 'parent_id' => $parent, 'name' => $name, 'sort_order' => $order,
+        ]);
+
+        $cats = ['bags' => $make('Bags', null, 1), 'decor' => $make('Home Decor', null, 2)];
+        $cats['lamps'] = $make('Lamps', $cats['decor']->id, 1);
+        $cats['baskets'] = $make('Baskets', $cats['decor']->id, 2);
+        $cats['kitchen'] = $make('Kitchen & Dining', null, 3);
+
+        $this->p01()->storeCategories()->sync([$cats['bags']->id]);
+        $this->p03()->storeCategories()->sync([$cats['lamps']->id]);
+        $this->p02()->storeCategories()->sync([$cats['baskets']->id]);
+        $this->p04()->storeCategories()->sync([$cats['kitchen']->id]);
+
+        return $cats;
+    }
+
+    private function addCategory(array $form, ?\App\Models\User $seller = null)
+    {
+        return $this->as($seller ?? $this->seller1())->from(route('seller.store-categories'))->post(route('seller.store-categories.store'), $form);
+    }
+
+    private function storeCatNames(\App\Models\User $seller): array
+    {
+        return \App\Models\StoreCategory::where('seller_id', $seller->id)->orderBy('id')->pluck('name')->all();
+    }
+
+    /** The category names on the buyer's store page, in order. */
+    private function storeNav(\App\Models\User $seller): array
+    {
+        $html = $this->as($this->buyer1())->get(route('shop.seller', $seller->id))->assertOk()->getContent();
+        preg_match_all('/data-store-category="\d+">(?:› )?([^<]+)<\/a>/', $html, $m);
+
+        return array_map(fn ($n) => html_entity_decode(trim($n)), $m[1]);
+    }
+
+    /** Product names shown on one store category page. */
+    private function inStoreCategory(\App\Models\StoreCategory $category): array
+    {
+        $html = $this->as($this->buyer1())->get(route('shop.seller', [$category->seller_id, 'store_category' => $category->id]))->assertOk()->getContent();
+        preg_match_all('/class="sp-name">([^<]+)<\/a>/', $html, $m);
+
+        return array_map('html_entity_decode', $m[1]);
+    }
+
+    public function test_SEL_SCAT_001_create_a_store_category_and_assign_a_product(): void
+    {
+        $this->p01();
+        $this->p02();
+
+        $this->addCategory(['name' => 'Pasalubong Picks'])->assertSessionHas('success');
+        $category = \App\Models\StoreCategory::where('name', 'Pasalubong Picks')->firstOrFail();
+
+        // Edit P-01 and add the new category.
+        $this->as($this->seller1())->post(route('seller.products.store-categories', $this->p01()->id), ['store_categories' => [$category->id]])->assertSessionHas('success');
+
+        $this->as($this->seller1())->get(route('seller.store-categories'))->assertOk()->assertSee('value="Pasalubong Picks"', false)->assertSee('1 product');
+        $this->assertSame(['Pasalubong Picks'], $this->storeNav($this->seller1()));
+        $this->assertSame(['Abaca Woven Tote Bag'], $this->inStoreCategory($category));
+    }
+
+    public function test_SEL_SCAT_002_empty_spaces_only_and_over_length_names(): void
+    {
+        $this->addCategory(['name' => ''])->assertSessionHasErrors(['name' => 'Please enter a category name.']);
+        $this->addCategory(['name' => '   '])->assertSessionHasErrors(['name' => 'Please enter a category name.']);
+        $this->addCategory(['name' => str_repeat('B', 51)])->assertSessionHasErrors(['name' => 'A category name can have at most 50 characters.']);
+
+        $this->addCategory(['name' => 'B'])->assertSessionHasNoErrors();
+        $fifty = str_repeat('Banig Mats', 5);
+        $this->assertSame(50, mb_strlen($fifty));
+        $this->addCategory(['name' => $fifty])->assertSessionHasNoErrors();
+
+        $this->assertSame(['B', $fifty], $this->storeCatNames($this->seller1()));
+    }
+
+    public function test_SEL_SCAT_003_duplicate_category_name_in_the_same_store(): void
+    {
+        $this->sheetCategories();
+
+        foreach (['Bags', 'BAGS', '  Bags  '] as $name) {
+            $this->addCategory(['name' => $name])->assertSessionHasErrors(['name' => 'Your store already has a category named "' . trim($name) . '".']);
+        }
+
+        $this->assertSame(1, \App\Models\StoreCategory::where('seller_id', $this->seller1()->id)->whereRaw('LOWER(name) = ?', ['bags'])->count());
+    }
+
+    public function test_SEL_SCAT_004_same_category_name_in_a_different_store(): void
+    {
+        $this->sheetCategories();
+        $before = $this->storeCatNames($this->seller1());
+
+        $this->addCategory(['name' => 'Bags'], $this->seller2())->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $this->assertSame(['Bags'], $this->storeCatNames($this->seller2()));
+        $this->assertSame($before, $this->storeCatNames($this->seller1()));
+    }
+
+    public function test_SEL_SCAT_005_rename_a_category_to_a_duplicate_name(): void
+    {
+        $cats = $this->sheetCategories();
+
+        $this->as($this->seller1())->from(route('seller.store-categories'))->put(route('seller.store-categories.update', $cats['kitchen']->id), ['name' => 'bags'])
+            ->assertSessionHasErrors(['name' => 'Your store already has a category named "bags".']);
+
+        $this->assertSame('Kitchen & Dining', $cats['kitchen']->fresh()->name);
+    }
+
+    public function test_SEL_SCAT_006_rename_and_reorder_categories(): void
+    {
+        $cats = $this->sheetCategories();
+
+        $this->as($this->seller1())->put(route('seller.store-categories.update', $cats['kitchen']->id), ['name' => 'Kitchen'])->assertSessionHas('success');
+        $this->as($this->seller1())->post(route('seller.store-categories.move', $cats['kitchen']->id), ['direction' => 'top'])->assertSessionHas('success');
+
+        // Kitchen is first; the others keep their order behind it.
+        $this->assertSame(['Kitchen', 'Bags', 'Home Decor', 'Lamps', 'Baskets'], $this->storeNav($this->seller1()));
+        $this->assertSame(['Kitchen', 'Bags', 'Home Decor', 'Lamps', 'Baskets'], \App\Models\StoreCategory::ordered($this->seller1()->id)->pluck('name')->all());
+        $this->assertSame(['Banig Placemat Set of 4'], $cats['kitchen']->fresh()->products()->pluck('name')->all());
+    }
+
+    public function test_SEL_SCAT_007_hide_a_category(): void
+    {
+        $cats = $this->sheetCategories();
+
+        $this->as($this->seller1())->post(route('seller.store-categories.toggle', $cats['bags']->id))->assertSessionHas('success');
+
+        $this->assertNotContains('Bags', $this->storeNav($this->seller1()));
+        $this->as($this->buyer1())->get(route('shop.seller', [$this->seller1()->id, 'store_category' => $cats['bags']->id]))
+            ->assertRedirect(route('shop.seller', $this->seller1()->id));
+
+        // Only the category is hidden: P-01 is still found and its page works.
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Tote']))->assertSee('Abaca Woven Tote Bag');
+        $this->as($this->buyer1())->get(route('product.details', $this->p01()->id))->assertOk();
+    }
+
+    public function test_SEL_SCAT_008_show_a_hidden_category(): void
+    {
+        $cats = $this->sheetCategories();
+        $cats['bags']->update(['is_hidden' => true]);
+
+        $this->as($this->seller1())->post(route('seller.store-categories.toggle', $cats['bags']->id))->assertSessionHas('success');
+
+        $this->assertSame(['Bags', 'Home Decor', 'Lamps', 'Baskets', 'Kitchen & Dining'], $this->storeNav($this->seller1()));
+        $this->assertSame(['Abaca Woven Tote Bag'], $this->inStoreCategory($cats['bags']->fresh()));
+    }
+
+    public function test_SEL_SCAT_009_delete_a_category_that_still_has_products(): void
+    {
+        $cats = $this->sheetCategories();
+
+        // The warning says 1 product moves to Uncategorized (Cancel = no request, nothing changes).
+        $this->as($this->seller1())->get(route('seller.store-categories'))->assertOk()
+            ->assertSee(e('Delete "Baskets"? 1 product will move to Uncategorized. No product is deleted.'), false);
+        $this->assertNotNull($cats['baskets']->fresh());
+
+        $this->as($this->seller1())->delete(route('seller.store-categories.delete', $cats['baskets']->id))->assertSessionHas('success');
+
+        $this->assertNull($cats['baskets']->fresh());
+        $p02 = $this->p02()->fresh();
+        $this->assertSame(0, $p02->storeCategories()->count());
+        $this->assertFalse((bool) $p02->is_archived);
+
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertOk()
+            ->assertSeeInOrder(['data-store-cats="' . $p02->id . '"', 'Uncategorized'], false);
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()->assertSee('Add to Cart');
+        $this->as($this->buyer1())->get(route('shop.seller', $this->seller1()->id))->assertSee('Rattan Fruit Basket');
+    }
+
+    public function test_SEL_SCAT_010_delete_a_parent_category_with_subcategories(): void
+    {
+        $cats = $this->sheetCategories();
+
+        $this->as($this->seller1())->get(route('seller.store-categories'))->assertOk()
+            ->assertSee(e('Delete "Home Decor"? Its subcategories (Lamps, Baskets) will be deleted too. 2 products will move to Uncategorized. No product is deleted.'), false);
+
+        $this->as($this->seller1())->delete(route('seller.store-categories.delete', $cats['decor']->id))->assertSessionHas('success');
+
+        $this->assertSame(['Bags', 'Kitchen & Dining'], \App\Models\StoreCategory::ordered($this->seller1()->id)->pluck('name')->all());
+        foreach ([$this->p02(), $this->p03()] as $product) {
+            $this->assertNotNull($product->fresh());
+            $this->assertSame(0, $product->storeCategories()->count());
+            $this->assertFalse((bool) $product->fresh()->is_archived);
+        }
+    }
+
+    public function test_SEL_SCAT_011_subcategory_nesting_at_the_depth_limit(): void
+    {
+        $cats = $this->sheetCategories();
+
+        $this->addCategory(['name' => 'Wall Decor', 'parent_id' => $cats['decor']->id])->assertSessionHasNoErrors();
+        $this->assertSame($cats['decor']->id, \App\Models\StoreCategory::where('name', 'Wall Decor')->value('parent_id'));
+
+        // Lamps is not offered as a parent, and a forced request is blocked.
+        $page = $this->as($this->seller1())->get(route('seller.store-categories'))->getContent();
+        preg_match('/<select id="parent_id".*?<\/select>/s', $page, $select);
+        $this->assertStringContainsString('>Home Decor<', $select[0]);
+        $this->assertStringNotContainsString('>Lamps<', $select[0]);
+
+        $this->addCategory(['name' => 'Table Lamps', 'parent_id' => $cats['lamps']->id])
+            ->assertSessionHasErrors(['parent_id' => 'Store categories have at most 2 levels, so a subcategory can\'t have its own subcategories.']);
+        $this->assertFalse(\App\Models\StoreCategory::where('name', 'Table Lamps')->exists());
+    }
+
+    public function test_SEL_SCAT_012_product_in_several_store_categories_at_the_limit(): void
+    {
+        $cats = $this->sheetCategories();
+        $best = \App\Models\StoreCategory::create(['seller_id' => $this->seller1()->id, 'name' => 'Best Sellers', 'sort_order' => 4]);
+        $gift = \App\Models\StoreCategory::create(['seller_id' => $this->seller1()->id, 'name' => 'Gift Ideas', 'sort_order' => 5]);
+        $new = \App\Models\StoreCategory::create(['seller_id' => $this->seller1()->id, 'name' => 'New Arrivals', 'sort_order' => 6]);
+
+        $this->as($this->seller1())->post(route('seller.products.store-categories', $this->p03()->id), ['store_categories' => [$cats['lamps']->id, $best->id, $gift->id]])->assertSessionHas('success');
+
+        $this->as($this->seller1())->from(route('seller.products.edit', $this->p03()->id))
+            ->post(route('seller.products.store-categories', $this->p03()->id), ['store_categories' => [$cats['lamps']->id, $best->id, $gift->id, $new->id]])
+            ->assertSessionHasErrors(['store_categories' => 'A product can be in at most 3 store categories.']);
+
+        $this->assertEqualsCanonicalizing([$cats['lamps']->id, $best->id, $gift->id], $this->p03()->storeCategories()->pluck('store_categories.id')->all());
+        foreach ([$cats['lamps'], $best, $gift] as $category) {
+            $this->assertSame(['Capiz Shell Lamp'], $this->inStoreCategory($category->fresh()));
+        }
+    }
+
+    public function test_SEL_SCAT_013_store_category_is_separate_from_platform_category(): void
+    {
+        // BoomBuy rule (A7, ERP): a seller lists only in the platform
+        // category the store registered for, so Seller 1's P-01 is under
+        // Home & Living (the sheet's "Women's Bags").
+        $cats = $this->sheetCategories();
+
+        $this->as($this->seller1())->post(route('seller.products.store-categories', $this->p01()->id), ['store_categories' => [$cats['kitchen']->id]])->assertSessionHas('success');
+
+        $this->assertSame('Home & Living', $this->p01()->fresh()->category);
+        $this->as($this->buyer1())->get(route('products', ['category' => 'home-living']))->assertSee('Abaca Woven Tote Bag');
+        $this->assertContains('Abaca Woven Tote Bag', $this->inStoreCategory($cats['kitchen']));
+
+        // Sellers have no way to create or rename platform categories.
+        $routes = collect(\Illuminate\Support\Facades\Route::getRoutes()->getRoutes())->map->uri();
+        $this->assertEmpty($routes->filter(fn ($uri) => str_starts_with($uri, 'seller/') && str_contains($uri, 'platform-categor')));
+        $this->assertCount(16, \App\Support\Categories::LIST);
+    }
 }

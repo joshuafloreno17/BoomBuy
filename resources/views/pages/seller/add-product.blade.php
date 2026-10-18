@@ -322,6 +322,7 @@
                             </option>
                         </select>
 @endif
+                    @include('partials.seller.store-category-picker', ['selected' => []])
                     </div>
 
                     </section>

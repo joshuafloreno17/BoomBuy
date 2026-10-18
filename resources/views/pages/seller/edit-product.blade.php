@@ -367,6 +367,8 @@
                             </select>
 @endif
 
+                            @include('partials.seller.store-category-picker', ['selected' => $product->storeCategories()->pluck('store_categories.id')->all()])
+
                         </div>
 
 
