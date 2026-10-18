@@ -6,19 +6,16 @@
 
         <a href="{{ route('logistics.dashboard') }}" class="bb-side-brand">
             <img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-side-icon" width="36" height="36">
-            <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="131" height="46"> <small>Logistics</small></span>
+            <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark-white.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="125" height="44"> <small>Logistics</small></span>
         </a>
 
         <nav class="logistics-sidebar-nav">
 
+            <span class="logistics-sidebar-group">Work</span>
+
             <a href="{{ route('logistics.dashboard') }}" class="logistics-sidebar-link {{ $active === 'dashboard' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-house-door-fill"></i></span>
                 <span>Dashboard</span>
-            </a>
-
-            <a href="{{ route('logistics.riders') }}" class="logistics-sidebar-link {{ $active === 'riders' ? 'active' : '' }}">
-                <span class="sidebar-icon"><i class="bi bi-bicycle"></i></span>
-                <span>Rider Management</span>
             </a>
 
             <a href="{{ route('logistics.parcels') }}" class="logistics-sidebar-link {{ $active === 'parcels' ? 'active' : '' }}">
@@ -29,6 +26,13 @@
                         {{ $logisticsParcelsToActOn > 99 ? '99+' : $logisticsParcelsToActOn }}
                     </span>
                 @endif
+            </a>
+
+            <span class="logistics-sidebar-group">Team</span>
+
+            <a href="{{ route('logistics.riders') }}" class="logistics-sidebar-link {{ $active === 'riders' ? 'active' : '' }}">
+                <span class="sidebar-icon"><i class="bi bi-bicycle"></i></span>
+                <span>Rider Management</span>
             </a>
 
             @php
@@ -43,6 +47,8 @@
                     <span>Branches</span>
                 </a>
             @endif
+
+            <span class="logistics-sidebar-group">Account</span>
 
             <a href="{{ route('logistics.profile') }}" class="logistics-sidebar-link {{ $active === 'profile' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-person-fill"></i></span>

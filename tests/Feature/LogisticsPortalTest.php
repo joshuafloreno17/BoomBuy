@@ -37,7 +37,7 @@ class LogisticsPortalTest extends TestCase
     public function test_the_portal_has_its_own_landing_login_and_sign_up(): void
     {
         $this->get('/logistics')->assertOk()
-            ->assertSee('Every parcel,')
+            ->assertSee('Every parcel.')
             ->assertSee(route('logistics.login'), false)
             ->assertSee(route('logistics.register'), false)
             ->assertDontSee(route('rider.apply'), false)

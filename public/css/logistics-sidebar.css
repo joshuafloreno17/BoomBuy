@@ -10,8 +10,8 @@
     left: 0;
     width: 245px;
     height: 100vh;
-    background: #ffffff;
-    border-right: 1px solid #e9e4fa;
+    background: #2a1846;
+    border-right: 0;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -52,7 +52,7 @@
     border: none;
     border-radius: 10px;
     background: transparent;
-    color: #574e70;
+    color: #e4dcf5;
     font: inherit;
     font-size: 14.5px;
     font-weight: 600;
@@ -63,22 +63,74 @@
 
 .logistics-sidebar-link:hover,
 .logistics-sidebar-logout:hover {
-    background: #f8f6fe;
-    color: #221a3a;
+    background: rgba(255, 255, 255, .07);
+    color: #ffffff;
 }
 
-.logistics-sidebar-logout:hover {
-    color: #5536b5;
+.logistics-sidebar-link:focus-visible {
+    outline: 2px solid #c9b6ff;
+    outline-offset: -2px;
 }
 
 .logistics-sidebar-link.active {
-    background: #eee8ff;
-    color: #5536b5;
+    background: #6d4ad1;
+    color: #ffffff;
     font-weight: 700;
 }
 
 .logistics-sidebar-link.active .sidebar-icon {
-    color: #6d4ad1;
+    color: #ffffff;
+}
+
+/* Section labels: Work / Team / Account. */
+.logistics-sidebar-group {
+    padding: 14px 12px 6px;
+    color: #8f7bb8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.logistics-sidebar-nav .logistics-sidebar-group:first-child {
+    padding-top: 0;
+}
+
+/* The dark rail's brand and profile card. */
+.logistics-sidebar .bb-side-name small {
+    color: #c9b6ff;
+}
+
+.logistics-sidebar .bb-side-user {
+    background: rgba(255, 255, 255, .07);
+    border-color: transparent;
+}
+
+.logistics-sidebar .bb-side-avatar {
+    background: #c9b6ff;
+    color: #2a1846;
+}
+
+.logistics-sidebar .bb-side-who strong {
+    color: #ffffff;
+}
+
+.logistics-sidebar .bb-side-who small {
+    color: #b9a8dc;
+}
+
+.logistics-sidebar .bb-side-user .bb-side-logout.bb-side-logout {
+    color: #b9a8dc;
+}
+
+.logistics-sidebar .bb-side-user .bb-side-logout.bb-side-logout:hover,
+.logistics-sidebar .bb-side-user .bb-side-logout.bb-side-logout:focus-visible {
+    background: rgba(248, 113, 113, .16);
+    color: #fca5a5;
+}
+
+.logistics-sidebar.bb-portal-side {
+    scrollbar-color: #4b3178 transparent;
 }
 
 .sidebar-icon {
@@ -98,8 +150,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #6d4ad1;
-    color: #fff;
+    background: #c9b6ff;
+    color: #2a1846;
     border-radius: 999px;
     font-size: 11px;
     font-weight: 800;
@@ -129,6 +181,7 @@
 
     .logistics-sidebar .bb-side-name,
     .logistics-sidebar .bb-side-who,
+    .logistics-sidebar-group,
     .logistics-sidebar-link span:not(.sidebar-icon):not(.sidebar-notification-badge),
     .logistics-sidebar-logout span:not(.sidebar-icon) {
         display: none;

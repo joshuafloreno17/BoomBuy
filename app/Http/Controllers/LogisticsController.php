@@ -301,6 +301,19 @@ class LogisticsController extends Controller
             ->where($queues['delivering'])
             ->count();
 
+        // Cash on delivery: collected at the door today, and still with riders.
+        $codCollectedToday = (float) DB::table('orders')
+            ->whereDate('cod_collected_at', $today)
+            ->where($queues['delivering'])
+            ->sum('total_amount');
+
+        $codToReceive = DB::table('orders')
+            ->whereNotNull('cod_collected_at')
+            ->whereNull('cod_remitted_at')
+            ->where($queues['delivering'])
+            ->selectRaw('COUNT(*) as parcels, COALESCE(SUM(total_amount), 0) as amount')
+            ->first();
+
         // What's waiting on logistics right now — the same lists as the Parcels page.
         $todo = [
             [
@@ -411,8 +424,13 @@ class LogisticsController extends Controller
                 'failedToday',
                 'returnedThisWeek',
                 'recentParcels',
-                'unassigned'
-            )
+                'unassigned',
+                'codCollectedToday',
+                'codToReceive'
+            ) + [
+                'centerName' => $myCenter?->name,
+                'unreadNotifications' => \App\Support\Inbox::unreadNotifications($user['id']),
+            ]
         );
     }
 

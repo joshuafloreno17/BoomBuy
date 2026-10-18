@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SortingCenter;
 use App\Models\User;
 use App\Support\LoginGate;
 use Illuminate\Support\Facades\DB;
@@ -36,7 +37,8 @@ class AuthController extends Controller
         }
 
         return view('logistics-portal.home', [
-            'centerCount' => DB::table('sorting_centers')->where('is_active', true)->count(),
+            'centerCount' => SortingCenter::centers()->where('is_active', true)->count(),
+            'branchCount' => SortingCenter::whereNotNull('parent_id')->where('is_active', true)->count(),
         ]);
     }
 
