@@ -4,7 +4,7 @@
 
     <a href="{{ route('admin.dashboard') }}" class="bb-side-brand">
         <img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-side-icon" width="36" height="36">
-        <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="131" height="46"> <small>Admin</small></span>
+        <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark-white.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="125" height="44"> <small>Admin</small></span>
     </a>
 
     <nav class="menu">

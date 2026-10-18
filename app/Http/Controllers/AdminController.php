@@ -230,6 +230,53 @@ class AdminController extends Controller
             $type => DB::table($type . '_applications')->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status'),
         ])->all();
 
+        // Approval inbox: the oldest pending applications of each type, with what the admin needs to decide.
+        $inbox = collect(array_keys(self::APPLICATION_TYPES))->mapWithKeys(fn ($type) => [
+            $type => DB::table($type . '_applications')
+                ->join('users', 'users.id', '=', $type . '_applications.user_id')
+                ->where($type . '_applications.status', 'Pending Verification')
+                ->orderBy($type . '_applications.created_at')
+                ->limit(8)
+                ->select($type . '_applications.*', 'users.email as user_email', 'users.sex as user_sex', 'users.birthdate as user_birthdate', 'users.age as user_age')
+                ->get(),
+        ])->all();
+
+        // Delivered sales and BoomBuy's commission per month, last 6 months (line chart).
+        // Grouped by month in PHP (works on every database).
+        $monthSales = DB::table('orders')
+            ->whereIn('status', \App\Support\OrderStatus::DONE)
+            ->whereRaw('COALESCE(delivered_at, updated_at) >= ?', [$months->first()])
+            ->get(['total_amount', 'delivery_fee', 'commission_rate', 'delivered_at', 'updated_at'])
+            ->groupBy(fn ($o) => substr((string) ($o->delivered_at ?? $o->updated_at), 0, 7));
+        $salesByMonth = $months->map(function ($month) use ($monthSales, $commissionRate) {
+            $rows = $monthSales->get($month->format('Y-m'), collect());
+
+            return [
+                'label' => $month->format('M'),
+                'sales' => round((float) $rows->sum(fn ($o) => $o->total_amount - $o->delivery_fee), 2),
+                'commission' => round((float) $rows->sum(fn ($o) => ($o->total_amount - $o->delivery_fee) * ($o->commission_rate ?? $commissionRate) / 100), 2),
+            ];
+        })->all();
+
+        // What just happened on the platform (newest first).
+        $activity = collect()
+            ->concat(collect(array_keys(self::APPLICATION_TYPES))->flatMap(fn ($type) => DB::table($type . '_applications')
+                ->orderByDesc('created_at')
+                ->limit(3)
+                ->get($type === 'buyer' ? ['full_name', 'created_at'] : ['full_name', 'business_name', 'created_at'])
+                ->map(fn ($a) => ['text' => 'New ' . $type . ' application', 'detail' => ($a->business_name ?? null) ?: $a->full_name, 'at' => $a->created_at, 'tone' => 'is-pink'])))
+            ->concat(DB::table('complaints')->orderByDesc('created_at')->limit(3)->get(['subject', 'order_id', 'created_at'])
+                ->map(fn ($c) => ['text' => 'Complaint filed', 'detail' => \Illuminate\Support\Str::limit($c->subject, 40) . ($c->order_id ? ' · Order #' . $c->order_id : ''), 'at' => $c->created_at, 'tone' => 'is-red']))
+            ->concat(DB::table('orders')->whereIn('status', \App\Support\OrderStatus::DONE)->whereNotNull('delivered_at')->orderByDesc('delivered_at')->limit(3)->get(['id', 'delivered_at'])
+                ->map(fn ($o) => ['text' => 'Order delivered', 'detail' => 'Order #' . $o->id, 'at' => $o->delivered_at, 'tone' => 'is-green']))
+            ->sortByDesc('at')
+            ->take(6)
+            ->values()
+            ->all();
+
+        $liveBanners = \App\Models\PromoBanner::live()->count();
+        $liveAnnouncement = \App\Models\PlatformAnnouncement::where('is_active', true)->exists();
+
         return view(
             'pages.admin.dashboard',
             compact(
@@ -267,7 +314,12 @@ class AdminController extends Controller
                 'pendingApplications',
                 'flaggedProducts',
                 'pendingComplaints',
-                'suspendedSellers'
+                'suspendedSellers',
+                'inbox',
+                'salesByMonth',
+                'activity',
+                'liveBanners',
+                'liveAnnouncement'
             )
         );
     }

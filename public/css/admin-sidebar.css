@@ -239,3 +239,79 @@
         display: block;
     }
 }
+
+/* =========================================================
+   Dark rail (2026-10-19): deep violet, white wordmark,
+   same groups and links.
+========================================================= */
+
+.sidebar {
+    background: #1d1033;
+    border-right: 0;
+    scrollbar-color: #3a2560 transparent;
+}
+
+.sidebar .bb-side-name small {
+    padding: 2px 7px;
+    border-radius: 99px;
+    background: #4ade80;
+    color: #14532d;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.sidebar .menu .menu-group { color: #8f7bb8; }
+
+.sidebar .menu a {
+    color: #e4dcf5;
+    transition: background .15s ease, color .15s ease, padding .2s ease;
+}
+
+.sidebar .menu a svg { transition: transform .25s cubic-bezier(.3, .7, .4, 1.5); }
+
+.sidebar .menu a:hover {
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+}
+
+.sidebar .menu a:hover:not(.active) { padding-left: 16px; }
+.sidebar .menu a:hover svg { transform: scale(1.15) rotate(-6deg); }
+.sidebar .menu a:focus-visible { outline: 2px solid #c9b6ff; outline-offset: -2px; }
+
+.sidebar .menu a.active {
+    background: #6d4ad1;
+    color: #fff;
+}
+
+.sidebar .menu a.active svg { color: #fff; }
+
+.sidebar .menu a .notification-badge {
+    background: #c9b6ff;
+    color: #1d1033;
+}
+
+.sidebar .bb-side-user {
+    background: rgba(255, 255, 255, .07);
+    border-color: transparent;
+}
+
+.sidebar .bb-side-avatar { background: #c9b6ff; color: #1d1033; }
+.sidebar .bb-side-who strong { color: #fff; }
+.sidebar .bb-side-who small { color: #b9a8dc; }
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout { color: #b9a8dc; }
+
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout:hover,
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout:focus-visible {
+    background: rgba(248, 113, 113, .16);
+    color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+    .sidebar .menu a:hover:not(.active) { padding-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar .menu a, .sidebar .menu a svg { transition: none; }
+}
