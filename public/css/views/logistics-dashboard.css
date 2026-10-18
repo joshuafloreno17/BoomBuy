@@ -472,3 +472,55 @@ body {
 @media (prefers-reduced-motion: reduce) {
     .lc-btn, .lc-step { transition: none; }
 }
+
+/* Button effects: lift + glow, a light sweep, the icon nudges, a press on click. */
+.lc-btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: background .2s ease, color .2s ease, transform .2s cubic-bezier(.3, .7, .4, 1.4), box-shadow .2s ease;
+}
+
+.lc-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+}
+
+.lc-btn:hover::after { transform: translateX(120%); transition: transform .6s ease; }
+.lc-btn:hover { transform: translateY(-3px); }
+.lc-btn:active { transform: translateY(0) scale(.97); transition-duration: .08s; }
+.lc-btn i { transition: transform .2s ease; }
+.lc-btn:hover i { transform: scale(1.15) rotate(-6deg); }
+
+.lc-btn-white:hover { box-shadow: 0 12px 26px rgba(42, 24, 70, .25); }
+.lc-btn-glass:hover { box-shadow: 0 0 0 3px rgba(255, 255, 255, .18); }
+.lc-btn-primary:hover { box-shadow: 0 10px 22px rgba(109, 74, 209, .4); }
+.lc-btn-lilac:hover { box-shadow: 0 10px 24px rgba(201, 182, 255, .35); }
+
+.lc-bell { transition: border-color .15s ease, color .15s ease, transform .2s ease; }
+.lc-bell:hover i { display: inline-block; animation: lcRing .5s ease; }
+@keyframes lcRing { 0%, 100% { transform: rotate(0); } 25% { transform: rotate(14deg); } 50% { transform: rotate(-12deg); } 75% { transform: rotate(6deg); } }
+
+.lc-step:hover { box-shadow: 0 12px 26px rgba(85, 54, 181, .12); }
+.lc-step-arrow { transition: transform .2s ease, color .2s ease; }
+.lc-step:hover .lc-step-arrow { transform: translateX(3px); color: #6d4ad1; }
+
+.lc-todo-item { transition: background .15s ease, transform .2s ease; }
+.lc-todo-item:hover { transform: translateX(4px); }
+.lc-todo-icon { transition: transform .25s cubic-bezier(.3, .7, .4, 1.5), background .2s ease, color .2s ease; }
+.lc-todo-item:hover .lc-todo-icon { transform: scale(1.1); background: #6d4ad1; color: #fff; }
+
+.lc-link { transition: color .15s ease, letter-spacing .2s ease; }
+.lc-link:hover { letter-spacing: .02em; }
+
+@media (prefers-reduced-motion: reduce) {
+    .lc-btn::after { display: none; }
+    .lc-bell:hover i { animation: none; }
+    .lc-btn:hover, .lc-btn:active, .lc-btn:hover i, .lc-todo-item:hover,
+    .lc-todo-item:hover .lc-todo-icon, .lc-step:hover .lc-step-arrow { transform: none; }
+}

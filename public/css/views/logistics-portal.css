@@ -702,3 +702,50 @@ a { color: inherit; text-decoration: none; }
     .lg-moving { display: none; }
     .lg-btn, .lg-job, .lg-who-card { transition: none; }
 }
+
+/* Button effects: lift + glow, a light sweep, the icon nudges, a press on click. */
+.lg-btn {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    transition: background .2s ease, border-color .2s ease, color .2s ease, transform .2s cubic-bezier(.3, .7, .4, 1.4), box-shadow .2s ease;
+}
+
+.lg-btn::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, .45) 50%, transparent 70%);
+    transform: translateX(-120%);
+    pointer-events: none;
+}
+
+.lg-btn:hover::after { transform: translateX(120%); transition: transform .6s ease; }
+.lg-btn:hover { transform: translateY(-3px); }
+.lg-btn:active { transform: translateY(0) scale(.97); transition-duration: .08s; }
+.lg-btn i { transition: transform .2s ease; }
+.lg-btn:hover i { transform: translateX(4px); }
+
+.lg-btn-white:hover { box-shadow: 0 12px 28px rgba(201, 182, 255, .35); }
+.lg-btn-violet:hover { box-shadow: 0 12px 28px rgba(109, 74, 209, .55); }
+.lg-btn-lilac:hover { box-shadow: 0 12px 28px rgba(201, 182, 255, .45); }
+.lg-btn-outline:hover { box-shadow: 0 0 0 4px rgba(201, 182, 255, .14); }
+.lg-btn-primary:hover { box-shadow: 0 14px 30px rgba(109, 74, 209, .35); }
+
+.lg-links a { transition: color .15s ease, background .15s ease; }
+.lg-who-card a { transition: letter-spacing .2s ease; }
+.lg-who-card a:hover { letter-spacing: .02em; }
+.lg-stat { transition: transform .2s ease, box-shadow .2s ease, border-color .2s ease; }
+.lg-stat:hover { transform: translateY(-3px); border-color: #c9b6ff; box-shadow: 0 14px 30px rgba(85, 54, 181, .1); }
+.lg-stat-icon, .lg-journey-icon { transition: transform .25s cubic-bezier(.3, .7, .4, 1.5); }
+.lg-stat:hover .lg-stat-icon { transform: rotate(-8deg) scale(1.08); }
+.lg-journey li:hover .lg-journey-icon { transform: translateY(-4px) scale(1.06); }
+.lg-faq details { transition: border-color .2s ease, box-shadow .2s ease; }
+.lg-faq details:hover { border-color: #c9b6ff; box-shadow: 0 8px 20px rgba(85, 54, 181, .08); }
+
+@media (prefers-reduced-motion: reduce) {
+    .lg-btn::after { display: none; }
+    .lg-btn:hover, .lg-btn:active, .lg-stat:hover, .lg-btn:hover i,
+    .lg-stat:hover .lg-stat-icon, .lg-journey li:hover .lg-journey-icon { transform: none; }
+}

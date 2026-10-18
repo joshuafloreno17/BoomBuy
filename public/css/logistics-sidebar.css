@@ -247,3 +247,29 @@
         display: block;
     }
 }
+
+/* Hover: the link slides a little and its icon pops. */
+.logistics-sidebar-link .sidebar-icon {
+    transition: transform .25s cubic-bezier(.3, .7, .4, 1.5);
+}
+
+.logistics-sidebar-link:hover:not(.active) {
+    padding-left: 16px;
+}
+
+.logistics-sidebar-link:hover .sidebar-icon {
+    transform: scale(1.18) rotate(-6deg);
+}
+
+.logistics-sidebar-link {
+    transition: background 0.15s ease, color 0.15s ease, padding 0.2s ease;
+}
+
+@media (max-width: 800px) {
+    .logistics-sidebar-link:hover:not(.active) { padding-left: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .logistics-sidebar-link:hover .sidebar-icon { transform: none; }
+    .logistics-sidebar-link:hover:not(.active) { padding-left: 12px; }
+}
