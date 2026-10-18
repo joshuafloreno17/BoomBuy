@@ -1,9 +1,13 @@
+@php
+    // Opened from the BoomBuy Logistics login (see AuthController::showForgotPassword).
+    $isLogistics = session('auth_portal') === 'logistics';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    @include('partials.head', ['title' => 'Forgot Password — BoomBuy'])
+    @include('partials.head', ['title' => $isLogistics ? 'Forgot Password — BoomBuy Logistics' : 'Forgot Password — BoomBuy'])
 
     <link rel="stylesheet" href="{{ vasset('css/views/forgot-password.css') }}">
 
@@ -14,9 +18,7 @@
 
 <nav class="navbar">
 
-    <a href="/" class="logo">
-        <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
-    </a>
+    @include('partials.auth-logo', ['logistics' => $isLogistics])
 
 </nav>
 
@@ -34,7 +36,7 @@
                 </div>
 
                 <small>
-                    BoomBuy Account
+                    {{ $isLogistics ? 'BoomBuy Logistics Account' : 'BoomBuy Account' }}
                 </small>
 
                 <h1>
@@ -43,7 +45,7 @@
 
                 <p>
                     Enter the email address connected
-                    to your BoomBuy account.
+                    to your {{ $isLogistics ? 'BoomBuy Logistics' : 'BoomBuy' }} account.
                 </p>
 
             </div>
@@ -103,7 +105,7 @@
 
             <div class="back">
 
-                <a href="{{ route('login') }}">
+                <a href="{{ route($isLogistics ? 'logistics.login' : 'login') }}">
                     ← Back to Login
                 </a>
 

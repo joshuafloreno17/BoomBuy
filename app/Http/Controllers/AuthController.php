@@ -199,6 +199,10 @@ class AuthController extends Controller
 
     public function showForgotPassword()
     {
+        // Opened from the BoomBuy Logistics login (?portal=logistics): the
+        // forgot and reset pages look like Logistics and lead back there.
+        session(['auth_portal' => request('portal') === 'logistics' ? 'logistics' : 'market']);
+
         return view('pages.forgot-password');
     }
 

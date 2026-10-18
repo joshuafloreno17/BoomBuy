@@ -20,6 +20,15 @@
                 {{ $role }} account.
             </p>
 
+            <p style="text-align:center; margin:24px 0 8px;">
+                <a href="{{ $action['url'] }}" style="display:inline-block; background:#6d4ad1; color:#fff; text-decoration:none; font-weight:700; padding:12px 22px; border-radius:10px;">
+                    {{ $action['label'] }}
+                </a>
+            </p>
+            <p style="color:#645a80; font-size:12px; text-align:center; margin:0;">
+                {{ $action['url'] }}
+            </p>
+
         @else
 
             <p style="color:#221a3a; font-size:14px; line-height:1.6;">

@@ -1,8 +1,12 @@
+@php
+    // Signing up for BoomBuy Logistics: show the Logistics tag.
+    $isLogistics = session('pending_registration.role') === 'logistics';
+@endphp
 <!DOCTYPE html>
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Verify Code - BoomBuy</title>
+    <title>{{ $isLogistics ? 'Verify Code - BoomBuy Logistics' : 'Verify Code - BoomBuy' }}</title>
 
     @include('partials.pwa-head')
     @include('partials.design-tokens')
@@ -13,7 +17,7 @@
     <div style="max-width:420px; margin:60px auto; background:#fff; border-radius:16px; border:1px solid #e9e4fa; padding:32px; text-align:center;">
 
         <div style="font-size:22px; font-weight:800; margin-bottom:16px;">
-            <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
+            @include('partials.auth-logo', ['logistics' => $isLogistics])
         </div>
 
         <h1 style="font-size:20px; color:#221a3a;">Enter Verification Code</h1>

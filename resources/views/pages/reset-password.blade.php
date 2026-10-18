@@ -1,9 +1,13 @@
+@php
+    // Opened from the BoomBuy Logistics login (see AuthController::showForgotPassword).
+    $isLogistics = session('auth_portal') === 'logistics';
+@endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    @include('partials.head', ['title' => 'Create New Password — BoomBuy'])
+    @include('partials.head', ['title' => $isLogistics ? 'Create New Password — BoomBuy Logistics' : 'Create New Password — BoomBuy'])
 
     <link rel="stylesheet" href="{{ vasset('css/views/reset-password.css') }}">
 
@@ -13,9 +17,7 @@
 
 <nav class="navbar">
 
-    <a href="/" class="logo">
-        <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
-    </a>
+    @include('partials.auth-logo', ['logistics' => $isLogistics])
 
 </nav>
 
@@ -31,7 +33,7 @@
             </div>
 
             <small>
-                BoomBuy Security
+                {{ $isLogistics ? 'BoomBuy Logistics Security' : 'BoomBuy Security' }}
             </small>
 
             <h1>

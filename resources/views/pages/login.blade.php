@@ -139,7 +139,7 @@
                             </label>
 
                             <a
-                                href="{{ route('password.request') }}"
+                                href="{{ $isLogistics ? route('password.request', ['portal' => 'logistics']) : route('password.request') }}"
                                 class="forgot"
                             >
                                 Forgot password?

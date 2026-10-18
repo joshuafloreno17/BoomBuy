@@ -151,4 +151,47 @@ class LogisticsPortalTest extends TestCase
         $this->get('/rider/deliveries')->assertRedirect('/logistics/rider/deliveries')->assertStatus(301);
         $this->assertSame(url('/logistics/rider/deliveries'), route('rider.deliveries'));
     }
+
+    public function test_approval_emails_link_to_the_right_place(): void
+    {
+        $cases = [
+            'logistics' => route('logistics.login'),
+            'rider' => route('app.download'),
+            'seller' => route('login'),
+            'buyer' => route('login'),
+        ];
+
+        foreach ($cases as $role => $url) {
+            (new \App\Mail\ApplicationStatusMail('Juan', $role, 'Approved'))->assertSeeInHtml($url);
+        }
+
+        (new \App\Mail\ApplicationStatusMail('Juan', 'logistics', 'Rejected', 'Blurry permit'))
+            ->assertDontSeeInHtml(route('logistics.login'));
+    }
+
+    public function test_forgot_password_from_the_portal_stays_on_the_portal(): void
+    {
+        $this->get(route('logistics.login'))->assertSee(route('password.request', ['portal' => 'logistics']), false);
+
+        $this->get(route('password.request', ['portal' => 'logistics']))->assertOk()
+            ->assertSee('BoomBuy Logistics Account')
+            ->assertSee('href="' . route('logistics.login') . '"', false);
+
+        // Straight to /forgot-password: the marketplace page again.
+        $this->get(route('password.request'))->assertOk()
+            ->assertDontSee('BoomBuy Logistics Account')
+            ->assertSee('href="' . route('login') . '"', false);
+    }
+
+    public function test_the_verify_code_page_shows_logistics_when_signing_up_for_it(): void
+    {
+        $this->withSession(['pending_registration' => ['role' => 'logistics', 'email' => 'hub@example.com'], 'otp_email' => 'hub@example.com'])
+            ->get(route('otp.show'))->assertOk()
+            ->assertSee('Verify Code - BoomBuy Logistics')
+            ->assertSee('<span class="bb-portal-tag">Logistics</span>', false);
+
+        $this->withSession(['pending_registration' => ['role' => 'seller', 'email' => 'shop@example.com'], 'otp_email' => 'shop@example.com'])
+            ->get(route('otp.show'))->assertOk()
+            ->assertDontSee('<span class="bb-portal-tag">Logistics</span>', false);
+    }
 }

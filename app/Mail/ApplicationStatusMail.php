@@ -30,6 +30,20 @@ class ApplicationStatusMail extends Mailable
             : 'Update on Your BoomBuy ' . ucfirst($this->role) . ' Application';
 
         return $this->subject($subject)
-            ->view('emails.application-status');
+            ->view('emails.application-status', ['action' => $this->action()]);
+    }
+
+    /**
+     * Where an approved applicant goes next: logistics staff to BoomBuy
+     * Logistics, riders to the app (they work there only), buyers and
+     * sellers to the marketplace login.
+     */
+    private function action(): array
+    {
+        return match ($this->role) {
+            'logistics' => ['label' => 'Log in to BoomBuy Logistics', 'url' => route('logistics.login')],
+            'rider' => ['label' => 'Get the BoomBuy app', 'url' => route('app.download')],
+            default => ['label' => 'Log in to BoomBuy', 'url' => route('login')],
+        };
     }
 }
