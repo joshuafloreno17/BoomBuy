@@ -15,8 +15,9 @@ use Tests\TestCase;
 /**
  * The classmate's sheet, Rider tab: TC-RID-001 to TC-RID-032, one test each.
  * Riders here are added by an approved logistics company (Bilis Hatid
- * Express Inc.) and activate their account from an emailed link. The public
- * rider application (ERP) stays too, so TC-RID-029 is not met by design.
+ * Express Inc.) and activate their account from an emailed link. Riders can
+ * still apply themselves (ERP), but only inside the BoomBuy app, so the public
+ * website offers no rider sign-up (TC-RID-029).
  */
 class RiderSheetTest extends TestCase
 {
@@ -440,14 +441,25 @@ class RiderSheetTest extends TestCase
 
     public function test_TC_RID_029_no_public_rider_registration(): void
     {
-        // The Add Rider address sends a guest to the login page...
+        config(['app.riders_app_only' => true]);
+
+        // The public registration page offers Buyer and Seller only...
+        $this->get(route('register'))->assertOk()
+            ->assertSee(route('buyer.register'), false)
+            ->assertSee(route('seller.register'), false)
+            ->assertDontSee(route('rider.apply'), false)
+            ->assertDontSee('Continue as Rider');
+
+        // ...picking "rider" or opening the rider form directly is refused...
+        $this->from(route('register'))->post(route('register.submit'), ['role' => 'rider'])
+            ->assertRedirect(route('register'))
+            ->assertSessionHas('error', \App\Support\MobileAccess::RIDER_APP_ONLY_MESSAGE);
+        $this->get(route('rider.apply'))->assertRedirect(route('app.download'));
+
+        // ...and the Add Rider address sends a guest to the login page.
         $this->get(route('logistics.riders.create'))->assertRedirect(route('logistics.login'));
         $this->post(route('logistics.riders.store'), $this->pedro())->assertRedirect(route('logistics.login'));
         $this->assertSame(0, User::where('role', 'rider')->count());
-
-        // ...but riders can still apply on their own: the ERP list keeps that (option B).
-        $this->get(route('rider.apply'))->assertOk();
-        $this->markTestSkipped('By design: the public rider application (ERP list) stays, so "Rider is not offered as a self-registration role" is not met.');
     }
 
     public function test_TC_RID_030_buyer_or_seller_opens_the_add_rider_form(): void

@@ -188,6 +188,13 @@ class AuthController extends Controller
                 return redirect()->route('seller.register');
 
             case 'rider':
+                // Riders sign up inside the BoomBuy app only (TC-RID-029).
+                if (\App\Support\MobileAccess::riderBlockedHere(request())) {
+                    return back()
+                        ->withInput()
+                        ->with('error', \App\Support\MobileAccess::RIDER_APP_ONLY_MESSAGE);
+                }
+
                 return redirect()->route('rider.apply');
 
             default:
