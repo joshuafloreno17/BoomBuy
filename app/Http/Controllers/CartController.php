@@ -45,6 +45,10 @@ class CartController extends Controller
             return $this->addResult(false, 'This product is no longer available.');
         }
 
+        if ($product->sellerOnVacation()) {
+            return $this->addResult(false, Product::VACATION_MESSAGE);
+        }
+
         /*
         |--------------------------------------------------------------------------
         | RESOLVE THE SELECTED VARIATION (IF ANY)
@@ -173,6 +177,10 @@ class CartController extends Controller
 
         if (!$product->isPurchasable()) {
             return back()->with('error', 'This product is no longer available.');
+        }
+
+        if ($product->sellerOnVacation()) {
+            return back()->with('error', Product::VACATION_MESSAGE);
         }
 
         $quantity = (int) request('quantity', 1);
@@ -560,6 +568,19 @@ class CartController extends Controller
                         'error',
                         'One of the products could not be found.'
                     );
+            }
+
+            // Deactivated products and stores on vacation can't be checked out.
+            if (!$products[$productId]->isPurchasable()) {
+                return redirect()
+                    ->route('cart')
+                    ->with('error', $products[$productId]->name . ' is no longer available. Please remove it from your selection.');
+            }
+
+            if ($products[$productId]->sellerOnVacation()) {
+                return redirect()
+                    ->route('cart')
+                    ->with('error', $products[$productId]->name . ': ' . Product::VACATION_MESSAGE);
             }
         }
 

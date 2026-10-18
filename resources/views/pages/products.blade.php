@@ -52,9 +52,14 @@
 
         {{-- SHOP HEADER (on /shop/{seller}) --}}
         @if($shop)
+            @if($shop['banner'] ?? null)
+                <div class="seller-banner"><img src="{{ $shop['banner'] }}" alt="{{ $shop['name'] }} banner"></div>
+            @endif
             <section class="seller-hero" aria-label="Shop">
                 <span class="seller-hero-avatar">
-                    @if($shop['photo'])
+                    @if($shop['logo'] ?? null)
+                        <img src="{{ $shop['logo'] }}" alt="{{ $shop['name'] }} logo">
+                    @elseif($shop['photo'])
                         <img src="{{ $shop['photo'] }}" alt="">
                     @else
                         {{ $shop['initial'] }}
@@ -64,7 +69,7 @@
                     <nav class="shop-crumbs" aria-label="Breadcrumb">
                         <a href="{{ route('products') }}">Shop</a> / <span>{{ $shop['name'] }}</span>
                     </nav>
-                    <h1>{{ $shop['name'] }}</h1>
+                    <h1>{{ $shop['name'] }}@if($shop['vacation'] ?? false) <span class="seller-vacation"><i class="bi bi-umbrella-fill"></i> On vacation</span>@endif</h1>
                     @if($shop['description'])
                         <p class="seller-hero-about">{{ $shop['description'] }}</p>
                     @endif
@@ -80,6 +85,9 @@
                         @endif
                         @if($shop['since'])
                             <span><i class="bi bi-calendar3"></i> On BoomBuy since {{ $shop['since'] }}</span>
+                        @endif
+                        @if($shop['phone'] ?? null)
+                            <span><i class="bi bi-telephone"></i> {{ $shop['phone'] }}</span>
                         @endif
                     </div>
                 </div>
@@ -227,6 +235,30 @@
                         </select>
                     </label>
                 </div>
+
+                {{-- Stores whose name matches the search --}}
+                @if(($matchingShops ?? collect())->isNotEmpty())
+                    <section class="shop-matches" aria-label="Shops">
+                        <h2>Shops</h2>
+                        <div class="shop-matches-row">
+                            @foreach($matchingShops as $match)
+                                <a href="{{ $match['url'] }}" class="shop-match">
+                                    <span class="shop-match-avatar">
+                                        @if($match['logo'] ?? $match['photo'])
+                                            <img src="{{ $match['logo'] ?? $match['photo'] }}" alt="">
+                                        @else
+                                            {{ $match['initial'] }}
+                                        @endif
+                                    </span>
+                                    <span class="shop-match-text">
+                                        <strong>{{ $match['name'] }}</strong>
+                                        <small>{{ $match['products'] }} {{ \Illuminate\Support\Str::plural('product', $match['products']) }}@if($match['location']) · {{ $match['location'] }}@endif</small>
+                                    </span>
+                                </a>
+                            @endforeach
+                        </div>
+                    </section>
+                @endif
 
                 @if($total === 0)
 

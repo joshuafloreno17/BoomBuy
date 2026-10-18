@@ -338,6 +338,15 @@
 
             <!-- ACTION BUTTONS -->
 
+            @php $onVacation = !empty($shop['vacation']); @endphp
+
+            @if($onVacation)
+                <div class="vacation-notice" role="status">
+                    <i class="bi bi-umbrella-fill"></i>
+                    <span><strong>On vacation.</strong> This store isn't taking orders right now. You can still save this product to your wishlist.</span>
+                </div>
+            @endif
+
             <div class="buttons">
 
                 <!-- WISHLIST -->
@@ -383,6 +392,7 @@
                         type="submit"
                         class="btn cart-btn"
                         style="width:100%;"
+                        @disabled($onVacation)
                     >
                         <i class="bi bi-cart-fill"></i> Add to Cart
                     </button>
@@ -414,6 +424,7 @@
                         type="submit"
                         class="btn buy-btn"
                         style="width:100%;"
+                        @disabled($onVacation)
                     >
                         <i class="bi bi-lightning-fill"></i> Buy Now
                     </button>

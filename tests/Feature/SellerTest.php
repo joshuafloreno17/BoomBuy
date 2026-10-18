@@ -84,7 +84,7 @@ class SellerTest extends TestCase
         $seller = $this->makeSeller('shoes', 'Old Name');
 
         $this->actingAsUser($seller)
-            ->post(route('seller.shop.update'), ['business_name' => 'Stride Footwear Co.', 'shop_description' => 'Comfortable shoes for every day.'])
+            ->post(route('seller.shop.update'), ['business_name' => 'Stride Footwear Co.', 'shop_description' => 'Comfortable shoes for every day.', 'shop_phone' => '09171234567'])
             ->assertSessionHas('success');
 
         $this->assertDatabaseHas('seller_applications', ['user_id' => $seller->id, 'business_name' => 'Stride Footwear Co.']);
@@ -135,8 +135,8 @@ class SellerTest extends TestCase
         $seller = $this->makeSeller('shoes', 'Stride Footwear Co.');
 
         $this->actingAsUser($seller)
-            ->post(route('seller.shop.update'), ['business_name' => 'voltique electronics'])
-            ->assertSessionHas('error');
+            ->post(route('seller.shop.update'), ['business_name' => 'voltique electronics', 'shop_phone' => '09171234567'])
+            ->assertSessionHasErrors(['business_name']);
 
         $this->assertDatabaseHas('seller_applications', ['user_id' => $seller->id, 'business_name' => 'Stride Footwear Co.']);
     }

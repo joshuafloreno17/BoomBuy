@@ -1278,3 +1278,68 @@ select {
     font-weight: 600;
     color: var(--muted, #645a80);
 }
+/* Store banner, and the "On vacation" label (store page + cards) */
+.seller-banner {
+    margin: 0 0 14px;
+    border-radius: 18px;
+    overflow: hidden;
+    aspect-ratio: 5 / 1;
+    background: #ede7fb;
+}
+
+.seller-banner img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.seller-vacation {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    vertical-align: middle;
+    margin-left: 8px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fff7ed;
+    color: #9a3412;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.sp-btn.sp-vacation { background: #fff7ed; color: #9a3412; border-color: #fed7aa; }
+
+/* "Shops" row above search results */
+.shop-matches { margin: 0 0 18px; }
+.shop-matches h2 { font-size: 15px; margin: 0 0 10px; }
+.shop-matches-row { display: flex; flex-wrap: wrap; gap: 10px; }
+
+.shop-match {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: 1px solid #e6defa;
+    border-radius: 14px;
+    background: #fff;
+    color: inherit;
+    text-decoration: none;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.shop-match:hover { border-color: #b9a6ef; }
+
+.shop-match-avatar {
+    flex: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #ede7fb;
+    color: #5536b5;
+    font-weight: 800;
+}
+
+.shop-match-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.shop-match-text { display: flex; flex-direction: column; min-width: 0; }
+.shop-match-text strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shop-match-text small { color: #6b6385; }

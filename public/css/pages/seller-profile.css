@@ -405,3 +405,34 @@ a { text-decoration: none; color: inherit; }
     .stats-row, .profile-aside .stats-row { grid-template-columns: 1fr; }
     .profile-aside .profile-header { flex-direction: column; text-align: center; }
 }
+
+/* Store Settings: a field's own error, logo/banner previews, vacation state */
+.field-error {
+    display: block;
+    color: #dc2626;
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 6px;
+}
+
+.shop-image-preview {
+    display: block;
+    margin-bottom: 8px;
+    border-radius: 10px;
+    border: 1px solid #ddd5f2;
+    object-fit: cover;
+}
+
+.shop-image-preview.is-logo { width: 64px; height: 64px; }
+.shop-image-preview.is-banner { width: 100%; max-width: 320px; height: 72px; }
+
+.vacation-state {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-weight: 700;
+    color: #3f2d86;
+}
+
+.vacation-state.is-on { color: #b45309; }

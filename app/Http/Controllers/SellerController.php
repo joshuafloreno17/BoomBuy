@@ -382,34 +382,44 @@ class SellerController extends Controller
             return $user;
         }
 
-        $name = trim(request('name'));
-        $phone = trim(request('phone'));
-        $address = trim(request('address'));
+        $name = trim((string) request('name'));
+        $phone = preg_replace('/\s+/', '', (string) request('phone'));
+        $address = trim((string) request('address'));
 
-        if (empty($name) || empty($phone) || empty($address)) {
-            return back()
-                ->withInput()
-                ->with('error', 'Please complete all fields.');
+        // Each blank field gets its own message; the address (the pickup
+        // address) is checked part by part.
+        $errors = [];
+
+        if ($name === '') {
+            $errors['name'] = 'Please enter your full name.';
         }
 
-        if (
-            User::where('phone', $phone)
-                ->where('id', '!=', $user['id'])
-                ->exists()
-        ) {
-            return back()
-                ->withInput()
-                ->with('error', 'This phone number is already registered.');
+        if ($phone === '') {
+            $errors['phone'] = 'Please enter your phone number.';
+        } elseif (!preg_match(\App\Support\RegistrationRules::PHONE_PATTERN, $phone)) {
+            $errors['phone'] = 'Please enter a valid Philippine mobile number.';
+        } elseif (\App\Support\RegistrationRules::phoneTaken($phone, (int) $user['id'])) {
+            $errors['phone'] = 'This phone number is already registered.';
         }
+
+        $parts = \App\Support\PhLocations::split($address);
+
+        if ($address === '' || !$parts['province']) {
+            $errors['address'] = 'Please choose the province of your pickup address.';
+        } elseif (!$parts['city']) {
+            $errors['address'] = 'Please choose the city / municipality of your pickup address.';
+        } elseif (trim($parts['street']) === '') {
+            $errors['address'] = 'Please enter the house no., street and barangay of your pickup address.';
+        }
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors);
+        }
+
+        $phone = \App\Support\RegistrationRules::normalizePhone($phone);
 
         // The shop's town decides its Sorting Center and its buyers' delivery fees.
-        $town = \App\Support\PhLocations::locate($address);
-
-        if (!$town) {
-            return back()
-                ->withInput()
-                ->with('error', 'Pick your province and city/municipality for the address.');
-        }
+        $town = ['province' => $parts['province'], 'city' => $parts['city']];
 
         $dbUser = User::find($user['id']);
         $dbUser->name = $name;
@@ -464,31 +474,69 @@ class SellerController extends Controller
 
         $shopName = trim($data['business_name']);
 
-        // Two shops with the same name would confuse buyers.
+        // Two shops with the same name would confuse buyers (case and outer spaces ignored).
         $taken = DB::table('seller_applications')
             ->where('user_id', '!=', $user['id'])
-            ->whereRaw('LOWER(business_name) = ?', [mb_strtolower($shopName)])
+            ->whereRaw('LOWER(TRIM(business_name)) = ?', [mb_strtolower($shopName)])
             ->exists();
 
         if ($taken) {
             return back()
                 ->withInput()
-                ->with('error', 'Another shop already uses that name. Please choose a different one.');
+                ->withErrors(['business_name' => 'That store name is already taken. Please choose a different one.']);
         }
 
-        $updated = DB::table('seller_applications')
+        $application = DB::table('seller_applications')
             ->where('user_id', $user['id'])
-            ->update([
-                'business_name' => $shopName,
-                'shop_description' => trim((string) ($data['shop_description'] ?? '')) ?: null,
-                'updated_at' => now(),
-            ]);
+            ->orderByDesc('id')
+            ->first();
 
-        if (!$updated) {
+        if (!$application) {
             return back()->with('error', 'We could not find your seller application.');
         }
 
-        return back()->with('success', 'Shop details updated.');
+        $columns = [
+            'business_name' => $shopName,
+            'shop_description' => trim((string) ($data['shop_description'] ?? '')) ?: null,
+            'shop_phone' => \App\Support\RegistrationRules::normalizePhone($data['shop_phone']),
+            'updated_at' => now(),
+        ];
+
+        // A new logo or banner replaces the old one; leaving it empty keeps it.
+        foreach (['shop_logo' => 'logo', 'shop_banner' => 'banner'] as $field => $kind) {
+            if ($request->hasFile($field)) {
+                $file = $request->file($field);
+                $columns[$field] = $file->storeAs('shop-images', "{$kind}_{$user['id']}_" . now()->format('YmdHis') . '_' . Str::random(6) . '.' . $file->extension(), 'public');
+
+                if (!empty($application->{$field})) {
+                    \Illuminate\Support\Facades\Storage::disk('public')->delete($application->{$field});
+                }
+            }
+        }
+
+        DB::table('seller_applications')->where('id', $application->id)->update($columns);
+
+        return back()->with('success', 'Store settings saved.');
+    }
+
+    /** Vacation mode on/off: products stay visible, but nothing can be bought while it is on. */
+    public function updateVacation()
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $on = request()->boolean('vacation_mode');
+
+        DB::table('seller_applications')
+            ->where('user_id', $user['id'])
+            ->update(['vacation_mode' => $on, 'updated_at' => now()]);
+
+        return back()->with('success', $on
+            ? 'Vacation mode is on. Buyers can still see your products, but they can\'t order until you turn it off.'
+            : 'Vacation mode is off. Buyers can order from your store again.');
     }
 
     public function updatePhoto(ProfilePhotoRequest $request, ProfilePhotoService $photos)

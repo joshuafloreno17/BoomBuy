@@ -322,6 +322,7 @@ class ShopController extends Controller
                 'sold' => (int) $product->sold_count,
                 'shop_name' => $shops->get($product->seller_id)['name'] ?? null,
                 'shop_url' => $shops->get($product->seller_id)['url'] ?? null,
+                'vacation' => $shops->get($product->seller_id)['vacation'] ?? false,
                 // One item at this price already reaches the free-delivery minimum.
                 'free_shipping' => (float) $product->price >= \App\Support\DeliveryFee::freeShippingMin(),
                 'image' => productImageUrl($product->image),
@@ -403,6 +404,8 @@ class ShopController extends Controller
             'totalProducts' => array_sum($categoryCounts->all()),
             // On /shop/{seller}: that shop's header instead of "All products".
             'shop' => $sellerId ? \App\Support\SellerShop::one($sellerId) : null,
+            // Searching for a store's name finds the store too.
+            'matchingShops' => !$sellerId && $search !== '' ? \App\Support\SellerShop::search($search) : collect(),
         ]);
     }
 

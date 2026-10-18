@@ -1544,3 +1544,25 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         color: #6d4ad1;
     }
 }
+
+/* Store on vacation: products stay visible but can't be ordered */
+.vacation-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: 0 0 14px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    background: #fff7ed;
+    border: 1px solid #fed7aa;
+    color: #9a3412;
+    font-size: 14px;
+    line-height: 1.45;
+}
+
+.vacation-notice i { font-size: 18px; margin-top: 1px; }
+
+.buttons .btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}

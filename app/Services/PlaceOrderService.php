@@ -130,6 +130,10 @@ class PlaceOrderService
                 throw CheckoutFailed::inCart($product->name . ' is no longer available. Please remove it from your cart.');
             }
 
+            if ($product->sellerOnVacation()) {
+                throw CheckoutFailed::inCart($product->name . ': ' . Product::VACATION_MESSAGE);
+            }
+
             [$variation, $variationError] = $product->resolveVariation($variationId);
 
             if ($variationError || ($variationId && !$variation)) {

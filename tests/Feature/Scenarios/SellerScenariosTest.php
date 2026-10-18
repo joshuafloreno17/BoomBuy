@@ -419,9 +419,9 @@ class SellerScenariosTest extends TestCase
     {
         $this->makeSeller('shoes', 'Taken Name');
 
-        $this->asSeller()->post(route('seller.shop.update'), ['business_name' => 'taken name'])
-            ->assertSessionHas('error', fn ($m) => str_contains($m, 'Another shop already uses that name'));
-        $this->post(route('seller.shop.update'), ['business_name' => 'Kicks Laguna', 'shop_description' => 'Shoes!'])->assertSessionHas('success');
+        $this->asSeller()->post(route('seller.shop.update'), ['business_name' => 'taken name', 'shop_phone' => '09171234567'])
+            ->assertSessionHasErrors(['business_name' => 'That store name is already taken. Please choose a different one.']);
+        $this->post(route('seller.shop.update'), ['business_name' => 'Kicks Laguna', 'shop_description' => 'Shoes!', 'shop_phone' => '09171234567'])->assertSessionHas('success');
 
         $this->post(route('seller.autoreply.update'), ['auto_reply_enabled' => '1', 'auto_reply_message' => 'Hi, online kami 9-5.']);
         $settings = \App\Support\ChatAutomation::settingsFor($this->seller->id);

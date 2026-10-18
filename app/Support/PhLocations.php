@@ -302,6 +302,8 @@ class PhLocations
                 ...($found['city'] ? self::cityAliases($found['city']) : []),
                 $found['city'] ? preg_replace('/ city$/', '', self::normalize($found['city'])) : null,
                 ...self::provinceAliases($found['province']),
+                // The dropdown's own label, e.g. "Metro Manila (NCR)".
+                self::normalize($found['province']),
                 'metro manila', 'philippines', 'ph',
             ]);
 

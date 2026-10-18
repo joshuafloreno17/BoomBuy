@@ -61,7 +61,9 @@
             <span class="sp-price">₱{{ number_format($product['price']) }}@if($product['original_price'] ?? null) <s class="sp-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
 
             <div class="sp-actions">
-                @if($product['stock'] <= 0)
+                @if($product['vacation'] ?? false)
+                    <button type="button" class="sp-btn sp-btn-full sp-vacation" disabled><i class="bi bi-umbrella-fill"></i> On vacation</button>
+                @elseif($product['stock'] <= 0)
                     <button type="button" class="sp-btn sp-btn-full" disabled>Sold out</button>
                 @elseif($product['has_variations'])
                     {{-- Needs a color/size: a popup to choose it (the product page without JavaScript). --}}

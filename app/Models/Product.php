@@ -131,6 +131,25 @@ class Product extends Model
         );
     }
 
+    public const VACATION_MESSAGE = 'This store is on vacation, so its products can\'t be ordered right now.';
+
+    /**
+     * Is the seller's store in vacation mode? Its products stay visible
+     * (search, shop page, product page) but can't be added, bought or checked out.
+     */
+    public function sellerOnVacation(): bool
+    {
+        return self::storeOnVacation((int) $this->seller_id);
+    }
+
+    public static function storeOnVacation(int $sellerId): bool
+    {
+        return DB::table('seller_applications')
+            ->where('user_id', $sellerId)
+            ->where('vacation_mode', true)
+            ->exists();
+    }
+
     /** Same rule as onSale(), for a single product already loaded. */
     public function isPurchasable(): bool
     {

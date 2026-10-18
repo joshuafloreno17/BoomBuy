@@ -27,17 +27,23 @@ class EnsureAccountActive
             ->where('id', $sessionUser['id'])
             ->value('status');
 
+        // A seller's store must stay Approved too: a store that is not
+        // Approved can't publish or sell (Seller Modules A18).
+        $notApproved = $status === 'Active' && ($sessionUser['role'] ?? '') === 'seller'
+            ? \App\Support\LoginGate::blockReason(DB::table('users')->where('id', $sessionUser['id'])->first())
+            : null;
+
         // A missing row (null) also falls through and gets logged out.
-        if ($status === 'Active') {
+        if ($status === 'Active' && !$notApproved) {
             return $next($request);
         }
 
         $request->session()->forget('user');
         \App\Support\LoginGate::forget((int) $sessionUser['id'], everywhere: true);
 
-        $message = $status === 'Suspended'
+        $message = $notApproved ?? ($status === 'Suspended'
             ? 'Your account has been suspended. Please contact BoomBuy support for assistance.'
-            : 'Your account has been deactivated. Please contact BoomBuy support for assistance.';
+            : 'Your account has been deactivated. Please contact BoomBuy support for assistance.');
 
         if ($request->expectsJson()) {
             return response()->json(['message' => $message], 401);

@@ -45,6 +45,10 @@ class CartController extends MobileController
             return $this->fail('This product is no longer available.');
         }
 
+        if ($product->sellerOnVacation()) {
+            return $this->fail(Product::VACATION_MESSAGE);
+        }
+
         [$variation, $error] = $product->resolveVariation((int) $request->input('variation_id', 0));
 
         if ($error) {
@@ -344,6 +348,10 @@ class CartController extends MobileController
 
         if (!$product || !$product->isPurchasable()) {
             return 'This product is no longer available.';
+        }
+
+        if ($product->sellerOnVacation()) {
+            return Product::VACATION_MESSAGE;
         }
 
         [$variation, $error] = $product->resolveVariation((int) $request->input('buy_now.variation_id', 0));

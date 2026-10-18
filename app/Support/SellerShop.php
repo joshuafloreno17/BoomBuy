@@ -33,7 +33,7 @@ class SellerShop
         $applications = DB::table('seller_applications')
             ->whereIn('user_id', $ids)
             ->where('status', 'Approved')
-            ->get(['user_id', 'business_name', 'shop_description'])
+            ->get(['user_id', 'business_name', 'shop_description', 'shop_logo', 'shop_banner', 'shop_phone', 'vacation_mode'])
             ->keyBy('user_id');
 
         $businessNames = $applications->pluck('business_name', 'user_id');
@@ -55,12 +55,43 @@ class SellerShop
                 'location' => collect([$user->city_municipality ?? null, $user->province ?? null])->filter()->implode(', ') ?: null,
                 'since' => $user?->created_at?->format('M Y'),
                 'description' => $applications->get($id)?->shop_description,
+                'logo' => !empty($applications->get($id)?->shop_logo) ? asset('storage/' . $applications->get($id)->shop_logo) : null,
+                'banner' => !empty($applications->get($id)?->shop_banner) ? asset('storage/' . $applications->get($id)->shop_banner) : null,
+                'phone' => $applications->get($id)?->shop_phone,
+                'vacation' => (bool) ($applications->get($id)?->vacation_mode ?? false),
                 'url' => route('shop.seller', $id),
                 'products' => (int) ($stat->products ?? 0),
                 'rating' => ($stat->reviews ?? 0) > 0 ? round((float) $stat->rating, 1) : null,
                 'reviews' => (int) ($stat->reviews ?? 0),
             ]];
         });
+    }
+
+    /**
+     * Shops whose name contains the search text (case ignored), for the
+     * "Shops" row above the search results. Only open, Active sellers.
+     *
+     * @return Collection<int, array>
+     */
+    public static function search(string $text, int $limit = 6): Collection
+    {
+        $text = trim($text);
+
+        if ($text === '') {
+            return collect();
+        }
+
+        $ids = DB::table('seller_applications')
+            ->join('users', 'users.id', '=', 'seller_applications.user_id')
+            ->where('seller_applications.status', 'Approved')
+            ->where('users.role', 'seller')
+            ->where('users.status', 'Active')
+            ->whereRaw('LOWER(seller_applications.business_name) LIKE ?', ['%' . addcslashes(mb_strtolower($text), '%_\\') . '%'])
+            ->orderBy('seller_applications.business_name')
+            ->limit($limit)
+            ->pluck('seller_applications.user_id');
+
+        return self::many($ids, true)->values();
     }
 
     public static function one(int $sellerId, bool $withStats = true): ?array

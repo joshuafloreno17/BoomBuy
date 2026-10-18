@@ -139,7 +139,7 @@
                         <a href="{{ route('shop.seller', $user['id']) }}" style="color:#5536b5; font-weight:700;">View my shop →</a>
                     </p>
 
-                    <form method="POST" action="{{ route('seller.shop.update') }}">
+                    <form method="POST" action="{{ route('seller.shop.update') }}" enctype="multipart/form-data">
                         @csrf
 
                         <div class="form-grid">
@@ -147,6 +147,34 @@
                                 <label for="business_name">Shop Name</label>
                                 <input type="text" id="business_name" name="business_name" minlength="3" maxlength="30" required
                                        value="{{ old('business_name', $application->business_name ?? '') }}">
+                                <span class="field-hint">3 to 30 characters. No two shops can share a name.</span>
+                                @error('business_name')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="field">
+                                <label for="shop_phone">Contact Number</label>
+                                <input type="text" id="shop_phone" name="shop_phone" maxlength="13" required
+                                       pattern="(09|\+639)[0-9]{9}" placeholder="09XXXXXXXXX"
+                                       value="{{ old('shop_phone', $application->shop_phone ?? $dbUser->phone ?? '') }}">
+                                <span class="field-hint">09XXXXXXXXX or +639XXXXXXXXX.</span>
+                                @error('shop_phone')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="field">
+                                <label for="shop_logo">Store Logo</label>
+                                @if(!empty($application->shop_logo))
+                                    <img src="{{ asset('storage/' . $application->shop_logo) }}" alt="Current logo" class="shop-image-preview is-logo">
+                                @endif
+                                <input type="file" id="shop_logo" name="shop_logo" accept="image/jpeg,image/png">
+                                <span class="field-hint">JPG or PNG, up to 5 MB.</span>
+                                @error('shop_logo')<span class="field-error">{{ $message }}</span>@enderror
+                            </div>
+                            <div class="field">
+                                <label for="shop_banner">Store Banner</label>
+                                @if(!empty($application->shop_banner))
+                                    <img src="{{ asset('storage/' . $application->shop_banner) }}" alt="Current banner" class="shop-image-preview is-banner">
+                                @endif
+                                <input type="file" id="shop_banner" name="shop_banner" accept="image/jpeg,image/png">
+                                <span class="field-hint">JPG or PNG, up to 5 MB. Shown across the top of your shop page.</span>
+                                @error('shop_banner')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                             <div class="field">
                                 <label>Line of Business</label>
@@ -159,10 +187,33 @@
                                           placeholder="What do you sell, and why should buyers choose your shop?"
                                           style="width:100%; box-sizing:border-box; padding:12px 14px; border:1px solid #ddd5f2; border-radius:10px; font:inherit; font-size:14px; resize:vertical;">{{ old('shop_description', $application->shop_description ?? '') }}</textarea>
                                 <span class="field-hint">Up to 500 characters. Shown at the top of your shop page.</span>
+                                @error('shop_description')<span class="field-error">{{ $message }}</span>@enderror
                             </div>
                         </div>
 
                         <button type="submit" class="save-btn">Save Shop Details</button>
+                    </form>
+                </div>
+
+                <!-- VACATION MODE: products stay visible but can't be ordered -->
+                <div class="card" id="vacation">
+                    <h3>Vacation Mode</h3>
+                    <p class="card-sub">
+                        Going away? Buyers can still see your shop and products, marked "On vacation", but they can't
+                        add them to the cart, buy now or check out until you turn it off.
+                    </p>
+
+                    <form method="POST" action="{{ route('seller.shop.vacation') }}">
+                        @csrf
+                        @if(!empty($application->vacation_mode))
+                            <input type="hidden" name="vacation_mode" value="0">
+                            <p class="vacation-state is-on"><i class="bi bi-umbrella-fill"></i> Your store is on vacation.</p>
+                            <button type="submit" class="save-btn">Turn Off Vacation Mode</button>
+                        @else
+                            <input type="hidden" name="vacation_mode" value="1">
+                            <p class="vacation-state"><i class="bi bi-shop"></i> Your store is open.</p>
+                            <button type="submit" class="save-btn">Turn On Vacation Mode</button>
+                        @endif
                     </form>
                 </div>
 
@@ -218,6 +269,7 @@
                                 value="{{ old('name', $dbUser->name ?? '') }}"
                                 required
                             >
+                            @error('name')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div class="field">
@@ -241,12 +293,14 @@
                                 placeholder="09XXXXXXXXX"
                                 required
                             >
+                            @error('phone')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                         <div class="field" style="grid-column: 1 / -1;">
-                            <label for="profile_province_search">Shop address</label>
+                            <label for="profile_province_search">Pickup address</label>
                             @include('partials.address-fields', ['id' => 'profile', 'value' => old('address', $dbUser->address ?? '')])
                             <span class="field-hint">Your town decides which Sorting Center you drop parcels at, and the delivery fee buyers pay.</span>
+                            @error('address')<span class="field-error">{{ $message }}</span>@enderror
                         </div>
 
                     </div>
