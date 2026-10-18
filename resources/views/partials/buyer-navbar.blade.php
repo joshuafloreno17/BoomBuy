@@ -1,5 +1,18 @@
 <link rel="stylesheet" href="{{ vasset('css/partials/buyer-navbar.css') }}">
 
+@php
+    $bbStrip = ['Free shipping vouchers from sellers', 'Pay with GCash, Maya, card or COD', 'Delivered with photo proof', '83 province sorting centers', 'Chat with sellers before you buy'];
+@endphp
+
+{{-- Thin announcement strip above the navbar (scrolls; still when reduced motion is on). --}}
+<div class="bb-strip" aria-hidden="true">
+    <div class="bb-strip-track">
+        @foreach(array_merge($bbStrip, $bbStrip) as $bbStripItem)
+            <span><i>✦</i>{{ $bbStripItem }}</span>
+        @endforeach
+    </div>
+</div>
+
 <nav class="bb-navbar">
 
     <div class="bb-nav-left">
@@ -18,6 +31,25 @@
             Shop
         </a>
 
+        {{-- Categories: a panel of all 16, opened by click (and by hover on desktop). --}}
+        <div class="bb-cat" id="bbCat">
+            <button type="button" class="bb-cat-toggle" id="bbCatToggle" aria-expanded="false" aria-controls="bbCatMenu">
+                Categories <i class="bi bi-chevron-down" aria-hidden="true"></i>
+            </button>
+
+            <div class="bb-cat-menu" id="bbCatMenu">
+                <div class="bb-cat-grid">
+                    @foreach(\App\Support\Categories::LIST as $bbCatSlug => $bbCatLabel)
+                        <a href="{{ route('products', ['category' => $bbCatSlug]) }}">
+                            <span class="bb-cat-icon"><i class="bi {{ \App\Support\Categories::ICONS[$bbCatSlug] ?? 'bi-box-seam-fill' }}" aria-hidden="true"></i></span>
+                            <span>{{ $bbCatLabel }}</span>
+                        </a>
+                    @endforeach
+                </div>
+                <a href="{{ route('products') }}" class="bb-cat-all">See all products →</a>
+            </div>
+        </div>
+
 @if($bbNavUser)
 
     <a
@@ -25,13 +57,6 @@
         class="{{ $bbActive === 'orders' ? 'active' : '' }}"
     >
         My Orders
-    </a>
-
-@else
-
-    {{-- Guests: jump to the category grid on the landing page. --}}
-    <a href="{{ route('home') }}#categories">
-        Categories
     </a>
 
 @endif
@@ -48,6 +73,7 @@
         @if($bbSearchCategory)
             <input type="hidden" name="category" value="{{ request('category') }}" data-label="{{ $bbSearchCategory }}">
         @endif
+        <i class="bi bi-search bb-nav-search-icon" aria-hidden="true"></i>
         <input
             type="text"
             name="search"
@@ -396,6 +422,10 @@
 
         @else
 
+            <a href="{{ route('seller.register') }}" class="bb-sell-link">
+                Sell on BoomBuy
+            </a>
+
             <a href="{{ route('login') }}" class="bb-login-link">
                 Login
             </a>
@@ -409,6 +439,39 @@
     </div>
 
 </nav>
+
+<script>
+(function () {
+    // Categories panel: click toggles; Esc, outside click or leaving by Tab closes.
+    var root = document.getElementById('bbCat');
+    var toggle = document.getElementById('bbCatToggle');
+    if (!root || !toggle) return;
+
+    function setOpen(open) {
+        root.classList.toggle('is-open', open);
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+
+    toggle.addEventListener('click', function () {
+        setOpen(!root.classList.contains('is-open'));
+    });
+
+    document.addEventListener('mousedown', function (e) {
+        if (!root.contains(e.target)) setOpen(false);
+    });
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && root.classList.contains('is-open')) {
+            setOpen(false);
+            toggle.focus();
+        }
+    });
+
+    root.addEventListener('focusout', function (e) {
+        if (e.relatedTarget && !root.contains(e.relatedTarget)) setOpen(false);
+    });
+})();
+</script>
 
 @if($bbNavUser && ($bbNavUser['role'] ?? '') === 'buyer')
 

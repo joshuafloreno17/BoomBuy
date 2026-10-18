@@ -161,8 +161,12 @@ class ShopAndAccountTest extends TestCase
         $this->get(route('products', ['category' => 'pet-supplies']))->assertOk()
             ->assertSee('No products have been uploaded in Pet Supplies yet');
 
-        $this->get(route('shop.seller', $tech->id))->assertOk()
-            ->assertDontSee('Pet Supplies');
+        // The seller's own category chips (the navbar's Categories panel lists all 16).
+        $shop = $this->get(route('shop.seller', $tech->id))->assertOk()->getContent();
+        preg_match_all('/class="cat-chip[^"]*"[^>]*>(.*?)<\/a>/s', $shop, $chips);
+        $chipText = implode(' ', array_map('strip_tags', $chips[1]));
+        $this->assertStringContainsString('Electronics', $chipText);
+        $this->assertStringNotContainsString('Pet Supplies', $chipText);
     }
 
     public function test_shop_page_shows_only_that_sellers_products(): void
