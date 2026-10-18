@@ -176,3 +176,108 @@
         display: block;
     }
 }
+
+/* =========================================================
+   Dark violet rail with Shop / Grow / Account groups
+   and the "Add Product" button at the bottom (2026-10-19).
+========================================================= */
+
+.sidebar {
+    background: #2a1846;
+    border-right: 0;
+    scrollbar-color: #4b3178 transparent;
+}
+
+.sidebar .bb-side-name small { color: #c9b6ff; }
+
+.sidebar .menu-group {
+    padding: 14px 12px 6px;
+    color: #8f7bb8;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+}
+
+.sidebar .menu .menu-group:first-child { padding-top: 0; }
+
+.sidebar .menu a {
+    color: #e4dcf5;
+    transition: background .15s ease, color .15s ease, padding .2s ease;
+}
+
+.sidebar .menu a i { transition: transform .25s cubic-bezier(.3, .7, .4, 1.5); }
+
+.sidebar .menu a:hover {
+    background: rgba(255, 255, 255, .07);
+    color: #fff;
+}
+
+.sidebar .menu a:hover:not(.active) { padding-left: 16px; }
+.sidebar .menu a:hover i { transform: scale(1.15) rotate(-6deg); }
+.sidebar .menu a:focus-visible { outline: 2px solid #c9b6ff; outline-offset: -2px; }
+
+.sidebar .menu a.active {
+    background: #6d4ad1;
+    color: #fff;
+}
+
+.sidebar .menu a.active i { color: #fff; }
+
+.notification-badge {
+    background: #c9b6ff;
+    color: #2a1846;
+}
+
+.sidebar .side-add {
+    margin-top: 16px;
+    min-height: 46px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 14px;
+    background: #c9b6ff;
+    color: #2a1846;
+    font-size: 14px;
+    font-weight: 800;
+    text-decoration: none;
+    transition: transform .2s cubic-bezier(.3, .7, .4, 1.4), background .2s ease, box-shadow .2s ease;
+}
+
+.sidebar .side-add:hover {
+    background: #d9ccff;
+    transform: translateY(-2px);
+    box-shadow: 0 10px 22px rgba(0, 0, 0, .25);
+}
+
+.sidebar .side-add.active { outline: 2px solid #fff; outline-offset: 2px; }
+
+.sidebar .sidebar-footer { padding-top: 12px; }
+
+.sidebar .bb-side-user {
+    background: rgba(255, 255, 255, .07);
+    border-color: transparent;
+}
+
+.sidebar .bb-side-avatar { background: #c9b6ff; color: #2a1846; }
+.sidebar .bb-side-who strong { color: #fff; }
+.sidebar .bb-side-who small { color: #b9a8dc; }
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout { color: #b9a8dc; }
+
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout:hover,
+.sidebar .bb-side-user .bb-side-logout.bb-side-logout:focus-visible {
+    background: rgba(248, 113, 113, .16);
+    color: #fca5a5;
+}
+
+@media (max-width: 900px) {
+    .sidebar .menu-group { display: none; }
+    .sidebar .menu a:hover:not(.active) { padding-left: 0; }
+    .sidebar .side-add { min-height: 44px; padding: 0; }
+    .sidebar .side-add .label-text { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar .menu a, .sidebar .menu a i, .sidebar .side-add { transition: none; }
+}

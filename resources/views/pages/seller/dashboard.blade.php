@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="{{ vasset('css/seller-sidebar.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/pages/seller-dashboard.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/portal-dash.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/seller-dashboard-final.css') }}">
 </head>
 
 <body>
@@ -23,7 +24,7 @@
 
 <main class="main-content">
 
-<div class="pd">
+<div class="sd">
 
     @include('partials.announcement-banner')
 
@@ -37,38 +38,45 @@
         $deliveredCount = (int) ($deliveredToday->orders ?? 0);
         $ratingCount = (int) ($rating->total ?? 0);
         $weekEmpty = $salesTrend->sum('revenue') <= 0;
-        // Orange goes to the tile that needs the seller: orders to ship first, then today's sales; all calm when both are zero.
-        $hotKpi = $pendingOrders > 0 ? 'ship' : ((float) ($deliveredToday->revenue ?? 0) > 0 ? 'sales' : null);
         $allClear = $newOrders + $toDropOff + $pendingReturns + $lowStockCount === 0;
+
+        // Today vs yesterday, for the little arrow on the sales card.
+        $todayRev = (float) ($salesTrend->last()->revenue ?? 0);
+        $yesterdayRev = (float) ($salesTrend->slice(-2, 1)->first()->revenue ?? 0);
+        $trend = $yesterdayRev > 0 ? (int) round(($todayRev - $yesterdayRev) / $yesterdayRev * 100) : null;
+
+        // Sparkline across the 7 days.
+        $sparkPoints = $salesTrend->values()->map(fn ($d, $i) => round($i * (240 / 6), 1) . ',' . round(54 - ((float) $d->revenue / $weekMax) * 46, 1))->implode(' ');
+
+        $columns = [
+            'new' => ['title' => 'New orders', 'tone' => 'is-amber', 'empty' => 'No new orders'],
+            'accepted' => ['title' => 'Accepted', 'tone' => 'is-plain', 'empty' => 'Nothing to start'],
+            'preparing' => ['title' => 'Preparing', 'tone' => 'is-violet', 'empty' => 'Nothing being packed'],
+            'pickup' => ['title' => 'Ready for pickup', 'tone' => 'is-blue', 'empty' => 'Nothing waiting for a rider'],
+        ];
+        $lowStock = $products->filter(fn ($p) => (int) $p->sellable_stock <= 5)->sortBy('sellable_stock')->take(3);
+        $starTotal = max(1, (int) collect($starCounts)->sum());
+        $commissionShare = $month['sales'] > 0 ? (int) round($month['commission'] / $month['sales'] * 100) : 10;
+        $ring = 2 * M_PI * 48;
     @endphp
 
-    {{-- On phones this header becomes the orange hero card (the pd-head-m parts show only there). --}}
-    <header class="pd-head">
-        <span class="pd-head-m pd-head-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($shopName, 0, 1)) }}</span>
-        <div class="pd-head-text">
-            <p class="pd-eyebrow">{{ now()->format('l, F j') }}</p>
-            <h1 class="pd-title"><span class="pd-greet" data-greet>{{ $greeting }}</span><span class="pd-greet-sep">, </span><span class="pd-shop">{{ $shopName }}</span></h1>
+    <div class="sd-top">
+        <div>
+            <p class="sd-eyebrow">{{ now()->format('l, F j') }}</p>
+            <h1 class="sd-title"><span data-greet>{{ $greeting }}</span>, {{ $shopName }}</h1>
         </div>
-        @include('partials.notification-popover', [
-            'notes' => $recentNotes,
-            'unread' => $unreadNotes,
-            'allUrl' => route('seller.notifications'),
-        ])
-        <a href="{{ route('seller.products.create') }}" class="pd-btn pd-btn-primary pd-head-add"><i class="bi bi-plus-lg"></i> Add product</a>
-
-        <div class="pd-head-m pd-head-today">
-            <span class="pd-head-today-icon" aria-hidden="true"><i class="bi bi-graph-up-arrow"></i></span>
-            @if((float) ($deliveredToday->revenue ?? 0) > 0)
-                <span><strong>{{ $peso($deliveredToday->revenue) }} sales today</strong>{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered</span>
-            @else
-                <span><strong>No sales yet today</strong>Delivered orders show up here as they come in.</span>
-            @endif
+        <div class="sd-top-actions">
+            <form class="sd-search" action="{{ route('seller.orders') }}" method="GET" role="search">
+                <i class="bi bi-search" aria-hidden="true"></i>
+                <input type="search" name="q" placeholder="Search order # or buyer" aria-label="Search your orders">
+            </form>
+            @include('partials.notification-popover', [
+                'notes' => $recentNotes,
+                'unread' => $unreadNotes,
+                'allUrl' => route('seller.notifications'),
+            ])
         </div>
-        <a href="{{ route('seller.reviews') }}" class="pd-head-m pd-head-rating">
-            <i class="bi bi-star-fill" aria-hidden="true"></i>
-            {{ $ratingCount > 0 ? number_format((float) $rating->average, 1) . ' shop rating · ' . $ratingCount . ' ' . ($ratingCount === 1 ? 'review' : 'reviews') : 'No reviews yet' }}
-        </a>
-    </header>
+    </div>
 
     @if(session('success'))
         <div class="pd-alert is-ok"><i class="bi bi-check-circle-fill"></i> {{ session('success') }}</div>
@@ -78,34 +86,78 @@
         <div class="pd-alert is-error"><i class="bi bi-exclamation-circle-fill"></i> {{ session('error') }}</div>
     @endif
 
-    <section class="pd-kpis" aria-label="Your shop at a glance">
-        {{-- Phones: Sales today and Shop rating live in the hero; Low stock takes a tile instead. --}}
-        <div @class(['pd-kpi', 'pd-kpi-sales', 'is-accent' => $hotKpi === 'sales'])>
-            <span class="pd-kpi-label">Sales today</span>
-            <span class="pd-kpi-value">{{ $peso($deliveredToday->revenue ?? 0) }}</span>
-            <span class="pd-kpi-note">{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered</span>
-        </div>
-        <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" @class(['pd-kpi', 'is-accent' => $hotKpi === 'ship'])>
-            <span class="pd-kpi-m pd-kpi-icon is-orange" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
-            <span class="pd-kpi-label">To ship</span>
-            <span class="pd-kpi-value">{{ $pendingOrders }}</span>
-            <span class="pd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : ($pendingOrders > 0 ? 'All from today' : 'All caught up') }}</span>
+    {{-- Hero + today's sales --}}
+    <div class="sd-row">
+        <section class="sd-hero">
+            <span class="sd-orb is-a" aria-hidden="true"></span>
+            <span class="sd-orb is-b" aria-hidden="true"></span>
+            <div class="sd-hero-text">
+                <p class="sd-hero-eyebrow">Your shop today</p>
+                <h2>
+                    @if($allClear)
+                        All caught up. Nice work!
+                    @else
+                        {{ $newOrders }} new {{ \Illuminate\Support\Str::plural('order', $newOrders) }}, {{ $toDropOff }} to pack
+                    @endif
+                </h2>
+                <p>
+                    @if($toShipOld > 0)
+                        {{ $toShipOld }} {{ $toShipOld === 1 ? 'order has' : 'orders have' }} been waiting since yesterday, so start there.
+                    @elseif($pendingReturns > 0)
+                        {{ $pendingReturns }} return {{ \Illuminate\Support\Str::plural('request', $pendingReturns) }} to answer.
+                    @else
+                        Accept new orders, pack them, then book a pickup from the order page.
+                    @endif
+                </p>
+            </div>
+            <div class="sd-hero-actions">
+                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="sd-btn sd-btn-lilac"><i class="bi bi-box-seam"></i> Accept new orders</a>
+                <a href="{{ route('seller.products.create') }}" class="sd-btn sd-btn-glass"><i class="bi bi-plus-lg"></i> Add product</a>
+                <a href="{{ route('seller.vouchers') }}" class="sd-btn sd-btn-glass">Vouchers</a>
+            </div>
+        </section>
+
+        <section class="sd-today" aria-labelledby="today-title">
+            <div class="sd-today-head">
+                <span id="today-title">Sales today</span>
+                @if($trend !== null)
+                    <span class="sd-chip">{{ $trend >= 0 ? '▲' : '▼' }} {{ abs($trend) }}%</span>
+                @endif
+            </div>
+            <strong class="sd-today-value">{{ $peso($deliveredToday->revenue ?? 0) }}</strong>
+            <svg class="sd-spark" viewBox="0 0 240 60" preserveAspectRatio="none" aria-hidden="true">
+                <polyline points="0,60 {{ $sparkPoints }} 240,60" fill="rgba(255,255,255,.14)" stroke="none"></polyline>
+                <polyline points="{{ $sparkPoints }}" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            </svg>
+            <span class="sd-today-note">{{ $deliveredCount }} {{ $deliveredCount === 1 ? 'order' : 'orders' }} delivered today</span>
+        </section>
+    </div>
+
+    {{-- KPIs --}}
+    <section class="sd-kpis" aria-label="Your shop at a glance">
+        <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="sd-kpi {{ $pendingOrders > 0 ? 'is-hot' : '' }}">
+            <span class="sd-kpi-icon is-amber"><i class="bi bi-box-seam"></i></span>
+            <span class="sd-kpi-label">To ship</span>
+            <strong>{{ $pendingOrders }}</strong>
+            <span class="sd-kpi-note">{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : ($pendingOrders > 0 ? 'All from today' : 'All caught up') }}</span>
         </a>
-        <a href="#my-products" class="pd-kpi">
-            <span class="pd-kpi-m pd-kpi-icon is-teal" aria-hidden="true"><i class="bi bi-grid"></i></span>
-            <span class="pd-kpi-label">Products live</span>
-            <span class="pd-kpi-value">{{ $totalProducts }}</span>
-            <span class="pd-kpi-note">{{ $lowStockCount > 0 ? $lowStockCount . ' low on stock' : 'Stock looks good' }}</span>
+        <a href="{{ route('seller.orders', ['tab' => 'returns']) }}" class="sd-kpi">
+            <span class="sd-kpi-icon is-red"><i class="bi bi-arrow-counterclockwise"></i></span>
+            <span class="sd-kpi-label">Return requests</span>
+            <strong>{{ $pendingReturns }}</strong>
+            <span class="sd-kpi-note">{{ $pendingReturns > 0 ? 'Approve or decline' : 'None waiting' }}</span>
         </a>
-        <a href="#my-products" class="pd-kpi pd-kpi-m pd-kpi-lowstock">
-            <span class="pd-kpi-icon is-yellow" aria-hidden="true"><i class="bi bi-exclamation-triangle"></i></span>
-            <span class="pd-kpi-label">Low stock</span>
-            <span class="pd-kpi-value">{{ $lowStockCount }}</span>
+        <a href="#my-products" class="sd-kpi">
+            <span class="sd-kpi-icon is-violet"><i class="bi bi-grid"></i></span>
+            <span class="sd-kpi-label">Products live</span>
+            <strong>{{ $totalProducts }}</strong>
+            <span class="sd-kpi-note">{{ $lowStockCount > 0 ? $lowStockCount . ' low on stock' : 'Stock looks good' }}</span>
         </a>
-        <a href="{{ route('seller.reviews') }}" class="pd-kpi pd-kpi-rating">
-            <span class="pd-kpi-label">Shop rating</span>
-            <span class="pd-kpi-value">{{ $ratingCount > 0 ? number_format((float) $rating->average, 1) : '—' }}</span>
-            <span class="pd-kpi-note">{{ $ratingCount > 0 ? 'from ' . $ratingCount . ' ' . ($ratingCount === 1 ? 'review' : 'reviews') : 'No reviews yet' }}</span>
+        <a href="{{ route('seller.reviews') }}" class="sd-kpi is-dark">
+            <span class="sd-kpi-icon"><i class="bi bi-star-fill"></i></span>
+            <span class="sd-kpi-label">Shop rating</span>
+            <strong>{{ $ratingCount > 0 ? number_format((float) $rating->average, 1) : '—' }}</strong>
+            <span class="sd-kpi-note">{{ $ratingCount > 0 ? 'from ' . $ratingCount . ' ' . ($ratingCount === 1 ? 'review' : 'reviews') : 'No reviews yet' }}</span>
         </a>
     </section>
 
@@ -130,102 +182,166 @@
         </a>
     @endif
 
-    {{-- Phones, nothing waiting: one calm line instead of a list of zeros. --}}
-    @if($allClear)
-        <div class="pd-clear">
-            <span class="pd-clear-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
-            <span><strong>All caught up</strong>No new orders, pickups, returns or low stock.</span>
-        </div>
-    @endif
-
-    <div class="pd-row">
-        <section @class(['pd-card', 'pd-grow-2', 'pd-week', 'is-empty' => $weekEmpty]) aria-labelledby="week-title">
-            <div class="pd-card-head">
-                <h2 class="pd-card-title" id="week-title">Sales this week</h2>
-                <a href="{{ route('seller.reports') }}" class="pd-link">Full report →</a>
+    {{-- Order board --}}
+    <section class="sd-card" aria-labelledby="board-title">
+        <div class="sd-card-head">
+            <div>
+                <h2 id="board-title">Order board</h2>
+                <p class="sd-muted">Your open orders, oldest first. Accept and start preparing right from here.</p>
             </div>
-            {{-- Phones: one short line instead of an empty chart. --}}
-            <p class="pd-week-empty"><i class="bi bi-graph-up-arrow"></i><span><strong>No delivered sales this week yet.</strong> Share your shop link to get your first sale.</span></p>
-            <div class="pd-bars {{ $weekEmpty ? 'pd-bars-empty' : '' }}" data-empty="No delivered sales this week yet" role="img" aria-label="Delivered sales for the last 7 days">
+            <a href="{{ route('seller.orders') }}" class="sd-link">All orders →</a>
+        </div>
+        <div class="sd-board">
+            @foreach($columns as $key => $col)
+                <div class="sd-col {{ $col['tone'] }}">
+                    <div class="sd-col-head"><strong>{{ $col['title'] }}</strong><span>{{ $board[$key]['total'] }}</span></div>
+
+                    @forelse($board[$key]['orders'] as $o)
+                        <article class="sd-order">
+                            <div class="sd-order-top"><a href="{{ route('seller.order.details', $o['id']) }}">#{{ $o['id'] }}</a><span>{{ $o['pay'] }} · {{ $o['age'] }}</span></div>
+                            <div class="sd-order-main">
+                                <span class="sd-thumb">
+                                    @if($o['image'])<img src="{{ $o['image'] }}" alt="" onerror="this.remove()">@endif
+                                    <i class="bi {{ $o['icon'] }}"></i>
+                                </span>
+                                <span class="sd-order-text"><strong>{{ \Illuminate\Support\Str::limit($o['item'], 38) }}</strong><span>{{ $o['buyer'] }} · ₱{{ number_format($o['subtotal'], 2) }}</span></span>
+                            </div>
+
+                            @if($key === 'new')
+                                <form method="POST" action="{{ route('seller.order.status', $o['id']) }}">
+                                    @csrf
+                                    <input type="hidden" name="status" value="Confirmed">
+                                    <button type="submit" class="sd-order-btn">Accept order</button>
+                                </form>
+                            @elseif($key === 'accepted')
+                                <form method="POST" action="{{ route('seller.order.status', $o['id']) }}">
+                                    @csrf
+                                    <input type="hidden" name="status" value="Preparing">
+                                    <button type="submit" class="sd-order-btn">Start preparing</button>
+                                </form>
+                            @elseif($key === 'preparing')
+                                <a href="{{ route('seller.order.details', $o['id']) }}" class="sd-order-btn">Print label &amp; book pickup</a>
+                            @else
+                                <a href="{{ route('seller.order.details', $o['id']) }}" class="sd-order-wait"><i class="bi bi-truck"></i> {{ $o['status'] === 'Pickup Assigned' ? 'A rider is on the way' : 'Waiting for a rider' }}</a>
+                            @endif
+                        </article>
+                    @empty
+                        <div class="sd-col-empty">{{ $col['empty'] }}</div>
+                    @endforelse
+
+                    @if($board[$key]['total'] > 3)
+                        <a href="{{ route('seller.orders') }}" class="sd-col-more">+{{ $board[$key]['total'] - 3 }} more</a>
+                    @endif
+                </div>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- Sales chart + best sellers --}}
+    <div class="sd-row sd-row-top">
+        <section class="sd-card sd-grow-2" aria-labelledby="week-title">
+            <div class="sd-card-head">
+                <div>
+                    <h2 id="week-title">Sales this week</h2>
+                    <p class="sd-muted">Delivered orders, last 7 days</p>
+                </div>
+                <a href="{{ route('seller.reports') }}" class="sd-link">Full report →</a>
+            </div>
+            @if($weekEmpty)
+                <p class="sd-week-empty"><i class="bi bi-graph-up-arrow"></i> No delivered sales this week yet. Share your shop link to get your first sale.</p>
+            @endif
+            <div class="sd-bars" role="img" aria-label="Delivered sales for the last 7 days">
                 @foreach($salesTrend as $day)
-                    <div class="pd-bar {{ $loop->last ? 'is-today' : '' }}">
-                        <span class="pd-bar-amount">{{ (float) $day->revenue > 0 ? $shortPeso((float) $day->revenue) : '' }}</span>
-                        <span class="pd-bar-fill" style="height: {{ max(2, round((float) $day->revenue / $weekMax * 80)) }}%"></span>
+                    <div class="sd-bar {{ $loop->last ? 'is-today' : '' }}">
+                        <span class="sd-bar-amount">{{ (float) $day->revenue > 0 ? $shortPeso((float) $day->revenue) : '' }}</span>
+                        <span class="sd-bar-fill" style="height: {{ max(3, round((float) $day->revenue / $weekMax * 100)) }}%; animation-delay: {{ $loop->index * 0.04 }}s"></span>
+                        <span class="sd-bar-day">{{ $loop->last ? 'Today' : \Carbon\Carbon::parse($day->day)->format('D') }}</span>
                     </div>
                 @endforeach
             </div>
-            <div class="pd-bar-days">
-                @foreach($salesTrend as $day)
-                    <span class="{{ $loop->last ? 'is-today' : '' }}">{{ $loop->last ? 'Today' : \Carbon\Carbon::parse($day->day)->format('D') }}</span>
-                @endforeach
-            </div>
         </section>
 
-        <section @class(['pd-card', 'pd-grow-1', 'pd-todo-card', 'is-clear' => $allClear]) aria-labelledby="todo-title">
-            <div class="pd-card-head">
-                <h2 class="pd-card-title" id="todo-title">Needs your action</h2>
+        <section class="sd-card sd-grow-1" aria-labelledby="best-title">
+            <div class="sd-card-head">
+                <h2 id="best-title">Best sellers</h2>
+                <span class="sd-muted">this month</span>
             </div>
-            <div class="pd-todo">
-                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="pd-todo-item {{ $newOrders > 0 ? 'is-hot' : 'is-done' }}">
-                    <span class="pd-todo-icon"><i class="bi bi-box-seam"></i></span>
-                    <span class="pd-todo-text"><strong>Accept new orders</strong><span>Check the stock, then accept</span></span>
-                    <span class="pd-todo-count">{{ $newOrders }}</span>
-                </a>
-                <a href="{{ route('seller.orders', ['tab' => 'to-ship']) }}" class="pd-todo-item {{ $toDropOff > 0 ? '' : 'is-done' }}">
-                    <span class="pd-todo-icon"><i class="bi bi-box-arrow-in-right"></i></span>
-                    <span class="pd-todo-text"><strong>Pack &amp; mark ready for pickup</strong><span>Accepted or being packed — a rider picks them up next</span></span>
-                    <span class="pd-todo-count">{{ $toDropOff }}</span>
-                </a>
-                <a href="{{ route('seller.orders', ['tab' => 'returns']) }}" class="pd-todo-item {{ $pendingReturns > 0 ? 'is-hot' : 'is-done' }}">
-                    <span class="pd-todo-icon"><i class="bi bi-arrow-counterclockwise"></i></span>
-                    <span class="pd-todo-text"><strong>Return requests</strong><span>Approve or decline</span></span>
-                    <span class="pd-todo-count">{{ $pendingReturns }}</span>
-                </a>
-                <a href="#my-products" class="pd-todo-item {{ $lowStockCount > 0 ? '' : 'is-done' }}">
-                    <span class="pd-todo-icon"><i class="bi bi-exclamation-triangle"></i></span>
-                    <span class="pd-todo-text"><strong>Low stock</strong><span>5 or fewer left</span></span>
-                    <span class="pd-todo-count">{{ $lowStockCount }}</span>
-                </a>
-            </div>
+            @forelse($bestSellers as $b)
+                <div class="sd-best">
+                    <span class="sd-best-rank">{{ $loop->iteration }}</span>
+                    <span class="sd-thumb">
+                        @if($b['image'])<img src="{{ $b['image'] }}" alt="" onerror="this.remove()">@endif
+                        <i class="bi {{ $b['icon'] }}"></i>
+                    </span>
+                    <span class="sd-best-main"><strong>{{ \Illuminate\Support\Str::limit($b['name'], 30) }}</strong><span class="sd-meter"><span style="width: {{ $b['share'] }}%"></span></span></span>
+                    <b>{{ $b['sold'] }} sold</b>
+                </div>
+            @empty
+                <div class="sd-empty"><i class="bi bi-trophy"></i>Your best sellers show up here once orders are delivered this month.</div>
+            @endforelse
         </section>
     </div>
 
-    <section class="pd-card" aria-labelledby="recent-title">
-        <div class="pd-card-head">
-            <h2 class="pd-card-title" id="recent-title">Recent orders</h2>
-            <a href="{{ route('seller.orders') }}" class="pd-link">View all orders →</a>
-        </div>
-        @if($recentOrders->isEmpty())
-            <div class="pd-empty"><i class="bi bi-receipt"></i>No orders yet. They show up here as soon as a buyer orders.</div>
-        @else
-            <div class="pd-table-wrap">
-                <table class="pd-table pd-stack">
-                    <thead>
-                        <tr><th>Order</th><th>Buyer</th><th>Items</th><th>Your total</th><th>Payment</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                        @foreach($recentOrders as $order)
-                            @php
-                                $moreLines = (int) $order->line_count - 1;
-                                $isCod = $order->payment_method === 'COD' || stripos((string) $order->payment_method, 'cash') !== false;
-                            @endphp
-                            <tr>
-                                <td>
-                                    <a href="{{ route('seller.order.details', $order->id) }}" class="pd-strong" style="color:#221a3a;">#{{ $order->id }}</a>
-                                    <div class="pd-sub" style="font-size:12.5px;">{{ \Carbon\Carbon::parse($order->created_at)->format('M j, g:i A') }}</div>
-                                </td>
-                                <td class="pd-hide-sm">{{ $order->shipping_name ?: 'Buyer' }}</td>
-                                <td class="pd-sub">{{ \Illuminate\Support\Str::limit($order->first_item, 34) }}{{ $moreLines > 0 ? ' + ' . $moreLines . ' more' : ' ×' . (int) $order->quantity }}</td>
-                                <td class="pd-strong">₱{{ number_format((float) $order->subtotal, 2) }}</td>
-                                <td class="pd-sub pd-hide-sm">{{ $isCod ? 'COD' : $order->payment_method }}</td>
-                                <td><x-status-pill :status="$order->status" /></td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
+    {{-- Low stock · reviews · this month --}}
+    <div class="sd-row sd-row-stretch">
+        <section class="sd-card sd-grow-1" aria-labelledby="low-title">
+            <div class="sd-card-head">
+                <h2 id="low-title">Running low</h2>
+                @if($lowStockCount > 0)<span class="sd-pill is-amber">{{ $lowStockCount }} {{ \Illuminate\Support\Str::plural('product', $lowStockCount) }}</span>@endif
             </div>
-        @endif
-    </section>
+            @forelse($lowStock as $p)
+                @php $left = (int) $p->sellable_stock; @endphp
+                <a href="{{ route('seller.products.edit', ['id' => $p->id]) }}" class="sd-stock">
+                    <span class="sd-stock-top"><strong>{{ \Illuminate\Support\Str::limit($p->name, 28) }}</strong><b class="{{ $left <= 0 ? 'is-red' : 'is-amber' }}">{{ $left > 0 ? $left . ' left' : 'Out of stock' }}</b></span>
+                    <span class="sd-meter"><span class="{{ $left <= 2 ? 'is-red' : 'is-amber' }}" style="width: {{ max(4, $left * 20) }}%"></span></span>
+                </a>
+            @empty
+                <div class="sd-empty"><i class="bi bi-check2-circle"></i>Stock looks good. Nothing at 5 or fewer.</div>
+            @endforelse
+            <a href="#my-products" class="sd-link sd-push">Update stock →</a>
+        </section>
+
+        <section class="sd-card sd-grow-1" aria-labelledby="reviews-title">
+            <div class="sd-card-head">
+                <h2 id="reviews-title">Reviews</h2>
+                <span class="sd-rating"><i class="bi bi-star-fill"></i> {{ $ratingCount > 0 ? number_format((float) $rating->average, 1) : '—' }}</span>
+            </div>
+            <div class="sd-stars">
+                @foreach([5, 4, 3, 2, 1] as $star)
+                    <div><span>{{ $star }}★</span><span class="sd-meter"><span class="is-gold" style="width: {{ round(((int) ($starCounts[$star] ?? 0)) / $starTotal * 100) }}%"></span></span><em>{{ (int) ($starCounts[$star] ?? 0) }}</em></div>
+                @endforeach
+            </div>
+            @if($latestReview)
+                <div class="sd-review">
+                    <div><strong>{{ $latestReview->buyer }}</strong> <span class="sd-review-stars">{{ str_repeat('★', (int) $latestReview->rating) }}</span></div>
+                    <p>{{ $latestReview->review ? '“' . \Illuminate\Support\Str::limit($latestReview->review, 90) . '”' : 'Rated ' . \Illuminate\Support\Str::limit($latestReview->product, 30) }}</p>
+                    <a href="{{ route('seller.reviews') }}" class="sd-link">Reply →</a>
+                </div>
+            @else
+                <div class="sd-empty"><i class="bi bi-chat-heart"></i>No reviews yet.</div>
+            @endif
+        </section>
+
+        <section class="sd-month" aria-labelledby="month-title">
+            <span class="sd-orb is-c" aria-hidden="true"></span>
+            <div class="sd-month-head"><h2 id="month-title">This month</h2><span>{{ now()->format('F') }}</span></div>
+            <div class="sd-month-body">
+                <svg class="sd-ring" viewBox="0 0 120 120" role="img" aria-label="{{ 100 - $commissionShare }}% of sales is yours after commission">
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#3f2868" stroke-width="14"/>
+                    <circle cx="60" cy="60" r="48" fill="none" stroke="#4ade80" stroke-width="14" stroke-linecap="round" stroke-dasharray="{{ round($ring * (100 - $commissionShare) / 100, 1) }} {{ round($ring, 1) }}" transform="rotate(-90 60 60)"/>
+                    <text x="60" y="58" text-anchor="middle" class="sd-ring-num">{{ 100 - $commissionShare }}%</text>
+                    <text x="60" y="76" text-anchor="middle" class="sd-ring-label">yours</text>
+                </svg>
+                <div class="sd-month-nums">
+                    <span><small>Gross sales</small><b>₱{{ number_format($month['sales'], 2) }}</b></span>
+                    <span><small class="is-green">● Net earnings</small><b>₱{{ number_format($month['earnings'], 2) }}</b></span>
+                    <span><small class="is-lilac">● Commission</small><b>₱{{ number_format($month['commission'], 2) }}</b></span>
+                </div>
+            </div>
+            <span class="sd-month-note">{{ $monthOrders }} delivered {{ \Illuminate\Support\Str::plural('order', $monthOrders) }} this month</span>
+            <a href="{{ route('seller.reports') }}" class="sd-btn sd-btn-lilac sd-btn-block">Open reports</a>
+        </section>
+    </div>
 
 </div>
 

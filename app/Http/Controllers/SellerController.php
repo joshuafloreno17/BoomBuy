@@ -194,6 +194,108 @@ class SellerController extends Controller
         // Every one of the 7 days, ₱0 where nothing sold, so the chart has a line.
         $salesTrend = $this->everyDay($salesTrend, now()->subDays(6)->toDateString(), now()->toDateString());
 
+        /*
+        |--------------------------------------------------------------------------
+        | ORDER BOARD: the seller's open orders, by step (oldest first)
+        |--------------------------------------------------------------------------
+        */
+
+        $boardStatuses = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'];
+
+        $boardRows = $sellerItems()
+            ->whereIn('orders.status', $boardStatuses)
+            ->groupBy('orders.id', 'orders.status', 'orders.created_at', 'orders.shipping_name', 'orders.payment_method')
+            ->orderBy('orders.created_at')
+            ->select(
+                'orders.id',
+                'orders.status',
+                'orders.created_at',
+                'orders.shipping_name',
+                'orders.payment_method',
+                DB::raw('SUM(order_items.price * order_items.quantity) as subtotal'),
+                DB::raw('SUM(order_items.quantity) as quantity'),
+                DB::raw('MIN(order_items.product_name) as first_item'),
+                DB::raw('MIN(order_items.product_id) as product_id'),
+                DB::raw('COUNT(*) as line_count')
+            )
+            ->get();
+
+        $boardImages = Product::whereIn('id', $boardRows->pluck('product_id'))->get(['id', 'image', 'category'])->keyBy('id');
+
+        $board = collect([
+            'new' => ['Pending'],
+            'accepted' => ['Confirmed'],
+            'preparing' => ['Preparing'],
+            'pickup' => ['Ready for Pickup', 'Pickup Assigned'],
+        ])->map(function ($statuses) use ($boardRows, $boardImages) {
+            $rows = $boardRows->whereIn('status', $statuses)->values();
+
+            return [
+                'total' => $rows->count(),
+                'orders' => $rows->take(3)->map(fn ($o) => [
+                    'id' => $o->id,
+                    'status' => $o->status,
+                    'buyer' => $o->shipping_name ?: 'Buyer',
+                    'item' => $o->first_item . ((int) $o->line_count > 1 ? ' + ' . ((int) $o->line_count - 1) . ' more' : ' ×' . (int) $o->quantity),
+                    'subtotal' => (float) $o->subtotal,
+                    'pay' => \App\Support\CodPolicy::isCod((string) $o->payment_method) ? 'COD' : $o->payment_method,
+                    'image' => productImageUrl($boardImages->get($o->product_id)->image ?? null),
+                    'icon' => \App\Support\Categories::icon($boardImages->get($o->product_id)->category ?? null),
+                    'age' => \Carbon\Carbon::parse($o->created_at)->diffForHumans(null, true),
+                ])->all(),
+            ];
+        })->all();
+
+        /*
+        |--------------------------------------------------------------------------
+        | THIS MONTH: best sellers, earnings after commission
+        |--------------------------------------------------------------------------
+        */
+
+        $monthStart = now()->startOfMonth()->toDateString();
+
+        $bestSellers = $sellerItems()
+            ->whereIn('orders.status', \App\Support\OrderStatus::DONE)
+            ->whereDate('orders.created_at', '>=', $monthStart)
+            ->groupBy('order_items.product_id', 'order_items.product_name')
+            ->orderByDesc(DB::raw('SUM(order_items.quantity)'))
+            ->limit(4)
+            ->select('order_items.product_id', 'order_items.product_name', DB::raw('SUM(order_items.quantity) as sold'))
+            ->get();
+
+        $bestImages = Product::whereIn('id', $bestSellers->pluck('product_id'))->get(['id', 'image', 'category'])->keyBy('id');
+        $bestMax = max(1, (int) $bestSellers->max('sold'));
+        $bestSellers = $bestSellers->map(fn ($b) => [
+            'name' => $b->product_name,
+            'sold' => (int) $b->sold,
+            'share' => (int) round((int) $b->sold / $bestMax * 100),
+            'image' => productImageUrl($bestImages->get($b->product_id)->image ?? null),
+            'icon' => \App\Support\Categories::icon($bestImages->get($b->product_id)->category ?? null),
+        ])->all();
+
+        $month = \App\Support\SellerBalance::summary((int) $user['id'], $monthStart, now()->toDateString());
+        $monthOrders = \App\Support\SellerBalance::orders((int) $user['id'], $monthStart, now()->toDateString())->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | REVIEWS: star breakdown + the latest one
+        |--------------------------------------------------------------------------
+        */
+
+        $starCounts = DB::table('product_reviews')
+            ->join('products', 'products.id', '=', 'product_reviews.product_id')
+            ->where('products.seller_id', $user['id'])
+            ->select('product_reviews.rating', DB::raw('COUNT(*) as total'))
+            ->groupBy('product_reviews.rating')
+            ->pluck('total', 'rating');
+
+        $latestReview = DB::table('product_reviews')
+            ->join('products', 'products.id', '=', 'product_reviews.product_id')
+            ->join('users', 'users.id', '=', 'product_reviews.buyer_id')
+            ->where('products.seller_id', $user['id'])
+            ->orderByDesc('product_reviews.created_at')
+            ->first(['product_reviews.rating', 'product_reviews.review', 'users.name as buyer', 'products.name as product']);
+
 
         /*
         |--------------------------------------------------------------------------
@@ -224,7 +326,13 @@ class SellerController extends Controller
                 'recentOrders',
                 'shopName',
                 'unreadNotes',
-                'recentNotes'
+                'recentNotes',
+                'board',
+                'bestSellers',
+                'month',
+                'monthOrders',
+                'starCounts',
+                'latestReview'
             )
         );
     }

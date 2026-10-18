@@ -7,150 +7,77 @@
 
     <a href="{{ route('seller.dashboard') }}" class="bb-side-brand">
         <img src="{{ vasset('images/icon.svg') }}" alt="" class="bb-side-icon" width="36" height="36">
-        <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="131" height="46"> <small>Seller</small></span>
+        <span class="bb-side-name"><img src="{{ vasset('images/logo-wordmark-white.svg') }}" alt="BoomBuy" class="bb-side-wordmark" width="125" height="44"> <small>Seller</small></span>
     </a>
 
     <nav class="menu">
 
-        <a
-            href="{{ route('seller.dashboard') }}"
-            @class(['active' => $active === 'dashboard'])
-        >
+        <span class="menu-group">Shop</span>
+
+        <a href="{{ route('seller.dashboard') }}" @class(['active' => $active === 'dashboard'])>
             <i class="bi bi-speedometer2"></i>
-            <span class="label-text">
-                Dashboard
-            </span>
+            <span class="label-text">Dashboard</span>
         </a>
 
-        <a
-            href="{{ route('seller.products.create') }}"
-            @class(['active' => $active === 'products'])
-        >
-            <i class="bi bi-plus-circle-fill"></i>
-            <span class="label-text">
-                Add Product
-            </span>
-        </a>
-
-        <a
-            href="{{ route('seller.orders') }}"
-            @class(['active' => $active === 'orders'])
-        >
+        <a href="{{ route('seller.orders') }}" @class(['active' => $active === 'orders'])>
             <i class="bi bi-cart-fill"></i>
-            <span class="label-text">
-                Orders
-            </span>
-
+            <span class="label-text">Orders</span>
             @if($sellerOrdersToShip > 0)
-
-                <span class="notification-badge">
-                    {{ $sellerOrdersToShip > 99
-                        ? '99+'
-                        : $sellerOrdersToShip }}
-                </span>
-
+                <span class="notification-badge">{{ $sellerOrdersToShip > 99 ? '99+' : $sellerOrdersToShip }}</span>
             @endif
-
         </a>
 
-        <a
-            href="{{ route('seller.reports') }}"
-            @class(['active' => $active === 'reports'])
-        >
-            <i class="bi bi-bar-chart-fill"></i>
-            <span class="label-text">
-                Reports
-            </span>
-        </a>
-
-
-        <a
-            href="{{ route('seller.vouchers') }}"
-            @class(['active' => $active === 'vouchers'])
-        >
+        <a href="{{ route('seller.vouchers') }}" @class(['active' => $active === 'vouchers'])>
             <i class="bi bi-ticket-perforated-fill"></i>
-            <span class="label-text">
-                Vouchers
-            </span>
+            <span class="label-text">Vouchers</span>
         </a>
 
-        <a
-            href="{{ route('seller.reviews') }}"
-            @class(['active' => $active === 'reviews'])
-        >
+        <span class="menu-group">Grow</span>
+
+        <a href="{{ route('seller.reports') }}" @class(['active' => $active === 'reports'])>
+            <i class="bi bi-bar-chart-fill"></i>
+            <span class="label-text">Reports</span>
+        </a>
+
+        <a href="{{ route('seller.reviews') }}" @class(['active' => $active === 'reviews'])>
             <i class="bi bi-star-fill"></i>
-            <span class="label-text">
-                Reviews
-            </span>
+            <span class="label-text">Reviews</span>
         </a>
 
-            <a
-                href="{{ route('seller.notifications') }}"
-                @class([
-                    'active' => $active === 'notifications',
-                ])
-                aria-label="Notifications"
-                title="Notifications"
-            >
-                <i class="bi bi-bell-fill"></i>
-                <span class="label-text">
-                    Notifications
-                </span>
-
-                @if($sellerUnreadNotifications > 0)
-
-                    <span class="notification-badge">
-                        {{ $sellerUnreadNotifications > 99
-                            ? '99+'
-                            : $sellerUnreadNotifications }}
-                    </span>
-
-                @endif
-
-            </a>
-
-        <a
-            href="{{ route('complaints.index') }}"
-            @class(['active' => $active === 'complaints'])
-        >
+        <a href="{{ route('complaints.index') }}" @class(['active' => $active === 'complaints'])>
             <i class="bi bi-exclamation-triangle-fill"></i>
-            <span class="label-text">
-                Complaints
-            </span>
+            <span class="label-text">Complaints</span>
         </a>
 
-        <a
-            href="{{ route('messages.index') }}"
-            @class(['active' => $active === 'messages'])
-        >
+        <span class="menu-group">Account</span>
+
+        <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
             <i class="bi bi-chat-dots-fill"></i>
-            <span class="label-text">
-                Messages
-            </span>
-
+            <span class="label-text">Messages</span>
             @if($sellerUnreadMessages > 0)
-
-                <span class="notification-badge">
-                    {{ $sellerUnreadMessages > 99
-                        ? '99+'
-                        : $sellerUnreadMessages }}
-                </span>
-
+                <span class="notification-badge">{{ $sellerUnreadMessages > 99 ? '99+' : $sellerUnreadMessages }}</span>
             @endif
-
         </a>
 
-        <a
-            href="{{ route('seller.profile') }}"
-            @class(['active' => $active === 'profile'])
-        >
+        <a href="{{ route('seller.notifications') }}" @class(['active' => $active === 'notifications']) aria-label="Notifications" title="Notifications">
+            <i class="bi bi-bell-fill"></i>
+            <span class="label-text">Notifications</span>
+            @if($sellerUnreadNotifications > 0)
+                <span class="notification-badge">{{ $sellerUnreadNotifications > 99 ? '99+' : $sellerUnreadNotifications }}</span>
+            @endif
+        </a>
+
+        <a href="{{ route('seller.profile') }}" @class(['active' => $active === 'profile'])>
             <i class="bi bi-person-fill"></i>
-            <span class="label-text">
-                My Profile
-            </span>
+            <span class="label-text">My Profile</span>
         </a>
 
     </nav>
+
+    <a href="{{ route('seller.products.create') }}" @class(['side-add', 'active' => $active === 'products']) aria-label="Add Product">
+        <i class="bi bi-plus-lg"></i>
+        <span class="label-text">Add Product</span>
+    </a>
 
     <div class="sidebar-footer">
         <div class="bb-side-user">
