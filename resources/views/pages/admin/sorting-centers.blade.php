@@ -1,13 +1,3 @@
-    // Center form (Sorting Centers tab): region → its provinces → that
-    // province's cities/municipalities. Branch form (Branches tab): the
-    // center's province → its towns. Each tab has only its own form.
-    (function () {
-        if (!window.PSGC_DATA) return;
-
-        var regions = 
-        var region = document.getElementById('scRegion');
-        var province = document.getElementById('scProvince');
-        var city = document.getElementById('scCity');
 <!DOCTYPE html>
 <html lang="en">
 <head>
