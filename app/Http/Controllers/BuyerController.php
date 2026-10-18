@@ -177,9 +177,42 @@ class BuyerController extends Controller
 
         $panel = $this->accountPanelData($user);
 
+        // "Your cart" card: how many items, the subtotal and a few thumbnails.
+        $cartLines = \App\Support\CartContents::prune();
+        $cartThumbs = Product::whereIn('id', collect(array_keys($cartLines))->map(fn ($key) => (int) parseCartKey($key)[0])->unique()->take(4))
+            ->get(['id', 'image', 'category'])
+            ->map(fn ($p) => ['image' => productImageUrl($p->image), 'icon' => \App\Support\Categories::icon($p->category)])
+            ->values()
+            ->all();
+        $cart = [
+            'count' => (int) array_sum($cartLines),
+            'subtotal' => $cartLines ? (float) cartSubtotalForSeller($cartLines) : 0.0,
+            'thumbs' => $cartThumbs,
+        ];
+
+        // Vouchers sellers are running now (used by typing the code in the cart).
+        $vouchers = DB::table('vouchers')
+            ->join('users', 'users.id', '=', 'vouchers.seller_id')
+            ->where('vouchers.is_active', true)
+            ->where(fn ($q) => $q->whereNull('vouchers.expires_at')->orWhereDate('vouchers.expires_at', '>=', now()->toDateString()))
+            ->where(fn ($q) => $q->whereNull('vouchers.max_uses')->orWhereColumn('vouchers.used_count', '<', 'vouchers.max_uses'))
+            ->where('users.status', 'Active')
+            ->orderByDesc('vouchers.created_at')
+            ->limit(4)
+            ->get(['vouchers.code', 'vouchers.discount_type', 'vouchers.discount_value', 'vouchers.min_order_amount', 'vouchers.expires_at', 'vouchers.seller_id']);
+        $voucherShops = \App\Support\SellerShop::many($vouchers->pluck('seller_id'));
+        $vouchers = $vouchers->map(fn ($v) => [
+            'code' => $v->code,
+            'big' => $v->discount_type === 'percentage' ? rtrim(rtrim(number_format((float) $v->discount_value, 2), '0'), '.') . '%' : '₱' . number_format((float) $v->discount_value),
+            'min' => (float) $v->min_order_amount,
+            'until' => $v->expires_at ? \Carbon\Carbon::parse($v->expires_at)->format('M j') : null,
+            'shop' => $voucherShops->get($v->seller_id)['name'] ?? 'BoomBuy shop',
+            'seller_id' => $v->seller_id,
+        ])->all();
+
         return view(
             'pages.buyer.dashboard',
-            compact('user', 'activeOrders', 'buyAgain', 'discover', 'onSale', 'panel')
+            compact('user', 'activeOrders', 'buyAgain', 'discover', 'onSale', 'panel', 'cart', 'vouchers')
         );
     }
 

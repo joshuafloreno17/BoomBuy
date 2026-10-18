@@ -20,6 +20,11 @@
 
 @if($bbNavUser)
 
+    {{-- Buyers: the Shop page, where the category chips are. --}}
+    <a href="{{ route('products') }}">
+        Categories
+    </a>
+
     <a
         href="{{ route('buyer.orders') }}"
         class="{{ $bbActive === 'orders' ? 'active' : '' }}"
@@ -48,6 +53,7 @@
         @if($bbSearchCategory)
             <input type="hidden" name="category" value="{{ request('category') }}" data-label="{{ $bbSearchCategory }}">
         @endif
+        <i class="bi bi-search bb-nav-search-icon" aria-hidden="true"></i>
         <input
             type="text"
             name="search"

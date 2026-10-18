@@ -1063,3 +1063,85 @@
         gap: 12px;
     }
 }
+
+/* =========================================================
+   2026-10-18 refresh: underline links, pill search with the
+   icon inside, dark violet Register, hover effects.
+========================================================= */
+
+.bb-nav-links a {
+    position: relative;
+}
+
+.bb-nav-links a::after {
+    content: "";
+    position: absolute;
+    left: 12px;
+    right: 12px;
+    bottom: 3px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: #6d4ad1;
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .2s ease;
+}
+
+.bb-nav-links a:hover,
+.bb-nav-links a.active {
+    background: transparent;
+    color: #5536b5;
+}
+
+.bb-nav-links a.active { font-weight: 800; }
+
+.bb-nav-links a:hover::after,
+.bb-nav-links a.active::after {
+    transform: scaleX(1);
+}
+
+.bb-nav-search {
+    height: 48px;
+    background: #f8f6fe;
+    border: 1.5px solid #e9e4fa;
+    border-radius: 16px;
+}
+
+.bb-nav-search:focus-within { background: #fff; }
+
+.bb-nav-search-icon {
+    align-self: center;
+    padding-left: 16px;
+    color: #857ca0;
+    font-size: 15px;
+}
+
+.bb-nav-search input { padding: 0 12px; }
+
+.bb-nav-search .bb-nav-search-btn {
+    margin: 5px;
+    border-radius: 11px;
+    transition: background .2s ease, transform .2s cubic-bezier(.3, .7, .4, 1.4), box-shadow .2s ease;
+}
+
+.bb-nav-search .bb-nav-search-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 18px rgba(109, 74, 209, .3); }
+
+.bb-login-link,
+.bb-register-link {
+    padding: 11px 18px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    transition: background .2s ease, transform .2s cubic-bezier(.3, .7, .4, 1.4), box-shadow .2s ease;
+}
+
+.bb-register-link { background: #2a1846; }
+.bb-register-link:hover { background: #3a2560; transform: translateY(-2px); box-shadow: 0 10px 22px rgba(42, 24, 70, .25); }
+.bb-login-link:hover { transform: translateY(-2px); }
+
+.bb-nav-right .bb-cart-link i { display: inline-block; transition: transform .25s cubic-bezier(.3, .7, .4, 1.5); }
+.bb-nav-right .bb-cart-link:hover i { transform: scale(1.15) rotate(-8deg); }
+
+@media (prefers-reduced-motion: reduce) {
+    .bb-nav-links a::after, .bb-nav-search .bb-nav-search-btn,
+    .bb-login-link, .bb-register-link, .bb-nav-right .bb-cart-link i { transition: none; }
+}

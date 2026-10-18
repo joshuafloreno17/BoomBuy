@@ -21,17 +21,31 @@
 
         $discoverTabs = [
             'latest' => ['label' => 'Latest', 'empty' => 'No products yet.'],
+            'sale' => ['label' => 'On sale', 'empty' => 'Nothing is on sale right now.'],
             'top' => ['label' => 'Top rated', 'empty' => 'No rated products yet — reviews show up here once buyers rate their orders.'],
             'budget' => ['label' => 'Under ₱1,000', 'empty' => 'No products under ₱1,000 right now.'],
         ];
+        $discover['sale'] = $onSale;
+
+        $greetHour = (int) now()->format('G');
+        $greetText = $greetHour >= 5 && $greetHour < 12 ? 'Good morning' : ($greetHour >= 12 && $greetHour < 18 ? 'Good afternoon' : 'Good evening');
+        $firstName = \Illuminate\Support\Str::of($panel['name'])->before(' ');
+
+        // My Purchases shortcuts (same tabs as My Orders).
+        $purchases = [
+            ['label' => 'To Ship', 'icon' => 'bi-box-seam', 'tone' => 'is-amber', 'count' => $panel['to_ship'], 'url' => route('buyer.orders', ['tab' => 'to-ship'])],
+            ['label' => 'To Receive', 'icon' => 'bi-truck', 'tone' => 'is-blue', 'count' => $panel['to_receive'], 'url' => route('buyer.orders', ['tab' => 'to-receive'])],
+            ['label' => 'To Review', 'icon' => 'bi-star', 'tone' => 'is-green', 'count' => $panel['to_review'], 'url' => route('buyer.orders', ['tab' => 'delivered'])],
+            ['label' => 'Cancelled', 'icon' => 'bi-arrow-counterclockwise', 'tone' => 'is-grey', 'count' => 0, 'url' => route('buyer.orders', ['tab' => 'cancelled'])],
+            ['label' => 'Complaints', 'icon' => 'bi-exclamation-triangle', 'tone' => 'is-red', 'count' => 0, 'url' => route('complaints.index')],
+        ];
+
+        // The newest order on its way, on the 5-step tracker.
+        $tracked = $activeOrders[0] ?? null;
+        $trackSteps = ['Placed', 'Packed', 'Sorted', 'Out', 'Delivered'];
     @endphp
 
-    <main class="dash">
-
-        {{-- SIDEBAR (desktop) --}}
-        <aside class="dash-side">
-            @include('partials.buyer-account-panel', ['panel' => $panel])
-        </aside>
+    <main class="dash bh">
 
         <div class="dash-main">
 
@@ -46,12 +60,11 @@
                 </span>
                 <div class="dash-greet-text">
                     {{-- Follows the phone's clock (script below); the server's hour is only the first guess. --}}
-                    @php $greetHour = (int) now()->format('G'); @endphp
                     <em class="dash-greet-time" data-greet-time>
                         <i class="bi {{ $greetHour >= 5 && $greetHour < 18 ? 'bi-sun-fill' : 'bi-moon-stars-fill' }}" aria-hidden="true"></i>
-                        <span>{{ $greetHour >= 5 && $greetHour < 12 ? 'Good morning' : ($greetHour >= 12 && $greetHour < 18 ? 'Good afternoon' : 'Good evening') }}</span>
+                        <span>{{ $greetText }}</span>
                     </em>
-                    <strong>Hi, {{ \Illuminate\Support\Str::of($panel['name'])->before(' ') }}!</strong>
+                    <strong>Hi, {{ $firstName }}!</strong>
                     <span>
                         @if($panel['active_orders'] > 0)
                             {{ $panel['active_orders'] }} active {{ \Illuminate\Support\Str::plural('order', $panel['active_orders']) }}
@@ -67,49 +80,151 @@
                 @endif
             </section>
 
+            {{-- GREETING (desktop) --}}
+            <section class="bh-hello">
+                <div>
+                    <span class="bh-hello-eyebrow">{{ $greetText }}, {{ $firstName }} 👋</span>
+                    <h1>What are we buying today?</h1>
+                </div>
+                @if($cod['blocked'] || $cod['strikes'] > 0)
+                    <a href="{{ route('policies') }}#returns" class="dash-cod-chip {{ $codClass }}" aria-label="Cash on Delivery standing: {{ $codLabel }}">
+                        <i class="bi {{ $cod['blocked'] ? 'bi-slash-circle' : 'bi-exclamation-circle' }}"></i>{{ $codLabel }}
+                    </a>
+                @endif
+            </section>
+
             {{-- HERO: promo banners from Admin → Promo Banners (else the announcement, products, free shipping) --}}
             @include('partials.promo-hero', ['layout' => 'wide', 'withAnnouncement' => true])
 
-            {{-- YOUR ORDERS: one slim line each; the full tracker is on My Orders --}}
-            @if(count($activeOrders) > 0)
-                <section class="order-strip" aria-label="Your orders">
-                    <div class="order-strip-head">
-                        <strong><i class="bi bi-truck"></i> {{ count($activeOrders) }} {{ \Illuminate\Support\Str::plural('order', count($activeOrders)) }} on the way</strong>
-                        <a href="{{ route('buyer.orders') }}" class="dash-link">All orders →</a>
+            {{-- ON ITS WAY · MY PURCHASES · YOUR CART --}}
+            <div class="bh-row">
+
+                <section class="bh-card bh-track" aria-labelledby="track-title">
+                    <div class="bh-card-head">
+                        <h2 id="track-title">{{ $tracked ? 'On its way' : 'No orders on the way' }}</h2>
+                        <a href="{{ route('buyer.orders') }}" class="dash-link">My orders →</a>
                     </div>
-                    @foreach($activeOrders as $order)
-                        <a href="{{ route('buyer.orders') }}#order-{{ $order['id'] }}" class="order-line">
+
+                    @if($tracked)
+                        <a href="{{ route('buyer.orders') }}#order-{{ $tracked['id'] }}" class="bh-track-item">
                             <span class="order-line-thumb">
-                                @if($order['image'])
-                                    <img src="{{ $order['image'] }}" alt="" onerror="this.remove()">
+                                @if($tracked['image'])
+                                    <img src="{{ $tracked['image'] }}" alt="" onerror="this.remove()">
                                 @endif
-                                <i class="bi {{ $order['icon'] }}"></i>
+                                <i class="bi {{ $tracked['icon'] }}"></i>
                             </span>
-                            <span class="order-line-text">
-                                <span class="order-line-name">{{ $order['name'] }}</span>
-                                <span class="order-line-note">Order #{{ $order['id'] }} · {{ $order['note'] }}</span>
+                            <span class="bh-track-text">
+                                <strong>{{ $tracked['name'] }}</strong>
+                                <span>Order #{{ $tracked['id'] }} · ₱{{ number_format($tracked['total'], 2) }}</span>
                             </span>
-                            <x-status-pill :status="$order['status']" />
-                            <span class="order-line-go">Track <i class="bi bi-chevron-right"></i></span>
+                            <x-status-pill :status="$tracked['status']" />
                         </a>
-                    @endforeach
+
+                        <ol class="bh-steps" aria-label="Order progress: step {{ $tracked['step'] }} of 5">
+                            @foreach($trackSteps as $i => $label)
+                                <li class="{{ $i + 1 < $tracked['step'] ? 'is-done' : ($i + 1 === $tracked['step'] ? 'is-now' : '') }}"><span></span>{{ $label }}</li>
+                            @endforeach
+                        </ol>
+
+                        <p class="bh-track-note">{{ $tracked['note'] }}</p>
+
+                        <div class="bh-track-foot">
+                            <a href="{{ route('buyer.orders') }}#order-{{ $tracked['id'] }}" class="bh-btn bh-btn-primary">Track order</a>
+                            @if(count($activeOrders) > 1)
+                                <span class="bh-more">+{{ count($activeOrders) - 1 }} more on the way</span>
+                            @endif
+                        </div>
+                    @else
+                        <p class="bh-track-note">When you place an order, you can follow it here from the seller to your door.</p>
+                        <a href="{{ route('products') }}" class="bh-btn bh-btn-primary">Start shopping</a>
+                    @endif
                 </section>
-            @endif
+
+                <section class="bh-card bh-purchases" aria-labelledby="purchases-title">
+                    <div class="bh-card-head">
+                        <h2 id="purchases-title">My Purchases</h2>
+                        <a href="{{ route('buyer.orders') }}" class="dash-link">View all →</a>
+                    </div>
+                    <div class="bh-purchase-grid">
+                        @foreach($purchases as $p)
+                            <a href="{{ $p['url'] }}" class="bh-purchase {{ $p['tone'] }}">
+                                <span class="bh-purchase-icon">
+                                    <i class="bi {{ $p['icon'] }}" aria-hidden="true"></i>
+                                    @if($p['count'] > 0)<em>{{ $p['count'] > 99 ? '99+' : $p['count'] }}</em>@endif
+                                </span>
+                                <span>{{ $p['label'] }}</span>
+                            </a>
+                        @endforeach
+                    </div>
+                </section>
+
+                <section class="bh-cart" aria-labelledby="cart-title">
+                    <div class="bh-card-head">
+                        <h2 id="cart-title">Your cart</h2>
+                        <span class="bh-cart-count">{{ $cart['count'] }} {{ \Illuminate\Support\Str::plural('item', $cart['count']) }}</span>
+                    </div>
+                    @if($cart['count'] > 0)
+                        <div class="bh-cart-thumbs" aria-hidden="true">
+                            @foreach($cart['thumbs'] as $thumb)
+                                <span>
+                                    @if($thumb['image'])<img src="{{ $thumb['image'] }}" alt="" onerror="this.remove()">@endif
+                                    <i class="bi {{ $thumb['icon'] }}"></i>
+                                </span>
+                            @endforeach
+                        </div>
+                        <div class="bh-cart-foot">
+                            <div><small>Subtotal</small><strong>₱{{ number_format($cart['subtotal'], 2) }}</strong></div>
+                            <a href="{{ route('cart') }}" class="bh-btn bh-btn-white">Checkout</a>
+                        </div>
+                    @else
+                        <p>Your cart is empty. Find something you like below.</p>
+                        <a href="{{ route('products') }}" class="bh-btn bh-btn-white">Browse products</a>
+                    @endif
+                </section>
+
+            </div>
+
             {{-- SHOP BY CATEGORY --}}
             <section class="dash-section">
                 <div class="dash-section-head">
                     <h2>Shop by category</h2>
-                    <a href="{{ route('products') }}" class="dash-link">See all →</a>
+                    <a href="{{ route('products') }}" class="dash-link">All products →</a>
                 </div>
-                <div class="cat-row">
+                <div class="bh-cats">
                     @foreach(\App\Support\Categories::LIST as $slug => $label)
-                        <a href="{{ route('products', ['category' => $slug]) }}" class="cat-chip">
-                            <span class="cat-chip-icon"><i class="bi {{ \App\Support\Categories::icon($slug) }}"></i></span>
+                        <a href="{{ route('products', ['category' => $slug]) }}" class="bh-cat">
+                            <span class="bh-cat-icon tone-{{ $loop->index % 6 }}"><i class="bi {{ \App\Support\Categories::icon($slug) }}" aria-hidden="true"></i></span>
                             <span>{{ $label }}</span>
                         </a>
                     @endforeach
                 </div>
             </section>
+
+            {{-- VOUCHERS: codes sellers are running now --}}
+            @if(count($vouchers) > 0)
+                <section class="dash-section" aria-labelledby="vouchers-title">
+                    <div class="dash-section-head">
+                        <div>
+                            <h2 id="vouchers-title">Vouchers from shops</h2>
+                            <p>Type the code in your cart to use it.</p>
+                        </div>
+                    </div>
+                    <div class="bh-vouchers">
+                        @foreach($vouchers as $v)
+                            <div class="bh-voucher tone-{{ $loop->index % 4 }}">
+                                <div class="bh-voucher-amount"><strong>{{ $v['big'] }}</strong><small>OFF</small></div>
+                                <div class="bh-voucher-body">
+                                    <strong>{{ $v['shop'] }}</strong>
+                                    <span>{{ $v['min'] > 0 ? 'Min. spend ₱' . number_format($v['min']) : 'No minimum' }}{{ $v['until'] ? ' · until ' . $v['until'] : '' }}</span>
+                                    <button type="button" class="bh-voucher-code" data-copy-code="{{ $v['code'] }}" aria-label="Copy voucher code {{ $v['code'] }}">
+                                        <i class="bi bi-copy" aria-hidden="true"></i> <span>{{ $v['code'] }}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </section>
+            @endif
 
             {{-- ON SALE (phones): products with a discount, side-scrolling --}}
             @if(count($onSale) > 0)
@@ -142,7 +257,7 @@
             {{-- DISCOVER --}}
             <section class="dash-section">
                 <div class="dash-section-head">
-                    <h2>Products for you</h2>
+                    <h2>Picked for you</h2>
                     <div class="discover-tabs" role="tablist" aria-label="Discover products">
                         @foreach($discoverTabs as $key => $tab)
                             <button
@@ -286,6 +401,12 @@
 
     </main>
 
+    {{-- Chat shortcut (desktop; phones have Chat in the tab bar) --}}
+    <a href="{{ route('messages.index') }}" class="bh-chat" aria-label="Messages{{ $panel['unread_messages'] > 0 ? ' (' . $panel['unread_messages'] . ' unread)' : '' }}">
+        <i class="bi bi-chat-dots-fill" aria-hidden="true"></i> Chat
+        @if($panel['unread_messages'] > 0)<em>{{ $panel['unread_messages'] > 99 ? '99+' : $panel['unread_messages'] }}</em>@endif
+    </a>
+
 
     <script>
     (function () {
@@ -329,6 +450,25 @@
                 select(target);
                 target.focus();
             });
+        });
+
+        /* Voucher codes: click to copy */
+        document.addEventListener('click', function (e) {
+            var btn = e.target.closest('[data-copy-code]');
+            if (!btn) return;
+
+            var code = btn.dataset.copyCode;
+            var label = btn.querySelector('span');
+            var done = function () {
+                label.textContent = 'Copied!';
+                setTimeout(function () { label.textContent = code; }, 1500);
+            };
+
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(code).then(done, function () { if (window.bbAlert) bbAlert('Voucher code: ' + code); });
+            } else if (window.bbAlert) {
+                bbAlert('Voucher code: ' + code);
+            }
         });
 
         /* Wishlist hearts */
