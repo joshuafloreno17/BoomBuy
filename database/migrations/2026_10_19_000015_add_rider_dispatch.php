@@ -43,8 +43,8 @@ return new class extends Migration
             $table->foreignId('order_id')->constrained('orders')->cascadeOnDelete();
             $table->foreignId('rider_id')->constrained('users')->cascadeOnDelete();
             $table->string('status', 12)->default('pending'); // pending | accepted | declined | expired | cancelled
-            $table->timestamp('offered_at');
-            $table->timestamp('expires_at');
+            $table->dateTime('offered_at');
+            $table->dateTime('expires_at');
             $table->timestamp('responded_at')->nullable();
             $table->timestamps();
             $table->index(['order_id', 'status']);

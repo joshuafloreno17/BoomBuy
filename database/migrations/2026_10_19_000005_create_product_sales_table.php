@@ -19,8 +19,8 @@ return new class extends Migration
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
             $table->string('discount_type', 10);          // percent | fixed
             $table->decimal('discount_value', 12, 2);     // 20 (%) or the sale price (fixed)
-            $table->timestamp('starts_at');
-            $table->timestamp('ends_at');
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
             $table->timestamp('ended_at')->nullable();    // End Now
             $table->timestamps();
 

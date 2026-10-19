@@ -116,13 +116,18 @@
 
         <div class="order-id">
 
-            <i class="bi bi-box-seam-fill"></i> Order #{{ $delivery['id'] ?? 'N/A' }}
+            <i class="bi bi-box-seam-fill"></i> Order #{{ $delivery['id'] ?? 'N/A' }} · {{ \App\Support\Waybill::number((int) ($delivery['id'] ?? 0)) }}
 
         </div>
 
         @php
             $currentStatus = $delivery['status'] ?? 'Pending';
+            // Which delivery attempt this is (A13): a failed one counts until it is rescheduled.
+            $attemptsSoFar = (int) ($delivery['delivery_attempts'] ?? 0);
+            $attemptNow = $currentStatus === 'Delivery Failed' ? $attemptsSoFar : $attemptsSoFar + 1;
         @endphp
+
+        <span class="attempt-badge" data-attempt>Attempt {{ max(1, $attemptNow) }} of {{ \App\Services\SortingCenterService::MAX_DELIVERY_ATTEMPTS }}</span>
 
         <x-status-pill :status="$currentStatus" />
 

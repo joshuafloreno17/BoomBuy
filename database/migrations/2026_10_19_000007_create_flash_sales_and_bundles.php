@@ -17,8 +17,8 @@ return new class extends Migration
             $table->id();
             $table->foreignId('seller_id')->constrained('users')->cascadeOnDelete();
             $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
-            $table->timestamp('starts_at');
-            $table->timestamp('ends_at');
+            $table->dateTime('starts_at');
+            $table->dateTime('ends_at');
             $table->decimal('flash_price', 12, 2);
             $table->unsignedInteger('quantity');
             $table->unsignedInteger('sold')->default(0);
