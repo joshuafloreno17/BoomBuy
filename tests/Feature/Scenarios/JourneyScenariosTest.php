@@ -159,7 +159,7 @@ class JourneyScenariosTest extends TestCase
         $this->assertSame(1, \App\Support\CodPolicy::status($buyer->id)['strikes']);
     }
 
-    public function test_E05_two_failed_attempts_then_return(): void
+    public function test_E05_three_failed_attempts_then_return(): void
     {
         $buyer = $this->buyerAt();
         $this->placeOrder($buyer, [$this->shoes->id . ':0' => 1]);
@@ -172,6 +172,9 @@ class JourneyScenariosTest extends TestCase
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-back', $order->id))->assertSessionHas('success');
         $this->post(route('logistics.parcels.reschedule', $order->id), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
         $this->riderTakes($order->id, $this->lagunaRider, 'Failed', ['failure_code' => 'Buyer unreachable by phone']);
+        $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-back', $order->id))->assertSessionHas('success');
+        $this->post(route('logistics.parcels.reschedule', $order->id), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
+        $this->riderTakes($order->id, $this->lagunaRider, 'Failed', ['failure_code' => 'Wrong or incomplete address']);
 
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.confirm-back', $order->id))->assertSessionHas('success');
         $this->post(route('logistics.parcels.reschedule', $order->id), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('error');

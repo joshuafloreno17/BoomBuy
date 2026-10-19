@@ -376,6 +376,16 @@
                     </label>
                     <p class="proof-hint">Take a photo of the parcel with the buyer (or at their door). JPG, PNG or WEBP, up to 5 MB.</p>
                     <input type="file" name="delivery_proof" id="deliveryProof" accept="image/*" capture="environment">
+                    @if(!empty($delivery['delivery_otp']))
+                        <label class="failure-label" for="deliveryOtp"><i class="bi bi-shield-lock-fill"></i> Buyer's delivery OTP</label>
+                        <input type="text" name="otp" id="deliveryOtp" inputmode="numeric" maxlength="6" pattern="\d{6}" placeholder="6-digit code from the buyer" autocomplete="one-time-code">
+                    @endif
+                    @if(config('app.delivery_checks') && \App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
+                        <label class="failure-label" for="codAmount"><i class="bi bi-cash-coin"></i> COD amount collected</label>
+                        <input type="number" name="cod_amount" id="codAmount" step="0.01" min="0" placeholder="{{ number_format((float) ($delivery['total_amount'] ?? 0), 2, '.', '') }}">
+                    @elseif(!\App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
+                        <p class="proof-cod"><i class="bi bi-check-circle-fill"></i> Paid online — COD ₱0.00, collect nothing.</p>
+                    @endif
                     @if(\App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
                         <p class="proof-cod"><i class="bi bi-cash-coin"></i> Collect <strong>₱{{ number_format((float) ($delivery['total_amount'] ?? 0), 2) }}</strong> in cash, then hand it in at the Sorting Center.</p>
                     @endif

@@ -53,6 +53,8 @@ trait BuildsBoomBuyData
     protected function makeRider(string $status = 'Approved'): User
     {
         $rider = $this->makeUser('rider');
+        // On shift, so they can be given jobs (Rider Modules R2).
+        DB::table('users')->where('id', $rider->id)->update(['is_online' => true]);
 
         DB::table('rider_applications')->insert([
             'user_id' => $rider->id,

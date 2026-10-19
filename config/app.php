@@ -71,6 +71,10 @@ return [
     // pages (see App\Support\MobileAccess::riderBlockedHere).
     'riders_app_only' => (bool) env('RIDERS_APP_ONLY', true),
 
+    // Delivered needs the buyer's 6-digit delivery OTP and, for Cash on
+    // Delivery, the exact amount collected (Rider Modules R5, A32/A24).
+    'delivery_checks' => (bool) env('DELIVERY_CHECKS', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

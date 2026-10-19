@@ -40,6 +40,30 @@
 
             </div>
 
+            {{-- EVERY JOB ONCE: pickups, deliveries and failed attempts (R7) --}}
+            <section class="all-jobs" style="margin:18px 0;">
+                <h2>All jobs</h2>
+                @if(($jobs ?? collect())->isEmpty())
+                    <p>No jobs in this date range.</p>
+                @else
+                    <table class="jobs-table" style="width:100%;border-collapse:collapse;">
+                        <thead><tr><th align="left">Date</th><th align="left">Tracking number</th><th align="left">Job</th><th align="left">Result</th><th align="right">Pay</th></tr></thead>
+                        <tbody>
+                            @foreach($jobs as $job)
+                                <tr data-job="{{ $job['tracking_number'] }}">
+                                    <td>{{ \Illuminate\Support\Carbon::parse($job['at'])->format('M d, Y g:i A') }}</td>
+                                    <td>{{ $job['tracking_number'] }}</td>
+                                    <td>{{ $job['kind'] }}</td>
+                                    <td>{{ $job['result'] }}</td>
+                                    <td align="right">₱{{ number_format($job['pay'], 2) }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                @endif
+            </section>
+
+
             @forelse($history as $order)
 
                 <div class="history-card">

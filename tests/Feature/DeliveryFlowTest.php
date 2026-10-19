@@ -129,7 +129,7 @@ class DeliveryFlowTest extends TestCase
         $this->assertSame('Sorted', $this->orderStatus($order));
     }
 
-    public function test_failed_delivery_needs_a_reason_and_is_retried_at_most_twice(): void
+    public function test_failed_delivery_needs_a_reason_and_goes_back_after_three_attempts(): void
     {
         $buyer = $this->makeUser();
         $seller = $this->makeSeller();
@@ -162,7 +162,14 @@ class DeliveryFlowTest extends TestCase
         $this->actingAsUser($rider)
             ->post(route('rider.delivery.status', $order), ['status' => 'Delivery Failed', 'failure_code' => 'Other', 'failure_reason' => 'Still nobody home.']);
 
-        // ...but after two attempts it goes back to the seller.
+        // ...and a second (attempt 3 of 3)...
+        $this->actingAsUser($logistics)->post(route('logistics.parcels.confirm-back', $order))->assertSessionHas('success');
+        $this->actingAsUser($logistics)->post(route('logistics.parcels.reschedule', $order), ['rider_id' => $rider->id])->assertSessionHas('success');
+        $this->actingAsUser($rider)->post(route('rider.delivery.status', $order), ['status' => 'Out for Delivery']);
+        $this->actingAsUser($rider)
+            ->post(route('rider.delivery.status', $order), ['status' => 'Delivery Failed', 'failure_code' => 'Other', 'failure_reason' => 'Nobody home again.']);
+
+        // ...but after three attempts it goes back to the seller (A13).
         $this->actingAsUser($logistics)->post(route('logistics.parcels.confirm-back', $order))->assertSessionHas('success');
         $this->actingAsUser($logistics)
             ->post(route('logistics.parcels.reschedule', $order), ['rider_id' => $rider->id])

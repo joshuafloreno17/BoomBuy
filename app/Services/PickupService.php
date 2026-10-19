@@ -158,17 +158,25 @@ class PickupService
                 : 'This pickup was already taken by another rider.');
         }
 
+        // At most 3 jobs at a time (A14).
+        if (\App\Support\RiderJobs::activeCount($riderId) >= \App\Support\RiderJobs::ACTIVE_LIMIT) {
+            throw new ActionFailed('You already have ' . \App\Support\RiderJobs::ACTIVE_LIMIT . ' active jobs. Finish one before taking another.');
+        }
+
         $claimed = DB::table('orders')
             ->where('id', $orderId)
             ->where('status', 'Ready for Pickup')
             ->whereNull('rider_id')
-            ->update(['rider_id' => $riderId, 'status' => 'Pickup Assigned', 'updated_at' => now()]);
+            ->update(['rider_id' => $riderId, 'status' => 'Pickup Assigned', 'dispatch_unassigned_at' => null, 'updated_at' => now()]);
 
         if (!$claimed) {
             throw new ActionFailed('This pickup was already taken by another rider.');
         }
 
-        $this->assigned($orderId, $riderId);
+        // Any job offer for it is withdrawn.
+        DB::table('job_offers')->where('order_id', $orderId)->where('status', 'pending')->update(['status' => 'cancelled', 'responded_at' => now(), 'updated_at' => now()]);
+
+        $this->notifyAssigned($orderId, $riderId);
 
         return 'Pickup accepted. Go to the seller, then tap "Picked up" once you have the parcel.';
     }
@@ -196,6 +204,33 @@ class PickupService
     }
 
     /**
+     * The rider scans (or types) the waybill's tracking number at the seller
+     * (R4): it must be this job's, then the parcel is Picked Up — once.
+     *
+     * @throws ActionFailed
+     */
+    public function scan(int $riderId, int $orderId, string $code): string
+    {
+        $order = DB::table('orders')->where('id', $orderId)->first();
+
+        if (!$order || (int) $order->rider_id !== $riderId) {
+            throw new ActionFailed('This pickup is not assigned to you.');
+        }
+
+        if (\App\Support\Waybill::parse($code) !== $orderId) {
+            throw new ActionFailed('The tracking number does not match this job.');
+        }
+
+        if ($order->status !== 'Pickup Assigned') {
+            throw new ActionFailed('This parcel was already picked up.');
+        }
+
+        $center = $this->markPickedUp($order, 'Rider scanned the waybill at the seller');
+
+        return 'Picked up (' . \App\Support\Waybill::number($orderId) . ')! Bring the parcel to ' . $center . '.';
+    }
+
+    /**
      * Pickup Assigned → Picked Up, once (the rider or the seller confirms the
      * hand-over first). Returns the Sorting Center the rider brings it to.
      *
@@ -208,6 +243,8 @@ class PickupService
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Pickup Assigned')->update([
             'status' => 'Picked Up',
             'picked_up_at' => now(),
+            // The rider's pay for the pickup (A33), counted once.
+            'pickup_fee' => \App\Support\RiderJobs::PICKUP_PAY,
             'updated_at' => now(),
         ]);
 
@@ -231,12 +268,12 @@ class PickupService
     }
 
     /** Tells the rider and the seller who is collecting the parcel. */
-    private function assigned(int $orderId, int $riderId): void
+    public function notifyAssigned(int $orderId, int $riderId, ?string $how = null): void
     {
         $rider = DB::table('users')->where('id', $riderId)->first(['name', 'phone']);
         $day = DB::table('orders')->where('id', $orderId)->value('pickup_date');
 
-        OrderTimeline::log($orderId, 'Pickup Assigned', 'Rider ' . $rider->name . ' will pick it up from the seller');
+        OrderTimeline::log($orderId, 'Pickup Assigned', 'Rider ' . $rider->name . ' will pick it up from the seller', $how);
         createNotification($riderId, 'Pickup Assigned to You', 'Collect order #' . $orderId . ' from the seller' . ($day ? ' on ' . Carbon::parse($day)->format('D, M j') : '') . '. See Items for Pickup.', 'pickup', $orderId);
         notifyOrderSellers($orderId, 'Rider Assigned for Pickup', $rider->name . ' (' . $rider->phone . ') will pick up order #' . $orderId . '. Have the packed parcel and its shipping label ready.');
     }

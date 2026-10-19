@@ -92,6 +92,39 @@
 
             @endif
 
+            {{-- LICENSE, VEHICLE, DOCUMENTS AND COMPANY (R1) --}}
+            @if($riderRecord ?? null)
+                <section class="profile-card rider-vehicle" style="margin-bottom:18px;">
+                    <h2 style="margin-top:0;"><i class="bi bi-person-vcard-fill"></i> License &amp; vehicle</h2>
+                    <dl style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:0 0 12px;">
+                        <div><dt>Name</dt><dd data-rider-name>{{ $riderRecord->full_name }}</dd></div>
+                        <div><dt>Driver's license</dt><dd data-license>{{ $riderRecord->drivers_license_no ?? '—' }}</dd></div>
+                        <div><dt>License expiry</dt><dd data-license-expiry>{{ $riderRecord->license_expiry ? \Illuminate\Support\Carbon::parse($riderRecord->license_expiry)->format('m/d/Y') : '—' }}</dd></div>
+                        <div><dt>Vehicle</dt><dd data-vehicle>{{ $riderRecord->vehicle_type }}{{ $riderRecord->vehicle_model ? ' · ' . $riderRecord->vehicle_model : '' }}</dd></div>
+                        <div><dt>Plate number</dt><dd data-plate>{{ $riderRecord->plate_number }}</dd></div>
+                        <div><dt>Company</dt><dd data-company>{{ $companyName ?? 'BoomBuy' }}</dd></div>
+                        <div><dt>Status</dt><dd data-rider-status>{{ ($dbUser->status ?? '') === 'Active' && $riderRecord->status === 'Approved' ? 'Active' : ($dbUser->status ?? $riderRecord->status) }}{{ $riderRecord->needs_reverification ? ' (re-verification pending)' : '' }}</dd></div>
+                    </dl>
+                    <p style="margin:0 0 12px;">
+                        @foreach(['drivers_license' => "Driver's license", 'or_cr' => 'OR/CR'] as $docField => $docLabel)
+                            @if($riderRecord->{$docField})
+                                <a href="{{ route('rider.document', $docField) }}" target="_blank" rel="noopener" class="btn view-btn"><i class="bi bi-file-earmark-text"></i> {{ $docLabel }}</a>
+                            @endif
+                        @endforeach
+                    </p>
+                    <form method="POST" action="{{ route('rider.vehicle.update') }}" enctype="multipart/form-data" style="display:grid;gap:10px;">
+                        @csrf
+                        <label>Plate number <input type="text" name="plate_number" value="{{ $riderRecord->plate_number }}" maxlength="10"></label>
+                        <label>License expiry <input type="date" name="license_expiry" min="{{ today()->toDateString() }}" value="{{ $riderRecord->license_expiry }}"></label>
+                        <label>Driver's license (JPG, PNG or PDF, up to 5 MB) <input type="file" name="drivers_license" accept=".jpg,.jpeg,.png,.pdf"></label>
+                        <label>OR/CR (JPG, PNG or PDF, up to 5 MB) <input type="file" name="or_cr" accept=".jpg,.jpeg,.png,.pdf"></label>
+                        <button type="submit" class="btn status-btn">Save vehicle &amp; documents</button>
+                        <small>Changes are checked again by your logistics company.</small>
+                    </form>
+                </section>
+            @endif
+
+
 
             {{-- PROFILE GRID --}}
 

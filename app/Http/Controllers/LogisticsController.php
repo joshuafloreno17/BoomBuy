@@ -615,9 +615,16 @@ class LogisticsController extends Controller
             ->groupBy('delivery_rider_id')
             ->pluck('total', 'delivery_rider_id');
 
+        // Online/Offline, active jobs (0–3) and today's deliveries, as in the riders' apps.
+        $riderStats = $riderIds->mapWithKeys(fn ($id) => [(int) $id => [
+            'online' => \App\Support\RiderJobs::isOnline((int) $id),
+            'active_jobs' => \App\Support\RiderJobs::activeCount((int) $id),
+            'delivered_today' => DB::table('orders')->where('delivery_rider_id', $id)->whereDate('delivered_at', today())->count(),
+        ]])->all();
+
         return view(
             'pages.logistics.riders',
-            compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'deliveryLoad')
+            compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'deliveryLoad', 'riderStats')
         );
     }
 
@@ -1412,10 +1419,12 @@ class LogisticsController extends Controller
         DB::table('rider_applications')->where('id', $id)->where('status', 'Pending Verification')->update([
             'status' => 'Approved',
             'admin_remarks' => null,
+            'needs_reverification' => false,
             'reviewed_at' => now(),
             'reviewed_by' => $user['id'],
             'updated_at' => now(),
         ]);
+        \App\Support\AuditLog::record('rider.approved', 'rider', (int) $application->user_id, ['from' => 'Pending Verification', 'to' => 'Approved'], (int) $user['id']);
 
         createNotification(
             (int) $application->user_id,
@@ -1455,7 +1464,12 @@ class LogisticsController extends Controller
             return $user;
         }
 
-        $remarks = trim((string) request('admin_remarks'));
+        $remarks = trim((string) (request('admin_remarks') ?? request('reason')));
+
+        // The rider is told exactly why (A25: 10 to 300 characters).
+        if (mb_strlen($remarks) < 10 || mb_strlen($remarks) > 300) {
+            return back()->with('error', 'Please give the reason for rejecting (10 to 300 characters).');
+        }
 
         $application = DB::table('rider_applications')->where('id', $id)->first();
 
@@ -1479,9 +1493,8 @@ class LogisticsController extends Controller
             'updated_at' => now(),
         ]);
 
-        $message = $remarks !== ''
-            ? 'Your rider application was rejected. Admin remarks: ' . $remarks
-            : 'Your rider application was rejected. Please review your application and try again.';
+        $message = 'Your rider application was rejected. Reason: ' . $remarks;
+        \App\Support\AuditLog::record('rider.rejected', 'rider', (int) $application->user_id, ['from' => 'Pending Verification', 'to' => 'Rejected', 'reason' => $remarks], (int) $user['id']);
 
         createNotification(
             $application->user_id,

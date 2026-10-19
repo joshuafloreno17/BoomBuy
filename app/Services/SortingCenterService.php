@@ -31,7 +31,7 @@ class SortingCenterService
     public const ADMIN_RETURNABLE = ['At Sorting Center', 'Sorted', 'At Branch', 'Ready to Collect', 'Delivery Failed'];
 
     /** After this many failed attempts a parcel goes back to the seller. */
-    public const MAX_DELIVERY_ATTEMPTS = 2;
+    public const MAX_DELIVERY_ATTEMPTS = 3;
 
     /**
      * The origin center received what the seller dropped off.
@@ -587,7 +587,7 @@ class SortingCenterService
 
         $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
 
-        $rider = $this->riderOrFail($riderId);
+        $rider = $this->riderOrFail($riderId, $order->current_center_id ? (int) $order->current_center_id : $centerId);
         $this->handTo($orderId, $order->status, (int) $rider->id);
         $pickupPlace = ParcelRoute::centerName($order->current_center_id ? (int) $order->current_center_id : null) ?? 'the Sorting Center';
 
@@ -693,7 +693,7 @@ class SortingCenterService
 
         $this->mustBeBack($order);
 
-        $rider = $this->riderOrFail($riderId);
+        $rider = $this->riderOrFail($riderId, self::deliveringCenterId($order) ?: $centerId);
         $this->handTo($orderId, 'Delivery Failed', (int) $rider->id);
 
         createNotification(
@@ -925,12 +925,86 @@ class SortingCenterService
         }
 
         OrderTimeline::log($orderId, 'Returned to Seller', 'Handed back to the seller', null, $order->current_center_id ? (int) $order->current_center_id : null);
+        $this->returnedToSeller($order);
 
         foreach (DB::table('order_items')->where('order_id', $orderId)->distinct()->pluck('seller_id') as $sellerId) {
             createNotification((int) $sellerId, 'Order Returned to You', 'You collected returned order #' . $orderId . '. Restock the items from your Orders page if they can be sold again.', 'order', $orderId);
         }
 
         return 'Order #' . $orderId . ' handed back to the seller.';
+    }
+
+    /**
+     * Return to Sender by rider (L6): a returned parcel waiting at the
+     * center is given to a rider, who brings it to the seller.
+     *
+     * @throws ActionFailed
+     */
+    public function assignReturnRider(int $orderId, $riderId, ?int $centerId = null): string
+    {
+        if (empty($riderId)) {
+            throw new ActionFailed('Please select a rider.');
+        }
+
+        $order = $this->parcel($orderId);
+
+        if ($order->status !== 'Return Ready') {
+            throw new ActionFailed('This parcel is not waiting to go back to its seller.');
+        }
+
+        $this->mustBeAt($order->current_center_id, $centerId, 'is waiting at another Sorting Center');
+        $rider = $this->riderOrFail($riderId, $order->current_center_id ? (int) $order->current_center_id : $centerId);
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Return Ready')->update([
+            'status' => 'Returning to Seller', 'rts_rider_id' => $rider->id, 'updated_at' => now(),
+        ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        OrderTimeline::log($orderId, 'Returning to Seller', 'On the way back to the seller', 'Rider: ' . $rider->name, $order->current_center_id ? (int) $order->current_center_id : null);
+        createNotification((int) $rider->id, 'Return to Seller', 'Bring returned order #' . $orderId . ' back to its seller.', 'delivery', $orderId);
+        notifyOrderSellers($orderId, 'Return on the Way', 'Rider ' . $rider->name . ' is bringing returned order #' . $orderId . ' back to you.');
+
+        return 'Parcel #' . $orderId . ' given to ' . $rider->name . ' to bring back to the seller.';
+    }
+
+    /**
+     * The rider handed the returned parcel to the seller.
+     *
+     * @throws ActionFailed
+     */
+    public function riderReturnedToSeller(int $riderId, int $orderId): string
+    {
+        $order = $this->parcel($orderId);
+
+        if ((int) $order->rts_rider_id !== $riderId || $order->status !== 'Returning to Seller') {
+            throw new ActionFailed('This return is not with you.');
+        }
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('status', 'Returning to Seller')->update(['status' => 'Returned to Seller', 'updated_at' => now()]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        OrderTimeline::log($orderId, 'Returned to Seller', 'Returned to the seller by the rider');
+        $this->returnedToSeller($order);
+
+        foreach (DB::table('order_items')->where('order_id', $orderId)->distinct()->pluck('seller_id') as $sellerId) {
+            createNotification((int) $sellerId, 'Order Returned to You', 'Returned order #' . $orderId . ' was brought back to you. Confirm you received it (Restock) on your Orders page.', 'order', $orderId);
+        }
+
+        return 'Order #' . $orderId . ' returned to the seller.';
+    }
+
+    /** Back with the seller: a paid order is refunded in full; the buyer is told. */
+    private function returnedToSeller(object $order): void
+    {
+        $refund = \App\Support\Payments::startRefund((int) $order->id);
+
+        createNotification((int) $order->buyer_id, 'Order Cancelled (Not Delivered)', 'Order #' . $order->id . ' could not be delivered and went back to the seller.' . ($refund ? ' ' . $refund : ''), 'order', (int) $order->id);
     }
 
     /**
@@ -1063,12 +1137,17 @@ class SortingCenterService
         }
     }
 
-    private function riderOrFail($riderId): object
+    private function riderOrFail($riderId, ?int $centerId = null): object
     {
         $rider = $this->assignableRider($riderId);
 
         if (!$rider) {
             throw new ActionFailed('Selected rider not found or no longer active.');
+        }
+
+        // Online, under the 3-job limit, and of this company (A14).
+        if ($reason = \App\Support\RiderJobs::blockReason((int) $rider->id, $centerId)) {
+            throw new ActionFailed($reason);
         }
 
         return $rider;

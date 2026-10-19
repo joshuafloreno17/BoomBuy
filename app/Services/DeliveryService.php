@@ -30,12 +30,17 @@ class DeliveryService
 
     public const RIDER_STATUSES = ['Out for Delivery', 'Delivered', 'Delivery Failed'];
 
+    /** Wrong delivery OTPs before entry locks, and for how long (A32). */
+    public const OTP_TRIES = 5;
+
+    public const OTP_LOCK_MINUTES = 15;
+
     /**
      * @return string  What happened, for the rider.
      *
      * @throws ActionFailed
      */
-    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = '', ?UploadedFile $proof = null): string
+    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = '', ?UploadedFile $proof = null, ?string $otp = null, ?string $codAmount = null): string
     {
         $status = trim($status);
 
@@ -82,6 +87,15 @@ class DeliveryService
                 throw new ActionFailed('Take a photo of the parcel with the buyer (JPG, PNG or WEBP, up to 5 MB) to mark it Delivered.');
             }
 
+            // The buyer's OTP and, for COD, the exact cash collected.
+            if (!empty($order->delivery_otp)) {
+                $this->checkOtp($order, trim((string) $otp));
+            }
+
+            if (config('app.delivery_checks') && CodPolicy::isCod((string) $order->payment_method)) {
+                $this->checkCod($order, $codAmount);
+            }
+
             $delivered = [
                 'delivered_at' => now(),
                 // What the rider earns for it, at today's fee.
@@ -90,6 +104,16 @@ class DeliveryService
                 // Cash on Delivery: the rider now holds the buyer's payment
                 // until they hand it in at the Sorting Center.
                 'cod_collected_at' => CodPolicy::isCod((string) $order->payment_method) ? now() : null,
+                'cod_amount_collected' => CodPolicy::isCod((string) $order->payment_method) ? round((float) $order->total_amount, 2) : null,
+            ];
+        }
+
+        // Out for Delivery: the buyer gets a 6-digit code to give the rider at the door.
+        if ($status === 'Out for Delivery' && config('app.delivery_checks')) {
+            $delivered = [
+                'delivery_otp' => str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT),
+                'otp_failures' => 0,
+                'otp_locked_until' => null,
             ];
         }
 
@@ -129,6 +153,45 @@ class DeliveryService
         return 'Delivery status updated to ' . $status . '!';
     }
 
+    /** @throws ActionFailed */
+    private function checkOtp(object $order, string $otp): void
+    {
+        if ($order->otp_locked_until && now()->lt($order->otp_locked_until)) {
+            throw new ActionFailed('Too many wrong OTPs. OTP entry for this delivery is locked until ' . \Illuminate\Support\Carbon::parse($order->otp_locked_until)->format('g:i A') . '.');
+        }
+
+        if (!preg_match('/^\d{6}$/', $otp)) {
+            throw new ActionFailed('Enter the buyer\'s 6-digit delivery OTP.');
+        }
+
+        if (hash_equals((string) $order->delivery_otp, $otp)) {
+            return;
+        }
+
+        $failures = (int) $order->otp_failures + 1;
+        $locked = $failures >= self::OTP_TRIES;
+
+        DB::table('orders')->where('id', $order->id)->update([
+            'otp_failures' => $locked ? 0 : $failures,
+            'otp_locked_until' => $locked ? now()->addMinutes(self::OTP_LOCK_MINUTES) : null,
+        ]);
+
+        throw new ActionFailed($locked
+            ? 'Wrong OTP. After ' . self::OTP_TRIES . ' wrong entries, OTP entry is locked for ' . self::OTP_LOCK_MINUTES . ' minutes.'
+            : 'Wrong OTP. ' . (self::OTP_TRIES - $failures) . ' tries left before OTP entry locks.');
+    }
+
+    /** @throws ActionFailed */
+    private function checkCod(object $order, ?string $amount): void
+    {
+        $amount = trim((string) $amount);
+        $due = round((float) $order->total_amount, 2);
+
+        if ($amount === '' || !is_numeric($amount) || abs(round((float) $amount, 2) - $due) >= 0.005) {
+            throw new ActionFailed('The COD amount collected must be exactly ₱' . number_format($due, 2) . '.');
+        }
+    }
+
     /** A failed attempt; "Buyer refused the parcel" is final and counts toward the buyer's COD limit. */
     private function fail(object $order, string $code, string $details): string
     {
@@ -160,6 +223,8 @@ class DeliveryService
                 // A refusal is final: the Sorting Center returns it to the
                 // seller instead of rescheduling.
                 'buyer_refused_at' => $refused ? now() : null,
+                // Refused, or the last attempt: Return to Sender (A13).
+                'rts_at' => $refused || $order->delivery_attempts + 1 >= SortingCenterService::MAX_DELIVERY_ATTEMPTS ? now() : null,
                 'updated_at' => now(),
             ]);
 
@@ -167,7 +232,16 @@ class DeliveryService
             throw new ActionFailed('This delivery was just updated. Please refresh and try again.');
         }
 
-        OrderTimeline::log($orderId, 'Delivery Failed', 'Delivery attempt failed', $reason);
+        $attempt = $order->delivery_attempts + 1;
+        OrderTimeline::log($orderId, 'Delivery Failed', 'Delivery attempt ' . $attempt . ' of ' . SortingCenterService::MAX_DELIVERY_ATTEMPTS . ' failed', $reason);
+        \App\Support\ParcelRoute::notifyCenter(SortingCenterService::deliveringCenterId($order), 'Delivery Attempt Failed', 'Order #' . $orderId . ': attempt ' . $attempt . ' of ' . SortingCenterService::MAX_DELIVERY_ATTEMPTS . ' failed (' . $reason . ').', 'parcel', $orderId);
+
+        if (!$refused && $attempt >= SortingCenterService::MAX_DELIVERY_ATTEMPTS) {
+            notifyOrderSellers($orderId, 'Return to Sender', 'Order #' . $orderId . ' could not be delivered after ' . $attempt . ' attempts and is being returned to you.');
+            createNotification((int) $order->buyer_id, 'Return to Sender', 'We could not deliver order #' . $orderId . ' after ' . $attempt . ' attempts (last: ' . $reason . '). It is being returned to the seller.', 'order', $orderId);
+
+            return 'Attempt ' . $attempt . ' failed — this was the last attempt, so the parcel goes back to the seller (Return to Sender).';
+        }
 
         if ($refused) {
             createNotification(

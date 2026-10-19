@@ -22,7 +22,7 @@ class OrderStatus
     public const DONE = ['Delivered', 'Completed'];
 
     /** Nothing left to happen: a product or option on these orders may be deleted. */
-    public const FINISHED = ['Completed', 'Cancelled', 'Returned to Seller'];
+    public const FINISHED = ['Completed', 'Cancelled', 'Returned to Seller', 'Lost', 'Damaged'];
 
     /** Still with the seller: the seller (and admin) may cancel. */
     public const WITH_SELLER = ['Pending', 'Confirmed', 'Preparing'];
@@ -51,5 +51,17 @@ class OrderStatus
     public static function label(?string $status): string
     {
         return self::LABELS[$status] ?? (string) $status;
+    }
+
+    /** As logistics and riders see a shipment: a failed parcel going back reads "Return to Sender" (A13). */
+    public static function shipmentLabel(object|array $order): string
+    {
+        $order = (object) $order;
+
+        if (($order->status ?? null) === 'Delivery Failed' && !empty($order->rts_at)) {
+            return 'Return to Sender';
+        }
+
+        return self::label($order->status ?? null);
     }
 }

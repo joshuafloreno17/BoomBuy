@@ -51,6 +51,8 @@
                 <div class="alert error"><i class="bi bi-x-circle-fill"></i> {{ session('error') }}</div>
             @endif
 
+            @include('pages.rider.partials.shift-bar')
+
             {{-- ===== MY PICKUPS ===== --}}
             <section class="pickup-section">
                 <h2><i class="bi bi-bag-check-fill"></i> My pickups <span class="count">{{ $mine->count() }}</span></h2>

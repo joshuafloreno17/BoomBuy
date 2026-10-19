@@ -40,6 +40,23 @@
 
             </div>
 
+            {{-- PAY PER JOB (A33) AND COD TO REMIT (A24) --}}
+            <section class="rider-pay" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;">
+                <div class="summary-card"><span>Today</span><strong data-pay-today>₱{{ number_format($payToday['total'], 2) }}</strong><small>{{ $payToday['pickups'] }} pickup(s) × ₱{{ number_format(\App\Support\RiderJobs::PICKUP_PAY, 2) }} · {{ $payToday['deliveries'] }} delivery(ies)</small></div>
+                <div class="summary-card"><span>This week</span><strong data-pay-week>₱{{ number_format($payWeek['total'], 2) }}</strong><small>Failed attempts pay ₱0.00</small></div>
+                <div class="summary-card"><span>COD to remit</span><strong data-cod-balance>₱{{ number_format($cod['balance'], 2) }}</strong>
+                    <small>{{ $cod['orders']->count() }} order(s){{ $cod['shortfall'] > 0 ? ' · ₱' . number_format($cod['shortfall'], 2) . ' outstanding' : '' }}{{ $cod['pending'] ? ' · ₱' . number_format($cod['pending']->amount, 2) . ' pending confirmation' : '' }}</small>
+                </div>
+            </section>
+            @if($cod['held'] > 0 && !$cod['pending'])
+                <form method="POST" action="{{ route('rider.cod.remit') }}" class="filter-form" style="margin-bottom:18px;">
+                    @csrf
+                    <div><label for="remitAmount">Remit COD (₱)</label><input type="number" id="remitAmount" name="amount" step="0.01" min="0.01" value="{{ number_format($cod['held'], 2, '.', '') }}"></div>
+                    <button type="submit" class="filter-btn">Send remittance</button>
+                </form>
+            @endif
+
+
             <div class="stats">
 
                 <div class="stat-card">

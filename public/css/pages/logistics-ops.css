@@ -1,0 +1,23 @@
+/* Logistics Modules pages: Shipments & Dispatch, COD & Reports, Zones & Rates, Audit Log. */
+.ops .page-header { margin-bottom: 18px; }
+.ops-filter, .ops-inline { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-end; margin: 0 0 12px; }
+.ops-filter label, .ops-stack label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #574e70; font-weight: 600; }
+.ops-filter .grow { flex: 1; min-width: 220px; }
+.ops input, .ops select { padding: 9px 11px; border: 1px solid #e9e4fa; border-radius: 10px; font: inherit; background: #fff; }
+.ops button, .ops .btn-main { padding: 9px 14px; border: 0; border-radius: 10px; background: #6d4ad1; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+.ops-stack { display: grid; gap: 10px; max-width: 520px; }
+.ops-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.ops-count { display: flex; flex-direction: column; gap: 4px; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid #e9e4fa; color: #221a3a; text-decoration: none; }
+.ops-count strong { font-size: 26px; }
+.ops-count.active { border-color: #6d4ad1; box-shadow: 0 0 0 3px #eee8ff; }
+.ops-card { background: #fff; border: 1px solid #e9e4fa; border-radius: 16px; padding: 18px; margin-bottom: 18px; }
+.ops-card h2 { margin: 0 0 10px; font-size: 18px; }
+.ops-card h2 small, .ops-card h3 small { color: #857ca0; font-weight: 600; }
+.ops-card h3 { font-size: 15px; margin: 16px 0 8px; }
+.ops .muted { color: #645a80; }
+.ops .table-wrap { overflow-x: auto; }
+.ops table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.ops th, .ops td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #f0ecfb; vertical-align: top; }
+.ops details form { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0; }
+.ops tr.is-short td { background: #fff3f0; color: #9f2a12; }
+@media (max-width: 700px) { .ops-card { padding: 14px; } }

@@ -130,6 +130,19 @@
                                 <strong>Current Load</strong>
                                 {{ $deliveryLoad[$app->user_id] ?? 0 }} delivery(ies)
                             </div>
+                            @php $stats = $riderStats[$app->user_id] ?? null; @endphp
+                            @if ($stats)
+                                <div data-rider-stats="{{ $app->user_id }}">
+                                    <strong>Shift</strong>
+                                    {{ $stats['online'] ? 'Online' : 'Offline' }} · {{ $stats['active_jobs'] }}/{{ \App\Support\RiderJobs::ACTIVE_LIMIT }} active jobs · {{ $stats['delivered_today'] }} delivered today
+                                </div>
+                            @endif
+                        @endif
+                        @if (!empty($app->needs_reverification))
+                            <div><strong>Re-verify</strong> New vehicle details or documents uploaded</div>
+                        @endif
+                        @if (!empty($app->suspension_reason))
+                            <div><strong>Suspended</strong> {{ $app->suspension_reason }}</div>
                         @endif
                     </div>
 
@@ -187,10 +200,23 @@
 
                             @elseif (($app->account_status ?? 'Active') === 'Active')
 
+                                <form class="status-form" method="POST" action="{{ route('logistics.riders.suspend', $app->user_id) }}">
+                                    @csrf
+                                    <input type="text" name="reason" minlength="10" maxlength="300" placeholder="Reason for suspending (10–300 characters)" required>
+                                    <button type="submit" class="deactivate-btn">Suspend</button>
+                                </form>
+
                                 <form class="status-form" method="POST" action="{{ route('logistics.riders.toggle-status', $app->user_id) }}" data-confirm="Deactivate {{ $app->full_name }}? They will be logged out and can no longer receive parcels." data-confirm-ok="Deactivate" data-confirm-danger>
                                     @csrf
                                     <input type="hidden" name="status" value="Deactivated">
                                     <button type="submit" class="deactivate-btn">Deactivate Account</button>
+                                </form>
+
+                            @elseif (($app->account_status ?? '') === 'Suspended')
+
+                                <form class="status-form" method="POST" action="{{ route('logistics.riders.reactivate', $app->user_id) }}">
+                                    @csrf
+                                    <button type="submit" class="activate-btn">Reactivate</button>
                                 </form>
 
                             @else

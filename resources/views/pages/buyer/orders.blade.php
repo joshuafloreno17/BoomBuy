@@ -253,6 +253,15 @@
                                 </div>
                             @endif
 
+                            {{-- The code the rider asks for at the door (R5, A32). --}}
+
+                            @if(($order['status'] ?? '') === 'Out for Delivery' && !empty($order['delivery_otp']))
+
+                                <div class="delivery-otp" style="margin:10px 0;padding:10px 14px;border-radius:12px;background:#eee8ff;color:#221a3a;"><i class="bi bi-shield-lock-fill"></i> Delivery OTP: <strong data-delivery-otp>{{ $order['delivery_otp'] }}</strong> — give this code to the rider when you receive the parcel.</div>
+
+                            @endif
+
+
                             <!-- ITEMS -->
 
                             <div class="items">

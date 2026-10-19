@@ -27,7 +27,7 @@ class BuyerOrderTabs
 
     private const TO_SHIP = ['pending', 'confirmed', 'preparing', 'ready for pickup', 'pickup assigned'];
 
-    private const CANCELLED = ['cancelled', 'returning', 'returning to branch', 'return ready', 'returned to seller'];
+    private const CANCELLED = ['cancelled', 'returning', 'returning to branch', 'return ready', 'returning to seller', 'returned to seller', 'lost', 'damaged'];
 
     public static function group(array|object $order, bool $hasReturnRequest = false): string
     {

@@ -55,6 +55,12 @@
                     <i class="bi bi-map-fill"></i> Map
                 </a>
             @endif
+            {{-- Scan (or type) the waybill's tracking number to confirm the pickup. --}}
+            <form method="POST" action="{{ route('rider.pickup.scan', $order->id) }}" class="scan-form">
+                @csrf
+                <input type="text" name="tracking_number" placeholder="Scan or type the tracking number" autocomplete="off" required aria-label="Tracking number">
+                <button type="submit" class="btn status-btn"><i class="bi bi-upc-scan"></i> Scan waybill</button>
+            </form>
             <form method="POST" action="{{ route('rider.pickup.picked-up', $order->id) }}" data-confirm="Do you have order #{{ $order->id }} with you? The seller and buyer will be told it's on its way." data-confirm-ok="Yes, picked up">
                 @csrf
                 <button type="submit" class="btn status-btn"><i class="bi bi-check2-circle"></i> Picked up</button>

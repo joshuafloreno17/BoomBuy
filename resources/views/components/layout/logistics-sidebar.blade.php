@@ -28,6 +28,26 @@
                 @endif
             </a>
 
+            <a href="{{ route('logistics.ops') }}" class="logistics-sidebar-link {{ $active === 'ops' ? 'active' : '' }}">
+                <span class="sidebar-icon"><i class="bi bi-truck"></i></span>
+                <span>Shipments &amp; Dispatch</span>
+            </a>
+
+            <a href="{{ route('logistics.cod') }}" class="logistics-sidebar-link {{ $active === 'cod' ? 'active' : '' }}">
+                <span class="sidebar-icon"><i class="bi bi-cash-coin"></i></span>
+                <span>COD &amp; Reports</span>
+            </a>
+
+            <a href="{{ route('logistics.rates') }}" class="logistics-sidebar-link {{ $active === 'rates' ? 'active' : '' }}">
+                <span class="sidebar-icon"><i class="bi bi-geo-alt-fill"></i></span>
+                <span>Zones &amp; Rates</span>
+            </a>
+
+            <a href="{{ route('logistics.audit') }}" class="logistics-sidebar-link {{ $active === 'audit' ? 'active' : '' }}">
+                <span class="sidebar-icon"><i class="bi bi-journal-text"></i></span>
+                <span>Audit Log</span>
+            </a>
+
             <span class="logistics-sidebar-group">Team</span>
 
             <a href="{{ route('logistics.riders') }}" class="logistics-sidebar-link {{ $active === 'riders' ? 'active' : '' }}">

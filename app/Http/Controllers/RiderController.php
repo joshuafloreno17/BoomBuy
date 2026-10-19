@@ -294,7 +294,9 @@ class RiderController extends Controller
             (string) request('status'),
             (string) request('failure_code'),
             (string) request('failure_reason'),
-            request()->file('delivery_proof')
+            request()->file('delivery_proof'),
+            request('otp'),
+            request('cod_amount')
         ));
     }
 
@@ -336,9 +338,15 @@ class RiderController extends Controller
 
         $dbUser = \App\Models\User::find($user['id']);
 
+        // License, vehicle, documents and the company (R1).
+        $riderRecord = DB::table('rider_applications')->where('user_id', $user['id'])->latest('id')->first();
+        $companyName = $riderRecord && $riderRecord->created_by
+            ? DB::table('logistics_applications')->where('user_id', $riderRecord->created_by)->latest('id')->value('business_name')
+            : null;
+
         return view(
             'pages.rider.profile',
-            compact('user', 'totalDeliveries', 'deliveredCount', 'activeCount', 'dbUser')
+            compact('user', 'totalDeliveries', 'deliveredCount', 'activeCount', 'dbUser', 'riderRecord', 'companyName')
         );
     }
 
@@ -394,9 +402,17 @@ class RiderController extends Controller
             ->sortKeysDesc()
             ->values();
 
+        // Pay per job (A33) and the COD money to remit (A24).
+        $payToday = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfDay(), now()->endOfDay());
+        $payWeek = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfWeek(), now()->endOfWeek());
+        $cod = app(\App\Services\CodRemittanceService::class)->balance((int) $user['id']);
+
         return view(
             'pages.rider.profit',
             compact(
+                'payToday',
+                'payWeek',
+                'cod',
                 'user',
                 'from',
                 'to',
@@ -455,7 +471,23 @@ class RiderController extends Controller
 
         });
 
-        return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to'));
+        // Every job once — pickups, deliveries and failed attempts — with its pay (R7).
+        $riderId = (int) $user['id'];
+        $range = [Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay()];
+        $jobs = collect()
+            ->merge(DB::table('orders')->where('rider_id', $riderId)->whereNotNull('pickup_fee')->whereBetween('picked_up_at', $range)->get()
+                ->map(fn ($o) => ['at' => $o->picked_up_at, 'order_id' => (int) $o->id, 'kind' => 'Pickup', 'result' => 'Picked up', 'pay' => (float) $o->pickup_fee]))
+            ->merge(DB::table('orders')->where('delivery_rider_id', $riderId)->whereNotNull('delivered_at')->whereBetween('delivered_at', $range)->get()
+                ->map(fn ($o) => ['at' => $o->delivered_at, 'order_id' => (int) $o->id, 'kind' => 'Delivery', 'result' => 'Delivered', 'pay' => (float) ($o->rider_fee ?? 0)]))
+            ->merge(DB::table('order_events')->join('orders', 'orders.id', '=', 'order_events.order_id')
+                ->where('orders.delivery_rider_id', $riderId)->where('order_events.status', 'Delivery Failed')->where('order_events.title', 'like', 'Delivery attempt%')
+                ->whereBetween('order_events.created_at', $range)->get(['order_events.created_at', 'order_events.order_id', 'order_events.detail'])
+                ->map(fn ($e) => ['at' => $e->created_at, 'order_id' => (int) $e->order_id, 'kind' => 'Delivery', 'result' => 'Failed: ' . $e->detail, 'pay' => 0.0]))
+            ->map(fn ($job) => $job + ['tracking_number' => \App\Support\Waybill::number($job['order_id'])])
+            ->sortByDesc('at')
+            ->values();
+
+        return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to', 'jobs'));
     }
 
     /** A rider added by a logistics company opens the emailed link to set their password. */

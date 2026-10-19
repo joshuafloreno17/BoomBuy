@@ -587,6 +587,16 @@ Route::get('/logistics/rider/profit', [RiderController::class, 'profit'])->name(
 
 Route::get('/logistics/rider/deliveries/history', [RiderController::class, 'deliveryHistory'])->name('rider.deliveries.history');
 
+// Rider Modules R1–R7: Online/Offline, job offers, waybill scan, returns, vehicle, COD remittance
+Route::post('/logistics/rider/availability', [\App\Http\Controllers\RiderWorkController::class, 'availability'])->name('rider.availability');
+Route::get('/logistics/rider/offers', [\App\Http\Controllers\RiderWorkController::class, 'offers'])->name('rider.offers');
+Route::post('/logistics/rider/offers/{id}', [\App\Http\Controllers\RiderWorkController::class, 'respond'])->whereNumber('id')->name('rider.offers.respond');
+Route::post('/logistics/rider/pickup/{id}/scan', [\App\Http\Controllers\RiderWorkController::class, 'scanPickup'])->whereNumber('id')->name('rider.pickup.scan');
+Route::post('/logistics/rider/return/{id}/delivered', [\App\Http\Controllers\RiderWorkController::class, 'returnedToSeller'])->whereNumber('id')->name('rider.return.delivered');
+Route::post('/logistics/rider/vehicle', [\App\Http\Controllers\RiderWorkController::class, 'updateVehicle'])->name('rider.vehicle.update');
+Route::post('/logistics/rider/cod/remit', [\App\Http\Controllers\RiderWorkController::class, 'remit'])->name('rider.cod.remit');
+Route::get('/logistics/rider/document/{field}', [\App\Http\Controllers\RiderWorkController::class, 'document'])->whereIn('field', ['drivers_license', 'or_cr'])->name('rider.document');
+
 
 
 
@@ -846,6 +856,27 @@ Route::post('/logistics/register', [LogisticsController::class, 'register'])->mi
 */
 
 Route::get('/logistics/dashboard', [LogisticsController::class, 'dashboard'])->name('logistics.dashboard');
+
+// Logistics Modules L1–L8: shipments, dispatch, hub scans, exceptions, RTS, COD, reports, Zones & Rates, audit log
+Route::get('/logistics/operations', [\App\Http\Controllers\LogisticsOpsController::class, 'index'])->name('logistics.ops');
+Route::post('/logistics/dispatch/{id}/auto', [\App\Http\Controllers\LogisticsOpsController::class, 'autoAssign'])->whereNumber('id')->name('logistics.dispatch.auto');
+Route::post('/logistics/dispatch/{id}/assign', [\App\Http\Controllers\LogisticsOpsController::class, 'assign'])->whereNumber('id')->name('logistics.dispatch.assign');
+Route::post('/logistics/dispatch/{id}/reassign', [\App\Http\Controllers\LogisticsOpsController::class, 'reassign'])->whereNumber('id')->name('logistics.dispatch.reassign');
+Route::post('/logistics/dispatch/bulk', [\App\Http\Controllers\LogisticsOpsController::class, 'bulkAssign'])->name('logistics.dispatch.bulk');
+Route::post('/logistics/hub/scan', [\App\Http\Controllers\LogisticsOpsController::class, 'scan'])->name('logistics.hub.scan');
+Route::post('/logistics/shipments/{id}/override', [\App\Http\Controllers\LogisticsOpsController::class, 'override'])->whereNumber('id')->name('logistics.shipments.override');
+Route::post('/logistics/shipments/{id}/lost', [\App\Http\Controllers\LogisticsOpsController::class, 'lost'])->whereNumber('id')->name('logistics.shipments.lost');
+Route::post('/logistics/shipments/{id}/damaged', [\App\Http\Controllers\LogisticsOpsController::class, 'damaged'])->whereNumber('id')->name('logistics.shipments.damaged');
+Route::post('/logistics/shipments/{id}/return-rider', [\App\Http\Controllers\LogisticsOpsController::class, 'returnRider'])->whereNumber('id')->name('logistics.shipments.return-rider');
+Route::post('/logistics/riders/{riderId}/suspend', [\App\Http\Controllers\LogisticsOpsController::class, 'suspendRider'])->whereNumber('riderId')->name('logistics.riders.suspend');
+Route::post('/logistics/riders/{riderId}/reactivate', [\App\Http\Controllers\LogisticsOpsController::class, 'reactivateRider'])->whereNumber('riderId')->name('logistics.riders.reactivate');
+Route::get('/logistics/cod', [\App\Http\Controllers\LogisticsOpsController::class, 'cod'])->name('logistics.cod');
+Route::post('/logistics/cod/{id}/confirm', [\App\Http\Controllers\LogisticsOpsController::class, 'confirmRemittance'])->whereNumber('id')->name('logistics.cod.confirm');
+Route::get('/logistics/reports/export', [\App\Http\Controllers\LogisticsOpsController::class, 'export'])->name('logistics.reports.export');
+Route::get('/logistics/rates', [\App\Http\Controllers\LogisticsOpsController::class, 'rates'])->name('logistics.rates');
+Route::put('/logistics/rates/{id}', [\App\Http\Controllers\LogisticsOpsController::class, 'updateRate'])->whereNumber('id')->name('logistics.rates.update');
+Route::post('/logistics/zones', [\App\Http\Controllers\LogisticsOpsController::class, 'storeZone'])->name('logistics.zones.store');
+Route::get('/logistics/audit-log', [\App\Http\Controllers\LogisticsOpsController::class, 'audit'])->name('logistics.audit');
 
 
 /*

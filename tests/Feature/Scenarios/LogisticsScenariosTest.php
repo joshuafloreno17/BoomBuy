@@ -188,13 +188,16 @@ class LogisticsScenariosTest extends TestCase
         $this->assertSame('Completed', $this->orderStatus($orderId));
     }
 
-    public function test_L08_two_attempts_at_most_and_refused_parcels_go_back(): void
+    public function test_L08_three_attempts_at_most_and_refused_parcels_go_back(): void
     {
         $failed = $this->parcel('Delivery Failed', self::LAGUNA_ADDRESS, ['back_at_center_at' => now(), 'current_center_id' => $this->laguna->id, 'delivery_attempts' => 1]);
         $this->as($this->lagunaStaff)->post(route('logistics.parcels.reschedule', $failed), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
 
         $twice = $this->parcel('Delivery Failed', self::LAGUNA_ADDRESS, ['back_at_center_at' => now(), 'current_center_id' => $this->laguna->id, 'delivery_attempts' => 2]);
-        $this->post(route('logistics.parcels.reschedule', $twice), ['rider_id' => $this->lagunaRider->id])
+        $this->post(route('logistics.parcels.reschedule', $twice), ['rider_id' => $this->lagunaRider->id])->assertSessionHas('success');
+
+        $thrice = $this->parcel('Delivery Failed', self::LAGUNA_ADDRESS, ['back_at_center_at' => now(), 'current_center_id' => $this->laguna->id, 'delivery_attempts' => 3]);
+        $this->post(route('logistics.parcels.reschedule', $thrice), ['rider_id' => $this->lagunaRider->id])
             ->assertSessionHas('error', fn ($m) => str_contains($m, 'maximum delivery attempts'));
 
         $refused = $this->parcel('Delivery Failed', self::LAGUNA_ADDRESS, ['back_at_center_at' => now(), 'current_center_id' => $this->laguna->id, 'delivery_attempts' => 1, 'buyer_refused_at' => now()]);

@@ -40,6 +40,8 @@
 
             @include('partials.announcement-banner')
 
+            @include('pages.rider.partials.shift-bar')
+
             {{-- PHONES: orange hero (greeting + today's job) and three tiles, instead of the welcome, shortcuts and stats below. --}}
             @php
                 $greetHour = (int) now()->format('G');

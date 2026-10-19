@@ -416,6 +416,11 @@ class AuthController extends Controller
     {
         $role = session('user.role');
 
+        // A rider who logs out stops getting job offers (R2).
+        if ($role === 'rider' && session('user.id')) {
+            \App\Support\RiderJobs::setOnline((int) session('user.id'), false);
+        }
+
         LoginGate::forget(session('user.id'));
 
         session()->forget('user');
