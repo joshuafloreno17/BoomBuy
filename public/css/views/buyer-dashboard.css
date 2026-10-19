@@ -648,12 +648,33 @@ button {
     font-weight: 800;
 }
 
+/* Price on top, then Add + Buy now side by side (like the Shop cards). */
 .p-bottom {
     margin-top: auto;
     display: flex;
-    align-items: center;
-    justify-content: space-between;
+    flex-direction: column;
+    align-items: stretch;
     gap: 10px;
+}
+
+.p-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.p-actions > form,
+.p-actions > .btn {
+    flex: 1;
+    min-width: 0;
+}
+
+.p-actions form .btn {
+    width: 100%;
+}
+
+.p-actions > form:first-child,
+.p-actions > a.btn-ghost {
+    flex: 0 0 auto;
 }
 
 .p-price {
@@ -1770,39 +1791,6 @@ a.again-top:hover .again-name {
 /* Products fill the full width now */
 .bh .discover-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
 
-/* Chat shortcut */
-.bh-chat {
-    position: fixed;
-    right: 28px;
-    bottom: 28px;
-    z-index: 50;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 14px 20px;
-    border-radius: 99px;
-    background: #2a1846;
-    color: #fff;
-    font-weight: 800;
-    box-shadow: 0 16px 34px rgba(42, 24, 70, .35);
-    transition: transform .2s cubic-bezier(.3, .7, .4, 1.4);
-}
-
-.bh-chat:hover { color: #fff; transform: translateY(-3px); }
-
-.bh-chat em {
-    min-width: 20px;
-    height: 20px;
-    padding: 0 5px;
-    border-radius: 99px;
-    background: #c9b6ff;
-    color: #2a1846;
-    font-size: 11px;
-    font-style: normal;
-    display: grid;
-    place-items: center;
-}
-
 @media (max-width: 1180px) {
     .bh-row { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
     .bh-track { grid-column: 1 / -1; }
@@ -1810,7 +1798,7 @@ a.again-top:hover .again-name {
 }
 
 @media (max-width: 760px) {
-    .bh-hello, .bh-chat { display: none; }
+    .bh-hello { display: none; }
     .bh-row { grid-template-columns: minmax(0, 1fr); gap: 12px; }
     .bh-card, .bh-cart { padding: 18px; border-radius: 22px; }
     .bh-cats {
@@ -1827,7 +1815,7 @@ a.again-top:hover .again-name {
 
 @media (prefers-reduced-motion: reduce) {
     .bh-steps li.is-now span { animation: none; }
-    .bh-btn, .bh-purchase, .bh-cat, .bh-cat-icon, .bh-chat { transition: none; }
+    .bh-btn, .bh-purchase, .bh-cat, .bh-cat-icon { transition: none; }
 }
 
 /* Fixes after review: wrap price + Add on narrow cards; centre the purchase shortcuts. */

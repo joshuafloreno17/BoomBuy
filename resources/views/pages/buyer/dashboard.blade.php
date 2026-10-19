@@ -333,21 +333,28 @@
                                             <div class="p-bottom">
                                                 <span class="p-price">₱{{ number_format($product['price']) }}@if($product['original_price'] ?? null) <s class="p-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
 
-                                                @if($product['stock'] <= 0)
-                                                    <button type="button" class="btn" disabled>Sold out</button>
-                                                @elseif($product['has_variations'])
-                                                    {{-- Needs a color/size: a popup to choose it (same as the Shop cards). --}}
-                                                    <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart" aria-haspopup="dialog">
-                                                        <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
-                                                    </a>
-                                                @else
-                                                    <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart>
-                                                        @csrf
-                                                        <button type="submit" class="btn btn-dark" aria-label="Add {{ $product['name'] }} to cart">
+                                                <div class="p-actions">
+                                                    @if($product['stock'] <= 0)
+                                                        <button type="button" class="btn" disabled>Sold out</button>
+                                                    @elseif($product['has_variations'])
+                                                        {{-- Needs a color/size: a popup to choose it (same as the Shop cards). --}}
+                                                        <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="btn btn-ghost" aria-label="Add {{ $product['name'] }} to cart" aria-haspopup="dialog">
                                                             <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
-                                                        </button>
-                                                    </form>
-                                                @endif
+                                                        </a>
+                                                        <a href="{{ route('product.details', $product['slug']) }}?choose=1" data-quick-add="{{ route('product.options', $product['id']) }}" class="btn btn-primary" aria-label="Buy {{ $product['name'] }} now" aria-haspopup="dialog">Buy now</a>
+                                                    @else
+                                                        <form action="{{ route('cart.add', $product['id']) }}" method="POST" data-add-cart>
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-ghost" aria-label="Add {{ $product['name'] }} to cart">
+                                                                <i class="bi bi-cart-plus"></i><span class="btn-label">Add</span>
+                                                            </button>
+                                                        </form>
+                                                        <form action="{{ route('buy.now', $product['id']) }}" method="POST">
+                                                            @csrf
+                                                            <button type="submit" class="btn btn-primary" aria-label="Buy {{ $product['name'] }} now">Buy now</button>
+                                                        </form>
+                                                    @endif
+                                                </div>
                                             </div>
                                         </div>
                                     </article>
@@ -400,12 +407,6 @@
         </div>
 
     </main>
-
-    {{-- Chat shortcut (desktop; phones have Chat in the tab bar) --}}
-    <a href="{{ route('messages.index') }}" class="bh-chat" aria-label="Messages{{ $panel['unread_messages'] > 0 ? ' (' . $panel['unread_messages'] . ' unread)' : '' }}">
-        <i class="bi bi-chat-dots-fill" aria-hidden="true"></i> Chat
-        @if($panel['unread_messages'] > 0)<em>{{ $panel['unread_messages'] > 99 ? '99+' : $panel['unread_messages'] }}</em>@endif
-    </a>
 
 
     <script>
