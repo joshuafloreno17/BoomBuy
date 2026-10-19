@@ -87,7 +87,11 @@
                         <div>
                             <div class="shop-name">
                                 @if($seller['account_status'] === 'Active')
-                                    <a href="{{ route('shop.seller', $seller['user_id']) }}" target="_blank">{{ $seller['shop'] }}</a>
+                                    <a href="{{ route('shop.seller', $seller['user_id']) }}" data-viewer data-viewer-kind="card" data-viewer-icon="bi-shop"
+                                       data-viewer-badge="{{ $seller['account_status'] }}" data-viewer-title="{{ $seller['shop'] }}"
+                                       data-viewer-meta="{{ $seller['name'] }} · {{ $seller['email'] }}"
+                                       data-viewer-text="Registered for {{ $seller['category_label'] }} · {{ $seller['total_products'] }} product(s)"
+                                       data-viewer-action="{{ route('shop.seller', $seller['user_id']) }}" data-viewer-action-label="Open the shop page">{{ $seller['shop'] }}</a>
                                 @else
                                     {{ $seller['shop'] }}
                                 @endif
@@ -175,7 +179,11 @@
                                         <td>
                                             <div class="user-name">
                                                 @if($seller['account_status'] === 'Active')
-                                                    <a href="{{ route('shop.seller', $seller['user_id']) }}" target="_blank" style="color:inherit;">{{ $seller['shop'] }}</a>
+                                                    <a href="{{ route('shop.seller', $seller['user_id']) }}" style="color:inherit;" data-viewer data-viewer-kind="card" data-viewer-icon="bi-shop"
+                                       data-viewer-badge="{{ $seller['account_status'] }}" data-viewer-title="{{ $seller['shop'] }}"
+                                       data-viewer-meta="{{ $seller['name'] }} · {{ $seller['email'] }}"
+                                       data-viewer-text="Registered for {{ $seller['category_label'] }} · {{ $seller['total_products'] }} product(s)"
+                                       data-viewer-action="{{ route('shop.seller', $seller['user_id']) }}" data-viewer-action-label="Open the shop page">{{ $seller['shop'] }}</a>
                                                 @else
                                                     {{ $seller['shop'] }}
                                                 @endif
@@ -269,6 +277,8 @@
 </script>
 
     @include('partials.live-search')
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 
 </body>

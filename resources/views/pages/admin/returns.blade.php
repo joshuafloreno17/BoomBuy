@@ -85,7 +85,8 @@
                     <div class="money-note">{{ $request->admin_note }}</div>
                 @endif
                 @if($request->evidence)
-                    <a href="{{ route('return-refund.evidence', $request->id) }}" target="_blank" class="evidence-link"><i class="bi bi-paperclip"></i> View the buyer's photo</a>
+                    <a href="{{ route('return-refund.evidence', $request->id) }}" class="evidence-link" data-viewer
+                       data-viewer-badge="Return" data-viewer-title="Buyer's photo" data-viewer-meta="Order #{{ $request->order_id }}"><i class="bi bi-paperclip"></i> View the buyer's photo</a>
                 @endif
 
                 @if($request->status === 'disputed')
@@ -117,6 +118,8 @@
     </div>
     </main>
 </div>
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 </body>
 </html>

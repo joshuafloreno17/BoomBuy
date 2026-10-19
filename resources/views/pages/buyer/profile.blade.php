@@ -201,7 +201,9 @@
                                 <span class="addr-phone"><i class="bi bi-telephone"></i> {{ $addr->phone }}</span>
                             </div>
                             <div class="addr-actions">
-                                <a href="{{ route('buyer.addresses.edit', $addr->id) }}" class="addr-btn">Edit</a>
+                                <a href="{{ route('buyer.addresses.edit', $addr->id) }}" class="addr-btn"
+                                   data-viewer data-viewer-kind="inline" data-viewer-target="#addrEditPanel" data-address-id="{{ $addr->id }}"
+                                   data-address="{{ json_encode($addr->only(['id', 'label', 'recipient_name', 'phone', 'region', 'province', 'city_municipality', 'barangay', 'street'])) }}">Edit</a>
                                 @unless($addr->is_default)
                                     <form method="POST" action="{{ route('buyer.addresses.default', $addr->id) }}">
                                         @csrf
@@ -228,10 +230,10 @@
                         <div class="form-grid">
                             <div class="field">
                                 <label for="addr_label">Label <span class="field-hint" style="display:inline;">(optional)</span></label>
-                                <input type="text" id="addr_label" name="label" maxlength="40" placeholder="Home, Work…" value="{{ old('label') }}">
+                                <input type="text" id="addr_label" name="label" maxlength="40" placeholder="Home, Work…" value="{{ old('_edit_id') ? '' : old('label') }}">
                             </div>
                         </div>
-                        @include('partials.address-book-fields', ['address' => null, 'prefix' => 'addr'])
+                        @include('partials.address-book-fields', ['address' => null, 'prefix' => 'addr', 'useOld' => !old('_edit_id')])
                         <label class="addr-default-check">
                             <input type="checkbox" name="is_default" value="1" @checked($addresses->isEmpty())>
                             Use as my default address
@@ -239,6 +241,36 @@
                         <button type="submit" class="save-btn">Save Address</button>
                     </form>
                 </details>
+            @endif
+
+            @if($addresses->isNotEmpty())
+                @php $editingId = old('_edit_id'); @endphp
+                <div id="addrEditPanel" class="addr-edit-panel" hidden>
+                    <h3>Edit Address</h3>
+                    <p class="card-sub">Orders already placed keep the address they were sent to.</p>
+
+                    <form method="POST" id="addrEditForm"
+                          action="{{ $editingId ? route('buyer.addresses.update', $editingId) : '' }}"
+                          data-action="{{ route('buyer.addresses.update', 0) }}">
+                        @csrf
+                        @method('PUT')
+                        <input type="hidden" name="_edit_id" value="{{ $editingId }}">
+
+                        <div class="form-grid">
+                            <div class="field">
+                                <label for="edit_label">Label <span class="field-hint" style="display:inline;">(optional)</span></label>
+                                <input type="text" id="edit_label" name="label" maxlength="40" placeholder="Home, Work…" value="{{ $editingId ? old('label') : '' }}">
+                            </div>
+                        </div>
+
+                        @include('partials.address-book-fields', ['address' => null, 'prefix' => 'edit', 'bag' => 'addressEdit', 'useOld' => (bool) $editingId])
+
+                        <div class="addr-edit-actions">
+                            <button type="submit" class="save-btn">Save Address</button>
+                            <button type="button" class="addr-btn" data-viewer-close>Cancel</button>
+                        </div>
+                    </form>
+                </div>
             @endif
 
         </div>
@@ -370,7 +402,47 @@
         })();
     </script>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            var panel = document.getElementById('addrEditPanel');
+            if (!panel) return;
+
+            var form = document.getElementById('addrEditForm');
+            var fields = panel.querySelector('[data-address-book]');
+            var failedId = form.elements._edit_id.value;
+            var keepTyped = !!failedId;
+
+            document.addEventListener('bbviewer:open', function (e) {
+                var raw = e.target.getAttribute('data-address');
+                if (!raw) return;
+
+                // Just came back with errors: keep what the buyer typed.
+                if (keepTyped) {
+                    keepTyped = false;
+                    return;
+                }
+
+                var a = JSON.parse(raw);
+                form.action = form.getAttribute('data-action').replace(/\/0$/, '/' + a.id);
+                form.elements._edit_id.value = a.id;
+                form.elements.label.value = a.label || '';
+                form.elements.recipient_name.value = a.recipient_name || '';
+                form.elements.phone.value = a.phone || '';
+                form.elements.street.value = a.street || '';
+                panel.querySelectorAll('.field-error').forEach(function (n) { n.remove(); });
+                window.bbAddressBook.fill(fields, a);
+            });
+
+            if (failedId) {
+                var button = document.querySelector('[data-address-id="' + failedId + '"]');
+                if (button && window.bbViewer) window.bbViewer.open(button);
+            }
+        });
+    </script>
+
     @include('partials.buyer-footer')
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 

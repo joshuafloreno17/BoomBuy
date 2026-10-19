@@ -31,6 +31,8 @@
         .mb-view header .subj { font-size: 17px; font-weight: 700; }
         .mb-view header .meta { font-size: 13px; color: #645a80; margin-top: 4px; }
         .mb-view iframe { width: 100%; height: 640px; border: 0; display: block; }
+        .bb-viewer-body .mb-view { border: 0; border-radius: 0; }
+        .bb-viewer-body .mb-view header { padding-right: 60px; }
         @media (max-width: 760px) {
             .mb-grid { grid-template-columns: 1fr; }
             .mb-search { width: 100%; }
@@ -57,7 +59,7 @@
     <div class="mb-grid">
         <div class="mb-list">
             @forelse ($mails as $mail)
-                <a href="{{ route('mailbox.show', $mail->id) }}" class="{{ $open && $open->id === $mail->id ? 'on' : '' }}">
+                <a href="{{ route('mailbox.show', $mail->id) }}" class="{{ $open && $open->id === $mail->id ? 'on' : '' }}" data-viewer data-viewer-kind="page" data-viewer-fragment=".mb-view">
                     <div class="to">{{ $mail->to }}</div>
                     <div class="subj">{{ $mail->subject }}</div>
                     <div class="when">{{ \Illuminate\Support\Carbon::parse($mail->created_at)->format('M j, Y g:i:s A') }}</div>
@@ -81,5 +83,7 @@
         </div>
     </div>
 </div>
+
+@include('partials.viewer-modal')
 </body>
 </html>

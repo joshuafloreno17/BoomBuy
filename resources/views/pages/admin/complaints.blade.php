@@ -92,7 +92,9 @@
                 </div>
 
                 @if($complaint->evidence)
-                    <a href="{{ route('complaints.evidence', $complaint->id) }}" target="_blank" class="evidence-link">
+                    <a href="{{ route('complaints.evidence', $complaint->id) }}" class="evidence-link" data-viewer
+                       data-viewer-badge="Complaint" data-viewer-title="{{ $complaint->subject }}"
+                       data-viewer-meta="Filed by {{ $complaint->complainant->name ?? 'Unknown User' }} · {{ $complaint->created_at->format('M d, Y') }}{{ $complaint->order_id ? ' · Order #' . $complaint->order_id : '' }}">
                         <i class="bi bi-paperclip"></i> View Evidence
                     </a>
                 @endif
@@ -137,6 +139,8 @@
     </main>
 
 </div>
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 

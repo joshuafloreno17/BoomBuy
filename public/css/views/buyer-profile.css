@@ -499,3 +499,20 @@ a {
 .contact-form { display: flex; gap: 8px; margin-top: 6px; }
 .contact-form input { flex: 1; min-width: 0; }
 .addr-recipient { font-weight: 700; color: #221a3a; }
+
+/* Edit-address form — shown inside the shared pop-up viewer */
+.addr-edit-panel h3 {
+    margin: 0 0 4px;
+}
+
+.addr-edit-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.addr-edit-actions .save-btn {
+    margin-top: 0;
+}

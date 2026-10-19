@@ -156,8 +156,15 @@
 
                                     <td>
                                         <div class="row-actions">
-                                            <a href="{{ route('product.details', $product['id']) }}" target="_blank" class="act icon-only" title="View in shop" aria-label="View {{ $product['name'] }} in the shop">
-                                                <i class="bi bi-box-arrow-up-right"></i>
+                                            <a href="{{ route('product.details', $product['id']) }}" class="act icon-only" title="Quick view" aria-label="Quick view of {{ $product['name'] }}"
+                                               data-viewer data-viewer-kind="card"
+                                               data-viewer-src="{{ productImageUrl($product['image']) }}" data-viewer-icon="{{ \App\Support\Categories::icon($product['category']) }}"
+                                               data-viewer-badge="{{ $product['is_flagged'] ? 'Flagged' : ($product['is_archived'] ? 'Archived' : 'Active') }}"
+                                               data-viewer-title="{{ $product['name'] }}"
+                                               data-viewer-meta="#{{ $product['id'] }} · {{ $product['seller_name'] ?? 'No seller' }} · {{ $product['category'] ?: 'Other' }}"
+                                               data-viewer-text="₱{{ number_format($product['price'], 2) }} · {{ $product['stock'] <= 0 ? 'Out of stock' : number_format($product['stock']) . ' left' }}{{ $product['options'] > 0 ? ' across ' . $product['options'] . ' option(s)' : '' }}"
+                                               data-viewer-action="{{ route('product.details', $product['id']) }}" data-viewer-action-label="Open the shop page">
+                                                <i class="bi bi-eye"></i>
                                             </a>
 
                                             <a href="{{ route('admin.products.edit', ['id' => $product['id']]) }}" class="act">
@@ -226,6 +233,8 @@
 </div>
 
     @include('partials.live-search')
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 
 </body>

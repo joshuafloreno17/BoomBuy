@@ -148,19 +148,19 @@
 
                     <div class="documents">
                         @if ($app->national_id)
-                            <a class="doc-link" target="_blank" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'national_id']) }}">National ID</a>
+                            <a class="doc-link" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'national_id']) }}" data-viewer="rider-{{ $app->id }}" data-viewer-badge="Rider application" data-viewer-title="National ID" data-viewer-meta="{{ $app->full_name }}">National ID</a>
                         @endif
                         @if ($app->drivers_license)
-                            <a class="doc-link" target="_blank" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'drivers_license']) }}">Driver's License</a>
+                            <a class="doc-link" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'drivers_license']) }}" data-viewer="rider-{{ $app->id }}" data-viewer-badge="Rider application" data-viewer-title="Driver's License" data-viewer-meta="{{ $app->full_name }}">Driver's License</a>
                         @endif
                         @if ($app->profile_selfie)
-                            <a class="doc-link" target="_blank" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'profile_selfie']) }}">Selfie</a>
+                            <a class="doc-link" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'profile_selfie']) }}" data-viewer="rider-{{ $app->id }}" data-viewer-badge="Rider application" data-viewer-title="Selfie" data-viewer-meta="{{ $app->full_name }}">Selfie</a>
                         @endif
                         @if ($app->proof_of_address)
-                            <a class="doc-link" target="_blank" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'proof_of_address']) }}">Proof of Address</a>
+                            <a class="doc-link" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'proof_of_address']) }}" data-viewer="rider-{{ $app->id }}" data-viewer-badge="Rider application" data-viewer-title="Proof of Address" data-viewer-meta="{{ $app->full_name }}">Proof of Address</a>
                         @endif
                         @if ($app->or_cr)
-                            <a class="doc-link" target="_blank" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'or_cr']) }}">OR/CR</a>
+                            <a class="doc-link" href="{{ route('logistics.riders.document', ['id' => $app->id, 'field' => 'or_cr']) }}" data-viewer="rider-{{ $app->id }}" data-viewer-badge="Rider application" data-viewer-title="OR/CR" data-viewer-meta="{{ $app->full_name }}">OR/CR</a>
                         @endif
                     </div>
 
@@ -331,6 +331,8 @@
     </script>
 
     @include('partials.live-search')
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 
 </body>

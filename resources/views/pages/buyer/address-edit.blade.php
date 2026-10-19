@@ -30,7 +30,7 @@
                     </div>
                 </div>
 
-                @include('partials.address-book-fields', ['address' => $address, 'prefix' => 'edit'])
+                @include('partials.address-book-fields', ['address' => $address, 'prefix' => 'edit', 'bag' => 'addressEdit'])
 
                 <button type="submit" class="save-btn">Save Address</button>
                 <a href="{{ route('buyer.profile') }}#addresses" class="addr-btn">Cancel</a>

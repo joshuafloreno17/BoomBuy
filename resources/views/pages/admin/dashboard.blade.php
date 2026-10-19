@@ -190,7 +190,7 @@
                                         @foreach($docLabels[$type] as $field => $label)
                                             @continue($type === 'seller' && empty($app->$field) && !in_array($field, \App\Support\SellerTypes::REQUIRED_DOCUMENTS[$app->seller_type ?? ''] ?? ['national_id', 'business_permit'], true))
                                             @if(!empty($app->$field))
-                                                <a class="ad-doc" target="_blank" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}"><i class="bi bi-file-earmark-image"></i><span>{{ $label }}</span><em>View</em></a>
+                                                <a class="ad-doc" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}" data-viewer="app-{{ $type }}-{{ $app->id }}" data-viewer-badge="{{ $t['one'] }} application" data-viewer-title="{{ $label }}" data-viewer-meta="{{ $appName }}"><i class="bi bi-file-earmark-image"></i><span>{{ $label }}</span><em>View</em></a>
                                             @else
                                                 <span class="ad-doc is-missing"><i class="bi bi-file-earmark-x"></i><span>No {{ $label }}</span></span>
                                             @endif
@@ -412,6 +412,8 @@
         });
     })();
     </script>
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 </body>

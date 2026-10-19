@@ -230,7 +230,7 @@
                                 </a>
                             @endif
                             @if($message->attachment)
-                                <a href="{{ route('messages.attachment', $message->id) }}" target="_blank" class="bubble-photo"><img src="{{ route('messages.attachment', $message->id) }}" alt="Photo" loading="lazy"></a>
+                                <a href="{{ route('messages.attachment', $message->id) }}" class="bubble-photo" data-viewer data-viewer-type="image"><img src="{{ route('messages.attachment', $message->id) }}" alt="Photo" loading="lazy"></a>
                             @endif
                             @if($message->message !== null && $message->message !== '')
                                 <span class="bubble-text">{{ $message->message }}</span>
@@ -588,8 +588,9 @@
         if (m.attachment) {
             var link = document.createElement('a');
             link.href = m.attachment;
-            link.target = '_blank';
             link.className = 'bubble-photo';
+            link.setAttribute('data-viewer', '');
+            link.setAttribute('data-viewer-type', 'image');
             var img = document.createElement('img');
             img.src = m.attachment;
             img.alt = 'Photo';

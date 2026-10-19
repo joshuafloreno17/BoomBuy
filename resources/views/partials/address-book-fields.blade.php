@@ -4,11 +4,17 @@
     under the one above; changing one clears the ones below.
 
     @include('partials.address-book-fields', ['address' => $address ?? null, 'prefix' => 'ab'])
+
+    Two forms on one page: give each its own error 'bag', and 'useOld' => false
+    on the form that was not the one sent (so it doesn't pick up the other's input).
+    JS can refill a box later: window.bbAddressBook.fill(box, {region, province, ...}).
 --}}
 @php
     $a = $address ?? null;
     $prefix = $prefix ?? 'ab';
-    $v = fn (string $field, $default = '') => old($field, $a->{$field} ?? $default);
+    $bag = $bag ?? 'default';
+    $useOld = $useOld ?? true;
+    $v = fn (string $field, $default = '') => $useOld ? old($field, $a->{$field} ?? $default) : ($a->{$field} ?? $default);
 @endphp
 
 <div class="ab-fields" data-address-book="{{ $prefix }}">
@@ -16,12 +22,12 @@
         <div class="field">
             <label for="{{ $prefix }}_recipient">Recipient name</label>
             <input type="text" id="{{ $prefix }}_recipient" name="recipient_name" maxlength="100" value="{{ $v('recipient_name', session('user.name')) }}" required>
-            @error('recipient_name')<span class="field-error">{{ $message }}</span>@enderror
+            @error('recipient_name', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
             <label for="{{ $prefix }}_phone">Phone number</label>
             <input type="text" id="{{ $prefix }}_phone" name="phone" maxlength="13" pattern="(09|\+639)[0-9]{9}" placeholder="09XXXXXXXXX" value="{{ $v('phone') }}" required>
-            @error('phone')<span class="field-error">{{ $message }}</span>@enderror
+            @error('phone', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
             <label for="{{ $prefix }}_region">Region</label>
@@ -31,33 +37,33 @@
                     <option value="{{ $region }}" @selected($v('region') === $region)>{{ $region }}</option>
                 @endforeach
             </select>
-            @error('region')<span class="field-error">{{ $message }}</span>@enderror
+            @error('region', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
             <label for="{{ $prefix }}_province">Province</label>
             <select id="{{ $prefix }}_province" name="province" data-ab-province data-old="{{ $v('province') }}" required>
                 <option value="">Select a region first</option>
             </select>
-            @error('province')<span class="field-error">{{ $message }}</span>@enderror
+            @error('province', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
             <label for="{{ $prefix }}_city">City / Municipality</label>
             <select id="{{ $prefix }}_city" name="city_municipality" data-ab-city data-old="{{ $v('city_municipality') }}" required>
                 <option value="">Select a province first</option>
             </select>
-            @error('city_municipality')<span class="field-error">{{ $message }}</span>@enderror
+            @error('city_municipality', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
             <label for="{{ $prefix }}_barangay">Barangay</label>
             <select id="{{ $prefix }}_barangay" name="barangay" data-ab-barangay data-old="{{ $v('barangay') }}" required>
                 <option value="">Select a city first</option>
             </select>
-            @error('barangay')<span class="field-error">{{ $message }}</span>@enderror
+            @error('barangay', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field" style="grid-column: 1 / -1;">
             <label for="{{ $prefix }}_street">House no., building, street</label>
             <input type="text" id="{{ $prefix }}_street" name="street" maxlength="180" value="{{ $v('street') }}" placeholder="e.g. 45 Kalayaan Ave." required>
-            @error('street')<span class="field-error">{{ $message }}</span>@enderror
+            @error('street', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
     </div>
 </div>
@@ -89,7 +95,18 @@
             if (keep && items && items.indexOf(keep) !== -1) select.value = keep;
         }
 
-        document.querySelectorAll('[data-address-book]').forEach(function (box) {
+        var loading = null;
+
+        function loadBarangays() {
+            loading = loading || fetch(@json(asset('js/data/barangays.json'))).then(function (r) { return r.json(); }).then(function (data) {
+                barangays = data;
+            });
+            return loading;
+        }
+
+        function setup(box) {
+            if (box.__abFill) return;
+
             var region = box.querySelector('[data-ab-region]');
             var province = box.querySelector('[data-ab-province]');
             var city = box.querySelector('[data-ab-city]');
@@ -107,15 +124,43 @@
             province.addEventListener('change', function () { fillCities(''); fillBarangays(''); });
             city.addEventListener('change', function () { fillBarangays(''); });
 
+            // Puts a saved address back into the lists (also used on page load).
+            box.__abFill = function (place) {
+                region.value = place.region || '';
+                province.dataset.old = place.province || '';
+                city.dataset.old = place.city_municipality || '';
+                brgy.dataset.old = place.barangay || '';
+                fillProvinces(province.dataset.old);
+                fillCities(city.dataset.old);
+                fillBarangays(brgy.dataset.old);
+            };
+
             fillProvinces(province.dataset.old);
             fillCities(city.dataset.old);
             fillBarangays(brgy.dataset.old);
 
-            fetch(@json(asset('js/data/barangays.json'))).then(function (r) { return r.json(); }).then(function (data) {
-                barangays = data;
+            loadBarangays().then(function () {
                 fillBarangays(brgy.dataset.old);
             }).catch(function () {});
-        });
+        }
+
+        function setupAll() {
+            document.querySelectorAll('[data-address-book]').forEach(setup);
+        }
+
+        window.bbAddressBook = {
+            fill: function (box, place) {
+                setup(box);
+                box.__abFill(place || {});
+            }
+        };
+
+        // Wait for the whole page, so a second set of fields further down is wired up too.
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupAll);
+        } else {
+            setupAll();
+        }
     })();
 </script>
 @endonce

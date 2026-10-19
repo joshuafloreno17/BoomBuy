@@ -97,8 +97,8 @@
                 object-fit: cover;
                 display: none;
             "
-            onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-            onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';"
+            onload="this.style.display='block'; var f = document.getElementById('mainImageFallback'); if (f) f.style.display='none';"
+            onerror="this.style.display='none'; var f = document.getElementById('mainImageFallback'); if (f) f.style.display='flex';"
         >
 
         <div id="mainImageFallback" style="
@@ -112,6 +112,13 @@
         ">
             <i class="bi bi-box-seam-fill"></i>
         </div>
+        {{-- A cached photo can finish loading before the icon above exists: hide the icon then too. --}}
+        <script>
+            (function () {
+                var img = document.getElementById('mainProductImage');
+                if (img && img.complete && img.naturalWidth) document.getElementById('mainImageFallback').style.display = 'none';
+            })();
+        </script>
 
     </div>
 
@@ -136,6 +143,40 @@
         <button type="button" class="pd-strip-nav next" data-strip="1" aria-label="Scroll photos right" hidden>›</button>
         </div>
     @endif
+
+    @php
+        // The description: its first paragraph is the short version (up top and in the photo viewer).
+        $descriptionText = trim((string) ($product['description'] ?? ''));
+        $descriptionIntro = $descriptionText !== '' ? preg_split('/\R\s*\R/', $descriptionText)[0] : '';
+    @endphp
+
+    {{-- Tap the main photo: every photo big, with ‹ › and a grid of all of them (like a shop app). --}}
+    <div class="pd-lb" id="pdLightbox" role="dialog" aria-modal="true" aria-label="Product photos" hidden>
+        <div class="pd-lb-box">
+            <button type="button" class="pd-lb-close" id="pdLbClose" aria-label="Close"><i class="bi bi-x-lg"></i></button>
+            <div class="pd-lb-stage" id="pdLbStage">
+                <img id="pdLbImg" alt="{{ $product['name'] ?? 'Product' }}">
+                <button type="button" class="pd-lb-nav is-prev" id="pdLbPrev" aria-label="Previous photo"><i class="bi bi-chevron-left"></i></button>
+                <button type="button" class="pd-lb-nav is-next" id="pdLbNext" aria-label="Next photo"><i class="bi bi-chevron-right"></i></button>
+                <span class="pd-lb-count" id="pdLbCount"></span>
+            </div>
+            <aside class="pd-lb-side">
+                <h3 class="pd-lb-name">{{ $product['name'] ?? 'Product' }}</h3>
+                <div class="pd-lb-grid" id="pdLbGrid"></div>
+                {{-- A short summary that follows the photo shown (filled in by the viewer script). --}}
+                <div class="pd-lb-info">
+                    <div class="pd-lb-price" id="pdLbPrice"></div>
+                    <dl class="pd-lb-picks" id="pdLbPicks"></dl>
+                    @if($descriptionIntro !== '')
+                        <p class="pd-lb-intro">{{ $descriptionIntro }}</p>
+                    @endif
+                    @if($descriptionText !== '')
+                        <button type="button" class="pd-lb-more" id="pdLbMore">See full description <i class="bi bi-chevron-down"></i></button>
+                    @endif
+                </div>
+            </aside>
+        </div>
+    </div>
 
 
 </div>
@@ -180,11 +221,11 @@
             </div>
 
 
-            <p class="description">
-
-                {{ $product['description'] ?? 'No product description available.' }}
-
-            </p>
+            {{-- Up top: just the first paragraph; the whole text is in "Product Description" below. --}}
+            <p class="description">{{ $descriptionIntro !== '' ? $descriptionIntro : 'No product description available.' }}</p>
+            @if($descriptionText !== '')
+                <a href="#description" class="pd-desc-more">See full description <i class="bi bi-chevron-down"></i></a>
+            @endif
 
 
             @php
@@ -582,6 +623,14 @@
         </section>
     @endif
 
+    {{-- The seller's full description, with its line breaks and bullets kept. --}}
+    @if($descriptionText !== '')
+        <section class="specs-section pd-desc-section" id="description">
+            <h2>Product Description</h2>
+            <div class="pd-desc-body">{{ $descriptionText }}</div>
+        </section>
+    @endif
+
 
     <!-- REVIEWS -->
 
@@ -650,7 +699,7 @@
                     @if($reviewPhotos)
                         <div class="review-photos">
                             @foreach($reviewPhotos as $photo)
-                                <a href="{{ asset('storage/' . $photo) }}" target="_blank"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
+                                <a href="{{ asset('storage/' . $photo) }}" data-viewer="review-{{ $loop->parent->index }}" data-viewer-type="image"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
                             @endforeach
                         </div>
                     @endif
@@ -898,10 +947,12 @@
         const img = document.getElementById('mainProductImage');
         const fallback = document.getElementById('mainImageFallback');
 
-        // The row shows this option's photos, then the photos for all options.
-        filterThumbs(swatch.dataset.photoGroup || swatch.dataset.id);
-        const firstShown = allThumbs()[0];
-        const imageUrl = swatch.dataset.image || (firstShown && firstShown.dataset.src) || img.dataset.fallbackSrc || '';
+        // The option's own photo (lit up in the row), else the first photo for all options.
+        filterThumbs();
+        const group = swatch.dataset.photoGroup || swatch.dataset.id;
+        const ownThumb = allThumbs().find(function (t) { return t.dataset.group === group; })
+            || allThumbs().find(function (t) { return t.dataset.group === 'all'; });
+        const imageUrl = swatch.dataset.image || (ownThumb && ownThumb.dataset.src) || img.dataset.fallbackSrc || '';
 
         // A click while hovering keeps the option's photo (no restore on leave).
         previewBack = null;
@@ -1016,23 +1067,37 @@
     // Read fresh each time: a thumbnail whose photo fails to load removes itself.
     const allThumbs = () => Array.from(document.querySelectorAll('.pd-thumb')).filter(function (t) { return !t.hidden; });
 
-    // Show one option's photos plus the photos for all options (minus repeats of the option's photos).
-    function filterThumbs(optionId) {
-        const thumbs = Array.from(document.querySelectorAll('.pd-thumb'));
-        const own = new Set();
-        thumbs.forEach(function (t) {
-            const mine = t.dataset.group === String(optionId);
-            t.hidden = !(mine || t.dataset.group === 'all');
-            if (mine) own.add(t.dataset.fp);
-        });
-        thumbs.forEach(function (t) {
-            if (t.dataset.group === 'all' && own.has(t.dataset.fp)) t.hidden = true;
+    // The row shows every photo (each option's, then the ones for all options), each
+    // picture once; the chosen option's photo is the one lit up (see markThumb).
+    function filterThumbs() {
+        const seen = new Set();
+        document.querySelectorAll('.pd-thumb').forEach(function (t) {
+            t.hidden = seen.has(t.dataset.fp);
+            seen.add(t.dataset.fp);
         });
         const wrap = document.getElementById('pdThumbsWrap');
         if (wrap) wrap.hidden = allThumbs().length < 2;
-        const row = document.getElementById('pdThumbs');
-        if (row) row.scrollLeft = 0;
         window.dispatchEvent(new Event('resize'));
+    }
+
+    // A photo of one option, clicked or swiped to: pick that option too (like a shop app).
+    // A color with nothing left only shows its photo.
+    function followThumb(thumb) {
+        if (!thumb || thumb.dataset.group === 'all') return;
+        const swatches = Array.from(document.querySelectorAll('.variation-swatch'));
+        const index = swatches.findIndex(function (s) { return (s.dataset.photoGroup || s.dataset.id) === thumb.dataset.group; });
+        if (index < 0) return;
+
+        if (document.querySelector('.pd-part1')) {
+            const color = swatches[index].dataset.v1;
+            if (pick.v1 === color || !swatches.some(function (s) { return s.dataset.v1 === color && inStock(s); })) return;
+            pick.v1 = color;
+            // Keep the picked size/storage only if this color has it in stock.
+            if (pick.v2 && !swatches.some(function (s) { return s.dataset.v1 === color && s.dataset.v2 === pick.v2 && inStock(s); })) pick.v2 = '';
+            renderParts(true);
+        } else if (!swatches[index].classList.contains('active')) {
+            selectVariation(index, true);
+        }
     }
 
     function markThumb(url) {
@@ -1059,10 +1124,17 @@
 
     const canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
+    // Like a shop app: hovering (or tabbing to) a photo shows it big; clicking or tapping it
+    // picks its color and opens the photo viewer at it.
     allThumbs().forEach(function (thumb) {
-        const show = function () { showPhoto(allThumbs().indexOf(thumb)); };
-        thumb.addEventListener('click', show);
-        thumb.addEventListener('focus', show);
+        const preview = function () { showPhoto(allThumbs().indexOf(thumb)); };
+        thumb.addEventListener('click', function () {
+            followThumb(thumb);
+            preview();
+            if (window.pdOpenViewer) window.pdOpenViewer(thumb.dataset.src);
+        });
+        thumb.addEventListener('focus', preview);
+        if (canHover) thumb.addEventListener('mouseenter', preview);
     });
 
     // Hovering an option with a photo previews it; leaving puts the shown photo back.
@@ -1116,7 +1188,9 @@
         const thumbs = allThumbs();
         if (thumbs.length > 1) {
             let current = thumbs.findIndex(function (t) { return t.classList.contains('is-active'); });
-            showPhoto(((current < 0 ? 0 : current) + direction + thumbs.length) % thumbs.length);
+            const next = ((current < 0 ? 0 : current) + direction + thumbs.length) % thumbs.length;
+            followThumb(thumbs[next]);
+            showPhoto(next);
             return;
         }
 
@@ -1170,6 +1244,170 @@
 
         }, { passive: true });
 
+    })();
+
+    // ---- Photo viewer: tap the main photo for every photo big, ‹ ›, and a grid of them ----
+    // It walks the same photos as the row under the main photo, and a color's photo
+    // picks that color on the page too. The phone's back button closes it.
+    (function () {
+        const box = document.getElementById('pdLightbox');
+        const mainImg = document.getElementById('mainProductImage');
+        if (!box || !mainImg) return;
+
+        const big = document.getElementById('pdLbImg');
+        const grid = document.getElementById('pdLbGrid');
+        const count = document.getElementById('pdLbCount');
+        const prev = document.getElementById('pdLbPrev');
+        const next = document.getElementById('pdLbNext');
+        let photos = [];   // { src, thumb (row button or null) }
+        let current = 0;
+        let pushed = false;
+
+        function show(i) {
+            if (!photos.length) return;
+            current = (i + photos.length) % photos.length;
+            const photo = photos[current];
+            big.src = photo.src;
+            count.textContent = photos.length > 1 ? (current + 1) + ' / ' + photos.length : '';
+            grid.querySelectorAll('button').forEach(function (b, n) {
+                b.classList.toggle('is-active', n === current);
+                if (n === current) b.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+            });
+            // Keep the page in step: same photo under the viewer, and its color picked.
+            if (photo.thumb) {
+                followThumb(photo.thumb);
+                showPhoto(allThumbs().indexOf(photo.thumb));
+            }
+            refreshInfo();
+        }
+
+        // The summary beside the photos: the page's current price and what is picked.
+        function refreshInfo() {
+            const priceEl = document.getElementById('pdPrice');
+            document.getElementById('pdLbPrice').textContent = priceEl ? priceEl.textContent.trim() : '';
+
+            const picks = document.getElementById('pdLbPicks');
+            picks.textContent = '';
+            const row = function (label, build) {
+                const wrap = document.createElement('div');
+                const dt = document.createElement('dt');
+                const dd = document.createElement('dd');
+                dt.textContent = label;
+                build(dd);
+                wrap.append(dt, dd);
+                picks.appendChild(wrap);
+            };
+            const values = function (dd, chips, chosen) {
+                chips.forEach(function (chip, n) {
+                    if (n) dd.append(' · ');
+                    const v = document.createElement(chip.dataset.value === chosen ? 'b' : 'span');
+                    v.textContent = chip.dataset.value;
+                    if (chip.classList.contains('is-out')) v.className = 'is-out';
+                    dd.appendChild(v);
+                });
+            };
+
+            const parts = document.querySelectorAll('.pd-part');
+            if (document.querySelector('.pd-part1') && parts.length > 1) {
+                const label = function (part) { return part.querySelector('.pd-part-label').textContent.trim(); };
+                row(label(parts[0]), function (dd) { dd.textContent = pick.v1 || 'Not picked yet'; });
+                row(label(parts[1]), function (dd) { values(dd, Array.from(document.querySelectorAll('.pd-part2')), pick.v2); });
+            } else {
+                const active = document.querySelector('.variation-swatch.active .swatch-label');
+                if (active) row('Option', function (dd) { dd.textContent = active.textContent.trim(); });
+            }
+            picks.hidden = !picks.children.length;
+        }
+
+        const more = document.getElementById('pdLbMore');
+        let scrollToDescription = false;
+        if (more) {
+            more.addEventListener('click', function () {
+                // Closing goes back one step in history; scroll once that has happened.
+                scrollToDescription = true;
+                const viaHistory = pushed;
+                close(false);
+                if (!viaHistory) setTimeout(goToDescription, 60);
+            });
+        }
+
+        function goToDescription() {
+            if (!scrollToDescription) return;
+            scrollToDescription = false;
+            document.getElementById('description').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function open(startSrc) {
+            const src = (typeof startSrc === 'string' && startSrc) || mainImg.getAttribute('src');
+            if (!src || mainImg.style.display === 'none') return;
+
+            const thumbs = allThumbs();
+            photos = thumbs.length
+                ? thumbs.map(function (t) { return { src: t.dataset.src, thumb: t }; })
+                : [{ src: src, thumb: null }];
+
+            grid.textContent = '';
+            photos.forEach(function (photo, n) {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.setAttribute('aria-label', 'Photo ' + (n + 1));
+                b.innerHTML = '<img alt="" loading="lazy">';
+                b.querySelector('img').src = photo.src;
+                b.addEventListener('click', function () { show(n); });
+                grid.appendChild(b);
+            });
+            grid.hidden = photos.length < 2;
+            prev.hidden = next.hidden = photos.length < 2;
+
+            box.hidden = false;
+            document.body.classList.add('pd-lb-open');
+            const at = photos.findIndex(function (p) { return p.src === src; });
+            show(at < 0 ? 0 : at);
+            history.pushState({ pdLightbox: true }, '');
+            pushed = true;
+            document.getElementById('pdLbClose').focus();
+        }
+
+        function close(fromHistory) {
+            if (box.hidden) return;
+            box.hidden = true;
+            document.body.classList.remove('pd-lb-open');
+            if (pushed && !fromHistory) {
+                pushed = false;
+                history.back();
+            }
+            pushed = false;
+        }
+
+        mainImg.addEventListener('click', function () { open(); });
+        window.pdOpenViewer = open;
+        document.getElementById('pdLbClose').addEventListener('click', function () { close(false); });
+        prev.addEventListener('click', function () { show(current - 1); });
+        next.addEventListener('click', function () { show(current + 1); });
+        // A click on the dark area around the box closes it.
+        box.addEventListener('click', function (e) { if (e.target === box) close(false); });
+        window.addEventListener('popstate', function () {
+            close(true);
+            setTimeout(goToDescription, 60);
+        });
+
+        document.addEventListener('keydown', function (e) {
+            if (box.hidden) return;
+            if (e.key === 'Escape') close(false);
+            else if (e.key === 'ArrowLeft') show(current - 1);
+            else if (e.key === 'ArrowRight') show(current + 1);
+        });
+
+        // Swipe left/right on the big photo.
+        const stage = document.getElementById('pdLbStage');
+        let startX = null;
+        stage.addEventListener('touchstart', function (e) { startX = e.changedTouches[0].clientX; }, { passive: true });
+        stage.addEventListener('touchend', function (e) {
+            if (startX === null) return;
+            const dx = e.changedTouches[0].clientX - startX;
+            if (Math.abs(dx) > 40) show(current + (dx < 0 ? 1 : -1));
+            startX = null;
+        }, { passive: true });
     })();
 
     // Initialize variation selection on page load
@@ -1309,6 +1547,8 @@
     </script>
 
     @include('partials.buyer-footer')
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 

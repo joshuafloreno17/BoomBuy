@@ -60,7 +60,7 @@
                     @if($reviewPhotos)
                         <div class="review-photos">
                             @foreach($reviewPhotos as $photo)
-                                <a href="{{ asset('storage/' . $photo) }}" target="_blank"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
+                                <a href="{{ asset('storage/' . $photo) }}" data-viewer="review-{{ $loop->parent->index }}" data-viewer-type="image"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
                             @endforeach
                         </div>
                     @endif
@@ -112,6 +112,8 @@
     </main>
 
 </div>
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 

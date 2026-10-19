@@ -1,0 +1,346 @@
+/* Shared pop-up viewer — resources/views/partials/viewer-modal.blade.php */
+
+.bb-viewer-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(20, 14, 38, 0.62);
+    z-index: 10050; /* above page pop-ups (e.g. Order Tracking, 9999) */
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+}
+
+.bb-viewer-overlay.is-open {
+    display: flex;
+}
+
+body.bb-viewer-locked {
+    overflow: hidden;
+}
+
+.bb-viewer-box {
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+
+    display: flex;
+    flex-direction: column;
+
+    background: var(--paper, #fff);
+    border-radius: 20px;
+    overflow: hidden;
+
+    box-shadow: 0 30px 70px -20px rgba(20, 14, 38, 0.5);
+
+    animation: bbViewerPop 0.2s cubic-bezier(.3, 1.3, .5, 1);
+}
+
+.bb-viewer-box.is-wide {
+    max-width: 880px;
+}
+
+@keyframes bbViewerPop {
+    from { transform: scale(0.95); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* ---------- close + prev/next ---------- */
+
+.bb-viewer-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 3;
+
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 2px solid var(--accent-soft, #e6dcff);
+    background: #fff;
+    color: var(--ink, #221a3a);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 6px 16px -6px rgba(20, 14, 38, 0.45);
+}
+
+.bb-viewer-close:hover,
+.bb-viewer-close:focus-visible {
+    border-color: var(--accent, #6d4ad1);
+    color: var(--accent, #6d4ad1);
+    outline: none;
+}
+
+.bb-viewer-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 0;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--ink, #221a3a);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.bb-viewer-nav[hidden] {
+    display: none;
+}
+
+.bb-viewer-nav.is-prev { left: 12px; }
+.bb-viewer-nav.is-next { right: 12px; }
+
+.bb-viewer-count {
+    position: absolute;
+    left: 50%;
+    bottom: 10px;
+    transform: translateX(-50%);
+    z-index: 2;
+
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(20, 14, 38, 0.6);
+    color: #fff;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.bb-viewer-count:empty {
+    display: none;
+}
+
+/* ---------- media (dark stage) ---------- */
+
+.bb-viewer-media {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 160px; /* tiny or still-loading pictures don't collapse the stage */
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: #1c1630;
+}
+
+.bb-viewer-media[hidden] {
+    display: none;
+}
+
+.bb-viewer-stage {
+    width: 100%;
+    align-self: stretch;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bb-viewer-media img {
+    display: block;
+    max-width: 100%;
+    max-height: 62vh;
+    max-height: 62dvh;
+    object-fit: contain;
+}
+
+.bb-viewer-box.is-media-only .bb-viewer-media img {
+    max-height: calc(100vh - 40px);
+    max-height: calc(100dvh - 40px);
+}
+
+.bb-viewer-media iframe {
+    display: block;
+    width: 100%;
+    height: 70vh;
+    height: 70dvh;
+    border: 0;
+    background: #fff;
+}
+
+.bb-viewer-state {
+    padding: 70px 24px;
+    color: #d9d1f5;
+    font-size: 14px;
+    text-align: center;
+}
+
+.bb-viewer-state i {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 28px;
+}
+
+.bb-viewer-state a {
+    color: #fff;
+    font-weight: 700;
+}
+
+.bb-viewer-icon {
+    width: 100%;
+    align-self: stretch;
+    padding: 46px 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background: var(--accent-tint, #eee8ff);
+    color: var(--accent, #6d4ad1);
+    font-size: 44px;
+}
+
+/* ---------- white card under the media ---------- */
+
+.bb-viewer-card {
+    padding: 18px 22px 20px;
+    overflow-y: auto;
+}
+
+.bb-viewer-card[hidden] {
+    display: none;
+}
+
+.bb-viewer-badge {
+    display: inline-block;
+    margin-bottom: 8px;
+    padding: 3px 10px;
+    border-radius: 999px;
+
+    background: var(--accent-soft, #e6dcff);
+    color: var(--accent-dark, #5536b5);
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.bb-viewer-title {
+    margin: 0;
+    font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.3;
+    color: var(--ink, #221a3a);
+}
+
+.bb-viewer-meta {
+    margin-top: 4px;
+    font-size: 13px;
+    color: var(--muted, #645a80);
+}
+
+.bb-viewer-text {
+    margin-top: 10px;
+    font-size: 14px;
+    line-height: 1.55;
+    color: var(--ink, #221a3a);
+}
+
+.bb-viewer-badge:empty,
+.bb-viewer-title:empty,
+.bb-viewer-meta:empty,
+.bb-viewer-text:empty {
+    display: none;
+}
+
+.bb-viewer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--line, #e9e4fa);
+}
+
+.bb-viewer-actions:empty {
+    display: none;
+}
+
+.bb-viewer-actions a {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 9px 16px;
+    border-radius: 10px;
+
+    background: var(--accent, #6d4ad1);
+    color: #fff;
+
+    font-size: 14px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.bb-viewer-actions a.is-ghost {
+    background: var(--accent-tint, #eee8ff);
+    color: var(--accent-dark, #5536b5);
+}
+
+/* ---------- fetched page part / inline form ---------- */
+
+.bb-viewer-body {
+    overflow-y: auto;
+    padding: 22px;
+    padding-top: 58px;
+}
+
+.bb-viewer-body[hidden] {
+    display: none;
+}
+
+.bb-viewer-body.is-flush {
+    padding: 0;
+}
+
+/* ---------- phones: nearly full screen ---------- */
+
+@media (max-width: 600px) {
+    .bb-viewer-overlay {
+        padding: 10px;
+    }
+
+    .bb-viewer-box {
+        max-height: calc(100vh - 20px);
+        max-height: calc(100dvh - 20px);
+        border-radius: 16px;
+    }
+
+    .bb-viewer-media img {
+        max-height: 58vh;
+        max-height: 58dvh;
+    }
+
+    .bb-viewer-card {
+        padding: 16px 18px 18px;
+    }
+
+    .bb-viewer-title {
+        font-size: 18px;
+    }
+
+    .bb-viewer-body {
+        padding: 16px;
+        padding-top: 56px;
+    }
+}

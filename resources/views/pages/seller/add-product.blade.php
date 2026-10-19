@@ -130,8 +130,8 @@
                         </label>
 
                         <div class="opt-intro">
-                            Does it come in different colors, sizes or kinds? Add each one as an option with its own photos. Buyers see only that option's photos after picking it.
-                            Leave the photos empty when every option looks the same (like sizes).
+                            Does it come in different colors, sizes or kinds? Add each one as an option with its own photos. Buyers see every photo in a row; tapping a color's photo picks that color.
+                            With Color × Size or Storage, add the color's photo on just one of its rows (the others use it). Leave the photos empty when every option looks the same (like sizes).
                         </div>
 
                         <div class="opt-type" id="optType" hidden>

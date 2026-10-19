@@ -618,11 +618,16 @@ textarea {
     background: #fff;
 }
 
+/* Name, Extra ₱, Stock, SKU, remove — plus the "Second" column when a second type is set. */
 .opt-fields {
     display: grid;
-    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) 40px;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.4fr) 40px;
     gap: 10px;
     align-items: end;
+}
+
+.opt-fields:has(.opt-second:not([hidden])) {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1.3fr) 40px;
 }
 
 .opt-field {
@@ -630,6 +635,10 @@ textarea {
     gap: 4px;
     min-width: 0;
     margin: 0;
+}
+
+.opt-field[hidden] {
+    display: none;
 }
 
 .opt-field > span {
@@ -724,12 +733,17 @@ textarea {
 }
 
 @media (max-width: 600px) {
-    .opt-fields {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px;
+    .opt-fields,
+    .opt-fields:has(.opt-second:not([hidden])) {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     }
 
     .opt-name {
         grid-column: 1 / -1;
+    }
+
+    .opt-remove {
+        justify-self: end;
     }
 }
 

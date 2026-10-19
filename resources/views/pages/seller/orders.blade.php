@@ -484,7 +484,9 @@
 
                                     @php $photoCount = 1 + count((array) json_decode((string) ($request->evidence_photos ?? ''), true)); @endphp
                                     @for($photo = 0; $photo < $photoCount; $photo++)
-                                    <a href="{{ route('return-refund.evidence', [$request->id, 'photo' => $photo]) }}" target="_blank" data-evidence-photo="{{ $photo }}">
+                                    <a href="{{ route('return-refund.evidence', [$request->id, 'photo' => $photo]) }}" data-evidence-photo="{{ $photo }}"
+                                       data-viewer="return-{{ $request->id }}" data-viewer-type="image"
+                                       data-viewer-badge="Return" data-viewer-title="Buyer's photo" data-viewer-meta="Order #{{ $request->order_id }}">
                                         <img src="{{ route('return-refund.evidence', [$request->id, 'photo' => $photo]) }}" alt="Return evidence photo {{ $photo + 1 }}" style="max-width:160px; border-radius:8px; margin-top:6px;">
                                     </a>
                                     @endfor
@@ -660,6 +662,8 @@
 <script src="{{ asset('js/pages/seller-orders.js') }}"></script>
 
     @include('partials.live-search')
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 
 </body>

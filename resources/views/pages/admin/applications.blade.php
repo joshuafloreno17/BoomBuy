@@ -175,7 +175,9 @@
                         {{-- A seller only uploads the documents of their seller type. --}}
                         @continue($type === 'seller' && empty($app->$field) && !in_array($field, \App\Support\SellerTypes::REQUIRED_DOCUMENTS[$app->seller_type ?? ''] ?? ['national_id', 'business_permit'], true))
                         @if (!empty($app->$field))
-                            <a class="doc-link" target="_blank" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}">
+                            <a class="doc-link" href="{{ route('admin.applications.document', ['type' => $type, 'id' => $app->id, 'field' => $field]) }}"
+                               data-viewer="app-{{ $type }}-{{ $app->id }}" data-viewer-badge="{{ ucfirst($type) }} application"
+                               data-viewer-title="{{ $label }}" data-viewer-meta="{{ $type !== 'buyer' && !empty($app->business_name) ? $app->business_name : $app->full_name }}">
                                 <i class="bi bi-file-earmark-text"></i> {{ $label }}
                             </a>
                         @else
@@ -263,6 +265,8 @@
 </div>
 
     @include('partials.live-search')
+    @include('partials.viewer-modal')
+
     @include('partials.pwa-register')
 
 </body>

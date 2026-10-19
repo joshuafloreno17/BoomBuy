@@ -108,7 +108,7 @@
                     <p style="margin:0 0 12px;">
                         @foreach(['drivers_license' => "Driver's license", 'or_cr' => 'OR/CR'] as $docField => $docLabel)
                             @if($riderRecord->{$docField})
-                                <a href="{{ route('rider.document', $docField) }}" target="_blank" rel="noopener" class="btn view-btn"><i class="bi bi-file-earmark-text"></i> {{ $docLabel }}</a>
+                                <a href="{{ route('rider.document', $docField) }}" class="btn view-btn" data-viewer="my-docs" data-viewer-badge="My documents" data-viewer-title="{{ $docLabel }}"><i class="bi bi-file-earmark-text"></i> {{ $docLabel }}</a>
                             @endif
                         @endforeach
                     </p>
@@ -460,6 +460,8 @@
 
     </main>
 
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 

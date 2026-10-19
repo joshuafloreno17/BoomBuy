@@ -423,7 +423,8 @@ class BuyerController extends Controller
         [$parts, $errors] = \App\Support\AddressRules::check(array_merge($address->only(['recipient_name', 'phone', 'region', 'province', 'city_municipality', 'barangay', 'street']), request()->all()));
 
         if ($errors) {
-            return back()->withInput()->withErrors($errors);
+            // Own bag: the profile page also has an Add-address form with the same field names.
+            return back()->withInput()->withErrors($errors, 'addressEdit');
         }
 
         $address->update($parts + ['label' => request()->has('label') ? (trim((string) request('label')) ?: null) : $address->label]);

@@ -13,7 +13,10 @@
 @php $steps = collect($steps ?? [])->reverse()->values(); @endphp
 
 @if(!empty($proof))
-    <a href="{{ $proof }}" target="_blank" rel="noopener" class="order-proof-link">
+    @include('partials.viewer-modal')
+    <a href="{{ $proof }}" class="order-proof-link" data-viewer
+       data-viewer-badge="Delivered" data-viewer-title="Proof of delivery"
+       data-viewer-text="Photo taken by the rider when the parcel was handed over.">
         <i class="bi bi-camera-fill"></i> View the delivery photo
     </a>
 @endif

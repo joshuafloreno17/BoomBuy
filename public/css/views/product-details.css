@@ -1607,3 +1607,401 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     font-weight: 600;
     color: #6d4ad1;
 }
+
+/* ---------- Photo viewer: tap the main photo (big photo, ‹ ›, grid of all photos) ---------- */
+.product-visual #mainProductImage {
+    cursor: zoom-in;
+}
+
+.pd-lb {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: rgba(20, 14, 38, 0.72);
+}
+
+.pd-lb[hidden] {
+    display: none;
+}
+
+.pd-lb-box {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 300px;
+    gap: 22px;
+    width: min(1040px, 100%);
+    max-height: calc(100vh - 48px);
+    padding: 20px;
+    border-radius: 18px;
+    background: #fff;
+    box-shadow: 0 24px 60px rgba(20, 14, 38, 0.35);
+}
+
+.pd-lb-stage {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    max-height: calc(100vh - 88px);
+    border: 1px solid #e9e4fa;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+    touch-action: pan-y;
+}
+
+.pd-lb-stage img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    user-select: none;
+}
+
+.pd-lb-nav {
+    position: absolute;
+    top: 50%;
+    width: 44px;
+    height: 64px;
+    transform: translateY(-50%);
+    border: 0;
+    border-radius: 10px;
+    background: rgba(34, 26, 58, 0.5);
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+
+.pd-lb-nav:hover {
+    background: rgba(34, 26, 58, 0.8);
+    /* Stays centred and just grows (the generic button lift would drop it). */
+    transform: translateY(-50%) scale(1.08);
+}
+
+.pd-lb-nav.is-prev { left: 10px; }
+.pd-lb-nav.is-next { right: 10px; }
+
+.pd-lb-nav[hidden],
+.pd-lb-count:empty {
+    display: none;
+}
+
+.pd-lb-count {
+    position: absolute;
+    left: 50%;
+    bottom: 12px;
+    transform: translateX(-50%);
+    padding: 3px 10px;
+    border-radius: 999px;
+    background: rgba(34, 26, 58, 0.6);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pd-lb-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    z-index: 2;
+    width: 38px;
+    height: 38px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 50%;
+    background: #fff;
+    color: #221a3a;
+    font-size: 16px;
+    box-shadow: 0 6px 18px rgba(20, 14, 38, 0.25);
+    cursor: pointer;
+}
+
+.pd-lb-close:hover {
+    color: #6d4ad1;
+    transform: scale(1.08);
+}
+
+.pd-lb-grid button:hover {
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pd-lb-nav:hover { transform: translateY(-50%); }
+    .pd-lb-close:hover { transform: none; }
+}
+
+.pd-lb-side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0;
+    overflow: hidden;
+}
+
+.pd-lb-name {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1.35;
+    color: #221a3a;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pd-lb-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    overflow-y: auto;
+    padding: 2px;
+}
+
+.pd-lb-grid button {
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    border: 2px solid #e9e4fa;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #fff;
+    cursor: pointer;
+    opacity: 0.8;
+    transition: border-color 0.15s ease, opacity 0.15s ease;
+}
+
+.pd-lb-grid button:hover,
+.pd-lb-grid button:focus-visible {
+    opacity: 1;
+}
+
+.pd-lb-grid button.is-active {
+    border-color: #6d4ad1;
+    opacity: 1;
+}
+
+.pd-lb-grid img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+}
+
+/* Phones and the app: the photo fills the screen, the photos scroll in a row below. */
+@media (max-width: 800px) {
+    .pd-lb {
+        padding: 0;
+        background: #fff;
+    }
+
+    .pd-lb-box {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto auto;
+        align-content: center;
+        gap: 16px;
+        width: 100%;
+        height: 100%;
+        max-height: none;
+        padding: 56px 16px 16px;
+        border-radius: 0;
+        box-shadow: none;
+    }
+
+    .pd-lb-stage {
+        border: 0;
+        border-radius: 0;
+        max-height: none;
+    }
+
+    .pd-lb-close {
+        top: 10px;
+        right: 12px;
+        box-shadow: none;
+        background: #f3effd;
+    }
+
+    .pd-lb-name {
+        position: absolute;
+        top: 18px;
+        left: 16px;
+        right: 60px;
+        font-size: 14px;
+        -webkit-line-clamp: 1;
+    }
+
+    .pd-lb-grid {
+        display: flex;
+        overflow-x: auto;
+        overflow-y: hidden;
+        scrollbar-width: none;
+    }
+
+    .pd-lb-grid::-webkit-scrollbar {
+        display: none;
+    }
+
+    .pd-lb-grid button {
+        flex: none;
+        width: 64px;
+        height: 64px;
+    }
+
+    .pd-lb-nav {
+        width: 36px;
+        height: 52px;
+        font-size: 18px;
+    }
+}
+
+body.pd-lb-open {
+    overflow: hidden;
+}
+
+/* ---------- Description: first paragraph up top, the whole text in its own section ---------- */
+.product-info .description {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-info .description:has(+ .pd-desc-more) {
+    margin-bottom: 6px;
+}
+
+.pd-desc-more {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-bottom: 20px;
+    font-size: 13px;
+    color: #6d4ad1;
+    font-weight: 700;
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+.pd-desc-more:hover {
+    text-decoration: underline;
+}
+
+.pd-desc-body {
+    padding: 20px 22px;
+    background: #fff;
+    border: 1px solid #e9e4fa;
+    border-radius: 14px;
+    color: #221a3a;
+    font-size: 14px;
+    line-height: 1.8;
+    /* The seller's own line breaks and bullets, as typed. */
+    white-space: pre-line;
+    overflow-wrap: anywhere;
+}
+
+#description {
+    scroll-margin-top: 90px;
+}
+
+/* Phones: the header is taller, so the jump to the description stops below it. */
+@media (max-width: 800px) {
+    #description {
+        scroll-margin-top: 200px;
+    }
+}
+
+/* Photo viewer: the short summary under the photos (desktop only). */
+.pd-lb-info {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 14px;
+    border-top: 1px solid #ebe8f4;
+}
+
+.pd-lb-price {
+    color: #6d4ad1;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.pd-lb-price:empty {
+    display: none;
+}
+
+.pd-lb-picks {
+    display: grid;
+    gap: 6px;
+    margin: 0;
+}
+
+.pd-lb-picks[hidden] {
+    display: none;
+}
+
+.pd-lb-picks > div {
+    display: grid;
+    grid-template-columns: 70px minmax(0, 1fr);
+    gap: 8px;
+    font-size: 13px;
+}
+
+.pd-lb-picks dt {
+    color: #645a80;
+    font-weight: 700;
+}
+
+.pd-lb-picks dd {
+    margin: 0;
+    color: #221a3a;
+}
+
+.pd-lb-picks dd b {
+    color: #6d4ad1;
+}
+
+.pd-lb-picks dd .is-out {
+    color: #b3abc9;
+    text-decoration: line-through;
+}
+
+.pd-lb-intro {
+    margin: 0;
+    color: #645a80;
+    font-size: 13px;
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.pd-lb-more {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: #6d4ad1;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.pd-lb-more:hover {
+    text-decoration: underline;
+    transform: none;
+}
+
+/* Phones: the photo keeps the screen. */
+@media (max-width: 800px) {
+    .pd-lb-info {
+        display: none;
+    }
+}

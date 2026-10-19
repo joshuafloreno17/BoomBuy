@@ -246,7 +246,9 @@
                                         Check it, then tap Order Received below.
                                     </span>
                                     @if(!empty($order['delivery_proof']))
-                                        <a href="{{ route('orders.delivery-proof', $order['id']) }}" target="_blank" rel="noopener" class="order-done-photo">
+                                        <a href="{{ route('orders.delivery-proof', $order['id']) }}" class="order-done-photo" data-viewer
+                                           data-viewer-badge="Delivered" data-viewer-title="Proof of delivery" data-viewer-meta="Order #{{ $order['id'] }}"
+                                           data-viewer-text="Photo taken by the rider when the parcel was handed over.">
                                             <i class="bi bi-camera-fill"></i> See the delivery photo
                                         </a>
                                     @endif
@@ -1425,6 +1427,8 @@
     </script>
 
     @include('partials.buyer-footer')
+
+    @include('partials.viewer-modal')
 
     @include('partials.pwa-register')
 
