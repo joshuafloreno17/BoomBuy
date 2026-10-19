@@ -689,6 +689,11 @@ class SellerController extends Controller
         $from = request('from') ?: now()->subDays(30)->format('Y-m-d');
         $to = request('to') ?: now()->format('Y-m-d');
 
+        // An end before the start is refused (S12).
+        if ($to < $from) {
+            return redirect()->route('seller.reports')->with('error', 'The end date must be on or after the start date.');
+        }
+
         $baseQuery = DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.seller_id', $user['id'])
@@ -710,7 +715,10 @@ class SellerController extends Controller
 
         $totalOrders = (clone $baseQuery)->distinct('order_items.order_id')->count('order_items.order_id');
 
-        $deliveredOrders = (clone $deliveredQuery)->distinct('order_items.order_id')->count('order_items.order_id');
+        // Fully refunded orders are not counted as completed sales.
+        $deliveredOrders = \App\Support\SellerBalance::orders((int) $user['id'], $from, $to)
+            ->filter(fn ($row) => $row->items - $row->voucher - $row->refunds > 0)
+            ->count();
 
         $averageOrder = $deliveredOrders > 0 ? $totalSales / $deliveredOrders : 0;
 

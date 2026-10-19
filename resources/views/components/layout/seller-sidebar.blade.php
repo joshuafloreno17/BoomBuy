@@ -49,6 +49,11 @@
             <span class="label-text">Reports</span>
         </a>
 
+        <a href="{{ route('seller.earnings') }}" @class(['active' => $active === 'earnings'])>
+            <i class="bi bi-wallet2"></i>
+            <span class="label-text">Earnings</span>
+        </a>
+
         <a href="{{ route('seller.reviews') }}" @class(['active' => $active === 'reviews'])>
             <i class="bi bi-star-fill"></i>
             <span class="label-text">Reviews</span>
@@ -164,6 +169,7 @@
                 @endif
             </a>
             <a href="{{ route('seller.reports') }}" @class(['active' => $active === 'reports'])><i class="bi bi-bar-chart-fill"></i>Reports</a>
+            <a href="{{ route('seller.earnings') }}" @class(['active' => $active === 'earnings'])><i class="bi bi-wallet2"></i>Earnings</a>
             <a href="{{ route('seller.store-categories') }}" @class(['active' => $active === 'store-categories'])><i class="bi bi-tags-fill"></i>Categories</a>
             <a href="{{ route('seller.vouchers') }}" @class(['active' => $active === 'vouchers'])><i class="bi bi-ticket-perforated-fill"></i>Vouchers</a>
             <a href="{{ route('seller.promotions') }}" @class(['active' => $active === 'promotions'])><i class="bi bi-lightning-charge-fill"></i>Promotions</a>

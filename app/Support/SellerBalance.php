@@ -37,14 +37,59 @@ class SellerBalance
         ];
     }
 
-    /** One row per delivered order with this seller's items, newest first (optionally placed between $from and $to). */
-    public static function orders(int $sellerId, ?string $from = null, ?string $to = null): Collection
+    /** Least a payout request may be (A15). */
+    public const PAYOUT_MIN = 100;
+
+    /**
+     * Pending: earnings of orders still on their way or delivered but not
+     * yet Completed (paid online or COD). Available: earnings of Completed
+     * orders, less payouts requested or paid (A15). Cancelled, returned and
+     * refunded amounts never count.
+     *
+     * @return array{pending: float, available: float, completed: float, paid_out: float, requested: float}
+     */
+    public static function balances(int $sellerId): array
     {
+        $inProgress = DB::table('orders')
+            ->whereNotIn('status', array_merge(OrderStatus::FINISHED, ['Returning', 'Returning to Branch', 'Return Ready']))
+            ->where(fn ($q) => $q->whereNull('payment_status')->orWhereNotIn('payment_status', array_merge(Payments::UNPAID, ['Refund Pending', 'Refunded'])))
+            ->pluck('id');
+
+        $pending = self::orders($sellerId, null, null, null, $inProgress->all())->sum('earning');
+        $completed = self::orders($sellerId, null, null, ['Completed'])->sum('earning');
+
+        $payouts = DB::table('seller_payout_requests')->where('seller_id', $sellerId)->whereIn('status', ['Pending', 'Paid'])
+            ->selectRaw("SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) as paid, SUM(CASE WHEN status = 'Pending' THEN amount ELSE 0 END) as requested")
+            ->first();
+
+        $paid = round((float) ($payouts->paid ?? 0), 2);
+        $requested = round((float) ($payouts->requested ?? 0), 2);
+
+        return [
+            'pending' => round((float) $pending, 2),
+            'available' => round(max(0, (float) $completed - $paid - $requested), 2),
+            'completed' => round((float) $completed, 2),
+            'paid_out' => $paid,
+            'requested' => $requested,
+        ];
+    }
+
+    /**
+     * One row per order with this seller's items, newest first: delivered
+     * ones by default, or the given statuses / order ids (optionally placed
+     * between $from and $to).
+     */
+    public static function orders(int $sellerId, ?string $from = null, ?string $to = null, ?array $statuses = null, ?array $orderIds = null): Collection
+    {
+        if ($orderIds !== null && !$orderIds) {
+            return collect();
+        }
+
         $rows = DB::table('orders')
             ->join('order_items', 'order_items.order_id', '=', 'orders.id')
             ->leftJoin('vouchers', 'vouchers.code', '=', 'orders.voucher_code')
             ->where('order_items.seller_id', $sellerId)
-            ->whereIn('orders.status', OrderStatus::DONE)
+            ->when($orderIds !== null, fn ($q) => $q->whereIn('orders.id', $orderIds), fn ($q) => $q->whereIn('orders.status', $statuses ?? OrderStatus::DONE))
             ->when($from, fn ($q) => $q->whereDate('orders.created_at', '>=', $from))
             ->when($to, fn ($q) => $q->whereDate('orders.created_at', '<=', $to))
             ->groupBy('orders.id', 'orders.delivered_at', 'orders.discount_amount', 'orders.commission_rate', 'vouchers.seller_id')

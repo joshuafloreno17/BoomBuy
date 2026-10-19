@@ -2116,6 +2116,151 @@ class SellerModulesSheetTest extends TestCase
      | S10 Returns
      * --------------------------------------------------------------- */
 
+    /* ---------------------------------------------------------------
+     | S12 Reports & Earnings
+     * ---------------------------------------------------------------
+     | BoomBuy rule (A9, ERP list "Commission 10%"): the commission is
+     | 10% of the items after the seller's own vouchers, so the worked
+     | example's Seller 1 net is ₱649.00 − ₱64.90 = ₱584.10 (the sheet's
+     | 5% gives ₱616.55).
+     */
+
+    /** The worked example with BoomBuy's PLAT100 and FREESHIP too; Seller 1's order. */
+    private function workedExampleWithPlatform(): object
+    {
+        \App\Models\Voucher::create(['seller_id' => null, 'kind' => 'platform', 'code' => 'PLAT100', 'discount_type' => 'fixed', 'discount_value' => 100, 'min_order_amount' => 1000, 'per_buyer_limit' => 1, 'is_active' => true, 'display' => 'claimable']);
+        \App\Models\Voucher::create(['seller_id' => null, 'kind' => 'shipping', 'code' => 'FREESHIP', 'discount_type' => 'fixed', 'discount_value' => 50, 'min_order_amount' => 300, 'per_buyer_limit' => 1, 'is_active' => true, 'display' => 'claimable']);
+        $this->sheetRates();
+        $this->createVoucher()->assertSessionHasNoErrors();
+        $cart = [$this->p01()->id . ':' . $this->variant('Natural-M')->id => 1, $this->p02()->id . ':0' => 1, $this->p05()->id . ':0' => 1];
+
+        $this->flushSession();
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart, \App\Support\VoucherSelection::KEY => ['MCH50', 'PLAT100', 'FREESHIP']])->post(route('checkout.place'), [
+            'address' => self::ADDR_1, 'phone' => '09171234567', 'payment' => 'Cash on Delivery',
+        ])->assertSessionDoesntHaveErrors();
+
+        $orderId = DB::table('order_items')->where('seller_id', $this->seller1()->id)->value('order_id');
+
+        return DB::table('orders')->find($orderId);
+    }
+
+    private function earnings(): array
+    {
+        $response = $this->as($this->seller1())->get(route('seller.earnings'))->assertOk();
+
+        return ['page' => $response->getContent(), 'balances' => $response->viewData('balances')];
+    }
+
+    public function test_SEL_EARN_001_net_earnings_calculation(): void
+    {
+        $order = $this->workedExampleWithPlatform();
+        $this->setOrder($order->id, ['status' => 'Completed', 'buyer_received_at' => now()]);
+
+        // The checkout itself matches the sheet: ₱63.66 PLAT100 share for Seller 1, FREESHIP on shipping.
+        $this->assertSame(['50.00', '63.66', '65.00'], [$this->money($order->discount_amount), $this->money($order->platform_discount), $this->money($order->delivery_fee)]);
+
+        $html = $this->earnings()['page'];
+        preg_match('/data-earning-order="' . $order->id . '">.*?<\/small>/s', $html, $row);
+        $this->assertStringContainsString('Gross <b data-gross>₱699.00</b>', $row[0]);
+        $this->assertStringContainsString('Your voucher <b data-voucher>−₱50.00</b>', $row[0]);
+        $this->assertStringContainsString('Commission 10% <b data-commission>−₱64.90</b>', $row[0]);
+        $this->assertStringContainsString('Net <b data-net>₱584.10</b>', $row[0]);
+        $this->assertStringNotContainsString('63.66', $row[0]);
+        $this->assertStringNotContainsString('65.00', $row[0]);
+    }
+
+    public function test_SEL_EARN_002_earnings_pending_until_completion(): void
+    {
+        $order = $this->workedExampleWithPlatform();
+        $this->setOrder($order->id, ['status' => 'Delivered', 'delivered_at' => now()]);
+
+        $this->assertSame([584.10, 0.0], [$this->earnings()['balances']['pending'], $this->earnings()['balances']['available']]);
+
+        $this->as($this->buyer1())->post(route('buyer.order.received', $order->id))->assertSessionHas('success');
+
+        $this->assertSame([0.0, 584.10], [$this->earnings()['balances']['pending'], $this->earnings()['balances']['available']]);
+    }
+
+    public function test_SEL_EARN_003_cancelled_and_refunded_orders_excluded(): void
+    {
+        $p02 = $this->p02();
+        $this->makeOrder($this->buyer1(), $p02, 'Cancelled');
+        $refunded = $this->returnRequest('Refund');
+        DB::table('return_refund_requests')->where('id', $refunded->id)->update(['status' => 'completed', 'refunded_at' => now()]);
+
+        $report = $this->as($this->seller1())->get(route('seller.reports'))->assertOk();
+        $this->assertEquals(0, $report->viewData('totalSales'));
+        $this->assertEquals(0, $report->viewData('commissionOwed'));
+        $this->assertEquals(0, $report->viewData('netEarnings'));
+        $this->assertSame(0, $report->viewData('deliveredOrders'));
+        $this->assertSame(0.0, $this->earnings()['balances']['available']);
+    }
+
+    public function test_SEL_EARN_004_report_date_range(): void
+    {
+        $p02 = $this->p02();
+        $today = $this->makeOrder($this->buyer1(), $p02, 'Completed');
+        $fiveDays = $this->makeOrder($this->buyer1(), $p02, 'Completed', ['created_at' => now()->subDays(5)]);
+        $tenDays = $this->makeOrder($this->buyer1(), $p02, 'Completed', ['created_at' => now()->subDays(10)]);
+        $sales = fn (array $range) => $this->as($this->seller1())->get(route('seller.reports', $range))->assertOk()->viewData('totalSales');
+
+        $this->assertEquals(450, $sales(['from' => now()->toDateString(), 'to' => now()->toDateString()]));
+        $this->assertEquals(900, $sales(['from' => now()->subDays(6)->toDateString(), 'to' => now()->toDateString()]));
+        // A range that starts and ends on an order's date includes it.
+        $this->assertEquals(450, $sales(['from' => now()->subDays(10)->toDateString(), 'to' => now()->subDays(10)->toDateString()]));
+        $this->assertEquals(1350, $sales(['from' => now()->subDays(10)->toDateString(), 'to' => now()->toDateString()]));
+
+        $this->as($this->seller1())->get(route('seller.reports', ['from' => now()->toDateString(), 'to' => now()->subDay()->toDateString()]))
+            ->assertRedirect(route('seller.reports'))->assertSessionHas('error', 'The end date must be on or after the start date.');
+        $this->assertNotEmpty([$today, $fiveDays, $tenDays]);
+    }
+
+    public function test_SEL_EARN_005_payout_request_amounts(): void
+    {
+        $order = $this->workedExampleWithPlatform();
+        $this->setOrder($order->id, ['status' => 'Completed', 'buyer_received_at' => now()]);
+        $this->assertSame(584.10, $this->earnings()['balances']['available']);
+        $ask = fn (string $amount) => $this->as($this->seller1())->from(route('seller.earnings'))->post(route('seller.payouts.store'), ['amount' => $amount, 'method' => 'GCash']);
+
+        foreach (['99.99', '584.11', '0', 'abc'] as $bad) {
+            $ask($bad)->assertSessionHasErrors(['amount']);
+        }
+        $this->assertSame(0, DB::table('seller_payout_requests')->count());
+
+        $ask('100.00')->assertSessionHasNoErrors();
+        $this->assertSame(484.10, $this->earnings()['balances']['available']);
+        $this->as($this->seller1())->get(route('seller.earnings'))->assertSee('data-payout=', false)->assertSee('Pending');
+        $this->as($this->seller1())->post(route('seller.payouts.cancel', DB::table('seller_payout_requests')->value('id')))->assertSessionHas('success');
+
+        $ask('584.10')->assertSessionHasNoErrors();
+        $this->assertSame(0.0, $this->earnings()['balances']['available']);
+    }
+
+    public function test_SEL_EARN_006_second_payout_while_one_is_pending(): void
+    {
+        $order = $this->workedExampleWithPlatform();
+        $this->setOrder($order->id, ['status' => 'Completed', 'buyer_received_at' => now()]);
+
+        $this->as($this->seller1())->post(route('seller.payouts.store'), ['amount' => '100.00'])->assertSessionHasNoErrors();
+        $this->as($this->seller1())->from(route('seller.earnings'))->post(route('seller.payouts.store'), ['amount' => '100.00'])
+            ->assertSessionHasErrors(['amount' => 'You already have a payout request pending. Wait for it to be paid (or cancel it) before asking again.']);
+
+        $this->assertSame(1, DB::table('seller_payout_requests')->count());
+    }
+
+    public function test_SEL_EARN_007_double_click_request_payout(): void
+    {
+        $order = $this->workedExampleWithPlatform();
+        $this->setOrder($order->id, ['status' => 'Completed', 'buyer_received_at' => now()]);
+        $form = ['amount' => '100.00', \App\Support\SubmitOnce::FIELD => (string) Str::uuid()];
+
+        $this->as($this->seller1())->post(route('seller.payouts.store'), $form);
+        $this->as($this->seller1())->post(route('seller.payouts.store'), $form)->assertSessionHas('success', 'Your payout request was already sent.');
+
+        $this->assertSame(1, DB::table('seller_payout_requests')->count());
+        $this->assertSame(484.10, $this->earnings()['balances']['available']);
+    }
+
     /** Buyer 1's pending return for P-02 (₱450.00) with 2 photos. */
     private function returnRequest(string $type = 'Return'): object
     {

@@ -7,6 +7,7 @@ use App\Http\Controllers\StoreCategoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\BuyerVoucherController;
+use App\Http\Controllers\SellerEarningsController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -1085,3 +1086,8 @@ Route::post('/pay/{group}/cancel', [PaymentController::class, 'cancel'])->name('
 Route::get('/buyer/vouchers', [BuyerVoucherController::class, 'index'])->name('buyer.vouchers');
 Route::post('/vouchers/{id}/claim', [BuyerVoucherController::class, 'claim'])->whereNumber('id')->name('vouchers.claim');
 Route::get('/messages/attachment/{id}', [MessageController::class, 'attachment'])->whereNumber('id')->name('messages.attachment');
+
+// Seller earnings and payouts (S12)
+Route::get('/seller/earnings', [SellerEarningsController::class, 'index'])->name('seller.earnings');
+Route::post('/seller/payouts', [SellerEarningsController::class, 'requestPayout'])->name('seller.payouts.store');
+Route::post('/seller/payouts/{id}/cancel', [SellerEarningsController::class, 'cancelPayout'])->whereNumber('id')->name('seller.payouts.cancel');
