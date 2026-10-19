@@ -181,6 +181,30 @@
 
         </div>
 
+        <!-- BLACK-BOX TEST SHEETS -->
+
+        <div class="card">
+            <h2><i class="bi bi-clipboard-check"></i> Test Sheet Data</h2>
+            <p class="desc">For the black-box test sheets. <strong>Prepare for Module tests</strong> makes (or puts back) the Test Data tab: the @example.com accounts, Seller 1's store categories, products P-01 to P-07, the vouchers and the zones &amp; rates — run it before each module. <strong>Prepare for Account Creation tests</strong> removes every @example.com account and what they made, so the sign-up cases can start fresh. Emails to these accounts are read in the <a href="{{ route('mailbox') }}" target="_blank" rel="noopener">Test Mailbox</a>.</p>
+
+            <div style="display:flex; flex-wrap:wrap; gap:10px;">
+                <form method="POST" action="{{ route('admin.settings.testsheet.seed') }}"
+                      data-confirm="Set up the Test Data accounts, products, vouchers and zones? Changes testers made to them are put back."
+                      data-confirm-ok="Prepare">
+                    @csrf
+                    <button type="submit" class="save-btn"><i class="bi bi-box-seam"></i> Prepare for Module tests</button>
+                </form>
+
+                <form method="POST" action="{{ route('admin.settings.testsheet.clear') }}"
+                      data-confirm="Remove every @example.com test account with its orders, products and chats, the sheet's vouchers and zones, and the Test Mailbox? Real accounts are not touched."
+                      data-confirm-ok="Remove"
+                      data-confirm-danger>
+                    @csrf
+                    <button type="submit" class="save-btn" style="background:#dc2626;"><i class="bi bi-eraser"></i> Prepare for Account Creation tests</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     </main>
