@@ -327,7 +327,7 @@ class PlaceOrderService
 
                     createNotification(
                         (int) $buyer['id'],
-                        'Order Confirmed',
+                        'Order Placed',
                         'Your order #' . $orderId . ' has been placed successfully and is now Pending.',
                         'order',
                         (int) $orderId
