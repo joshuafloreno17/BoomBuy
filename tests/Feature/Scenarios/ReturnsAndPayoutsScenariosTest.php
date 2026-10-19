@@ -133,9 +133,9 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
         $id = (int) DB::table('return_refund_requests')->value('id');
 
         $this->as($buyer)->post(route('buyer.return-refund.escalate', $id))->assertSessionHas('error'); // not rejected yet
-        $this->as($this->seller)->post(route('seller.return-refund.reject', $id), ['seller_note' => 'Looks used'])->assertSessionHas('success');
+        $this->as($this->seller)->post(route('seller.return-refund.reject', $id), ['seller_note' => 'Looks used and worn out'])->assertSessionHas('success');
 
-        $this->as($buyer)->get(route('buyer.orders'))->assertSee('Ask BoomBuy to review');
+        $this->as($buyer)->get(route('buyer.orders'))->assertSee('Escalate to a dispute');
         $this->post(route('buyer.return-refund.escalate', $id), ['why' => 'It arrived broken, see photo'])->assertSessionHas('success');
         $this->assertSame('disputed', $this->statusOf($id));
 
@@ -149,22 +149,22 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
         $buyer2 = $this->buyerAt(self::QC_ADDRESS);
         $this->ask($buyer2, $this->qcOrder($buyer2), 'Refund');
         $id2 = (int) DB::table('return_refund_requests')->orderByDesc('id')->value('id');
-        $this->as($this->seller)->post(route('seller.return-refund.reject', $id2), ['seller_note' => 'No damage']);
+        $this->as($this->seller)->post(route('seller.return-refund.reject', $id2), ['seller_note' => 'No damage on the photos']);
         $this->as($buyer2)->post(route('buyer.return-refund.escalate', $id2));
         $this->as(null)->post(route('admin.returns.decide', $id2), ['decision' => 'reject', 'note' => 'Photos show no damage.'])->assertSessionHas('success');
         $this->assertSame('rejected', $this->statusOf($id2));
         $this->as($buyer2)->post(route('buyer.return-refund.escalate', $id2))->assertSessionHas('error', fn ($m) => str_contains($m, 'final'));
     }
 
-    public function test_RT03_rejections_can_only_be_escalated_for_seven_days(): void
+    public function test_RT03_rejections_can_only_be_escalated_for_three_days(): void
     {
         $buyer = $this->buyerAt(self::QC_ADDRESS);
         $this->ask($buyer, $this->qcOrder($buyer));
         $id = (int) DB::table('return_refund_requests')->value('id');
-        $this->as($this->seller)->post(route('seller.return-refund.reject', $id), ['seller_note' => 'No']);
+        $this->as($this->seller)->post(route('seller.return-refund.reject', $id), ['seller_note' => 'No damage found on it']);
 
-        $this->travelTo(now()->addDays(8));
-        $this->as($buyer)->post(route('buyer.return-refund.escalate', $id))->assertSessionHas('error', fn ($m) => str_contains($m, 'within 7 days'));
+        $this->travelTo(now()->addDays(4));
+        $this->as($buyer)->post(route('buyer.return-refund.escalate', $id))->assertSessionHas('error', fn ($m) => str_contains($m, 'within 3 days'));
     }
 
     public function test_RT04_silent_seller_and_returns_never_brought_in(): void
@@ -182,8 +182,9 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
 
         $done = StaleOrders::sweep(true);
 
+        // Unanswered for 3 days: approved for the seller (Seller Modules A31).
         $this->assertSame(1, $done['escalated']);
-        $this->assertSame('disputed', $this->statusOf($silent));
+        $this->assertSame('approved', $this->statusOf($silent));
         $this->assertSame(1, $done['returns_cancelled']);
         $this->assertSame('cancelled', $this->statusOf($idle));
         $this->assertTrue($this->notifiedWith($buyer2, 'Return Cancelled'));

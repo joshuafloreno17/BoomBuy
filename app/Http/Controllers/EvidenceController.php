@@ -41,7 +41,13 @@ class EvidenceController extends Controller
 
         abort_unless($allowed, 403);
 
-        return $this->serve($request->evidence);
+        // ?photo=0 is the first photo, 1–4 the others.
+        $photos = array_values(array_filter(array_merge([$request->evidence], (array) json_decode((string) ($request->evidence_photos ?? ''), true))));
+        $path = $photos[(int) request('photo', 0)] ?? null;
+
+        abort_unless($path, 404);
+
+        return $this->serve($path);
     }
 
     /**

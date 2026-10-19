@@ -2111,4 +2111,134 @@ class SellerModulesSheetTest extends TestCase
         $this->as($this->seller1())->get(route('seller.order.details', $orders['seller2']->id))->assertNotFound()->assertDontSee('USB-C Fast Charger 20W');
         $this->as($this->seller1())->get(route('seller.order.label', $orders['seller2']->id))->assertNotFound();
     }
+
+    /* ---------------------------------------------------------------
+     | S10 Returns
+     * --------------------------------------------------------------- */
+
+    /** Buyer 1's pending return for P-02 (₱450.00) with 2 photos. */
+    private function returnRequest(string $type = 'Return'): object
+    {
+        Storage::disk('local')->put('evidence/photo1.jpg', 'one');
+        Storage::disk('local')->put('evidence/photo2.jpg', 'two');
+        $orderId = $this->makeOrder($this->buyer1(), $this->p02(), 'Completed', ['buyer_received_at' => now(), 'delivered_at' => now()]);
+        $itemId = DB::table('order_items')->where('order_id', $orderId)->value('id');
+
+        $id = DB::table('return_refund_requests')->insertGetId([
+            'order_id' => $orderId, 'order_item_id' => $itemId, 'buyer_id' => $this->buyer1()->id, 'seller_id' => $this->seller1()->id,
+            'request_type' => $type, 'reason' => 'Damaged item', 'message' => 'The basket arrived with a broken handle.',
+            'evidence' => 'evidence/photo1.jpg', 'evidence_photos' => json_encode(['evidence/photo2.jpg']),
+            'refund_amount' => 450, 'refund_method' => 'GCash', 'refund_account_name' => 'Juan Dela Cruz', 'refund_account_number' => '09171234567',
+            'status' => 'pending', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return DB::table('return_refund_requests')->find($id);
+    }
+
+    private function returnStatus(object $request): string
+    {
+        return (string) DB::table('return_refund_requests')->where('id', $request->id)->value('status');
+    }
+
+    public function test_SEL_RET_001_view_a_return_request_with_evidence(): void
+    {
+        $request = $this->returnRequest();
+
+        $page = $this->as($this->seller1())->get(route('seller.orders', ['tab' => 'returns']))->assertOk()
+            ->assertSee('Damaged item')->assertSee('The basket arrived with a broken handle.')
+            ->assertSee('Rattan Fruit Basket')->assertSee('Amount ₱450.00')
+            ->assertSee('Respond by ' . now()->addDays(3)->format('M d, Y • h:i A'));
+
+        foreach ([0, 1] as $photo) {
+            $page->assertSee(route('return-refund.evidence', [$request->id, 'photo' => $photo]), false);
+        }
+
+        // Full size on click: each photo opens.
+        $this->as($this->seller1())->get(route('return-refund.evidence', [$request->id, 'photo' => 1]))->assertOk();
+    }
+
+    public function test_SEL_RET_002_approve_a_return_request(): void
+    {
+        $request = $this->returnRequest();
+
+        $this->as($this->seller1())->post(route('seller.return-refund.approve', $request->id))->assertSessionHas('success');
+
+        $this->assertSame('approved', $this->returnStatus($request));
+        $this->assertTrue($this->notifiedWith($this->buyer1(), 'Return Approved'));
+        $this->assertStringContainsString('bring it to', DB::table('notifications')->where('user_id', $this->buyer1()->id)->where('title', 'Return Approved')->value('message'));
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertSee('Approved — bring the item to the Sorting Center');
+        $this->as($this->seller1())->get(route('seller.orders', ['tab' => 'returns']))->assertSee('Approved — bring the item to the Sorting Center');
+    }
+
+    public function test_SEL_RET_003_reject_without_a_reason(): void
+    {
+        $request = $this->returnRequest();
+
+        foreach (['', 'Item used'] as $note) {
+            $this->as($this->seller1())->post(route('seller.return-refund.reject', $request->id), ['seller_note' => $note])->assertSessionHas('error');
+        }
+
+        $this->assertSame('pending', $this->returnStatus($request));
+    }
+
+    public function test_SEL_RET_004_reject_with_a_reason(): void
+    {
+        $request = $this->returnRequest();
+        $reason = 'Item shows signs of use and the tag is removed.';
+
+        $this->as($this->seller1())->post(route('seller.return-refund.reject', $request->id), ['seller_note' => $reason])->assertSessionHas('success');
+
+        $this->assertSame('rejected', $this->returnStatus($request));
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertSee('Rejected')->assertSee($reason)->assertSee('Escalate to a dispute');
+        $this->as($this->seller1())->get(route('seller.orders', ['tab' => 'returns']))->assertSee('Rejected');
+    }
+
+    public function test_SEL_RET_005_escalate_to_a_dispute(): void
+    {
+        $request = $this->returnRequest();
+        $this->as($this->seller1())->post(route('seller.return-refund.reject', $request->id), ['seller_note' => 'Item shows signs of use and the tag is removed.']);
+        $this->travel(2)->days();
+
+        $this->as($this->buyer1())->post(route('buyer.return-refund.escalate', $request->id))->assertSessionHas('success');
+
+        $this->assertSame('disputed', $this->returnStatus($request));
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertSee('In Dispute');
+        $this->as($this->seller1())->get(route('seller.orders', ['tab' => 'returns']))->assertSee('In Dispute')
+            ->assertDontSee(route('seller.return-refund.approve', $request->id), false);
+        $this->as($this->seller1())->post(route('seller.return-refund.approve', $request->id))->assertSessionHas('error');
+        $this->as($this->seller1())->post(route('seller.return-refund.reject', $request->id), ['seller_note' => 'Still rejecting this one.'])->assertSessionHas('error');
+
+        // Only once.
+        $this->as($this->buyer1())->post(route('buyer.return-refund.escalate', $request->id))->assertSessionHas('error');
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertDontSee('Escalate to a dispute');
+    }
+
+    public function test_SEL_RET_006_no_response_within_3_days(): void
+    {
+        // The checks have run before (the first run only notes when they started).
+        \App\Support\StaleOrders::sweep(true);
+        $request = $this->returnRequest();
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse($request->created_at)->addDays(3)->subMinute());
+        \App\Support\StaleOrders::sweep(true);
+        $this->assertSame('pending', $this->returnStatus($request));
+
+        $this->travelTo(\Illuminate\Support\Carbon::parse($request->created_at)->addDays(3)->addMinute());
+        \App\Support\StaleOrders::sweep(true);
+
+        $this->assertSame('approved', $this->returnStatus($request));
+        $this->assertTrue((bool) DB::table('return_refund_requests')->where('id', $request->id)->value('auto_approved'));
+        $this->assertTrue($this->notifiedWith($this->buyer1(), 'Return Approved'));
+    }
+
+    public function test_SEL_RET_007_refunded_amount_removed_from_earnings(): void
+    {
+        $request = $this->returnRequest();
+        $before = $this->as($this->seller1())->get(route('seller.reports'))->viewData('totalSales');
+        $this->assertEquals(450, $before);
+
+        DB::table('return_refund_requests')->where('id', $request->id)->update(['status' => 'completed', 'refunded_at' => now()]);
+
+        $this->assertEquals(0, $this->as($this->seller1())->get(route('seller.reports'))->viewData('totalSales'));
+    }
 }

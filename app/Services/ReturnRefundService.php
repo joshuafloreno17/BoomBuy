@@ -33,13 +33,18 @@ class ReturnRefundService
     /** Where the buyer's refund can go. */
     public const REFUND_METHODS = ['GCash', 'Maya', 'Bank transfer'];
 
-    /** Days after a rejection the buyer may still ask BoomBuy to review it. */
-    public const DISPUTE_DAYS = 7;
+    /** Days after a rejection the buyer may still escalate it to a dispute (A31). */
+    public const DISPUTE_DAYS = 3;
+
+    /** A seller's reason for rejecting: 10–300 characters (A25). */
+    public const REASON_MIN = 10;
+
+    public const REASON_MAX = 300;
 
     /** What each status means, for the buyer, seller and admin pages. */
     public const LABELS = [
         'pending' => 'Waiting for the seller',
-        'disputed' => 'BoomBuy is reviewing',
+        'disputed' => 'In Dispute — BoomBuy is reviewing',
         'approved' => 'Approved — bring the item to the Sorting Center',
         'dropped_off' => 'Received at the Sorting Center',
         'in_transit' => 'On its way back to the seller',
@@ -92,7 +97,7 @@ class ReturnRefundService
         }
 
         if (\Illuminate\Support\Carbon::parse($request->updated_at)->addDays(self::DISPUTE_DAYS)->isPast()) {
-            throw new ActionFailed('You can ask BoomBuy to review a rejection within ' . self::DISPUTE_DAYS . ' days. This one is older.');
+            throw new ActionFailed('You can escalate a rejection to a dispute within ' . self::DISPUTE_DAYS . ' days. This one is older.');
         }
 
         $why = trim($why);
@@ -140,12 +145,13 @@ class ReturnRefundService
         }
 
         $note = trim($note);
+        $length = mb_strlen($note);
 
-        if ($note === '') {
-            throw new ActionFailed('Please tell the buyer why you are rejecting it.');
+        if ($length < self::REASON_MIN || $length > self::REASON_MAX) {
+            throw new ActionFailed('Please tell the buyer why you are rejecting it in ' . self::REASON_MIN . ' to ' . self::REASON_MAX . ' characters (now ' . $length . ').');
         }
 
-        $this->move($requestId, 'pending', 'rejected', ['seller_note' => \Illuminate\Support\Str::limit($note, 500)]);
+        $this->move($requestId, 'pending', 'rejected', ['seller_note' => $note]);
 
         createNotification(
             (int) $request->buyer_id,
@@ -396,6 +402,28 @@ class ReturnRefundService
     }
 
     /** Approved (by the seller or BoomBuy): a Return waits for drop-off, a Refund goes straight to BoomBuy. */
+    /**
+     * The seller didn't answer within StaleOrders::RETURN_ANSWER_DAYS: the
+     * request is approved for them (A31).
+     */
+    public function autoApprove(int $requestId): bool
+    {
+        $request = $this->find($requestId, fn ($q) => $q);
+
+        if ($request->status !== 'pending') {
+            return false;
+        }
+
+        $this->accept($request, 'pending', 'Auto-approved: the seller did not answer within ' . \App\Support\StaleOrders::RETURN_ANSWER_DAYS . ' days.');
+        \Illuminate\Support\Facades\DB::table('return_refund_requests')->where('id', $requestId)->update(['auto_approved' => true]);
+
+        if ($request->seller_id) {
+            createNotification((int) $request->seller_id, 'Return Auto-approved', 'You did not answer the ' . strtolower($request->request_type) . ' request for order #' . $request->order_id . ' within ' . \App\Support\StaleOrders::RETURN_ANSWER_DAYS . ' days, so it was approved.', 'return_refund', $requestId);
+        }
+
+        return true;
+    }
+
     private function accept(object $request, string $from, string $note): void
     {
         $isReturn = $request->request_type === 'Return';

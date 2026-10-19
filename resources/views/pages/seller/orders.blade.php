@@ -406,6 +406,10 @@
 
                                 <div class="date">
                                     Requested {{ \Carbon\Carbon::parse($request->created_at)->format('M d, Y • h:i A') }}
+                                    · Amount ₱{{ number_format((float) $request->refund_amount, 2) }}
+                                    @if($request->status === 'pending')
+                                        · <strong data-respond-by="{{ $request->id }}">Respond by {{ \Carbon\Carbon::parse($request->created_at)->addDays(\App\Support\StaleOrders::RETURN_ANSWER_DAYS)->format('M d, Y • h:i A') }}</strong>
+                                    @endif
                                 </div>
 
                             </div>
@@ -478,9 +482,12 @@
                                         Photo Evidence
                                     </div>
 
-                                    <a href="{{ route('return-refund.evidence', $request->id) }}" target="_blank">
-                                        <img src="{{ route('return-refund.evidence', $request->id) }}" alt="Return evidence" style="max-width:160px; border-radius:8px; margin-top:6px;">
+                                    @php $photoCount = 1 + count((array) json_decode((string) ($request->evidence_photos ?? ''), true)); @endphp
+                                    @for($photo = 0; $photo < $photoCount; $photo++)
+                                    <a href="{{ route('return-refund.evidence', [$request->id, 'photo' => $photo]) }}" target="_blank" data-evidence-photo="{{ $photo }}">
+                                        <img src="{{ route('return-refund.evidence', [$request->id, 'photo' => $photo]) }}" alt="Return evidence photo {{ $photo + 1 }}" style="max-width:160px; border-radius:8px; margin-top:6px;">
                                     </a>
+                                    @endfor
 
                                 </div>
 
@@ -616,12 +623,14 @@
         >
             @csrf
 
-            <label for="seller_note">Seller Note</label>
+            <label for="seller_note">Reason for rejecting <small>(10–300 characters, the buyer sees it)</small></label>
 
             <textarea
                 name="seller_note"
                 id="seller_note"
-                placeholder="e.g. Item does not meet return policy conditions..."
+                placeholder="e.g. Item shows signs of use and the tag is removed."
+                minlength="10"
+                maxlength="300"
                 required
             ></textarea>
 

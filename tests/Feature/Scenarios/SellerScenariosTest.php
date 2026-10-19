@@ -336,7 +336,7 @@ class SellerScenariosTest extends TestCase
         // Rejecting needs a reason the buyer sees.
         $rejected = $make('Refund');
         $this->post(route('seller.return-refund.reject', $rejected), ['seller_note' => ''])->assertSessionHas('error');
-        $this->post(route('seller.return-refund.reject', $rejected), ['seller_note' => 'Used item'])->assertSessionHas('success');
+        $this->post(route('seller.return-refund.reject', $rejected), ['seller_note' => 'Used item with the tag removed'])->assertSessionHas('success');
         $this->assertTrue($this->notifiedWith($buyer, 'Refund Request Rejected'));
     }
 

@@ -714,7 +714,7 @@
                                                     Disagree? Tell BoomBuy why
                                                     <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid #e9e4fa; border-radius:8px; font:inherit;">
                                                 </label>
-                                                <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Ask BoomBuy to review</button>
+                                                <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Escalate to a dispute</button>
                                             </form>
                                         @endif
                                     </span>

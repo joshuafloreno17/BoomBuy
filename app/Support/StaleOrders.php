@@ -141,39 +141,21 @@ class StaleOrders
         return $sent;
     }
 
-    /** Requests the seller left unanswered go to BoomBuy. */
+    /** Requests the seller left unanswered for RETURN_ANSWER_DAYS are approved for them (A31). */
     private static function escalateUnanswered(): int
     {
         $due = DB::table('return_refund_requests')
             ->where('status', 'pending')
             ->where('created_at', '<=', now()->subDays(self::RETURN_ANSWER_DAYS))
-            ->get(['id', 'order_id', 'buyer_id', 'seller_id']);
+            ->pluck('id');
 
         $moved = 0;
+        $returns = app(\App\Services\ReturnRefundService::class);
 
-        foreach ($due as $request) {
-            $updated = DB::table('return_refund_requests')->where('id', $request->id)->where('status', 'pending')->update([
-                'status' => 'disputed',
-                'escalated_at' => now(),
-                'admin_note' => 'The seller did not answer within ' . self::RETURN_ANSWER_DAYS . ' days.',
-                'updated_at' => now(),
-            ]);
-
-            if (!$updated) {
-                continue;
+        foreach ($due as $requestId) {
+            if ($returns->autoApprove((int) $requestId)) {
+                $moved++;
             }
-
-            createNotification((int) $request->buyer_id, 'Return Sent to BoomBuy', 'The seller did not answer your request for order #' . $request->order_id . ' in time, so BoomBuy will decide it.', 'return_refund', (int) $request->id);
-
-            if ($request->seller_id) {
-                createNotification((int) $request->seller_id, 'Return Sent to BoomBuy', 'You did not answer the return/refund request for order #' . $request->order_id . ' within ' . self::RETURN_ANSWER_DAYS . ' days, so BoomBuy will decide it.', 'return_refund', (int) $request->id);
-            }
-
-            if ($adminId = SupportAccount::id()) {
-                createNotification($adminId, 'Return Review Requested', 'Request #' . $request->id . ' (order #' . $request->order_id . ') was not answered by the seller. Please decide it.', 'return_refund', (int) $request->id);
-            }
-
-            $moved++;
         }
 
         return $moved;
