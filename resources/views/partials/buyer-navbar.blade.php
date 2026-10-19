@@ -308,6 +308,10 @@
                         <i class="bi bi-heart-fill"></i> Wishlist
                     </a>
 
+                    <a href="{{ route('buyer.following') }}" role="menuitem" class="{{ $bbActive === 'following' ? 'active' : '' }}">
+                        <i class="bi bi-shop"></i> Following
+                    </a>
+
                     <a href="{{ route('buyer.vouchers') }}" role="menuitem" class="{{ $bbActive === 'vouchers' ? 'active' : '' }}">
                         <i class="bi bi-ticket-perforated-fill"></i> My Vouchers
                     </a>

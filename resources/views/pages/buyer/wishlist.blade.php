@@ -78,6 +78,10 @@
 
                                 <span class="out-of-stock-label">Unavailable</span>
 
+                            @elseif((int) $product->sellable_stock <= 0)
+
+                                <span class="out-of-stock-label">Sold out</span>
+
                             @elseif($product->has_options)
 
                                 {{-- Color/size has to be picked on the product page. --}}
@@ -96,7 +100,7 @@
 
                             @else
 
-                                <span class="out-of-stock-label">Out of Stock</span>
+                                <span class="out-of-stock-label">Sold out</span>
 
                             @endif
 

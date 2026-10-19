@@ -114,10 +114,25 @@ class CartController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $requestedQty = max(1, (int) request('quantity', 1));
+        // A whole number from 1 up to what is in stock (A17); never silently changed.
+        $rawQty = trim((string) request('quantity', '1'));
 
-        // Never more than what's actually in stock.
-        $cart[$cartKey] = min($currentQuantity + $requestedQty, $effectiveStock);
+        if (!ctype_digit($rawQty) || (int) $rawQty < 1) {
+            return $this->addResult(false, 'Enter a quantity from 1 to ' . $effectiveStock . '.');
+        }
+
+        $requestedQty = (int) $rawQty;
+
+        if ($currentQuantity + $requestedQty > $effectiveStock) {
+            return $this->addResult(false, 'Only ' . $effectiveStock . ' available' . ($currentQuantity ? ' (you have ' . $currentQuantity . ' in your cart)' : '') . '.');
+        }
+
+        // The seller's most-per-buyer (orders placed before count too).
+        if ($limitError = $product->purchaseLimitError((int) $user['id'], $currentQuantity + $requestedQty)) {
+            return $this->addResult(false, $limitError);
+        }
+
+        $cart[$cartKey] = $currentQuantity + $requestedQty;
 
         /*
         |--------------------------------------------------------------------------
@@ -183,10 +198,16 @@ class CartController extends Controller
             return back()->with('error', Product::VACATION_MESSAGE);
         }
 
-        $quantity = (int) request('quantity', 1);
+        $rawQty = trim((string) request('quantity', '1'));
 
-        if ($quantity < 1) {
-            $quantity = 1;
+        if (!ctype_digit($rawQty) || (int) $rawQty < 1) {
+            return back()->with('error', 'Enter a whole quantity of at least 1.');
+        }
+
+        $quantity = (int) $rawQty;
+
+        if ($limitError = $product->purchaseLimitError((int) $user['id'], $quantity)) {
+            return back()->with('error', $limitError);
         }
 
         [$variation, $variationError] = $product->resolveVariation((int) request('variation_id', 0));
@@ -236,13 +257,34 @@ class CartController extends Controller
         $variation = $variationId ? \App\Models\ProductVariation::find($variationId) : null;
 
         $blocked = false;
+        $blockMessage = 'No more stock available for this product.';
+        $effectiveStock = $variation ? (int) $variation->stock : (int) ($product->stock ?? 0);
+        $buyerId = (int) (session('user')['id'] ?? 0);
 
-        if ($action === 'increase') {
+        if ($action === 'set') {
+            // A typed quantity: a whole number from 1 to the stock (A17).
+            $rawQty = trim((string) request('quantity', ''));
 
-            $effectiveStock = $variation ? (int) $variation->stock : (int) ($product->stock ?? 0);
+            if (!ctype_digit($rawQty) || (int) $rawQty < 1) {
+                $blocked = true;
+                $blockMessage = 'Enter a quantity of at least 1, or remove the item.';
+            } elseif ((int) $rawQty > $effectiveStock) {
+                $blocked = true;
+                $blockMessage = 'Only ' . $effectiveStock . ' available.';
+            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, (int) $rawQty))) {
+                $blocked = true;
+                $blockMessage = $limitError;
+            } else {
+                $cart[$key] = (int) $rawQty;
+            }
+        } elseif ($action === 'increase') {
 
             if ($cart[$key] >= $effectiveStock) {
                 $blocked = true;
+                $blockMessage = 'Only ' . $effectiveStock . ' available.';
+            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, $cart[$key] + 1))) {
+                $blocked = true;
+                $blockMessage = $limitError;
             } else {
                 $cart[$key]++;
             }
@@ -276,14 +318,14 @@ class CartController extends Controller
                         ? number_format($unitPrice * $newQuantity, 2)
                         : '0.00',
                     'blocked' => $blocked,
-                    'message' => $blocked ? 'No more stock available for this product.' : null,
+                    'message' => $blocked ? $blockMessage : null,
                 ],
                 cartSummary($cart)
             ));
         }
 
         if ($blocked) {
-            return back()->with('error', 'No more stock available for this product.');
+            return back()->with('error', $blockMessage);
         }
 
         return back();

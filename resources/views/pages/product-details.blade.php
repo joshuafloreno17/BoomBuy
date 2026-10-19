@@ -621,7 +621,8 @@
                 <div class="review-card" data-stars="{{ (int) $review->rating }}">
 
                     <div class="review-top">
-                        <span class="review-name">{{ $review->buyer_name }}</span>
+                        {{-- Masked: "Juan Miguel" → "J*** M***". --}}
+                        <span class="review-name">{{ collect(preg_split('/\s+/', trim((string) $review->buyer_name)))->filter()->map(fn ($w) => mb_substr($w, 0, 1) . '***')->implode(' ') }}</span>
                         <span class="review-stars" aria-label="{{ (int) $review->rating }} out of 5 stars">{!! str_repeat('<i class="bi bi-star-fill"></i>', (int) $review->rating) !!}</span>
                     </div>
 
@@ -629,8 +630,21 @@
                         {{ \Illuminate\Support\Carbon::parse($review->created_at)->format('F d, Y') }}
                     </div>
 
+                    @if(!empty($review->variation_label))
+                        <div class="review-variant">{{ $review->variation_label }}</div>
+                    @endif
+
                     @if(!empty($review->review))
                         <p class="review-text">{{ $review->review }}</p>
+                    @endif
+
+                    @php $reviewPhotos = (array) json_decode((string) ($review->photos ?? ''), true); @endphp
+                    @if($reviewPhotos)
+                        <div class="review-photos">
+                            @foreach($reviewPhotos as $photo)
+                                <a href="{{ asset('storage/' . $photo) }}" target="_blank"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
+                            @endforeach
+                        </div>
                     @endif
 
                     @if(!empty($review->seller_reply))

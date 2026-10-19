@@ -32,6 +32,7 @@ class Product extends Model
         'width_cm',
         'height_cm',
         'is_draft',
+        'purchase_limit',
     ];
 
     protected $casts = [
@@ -237,6 +238,33 @@ class Product extends Model
             . " JOIN orders o ON o.id = oi.order_id"
             . " WHERE oi.product_id = products.id AND o.status IN ('Delivered', 'Completed')) as sold_count"
         );
+    }
+
+    /**
+     * The seller's per-buyer purchase limit (B4): units this buyer already
+     * ordered (not cancelled) plus $quantity may not pass it.
+     */
+    public function purchaseLimitError(int $buyerId, int $quantity): ?string
+    {
+        $limit = (int) ($this->purchase_limit ?? 0);
+
+        if ($limit <= 0) {
+            return null;
+        }
+
+        $bought = (int) DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('orders.buyer_id', $buyerId)
+            ->where('order_items.product_id', $this->id)
+            ->where('orders.status', '!=', 'Cancelled')
+            ->sum('order_items.quantity');
+
+        if ($bought + $quantity <= $limit) {
+            return null;
+        }
+
+        return 'You can buy at most ' . $limit . ' of ' . $this->name . ' per buyer'
+            . ($bought > 0 ? ' (you already bought ' . $bought . ')' : '') . '.';
     }
 
     public const VACATION_MESSAGE = 'This store is on vacation, so its products can\'t be ordered right now.';

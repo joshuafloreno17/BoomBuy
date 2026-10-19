@@ -146,11 +146,16 @@ class BuyerScenariosTest extends TestCase
         $buyer = $this->buyerAt();
         $few = $this->makeProduct($this->seller, ['stock' => 3]);
 
-        $this->actingAsUser($buyer)->post(route('cart.add', $few->id), ['quantity' => 50]);
+        // More than the stock is refused, not silently lowered (A17).
+        $this->actingAsUser($buyer)->post(route('cart.add', $few->id), ['quantity' => 50])
+            ->assertSessionHas('error', 'Only 3 available.');
+        $this->assertArrayNotHasKey($this->key($few), session('cart', []));
+
+        $this->post(route('cart.add', $few->id), ['quantity' => 3]);
         $this->assertSame(3, session('cart')[$this->key($few)]);
 
         $this->post(route('cart.update', $this->key($few)), ['action' => 'increase'])
-            ->assertSessionHas('error', 'No more stock available for this product.');
+            ->assertSessionHas('error', 'Only 3 available.');
         $this->assertSame(3, session('cart')[$this->key($few)]);
     }
 
@@ -417,7 +422,9 @@ class BuyerScenariosTest extends TestCase
         $received = $this->deliveredOrder($buyer, $this->shoes, 1);
         $review($received, 9)->assertSessionHas('error');
         $review($received, 4)->assertSessionHas('success');
-        $review($received, 5)->assertSessionHas('success', 'Your review has been updated!');
+        // One review per item (Buyer Modules A12): a second one is refused; it is edited once instead.
+        $review($received, 5)->assertSessionHas('error', 'You already reviewed this item. You can edit your review instead.');
+        $this->actingAsUser($buyer)->put(route('buyer.product.review.update', [$received, $this->shoes->id]), ['rating' => 5, 'review' => 'Ok'])->assertSessionHas('success', 'Your review has been updated!');
 
         $this->assertSame(1, DB::table('product_reviews')->where('order_id', $received)->count());
         $this->assertSame(5, (int) DB::table('product_reviews')->where('order_id', $received)->value('rating'));

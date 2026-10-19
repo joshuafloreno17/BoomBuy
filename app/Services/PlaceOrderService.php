@@ -24,6 +24,9 @@ class PlaceOrderService
     /** The buyer's note to the seller for this checkout. */
     private string $note = '';
 
+    /** Who is checking out (for per-buyer limits). */
+    private int $buyerId = 0;
+
     /**
      * @param  array  $buyer    The session user (id, name).
      * @param  array  $cart     Cart key ("productId" or "productId:variationId") => quantity.
@@ -36,6 +39,7 @@ class PlaceOrderService
     {
         [$address, $phone, $payment, $location, $fulfillment] = $this->checkDetails($buyer, $details);
 
+        $this->buyerId = (int) ($buyer['id'] ?? 0);
         $orderItems = $this->buildLines($cart);
 
         $codes = array_filter(array_map(fn ($c) => strtoupper(trim((string) $c)), (array) $voucherCodes));
@@ -149,6 +153,10 @@ class PlaceOrderService
 
             if ($product->sellerOnVacation()) {
                 throw CheckoutFailed::inCart($product->name . ': ' . Product::VACATION_MESSAGE);
+            }
+
+            if ($this->buyerId && ($limitError = $product->purchaseLimitError($this->buyerId, $quantity))) {
+                throw CheckoutFailed::inCart($limitError);
             }
 
             [$variation, $variationError] = $product->resolveVariation($variationId);

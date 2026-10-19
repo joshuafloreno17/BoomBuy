@@ -619,6 +619,7 @@ class BuyerController extends Controller
             ->join('products', 'products.id', '=', 'wishlists.product_id')
             ->where('wishlists.user_id', $user['id'])
             ->select('products.*', 'wishlists.created_at as wishlisted_at')
+            ->selectRaw(Product::SELLABLE_STOCK_SQL . ' as sellable_stock')
             ->orderByDesc('wishlists.created_at')
             ->get();
 
@@ -1002,11 +1003,33 @@ class BuyerController extends Controller
             return back()->with('error', 'Product not found in this order.');
         }
 
+        // A12: within 30 days of completion; 1–5 stars, up to 500 characters, up to 5 photos.
+        $completedAt = \Illuminate\Support\Carbon::parse($order->buyer_received_at);
+
+        if ($completedAt->copy()->addDays(self::REVIEW_DAYS)->isPast()) {
+            return back()->with('error', 'Reviews can be written or edited within ' . self::REVIEW_DAYS . ' days of completing the order.');
+        }
+
         $rating = (int) request('rating');
         $review = trim((string) request('review'));
+        $photos = array_values(array_filter((array) request()->file('photos', []), fn ($f) => $f instanceof \Illuminate\Http\UploadedFile));
 
         if ($rating < 1 || $rating > 5) {
             return back()->with('error', 'Please select a rating from 1 to 5 stars.');
+        }
+
+        if (mb_strlen($review) > 500) {
+            return back()->with('error', 'A review can have at most 500 characters (now ' . mb_strlen($review) . ').');
+        }
+
+        if (count($photos) > 5) {
+            return back()->with('error', 'You can add up to 5 photos.');
+        }
+
+        foreach ($photos as $photo) {
+            if (\Illuminate\Support\Facades\Validator::make(['photo' => $photo], ['photo' => 'image|mimes:jpg,jpeg,png|max:5120'])->fails()) {
+                return back()->with('error', 'Each photo must be a JPG or PNG image of at most 5 MB.');
+            }
         }
 
         $existing = DB::table('product_reviews')
@@ -1015,16 +1038,33 @@ class BuyerController extends Controller
             ->where('product_id', $productId)
             ->first();
 
+        $paths = array_map(fn ($photo) => $photo->store('reviews', 'public'), $photos);
+
+        // One review per item; it can be edited once (PUT).
         if ($existing) {
+            if (!request()->isMethod('put')) {
+                return back()->with('error', 'You already reviewed this item. You can edit your review instead.');
+            }
+
+            if ($existing->edited_at) {
+                return back()->with('error', 'You already edited this review. A review can be edited once.');
+            }
+
             DB::table('product_reviews')
                 ->where('id', $existing->id)
                 ->update([
                     'rating' => $rating,
                     'review' => $review !== '' ? $review : null,
+                    'photos' => $paths ? json_encode($paths) : $existing->photos,
+                    'edited_at' => now(),
                     'updated_at' => now(),
                 ]);
 
             return back()->with('success', 'Your review has been updated!');
+        }
+
+        if (request()->isMethod('put')) {
+            return back()->with('error', 'There is no review to edit yet.');
         }
 
         DB::table('product_reviews')->insert([
@@ -1033,12 +1073,17 @@ class BuyerController extends Controller
             'product_id' => $productId,
             'rating' => $rating,
             'review' => $review !== '' ? $review : null,
+            'photos' => $paths ? json_encode($paths) : null,
+            'variation_label' => $item->variation_label,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         return back()->with('success', 'Thank you! Your product review has been submitted.');
     }
+
+    /** Days after completing an order its items can be reviewed or the review edited (A12). */
+    public const REVIEW_DAYS = 30;
 
     public function requestReturnRefund($orderId, BuyerOrderService $orders)
     {

@@ -31,6 +31,14 @@
 </div>
 
 <div class="form-group">
+    <label for="purchase_limit">Limit per buyer <small class="opt">(optional)</small></label>
+    <input type="number" id="purchase_limit" name="purchase_limit" min="1" step="1"
+           value="{{ old('purchase_limit', $p->purchase_limit ?? '') }}" placeholder="No limit">
+    <small class="hint">The most units one buyer can buy in total. Leave blank for no limit.</small>
+    @error('purchase_limit')<span class="field-error">{{ $message }}</span>@enderror
+</div>
+
+<div class="form-group">
     <label>Package size (cm) <small class="opt">(optional)</small></label>
     <div class="dims">
         <input type="number" name="length_cm" min="0.01" step="0.01" value="{{ old('length_cm', $p->length_cm ?? '') }}" placeholder="Length" aria-label="Length in cm">

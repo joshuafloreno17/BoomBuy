@@ -128,6 +128,12 @@ class ProductRules
             }
         }
 
+        $limit = trim((string) ($input['purchase_limit'] ?? ''));
+
+        if ($limit !== '' && (!ctype_digit($limit) || (int) $limit < 1)) {
+            $errors['purchase_limit'] = 'The limit per buyer must be a whole number of at least 1 (or leave it blank).';
+        }
+
         if (isset($input['condition']) && !in_array($input['condition'], ['New', 'Used'], true)) {
             $errors['condition'] = 'Choose New or Used.';
         }

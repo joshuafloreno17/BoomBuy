@@ -1214,3 +1214,6 @@
         background: #6d4ad1;
     }
 }
+
+.review-photos-input { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; font-weight: 700; color: #5536b5; }
+.review-photos-input small { font-weight: 500; color: #857ca0; }

@@ -185,6 +185,24 @@ select {
     flex-shrink: 0;
 }
 
+.seller-hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.seller-hero-actions form {
+    margin: 0;
+}
+
+.seller-followers {
+    font-size: 14px;
+    color: var(--muted, #6b6680);
+    font-weight: 600;
+}
+
 @media (max-width: 700px) {
     .seller-hero {
         flex-wrap: wrap;
@@ -202,6 +220,10 @@ select {
     }
 
     .seller-hero-chat {
+        width: 100%;
+    }
+
+    .seller-hero-actions {
         width: 100%;
     }
 }

@@ -574,6 +574,12 @@ class ProductService
             }
         }
 
+        // Most units one buyer may buy (blank = no limit).
+        if (array_key_exists('purchase_limit', $input)) {
+            $limit = trim((string) $input['purchase_limit']);
+            $details['purchase_limit'] = ctype_digit($limit) && (int) $limit > 0 ? (int) $limit : null;
+        }
+
         return $details;
     }
 

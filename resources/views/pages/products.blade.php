@@ -21,13 +21,13 @@
 
     @php
         $total = $paginator->total();
-        $hasFilters = $filters['min'] !== null || $filters['max'] !== null || $filters['rating'] || $filters['in_stock'] || $filters['deals'];
-        $filterCount = (int) ($filters['min'] !== null || $filters['max'] !== null) + (int) (bool) $filters['rating'] + (int) $filters['in_stock'] + (int) $filters['deals'];
+        $hasFilters = $filters['min'] !== null || $filters['max'] !== null || $filters['rating'] || $filters['in_stock'] || $filters['deals'] || $filters['location'] !== '';
+        $filterCount = (int) ($filters['min'] !== null || $filters['max'] !== null) + (int) (bool) $filters['rating'] + (int) $filters['in_stock'] + (int) $filters['deals'] + (int) ($filters['location'] !== '');
         $peso = fn ($n) => '₱' . number_format($n);
 
         // Links that change one thing and keep the rest (always back to page 1).
         $with = fn (array $changes) => request()->fullUrlWithQuery(array_merge(['page' => null], $changes));
-        $clearFilters = $with(['min' => null, 'max' => null, 'rating' => null, 'in_stock' => null, 'deals' => null]);
+        $clearFilters = $with(['min' => null, 'max' => null, 'rating' => null, 'in_stock' => null, 'deals' => null, 'location' => null]);
 
         $priceLabel = match (true) {
             $filters['min'] !== null && $filters['max'] !== null => $peso($filters['min']) . '–' . $peso($filters['max']),
@@ -91,9 +91,25 @@
                         @endif
                     </div>
                 </div>
-                @if(session('user') && (int) session('user')['id'] !== $shop['id'])
-                    <a href="{{ route('messages.thread', $shop['id']) }}" class="btn-soft seller-hero-chat"><i class="bi bi-chat-dots"></i> Message seller</a>
-                @endif
+                @php
+                    $followerCount = \App\Http\Controllers\StoreFollowController::followers($shop['id']);
+                    $isFollowing = \App\Http\Controllers\StoreFollowController::follows(session('user'), $shop['id']);
+                @endphp
+                <div class="seller-hero-actions">
+                    <span class="seller-followers" data-followers>{{ $followerCount }} {{ \Illuminate\Support\Str::plural('follower', $followerCount) }}</span>
+                    @if(!session('user') || (session('user')['role'] ?? '') === 'buyer')
+                        <form action="{{ route('store.follow', $shop['id']) }}" method="POST">
+                            @csrf
+                            <input type="hidden" name="action" value="{{ $isFollowing ? 'unfollow' : 'follow' }}">
+                            <button type="submit" class="{{ $isFollowing ? 'btn-soft' : 'btn-main' }}" data-follow-button>
+                                <i class="bi {{ $isFollowing ? 'bi-check2' : 'bi-plus-lg' }}"></i> {{ $isFollowing ? 'Following' : 'Follow' }}
+                            </button>
+                        </form>
+                    @endif
+                    @if(session('user') && (int) session('user')['id'] !== $shop['id'])
+                        <a href="{{ route('messages.thread', $shop['id']) }}" class="btn-soft seller-hero-chat"><i class="bi bi-chat-dots"></i> Message seller</a>
+                    @endif
+                </div>
             </section>
 
             {{-- The store's claimable vouchers --}}
@@ -186,8 +202,23 @@
                             <a href="{{ $with(['min' => $pick['min'], 'max' => $pick['max']]) }}" class="{{ $isPick ? 'active' : '' }}">{{ $pick['label'] }}</a>
                         @endforeach
                     </div>
+                    @if($priceError ?? null)
+                        <span class="field-error" role="alert">{{ $priceError }}</span>
+                    @endif
                     <button type="submit" class="filter-apply filter-apply-desktop">Apply price</button>
                 </div>
+
+                @if(count($locations ?? []) > 0)
+                    <div class="filter-group">
+                        <label class="filter-label" for="shopLocation">Ships from</label>
+                        <select id="shopLocation" name="location" data-autosubmit>
+                            <option value="">Anywhere</option>
+                            @foreach($locations as $place)
+                                <option value="{{ $place }}" @selected($filters['location'] === $place)>{{ \App\Support\PhLocations::provinceLabel($place) }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                @endif
 
                 <fieldset class="filter-group">
                     <legend>Rating</legend>
@@ -230,6 +261,9 @@
                             @if($filters['rating'])
                                 <a href="{{ $with(['rating' => null]) }}" class="filter-chip" aria-label="Remove filter: {{ $filters['rating'] }} stars and up">{{ $filters['rating'] }}★ &amp; up <i class="bi bi-x-lg"></i></a>
                             @endif
+                            @if($filters['location'] !== '')
+                                <a href="{{ $with(['location' => null]) }}" class="filter-chip" aria-label="Remove filter: ships from {{ \App\Support\PhLocations::provinceLabel($filters['location']) }}">{{ \App\Support\PhLocations::provinceLabel($filters['location']) }} <i class="bi bi-x-lg"></i></a>
+                            @endif
                             @if($filters['in_stock'])
                                 <a href="{{ $with(['in_stock' => null]) }}" class="filter-chip" aria-label="Remove filter: In stock only">In stock only <i class="bi bi-x-lg"></i></a>
                             @endif
@@ -247,6 +281,7 @@
                             <option value="price_low" @selected($filters['sort'] === 'price_low')>Price: Low to High</option>
                             <option value="price_high" @selected($filters['sort'] === 'price_high')>Price: High to Low</option>
                             <option value="rating" @selected($filters['sort'] === 'rating')>Top rated</option>
+                            <option value="best_selling" @selected($filters['sort'] === 'best_selling')>Best selling</option>
                         </select>
                     </label>
                 </div>
@@ -283,6 +318,9 @@
 
                         @if($filters['search'] !== '')
                             <h2>No “{{ $filters['search'] }}”{{ $filters['category'] ? ' in ' . $filters['category_label'] : '' }}</h2>
+                            @if($didYouMean ?? null)
+                                <p class="did-you-mean">Did you mean <a href="{{ $with(['search' => $didYouMean]) }}"><strong>{{ $didYouMean }}</strong></a>?</p>
+                            @endif
                             <p>
                                 @if($hasFilters)
                                     Some filters are on — try clearing them, or use a different word.

@@ -197,7 +197,7 @@ class ShopController extends Controller
 
     private const ALSO_LIKE = 12;
 
-    private const SHOP_SORTS = ['newest', 'price_low', 'price_high', 'rating'];
+    private const SHOP_SORTS = ['newest', 'price_low', 'price_high', 'rating', 'best_selling'];
 
     public function sellerShop(int $seller)
     {
@@ -228,12 +228,25 @@ class ShopController extends Controller
 
         $search = trim(mb_substr((string) request('search'), 0, 100));
 
-        $min = is_numeric(request('min')) ? max(0, (float) request('min')) : null;
-        $max = is_numeric(request('max')) ? max(0, (float) request('max')) : null;
+        // Price range (ends included). A negative price or Min above Max is
+        // refused with a message and the range is not applied.
+        $min = is_numeric(request('min')) ? (float) request('min') : null;
+        $max = is_numeric(request('max')) ? (float) request('max') : null;
+        $priceError = null;
 
-        if ($min !== null && $max !== null && $min > $max) {
-            [$min, $max] = [$max, $min];
+        if (($min !== null && $min < 0) || ($max !== null && $max < 0)) {
+            $priceError = 'Prices can\'t be negative.';
+        } elseif ($min !== null && $max !== null && $min > $max) {
+            $priceError = 'The minimum price can\'t be more than the maximum price.';
         }
+
+        if ($priceError) {
+            $min = $max = null;
+        }
+
+        // Where the store ships from (the seller's province), e.g. Metro Manila.
+        $location = trim((string) request('location'));
+        $location = in_array($location, self::sellerProvinces(), true) ? $location : '';
 
         $rating = in_array((int) request('rating'), [3, 4], true) ? (int) request('rating') : 0;
         $inStock = request()->boolean('in_stock');
@@ -289,6 +302,7 @@ class ShopController extends Controller
                     });
                 }
             })
+            ->when($location !== '', fn ($q) => $q->whereIn('seller_id', DB::table('users')->where('role', 'seller')->where('province', $location)->select('id')))
             ->when($min !== null, fn ($q) => $q->where('price', '>=', $min))
             ->when($max !== null, fn ($q) => $q->where('price', '<=', $max))
             // Products with options count their options' stock, not their own.
@@ -300,6 +314,7 @@ class ShopController extends Controller
             'price_low' => $query->orderBy('price'),
             'price_high' => $query->orderByDesc('price'),
             'rating' => $query->orderByDesc('reviews_avg_rating')->orderByDesc('reviews_count'),
+            'best_selling' => $query->orderByDesc('sold_count'),
             default => $query->orderByDesc('created_at'),
         };
 
@@ -412,6 +427,7 @@ class ShopController extends Controller
             'min' => $min,
             'max' => $max,
             'rating' => $rating,
+            'location' => $location,
             'in_stock' => $inStock,
             'deals' => $deals,
             'sort' => $sort,
@@ -429,7 +445,75 @@ class ShopController extends Controller
             'activeStoreCategory' => $storeCategory,
             // Searching for a store's name finds the store too.
             'matchingShops' => !$sellerId && $search !== '' ? \App\Support\SellerShop::search($search) : collect(),
+            'priceError' => $priceError,
+            'locations' => self::sellerProvinces(),
+            // No results for a misspelled search: offer the closest words.
+            'didYouMean' => $search !== '' && $paginator->total() === 0 ? self::didYouMean($searchTerms) : null,
         ]);
+    }
+
+    /** Provinces that active sellers ship from (the Location filter). */
+    public static function sellerProvinces(): array
+    {
+        return DB::table('users')
+            ->where('role', 'seller')
+            ->where('status', 'Active')
+            ->whereNotNull('province')
+            ->where('province', '!=', '')
+            ->distinct()
+            ->orderBy('province')
+            ->pluck('province')
+            ->all();
+    }
+
+    /**
+     * "Ratan baskit" → "rattan basket": each word swapped for the closest word
+     * in the names of products on sale (at most 2 letters off). Null when
+     * nothing close is found.
+     */
+    public static function didYouMean(array $terms): ?string
+    {
+        if (!$terms) {
+            return null;
+        }
+
+        $words = Product::onSale()->limit(3000)->pluck('name')
+            ->flatMap(fn ($name) => preg_split('/[^\p{L}\p{N}]+/u', mb_strtolower($name), -1, PREG_SPLIT_NO_EMPTY))
+            ->filter(fn ($w) => mb_strlen($w) >= 3)
+            ->unique()
+            ->values();
+
+        $changed = false;
+        $fixed = [];
+
+        foreach ($terms as $term) {
+            $term = mb_strtolower($term);
+
+            if ($words->contains($term)) {
+                $fixed[] = $term;
+                continue;
+            }
+
+            $best = null;
+            $bestDistance = PHP_INT_MAX;
+
+            foreach ($words as $word) {
+                $distance = levenshtein($term, $word);
+
+                if ($distance < $bestDistance) {
+                    [$best, $bestDistance] = [$word, $distance];
+                }
+            }
+
+            if ($best === null || $bestDistance > min(2, max(1, intdiv(mb_strlen($term), 3)))) {
+                return null;
+            }
+
+            $fixed[] = $best;
+            $changed = true;
+        }
+
+        return $changed ? implode(' ', $fixed) : null;
     }
 
     /**
@@ -689,6 +773,8 @@ class ShopController extends Controller
                 'product_reviews.rating',
                 'product_reviews.review',
                 'product_reviews.seller_reply',
+                'product_reviews.photos',
+                'product_reviews.variation_label',
                 'product_reviews.created_at',
                 'users.name as buyer_name'
             )

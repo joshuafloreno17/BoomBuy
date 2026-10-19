@@ -1517,7 +1517,7 @@ class SellerController extends Controller
     /** What the Add/Edit Product form sends besides photos and options. */
     private const PRODUCT_FIELDS = [
         'name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs',
-        'brand', 'condition', 'weight_kg', 'length_cm', 'width_cm', 'height_cm',
+        'brand', 'condition', 'weight_kg', 'length_cm', 'width_cm', 'height_cm', 'purchase_limit',
     ];
 
     /** A draft needs only its name (5–120 characters). */

@@ -397,6 +397,7 @@
                                                     method="POST"
                                                     action="{{ url('/buyer/orders/' . $order['id'] . '/review/' . $productId) }}"
                                                     onsubmit="return validateRating(this)"
+                                                    enctype="multipart/form-data"
                                                 >
 
                                                     @csrf
@@ -478,8 +479,14 @@
                                                     <textarea
                                                         name="review"
                                                         class="review-input"
-                                                        placeholder="Tell us what you think about this product... (optional)"
+                                                        maxlength="500"
+                                                        placeholder="Tell us what you think about this product... (optional, up to 500 characters)"
                                                     ></textarea>
+
+                                                    <label class="review-photos-input">
+                                                        <i class="bi bi-camera"></i> Add photos <small>(up to 5, JPG or PNG)</small>
+                                                        <input type="file" name="photos[]" accept="image/jpeg,image/png" multiple>
+                                                    </label>
 
                                                     <button
                                                         type="submit"

@@ -34,7 +34,8 @@ class CartContents
             }
         }
 
-        $products = Product::whereIn('id', $productIds)->pluck('id')->flip();
+        // A product the seller deleted stays too, shown as unavailable (B6).
+        $products = Product::withTrashed()->whereIn('id', $productIds)->pluck('id')->flip();
         $variations = $variationIds
             // Removed (soft-deleted) options stay: the cart shows them as unavailable.
             ? ProductVariation::withTrashed()->whereIn('id', $variationIds)->pluck('product_id', 'id')
@@ -66,7 +67,8 @@ class CartContents
         $removed = $variationIds->isNotEmpty()
             ? ProductVariation::onlyTrashed()->whereIn('id', $variationIds)->pluck('id')->flip()
             : collect();
+        $deleted = Product::onlyTrashed()->whereIn('id', collect(array_keys($cart))->map(fn ($key) => (int) parseCartKey($key)[0]))->pluck('id')->flip();
 
-        return (int) collect($cart)->reject(fn ($quantity, $key) => $removed->has((int) parseCartKey($key)[1]))->sum();
+        return (int) collect($cart)->reject(fn ($quantity, $key) => $removed->has((int) parseCartKey($key)[1]) || $deleted->has((int) parseCartKey($key)[0]))->sum();
     }
 }

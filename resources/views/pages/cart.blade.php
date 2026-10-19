@@ -50,7 +50,7 @@
             array_keys($cart)
         );
 
-        $databaseProducts = \App\Models\Product::whereIn(
+        $databaseProducts = \App\Models\Product::withTrashed()->whereIn(
             'id',
             array_unique($cartProductIds)
         )->get()->keyBy('id');
@@ -156,10 +156,12 @@
                                 : $itemUnitPrice * $quantity;
                             $itemSplit = $itemPieces && (count($itemPieces) > 1 || $itemPieces[0]['note']);
 
-                            $itemAvailable = $onSaleIds->has($product->id) && !$variationGone;
-
                             // An option has its own stock; the product's only counts without one.
                             $itemStock = $itemVariation ? (int) $itemVariation->stock : (int) $product->stock;
+
+                            // Sold out or deleted lines stay but can't be selected (B6).
+                            $soldOut = $itemStock <= 0 && !$product->trashed();
+                            $itemAvailable = $onSaleIds->has($product->id) && !$variationGone && !$soldOut;
 
                             if ($itemAvailable) {
                                 $subtotal += $itemTotal;
@@ -201,6 +203,10 @@
                                 @if($variationGone)
                                     <div class="unavailable-note">
                                         <i class="bi bi-exclamation-circle"></i> Variation unavailable — the seller removed this option. Please remove it from your cart.
+                                    </div>
+                                @elseif($soldOut && $onSaleIds->has($product->id))
+                                    <div class="unavailable-note">
+                                        <i class="bi bi-exclamation-circle"></i> Sold out — this item can't be checked out until it is back in stock.
                                     </div>
                                 @elseif(!$itemAvailable)
                                     <div class="unavailable-note">

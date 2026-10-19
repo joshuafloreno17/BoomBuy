@@ -164,6 +164,7 @@ Route::post('/buyer/orders/{id}/reorder', [BuyerController::class, 'reorder'])->
 
 
 Route::post('/buyer/orders/{orderId}/review/{productId}', [BuyerController::class, 'reviewProduct'])->name('buyer.product.review');
+Route::put('/buyer/orders/{orderId}/review/{productId}', [BuyerController::class, 'reviewProduct'])->name('buyer.product.review.update');
 
 
 /*
@@ -214,6 +215,10 @@ Route::get('/products', [ShopController::class, 'products'])->name('products');
 
 // A seller's shop: the shop listing narrowed to one seller, with the shop's header.
 Route::get('/shop/{seller}', [ShopController::class, 'sellerShop'])->whereNumber('seller')->name('shop.seller');
+
+// Follow a store (B5) and the buyer's Following list
+Route::post('/shop/{seller}/follow', [\App\Http\Controllers\StoreFollowController::class, 'toggle'])->whereNumber('seller')->name('store.follow');
+Route::get('/following', [\App\Http\Controllers\StoreFollowController::class, 'index'])->name('buyer.following');
 
 // Live suggestions for the navbar search box (JSON).
 Route::get('/search/suggestions', [ShopController::class, 'searchSuggestions'])->middleware('throttle:120,1,search')->name('search.suggestions');
