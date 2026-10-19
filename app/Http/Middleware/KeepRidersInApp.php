@@ -18,6 +18,8 @@ class KeepRidersInApp
 {
     public function handle(Request $request, Closure $next): Response
     {
+        MobileAccess::rememberApp($request);
+
         if (!MobileAccess::riderBlockedHere($request)) {
             return $next($request);
         }
@@ -41,6 +43,7 @@ class KeepRidersInApp
 
     private function toApp(): Response
     {
+
         return redirect()->route('app.download')->with('error', MobileAccess::RIDER_APP_ONLY_MESSAGE);
     }
 }

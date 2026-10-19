@@ -64,6 +64,29 @@ class MobileAppWebTest extends TestCase
         $this->loginFrom(self::APP, $this->makeRider())->assertRedirect(route('rider.dashboard'));
     }
 
+    /**
+     * Android's WebView sends the pages its service worker fetches with the
+     * phone's plain User-Agent (no "BoomBuyApp"): the bb_app cookie the app's
+     * first request got keeps a rider in the app from being sent to /app.
+     */
+    public function test_a_rider_page_fetched_by_the_service_worker_stays_in_the_app(): void
+    {
+        config(['app.riders_app_only' => true]);
+        $webView = 'Mozilla/5.0 (Linux; Android 11; RMX2001 Build/RP1A.200720.011; wv) AppleWebKit/537.36 (KHTML, like Gecko) Version/4.0 Chrome/155.0.8059.43 Mobile Safari/537.36';
+        $rider = $this->makeRider();
+
+        $this->loginFrom(self::APP, $rider)->assertRedirect(route('rider.dashboard'))->assertCookie(MobileAccess::APP_COOKIE, '1');
+
+        $this->withHeader('User-Agent', $webView)->withCookie(MobileAccess::APP_COOKIE, '1')
+            ->get(route('rider.dashboard'))->assertOk();
+
+        // A phone browser without the cookie is still sent to the app.
+        $this->flushSession();
+        $this->loginFrom(self::APP, $rider);
+        $this->withHeader('User-Agent', $webView)->withCookie(MobileAccess::APP_COOKIE, '')
+            ->get(route('rider.dashboard'))->assertRedirect(route('app.download'));
+    }
+
     public function test_browsers_are_not_affected(): void
     {
         $this->loginFrom('Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/140 Safari/537.36', $this->makeLogistics())

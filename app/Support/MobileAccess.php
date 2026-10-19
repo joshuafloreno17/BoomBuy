@@ -24,10 +24,27 @@ class MobileAccess
 
     public const RIDER_APP_ONLY_MESSAGE = 'Riders use the BoomBuy app. Download it on your phone to apply, log in and see your deliveries.';
 
+    /**
+     * Set once a request shows the app's User-Agent. Android's WebView sends
+     * the pages its service worker (public/sw.js) fetches with the phone's
+     * plain User-Agent, without "BoomBuyApp", so the cookie (which those
+     * requests do carry) keeps the app recognised.
+     */
+    public const APP_COOKIE = 'bb_app';
+
     /** Is this page being opened inside the BoomBuy app? */
     public static function isApp(Request $request): bool
     {
-        return str_contains((string) $request->userAgent(), self::APP_USER_AGENT);
+        return str_contains((string) $request->userAgent(), self::APP_USER_AGENT)
+            || $request->cookie(self::APP_COOKIE) === '1';
+    }
+
+    /** Mark this phone's app with the cookie when its User-Agent shows it (every web request). */
+    public static function rememberApp(Request $request): void
+    {
+        if (str_contains((string) $request->userAgent(), self::APP_USER_AGENT) && $request->cookie(self::APP_COOKIE) !== '1') {
+            \Illuminate\Support\Facades\Cookie::queue(self::APP_COOKIE, '1', 60 * 24 * 365 * 5);
+        }
     }
 
     /**
