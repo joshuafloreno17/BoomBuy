@@ -1131,6 +1131,7 @@ class SellerController extends Controller
             $variation->sku = $sku;
 
             $variation->save();
+            \App\Support\LowStock::check((int) $product->id, (int) $variation->id);
 
             // A new photo goes first among this option's photos (so it is the chip photo).
             if ($photo) {
@@ -1917,6 +1918,9 @@ class SellerController extends Controller
         } catch (ActionFailed $e) {
             return back()->withInput()->withErrors([$this->errorField($e->getMessage()) => $e->getMessage()])->with('error', $e->getMessage());
         }
+
+        // A manual stock change can cross the low-stock line either way.
+        \App\Support\LowStock::check((int) $product->id);
 
         // Forms that show the store categories send them (an empty list clears them).
         if (request()->has('store_categories_sent')) {

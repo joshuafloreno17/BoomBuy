@@ -582,6 +582,18 @@ class CartController extends Controller
                     ->route('cart')
                     ->with('error', $products[$productId]->name . ': ' . Product::VACATION_MESSAGE);
             }
+
+            // More in the cart than is left: lower it first ("Only 3 left").
+            [, $lineVariationId] = parseCartKey($cartKey);
+            $lineStock = $lineVariationId
+                ? (int) \App\Models\ProductVariation::where('id', $lineVariationId)->value('stock')
+                : (int) $products[$productId]->stock;
+
+            if ((int) $quantity > $lineStock) {
+                return redirect()
+                    ->route('cart')
+                    ->with('error', $products[$productId]->name . ': only ' . $lineStock . ' left. Lower the quantity to ' . $lineStock . ' or fewer to check out.');
+            }
         }
 
         /*
@@ -826,6 +838,15 @@ class CartController extends Controller
             // Remove only the lines that were just ordered.
             session()->put('cart', array_diff_key(session()->get('cart', []), $cart));
             session()->forget('checkout_selection');
+        }
+
+        // GCash, Maya, card: pay on the sandbox gateway first (To Pay until then).
+        $first = DB::table('orders')->where('id', $orderIds[0])->first();
+
+        if ($first && \App\Support\Payments::awaitingPayment($first)) {
+            return redirect()
+                ->route('payment.show', $first->payment_group)
+                ->with('success', count($orderIds) > 1 ? count($orderIds) . ' orders placed — one per seller. Pay for them together below.' : 'Order placed. Complete your payment below.');
         }
 
         return redirect()

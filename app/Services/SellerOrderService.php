@@ -66,6 +66,11 @@ class SellerOrderService
 
         $cancelling = $status === 'Cancelled';
 
+        // GCash, Maya, card: nothing ships before the buyer has paid.
+        if (!$cancelling && \App\Support\Payments::awaitingPayment($order)) {
+            throw new ActionFailed('This order is waiting for the buyer\'s payment. You can accept it once it is paid.');
+        }
+
         if ($cancelling && $reason === '') {
             throw new ActionFailed('Please provide a reason for cancelling this order.');
         }

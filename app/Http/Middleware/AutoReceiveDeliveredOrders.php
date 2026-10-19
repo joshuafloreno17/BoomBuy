@@ -36,6 +36,13 @@ class AutoReceiveDeliveredOrders
             report($e);
         }
 
+        // Online orders not paid within the hour are cancelled (Payments).
+        try {
+            \App\Support\Payments::sweep();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         // Once a day: ID files of registrations never finished (OrphanUploads).
         try {
             \App\Support\OrphanUploads::sweep();

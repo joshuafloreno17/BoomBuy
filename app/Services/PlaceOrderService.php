@@ -219,6 +219,8 @@ class PlaceOrderService
                 }
 
                 $orderIds = [];
+                // One checkout is paid at once, even when it became several orders.
+                $paymentGroup = \App\Support\Payments::newGroup();
 
                 foreach ($plan['orders'] as $planned) {
                     $seller = ParcelRoute::sellerLocation((int) $planned['seller_id']);
@@ -247,6 +249,7 @@ class PlaceOrderService
                         'origin_center_id' => $origin?->id,
                         'destination_center_id' => $destination?->id,
                         'payment_method' => $payment,
+                        ...\App\Support\Payments::forNewOrder($payment, $paymentGroup),
                         'created_at' => now(),
                         'updated_at' => now(),
                     ]);
@@ -292,6 +295,8 @@ class PlaceOrderService
                                 voucherDropped: true
                             );
                         }
+
+                        \App\Support\LowStock::check((int) $item['product_id'], !empty($item['variation_id']) ? (int) $item['variation_id'] : null);
                     }
 
                     // One "new order" notification per seller, for their order only.

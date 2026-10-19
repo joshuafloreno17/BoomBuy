@@ -213,7 +213,7 @@
 
                                 @if($itemAvailable)
                                     {{-- Filled in (and kept up to date) by stockNote() below. --}}
-                                    <div class="stock-note" id="stock-{{ $cartKey }}" data-stock="{{ $itemStock }}"></div>
+                                    <div class="stock-note" id="stock-{{ $cartKey }}" data-stock="{{ $itemStock }}">@if($itemAvailable && $quantity > $itemStock)<i class="bi bi-hourglass-split"></i> Only {{ $itemStock }} left — lower the quantity to check out.@endif</div>
                                 @endif
 
                                 <div class="quantity">

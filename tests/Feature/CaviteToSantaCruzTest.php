@@ -49,6 +49,10 @@ class CaviteToSantaCruzTest extends TestCase
         $this->assertSame($lagunaCenter->id, (int) DB::table('orders')->where('id', $id)->value('destination_center_id'));
         $this->assertEquals(120, DB::table('orders')->where('id', $id)->value('delivery_fee')); // Cavite → Laguna: same island group
 
+        // GCash: paid on the sandbox gateway before the seller can accept it.
+        $this->actingAsUser($buyer)->post(route('payment.pay', DB::table('orders')->where('id', $id)->value('payment_group')))->assertRedirect();
+        $this->assertSame('Paid', DB::table('orders')->where('id', $id)->value('payment_status'));
+
         // Seller drops it at the Cavite center.
         $this->actingAsUser($seller)->get(route('seller.order.details', $id))->assertSee('The rider brings it to BoomBuy Sorting Center – Cavite');
         $this->shipFromSeller($seller, $id);
@@ -72,6 +76,7 @@ class CaviteToSantaCruzTest extends TestCase
 
         $this->assertSame([
             'Order placed',
+            'Payment received',
             'Seller accepted your order',
             'Seller is preparing your order',
             'Seller booked a rider pickup',

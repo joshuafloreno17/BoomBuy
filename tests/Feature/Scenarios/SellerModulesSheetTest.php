@@ -1204,4 +1204,167 @@ class SellerModulesSheetTest extends TestCase
         // The order can still be shipped.
         $this->as($this->seller1())->post(route('seller.order.pickup', $orderId), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
     }
+
+    /* ---------------------------------------------------------------
+     | S5 Inventory
+     * --------------------------------------------------------------- */
+
+    private function buy(\App\Models\User $buyer, array $cart, string $payment = 'Cash on Delivery')
+    {
+        $this->flushSession();
+
+        return $this->placeOrder($buyer, $cart, $buyer->is($this->buyer2()) ? self::ADDR_3 : self::ADDR_1, $payment);
+    }
+
+    private function variantStock(): array
+    {
+        return collect(['Natural-S', 'Natural-M', 'Natural-L', 'Black-S', 'Black-M', 'Black-L'])
+            ->mapWithKeys(fn ($row) => [$row => (int) $this->variant($row)->stock])->all();
+    }
+
+    public function test_SEL_INV_001_stock_deducted_when_a_cod_order_is_placed(): void
+    {
+        $p02 = $this->p02();
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 2])->assertSessionDoesntHaveErrors();
+
+        $this->assertSame('COD', $this->lastOrder($this->buyer1())->payment_status);
+        $this->assertSame(18, $this->stockOf($p02));
+    }
+
+    public function test_SEL_INV_002_stock_deducted_when_an_unpaid_e_wallet_order_is_placed(): void
+    {
+        $p02 = $this->p02();
+
+        $response = $this->buy($this->buyer1(), [$p02->id . ':0' => 1], 'GCash');
+        $order = $this->lastOrder($this->buyer1());
+
+        // The buyer goes to the sandbox gateway; the order waits in To Pay.
+        $response->assertRedirect(route('payment.show', $order->payment_group));
+        $this->assertSame('Unpaid', $order->payment_status);
+        $this->assertSame('Pending', $order->status);
+        $this->assertSame(19, $this->stockOf($p02));
+    }
+
+    public function test_SEL_INV_003_stock_restored_when_the_buyer_cancels(): void
+    {
+        $p02 = $this->p02();
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 2]);
+        $this->assertSame(18, $this->stockOf($p02));
+
+        $this->as($this->buyer1())->post(route('buyer.order.cancel', $this->lastOrder($this->buyer1())->id), ['cancel_reason' => 'Changed my mind'])->assertSessionHas('success');
+
+        $this->assertSame('Cancelled', $this->lastOrder($this->buyer1())->status);
+        $this->assertSame(20, $this->stockOf($p02));
+    }
+
+    public function test_SEL_INV_004_stock_restored_on_auto_cancel_of_an_unpaid_order(): void
+    {
+        $p02 = $this->p02();
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1], 'GCash');
+        $this->assertSame(19, $this->stockOf($p02));
+
+        $this->travel(59)->minutes();
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertOk();
+        $this->assertSame('Pending', $this->lastOrder($this->buyer1())->status);
+
+        $this->travel(2)->minutes();
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertOk();
+
+        $order = $this->lastOrder($this->buyer1());
+        $this->assertSame('Cancelled', $order->status);
+        $this->assertStringStartsWith('Cancelled: unpaid', $order->cancellation_reason);
+        $this->assertSame(20, $this->stockOf($p02));
+    }
+
+    public function test_SEL_INV_005_stock_per_variant(): void
+    {
+        $before = $this->variantStock();
+
+        $this->buy($this->buyer1(), [$this->p01()->id . ':' . $this->variant('Natural-M')->id => 1])->assertSessionDoesntHaveErrors();
+
+        $this->assertSame(array_merge($before, ['Natural-M' => 7]), $this->variantStock());
+        $this->assertSame(5, $before['Natural-L']);
+    }
+
+    public function test_SEL_INV_006_overselling_1_left_2_buyers_check_out_at_once(): void
+    {
+        $p03 = $this->p03();
+        $cart = [$p03->id . ':0' => 1];
+
+        $this->buy($this->buyer1(), $cart)->assertSessionDoesntHaveErrors();
+        $this->buy($this->buyer2(), $cart)->assertSessionHas('error');
+
+        $this->assertSame(1, DB::table('orders')->where('buyer_id', $this->buyer1()->id)->count());
+        $this->assertSame(0, DB::table('orders')->where('buyer_id', $this->buyer2()->id)->count());
+        $this->assertSame(0, $this->stockOf($p03));
+    }
+
+    public function test_SEL_INV_007_automatic_sold_out_status(): void
+    {
+        $p07 = $this->p07();
+        DB::table('products')->where('id', $p07->id)->update(['stock' => 1]);
+
+        $this->buy($this->buyer1(), [$p07->id . ':0' => 1])->assertSessionDoesntHaveErrors();
+
+        $this->as($this->buyer2())->get(route('product.details', $p07->id))->assertOk()->assertSee('Out of stock', false);
+        $this->as($this->buyer2())->get(route('products', ['search' => 'Power Bank 10000mAh']))->assertSee('Sold out');
+        $this->as($this->buyer2())->post(route('cart.add', $p07->id), ['quantity' => 1])->assertSessionHas('error');
+        $this->as($this->seller2())->get(route('seller.dashboard'))->assertSeeInOrder(['Power Bank 10000mAh', 'Out of Stock']);
+    }
+
+    public function test_SEL_INV_008_low_stock_alert_at_the_threshold(): void
+    {
+        $p02 = $this->p02();
+        DB::table('products')->where('id', $p02->id)->update(['stock' => 7]);
+        $alerts = fn () => DB::table('notifications')->where('user_id', $this->seller1()->id)->where('title', 'Low Stock Alert')->count();
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1]); // 6
+        $this->assertSame(6, $this->stockOf($p02));
+        $this->assertSame(0, $alerts());
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1]); // 5
+        $this->assertSame(1, $alerts());
+        $this->assertSame('Rattan Fruit Basket has only 5 left. Restock it to keep selling.', DB::table('notifications')->where('title', 'Low Stock Alert')->value('message'));
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1]); // 4
+        $this->assertSame(4, $this->stockOf($p02));
+        $this->assertSame(1, $alerts());
+    }
+
+    public function test_SEL_INV_009_manual_stock_adjustment(): void
+    {
+        $p02 = $this->p02();
+        $save = fn ($stock) => $this->as($this->seller1())->from(route('seller.products.edit', $p02->id))->put(route('seller.products.update', $p02->id), [
+            'name' => 'Rattan Fruit Basket', 'description' => $p02->description, 'category' => 'home-living', 'price' => '450.00', 'stock' => $stock,
+        ]);
+
+        foreach (['-1', '100000', '2.5', 'abc'] as $bad) {
+            $save($bad)->assertSessionHasErrors(['stock' => 'Stock must be a whole number from 0 to 99,999.']);
+            $this->assertSame(20, $this->stockOf($p02));
+        }
+
+        $save('0')->assertSessionHasNoErrors();
+        $this->assertSame(0, $this->stockOf($p02));
+
+        $save('99999')->assertSessionHasNoErrors();
+        $this->assertSame(99999, $this->stockOf($p02));
+    }
+
+    public function test_SEL_INV_010_reduce_stock_below_the_quantity_in_a_cart(): void
+    {
+        $p02 = $this->p02();
+        $cart = [$p02->id . ':0' => 5];
+        DB::table('products')->where('id', $p02->id)->update(['stock' => 3]);
+
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->assertOk()->assertSee('Only 3 left');
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))
+            ->assertRedirect(route('cart'))->assertSessionHas('error', 'Rattan Fruit Basket: only 3 left. Lower the quantity to 3 or fewer to check out.');
+        $this->buy($this->buyer1(), $cart)->assertSessionHas('error');
+        $this->assertSame(0, DB::table('orders')->count());
+
+        // With 3 in the cart it goes through.
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 3])->assertSessionDoesntHaveErrors();
+        $this->assertSame(0, $this->stockOf($p02));
+    }
 }

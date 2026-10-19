@@ -1,0 +1,104 @@
+/* Sandbox payment page (GCash, Maya, card) */
+:root {
+    --pay-bg: #f8f6fe;
+    --pay-card: #ffffff;
+    --pay-ink: #221a3a;
+    --pay-muted: #645a80;
+    --pay-line: #e6defa;
+    --pay-brand: #6d4ad1;
+}
+
+body { margin: 0; background: var(--pay-bg); color: var(--pay-ink); font-family: 'Figtree', -apple-system, sans-serif; }
+
+.pay-page {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+    padding: 40px 16px;
+    box-sizing: border-box;
+}
+
+.pay-logo img { display: block; height: 40px; width: auto; }
+
+.pay-card {
+    width: 100%;
+    max-width: 440px;
+    background: var(--pay-card);
+    border: 1px solid var(--pay-line);
+    border-radius: 18px;
+    padding: 26px 22px;
+    box-sizing: border-box;
+}
+
+.pay-card h1 { font-size: 24px; margin: 12px 0 14px; }
+
+.pay-sandbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #ecfdf5;
+    color: #047857;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.pay-note { padding: 10px 12px; border-radius: 10px; font-size: 13px; margin-bottom: 12px; }
+.pay-note.is-ok { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.pay-note.is-error { background: #fff1f2; color: #be123c; border: 1px solid #fecdd3; }
+
+.pay-status.is-failed { color: #be123c; font-weight: 800; margin: 0 0 10px; display: flex; gap: 6px; align-items: center; }
+
+.pay-summary { margin: 0 0 14px; }
+.pay-summary div { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0ecfb; font-size: 14px; }
+.pay-summary dt { color: var(--pay-muted); }
+.pay-summary dd { margin: 0; font-weight: 700; }
+.pay-summary .pay-total dt, .pay-summary .pay-total dd { color: var(--pay-ink); font-size: 16px; font-weight: 800; }
+
+.pay-text { font-size: 13px; color: var(--pay-muted); line-height: 1.5; }
+
+.pay-btn {
+    display: block;
+    width: 100%;
+    margin-top: 6px;
+    padding: 13px 16px;
+    border: none;
+    border-radius: 12px;
+    background: var(--pay-brand);
+    color: #fff;
+    font: inherit;
+    font-weight: 800;
+    font-size: 15px;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+
+.pay-btn:disabled { opacity: .6; cursor: wait; }
+
+.pay-row { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; margin-top: 14px; }
+
+.pay-link {
+    border: none;
+    background: none;
+    padding: 0;
+    color: var(--pay-brand);
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        --pay-bg: #15111f;
+        --pay-card: #1f1930;
+        --pay-ink: #f1edff;
+        --pay-muted: #b8aedb;
+        --pay-line: #352c4f;
+    }
+}

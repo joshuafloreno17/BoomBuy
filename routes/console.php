@@ -14,8 +14,9 @@ Artisan::command('boombuy:housekeeping', function () {
     $received = \App\Support\AutoReceive::sweep(true);
     $stale = \App\Support\StaleOrders::sweep(true);
     $files = \App\Support\OrphanUploads::sweep(true);
+    $unpaid = \App\Support\Payments::sweep();
 
-    $this->info("Received: {$received} · Cancelled: {$stale['cancelled']} · Returned: {$stale['returned']} · Reminders: {$stale['reminded']} · Returns to BoomBuy: {$stale['escalated']} · Returns cancelled: {$stale['returns_cancelled']} · Old uploads removed: {$files}");
+    $this->info("Received: {$received} · Cancelled: {$stale['cancelled']} · Returned: {$stale['returned']} · Reminders: {$stale['reminded']} · Returns to BoomBuy: {$stale['escalated']} · Returns cancelled: {$stale['returns_cancelled']} · Old uploads removed: {$files} · Unpaid cancelled: {$unpaid}");
 })->purpose('Auto-receive, cancel unconfirmed orders, return uncollected pick-ups, clear abandoned uploads');
 
 \Illuminate\Support\Facades\Schedule::command('boombuy:housekeeping')->everyTenMinutes()->withoutOverlapping();

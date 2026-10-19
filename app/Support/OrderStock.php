@@ -69,6 +69,7 @@ class OrderStock
 
             if ($exact) {
                 $exact->increment('stock', $quantity);
+                LowStock::check((int) $item->product_id, (int) $exact->id);
 
                 return true;
             }
@@ -80,6 +81,7 @@ class OrderStock
 
             Product::where('id', $item->product_id)
                 ->increment('stock', $quantity);
+            LowStock::check((int) $item->product_id);
 
             return true;
         }
@@ -95,6 +97,7 @@ class OrderStock
         }
 
         $variation->increment('stock', $quantity);
+        LowStock::check((int) $item->product_id, (int) $variation->id);
 
         return true;
     }

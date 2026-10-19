@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\StoreCategoryController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -1051,3 +1052,12 @@ Route::post('/admin/compliance/products/{id}/unflag', [AdminController::class, '
 
 
 Route::post('/admin/compliance/warn/{userId}', [AdminController::class, 'warnSeller'])->name('admin.compliance.warn');
+
+// =========================
+// SANDBOX PAYMENT (GCash, Maya, card — test payments, no real money)
+// =========================
+
+Route::get('/pay/{group}', [PaymentController::class, 'show'])->name('payment.show');
+Route::post('/pay/{group}', [PaymentController::class, 'pay'])->name('payment.pay');
+Route::post('/pay/{group}/fail', [PaymentController::class, 'fail'])->name('payment.fail');
+Route::post('/pay/{group}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
