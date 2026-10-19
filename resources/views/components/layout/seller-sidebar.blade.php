@@ -37,6 +37,11 @@
             <span class="label-text">Vouchers</span>
         </a>
 
+        <a href="{{ route('seller.promotions') }}" @class(['active' => $active === 'promotions'])>
+            <i class="bi bi-lightning-charge-fill"></i>
+            <span class="label-text">Promotions</span>
+        </a>
+
         <span class="menu-group">Grow</span>
 
         <a href="{{ route('seller.reports') }}" @class(['active' => $active === 'reports'])>
@@ -161,6 +166,7 @@
             <a href="{{ route('seller.reports') }}" @class(['active' => $active === 'reports'])><i class="bi bi-bar-chart-fill"></i>Reports</a>
             <a href="{{ route('seller.store-categories') }}" @class(['active' => $active === 'store-categories'])><i class="bi bi-tags-fill"></i>Categories</a>
             <a href="{{ route('seller.vouchers') }}" @class(['active' => $active === 'vouchers'])><i class="bi bi-ticket-perforated-fill"></i>Vouchers</a>
+            <a href="{{ route('seller.promotions') }}" @class(['active' => $active === 'promotions'])><i class="bi bi-lightning-charge-fill"></i>Promotions</a>
             <a href="{{ route('seller.reviews') }}" @class(['active' => $active === 'reviews'])><i class="bi bi-star-fill"></i>Reviews</a>
             <a href="{{ route('complaints.index') }}" @class(['active' => $active === 'complaints'])><i class="bi bi-exclamation-triangle-fill"></i>Complaints</a>
             <a href="{{ route('seller.profile') }}" @class(['active' => $active === 'profile'])><i class="bi bi-person-fill"></i>My Profile</a>

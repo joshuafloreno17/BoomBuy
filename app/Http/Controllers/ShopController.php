@@ -325,6 +325,8 @@ class ShopController extends Controller
         // Shop names for the cards, in one go.
         $shops = \App\Support\SellerShop::many($paginator->getCollection()->pluck('seller_id'));
 
+        Product::preloadLiveSales($paginator->getCollection());
+
         $products = $paginator->getCollection()
             ->map(fn ($product) => [
                 'id' => $product->id,
@@ -332,10 +334,11 @@ class ShopController extends Controller
                 'name' => $product->name,
                 'category' => $product->category,
                 // With options: the cheapest to the dearest (₱199 – ₱299) until one is picked.
-                'price' => $product->variations->isNotEmpty() ? (float) $product->price + (float) $product->variations->min('price_adjustment') : (float) $product->price,
-                'price_max' => $product->variations->isNotEmpty() ? (float) $product->price + (float) $product->variations->max('price_adjustment') : null,
-                'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
-                'discount' => $product->isDiscounted() ? (int) $product->discount_percent : null,
+                'price' => $product->variations->isNotEmpty() ? $product->variations->map(fn ($v) => $product->unitPrice($v))->min() : $product->unitPrice(),
+                'price_max' => $product->variations->isNotEmpty() ? $product->variations->map(fn ($v) => $product->unitPrice($v))->max() : null,
+                // The crossed-out regular price while a sale or "% off" is on.
+                'original_price' => $product->percentOffNow() ? ($product->variations->isNotEmpty() ? $product->variations->map(fn ($v) => $product->regularUnitPrice($v))->min() : $product->regularUnitPrice()) : null,
+                'discount' => $product->percentOffNow(),
                 'stock' => (int) $product->sellable_stock,
                 'sold' => (int) $product->sold_count,
                 'shop_name' => $shops->get($product->seller_id)['name'] ?? null,
@@ -353,7 +356,7 @@ class ShopController extends Controller
                     ->map(fn ($v) => [
                         'id' => $v->id,
                         'label' => $v->shortLabel(),
-                        'price' => (float) $product->price + (float) $v->price_adjustment,
+                        'price' => $product->unitPrice($v),
                         'stock' => (int) $v->stock,
                     ])
                     ->values()
@@ -600,8 +603,8 @@ class ShopController extends Controller
             'url' => route('product.details', Str::slug($product->name) . '-' . $product->id),
             'image' => $cover,
             'icon' => Categories::icon($product->category),
-            'price' => (float) $product->price,
-            'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
+            'price' => $product->unitPrice(),
+            'original_price' => $product->percentOffNow() ? $product->regularUnitPrice() : null,
             'stock' => (int) $product->stock,
             'type1' => $first?->variation_type,
             'type2' => $first && $first->hasSecondOption() ? $first->option2_type : null,
@@ -610,7 +613,8 @@ class ShopController extends Controller
                 'value1' => $v->variation_value,
                 'value2' => $v->hasSecondOption() ? $v->option2_value : null,
                 'adjust' => (float) $v->price_adjustment,
-                'price' => (float) $product->price + (float) $v->price_adjustment,
+                'price' => $product->unitPrice($v),
+                'regular' => $product->regularUnitPrice($v),
                 'stock' => (int) $v->stock,
                 'photo' => $variationPhotos[$v->id] ?? null,
                 'in_cart' => (int) ($cart[$product->id . ':' . $v->id] ?? 0),

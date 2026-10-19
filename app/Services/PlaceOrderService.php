@@ -154,7 +154,7 @@ class PlaceOrderService
                 );
             }
 
-            $unitPrice = (float) $product->price + (float) ($variation->price_adjustment ?? 0);
+            $unitPrice = $product->unitPrice($variation);
 
             if ($unitPrice <= 0) {
                 throw CheckoutFailed::inCart($product->name . ' has an invalid price right now. Please contact the seller.');

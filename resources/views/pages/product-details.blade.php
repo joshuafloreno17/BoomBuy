@@ -189,18 +189,29 @@
 
             @php
                 // Options can cost more or less: show the range until one is picked.
-                $optionPrices = $variations->map(fn ($v) => (float) $product->price + (float) $v->price_adjustment);
-                $priceLow = $optionPrices->isNotEmpty() ? $optionPrices->min() : (float) $product->price;
-                $priceHigh = $optionPrices->isNotEmpty() ? $optionPrices->max() : (float) $product->price;
-                $wasExtra = $product->isDiscounted() ? (float) $product->original_price - (float) $product->price : 0;
+                $optionPrices = $variations->map(fn ($v) => $product->unitPrice($v));
+                $priceLow = $optionPrices->isNotEmpty() ? $optionPrices->min() : $product->unitPrice();
+                $priceHigh = $optionPrices->isNotEmpty() ? $optionPrices->max() : $product->unitPrice();
+                // A store sale or the product's "% off": the regular prices, crossed out.
+                $percentOff = $product->percentOffNow();
+                $regularPrices = $variations->map(fn ($v) => $product->regularUnitPrice($v));
+                $wasLow = $regularPrices->isNotEmpty() ? $regularPrices->min() : $product->regularUnitPrice();
+                $wasHigh = $regularPrices->isNotEmpty() ? $regularPrices->max() : $product->regularUnitPrice();
+                $wasExtra = $wasLow - $priceLow;
+                $liveSale = $product->liveSale();
+                $peso = fn ($amount) => '₱' . number_format($amount, fmod(round($amount, 2), 1) == 0 ? 0 : 2);
             @endphp
             <div class="price">
 
-                <span id="pdPrice" data-base="{{ (float) $product->price }}">₱{{ number_format($priceLow) }}@if($priceHigh > $priceLow) – ₱{{ number_format($priceHigh) }}@endif</span>
+                <span id="pdPrice" data-base="{{ (float) $product->price }}">{{ $peso($priceLow) }}@if($priceHigh > $priceLow) – {{ $peso($priceHigh) }}@endif</span>
 
-                @if($product->isDiscounted())
-                    <s class="price-was" id="pdPriceWas" data-extra="{{ $wasExtra }}">₱{{ number_format($priceLow + $wasExtra) }}@if($priceHigh > $priceLow) – ₱{{ number_format($priceHigh + $wasExtra) }}@endif</s>
-                    <span class="price-off">-{{ $product->discount_percent }}%</span>
+                @if($percentOff)
+                    <s class="price-was" id="pdPriceWas" data-extra="{{ $wasExtra }}">{{ $peso($wasLow) }}@if($wasHigh > $wasLow) – {{ $peso($wasHigh) }}@endif</s>
+                    <span class="price-off">-{{ $percentOff }}%</span>
+                @endif
+
+                @if($liveSale)
+                    <span class="price-sale-ends" data-sale-ends="{{ $liveSale->stopsAt()->toIso8601String() }}">Sale ends {{ $liveSale->stopsAt()->format('M d, g:i A') }}</span>
                 @endif
 
             </div>
@@ -271,6 +282,8 @@
                             data-v1="{{ $variation->variation_value }}"
                             data-v2="{{ $variation->option2_value }}"
                             data-adjustment="{{ $variation->price_adjustment }}"
+                            data-price="{{ $product->unitPrice($variation) }}"
+                            data-regular="{{ $product->regularUnitPrice($variation) }}"
                             data-stock="{{ $variation->stock }}"
                             data-label="{{ $variation->label() }}"
                             data-image="{{ $variationImageUrl }}"
@@ -739,7 +752,9 @@
 
     // ---- Price and "N pieces available" for what is picked so far ----
     function peso(amount) {
-        return '₱' + Math.round(amount).toLocaleString('en-PH');
+        // Centavos only when there are some (₱179.10, ₱450).
+        const cents = Math.round(amount * 100) % 100 !== 0;
+        return '₱' + amount.toLocaleString('en-PH', { minimumFractionDigits: cents ? 2 : 0, maximumFractionDigits: cents ? 2 : 0 });
     }
 
     // options: the option buttons that match the pick (all of them before any pick).
@@ -749,14 +764,18 @@
         const availableEl = document.getElementById('pdAvailable');
         const base = parseFloat(priceEl.dataset.base) || 0;
 
-        const prices = options.map(function (s) { return base + (parseFloat(s.dataset.adjustment) || 0); });
-        const low = Math.min.apply(null, prices);
-        const high = Math.max.apply(null, prices);
-        const range = function (extra) { return peso(low + extra) + (high > low ? ' – ' + peso(high + extra) : ''); };
+        // Each option's price comes from the server (sales included).
+        const priceOf = function (s, key) { return s.dataset[key] !== undefined ? parseFloat(s.dataset[key]) : base + (parseFloat(s.dataset.adjustment) || 0); };
+        const range = function (key) {
+            const list = options.map(function (s) { return priceOf(s, key); });
+            const low = Math.min.apply(null, list);
+            const high = Math.max.apply(null, list);
+            return peso(low) + (high > low ? ' – ' + peso(high) : '');
+        };
 
-        if (prices.length) {
-            priceEl.textContent = range(0);
-            if (wasEl) wasEl.textContent = range(parseFloat(wasEl.dataset.extra) || 0);
+        if (options.length) {
+            priceEl.textContent = range('price');
+            if (wasEl) wasEl.textContent = range('regular');
         }
 
         const stock = options.reduce(function (sum, s) { return sum + (parseInt(s.dataset.stock, 10) || 0); }, 0);

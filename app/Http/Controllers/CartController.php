@@ -266,11 +266,7 @@ class CartController extends Controller
 
             $newQuantity = $cart[$key] ?? 0;
 
-            $unitPrice = $product ? (float) $product->price : 0;
-
-            if ($variation) {
-                $unitPrice += (float) $variation->price_adjustment;
-            }
+            $unitPrice = $product ? $product->unitPrice($variation ?: null) : 0;
 
             return response()->json(array_merge(
                 [
@@ -628,14 +624,7 @@ class CartController extends Controller
                         continue;
                     }
 
-                    $unitPrice = (float) $product->price;
-
-                    if ($variationId) {
-                        $variation = \App\Models\ProductVariation::find($variationId);
-                        if ($variation) {
-                            $unitPrice += (float) $variation->price_adjustment;
-                        }
-                    }
+                    $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
 
                     $voucherSubtotal += $unitPrice * (int) $quantity;
                 }
@@ -688,11 +677,7 @@ class CartController extends Controller
             [$productId, $variationId] = parseCartKey($cartKey);
             $product = $products[$productId];
 
-            $unitPrice = (float) $product->price;
-
-            if ($variationId && ($variation = \App\Models\ProductVariation::find($variationId))) {
-                $unitPrice += (float) $variation->price_adjustment;
-            }
+            $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
 
             $planLines[] = ['seller_id' => $product->seller_id, 'price' => $unitPrice, 'quantity' => (int) $quantity];
         }

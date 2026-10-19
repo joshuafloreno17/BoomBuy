@@ -258,7 +258,7 @@ class CatalogController extends MobileController
                     'label' => $v->shortLabel(),
                     'option1' => $v->variation_value,
                     'option2' => $v->hasSecondOption() ? $v->option2_value : null,
-                    'price' => round((float) $product->price + (float) $v->price_adjustment, 2),
+                    'price' => $product->unitPrice($v),
                     'stock' => (int) $v->stock,
                     'image' => $variationPhotos[$v->id] ?? null,
                 ])->values(),

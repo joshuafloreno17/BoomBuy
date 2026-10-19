@@ -66,6 +66,69 @@ class Product extends Model
         ];
     }
 
+    /** The store sale running now (loaded once per product per request). */
+    private ?ProductSale $liveSaleMemo = null;
+
+    private bool $liveSaleLoaded = false;
+
+    public function liveSale(): ?ProductSale
+    {
+        if (!$this->liveSaleLoaded) {
+            $this->liveSaleMemo = $this->id ? ProductSale::liveFor((int) $this->id) : null;
+            $this->liveSaleLoaded = true;
+        }
+
+        return $this->liveSaleMemo;
+    }
+
+    /** Load the live sales of many products in one query (shop pages). */
+    public static function preloadLiveSales(iterable $products): void
+    {
+        $products = collect($products);
+        $sales = ProductSale::whereIn('product_id', $products->pluck('id'))
+            ->where('starts_at', '<=', now())
+            ->where('ends_at', '>', now())
+            ->where(fn ($q) => $q->whereNull('ended_at')->orWhere('ended_at', '>', now()))
+            ->orderBy('id')
+            ->get()
+            ->keyBy('product_id');
+
+        foreach ($products as $product) {
+            $product->liveSaleMemo = $sales->get($product->id);
+            $product->liveSaleLoaded = true;
+        }
+    }
+
+    /** One unit's price before any discount or sale (an option's own extra included). */
+    public function regularUnitPrice(?ProductVariation $variation = null): float
+    {
+        return round($this->regularPrice() + (float) ($variation->price_adjustment ?? 0), 2);
+    }
+
+    /**
+     * What one unit costs a buyer right now — the one price used by the
+     * product page, cards, cart, checkout and the order: a running store
+     * sale, else the product's own "% off", else the regular price.
+     */
+    public function unitPrice(?ProductVariation $variation = null): float
+    {
+        if ($sale = $this->liveSale()) {
+            return $sale->priceFor($this->regularUnitPrice($variation));
+        }
+
+        return round((float) $this->price + (float) ($variation->price_adjustment ?? 0), 2);
+    }
+
+    /** % off shown on the badge right now (sale or the product's own discount), null if none. */
+    public function percentOffNow(): ?int
+    {
+        if ($sale = $this->liveSale()) {
+            return $sale->percentOff($this->regularUnitPrice());
+        }
+
+        return $this->isDiscounted() ? (int) $this->discount_percent : null;
+    }
+
     /** The price before any discount (what the seller typed as "Price"). */
     public function regularPrice(): float
     {

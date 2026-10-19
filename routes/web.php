@@ -5,6 +5,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ShopController;
 use App\Http\Controllers\StoreCategoryController;
 use App\Http\Controllers\PaymentController;
+use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -411,6 +412,12 @@ Route::post('/seller/vouchers/{id}/toggle', [SellerController::class, 'toggleVou
 
 
 Route::delete('/seller/vouchers/{id}', [SellerController::class, 'deleteVoucher'])->name('seller.vouchers.delete');
+
+// Promotions: store sales (S6), flash sales and bundle deals (S8)
+Route::get('/seller/promotions', [PromotionController::class, 'index'])->name('seller.promotions');
+Route::post('/seller/promotions/sales', [PromotionController::class, 'storeSale'])->name('seller.sales.store');
+Route::put('/seller/promotions/sales/{id}', [PromotionController::class, 'updateSale'])->whereNumber('id')->name('seller.sales.update');
+Route::post('/seller/promotions/sales/{id}/end', [PromotionController::class, 'endSale'])->whereNumber('id')->name('seller.sales.end');
 
 // Store categories: the store's own categories for its shop page (2 levels, up to 3 per product)
 Route::get('/seller/store-categories', [StoreCategoryController::class, 'index'])->name('seller.store-categories');

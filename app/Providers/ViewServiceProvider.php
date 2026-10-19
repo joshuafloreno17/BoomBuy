@@ -183,7 +183,7 @@ class ViewServiceProvider extends ServiceProvider
                 'name' => $product->name,
                 'variation' => $variation?->label(),
                 'quantity' => (int) $cart[$key],
-                'price' => (float) $product->price + (float) ($variation->price_adjustment ?? 0),
+                'price' => $product->unitPrice($variation),
                 // The chosen option's photo, else the cover.
                 'image' => productImageUrl(($variation->image ?? null) ?: $product->image),
                 'icon' => Categories::icon($product->category),

@@ -1367,4 +1367,206 @@ class SellerModulesSheetTest extends TestCase
         $this->buy($this->buyer1(), [$p02->id . ':0' => 3])->assertSessionDoesntHaveErrors();
         $this->assertSame(0, $this->stockOf($p02));
     }
+
+    /* ---------------------------------------------------------------
+     | S6 Discounts (store sales)
+     * --------------------------------------------------------------- */
+
+    private function saveSale(Product $product, array $overrides = [])
+    {
+        return $this->as($this->seller1())->from(route('seller.promotions'))->post(route('seller.sales.store'), array_merge([
+            'product_id' => $product->id,
+            'discount_type' => 'percent',
+            'discount_value' => '20',
+            'starts_at' => now()->addMinutes(10)->format('Y-m-d\TH:i'),
+            'ends_at' => now()->addHours(2)->format('Y-m-d\TH:i'),
+        ], $overrides));
+    }
+
+    /** What a buyer sees for P-02: product page, search card, cart and checkout. */
+    private function p02Everywhere(Product $p02): array
+    {
+        $cart = [$p02->id . ':0' => 1];
+
+        return [
+            'page' => $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()->getContent(),
+            'card' => $this->as($this->buyer1())->get(route('products', ['search' => 'Rattan Fruit Basket']))->assertOk()->getContent(),
+            'cart' => $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->assertOk()->getContent(),
+            'checkout' => $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))->assertOk()->getContent(),
+        ];
+    }
+
+    private function assertRegularPrice(array $views): void
+    {
+        $this->assertStringContainsString('<span id="pdPrice" data-base="450">₱450</span>', $views['page']);
+        $this->assertStringNotContainsString('class="price-off"', $views['page']);
+        $this->assertStringContainsString('<span class="sp-price">₱450 </span>', $views['card']);
+        $this->assertStringContainsString('450.00', $views['cart']);
+        $this->assertStringNotContainsString('360.00', $views['cart']);
+        $this->assertStringContainsString('450.00', $views['checkout']);
+        $this->assertStringNotContainsString('360.00', $views['checkout']);
+    }
+
+    public function test_SEL_DISC_001_create_a_scheduled_percentage_sale(): void
+    {
+        $p02 = $this->p02();
+        $start = now()->addMinutes(10);
+        $end = now()->addHours(2);
+
+        $this->saveSale($p02)->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $sale = \App\Models\ProductSale::firstOrFail();
+        $this->assertSame('Upcoming', $sale->status());
+        $this->as($this->seller1())->get(route('seller.promotions'))->assertOk()
+            ->assertSee('data-sale-status="' . $sale->id . '">Upcoming', false)
+            ->assertSee($start->format('M d, Y g:i A'))->assertSee($end->format('M d, Y g:i A'))
+            ->assertSee('₱450.00 → <b data-sale-price="' . $sale->id . '">₱360.00</b>', false);
+
+        // Before the start: ₱450.00 and no badge.
+        $this->assertRegularPrice($this->p02Everywhere($p02));
+    }
+
+    public function test_SEL_DISC_002_sale_goes_live_at_the_exact_start_time(): void
+    {
+        $p02 = $this->p02();
+        $this->saveSale($p02)->assertSessionHasNoErrors();
+
+        $this->travel(9)->minutes();
+        $this->assertRegularPrice($this->p02Everywhere($p02));
+
+        $this->travel(2)->minutes();
+        $views = $this->p02Everywhere($p02);
+        $this->assertStringContainsString('<span id="pdPrice" data-base="450">₱360</span>', $views['page']);
+        $this->assertStringContainsString('<s class="price-was" id="pdPriceWas" data-extra="90">₱450</s>', $views['page']);
+        $this->assertStringContainsString('<span class="price-off">-20%</span>', $views['page']);
+        $this->assertStringContainsString('<span class="sp-off">-20%</span>', $views['card']);
+        $this->assertStringContainsString('₱360  <s class="sp-was">₱450</s>', $views['card']);
+        $this->assertStringContainsString('360.00', $views['cart']);
+        $this->assertStringContainsString('360.00', $views['checkout']);
+    }
+
+    public function test_SEL_DISC_003_sale_ends_at_the_exact_end_time(): void
+    {
+        $p02 = $this->p02();
+        $this->saveSale($p02)->assertSessionHasNoErrors();
+
+        $this->travelTo(\App\Models\ProductSale::first()->ends_at->copy()->subMinute());
+        $this->assertStringContainsString('₱360', $this->p02Everywhere($p02)['page']);
+
+        $this->travelTo(\App\Models\ProductSale::first()->ends_at->copy()->addMinute());
+        $this->assertRegularPrice($this->p02Everywhere($p02));
+        $this->assertSame('Ended', \App\Models\ProductSale::first()->status());
+    }
+
+    public function test_SEL_DISC_004_invalid_sale_dates(): void
+    {
+        $p02 = $this->p02();
+        $at = fn ($time) => $time->format('Y-m-d\TH:i');
+
+        $this->saveSale($p02, ['starts_at' => $at(now()->addHours(2)), 'ends_at' => $at(now()->addHour())])
+            ->assertSessionHasErrors(['ends_at' => 'The end time must be after the start time.']);
+        $this->saveSale($p02, ['starts_at' => $at(now()->addHour()), 'ends_at' => $at(now()->addHour())])
+            ->assertSessionHasErrors(['ends_at' => 'The end time must be after the start time.']);
+        $this->saveSale($p02, ['starts_at' => $at(now()->subHour()), 'ends_at' => $at(now()->addHour())])
+            ->assertSessionHasErrors(['starts_at' => 'The start time must be in the future.']);
+
+        $this->assertSame(0, \App\Models\ProductSale::count());
+    }
+
+    public function test_SEL_DISC_005_discount_percentage_at_the_limits(): void
+    {
+        $p02 = $this->p02();
+
+        foreach (['0', '100', '101', '-5', '10.5'] as $bad) {
+            $this->saveSale($p02, ['discount_value' => $bad])->assertSessionHasErrors(['discount_value' => 'The discount must be a whole number from 1% to 99%.']);
+        }
+        $this->assertSame(0, \App\Models\ProductSale::count());
+
+        foreach (['1' => '₱445.50', '99' => '₱4.50'] as $percent => $price) {
+            $this->saveSale($p02, ['discount_value' => (string) $percent])->assertSessionHasNoErrors();
+            $sale = \App\Models\ProductSale::latest('id')->first();
+            $this->as($this->seller1())->get(route('seller.promotions'))->assertSee('<b data-sale-price="' . $sale->id . '">' . $price . '</b>', false);
+            $this->as($this->seller1())->post(route('seller.sales.end', $sale->id));
+        }
+
+        $this->assertSame(2, \App\Models\ProductSale::count());
+    }
+
+    public function test_SEL_DISC_006_fixed_sale_price_at_or_above_the_original(): void
+    {
+        $p02 = $this->p02();
+
+        foreach (['450.01', '450.00'] as $bad) {
+            $this->saveSale($p02, ['discount_type' => 'fixed', 'discount_value' => $bad])->assertSessionHasErrors(['discount_value' => 'The sale price must be lower than the regular price of ₱450.00.']);
+        }
+        $this->saveSale($p02, ['discount_type' => 'fixed', 'discount_value' => '0.99'])->assertSessionHasErrors(['discount_value']);
+        $this->assertSame(0, \App\Models\ProductSale::count());
+
+        foreach (['449.99', '1.00'] as $price) {
+            $this->saveSale($p02, ['discount_type' => 'fixed', 'discount_value' => $price])->assertSessionHasNoErrors();
+            $sale = \App\Models\ProductSale::latest('id')->first();
+            $this->assertEquals((float) $price, $sale->priceFor(450));
+            $this->as($this->seller1())->post(route('seller.sales.end', $sale->id));
+        }
+    }
+
+    public function test_SEL_DISC_007_overlapping_sales_on_the_same_product(): void
+    {
+        $p02 = $this->p02();
+        $at = fn (int $hour) => now()->setTime($hour, 0)->format('Y-m-d\TH:i');
+
+        $this->saveSale($p02, ['starts_at' => $at(13), 'ends_at' => $at(15)])->assertSessionHasNoErrors();
+        $this->saveSale($p02, ['starts_at' => $at(14), 'ends_at' => $at(16)])
+            ->assertSessionHasErrors(['starts_at' => 'Rattan Fruit Basket already has a sale in that period. A product can be in one store sale at a time.']);
+
+        $this->assertSame(1, \App\Models\ProductSale::count());
+    }
+
+    public function test_SEL_DISC_008_sale_on_a_product_with_variants(): void
+    {
+        $p01 = $this->p01();
+        $this->saveSale($p01, ['discount_value' => '10'])->assertSessionHasNoErrors();
+        $this->travel(11)->minutes();
+
+        $options = collect($this->as($this->buyer1())->getJson(route('product.options', $p01->id))->json('variations'));
+        foreach (['Natural-S' => 179.10, 'Natural-M' => 224.10, 'Natural-L' => 269.10] as $row => $price) {
+            $this->assertEquals($price, $options->firstWhere('id', $this->variant($row)->id)['price'], $row);
+        }
+
+        $this->as($this->buyer1())->get(route('product.details', $p01->id))->assertSee('₱179.10 – ₱269.10');
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote']))->assertSee('₱179.10 – ₱269.10');
+    }
+
+    public function test_SEL_DISC_009_edit_a_running_sale(): void
+    {
+        $p02 = $this->p02();
+        $this->saveSale($p02)->assertSessionHasNoErrors();
+        $this->travel(11)->minutes();
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1])->assertSessionDoesntHaveErrors();
+        $earlier = $this->lastOrder($this->buyer1());
+        $this->assertSame('360.00', $this->money(DB::table('order_items')->where('order_id', $earlier->id)->value('price')));
+
+        $sale = \App\Models\ProductSale::first();
+        $this->as($this->seller1())->put(route('seller.sales.update', $sale->id), ['discount_value' => '30'])->assertSessionHas('success');
+
+        $this->as($this->buyer2())->get(route('product.details', $p02->id))->assertSee('<span id="pdPrice" data-base="450">₱315</span>', false);
+        $this->assertSame('360.00', $this->money(DB::table('order_items')->where('order_id', $earlier->id)->value('price')));
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertSee('360');
+    }
+
+    public function test_SEL_DISC_010_end_a_running_sale_now(): void
+    {
+        $p02 = $this->p02();
+        $this->saveSale($p02)->assertSessionHasNoErrors();
+        $this->travel(11)->minutes();
+        $sale = \App\Models\ProductSale::first();
+        $this->assertSame('Ongoing', $sale->status());
+
+        $this->as($this->seller1())->post(route('seller.sales.end', $sale->id))->assertSessionHas('success');
+
+        $this->assertSame('Ended', $sale->fresh()->status());
+        $this->as($this->seller1())->get(route('seller.promotions'))->assertSee('data-sale-status="' . $sale->id . '">Ended', false);
+        $this->assertRegularPrice($this->p02Everywhere($p02));
+    }
 }

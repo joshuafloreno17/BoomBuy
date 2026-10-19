@@ -296,7 +296,7 @@ class CartController extends MobileController
 
             $variation = $variationId ? $variations->get($variationId) : null;
             $stock = $variation ? (int) $variation->stock : (int) $product->stock;
-            $price = (float) $product->price + (float) ($variation->price_adjustment ?? 0);
+            $price = $product->unitPrice($variation);
             $available = $product->isPurchasable();
 
             $lines[] = [
@@ -384,7 +384,7 @@ class CartController extends MobileController
             }
 
             $variation = $variationId ? ProductVariation::find($variationId) : null;
-            $price = (float) $product->price + (float) ($variation->price_adjustment ?? 0);
+            $price = $product->unitPrice($variation);
 
             $planLines[] = ['seller_id' => $product->seller_id, 'price' => $price, 'quantity' => (int) $quantity];
             $display[] = [

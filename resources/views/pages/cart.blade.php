@@ -147,7 +147,7 @@
 
                             $variationGone = $itemVariation && $itemVariation->trashed();
 
-                            $itemUnitPrice = (float) $product->price + ($itemVariation ? (float) $itemVariation->price_adjustment : 0);
+                            $itemUnitPrice = $product->unitPrice($itemVariation && !$itemVariation->trashed() ? $itemVariation : null);
 
                             $itemTotal =
                                 $itemUnitPrice * $quantity;

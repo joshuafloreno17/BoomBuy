@@ -332,14 +332,11 @@
 
                             $product = $products[$productId];
 
-                            $unitPrice = (float) $product['price'];
                             $lineVariation = $variationId
                                 ? \App\Models\ProductVariation::find($variationId)
                                 : null;
 
-                            if ($lineVariation) {
-                                $unitPrice += (float) $lineVariation->price_adjustment;
-                            }
+                            $unitPrice = $product->unitPrice($lineVariation);
 
                             $subtotal = $unitPrice * $quantity;
 

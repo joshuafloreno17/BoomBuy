@@ -221,16 +221,7 @@ if (!function_exists('cartSubtotalForSeller')) {
                 continue;
             }
 
-            $unitPrice = (float) $product->price;
-
-            if ($variationId) {
-
-                $variation = \App\Models\ProductVariation::find($variationId);
-
-                if ($variation) {
-                    $unitPrice += (float) $variation->price_adjustment;
-                }
-            }
+            $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
 
             $subtotal += $unitPrice * (int) $quantity;
         }
@@ -389,5 +380,16 @@ if (!function_exists('birthdateError')) {
         }
 
         return null;
+    }
+}
+
+if (!function_exists('peso')) {
+
+    // ₱450, ₱1,250, ₱179.10 — centavos only when there are some.
+    function peso(float|int|string|null $amount): string
+    {
+        $amount = round((float) $amount, 2);
+
+        return '₱' . number_format($amount, fmod($amount, 1) == 0.0 ? 0 : 2);
     }
 }
