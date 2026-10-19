@@ -229,7 +229,12 @@
                                     <i class="bi bi-chevron-right"></i>
                                 </a>
                             @endif
-                            <span class="bubble-text">{{ $message->message }}</span>
+                            @if($message->attachment)
+                                <a href="{{ route('messages.attachment', $message->id) }}" target="_blank" class="bubble-photo"><img src="{{ route('messages.attachment', $message->id) }}" alt="Photo" loading="lazy"></a>
+                            @endif
+                            @if($message->message !== null && $message->message !== '')
+                                <span class="bubble-text">{{ $message->message }}</span>
+                            @endif
                             @if($message->order_id && !empty($orderCards[$message->order_id]))
                                 @php $oc = $orderCards[$message->order_id]; @endphp
                                 <a href="{{ $oc['url'] }}" class="chat-order">
@@ -281,10 +286,15 @@
                         <button type="button" class="chat-suggest-close" id="chatSuggestClose" aria-label="Hide suggestions"><i class="bi bi-x-lg"></i></button>
                     </div>
                 @endif
-                <form method="POST" action="{{ route('messages.store', $partner['id']) }}" class="thread-compose" id="sendForm">
+                <form method="POST" action="{{ route('messages.store', $partner['id']) }}" class="thread-compose" id="sendForm" enctype="multipart/form-data">
                     @csrf
                     @if(!empty($askingAbout))<input type="hidden" name="product_id" value="{{ $askingAbout['id'] }}">@endif
-                    <textarea name="message" rows="1" maxlength="2000" placeholder="Write a message…" aria-label="Message" required autofocus></textarea>
+                    {{-- A photo (JPG or PNG, up to 5 MB) with or instead of text. --}}
+                    <label class="thread-attach" title="Attach a photo" aria-label="Attach a photo">
+                        <i class="bi bi-image"></i>
+                        <input type="file" name="attachment" accept="image/jpeg,image/png" hidden>
+                    </label>
+                    <textarea name="message" rows="1" maxlength="{{ \App\Http\Requests\MessageRequest::MAX }}" placeholder="Write a message…" aria-label="Message" autofocus></textarea>
                     <button type="submit" class="thread-send" aria-label="Send"><i class="bi bi-send-fill"></i></button>
                 </form>
                 <div class="compose-hint">Enter to send · Shift + Enter for a new line</div>
@@ -574,7 +584,18 @@
 
         var text = document.createElement('span');
         text.className = 'bubble-text';
-        text.textContent = m.text;
+        text.textContent = m.text || '';
+        if (m.attachment) {
+            var link = document.createElement('a');
+            link.href = m.attachment;
+            link.target = '_blank';
+            link.className = 'bubble-photo';
+            var img = document.createElement('img');
+            img.src = m.attachment;
+            img.alt = 'Photo';
+            link.appendChild(img);
+            bubble.appendChild(link);
+        }
 
         var time = document.createElement('span');
         time.className = 'bubble-time';
@@ -646,27 +667,41 @@
         }
     });
 
+    var fileInput = form.querySelector('input[name="attachment"]');
+    if (fileInput) fileInput.addEventListener('change', function () { if (fileInput.files.length) form.requestSubmit(); });
+
     form.addEventListener('submit', function (event) {
         var text = textarea.value.trim();
+        var file = fileInput && fileInput.files.length ? fileInput.files[0] : null;
         event.preventDefault();
-        if (!text || button.disabled) return;
+        // An empty or spaces-only message is not sent.
+        if ((!text && !file) || button.disabled) return;
 
         button.disabled = true;
+        var body = new FormData();
+        if (text) body.append('message', text);
+        if (file) body.append('attachment', file);
+        if (askAbout) body.append('product_id', askAbout.dataset.productId);
 
         fetch(form.getAttribute('action'), {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',
-                'Content-Type': 'application/json',
                 'X-CSRF-TOKEN': token,
                 'X-Requested-With': 'XMLHttpRequest'
             },
             credentials: 'same-origin',
-            body: JSON.stringify(askAbout
-                ? { message: text, product_id: parseInt(askAbout.dataset.productId, 10) }
-                : { message: text })
+            body: body
         })
             .then(function (r) {
+                if (r.status === 422) {
+                    return r.json().then(function (data) {
+                        var first = data.errors ? Object.values(data.errors)[0][0] : data.message;
+                        if (window.bbAlert) bbAlert(first); 
+                        if (fileInput) fileInput.value = '';
+                        throw new Error('invalid');
+                    });
+                }
                 if (!r.ok) throw new Error('send failed');
                 return r.json();
             })
@@ -680,7 +715,8 @@
                 autosize();
                 textarea.focus();
             })
-            .catch(function () { HTMLFormElement.prototype.submit.call(form); })
+            .then(function () { if (fileInput) fileInput.value = ''; })
+            .catch(function (e) { if (e.message !== 'invalid') HTMLFormElement.prototype.submit.call(form); })
             .finally(function () { button.disabled = false; });
     });
 })();

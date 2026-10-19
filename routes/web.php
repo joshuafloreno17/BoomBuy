@@ -398,6 +398,9 @@ Route::get('/seller/reviews', [SellerController::class, 'reviews'])->name('selle
 
 
 Route::post('/seller/reviews/{id}/reply', [SellerController::class, 'replyReview'])->name('seller.reviews.reply');
+Route::put('/seller/reviews/{id}/reply', [SellerController::class, 'replyReview'])->name('seller.reviews.reply.update');
+Route::delete('/seller/reviews/{id}', [SellerController::class, 'deleteReview'])->name('seller.reviews.delete');
+Route::post('/seller/reviews/{id}/hide', [SellerController::class, 'deleteReview'])->name('seller.reviews.hide');
 
 
 Route::get('/seller/reports', [SellerController::class, 'reports'])->name('seller.reports');
@@ -1081,3 +1084,4 @@ Route::post('/pay/{group}/cancel', [PaymentController::class, 'cancel'])->name('
 
 Route::get('/buyer/vouchers', [BuyerVoucherController::class, 'index'])->name('buyer.vouchers');
 Route::post('/vouchers/{id}/claim', [BuyerVoucherController::class, 'claim'])->whereNumber('id')->name('vouchers.claim');
+Route::get('/messages/attachment/{id}', [MessageController::class, 'attachment'])->whereNumber('id')->name('messages.attachment');

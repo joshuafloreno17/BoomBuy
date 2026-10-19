@@ -603,6 +603,8 @@ class SellerController extends Controller
             ->join('users', 'users.id', '=', 'product_reviews.buyer_id')
             ->join('products', 'products.id', '=', 'product_reviews.product_id')
             ->where('products.seller_id', $user['id'])
+            // Filter by stars (1–5).
+            ->when(in_array((int) request('rating'), [1, 2, 3, 4, 5], true), fn ($q) => $q->where('product_reviews.rating', (int) request('rating')))
             ->select(
                 'product_reviews.*',
                 'users.name as buyer_name',
@@ -610,9 +612,18 @@ class SellerController extends Controller
             )
             ->orderByDesc('product_reviews.created_at')
             ->orderByDesc('product_reviews.id')
-            ->paginate(20);
+            ->paginate(20)
+            ->withQueryString();
 
-        return view('pages.seller.reviews', compact('user', 'reviews'));
+        $ratingFilter = in_array((int) request('rating'), [1, 2, 3, 4, 5], true) ? (int) request('rating') : null;
+
+        return view('pages.seller.reviews', compact('user', 'reviews', 'ratingFilter'));
+    }
+
+    /** Buyers' reviews can't be deleted or hidden by the seller (A12). */
+    public function deleteReview($id)
+    {
+        abort(403, 'Sellers cannot delete or hide reviews.');
     }
 
     public function replyReview($id)
@@ -633,11 +644,26 @@ class SellerController extends Controller
             ->join('products', 'products.id', '=', 'product_reviews.product_id')
             ->where('product_reviews.id', $id)
             ->where('products.seller_id', $user['id'])
-            ->select('product_reviews.id')
+            ->select('product_reviews.id', 'product_reviews.seller_reply')
             ->first();
 
         if (!$review) {
             abort(404);
+        }
+
+        // One reply per review (A12): the seller edits it instead of adding another.
+        $editing = request()->isMethod('put');
+
+        if (!$editing && !empty($review->seller_reply)) {
+            return back()->with('error', 'You already replied to this review. Edit your reply instead.');
+        }
+
+        if ($editing && empty($review->seller_reply)) {
+            return back()->with('error', 'There is no reply to edit yet.');
+        }
+
+        if (mb_strlen($reply) > 1000) {
+            return back()->with('error', 'A reply can have at most 1,000 characters.');
         }
 
         DB::table('product_reviews')

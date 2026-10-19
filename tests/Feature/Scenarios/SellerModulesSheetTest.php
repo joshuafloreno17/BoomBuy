@@ -2241,4 +2241,134 @@ class SellerModulesSheetTest extends TestCase
 
         $this->assertEquals(0, $this->as($this->seller1())->get(route('seller.reports'))->viewData('totalSales'));
     }
+
+    /* ---------------------------------------------------------------
+     | S11 Reviews & Chat
+     * --------------------------------------------------------------- */
+
+    /** P-02 reviews: 5, 3 and 1 star. */
+    private function p02Reviews(): array
+    {
+        $ids = [];
+
+        foreach ([5 => 'Sturdy and beautiful basket.', 3 => 'Okay, a bit smaller than expected.', 1 => 'The handle came loose.'] as $stars => $text) {
+            $buyer = $stars === 5 ? $this->buyer1() : $this->makeUser('buyer');
+            $orderId = $this->makeOrder($buyer, $this->p02(), 'Completed');
+            Storage::disk('public')->put("reviews/r{$stars}.jpg", 'x');
+            $ids[$stars] = DB::table('product_reviews')->insertGetId([
+                'product_id' => $this->p02()->id, 'buyer_id' => $buyer->id, 'order_id' => $orderId, 'rating' => $stars, 'review' => $text,
+                'photos' => json_encode(["reviews/r{$stars}.jpg"]), 'variation_label' => null,
+                'created_at' => now()->subDays($stars), 'updated_at' => now(),
+            ]);
+        }
+
+        return $ids;
+    }
+
+    private function reviewCards(?int $rating = null): array
+    {
+        $html = $this->as($this->seller1())->get(route('seller.reviews', array_filter(['rating' => $rating])))->assertOk()->getContent();
+        preg_match_all('/data-review="\d+" data-rating="(\d)"/', $html, $m);
+
+        return array_map('intval', $m[1]);
+    }
+
+    private function chat(\App\Models\User $from, \App\Models\User $to, array $form)
+    {
+        return $this->as($from)->post(route('messages.store', $to->id), $form, $this->ajaxHeaders());
+    }
+
+    public function test_SEL_REV_001_view_and_filter_reviews(): void
+    {
+        $this->p02Reviews();
+
+        // Newest first.
+        $this->assertSame([1, 3, 5], $this->reviewCards());
+        $this->as($this->seller1())->get(route('seller.reviews'))->assertSee('Sturdy and beautiful basket.')->assertSee('storage/reviews/r5.jpg', false)->assertSee(now()->subDays(5)->format('M d, Y'));
+        $this->assertSame([1], $this->reviewCards(1));
+        $this->assertSame([5], $this->reviewCards(5));
+    }
+
+    public function test_SEL_REV_002_reply_to_a_review(): void
+    {
+        $ids = $this->p02Reviews();
+
+        $this->as($this->seller1())->post(route('seller.reviews.reply', $ids[5]), ['seller_reply' => 'Salamat po! Enjoy your basket.'])->assertSessionHas('success');
+
+        $this->as($this->buyer1())->get(route('product.details', $this->p02()->id))->assertOk()
+            ->assertSeeInOrder(['Sturdy and beautiful basket.', "Seller's Response", 'Salamat po! Enjoy your basket.']);
+    }
+
+    public function test_SEL_REV_003_second_reply_and_edit_reply(): void
+    {
+        $ids = $this->p02Reviews();
+        $this->as($this->seller1())->post(route('seller.reviews.reply', $ids[5]), ['seller_reply' => 'Salamat po! Enjoy your basket.']);
+
+        $this->as($this->seller1())->post(route('seller.reviews.reply', $ids[5]), ['seller_reply' => 'Another reply'])->assertSessionHas('error', 'You already replied to this review. Edit your reply instead.');
+        $this->as($this->seller1())->put(route('seller.reviews.reply.update', $ids[5]), ['seller_reply' => 'Salamat po sa tiwala!'])->assertSessionHas('success');
+
+        $this->assertSame('Salamat po sa tiwala!', DB::table('product_reviews')->where('id', $ids[5])->value('seller_reply'));
+        $this->as($this->buyer1())->get(route('product.details', $this->p02()->id))->assertSee('Salamat po sa tiwala!')->assertDontSee('Enjoy your basket.');
+    }
+
+    public function test_SEL_REV_004_seller_cannot_delete_or_hide_a_review(): void
+    {
+        $ids = $this->p02Reviews();
+
+        $this->as($this->seller1())->get(route('seller.reviews'))->assertDontSee('>Delete<', false)->assertDontSee('>Hide<', false);
+        $this->as($this->seller1())->delete(route('seller.reviews.delete', $ids[1]))->assertForbidden();
+        $this->as($this->seller1())->post(route('seller.reviews.hide', $ids[1]))->assertForbidden();
+
+        $this->as($this->buyer1())->get(route('product.details', $this->p02()->id))->assertSee('The handle came loose.');
+    }
+
+    public function test_SEL_REV_005_chat_with_a_buyer_with_attachment(): void
+    {
+        $this->chat($this->buyer1(), $this->seller1(), ['message' => 'Available pa po ba ang Rattan Fruit Basket?', 'product_id' => $this->p02()->id])->assertOk();
+
+        $this->chat($this->seller1(), $this->buyer1(), ['message' => 'Opo, available pa.'])->assertOk();
+        $this->travel(1)->minutes();
+        $photo = $this->chat($this->seller1(), $this->buyer1(), ['attachment' => $this->jpegOfSize('review_photo.jpg', (int) (1.5 * 1048576))])->assertOk()->json('message');
+
+        // (The shop's automatic reply aside.)
+        $messages = \App\Models\Message::where('kind', '!=', \App\Models\Message::AUTO_REPLY)->orderBy('id')->get()->values();
+        $this->assertSame(['Available pa po ba ang Rattan Fruit Basket?', 'Opo, available pa.', ''], $messages->pluck('message')->all());
+        $this->assertNotNull($messages->last()->attachment);
+        $this->assertTrue($messages[1]->created_at->lt($messages[2]->created_at));
+
+        // Buyer 1 sees them in order, with times, and can open the photo.
+        $this->as($this->buyer1())->get(route('messages.thread', $this->seller1()->id))->assertOk()
+            ->assertSeeInOrder(['Opo, available pa.', route('messages.attachment', $messages->last()->id)], false)
+            ->assertSee($messages[1]->created_at->format('g:i A'));
+        $this->as($this->buyer1())->get($photo['attachment'])->assertOk();
+        $this->as($this->makeUser('buyer'))->get($photo['attachment'])->assertForbidden();
+    }
+
+    public function test_SEL_REV_006_invalid_chat_attachments(): void
+    {
+        foreach ([$this->jpegOfSize('size_5.1MB.jpg', $this->mb(5.1)), $this->exe('installer.exe'), $this->exe('renamed_exe.jpg')] as $file) {
+            $this->chat($this->seller1(), $this->buyer1(), ['attachment' => $file])->assertStatus(422)->assertJsonValidationErrors(['attachment' => 'Attach a JPG or PNG photo of at most 5 MB.']);
+        }
+
+        $this->assertSame(0, \App\Models\Message::count());
+    }
+
+    public function test_SEL_REV_007_message_length_and_empty_message(): void
+    {
+        // Buyer 1 wrote first (a seller answers buyers).
+        $this->chat($this->buyer1(), $this->seller1(), ['message' => 'Hello po!'])->assertOk();
+        $sent = fn () => \App\Models\Message::where('sender_id', $this->seller1()->id)->where('kind', '!=', \App\Models\Message::AUTO_REPLY);
+
+        $this->chat($this->seller1(), $this->buyer1(), ['message' => ''])->assertStatus(422);
+        $this->chat($this->seller1(), $this->buyer1(), ['message' => '      '])->assertStatus(422);
+        $this->assertSame(0, $sent()->count());
+
+        $thousand = str_repeat('Salamat! ', 111) . 'x';
+        $this->assertSame(1000, mb_strlen($thousand));
+        $this->chat($this->seller1(), $this->buyer1(), ['message' => $thousand])->assertOk();
+        $this->assertSame($thousand, $sent()->first()->message);
+
+        $this->chat($this->seller1(), $this->buyer1(), ['message' => $thousand . 'y'])->assertStatus(422)->assertJsonValidationErrors(['message' => 'A message can have at most 1,000 characters.']);
+        $this->assertSame(1, $sent()->count());
+    }
 }

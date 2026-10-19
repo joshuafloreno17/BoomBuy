@@ -918,3 +918,9 @@ a {
         min-width: 0;
     }
 }
+
+/* Chat photos */
+.thread-attach { display: inline-grid; place-items: center; width: 40px; height: 40px; flex: none; border-radius: 12px; color: #6d4ad1; cursor: pointer; }
+.thread-attach:hover { background: #f3efff; }
+.bubble-photo { display: block; margin-bottom: 4px; }
+.bubble-photo img { display: block; max-width: 220px; max-height: 240px; border-radius: 12px; object-fit: cover; }

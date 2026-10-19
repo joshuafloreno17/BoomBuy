@@ -27,15 +27,24 @@
                 <div class="error-box">{{ session('error') }}</div>
             @endif
 
+            {{-- Filter by stars --}}
+            <nav class="review-filter" aria-label="Filter reviews">
+                <a href="{{ route('seller.reviews') }}" @class(['is-active' => !$ratingFilter])>All</a>
+                @foreach([5, 4, 3, 2, 1] as $stars)
+                    <a href="{{ route('seller.reviews', ['rating' => $stars]) }}" @class(['is-active' => $ratingFilter === $stars])>{{ $stars }} <i class="bi bi-star-fill"></i></a>
+                @endforeach
+            </nav>
+
             @forelse($reviews as $review)
 
-                <div class="review-card">
+                <div class="review-card" data-review="{{ $review->id }}" data-rating="{{ (int) $review->rating }}">
 
                     <div class="review-top">
                         <div>
                             <div class="review-product">{{ $review->product_name }}</div>
                             <div class="review-buyer">
                                 {{ $review->buyer_name }} · {{ \Carbon\Carbon::parse($review->created_at)->format('M d, Y') }}
+                                @if(!empty($review->variation_label)) · {{ $review->variation_label }} @endif
                             </div>
                         </div>
                         <div class="review-stars">
@@ -47,12 +56,32 @@
                         <div class="review-text">{{ $review->review }}</div>
                     @endif
 
+                    @php $reviewPhotos = (array) json_decode((string) ($review->photos ?? ''), true); @endphp
+                    @if($reviewPhotos)
+                        <div class="review-photos">
+                            @foreach($reviewPhotos as $photo)
+                                <a href="{{ asset('storage/' . $photo) }}" target="_blank"><img src="{{ asset('storage/' . $photo) }}" alt="Review photo" loading="lazy"></a>
+                            @endforeach
+                        </div>
+                    @endif
+
                     @if(!empty($review->seller_reply))
 
                         <div class="reply-box">
                             <div class="reply-label">Your Reply</div>
                             <div class="reply-text">{{ $review->seller_reply }}</div>
                         </div>
+
+                        {{-- One reply per review: edit it here. --}}
+                        <details class="reply-edit">
+                            <summary>Edit reply</summary>
+                            <form class="reply-form" method="POST" action="{{ route('seller.reviews.reply.update', $review->id) }}">
+                                @csrf
+                                @method('PUT')
+                                <textarea name="seller_reply" maxlength="1000" required>{{ $review->seller_reply }}</textarea>
+                                <button type="submit">Save Reply</button>
+                            </form>
+                        </details>
 
                     @else
 

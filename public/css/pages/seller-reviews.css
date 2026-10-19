@@ -175,3 +175,11 @@ a { text-decoration: none; }
 @media (max-width: 900px) {
     .main-content { margin-left: 72px; width: calc(100% - 72px); }
 }
+
+.review-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.review-filter a { padding: 7px 12px; border-radius: 999px; border: 1px solid #e3dcf6; background: #fff; color: #3f2d86; font-weight: 700; font-size: 13px; text-decoration: none; }
+.review-filter a.is-active { background: #6d4ad1; border-color: #6d4ad1; color: #fff; }
+.review-photos { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+.review-photos img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; }
+.reply-edit { margin-top: 8px; }
+.reply-edit summary { cursor: pointer; font-size: 12px; font-weight: 700; color: #6d4ad1; }

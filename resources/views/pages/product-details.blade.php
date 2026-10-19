@@ -635,7 +635,7 @@
 
                     @if(!empty($review->seller_reply))
                         <div class="seller-reply-box" style="background:#f8f6fe; border:1px solid #e9e4fa; border-radius:10px; padding:10px 12px; margin-top:8px;">
-                            <div style="font-size:11px; font-weight:800; color:#5536b5; margin-bottom:3px;">Seller Reply</div>
+                            <div style="font-size:11px; font-weight:800; color:#5536b5; margin-bottom:3px;">Seller's Response</div>
                             <div style="font-size:13px; color:#463c5e;">{{ $review->seller_reply }}</div>
                         </div>
                     @endif

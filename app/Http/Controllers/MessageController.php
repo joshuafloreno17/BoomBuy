@@ -135,10 +135,16 @@ class MessageController extends Controller
             ? $this->productFor((int) $request->validated('product_id'), $partner->id, $me['id'])
             : null;
 
+        // A photo goes to private storage (only the two people in the chat can open it).
+        $attachment = $request->hasFile('attachment')
+            ? $request->file('attachment')->store('chat', 'local')
+            : null;
+
         $message = Message::create([
             'sender_id' => $me['id'],
             'recipient_id' => $userId,
             'message' => trim((string) request('message')),
+            'attachment' => $attachment,
             'product_id' => $product?->id,
         ]);
 
@@ -381,11 +387,25 @@ class MessageController extends Controller
             'order' => $message->order_id ? $this->orderCard((int) $message->order_id, $role) : null,
             'mine' => (int) $message->sender_id === $myId,
             'text' => $message->message,
+            'attachment' => $message->attachment ? route('messages.attachment', $message->id) : null,
             'time' => $message->created_at->format('g:i A'),
             'day' => $message->created_at->toDateString(),
             'day_label' => self::dayLabel($message->created_at),
             'product' => $this->productCard($message->product),
         ];
+    }
+
+    /** A chat photo, for the sender and the recipient only. */
+    public function attachment($id)
+    {
+        $me = currentMessagingUser();
+        $message = Message::find((int) $id);
+
+        abort_unless($me && $message && $message->attachment, 404);
+        abort_unless(in_array((int) $me['id'], [(int) $message->sender_id, (int) $message->recipient_id], true), 403);
+        abort_unless(\Illuminate\Support\Facades\Storage::disk('local')->exists($message->attachment), 404);
+
+        return \Illuminate\Support\Facades\Storage::disk('local')->response($message->attachment, null, ['X-Content-Type-Options' => 'nosniff']);
     }
 
     /** What an order-update card shows: number, current status, a link that suits the viewer. */

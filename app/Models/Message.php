@@ -10,6 +10,7 @@ class Message extends Model
         'sender_id',
         'recipient_id',
         'message',
+        'attachment',
         'product_id',
         'kind',
         'order_id',
