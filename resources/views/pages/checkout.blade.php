@@ -62,6 +62,8 @@
         @csrf
         {{-- Double-click / Back and resend: one order only. --}}
         {!! \App\Support\SubmitOnce::field() !!}
+        {{-- The total shown here; a price that changes before Place Order must be confirmed. --}}
+        <input type="hidden" name="expected_total" id="expectedTotal" value="{{ number_format($checkoutPlan['total'], 2, '.', '') }}">
 
 
         <div class="checkout-grid">
@@ -491,10 +493,15 @@
                 </div>
 
 
+                <p class="place-order-blocked" id="unserviceableNote" @if(empty($checkoutPlan['unserviceable'])) hidden @endif>
+                    <i class="bi bi-geo-alt"></i> <span>{{ $checkoutPlan['unserviceable'] ?? '' }}</span>
+                </p>
+
                 <button
                     type="submit"
                     class="place-order"
-                    @disabled(!empty($missingInfo))
+                    id="placeOrderButton"
+                    @disabled(!empty($missingInfo) || !empty($checkoutPlan['unserviceable']))
                 >
 
                     <i class="bi bi-bag-check-fill"></i> Place Order
@@ -585,6 +592,13 @@
                     if (!q) return;
                     feeEl.textContent = q.delivery_fee > 0 ? peso(q.delivery_fee) : 'FREE';
                     totalEl.textContent = peso(q.total);
+                    document.getElementById('expectedTotal').value = Number(q.total).toFixed(2);
+
+                    // No delivery zone covers this address: Place Order stays off.
+                    var note = document.getElementById('unserviceableNote');
+                    note.hidden = !q.unserviceable;
+                    note.querySelector('span').textContent = q.unserviceable || '';
+                    document.getElementById('placeOrderButton').disabled = !!q.unserviceable || @json(!empty($missingInfo));
                     etaEl.textContent = q.located && q.eta ? q.eta : '—';
                     zoneEl.textContent = q.located
                         ? 'Shipping distance: ' + q.zones.join(' / ') + '.'

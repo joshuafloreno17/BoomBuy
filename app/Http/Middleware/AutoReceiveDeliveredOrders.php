@@ -43,6 +43,13 @@ class AutoReceiveDeliveredOrders
             report($e);
         }
 
+        // Flash-sale "Remind me" notifications due soon.
+        try {
+            \App\Support\FlashReminders::sweep();
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         // Once a day: ID files of registrations never finished (OrphanUploads).
         try {
             \App\Support\OrphanUploads::sweep();

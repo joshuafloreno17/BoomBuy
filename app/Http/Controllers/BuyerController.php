@@ -647,6 +647,20 @@ class BuyerController extends Controller
         );
     }
 
+    /** "Remind me" on an upcoming flash sale (B14). */
+    public function remindFlashSale(int $id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        return \App\Support\FlashReminders::set((int) $user['id'], $id)
+            ? back()->with('success', 'We will remind you ' . \App\Support\FlashReminders::MINUTES_BEFORE . ' minutes before the flash sale starts.')
+            : back()->with('error', 'That flash sale has already started or is no longer available.');
+    }
+
     public function toggleWishlist($id)
     {
         $user = requireUserRole('buyer');

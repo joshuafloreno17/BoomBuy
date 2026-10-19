@@ -43,8 +43,9 @@ class CodPolicy
     {
         $order = (object) $order;
 
-        return self::isCod($order->payment_method ?? null)
-            && in_array($order->status ?? null, self::CANCELLABLE_STATUSES);
+        // Any payment method until the seller hands it over (A6); a paid
+        // order is refunded when it is cancelled.
+        return in_array($order->status ?? null, self::CANCELLABLE_STATUSES);
     }
 
     /**
@@ -58,6 +59,7 @@ class CodPolicy
         $cancelled = DB::table('orders')
             ->where('buyer_id', $buyerId)
             ->where('cancelled_by', 'buyer')
+            ->where('payment_method', self::METHOD)
             ->where('cancelled_at', '>=', $since)
             ->pluck('cancelled_at');
 

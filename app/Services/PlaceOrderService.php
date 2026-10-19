@@ -55,6 +55,22 @@ class PlaceOrderService
             throw new CheckoutFailed(reset($plan['problems']) . ' It has been removed — please review your total and place the order again.', voucherDropped: true);
         }
 
+        // No delivery zone covers the address (Logistics → Zones & Rates).
+        if ($plan['unserviceable']) {
+            throw CheckoutFailed::inForm($plan['unserviceable']);
+        }
+
+        // The total the buyer saw on the checkout page: a price that changed
+        // since then must be confirmed first (B8-008).
+        $expected = $details['expected_total'] ?? null;
+
+        if (is_numeric($expected) && abs((float) $expected - (float) $plan['total']) >= 0.01) {
+            throw CheckoutFailed::inForm(
+                'A price in your order changed while you were checking out. The total is now ₱' . number_format($plan['total'], 2)
+                . ' (was ₱' . number_format((float) $expected, 2) . '). Please review it and place the order again.'
+            );
+        }
+
         return $this->create($buyer, $plan, $vouchers->whereIn('code', $plan['applied'])->values(), $address, $phone, $payment, $location, $fulfillment);
     }
 
@@ -65,8 +81,12 @@ class PlaceOrderService
         $phone = trim((string) ($details['phone'] ?? ''));
         $payment = trim((string) ($details['payment'] ?? ''));
 
-        if ($address === '' || $phone === '' || $payment === '') {
+        if ($address === '' || $phone === '') {
             throw CheckoutFailed::inForm('Please complete all checkout information.');
+        }
+
+        if ($payment === '') {
+            throw CheckoutFailed::inForm('Please choose a payment method.');
         }
 
         // Same rule as the address book — the rider has to be able to call it.

@@ -1732,7 +1732,7 @@ class SellerModulesSheetTest extends TestCase
         $lines = [['seller_id' => $this->seller1()->id, 'product_id' => $p01->id, 'price' => 249, 'quantity' => 1], ['seller_id' => $this->seller1()->id, 'product_id' => $p02->id, 'price' => 450, 'quantity' => 1]];
         $this->assertSame(249.0, $voucher->eligibleSubtotal($lines));
         $voucher->update(['min_order_amount' => 300]);
-        $this->assertSame('Voucher MCHTOTE needs a minimum spend of ₱300.00 on the items it covers (you have ₱249.00).', \App\Support\CheckoutPlan::build($lines, $voucher)['problems']['MCHTOTE']);
+        $this->assertSame('Voucher MCHTOTE needs a minimum spend of ₱300.00 on the items it covers (you have ₱249.00). Spend ₱51.00 more to use it.', \App\Support\CheckoutPlan::build($lines, $voucher)['problems']['MCHTOTE']);
         $voucher->update(['min_order_amount' => 100]);
 
         $this->checkoutWithVoucher($this->buyer2(), [$p01->id . ':' . $natM->id => 1, $p02->id . ':0' => 1], 'MCHTOTE')->assertSessionDoesntHaveErrors();

@@ -31,12 +31,8 @@ class BuyerOrderService
     {
         $order = $this->buyerOrder($buyerId, $orderId);
 
-        // Paid orders can't be cancelled by the buyer once checked out; COD
-        // orders only until the seller packs them (Pending/Confirmed/Preparing).
-        if (!CodPolicy::isCod($order->payment_method)) {
-            throw new ActionFailed('Paid orders can no longer be cancelled. You can request a return once you receive it.');
-        }
-
+        // Until the seller hands it to the rider (Pending/Confirmed/Preparing),
+        // whatever the payment; a paid order is refunded in full (B11).
         if (!CodPolicy::buyerCanCancel($order)) {
             throw new ActionFailed('This order can no longer be cancelled — it is already on its way. You can refuse the parcel on delivery or request a return after receiving it.');
         }
@@ -91,6 +87,11 @@ class BuyerOrderService
         }
 
         $message = 'Your order has been cancelled.';
+
+        if ($refund = \App\Support\Payments::startRefund($orderId)) {
+            $message .= ' ' . $refund;
+        }
+
         $cod = CodPolicy::status($buyerId);
 
         if ($cod['blocked']) {

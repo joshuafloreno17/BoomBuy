@@ -360,8 +360,10 @@ class BuyerScenariosTest extends TestCase
         $processing = $this->makeOrder($buyer, $this->shoes, 'Preparing');
         $cancel($processing, ['cancel_reason' => 'Ordered by mistake'])->assertSessionHas('success');
 
-        $prepaid = $this->makeOrder($buyer, $this->shoes, 'Pending', ['payment_method' => 'GCash']);
-        $cancel($prepaid, ['cancel_reason' => 'Changed my mind'])->assertSessionHas('error');
+        // A paid order can be cancelled before it ships too, with a full refund (B11).
+        $prepaid = $this->makeOrder($buyer, $this->shoes, 'Pending', ['payment_method' => 'GCash', 'payment_status' => 'Paid']);
+        $cancel($prepaid, ['cancel_reason' => 'Changed my mind'])->assertSessionHas('success');
+        $this->assertSame('Refund Pending', DB::table('orders')->where('id', $prepaid)->value('payment_status'));
 
         $shipped = $this->makeOrder($buyer, $this->shoes, 'Dropped Off');
         $cancel($shipped, ['cancel_reason' => 'Changed my mind'])->assertSessionHas('error');

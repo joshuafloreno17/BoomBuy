@@ -166,6 +166,7 @@ class NotificationController extends Controller
                 $isOrder => route('buyer.orders'),
                 $type === 'complaint' => route('complaints.index'),
                 $type === 'account_status' => route('buyer.profile'),
+                $type === 'flash_reminder' => \App\Support\FlashReminders::productUrl((int) $notification->reference_id),
                 default => route('notifications'),
             },
             'seller' => match (true) {

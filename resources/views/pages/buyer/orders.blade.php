@@ -159,8 +159,8 @@
                                 ? $order['delivery_failed_at']
                                 : ($order['updated_at'] ?? null);
 
-                            // COD: cancellable while Pending/Confirmed/Preparing.
-                            // Prepaid: never by the buyer once checked out.
+                            // Cancellable while Pending/Confirmed/Preparing (A6);
+                            // a paid order is refunded in full.
                             $isCod = \App\Support\CodPolicy::isCod($order['payment_method'] ?? null);
                             $canCancel = \App\Support\CodPolicy::buyerCanCancel($order);
 
@@ -168,8 +168,8 @@
 
                             if (!$canCancel && in_array($orderGroup, ['to-ship', 'to-receive'])) {
                                 $cancelNote = $isCod
-                                    ? 'This order can no longer be cancelled because it is already shipped or on its way. You can refuse the parcel when it arrives, or request a return after receiving it.'
-                                    : 'Paid orders (GCash, Maya or card) can\'t be cancelled after checkout. You can request a return once you receive it.';
+                                    ? 'This order can no longer be cancelled because it is ready for pickup or already on its way. You can refuse the parcel when it arrives, or request a return after receiving it.'
+                                    : 'This order can no longer be cancelled because it is ready for pickup or already on its way. You can request a return once you receive it.';
                             }
 
                             $orderSearchText = strtolower(
@@ -328,6 +328,12 @@
                                                         {{ $itemReview['rating'] ?? $itemReview->rating ?? 0 }}/5
 
                                                     </div>
+
+                                                    @if(empty($itemReview['edited_at']) && !empty($order['buyer_received_at']) && \Illuminate\Support\Carbon::parse($order['buyer_received_at'])->addDays(\App\Http\Controllers\BuyerController::REVIEW_DAYS)->isFuture())
+                                                        <button type="button" class="rate-btn is-edit" onclick="toggleRating('edit-{{ $order['id'] }}-{{ $productId }}')">
+                                                            <i class="bi bi-pencil"></i> Edit review
+                                                        </button>
+                                                    @endif
 
                                                 @else
 
@@ -505,6 +511,33 @@
 
                                         </div>
 
+                                    @endif
+
+                                    @if($productId && !empty($itemReview) && empty($itemReview['edited_at']))
+                                        <div id="rating-edit-{{ $order['id'] }}-{{ $productId }}" class="rating-panel">
+                                            <div class="rating-title"><i class="bi bi-pencil"></i> Edit your review</div>
+                                            <div class="rating-subtitle">You can edit a review once, within {{ \App\Http\Controllers\BuyerController::REVIEW_DAYS }} days of completing the order.</div>
+                                            <div class="rating-product">
+                                                <div class="rating-product-name">{{ $item['name'] ?? 'Product' }}</div>
+                                                <form method="POST" action="{{ route('buyer.product.review.update', [$order['id'], $productId]) }}" enctype="multipart/form-data">
+                                                    @csrf
+                                                    @method('PUT')
+                                                    <label class="review-photos-input">Rating
+                                                        <select name="rating" required>
+                                                            @for($star = 5; $star >= 1; $star--)
+                                                                <option value="{{ $star }}" @selected((int) $itemReview['rating'] === $star)>{{ $star }} {{ \Illuminate\Support\Str::plural('star', $star) }}</option>
+                                                            @endfor
+                                                        </select>
+                                                    </label>
+                                                    <textarea name="review" class="review-input" maxlength="500">{{ $itemReview['review'] ?? '' }}</textarea>
+                                                    <label class="review-photos-input">
+                                                        <i class="bi bi-camera"></i> Replace photos <small>(up to 5, JPG or PNG)</small>
+                                                        <input type="file" name="photos[]" accept="image/jpeg,image/png" multiple>
+                                                    </label>
+                                                    <button type="submit" class="submit-rating">Save changes</button>
+                                                </form>
+                                            </div>
+                                        </div>
                                     @endif
 
                                 @endforeach

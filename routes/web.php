@@ -220,6 +220,9 @@ Route::get('/shop/{seller}', [ShopController::class, 'sellerShop'])->whereNumber
 Route::post('/shop/{seller}/follow', [\App\Http\Controllers\StoreFollowController::class, 'toggle'])->whereNumber('seller')->name('store.follow');
 Route::get('/following', [\App\Http\Controllers\StoreFollowController::class, 'index'])->name('buyer.following');
 
+// "Remind me" on an upcoming flash sale (B14)
+Route::post('/flash-sales/{id}/remind', [BuyerController::class, 'remindFlashSale'])->whereNumber('id')->name('flash.remind');
+
 // Live suggestions for the navbar search box (JSON).
 Route::get('/search/suggestions', [ShopController::class, 'searchSuggestions'])->middleware('throttle:120,1,search')->name('search.suggestions');
 

@@ -792,6 +792,7 @@ class CartController extends Controller
             'delivery_fee' => $plan['delivery_fee'],
             'shipping_discount' => $plan['shipping_discount'],
             'total' => $plan['total'],
+            'unserviceable' => $plan['unserviceable'],
         ]);
     }
 
@@ -856,7 +857,7 @@ class CartController extends Controller
             $orderIds = $orders->place(
                 $user,
                 $cart,
-                request()->only('address', 'phone', 'payment', 'fulfillment', 'note'),
+                request()->only('address', 'phone', 'payment', 'fulfillment', 'note', 'expected_total'),
                 \App\Support\VoucherSelection::codes()
             );
         } catch (CheckoutFailed $e) {

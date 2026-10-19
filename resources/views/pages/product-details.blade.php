@@ -226,6 +226,14 @@
 
                 @if($upcomingFlash)
                     <span class="price-flash is-upcoming"><i class="bi bi-lightning-charge"></i> Upcoming flash sale: {{ peso($upcomingFlash->flash_price) }} at {{ $upcomingFlash->starts_at->format('g:i A') }}</span>
+                    @if(session('user') && (session('user')['role'] ?? '') === 'buyer' && \App\Support\FlashReminders::has((int) session('user')['id'], (int) $upcomingFlash->id))
+                        <span class="flash-remind is-set"><i class="bi bi-bell-fill"></i> Reminder set</span>
+                    @elseif(!session('user') || (session('user')['role'] ?? '') === 'buyer')
+                        <form action="{{ route('flash.remind', $upcomingFlash->id) }}" method="POST" class="flash-remind">
+                            @csrf
+                            <button type="submit" class="btn-soft"><i class="bi bi-bell"></i> Remind me</button>
+                        </form>
+                    @endif
                 @endif
 
             </div>

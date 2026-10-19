@@ -126,6 +126,12 @@ class CheckoutPlan
             $order['zone'] = ParcelRoute::zone(ParcelRoute::sellerLocation($sellerId), $buyerLocation);
             $order['weight_kg'] = self::weight($order['lines']);
             $order['delivery_fee'] = DeliveryFee::for($itemsTotal, $order['zone'], $fulfillment, $order['weight_kg']);
+
+            // Logistics → Zones & Rates: the route's own rate, when one is set.
+            if ($fulfillment === 'delivery' && $order['delivery_fee'] > 0
+                && ($zoneFee = ShippingZones::fee(ParcelRoute::sellerLocation($sellerId)['province'], $buyerLocation['province'] ?? null, $order['weight_kg'])) !== null) {
+                $order['delivery_fee'] = $zoneFee;
+            }
             $order['eta'] = ParcelRoute::etaLabel($order['zone']);
         }
         unset($order);
@@ -171,6 +177,10 @@ class CheckoutPlan
             'total' => round(array_sum(array_column($orders, 'total')), 2),
             'applied' => $applied,
             'problems' => $problems,
+            // Set when zones exist and none covers the buyer's province (Place Order is blocked).
+            'unserviceable' => $fulfillment === 'delivery' && $orders && !ShippingZones::serviceable($buyerLocation['province'] ?? null)
+                ? ShippingZones::unserviceableMessage($buyerLocation['province'] ?? null)
+                : null,
         ];
     }
 

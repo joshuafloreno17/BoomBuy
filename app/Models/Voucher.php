@@ -105,7 +105,7 @@ class Voucher extends Model
             $this->status() === 'Upcoming' => 'Voucher ' . $this->code . ' is not available yet. It starts ' . $this->starts_at->format('M d, g:i A') . '.',
             $this->status() !== 'Ongoing' => 'Voucher ' . $this->code . ' has expired.',
             $this->usedUp() => 'Voucher ' . $this->code . ' has reached its usage limit.',
-            $subtotal < (float) $this->min_order_amount => 'Voucher ' . $this->code . ' needs a minimum spend of ₱' . number_format((float) $this->min_order_amount, 2) . ' on the items it covers (you have ₱' . number_format($subtotal, 2) . ').',
+            $subtotal < (float) $this->min_order_amount => 'Voucher ' . $this->code . ' needs a minimum spend of ₱' . number_format((float) $this->min_order_amount, 2) . ' on the items it covers (you have ₱' . number_format($subtotal, 2) . '). Spend ₱' . number_format(round((float) $this->min_order_amount - $subtotal, 2), 2) . ' more to use it.',
             default => null,
         };
     }
