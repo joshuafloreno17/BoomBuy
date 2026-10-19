@@ -36,7 +36,8 @@ class CartContents
 
         $products = Product::whereIn('id', $productIds)->pluck('id')->flip();
         $variations = $variationIds
-            ? ProductVariation::whereIn('id', $variationIds)->pluck('product_id', 'id')
+            // Removed (soft-deleted) options stay: the cart shows them as unavailable.
+            ? ProductVariation::withTrashed()->whereIn('id', $variationIds)->pluck('product_id', 'id')
             : collect();
 
         $clean = array_filter($cart, function ($quantity, $key) use ($products, $variations) {
@@ -57,8 +58,15 @@ class CartContents
         return $clean;
     }
 
+    /** Items the buyer can still buy: a removed option's line stays in the cart but isn't counted. */
     public static function count(): int
     {
-        return (int) array_sum(self::prune());
+        $cart = self::prune();
+        $variationIds = collect(array_keys($cart))->map(fn ($key) => (int) parseCartKey($key)[1])->filter();
+        $removed = $variationIds->isNotEmpty()
+            ? ProductVariation::onlyTrashed()->whereIn('id', $variationIds)->pluck('id')->flip()
+            : collect();
+
+        return (int) collect($cart)->reject(fn ($quantity, $key) => $removed->has((int) parseCartKey($key)[1]))->sum();
     }
 }

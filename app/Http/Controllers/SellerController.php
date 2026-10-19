@@ -908,6 +908,47 @@ class SellerController extends Controller
             'image' => 'nullable|image|max:4096',
         ]);
 
+        // At most 2 variation types per product (A7): a new row must use the
+        // product's existing types, and each type at most 20 options.
+        $existing = ProductVariation::where('product_id', $product->id)->get();
+        $type = ProductVariation::normalizeType((string) request('variation_type'));
+        $type2 = trim((string) request('option2_type')) !== '' ? ProductVariation::normalizeType((string) request('option2_type')) : null;
+
+        if (trim((string) request('variation_type3')) !== '' || ($existing->isNotEmpty()
+            && ($type !== $existing->first()->variation_type || $type2 !== ($existing->first()->option2_type ?: null)))) {
+            return back()->withInput()->withErrors(['variation_type' => 'A product can have at most 2 variation types, and every option uses the same ones'
+                . ($existing->isNotEmpty() ? ' (' . $existing->first()->variation_type . ($existing->first()->option2_type ? ' × ' . $existing->first()->option2_type : '') . ')' : '') . '.']);
+        }
+
+        $value1 = ProductVariation::normalizeValue((string) request('variation_value'));
+        $values1 = $existing->pluck('variation_value')->map(fn ($v) => mb_strtolower($v))->unique();
+
+        if (!$values1->contains(mb_strtolower($value1)) && $values1->count() >= ProductVariation::MAX_OPTIONS_PER_TYPE) {
+            return back()->withInput()->withErrors(['variation_value' => 'Each variation type can have at most ' . ProductVariation::MAX_OPTIONS_PER_TYPE . ' options.']);
+        }
+
+        // "red" when "Red" exists is the same option written differently.
+        $sameName = $existing->first(fn ($v) => mb_strtolower($v->variation_value) === mb_strtolower($value1) && $v->variation_value !== $value1);
+
+        if ($sameName) {
+            return back()->withInput()->withErrors(['variation_value' => '"' . $value1 . '" and "' . $sameName->variation_value . '" are the same option. Use "' . $sameName->variation_value . '".']);
+        }
+
+        $sku = strtoupper(trim((string) request('sku')));
+
+        if ($sku !== '' && \App\Support\ProductRules::skuTaken($sku)) {
+            return back()->withInput()->withErrors(['sku' => 'SKU ' . $sku . ' is already used.']);
+        }
+
+        // The option's own price (A17), stored as an extra on top of the product price.
+        if (request()->filled('price')) {
+            if ($error = \App\Support\ProductRules::priceError(request('price'))) {
+                return back()->withInput()->withErrors(['price' => $error]);
+            }
+
+            request()->merge(['price_adjustment' => round((float) \App\Support\ProductRules::cleanNumber(request('price')) - (float) $product->price, 2)]);
+        }
+
         // The same option twice ("Color: Red" + "Color: Red") would show up
         // twice in the buyer's picker with separate stock.
         $value2 = ProductVariation::normalizeValue((string) request('option2_value'));
@@ -932,6 +973,7 @@ class SellerController extends Controller
             'option2_value' => request('option2_value'),
             'price_adjustment' => request('price_adjustment', 0),
             'stock' => request('stock'),
+            'sku' => $sku !== '' ? $sku : null,
         ]);
 
         // Its photo becomes this option's first photo.
@@ -1001,16 +1043,35 @@ class SellerController extends Controller
             abort(404);
         }
 
+        // Rows priced on their own ("price") become an extra on top of the product price.
+        $rows = (array) request('variations', []);
+
+        foreach ($rows as $rowId => $row) {
+            if (is_array($row) && array_key_exists('price', $row) && !array_key_exists('price_adjustment', $row)) {
+                if ($error = \App\Support\ProductRules::priceError($row['price'])) {
+                    return back()->withInput()->withErrors(["variations.$rowId.price" => $error]);
+                }
+
+                $rows[$rowId]['price_adjustment'] = round((float) \App\Support\ProductRules::cleanNumber($row['price']) - (float) $product->price, 2);
+            }
+        }
+
+        request()->merge(['variations' => $rows]);
+
         request()->validate([
             'variations' => 'required|array',
-            'variations.*.stock' => 'required|integer|min:0',
+            'variations.*.stock' => 'required|integer|min:0|max:99999',
             // The final price (base + adjustment) must stay above ₱0.
             'variations.*.price_adjustment' => 'required|numeric|gt:' . (0 - (float) $product->price),
+            'variations.*.value' => 'sometimes|required|string|max:50',
+            'variations.*.value2' => 'sometimes|nullable|string|max:50',
+            'variations.*.sku' => 'sometimes|nullable|string|max:40',
             'images' => 'nullable|array',
             'images.*' => 'nullable|image|max:4096',
         ], [
             'variations.*.stock.min' => 'Stock can’t be below 0.',
             'variations.*.price_adjustment.gt' => 'An option can’t end up costing ₱0 or less.',
+            'variations.*.value.required' => 'Enter a name for this option.',
         ]);
 
         $changed = 0;
@@ -1020,19 +1081,54 @@ class SellerController extends Controller
             ->whereIn('id', array_keys(request('variations')))
             ->get();
 
+        // Renames: no two options may end up with the same name (case ignored), SKUs once each.
+        $all = ProductVariation::where('product_id', $product->id)->get()->keyBy('id');
+        $names = [];
+        $skus = [];
+
+        foreach ($all as $option) {
+            $input = request('variations')[$option->id] ?? [];
+            $value = ProductVariation::normalizeValue((string) ($input['value'] ?? $option->variation_value));
+            $value2 = ProductVariation::normalizeValue((string) ($input['value2'] ?? $option->option2_value));
+            $key = mb_strtolower($value . '|' . $value2);
+
+            if (isset($names[$key])) {
+                return back()->withInput()->withErrors(["variations.{$option->id}.value" => 'Two options would both be called "' . $value . ($value2 !== '' ? ' · ' . $value2 : '') . '".']);
+            }
+
+            $names[$key] = true;
+            $sku = strtoupper(trim((string) ($input['sku'] ?? $option->sku)));
+
+            if ($sku !== '') {
+                if (isset($skus[$sku]) || \App\Support\ProductRules::skuTaken($sku, $product->id)) {
+                    return back()->withInput()->withErrors(["variations.{$option->id}.sku" => 'SKU ' . $sku . ' is already used.']);
+                }
+
+                $skus[$sku] = true;
+            }
+        }
+
         foreach ($variations as $variation) {
             $input = request('variations')[$variation->id];
             $stock = (int) $input['stock'];
             $price = round((float) $input['price_adjustment'], 2);
             $photo = request()->file("images.{$variation->id}");
+            $value = array_key_exists('value', $input) ? ProductVariation::normalizeValue((string) $input['value']) : $variation->variation_value;
+            $value2 = array_key_exists('value2', $input) ? (ProductVariation::normalizeValue((string) $input['value2']) ?: null) : $variation->option2_value;
+            $sku = array_key_exists('sku', $input) ? (strtoupper(trim((string) $input['sku'])) ?: null) : $variation->sku;
 
             // Compare the numbers themselves: the decimal cast makes "0.00" vs 0 look changed.
-            if ($stock === (int) $variation->stock && $price === round((float) $variation->price_adjustment, 2) && !$photo) {
+            if ($stock === (int) $variation->stock && $price === round((float) $variation->price_adjustment, 2) && !$photo
+                && $value === $variation->variation_value && $value2 === $variation->option2_value && $sku === $variation->sku) {
                 continue;
             }
 
             $variation->stock = $stock;
             $variation->price_adjustment = $price;
+            // A rename changes the product page only; old orders keep the label they were bought with.
+            $variation->variation_value = $value;
+            $variation->option2_value = $variation->option2_type ? $value2 : null;
+            $variation->sku = $sku;
 
             $variation->save();
 
@@ -1069,10 +1165,17 @@ class SellerController extends Controller
             ->where('product_id', $product->id)
             ->first();
 
+        // An order still on its way needs this exact option (A19).
+        if ($variation && $this->hasUnfinishedOrders($product, $variation->id)) {
+            return back()->with('error', $variation->shortLabel() . ' has unfinished orders, so it can\'t be removed yet. Set its stock to 0 to stop new orders.');
+        }
+
         if ($variation) {
-            // Its own photos go with it.
+            // Its own photos go with it. The row is soft-deleted: carts show it
+            // as "Variation unavailable" and old orders keep their label.
             $paths = $variation->images()->pluck('path')->push($variation->image)->filter()->all();
             $variation->images()->delete();
+            $variation->update(['image' => null]);
             $variation->delete();
 
             ProductPhotos::sync($product);
@@ -1155,9 +1258,24 @@ class SellerController extends Controller
         $input = request()->only(self::PRODUCT_FIELDS);
         $input['draft'] = $draft;
 
+        // Options priced on their own rows (S ₱99, M ₱129…): the cheapest is
+        // the product's price and the others are stored as extras on top.
+        $rowPrices = collect(\App\Support\ProductRules::filledRows($variations))
+            ->pluck('price')
+            ->map(fn ($p) => \App\Support\ProductRules::cleanNumber($p))
+            ->filter(fn ($p) => $p !== '' && is_numeric($p) && (float) $p > 0);
+
+        if (!$draft && $rowPrices->isNotEmpty() && \App\Support\ProductRules::cleanNumber($input['price'] ?? '') === '') {
+            $input['price'] = number_format((float) $rowPrices->min(), 2, '.', '');
+        }
+
         $errors = $draft
             ? $this->draftErrors($input)
             : $this->publishFormErrors($input, $variations);
+
+        if (!$draft) {
+            $errors += \App\Support\ProductRules::variationErrors($variations);
+        }
 
         if ($storeCategoryError = $this->storeCategoryError()) {
             $errors['store_categories'] = $storeCategoryError;
@@ -1171,6 +1289,16 @@ class SellerController extends Controller
 
         $input['price'] = \App\Support\ProductRules::cleanNumber($input['price'] ?? '');
         $input['stock'] = \App\Support\ProductRules::cleanNumber($input['stock'] ?? '');
+
+        foreach ($variations as $i => $row) {
+            $rowPrice = \App\Support\ProductRules::cleanNumber($row['price'] ?? '');
+
+            if ($rowPrice !== '' && is_numeric($rowPrice)) {
+                $variations[$i]['price_adjustment'] = round((float) $rowPrice - (float) $input['price'], 2);
+            }
+
+            $variations[$i]['stock'] = \App\Support\ProductRules::cleanNumber($row['stock'] ?? 0);
+        }
 
         try {
             $product = $products->create(
@@ -1907,10 +2035,14 @@ class SellerController extends Controller
     /** Orders not yet finished (Completed, Cancelled or Returned) — the product must stay. */
     private function hasUnfinishedOrders(Product $product, ?int $variationId = null): bool
     {
+        // Older order lines name the option only by its label.
+        $label = $variationId ? ProductVariation::withTrashed()->find($variationId)?->label() : null;
+
         return DB::table('order_items')
             ->join('orders', 'orders.id', '=', 'order_items.order_id')
             ->where('order_items.product_id', $product->id)
-            ->when($variationId, fn ($q) => $q->where('order_items.product_variation_id', $variationId))
+            ->when($variationId, fn ($q) => $q->where(fn ($w) => $w->where('order_items.variation_id', $variationId)
+                ->orWhere(fn ($old) => $old->whereNull('order_items.variation_id')->where('order_items.variation_label', $label))))
             ->whereNotIn('orders.status', \App\Support\OrderStatus::FINISHED)
             ->exists();
     }

@@ -3,10 +3,18 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class ProductVariation extends Model
 {
+    // A removed variant stays on old orders and shows as "Variation unavailable" in carts.
+    use SoftDeletes;
+
+    /** Seller Modules A7: at most 2 variation types, 1 to 20 options each. */
+    public const MAX_OPTIONS_PER_TYPE = 20;
+
     protected $fillable = [
+        'sku',
         'product_id',
         'variation_type',
         'variation_value',

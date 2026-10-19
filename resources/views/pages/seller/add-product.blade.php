@@ -451,7 +451,8 @@
                     '<label class="opt-field opt-name"><span>Option <b data-opt-n></b> name</span><input type="text" name="variations[' + index + '][value]" placeholder="e.g. Red, XL, Air Vent" required></label>' +
                     '<label class="opt-field opt-second" hidden><span>Second</span><input type="text" name="variations[' + index + '][value2]" placeholder="e.g. M"></label>' +
                     '<label class="opt-field"><span>Extra ₱ <small>· 0 = same</small></span><input type="number" step="0.01" name="variations[' + index + '][price_adjustment]" value="0"></label>' +
-                    '<label class="opt-field"><span>Stock</span><input type="number" min="0" name="variations[' + index + '][stock]" value="0"></label>' +
+                    '<label class="opt-field"><span>Stock</span><input type="number" min="0" max="99999" name="variations[' + index + '][stock]" value="0"></label>' +
+                    '<label class="opt-field"><span>SKU <small>· optional</small></span><input type="text" maxlength="40" name="variations[' + index + '][sku]" placeholder="e.g. BCP-RED-S"></label>' +
                     '<button type="button" class="opt-remove" aria-label="Remove this option" title="Remove option"><i class="bi bi-x-lg"></i></button>' +
                 '</div>' +
                 '<div class="var-photos">' +

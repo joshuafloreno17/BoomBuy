@@ -140,16 +140,19 @@
                         @php
                             $quantity = (int) $quantity;
 
+                            // A variant the seller removed still shows, as unavailable.
                             $itemVariation = $variationId
-                                ? \App\Models\ProductVariation::find($variationId)
+                                ? \App\Models\ProductVariation::withTrashed()->find($variationId)
                                 : null;
+
+                            $variationGone = $itemVariation && $itemVariation->trashed();
 
                             $itemUnitPrice = (float) $product->price + ($itemVariation ? (float) $itemVariation->price_adjustment : 0);
 
                             $itemTotal =
                                 $itemUnitPrice * $quantity;
 
-                            $itemAvailable = $onSaleIds->has($product->id);
+                            $itemAvailable = $onSaleIds->has($product->id) && !$variationGone;
 
                             // An option has its own stock; the product's only counts without one.
                             $itemStock = $itemVariation ? (int) $itemVariation->stock : (int) $product->stock;
@@ -191,7 +194,11 @@
                                     {{ $product->name }}
                                 </h3>
 
-                                @if(!$itemAvailable)
+                                @if($variationGone)
+                                    <div class="unavailable-note">
+                                        <i class="bi bi-exclamation-circle"></i> Variation unavailable — the seller removed this option. Please remove it from your cart.
+                                    </div>
+                                @elseif(!$itemAvailable)
                                     <div class="unavailable-note">
                                         <i class="bi bi-exclamation-circle"></i> No longer available — please remove it from your cart.
                                     </div>

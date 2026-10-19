@@ -955,4 +955,253 @@ class SellerModulesSheetTest extends TestCase
 
         $this->assertEquals($before, $p05->fresh()->toArray());
     }
+
+    /* ---------------------------------------------------------------
+     | S4 Variants
+     * --------------------------------------------------------------- */
+
+    /** Buri Coin Purse rows: Color (Red, Blue) × Size (S ₱99, M ₱129, L ₱149), stock 5, SKU BCP-<COLOR>-<SIZE>. */
+    private function coinPurseRows(): array
+    {
+        $rows = [];
+
+        foreach (['Red', 'Blue'] as $color) {
+            foreach (['S' => '99.00', 'M' => '129.00', 'L' => '149.00'] as $size => $price) {
+                $rows[] = [
+                    'type' => 'Color', 'value' => $color, 'type2' => 'Size', 'value2' => $size,
+                    'price' => $price, 'stock' => '5', 'sku' => 'BCP-' . strtoupper($color) . '-' . $size,
+                ];
+            }
+        }
+
+        return $rows;
+    }
+
+    private function publishVariants(array $rows, array $overrides = [])
+    {
+        return $this->publish(array_merge(['name' => 'Buri Coin Purse', 'price' => '', 'stock' => '', 'variations' => $rows], $overrides));
+    }
+
+    /** One line of an order already placed for a P-01 variant. */
+    private function variantOrder(string $row, string $status): int
+    {
+        $variant = $this->variant($row);
+        $orderId = $this->makeOrder($this->buyer1(), $this->p01(), $status);
+        DB::table('order_items')->where('order_id', $orderId)->update([
+            'variation_id' => $variant->id, 'variation_label' => $variant->label(),
+            'price' => (float) $this->p01()->price + (float) $variant->price_adjustment,
+        ]);
+
+        return $orderId;
+    }
+
+    public function test_SEL_VAR_001_create_a_product_with_2_variation_types(): void
+    {
+        $this->publishVariants($this->coinPurseRows())->assertSessionHasNoErrors()->assertRedirect(route('seller.dashboard'));
+
+        $product = $this->product('Buri Coin Purse');
+        $rows = $product->variations()->orderBy('id')->get();
+
+        $this->assertSame(['Red · S', 'Red · M', 'Red · L', 'Blue · S', 'Blue · M', 'Blue · L'], $rows->map->shortLabel()->all());
+        $this->assertSame(['99.00', '129.00', '149.00', '99.00', '129.00', '149.00'], $rows->map(fn ($v) => $this->money((float) $product->price + (float) $v->price_adjustment))->all());
+        $this->assertSame([5, 5, 5, 5, 5, 5], $rows->pluck('stock')->map(fn ($s) => (int) $s)->all());
+        $this->assertSame(['BCP-RED-S', 'BCP-RED-M', 'BCP-RED-L', 'BCP-BLUE-S', 'BCP-BLUE-M', 'BCP-BLUE-L'], $rows->pluck('sku')->all());
+
+        // The buyer sees both selectors and the price range.
+        $this->as($this->buyer1())->get(route('product.details', $product->id))->assertOk()
+            ->assertSee('₱99 – ₱149')->assertSee('Color')->assertSee('Size');
+    }
+
+    public function test_SEL_VAR_002_add_a_third_variation_type(): void
+    {
+        $this->publishVariants($this->coinPurseRows())->assertSessionHasNoErrors();
+        $product = $this->product('Buri Coin Purse');
+        $before = $product->variations()->orderBy('id')->get()->toArray();
+
+        // On the Variations page…
+        $this->as($this->seller1())->from(route('seller.products.variations', $product->id))->post(route('seller.products.variations.store', $product->id), [
+            'variation_type' => 'Material', 'variation_value' => 'Abaca', 'stock' => 5,
+        ])->assertSessionHasErrors(['variation_type' => 'A product can have at most 2 variation types, and every option uses the same ones (Color × Size).']);
+
+        // …and on a new product's form.
+        $rows = $this->coinPurseRows();
+        $rows[0] += ['type3' => 'Material', 'value3' => 'Abaca'];
+        $this->publishVariants($rows, ['name' => 'Three Type Purse'])->assertSessionHasErrors(['variations' => 'A product can have at most 2 variation types (for example Color and Size).']);
+
+        $this->assertEquals($before, $product->variations()->orderBy('id')->get()->toArray());
+        $this->assertNull($this->product('Three Type Purse'));
+    }
+
+    public function test_SEL_VAR_003_options_per_type_at_the_limit(): void
+    {
+        $colors = fn (int $n) => array_map(fn ($i) => ['type' => 'Color', 'value' => 'Color ' . $i, 'price' => '99.00', 'stock' => '1'], range(1, $n));
+
+        $this->publishVariants($colors(21), ['name' => 'Twenty One Colors'])->assertSessionHasErrors(['variations' => 'Each variation type can have at most 20 options.']);
+        $this->assertNull($this->product('Twenty One Colors'));
+
+        $this->publishVariants($colors(20), ['name' => 'Twenty Colors'])->assertSessionHasNoErrors();
+        $product = $this->product('Twenty Colors');
+        $this->assertSame(20, $product->variations()->count());
+
+        // A 21st option on the Variations page is blocked too.
+        $this->as($this->seller1())->from(route('seller.products.variations', $product->id))->post(route('seller.products.variations.store', $product->id), [
+            'variation_type' => 'Color', 'variation_value' => 'Color 21', 'stock' => 1,
+        ])->assertSessionHasErrors(['variation_value' => 'Each variation type can have at most 20 options.']);
+        $this->assertSame(20, $product->variations()->count());
+    }
+
+    public function test_SEL_VAR_004_duplicate_or_empty_option_names(): void
+    {
+        $rows = [
+            ['type' => 'Color', 'value' => 'Red', 'price' => '99.00', 'stock' => '5'],
+            ['type' => 'Color', 'value' => 'red', 'price' => '99.00', 'stock' => '5'],
+            ['type' => 'Color', 'value' => '', 'price' => '99.00', 'stock' => '5'],
+        ];
+
+        $this->publishVariants($rows)->assertSessionHasErrors([
+            'variations.0.value' => '"Red" and "red" are the same option. Use one name.',
+            'variations.1.value' => '"Red" and "red" are the same option. Use one name.',
+            'variations.2.value' => 'Enter a name for this option.',
+        ]);
+
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_SEL_VAR_005_missing_or_invalid_price_or_stock_on_one_variant(): void
+    {
+        foreach ([['price' => ''], ['price' => '0.00'], ['stock' => '-1']] as $bad) {
+            $rows = $this->coinPurseRows();
+            $rows[5] = array_merge($rows[5], $bad); // Blue-L
+
+            $this->publishVariants($rows);
+            $this->assertSame(['variations.5.' . array_key_first($bad)], $this->errorKeys(), 'Only the Blue-L row is flagged');
+        }
+
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_SEL_VAR_006_duplicate_sku(): void
+    {
+        $rows = $this->coinPurseRows();
+        $rows[3]['sku'] = 'BCP-RED-S'; // Blue-S = Red-S
+        $this->publishVariants($rows)->assertSessionHasErrors(['variations.3.sku' => 'SKU BCP-RED-S is already used by another option.']);
+
+        $this->variant('Natural-S')->update(['sku' => 'MCH-TOTE-NAT-S']);
+        $rows = $this->coinPurseRows();
+        $rows[0]['sku'] = 'MCH-TOTE-NAT-S';
+        $this->publishVariants($rows)->assertSessionHasErrors(['variations.0.sku' => 'SKU MCH-TOTE-NAT-S is already used by another product.']);
+
+        $this->assertNull($this->product('Buri Coin Purse'));
+    }
+
+    public function test_SEL_VAR_007_price_range_shown_on_the_product_page_and_search(): void
+    {
+        $p01 = $this->p01();
+
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote Bag']))->assertOk()->assertSee('₱199 – ₱299');
+        $this->as($this->buyer1())->get(route('product.details', $p01->id))->assertOk()->assertSee('₱199 – ₱299');
+
+        // Picking Natural-M shows ₱249.00 only (the page swaps in that option's price).
+        $natM = collect($this->as($this->buyer1())->getJson(route('product.options', $p01->id))->json('variations'))->firstWhere('id', $this->variant('Natural-M')->id);
+        $this->assertEquals(249.0, $natM['price']);
+    }
+
+    public function test_SEL_VAR_008_variant_image_switching(): void
+    {
+        $p01 = $this->p01();
+        app(\App\Services\ProductService::class)->storeFiles($p01, $this->variant('Natural-S')->id, [$this->jpeg('product_front.jpg')]);
+        app(\App\Services\ProductService::class)->storeFiles($p01, $this->variant('Black-S')->id, [$this->png('product_side.png')]);
+        \App\Support\ProductPhotos::sync($p01);
+
+        $options = collect($this->as($this->buyer1())->getJson(route('product.options', $p01->id))->json('variations'));
+        $natural = $options->firstWhere('id', $this->variant('Natural-S')->id)['photo'];
+        $black = $options->firstWhere('id', $this->variant('Black-S')->id)['photo'];
+
+        $this->assertNotEmpty($natural);
+        $this->assertNotEmpty($black);
+        $this->assertNotSame($natural, $black);
+        $this->assertStringEndsWith('.jpg', $natural);
+        $this->assertStringEndsWith('.png', $black);
+    }
+
+    public function test_SEL_VAR_009_variant_with_0_stock(): void
+    {
+        $p01 = $this->p01();
+
+        $this->as($this->buyer1())->get(route('product.details', $p01->id))->assertOk();
+        $options = collect($this->as($this->buyer1())->getJson(route('product.options', $p01->id))->json('variations'));
+
+        $this->assertSame(0, $options->firstWhere('id', $this->variant('Black-M')->id)['stock']);
+        $this->assertSame(8, $options->firstWhere('id', $this->variant('Natural-M')->id)['stock']);
+
+        // It can't be added either.
+        $this->as($this->buyer1())->post(route('cart.add', $p01->id), ['quantity' => 1, 'variation_id' => $this->variant('Black-M')->id])->assertSessionHas('error');
+        $this->as($this->buyer1())->post(route('cart.add', $p01->id), ['quantity' => 1, 'variation_id' => $this->variant('Natural-M')->id])->assertSessionHas('success');
+    }
+
+    public function test_SEL_VAR_010_change_options_after_orders_exist(): void
+    {
+        $orderId = $this->variantOrder('Natural-M', 'Completed');
+        $p01 = $this->p01();
+
+        $rows = [];
+        foreach ($p01->variations as $v) {
+            $rows[$v->id] = [
+                'value' => $v->variation_value === 'Natural' ? 'Beige' : $v->variation_value,
+                'value2' => $v->option2_value,
+                'stock' => $v->stock,
+                'price' => $this->money((float) $p01->price + (float) $v->price_adjustment),
+            ];
+        }
+        $rows[$this->variant('Natural-M')->id]['price'] = '259.00';
+
+        $this->as($this->seller1())->put(route('seller.products.variations.update', $p01->id), ['variations' => $rows])->assertSessionHas('success');
+        $this->as($this->seller1())->post(route('seller.products.variations.store', $p01->id), [
+            'variation_type' => 'Color', 'variation_value' => 'Brown', 'option2_type' => 'Size', 'option2_value' => 'M', 'price' => '249.00', 'stock' => 4,
+        ])->assertSessionHas('success');
+
+        // The old order still says Natural-M at ₱249.00 for both roles.
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertSee('Natural')->assertSee('249');
+        $this->as($this->seller1())->get(route('seller.order.details', $orderId))->assertSee('Color: Natural · Size: M')->assertSee('249.00');
+
+        // The product page shows Beige and Brown with the new price.
+        $options = collect($this->as($this->buyer1())->getJson(route('product.options', $p01->id))->json('variations'));
+        $this->assertContains('Beige', $options->pluck('value1')->all());
+        $this->assertContains('Brown', $options->pluck('value1')->all());
+        $this->assertNotContains('Natural', $options->pluck('value1')->all());
+        $this->assertEquals(259.0, $options->firstWhere('id', $this->variant('Natural-M')->id)['price']);
+    }
+
+    public function test_SEL_VAR_011_remove_a_variant_that_is_in_a_buyers_cart(): void
+    {
+        $p01 = $this->p01();
+        $p02 = $this->p02();
+        $blackL = $this->variant('Black-L');
+        $cart = [$p01->id . ':' . $blackL->id => 1, $p02->id . ':0' => 1];
+
+        $this->as($this->seller1())->delete(route('seller.products.variations.delete', [$p01->id, $blackL->id]))->assertSessionHas('success');
+
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->assertOk()
+            ->assertSee('Variation unavailable')->assertDontSee('data-cart-key="' . $p01->id . ':' . $blackL->id . '"' . "\n                                    data-unit-price", false);
+        $html = $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->getContent();
+        $this->assertStringNotContainsString('class="item-checkbox"' . "\n                                    data-cart-key=\"" . $p01->id . ':' . $blackL->id . '"', $html);
+
+        // It can't be checked out; the other line still can.
+        $this->placeOrder($this->buyer1(), [$p01->id . ':' . $blackL->id => 1], self::ADDR_1)->assertSessionHas('error');
+        $this->placeOrder($this->buyer1(), [$p02->id . ':0' => 1], self::ADDR_1)->assertSessionDoesntHaveErrors();
+        $this->assertSame(1, DB::table('orders')->count());
+    }
+
+    public function test_SEL_VAR_012_remove_a_variant_with_unfinished_orders(): void
+    {
+        $orderId = $this->variantOrder('Natural-S', 'Preparing'); // To Ship
+        $natS = $this->variant('Natural-S');
+
+        $this->as($this->seller1())->delete(route('seller.products.variations.delete', [$this->p01()->id, $natS->id]))
+            ->assertSessionHas('error', 'Natural · S has unfinished orders, so it can\'t be removed yet. Set its stock to 0 to stop new orders.');
+
+        $this->assertNotNull(\App\Models\ProductVariation::find($natS->id));
+        // The order can still be shipped.
+        $this->as($this->seller1())->post(route('seller.order.pickup', $orderId), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
+    }
 }

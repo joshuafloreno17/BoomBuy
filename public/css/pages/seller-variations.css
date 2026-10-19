@@ -405,3 +405,16 @@ tr:last-child td { border-bottom: none; }
 .storage-card .sb-size input[type="number"] {
     width: 74px; min-height: 32px; padding: 4px 7px; border: 1px solid #ddd5f2; border-radius: 8px; font: inherit; font-size: 12.5px;
 }
+
+.var-rename { display: flex; gap: 6px; }
+.var-rename input, .var-sku {
+    min-width: 0;
+    width: 100%;
+    padding: 7px 9px;
+    border: 1px solid #ddd5f2;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 700;
+}
+.var-sku { margin-top: 6px; font-weight: 500; font-size: 12px; }

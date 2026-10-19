@@ -58,7 +58,7 @@
                 @endif
             </span>
 
-            <span class="sp-price">₱{{ number_format($product['price']) }}@if($product['original_price'] ?? null) <s class="sp-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
+            <span class="sp-price">₱{{ number_format($product['price']) }}@if(($product['price_max'] ?? 0) > $product['price']) – ₱{{ number_format($product['price_max']) }}@endif @if($product['original_price'] ?? null) <s class="sp-was">₱{{ number_format($product['original_price']) }}</s>@endif</span>
 
             <div class="sp-actions">
                 @if($product['vacation'] ?? false)

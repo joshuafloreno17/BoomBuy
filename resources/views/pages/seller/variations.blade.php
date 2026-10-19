@@ -82,8 +82,15 @@
                                     </label>
 
                                     <div class="var-name">
-                                        <strong>{{ $variation->shortLabel() }}</strong>
+                                        {{-- Renaming changes the product page only; old orders keep the name they were bought with. --}}
+                                        <span class="var-rename">
+                                            <input type="text" name="variations[{{ $variation->id }}][value]" value="{{ old('variations.' . $variation->id . '.value', $variation->variation_value) }}" maxlength="50" aria-label="{{ $variation->variation_type }} name" data-original="{{ $variation->variation_value }}" required>
+                                            @if($variation->hasSecondOption())
+                                                <input type="text" name="variations[{{ $variation->id }}][value2]" value="{{ old('variations.' . $variation->id . '.value2', $variation->option2_value) }}" maxlength="50" aria-label="{{ $variation->option2_type }} name" data-original="{{ $variation->option2_value }}" required>
+                                            @endif
+                                        </span>
                                         <small>{{ $variation->variation_type }}{{ $variation->hasSecondOption() ? ' × ' . $variation->option2_type : '' }}</small>
+                                        <input type="text" class="var-sku" name="variations[{{ $variation->id }}][sku]" value="{{ old('variations.' . $variation->id . '.sku', $variation->sku) }}" maxlength="40" placeholder="SKU (optional)" aria-label="SKU of {{ $variation->shortLabel() }}" data-original="{{ $variation->sku }}">
                                     </div>
 
                                     <label class="var-cell">
@@ -199,7 +206,12 @@
 
                         <div class="form-group">
                             <label for="stock">Stock</label>
-                            <input type="number" min="0" id="stock" name="stock" placeholder="0" value="{{ old('stock') }}" required>
+                            <input type="number" min="0" max="99999" id="stock" name="stock" placeholder="0" value="{{ old('stock') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="sku">SKU <small>· optional</small></label>
+                            <input type="text" id="sku" name="sku" maxlength="40" placeholder="e.g. MCH-TOTE-BRN-S" value="{{ old('sku') }}">
                         </div>
 
                     </div>

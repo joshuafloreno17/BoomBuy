@@ -135,7 +135,8 @@ class CheckoutTest extends TestCase
             ->assertSee('id="cartCount"', false)
             ->assertSeeInOrder(['id="cartCount"', '>2</span>'], false);
 
-        $this->assertSame(["{$kept->id}:0" => 1, "{$withOption->id}:{$option->id}" => 1], session('cart'));
+        // A removed option stays (the cart shows "Variation unavailable") but isn't counted; a deleted product goes.
+        $this->assertSame(["{$withOption->id}:{$goneOptionId}" => 2, "{$kept->id}:0" => 1, "{$withOption->id}:{$option->id}" => 1], session('cart'));
 
         // Only deleted things: badge hidden, cart page empty-handed but fine.
         $this->flushSession();

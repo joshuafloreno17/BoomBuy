@@ -141,6 +141,7 @@ class ProductService
                 'option2_value' => $type2 !== '' ? $value2 : null,
                 'price_adjustment' => (float) ($variation['price_adjustment'] ?? 0),
                 'stock' => max(0, (int) ($variation['stock'] ?? 0)),
+                'sku' => trim((string) ($variation['sku'] ?? '')) !== '' ? strtoupper(trim($variation['sku'])) : null,
             ]);
 
             $stored['opt:' . $row] = $this->storeFiles($product, $option->id, $variation['photos'] ?? []);

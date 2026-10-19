@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\ProductVariation;
 use Illuminate\Http\UploadedFile;
 
 /**
@@ -144,5 +145,121 @@ class ProductRules
     public static function uploads(array $files): array
     {
         return array_values(array_filter($files, fn ($f) => $f instanceof UploadedFile));
+    }
+
+    /** Rows the seller started (any name, price, stock or SKU typed). */
+    public static function filledRows(array $rows): array
+    {
+        return array_filter($rows, fn ($row) => is_array($row) && collect(['value', 'value2', 'value3', 'price', 'sku'])
+            ->contains(fn ($field) => trim((string) ($row[$field] ?? '')) !== ''));
+    }
+
+    /**
+     * Problems with the option rows of a product (Seller Modules A7, A17):
+     * at most 2 variation types, 1 to 20 options per type, no empty or
+     * repeated option names (case ignored), a valid price and stock on every
+     * row, and SKUs used only once.
+     *
+     * @param  array  $rows  [i => [type, value, type2, value2, (type3, value3), price, price_adjustment, stock, sku]]
+     * @param  ?int  $productId  the product being edited (its own SKUs are fine)
+     * @return array<string, string>  keyed "variations" or "variations.{i}.{field}"
+     */
+    public static function variationErrors(array $rows, ?int $productId = null): array
+    {
+        $rows = self::filledRows($rows);
+        $errors = [];
+
+        if (!$rows) {
+            return [];
+        }
+
+        $first = reset($rows);
+
+        if (trim((string) ($first['type3'] ?? '')) !== '' || collect($rows)->contains(fn ($r) => trim((string) ($r['value3'] ?? '')) !== '')) {
+            return ['variations' => 'A product can have at most 2 variation types (for example Color and Size).'];
+        }
+
+        $hasSecond = trim((string) ($first['type2'] ?? '')) !== '';
+        $values = [1 => [], 2 => []];
+        $combos = [];
+        $skus = [];
+
+        foreach ($rows as $i => $row) {
+            $value = trim((string) ($row['value'] ?? ''));
+            $value2 = trim((string) ($row['value2'] ?? ''));
+
+            if ($value === '') {
+                $errors["variations.$i.value"] = 'Enter a name for this option.';
+            }
+
+            if ($hasSecond && $value2 === '') {
+                $errors["variations.$i.value2"] = 'Enter the ' . trim((string) $first['type2']) . ' for ' . ($value !== '' ? '"' . $value . '"' : 'this option') . '.';
+            }
+
+            // "Red" and "red" are the same colour: a buyer couldn't tell them apart.
+            if ($value !== '') {
+                $values[1][mb_strtolower($value)][] = $i;
+            }
+
+            if ($value2 !== '') {
+                $values[2][mb_strtolower($value2)] = true;
+            }
+
+            $combo = mb_strtolower($value . '|' . $value2);
+
+            if ($value !== '' && isset($combos[$combo])) {
+                $errors["variations.$i.value"] = 'This option is listed twice.';
+            }
+
+            $combos[$combo] = true;
+
+            if (array_key_exists('price', $row) && ($error = self::priceError($row['price']))) {
+                $errors["variations.$i.price"] = $error;
+            }
+
+            if ($error = self::stockError($row['stock'] ?? '')) {
+                $errors["variations.$i.stock"] = $error;
+            }
+
+            $sku = strtoupper(trim((string) ($row['sku'] ?? '')));
+
+            if ($sku !== '') {
+                if (isset($skus[$sku])) {
+                    $errors["variations.$i.sku"] = 'SKU ' . $sku . ' is already used by another option.';
+                } elseif (self::skuTaken($sku, $productId)) {
+                    $errors["variations.$i.sku"] = 'SKU ' . $sku . ' is already used by another product.';
+                }
+
+                $skus[$sku] = true;
+            }
+        }
+
+        // Case-insensitive repeats of the first option ("Red", "red" in Color).
+        foreach ($values[1] as $indexes) {
+            $names = collect($indexes)->map(fn ($i) => trim((string) $rows[$i]['value']))->unique();
+
+            if ($names->count() > 1) {
+                foreach ($indexes as $i) {
+                    $errors["variations.$i.value"] = '"' . $names->implode('" and "') . '" are the same option. Use one name.';
+                }
+            }
+        }
+
+        foreach ([1 => count($values[1]), 2 => count($values[2])] as $type => $count) {
+            if ($count > ProductVariation::MAX_OPTIONS_PER_TYPE) {
+                $errors['variations'] = 'Each variation type can have at most ' . ProductVariation::MAX_OPTIONS_PER_TYPE . ' options.';
+            }
+        }
+
+        return $errors;
+    }
+
+    /** Is the SKU used by an option of another product (case ignored)? */
+    public static function skuTaken(string $sku, ?int $exceptProductId = null, ?int $exceptVariationId = null): bool
+    {
+        return ProductVariation::whereRaw('UPPER(sku) = ?', [strtoupper(trim($sku))])
+            ->when($exceptProductId, fn ($q) => $q->where('product_id', '!=', $exceptProductId))
+            ->when($exceptVariationId, fn ($q) => $q->where('id', '!=', $exceptVariationId))
+            ->exists();
     }
 }

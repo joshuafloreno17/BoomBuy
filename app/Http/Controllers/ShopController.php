@@ -331,7 +331,9 @@ class ShopController extends Controller
                 'slug' => Str::slug($product->name) . '-' . $product->id,
                 'name' => $product->name,
                 'category' => $product->category,
-                'price' => (float) $product->price,
+                // With options: the cheapest to the dearest (₱199 – ₱299) until one is picked.
+                'price' => $product->variations->isNotEmpty() ? (float) $product->price + (float) $product->variations->min('price_adjustment') : (float) $product->price,
+                'price_max' => $product->variations->isNotEmpty() ? (float) $product->price + (float) $product->variations->max('price_adjustment') : null,
                 'original_price' => $product->isDiscounted() ? (float) $product->original_price : null,
                 'discount' => $product->isDiscounted() ? (int) $product->discount_percent : null,
                 'stock' => (int) $product->sellable_stock,
