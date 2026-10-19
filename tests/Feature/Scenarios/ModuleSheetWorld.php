@@ -170,6 +170,135 @@ trait ModuleSheetWorld
         }
     }
 
+    /* ---------------- Logistics & riders (Logistics / Rider Modules) ---------------- */
+
+    /** The Quezon City Sorting Center that Logistics 1 (Bilis Hatid Express) runs. */
+    protected function qcCenter(): \App\Models\SortingCenter
+    {
+        return $this->world['qcCenter'] ??= $this->center('Metro Manila (NCR)', 'Quezon City');
+    }
+
+    protected function davaoCenter(): \App\Models\SortingCenter
+    {
+        return $this->world['davaoCenter'] ??= $this->center('Davao del Sur', 'Davao City');
+    }
+
+    protected function logistics1(): User
+    {
+        return $this->world['logistics1'] ??= $this->sheetLogistics('operations@bilishatid.example.com', 'Hatid@2026', 'Carlos Antonio Mendoza', 'Bilis Hatid Express Inc.', $this->qcCenter());
+    }
+
+    protected function logistics2(): User
+    {
+        return $this->world['logistics2'] ??= $this->sheetLogistics('admin@agilacargo.example.com', 'Agila#Cargo26', 'Liza Mae Fernandez', 'Agila Cargo Movers Corp.', $this->davaoCenter());
+    }
+
+    /** Rider 1: Pedro Jose Garcia, Motorcycle 123ABC, covers Quezon City (near Seller 1). Offline. */
+    protected function rider1(): User
+    {
+        return $this->world['rider1'] ??= $this->sheetRider($this->logistics1(), 'pedrojose.garcia@example.com', 'Rider@2026', 'Pedro Jose Garcia', 'Motorcycle', '123ABC', 'N01-23-456789', '2030-03-22', 'Quezon City');
+    }
+
+    /** Rider 2: Mark Anthony Bautista, Van NBC1234, covers Makati (farther from Seller 1). Offline. */
+    protected function rider2(): User
+    {
+        return $this->world['rider2'] ??= $this->sheetRider($this->logistics1(), 'markanthony.bautista@example.com', 'Hatid#Mark26', 'Mark Anthony Bautista', 'Van', 'NBC1234', 'N02-24-111222', '2029-06-30', 'Makati');
+    }
+
+    /** Rider 3: Ramon Cruz, Suspended by Logistics 1. */
+    protected function rider3(): User
+    {
+        if (!isset($this->world['rider3'])) {
+            $rider = $this->sheetRider($this->logistics1(), 'rider.test01@example.com', 'Rider@2026', 'Ramon Cruz', 'Motorcycle', '456DEF', 'N03-25-333444', '2031-01-15', 'Quezon City');
+            DB::table('users')->where('id', $rider->id)->update(['status' => 'Suspended']);
+            $this->world['rider3'] = $rider->fresh();
+        }
+
+        return $this->world['rider3'];
+    }
+
+    /** A third Online-able rider of Logistics 1 (for the three-declines case). */
+    protected function rider4(): User
+    {
+        return $this->world['rider4'] ??= $this->sheetRider($this->logistics1(), 'rider.test03@example.com', 'Rider@2026', 'Jose Rizal Santos', 'Motorcycle', '789JKL', 'N04-26-555666', '2030-12-31', 'Pasig');
+    }
+
+    /** A rider of Logistics 2 (Davao). */
+    protected function davaoRider(): User
+    {
+        return $this->world['davaoRider'] ??= $this->sheetRider($this->logistics2(), 'rider.test05@example.com', 'Rider@2026', 'Lito Fernandez', 'Motorcycle', '321XYZ', 'N05-27-777888', '2030-05-05', 'Davao City', 'Davao del Sur');
+    }
+
+    protected function goOnline(User ...$riders): void
+    {
+        foreach ($riders as $rider) {
+            DB::table('users')->where('id', $rider->id)->update(['is_online' => true, 'online_at' => now()]);
+        }
+    }
+
+    /**
+     * Seller 1's COD order for $product (P-02 by default) to Buyer 1 at
+     * ADDR-1, packed and marked Ready for Pickup. Returns the order id.
+     */
+    protected function readyJob(?Product $product = null, string $payment = 'Cash on Delivery', ?User $buyer = null): int
+    {
+        $this->sheetRates();
+        $this->qcCenter();
+        $product ??= $this->p02();
+        $buyer ??= $this->buyer1();
+
+        $this->flushSession();
+        DB::table('saved_carts')->delete();
+        $this->actingAsUser($buyer, ['cart' => [$product->id . ':0' => 1]])
+            ->post(route('checkout.place'), ['address' => self::ADDR_1, 'phone' => '09171234567', 'payment' => $payment]);
+        $orderId = (int) DB::table('orders')->where('buyer_id', $buyer->id)->max('id');
+
+        if ($payment !== 'Cash on Delivery') {
+            $this->post(route('payment.pay', DB::table('orders')->where('id', $orderId)->value('payment_group')));
+        }
+
+        $seller = User::find(DB::table('order_items')->where('order_id', $orderId)->value('seller_id'));
+        $this->flushSession();
+        foreach (['Confirmed', 'Preparing'] as $step) {
+            $this->actingAsUser($seller)->post(route('seller.order.status', $orderId), ['status' => $step]);
+        }
+        $this->actingAsUser($seller)->post(route('seller.order.pickup', $orderId), ['pickup_date' => now()->toDateString()]);
+        $this->flushSession();
+
+        return $orderId;
+    }
+
+    private function sheetLogistics(string $email, string $password, string $name, string $company, \App\Models\SortingCenter $center): User
+    {
+        $user = $this->makeUser('logistics', ['email' => $email, 'password' => Hash::make($password), 'name' => $name]);
+        DB::table('users')->where('id', $user->id)->update(['sorting_center_id' => $center->id, 'is_head_office' => false]);
+        DB::table('logistics_applications')->insert([
+            'user_id' => $user->id, 'full_name' => $name, 'business_name' => $company, 'status' => 'Approved',
+            'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return $user->fresh();
+    }
+
+    private function sheetRider(User $company, string $email, string $password, string $name, string $vehicle, string $plate, string $license, string $expiry, string $city, string $province = 'Metro Manila (NCR)'): User
+    {
+        $rider = $this->makeUser('rider', ['email' => $email, 'password' => Hash::make($password), 'name' => $name, 'address' => '1 Rider St., ' . $city . ', ' . $province]);
+        DB::table('users')->where('id', $rider->id)->update(['province' => $province, 'city_municipality' => $city, 'is_online' => false]);
+        \Illuminate\Support\Facades\Storage::disk('local')->put('rider-documents/' . $rider->id . '-license.jpg', 'license');
+        \Illuminate\Support\Facades\Storage::disk('local')->put('rider-documents/' . $rider->id . '-orcr.pdf', 'or-cr');
+
+        DB::table('rider_applications')->insert([
+            'user_id' => $rider->id, 'created_by' => $company->id, 'full_name' => $name, 'phone' => $rider->phone, 'address' => $rider->address,
+            'vehicle_type' => $vehicle, 'vehicle_model' => $vehicle === 'Van' ? 'Toyota Hiace' : 'Honda Click 125', 'plate_number' => $plate,
+            'drivers_license_no' => $license, 'license_expiry' => $expiry,
+            'drivers_license' => 'rider-documents/' . $rider->id . '-license.jpg', 'or_cr' => 'rider-documents/' . $rider->id . '-orcr.pdf',
+            'status' => 'Approved', 'created_at' => now(), 'updated_at' => now(),
+        ]);
+        \App\Models\RiderArea::create(['rider_id' => $rider->id, 'province' => $province, 'city_municipality' => $city]);
+
+        return $rider->fresh();
+    }
+
     protected function as(User $user): static
     {
         $this->flushSession();

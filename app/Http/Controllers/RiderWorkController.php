@@ -41,9 +41,14 @@ class RiderWorkController extends Controller
         return $this->act(function (array $user) {
             $online = request()->boolean('online');
             $status = DB::table('users')->where('id', $user['id'])->value('status');
+            $application = DB::table('rider_applications')->where('user_id', $user['id'])->latest('id')->value('status');
 
             if ($online && $status !== 'Active') {
                 throw new ActionFailed('Your account is ' . strtolower((string) $status) . ', so you can\'t go Online. Contact your logistics company.');
+            }
+
+            if ($online && $application !== 'Approved') {
+                throw new ActionFailed('Your rider application is ' . strtolower((string) ($application ?? 'missing')) . ', so you can\'t go Online yet.');
             }
 
             RiderJobs::setOnline((int) $user['id'], $online);
