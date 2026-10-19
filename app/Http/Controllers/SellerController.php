@@ -1143,30 +1143,144 @@ class SellerController extends Controller
             return $user;
         }
 
-        $storeCategoryError = $this->storeCategoryError();
+        // Double-click / Enter twice / Back and resend: one product only.
+        $token = request(\App\Support\SubmitOnce::FIELD);
 
-        if ($storeCategoryError) {
-            return back()->withInput()->withErrors(['store_categories' => $storeCategoryError]);
+        if (!\App\Support\SubmitOnce::claim($token)) {
+            return redirect()->route('seller.dashboard')->with('success', 'That product was already saved.');
         }
+
+        $draft = request('action') === 'draft';
+        $variations = $this->variationsWithPhotos();
+        $input = request()->only(self::PRODUCT_FIELDS);
+        $input['draft'] = $draft;
+
+        $errors = $draft
+            ? $this->draftErrors($input)
+            : $this->publishFormErrors($input, $variations);
+
+        if ($storeCategoryError = $this->storeCategoryError()) {
+            $errors['store_categories'] = $storeCategoryError;
+        }
+
+        if ($errors) {
+            \App\Support\SubmitOnce::release($token);
+
+            return back()->withInput()->withErrors($errors)->with('error', reset($errors));
+        }
+
+        $input['price'] = \App\Support\ProductRules::cleanNumber($input['price'] ?? '');
+        $input['stock'] = \App\Support\ProductRules::cleanNumber($input['stock'] ?? '');
 
         try {
             $product = $products->create(
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
+                $input,
                 request()->hasFile('image') ? request()->file('image') : null,
-                $this->variationsWithPhotos(),
+                $draft ? [] : $variations,
                 (array) request()->file('photos', []),
                 (string) request('cover_ref', '')
             );
         } catch (ActionFailed $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            \App\Support\SubmitOnce::release($token);
+
+            return back()->withInput()->withErrors([$this->errorField($e->getMessage()) => $e->getMessage()])->with('error', $e->getMessage());
         }
 
         StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
 
         return redirect()
             ->route('seller.dashboard')
-            ->with('success', $product->name . ' has been added to your store!');
+            ->with('success', $draft
+                ? $product->name . ' was saved as a draft. Buyers won\'t see it until you publish it.'
+                : $product->name . ' has been added to your store!');
+    }
+
+    /** What the Add/Edit Product form sends besides photos and options. */
+    private const PRODUCT_FIELDS = [
+        'name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs',
+        'brand', 'condition', 'weight_kg', 'length_cm', 'width_cm', 'height_cm',
+    ];
+
+    /** A draft needs only its name (5–120 characters). */
+    private function draftErrors(array $input): array
+    {
+        $name = trim((string) ($input['name'] ?? ''));
+        $length = mb_strlen($name);
+
+        if ($name === '') {
+            return ['name' => 'Please enter the product name.'];
+        }
+
+        if ($length < \App\Support\ProductRules::NAME_MIN || $length > \App\Support\ProductRules::NAME_MAX) {
+            return ['name' => 'The product name must be 5 to 120 characters (now ' . $length . ').'];
+        }
+
+        return [];
+    }
+
+    /**
+     * Every field rule for publishing a new product, plus the photos (1 to
+     * 9, JPG/PNG up to 5 MB each) and the option rows.
+     */
+    private function publishFormErrors(array $input, array $variations, ?Product $product = null): array
+    {
+        $general = (array) request()->file('photos', []);
+        $general[] = request()->file('image');
+        $general = \App\Support\ProductRules::uploads($general);
+
+        $optionPhotos = 0;
+        foreach ($variations as $row) {
+            $optionPhotos += count(\App\Support\ProductRules::uploads(array_merge([$row['image'] ?? null], (array) ($row['photos'] ?? []))));
+        }
+
+        $kept = 0;
+        $keptGeneral = 0;
+
+        if ($product) {
+            $remove = array_map('intval', (array) request('remove_photos', []));
+            $keptImages = $product->images()->whereNotIn('id', $remove)->get();
+            $kept = $keptImages->count();
+            $keptGeneral = $keptImages->whereNull('product_variation_id')->count();
+
+            foreach ((array) request()->file('option_photos', []) as $files) {
+                $optionPhotos += count(\App\Support\ProductRules::uploads((array) $files));
+            }
+        }
+
+        $hasOptions = $product
+            ? $product->variations()->exists()
+            : collect($variations)->contains(fn ($row) => trim($row['type'] ?? '') !== '' && trim($row['value'] ?? '') !== '');
+
+        $errors = \App\Support\ProductRules::publishErrors(
+            $input,
+            $kept + count($general) + $optionPhotos,
+            $hasOptions,
+            $keptGeneral + count($general)
+        );
+
+        // Each photo: JPG or PNG (by content), at most 5 MB.
+        foreach (array_merge($general, ...array_map(fn ($row) => \App\Support\ProductRules::uploads(array_merge([$row['image'] ?? null], (array) ($row['photos'] ?? []))), $variations ?: [[]])) as $file) {
+            if (!isValidProductImage($file)) {
+                $errors['photos'] = 'Each photo must be a JPG or PNG image of at most 5 MB.';
+                break;
+            }
+        }
+
+        return $errors;
+    }
+
+    /** Which form field a ProductService message belongs to. */
+    private function errorField(string $message): string
+    {
+        return match (true) {
+            str_contains($message, 'photo') || str_contains($message, 'image') => 'photos',
+            str_contains($message, 'name') => 'name',
+            str_contains($message, 'option') || str_contains($message, 'Enter the') => 'variations',
+            str_contains($message, 'categor') => 'category',
+            str_contains($message, 'Discount') => 'discount_percent',
+            default => 'name',
+        };
     }
 
     // Tabs on the seller's Orders page => the order statuses each one shows.
@@ -1407,9 +1521,14 @@ class SellerController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $order['items'] = $sellerItems->map(function ($item) {
+        // Photos even of products deleted since: the order keeps showing them.
+        $itemPhotos = Product::withTrashed()->whereIn('id', $sellerItems->pluck('product_id'))->pluck('image', 'id');
+
+        $order['items'] = $sellerItems->map(function ($item) use ($itemPhotos) {
 
             $item = (array) $item;
+
+            $item['image'] = productImageUrl($item['variation_image'] ?? null ?: ($itemPhotos[$item['product_id']] ?? null));
 
             // Existing Blade expects "name"
             $item['name'] =
@@ -1484,9 +1603,14 @@ class SellerController extends Controller
         $order['phone'] = $order['shipping_phone'] ?? 'N/A';
         $order['address'] = $order['shipping_address'] ?? 'N/A';
 
-        $order['items'] = $sellerItems->map(function ($item) {
+        // Photos even of products deleted since: the order keeps showing them.
+        $itemPhotos = Product::withTrashed()->whereIn('id', $sellerItems->pluck('product_id'))->pluck('image', 'id');
+
+        $order['items'] = $sellerItems->map(function ($item) use ($itemPhotos) {
 
             $item = (array) $item;
+
+            $item['image'] = productImageUrl($item['variation_image'] ?? null ?: ($itemPhotos[$item['product_id']] ?? null));
             $item['name'] = $item['product_name'] ?? 'Product';
             $item['subtotal'] = (float) ($item['price'] ?? 0) * (int) ($item['quantity'] ?? 0);
 
@@ -1612,17 +1736,47 @@ class SellerController extends Controller
             abort(403);
         }
 
-        $storeCategoryError = $this->storeCategoryError();
+        $input = request()->only(self::PRODUCT_FIELDS);
+        // A draft can be saved again as a draft; Publish (or any save of a live product) checks everything.
+        $input['draft'] = $product->is_draft && request('action') === 'draft';
+        $publishing = $product->is_draft && !$input['draft'];
 
-        if ($storeCategoryError) {
-            return back()->withInput()->withErrors(['store_categories' => $storeCategoryError]);
+        if ($input['draft']) {
+            $errors = $this->draftErrors($input);
+        } else {
+            $errors = $this->publishFormErrors($input + ['category' => $product->category], [], $product);
+
+            // A live product is checked on the fields its form sent (older
+            // forms have no weight or size); a draft being published on all.
+            if (!$publishing) {
+                $sent = array_keys(request()->all());
+                $errors = array_filter($errors, fn ($message, $field) => match ($field) {
+                    'dimensions' => (bool) array_intersect(['length_cm', 'width_cm', 'height_cm'], $sent),
+                    'photos' => str_contains($message, 'at most') || str_contains($message, 'JPG'),
+                    default => in_array($field, $sent, true),
+                }, ARRAY_FILTER_USE_BOTH);
+            }
+        }
+
+        if ($storeCategoryError = $this->storeCategoryError()) {
+            $errors['store_categories'] = $storeCategoryError;
+        }
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors)->with('error', reset($errors));
+        }
+
+        foreach (['price', 'stock'] as $number) {
+            if (array_key_exists($number, $input)) {
+                $input[$number] = \App\Support\ProductRules::cleanNumber($input[$number]);
+            }
         }
 
         try {
             $products->update(
                 $product,
                 (int) $user['id'],
-                request()->only('name', 'category', 'price', 'discount_percent', 'stock', 'description', 'specs'),
+                $input,
                 request()->hasFile('image') ? request()->file('image') : null,
                 [
                     'add' => (array) request()->file('photos', []),
@@ -1633,7 +1787,7 @@ class SellerController extends Controller
                 ]
             );
         } catch (ActionFailed $e) {
-            return back()->withInput()->with('error', $e->getMessage());
+            return back()->withInput()->withErrors([$this->errorField($e->getMessage()) => $e->getMessage()])->with('error', $e->getMessage());
         }
 
         // Forms that show the store categories send them (an empty list clears them).
@@ -1643,7 +1797,122 @@ class SellerController extends Controller
 
         return redirect()
             ->route('seller.dashboard')
-            ->with('success', 'Product updated successfully!');
+            ->with('success', match (true) {
+                $input['draft'] => 'Draft saved.',
+                $publishing => $product->name . ' is now published.',
+                default => 'Product updated successfully!',
+            });
+    }
+
+    /**
+     * A copy of one of the seller's products — same details, photos,
+     * options and store categories — saved as a Draft with a new ID.
+     */
+    public function duplicateProduct($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::where('seller_id', $user['id'])->find((int) $id);
+
+        if (!$product) {
+            abort(404);
+        }
+
+        $copy = DB::transaction(function () use ($product) {
+            $copy = $product->replicate(['is_archived', 'is_flagged', 'flag_reason']);
+            $copy->is_draft = true;
+            $copy->save();
+
+            $optionIds = [];
+
+            foreach ($product->variations as $variation) {
+                $optionIds[$variation->id] = $variation->replicate()->fill(['product_id' => $copy->id]);
+                $optionIds[$variation->id]->save();
+            }
+
+            // The photo files are shared; ProductPhotos::deleteUnused only removes a file nobody uses.
+            foreach ($product->images as $image) {
+                $copy->images()->create([
+                    'product_variation_id' => $image->product_variation_id ? ($optionIds[$image->product_variation_id]->id ?? null) : null,
+                    'path' => $image->path,
+                    'sort_order' => $image->sort_order,
+                    'is_cover' => $image->is_cover,
+                ]);
+            }
+
+            $copy->storeCategories()->sync($product->storeCategories()->pluck('store_categories.id')->all());
+
+            return $copy;
+        });
+
+        return redirect()
+            ->route('seller.products.edit', $copy->id)
+            ->with('success', 'A copy of ' . $product->name . ' was saved as a draft. Check its details, then publish it.');
+    }
+
+    /**
+     * Several products at once: deactivate, reactivate or delete. A product
+     * with unfinished orders is skipped by Delete and named in the result.
+     */
+    public function bulkProducts()
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $action = (string) request('bulk_action');
+        $products = Product::where('seller_id', $user['id'])
+            ->whereIn('id', array_map('intval', (array) request('product_ids', [])))
+            ->get();
+
+        if (!in_array($action, ['deactivate', 'activate', 'delete'], true) || $products->isEmpty()) {
+            return back()->with('error', 'Select at least one product and an action.');
+        }
+
+        if ($action !== 'delete') {
+            Product::whereIn('id', $products->pluck('id'))->update(['is_archived' => $action === 'deactivate']);
+
+            return back()->with('success', $products->count() . ' ' . Str::plural('product', $products->count())
+                . ($action === 'deactivate' ? ' deactivated.' : ' reactivated.'));
+        }
+
+        $deleted = [];
+        $skipped = [];
+
+        foreach ($products as $product) {
+            if ($this->hasUnfinishedOrders($product)) {
+                $skipped[] = $product->name;
+                continue;
+            }
+
+            $product->delete();
+            $deleted[] = $product->name;
+        }
+
+        $message = count($deleted) . ' ' . Str::plural('product', count($deleted)) . ' deleted.';
+
+        if ($skipped) {
+            $message .= ' Skipped because of unfinished orders: ' . implode(', ', $skipped) . '.';
+        }
+
+        return back()->with($deleted ? 'success' : 'error', $message);
+    }
+
+    /** Orders not yet finished (Completed, Cancelled or Returned) — the product must stay. */
+    private function hasUnfinishedOrders(Product $product, ?int $variationId = null): bool
+    {
+        return DB::table('order_items')
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.product_id', $product->id)
+            ->when($variationId, fn ($q) => $q->where('order_items.product_variation_id', $variationId))
+            ->whereNotIn('orders.status', \App\Support\OrderStatus::FINISHED)
+            ->exists();
     }
 
     /** The store categories picked on the product form: at most 3, all the seller's own. */
@@ -1675,33 +1944,29 @@ class SellerController extends Controller
             abort(404);
         }
 
-        // order_items.product_id cascades on delete — if any order ever
-        // included this product, deleting it would silently wipe those
-        // buyers' order lines (and any reviews) out from under real orders.
-        // Archive is the safe equivalent: it hides the product without
-        // touching order history.
-        $hasOrderHistory = DB::table('order_items')
-            ->where('product_id', $product->id)
-            ->exists();
-
-        if ($hasOrderHistory) {
-
+        // An order still on its way needs the product (and its stock row).
+        if ($this->hasUnfinishedOrders($product)) {
             return back()->with(
                 'error',
-                'This product has order history and cannot be deleted. Archive it instead to hide it from the shop.'
+                $product->name . ' has unfinished orders, so it can\'t be deleted yet. You can deactivate it to hide it from buyers.'
             );
         }
 
         $productName = $product->name;
 
-        // Don't leave the product's (and its variations') images behind.
-        $images = $product->variations()->pluck('image')
-            ->merge($product->images()->pluck('path'))
-            ->push($product->image)->filter()->all();
+        if (!DB::table('order_items')->where('product_id', $product->id)->exists()) {
+            // Never ordered: removed for good, photos too.
+            $images = $product->variations()->pluck('image')
+                ->merge($product->images()->pluck('path'))
+                ->push($product->image)->filter()->all();
 
-        $product->delete();
-
-        ProductPhotos::deleteUnused($images);
+            $product->forceDelete();
+            ProductPhotos::deleteUnused($images);
+        } else {
+            // A soft delete: gone from the shop, search and your list, while
+            // old orders keep its name, photo and the price paid.
+            $product->delete();
+        }
 
         return redirect()
             ->route('seller.dashboard')

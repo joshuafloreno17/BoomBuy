@@ -63,7 +63,7 @@ class DeviceSpecsTest extends TestCase
             'category' => 'electronics',
             'price' => 50000,
             'stock' => 10,
-            'description' => 'A phone.',
+            'description' => 'A phone — sample product for the tests.', 'weight_kg' => 0.5,
             'photos' => [$this->photo()],
             'specs' => ['device_type' => 'Phone', 'ram' => '12GB', 'screen' => '6.8" AMOLED', 'network' => '5G'],
             'variations' => [
@@ -94,7 +94,7 @@ class DeviceSpecsTest extends TestCase
             'category' => 'shoes',
             'price' => 1500,
             'stock' => 5,
-            'description' => 'Shoes.',
+            'description' => 'Shoes — sample product for the tests.', 'weight_kg' => 0.5,
             'photos' => [$this->photo()],
             'specs' => ['ram' => '8GB'],
         ])->assertRedirect();
@@ -106,7 +106,7 @@ class DeviceSpecsTest extends TestCase
     {
         $seller = $this->makeSeller('electronics');
         $phone = $this->phone($seller, ['specs' => ['ram' => '8GB']]);
-        $form = ['name' => $phone->name, 'category' => 'electronics', 'price' => 89999, 'stock' => 10, 'description' => 'A phone.'];
+        $form = ['name' => $phone->name, 'category' => 'electronics', 'price' => 89999, 'stock' => 10, 'description' => 'A phone — sample product for the tests.', 'weight_kg' => 0.5];
 
         // A form without specs (e.g. the mobile app) leaves them alone.
         $this->actingAsUser($seller)->put(route('seller.products.update', $phone->id), $form)->assertRedirect();

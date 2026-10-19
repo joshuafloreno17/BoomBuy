@@ -19,7 +19,7 @@ use Illuminate\Support\Facades\Storage;
 class ProductPhotos
 {
     /** Photos for all options, per product. */
-    public const MAX_GENERAL = 8;
+    public const MAX_GENERAL = 9;
 
     /** Photos per option. */
     public const MAX_PER_OPTION = 5;

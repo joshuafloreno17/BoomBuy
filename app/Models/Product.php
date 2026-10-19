@@ -3,10 +3,14 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
 class Product extends Model
 {
+    // A deleted product stays on old orders (name, photo, price paid).
+    use SoftDeletes;
+
     protected $fillable = [
         'seller_id',
         'name',
@@ -21,11 +25,19 @@ class Product extends Model
         'flag_reason',
         'is_archived',
         'specs',
+        'brand',
+        'condition',
+        'weight_kg',
+        'length_cm',
+        'width_cm',
+        'height_cm',
+        'is_draft',
     ];
 
     protected $casts = [
         'is_flagged' => 'boolean',
         'is_archived' => 'boolean',
+        'is_draft' => 'boolean',
         'discount_percent' => 'integer',
         // Device details (RAM, screen…) — see App\Support\DeviceSpecs.
         'specs' => 'array',
@@ -97,6 +109,7 @@ class Product extends Model
         return $query
             ->where('products.is_flagged', false)
             ->where('products.is_archived', false)
+            ->where('products.is_draft', false)
             ->whereExists(function ($sellers) {
                 $sellers->select(DB::raw(1))
                     ->from('users as product_sellers')
@@ -159,7 +172,7 @@ class Product extends Model
     /** Same rule as onSale(), for a single product already loaded. */
     public function isPurchasable(): bool
     {
-        if ($this->is_archived || $this->is_flagged) {
+        if ($this->is_archived || $this->is_flagged || $this->is_draft || $this->trashed()) {
             return false;
         }
 

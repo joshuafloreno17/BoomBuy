@@ -66,4 +66,13 @@ class DeliveryFee
 
         return $fulfillment === 'pickup' ? self::pickupFee($zone) : self::zoneFee($zone);
     }
+
+    /**
+     * The weight shipping is charged for: the actual weight rounded up to
+     * the next whole kg, at least 1 kg (0.01 kg → 1 kg, 1.2 kg → 2 kg).
+     */
+    public static function chargeableKg(float $kg): int
+    {
+        return max(1, (int) ceil(round($kg, 2)));
+    }
 }

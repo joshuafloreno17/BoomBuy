@@ -21,6 +21,9 @@ class OrderStatus
     /** Delivered successfully — counts as a sale (with or without the buyer's confirmation). */
     public const DONE = ['Delivered', 'Completed'];
 
+    /** Nothing left to happen: a product or option on these orders may be deleted. */
+    public const FINISHED = ['Completed', 'Cancelled', 'Returned to Seller'];
+
     /** Still with the seller: the seller (and admin) may cancel. */
     public const WITH_SELLER = ['Pending', 'Confirmed', 'Preparing'];
 

@@ -50,6 +50,11 @@
                 @endif
 
 
+                {{-- FIELD ERRORS --}}
+                @if($errors->any())
+                    <div class="error" role="alert">Please fix the highlighted fields below.</div>
+                @endif
+
                 {{-- SESSION ERROR --}}
                 @if(session('error'))
 
@@ -69,6 +74,10 @@
                         {{ $product->name ?? 'Unnamed Product' }}
                     </strong>
 
+                    @if($product->is_draft)
+                        <span class="draft-badge">Draft</span>
+                    @endif
+
                     —
 
                     {{ \Illuminate\Support\Str::slug($product->name) }}
@@ -79,6 +88,11 @@
                     >
                         <i class="bi bi-palette"></i> Manage Variations
                     </a>
+
+                    <form method="POST" action="{{ route('seller.products.duplicate', $product->id) }}" style="float:right; margin-right:14px;">
+                        @csrf
+                        <button type="submit" class="link-btn"><i class="bi bi-copy"></i> Duplicate</button>
+                    </form>
 
                 </div>
 
@@ -113,8 +127,11 @@
                             id="name"
                             name="name"
                             value="{{ old('name', $product->name ?? '') }}"
+                            minlength="5"
+                            maxlength="120"
                             required
                         >
+                        @error('name')<span class="field-error">{{ $message }}</span>@enderror
 
                     </div>
 
@@ -131,13 +148,17 @@
                             placeholder="Enter product description..."
                             required
                         >{{ old('description', $product->description ?? '') }}</textarea>
+                        @error('description')<span class="field-error">{{ $message }}</span>@enderror
 
                     </div>
+
+                    @include('partials.seller.product-listing-fields', ['product' => $product])
                     </section>
 
                     <section class="ap-card ap-photos">
                     {{-- MORE PHOTOS --}}
                     @include('partials.product-photos-field', ['product' => $product])
+                    @error('photos')<span class="field-error">{{ $message }}</span>@enderror
                     </section>
 
                     <section class="ap-card">
@@ -384,10 +405,12 @@
                                 id="price"
                                 name="price"
                                 step="0.01"
-                                min="0"
+                                min="1"
+                                max="1000000"
                                 value="{{ old('price', $product->regularPrice()) }}"
-                                required
+                                @required(!$product->is_draft)
                             >
+                            @error('price')<span class="field-error">{{ $message }}</span>@enderror
 
                         </div>
 
@@ -419,9 +442,12 @@
                                     id="stock"
                                     name="stock"
                                     min="0"
+                                    max="99999"
+                                    step="1"
                                     value="{{ old('stock', $product->stock ?? 0) }}"
                                     required
                                 >
+                                @error('stock')<span class="field-error">{{ $message }}</span>@enderror
                             @endif
 
                         </div>
@@ -440,12 +466,17 @@
                         </a>
 
 
-                        <button
-                            type="submit"
-                            class="save-btn"
-                        >
-                            Save Changes
-                        </button>
+                        @if($product->is_draft)
+                            <button type="submit" class="cancel-btn" name="action" value="draft" formnovalidate>Save as Draft</button>
+                            <button type="submit" class="save-btn" name="action" value="publish">Publish</button>
+                        @else
+                            <button
+                                type="submit"
+                                class="save-btn"
+                            >
+                                Save Changes
+                            </button>
+                        @endif
 
                     </div>
                     </aside>

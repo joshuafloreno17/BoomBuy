@@ -27,7 +27,7 @@ class SellerTest extends TestCase
             'category' => 'shoes',
             'price' => 1500,
             'stock' => 5,
-            'description' => 'Everyday canvas sneakers.',
+            'description' => 'Everyday canvas sneakers.', 'weight_kg' => 0.5,
             'image' => UploadedFile::fake()->create('shoe.jpg', 30, 'image/jpeg'),
         ], $overrides);
     }
@@ -72,7 +72,7 @@ class SellerTest extends TestCase
         $this->actingAsUser($seller)
             ->put(route('seller.products.update', $product->id), [
                 'name' => $product->name, 'category' => 'automotive',
-                'price' => 500, 'stock' => 10, 'description' => 'x',
+                'price' => 500, 'stock' => 10, 'description' => 'x — sample product for the tests.', 'weight_kg' => 0.5,
             ])
             ->assertSessionHas('error');
 

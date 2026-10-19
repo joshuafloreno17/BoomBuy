@@ -382,3 +382,26 @@ footer strong {
         grid-template-columns: 1fr;
     }
 }
+
+.draft-badge {
+    display: inline-block;
+    margin-left: 8px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 11px;
+    font-weight: 800;
+    vertical-align: middle;
+}
+
+.link-btn {
+    border: none;
+    background: none;
+    color: #6d4ad1;
+    font: inherit;
+    font-weight: 700;
+    font-size: 12px;
+    cursor: pointer;
+    padding: 0;
+}

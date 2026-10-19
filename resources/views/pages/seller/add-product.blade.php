@@ -26,6 +26,12 @@
 
 
             <!-- ERROR -->
+            @if($errors->any())
+                <div class="error" role="alert">
+                    <i class="bi bi-x-circle-fill"></i> Please fix the highlighted fields below.
+                </div>
+            @endif
+
             @if(session('error'))
 
                 <div class="error">
@@ -55,6 +61,7 @@
                 >
 
                     @csrf
+                    {!! \App\Support\SubmitOnce::field() !!}
 
 
                     {{-- Wide screens: what the product is on the left; price, stock, photos and Save on the right (stays in view). --}}
@@ -77,8 +84,12 @@
                             name="name"
                             value="{{ old('name') }}"
                             placeholder="Example: Gaming Phone"
+                            minlength="5"
+                            maxlength="120"
                             required
                         >
+                        <small class="hint">5 to 120 characters.</small>
+                        @error('name')<span class="field-error">{{ $message }}</span>@enderror
 
                     </div>
 
@@ -93,10 +104,16 @@
                             id="description"
                             name="description"
                             placeholder="Enter product description..."
+                            minlength="20"
+                            maxlength="3000"
                             required
                         >{{ old('description') }}</textarea>
+                        <small class="hint">20 to 3,000 characters.</small>
+                        @error('description')<span class="field-error">{{ $message }}</span>@enderror
 
                     </div>
+
+                    @include('partials.seller.product-listing-fields', ['product' => null])
 
                     </section>
 
@@ -179,10 +196,13 @@
                             name="price"
                             value="{{ old('price') }}"
                             min="1"
+                            max="1000000"
                             step="0.01"
                             placeholder="Example: 15000"
                             required
                         >
+                        <small class="hint">₱1.00 to ₱1,000,000.00.</small>
+                        @error('price')<span class="field-error">{{ $message }}</span>@enderror
 
                     </div>
 
@@ -198,7 +218,8 @@
                             id="stock"
                             name="stock"
                             value="{{ old('stock', 1) }}"
-                            min="1"
+                            min="0"
+                            max="99999"
                             step="1"
                             placeholder="Example: 50"
                             required
@@ -209,8 +230,9 @@
                             color: #857ca0;
                             font-size: 11px;
                         ">
-                            Enter the number of units available for sale. If you add variations below, each one keeps its own stock instead.
+                            Enter the number of units available for sale (0 to 99,999; 0 shows as Sold out). If you add variations below, each one keeps its own stock instead.
                         </div>
+                        @error('stock')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
 
 
@@ -330,6 +352,7 @@
                     <section class="ap-card">
                     <!-- PHOTOS FOR ALL OPTIONS (or the product's photos when it has no options) -->
                     @include('partials.product-photos-uploader')
+                    @error('photos')<span class="field-error">{{ $message }}</span>@enderror
                     </section>
 
                     <!-- BUTTONS -->
@@ -338,8 +361,21 @@
                         <button
                             type="submit"
                             class="save"
+                            name="action"
+                            value="publish"
                         >
-                            <i class="bi bi-check-circle-fill"></i> Add Product
+                            <i class="bi bi-check-circle-fill"></i> Publish
+                        </button>
+
+                        {{-- Only the name is needed for a draft; buyers never see it. --}}
+                        <button
+                            type="submit"
+                            class="cancel save-draft"
+                            name="action"
+                            value="draft"
+                            formnovalidate
+                        >
+                            <i class="bi bi-file-earmark"></i> Save as Draft
                         </button>
 
                         <a
@@ -545,6 +581,7 @@
 
         // Options need a type (Color, Size…) so buyers see "Choose a color".
         addBtn.form.addEventListener('submit', function (e) {
+            if (e.submitter && e.submitter.value === 'draft') return;
             if (rowsContainer.children.length && !typeInput.value.trim()) {
                 e.preventDefault();
                 say('Please fill in the variation type (for example Color, Size or Mount).');

@@ -547,4 +547,412 @@ class SellerModulesSheetTest extends TestCase
         $this->assertEmpty($routes->filter(fn ($uri) => str_starts_with($uri, 'seller/') && str_contains($uri, 'platform-categor')));
         $this->assertCount(16, \App\Support\Categories::LIST);
     }
+
+    /* ---------------------------------------------------------------
+     | S3 Product Management
+     * --------------------------------------------------------------- */
+
+    /** A stored amount as the sheet writes it: 2 decimals (SQLite keeps 299.00 as 299). */
+    private function money(mixed $value, string $thousands = ''): string
+    {
+        return number_format((float) $value, 2, '.', $thousands);
+    }
+
+    /** The fields flagged by the last request. */
+    private function errorKeys(): array
+    {
+        $errors = session('errors');
+
+        return is_array($errors) ? array_keys($errors['default']['messages'] ?? []) : $errors->getBag('default')->keys();
+    }
+
+    private function jpeg(string $name = 'product_front.jpg', int $kb = 40): \Illuminate\Http\UploadedFile
+    {
+        return $this->jpegOfSize($name, $kb * 1024);
+    }
+
+    /** The Buri Placemat Set from SEL-PROD-001, ready to Publish. */
+    private function productForm(array $overrides = []): array
+    {
+        return array_merge([
+            'action' => 'publish',
+            'name' => 'Buri Placemat Set',
+            'description' => 'Set of 6 placemats, handwoven buri palm.',
+            'category' => 'home-living',
+            'brand' => 'No brand',
+            'condition' => 'New',
+            'price' => '299.00',
+            'stock' => '30',
+            'weight_kg' => '0.6',
+            'length_cm' => '35', 'width_cm' => '25', 'height_cm' => '3',
+            'photos' => [$this->jpeg('product_front.jpg'), $this->png('product_side.png')],
+        ], $overrides);
+    }
+
+    private function publish(array $overrides = [], ?\App\Models\User $seller = null)
+    {
+        return $this->as($seller ?? $this->seller1())->from(route('seller.products.create'))->post(route('seller.products.store'), $this->productForm($overrides));
+    }
+
+    private function product(string $name): ?Product
+    {
+        return Product::where('name', $name)->first();
+    }
+
+    /** The names on a buyer's search results page. */
+    private function searchNames(string $text): array
+    {
+        $html = $this->as($this->buyer1())->get(route('products', ['search' => $text]))->assertOk()->getContent();
+        preg_match_all('/class="sp-name">([^<]+)<\/a>/', $html, $m);
+
+        return array_map('html_entity_decode', $m[1]);
+    }
+
+    public function test_SEL_PROD_001_add_and_publish_a_product_with_all_valid_data(): void
+    {
+        $kitchen = \App\Models\StoreCategory::create(['seller_id' => $this->seller1()->id, 'name' => 'Kitchen & Dining']);
+
+        $this->publish(['store_categories' => [$kitchen->id], 'store_categories_sent' => 1])
+            ->assertRedirect(route('seller.dashboard'))->assertSessionHasNoErrors();
+
+        $product = $this->product('Buri Placemat Set');
+        $this->assertNotNull($product);
+        $this->assertFalse($product->is_draft);
+        $this->assertFalse($product->is_archived);
+        $this->assertSame('Set of 6 placemats, handwoven buri palm.', $product->description);
+        $this->assertSame('Home & Living', $product->category);
+        $this->assertSame('No brand', $product->brand);
+        $this->assertSame('New', $product->condition);
+        $this->assertSame('299.00', $this->money($product->price));
+        $this->assertSame(30, (int) $product->stock);
+        $this->assertSame(['0.60', '35.00', '25.00', '3.00'], array_map([$this, 'money'], [$product->weight_kg, $product->length_cm, $product->width_cm, $product->height_cm]));
+
+        // Images in the uploaded order.
+        $paths = $product->images()->pluck('path')->all();
+        $this->assertCount(2, $paths);
+        $this->assertStringEndsWith('.jpg', $paths[0]);
+        $this->assertStringEndsWith('.png', $paths[1]);
+        $this->assertSame($paths[0], $product->image);
+
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertSee('Buri Placemat Set');
+
+        // Buyers find it in search, in Home & Living and in the store's Kitchen & Dining.
+        $this->assertContains('Buri Placemat Set', $this->searchNames('Buri Placemat Set'));
+        $this->as($this->buyer1())->get(route('products', ['category' => 'home-living']))->assertSee('Buri Placemat Set');
+        $this->assertSame(['Buri Placemat Set'], $this->inStoreCategory($kitchen));
+        $this->as($this->buyer1())->get(route('product.details', $product->id))->assertOk()->assertSee('299')->assertSee('30');
+    }
+
+    public function test_SEL_PROD_002_each_required_field_left_blank(): void
+    {
+        $fields = [
+            'name' => ['name' => ''],
+            'description' => ['description' => ''],
+            'photos' => ['photos' => []],
+            'category' => ['category' => ''],
+            'price' => ['price' => ''],
+            'stock' => ['stock' => ''],
+            'weight_kg' => ['weight_kg' => ''],
+        ];
+
+        // A seller registered for no single category picks the platform category on the form.
+        DB::table('seller_applications')->where('user_id', $this->seller1()->id)->update(['business_category' => null]);
+
+        foreach ($fields as $field => $blank) {
+            $response = $this->publish($blank)->assertRedirect(route('seller.products.create'));
+            $response->assertSessionHasErrors([$field]);
+            $this->assertSame([$field], $this->errorKeys(), 'Only ' . $field . ' is flagged');
+            // The other values stay on the form.
+            $old = session('_old_input');
+            foreach (['name', 'description', 'price', 'stock', 'weight_kg'] as $kept) {
+                if ($kept !== $field) {
+                    $this->assertSame($this->productForm()[$kept], $old[$kept] ?? null);
+                }
+            }
+        }
+
+        $this->assertSame(0, Product::count());
+    }
+
+    public function test_SEL_PROD_003_product_name_and_description_length(): void
+    {
+        $this->publish(['name' => 'Tote'])->assertSessionHasErrors(['name' => 'The product name must be 5 to 120 characters (now 4).']);
+        $this->publish(['name' => 'Totes'])->assertSessionHasNoErrors();
+        $this->publish(['name' => str_repeat('T', 120)])->assertSessionHasNoErrors();
+        $this->publish(['name' => str_repeat('U', 121)])->assertSessionHasErrors(['name' => 'The product name must be 5 to 120 characters (now 121).']);
+
+        $this->publish(['name' => 'Description 19', 'description' => str_repeat('d', 19)])->assertSessionHasErrors(['description' => 'The description must be 20 to 3,000 characters (now 19).']);
+        $this->publish(['name' => 'Description 20', 'description' => str_repeat('d', 20)])->assertSessionHasNoErrors();
+        $this->publish(['name' => 'Description 3000', 'description' => str_repeat('d', 3000)])->assertSessionHasNoErrors();
+        $this->publish(['name' => 'Description 3001', 'description' => str_repeat('d', 3001)])->assertSessionHasErrors(['description' => 'The description must be 20 to 3,000 characters (now 3,001).']);
+
+        $this->assertEqualsCanonicalizing(['Totes', str_repeat('T', 120), 'Description 20', 'Description 3000'], Product::pluck('name')->all());
+    }
+
+    public function test_SEL_PROD_004_price_validation(): void
+    {
+        $accept = ['1.00' => '1.00', '1.01' => '1.01', '999,999.99' => '999999.99', '1,000,000.00' => '1000000.00'];
+        $reject = ['0', '-50', '0.99', '199.999', '1,000,000.01', 'abc', ''];
+
+        foreach ($reject as $i => $price) {
+            $this->publish(['name' => 'Rejected price ' . $i, 'price' => $price])->assertSessionHasErrors(['price']);
+        }
+        $this->assertSame(0, Product::count());
+
+        foreach (array_keys($accept) as $i => $price) {
+            $this->publish(['name' => 'Accepted price ' . $i, 'price' => $price])->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(array_values($accept), Product::orderBy('id')->pluck('price')->map(fn ($p) => $this->money($p, ''))->all());
+        $this->assertFalse(Product::where('price', 200)->exists());
+    }
+
+    public function test_SEL_PROD_005_stock_validation(): void
+    {
+        foreach (['-1', '100000', '2.5'] as $i => $stock) {
+            $this->publish(['name' => 'Rejected stock ' . $i, 'stock' => $stock])->assertSessionHasErrors(['stock' => 'Stock must be a whole number from 0 to 99,999.']);
+        }
+
+        foreach (['0', '1', '99,999'] as $i => $stock) {
+            $this->publish(['name' => 'Accepted stock ' . $i, 'stock' => $stock])->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame([0, 1, 99999], Product::orderBy('id')->pluck('stock')->map(fn ($s) => (int) $s)->all());
+
+        // Published with 0 stock: buyers see Sold out.
+        $soldOut = $this->product('Accepted stock 0');
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Accepted stock 0']))->assertSee('Sold out');
+        $this->as($this->buyer1())->get(route('product.details', $soldOut->id))->assertOk()->assertSee('Out of stock', false);
+    }
+
+    public function test_SEL_PROD_006_image_count_at_the_limits(): void
+    {
+        $this->publish(['photos' => []])->assertSessionHasErrors(['photos' => 'Please add at least 1 product photo (up to 9).']);
+        $this->assertSame(0, Product::count());
+
+        $this->publish(['photos' => [$this->jpeg()]])->assertSessionHasNoErrors();
+        $product = $this->product('Buri Placemat Set');
+        $this->assertSame(1, $product->images()->count());
+
+        // Edit and add up to 9 images.
+        $edit = fn (array $photos) => $this->as($this->seller1())->from(route('seller.products.edit', $product->id))->put(route('seller.products.update', $product->id), [
+            'name' => 'Buri Placemat Set', 'description' => 'Set of 6 placemats, handwoven buri palm.', 'category' => 'home-living',
+            'price' => '299.00', 'stock' => '30', 'photos' => $photos,
+        ]);
+
+        $edit(array_map(fn ($i) => $this->jpeg("extra_$i.jpg"), range(2, 9)))->assertSessionHasNoErrors();
+        $this->assertSame(9, $product->images()->count());
+
+        $edit([$this->jpeg('tenth.jpg')])->assertSessionHasErrors(['photos' => 'A product can have at most 9 photos.']);
+        $this->assertSame(9, $product->images()->count());
+
+        // The add-photo tile stops at 9.
+        $this->as($this->seller1())->get(route('seller.products.create'))->assertSee('data-max="9"', false);
+    }
+
+    public function test_SEL_PROD_007_image_file_type_and_size(): void
+    {
+        $this->publish(['name' => 'Exactly five MB', 'photos' => [$this->jpegOfSize('size_5.0MB.jpg', $this->mb(5.0))]])->assertSessionHasNoErrors();
+
+        foreach ([
+            $this->jpegOfSize('size_5.1MB.jpg', $this->mb(5.1)),
+            $this->docx('price_list.docx'),
+            $this->exe('renamed_exe.jpg'),
+        ] as $i => $file) {
+            $this->publish(['name' => 'Bad photo ' . $i, 'photos' => [$file]])
+                ->assertSessionHasErrors(['photos' => 'Each photo must be a JPG or PNG image of at most 5 MB.']);
+        }
+
+        $this->assertSame(['Exactly five MB'], Product::pluck('name')->all());
+        $this->assertSame(1, \App\Models\ProductImage::count());
+    }
+
+    public function test_SEL_PROD_008_weight_and_dimensions_validation(): void
+    {
+        foreach (['0', '-1'] as $i => $weight) {
+            $this->publish(['name' => 'Weight ' . $i, 'weight_kg' => $weight])->assertSessionHasErrors(['weight_kg' => 'Weight must be a number more than 0 kg (up to 999 kg).']);
+        }
+
+        $this->publish(['name' => 'Zero size', 'length_cm' => '0', 'width_cm' => '0', 'height_cm' => '0'])->assertSessionHasErrors(['dimensions' => 'Enter the length, width and height as numbers more than 0 cm.']);
+        $this->publish(['name' => 'Letters size', 'length_cm' => 'abc', 'width_cm' => 'abc', 'height_cm' => 'abc'])->assertSessionHasErrors(['dimensions']);
+        $this->assertSame(0, Product::count());
+
+        $this->publish(['name' => 'Light Woven Fan', 'weight_kg' => '0.01'])->assertSessionHasNoErrors();
+        $this->assertSame('0.01', $this->money($this->product('Light Woven Fan')->weight_kg));
+        // Charged as 1 kg at checkout (whole kg, rounded up).
+        $this->assertSame(1, \App\Support\DeliveryFee::chargeableKg(0.01));
+    }
+
+    public function test_SEL_PROD_009_save_as_draft(): void
+    {
+        $this->as($this->seller1())->from(route('seller.products.create'))->post(route('seller.products.store'), [
+            'action' => 'draft', 'name' => 'Draft Woven Fan',
+        ])->assertSessionHasNoErrors()->assertRedirect(route('seller.dashboard'));
+
+        $draft = $this->product('Draft Woven Fan');
+        $this->assertTrue($draft->is_draft);
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertSee('data-product-status="' . $draft->id . '">Draft', false);
+
+        $this->assertSame([], $this->searchNames('Draft Woven Fan'));
+        $this->as($this->buyer1())->get(route('product.details', $draft->id))->assertNotFound();
+    }
+
+    public function test_SEL_PROD_010_publish_a_draft_with_missing_data(): void
+    {
+        $this->as($this->seller1())->post(route('seller.products.store'), ['action' => 'draft', 'name' => 'Draft Woven Fan']);
+        $draft = $this->product('Draft Woven Fan');
+
+        $this->as($this->seller1())->from(route('seller.products.edit', $draft->id))
+            ->put(route('seller.products.update', $draft->id), ['action' => 'publish', 'name' => 'Draft Woven Fan'])
+            ->assertSessionHasErrors(['description', 'price', 'stock', 'weight_kg', 'photos']);
+
+        $this->assertTrue($draft->fresh()->is_draft);
+        $this->as($this->buyer1())->get(route('product.details', $draft->id))->assertNotFound();
+    }
+
+    public function test_SEL_PROD_011_deactivate_and_reactivate_a_product(): void
+    {
+        $p02 = $this->p02();
+        $cart = [$p02->id . ':0' => 1];
+        $before = $p02->fresh()->only(['price', 'stock', 'image']);
+
+        $this->as($this->seller1())->post(route('seller.products.archive', $p02->id))->assertSessionHas('success');
+
+        $this->assertSame([], $this->searchNames('Rattan Fruit Basket'));
+        $this->as($this->buyer1())->get(route('products', ['category' => 'home-living']))->assertDontSee('class="sp-name">Rattan Fruit Basket', false);
+        $this->as($this->buyer1())->get(route('shop.seller', $this->seller1()->id))->assertDontSee('class="sp-name">Rattan Fruit Basket', false);
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertNotFound();
+
+        // The cart line stays but can't be checked out.
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->assertOk()->assertSee('Rattan Fruit Basket');
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))
+            ->assertRedirect(route('cart'))->assertSessionHas('error', 'Rattan Fruit Basket is no longer available. Please remove it from your selection.');
+
+        $this->as($this->seller1())->post(route('seller.products.unarchive', $p02->id))->assertSessionHas('success');
+
+        $this->assertSame(['Rattan Fruit Basket'], $this->searchNames('Rattan Fruit Basket'));
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk();
+        $this->assertSame($before, $p02->fresh()->only(['price', 'stock', 'image']));
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))->assertOk();
+    }
+
+    public function test_SEL_PROD_012_duplicate_a_product(): void
+    {
+        $p02 = $this->p02();
+        $original = $p02->fresh()->toArray();
+
+        $this->as($this->seller1())->post(route('seller.products.duplicate', $p02->id))->assertSessionHas('success');
+
+        $copy = Product::where('id', '!=', $p02->id)->firstOrFail();
+        $this->assertNotSame($p02->id, $copy->id);
+        $this->assertTrue($copy->is_draft);
+        foreach (['name', 'description', 'category', 'price', 'stock', 'seller_id'] as $field) {
+            $this->assertEquals($original[$field], $copy->{$field}, $field);
+        }
+
+        // Saving the copy keeps it a draft.
+        $this->as($this->seller1())->put(route('seller.products.update', $copy->id), ['action' => 'draft', 'name' => $copy->name, 'price' => '450.00'])->assertSessionHasNoErrors();
+        $this->assertTrue($copy->fresh()->is_draft);
+
+        $this->assertEquals($original, $p02->fresh()->toArray());
+        $this->assertSame(['Rattan Fruit Basket'], $this->searchNames('Rattan Fruit Basket'));
+    }
+
+    public function test_SEL_PROD_013_edit_price_of_a_product_in_a_buyers_cart(): void
+    {
+        $p02 = $this->p02();
+        $cart = [$p02->id . ':0' => 1];
+
+        $this->as($this->seller1())->put(route('seller.products.update', $p02->id), [
+            'name' => 'Rattan Fruit Basket', 'description' => $p02->description, 'category' => 'home-living', 'price' => '420.00', 'stock' => '20',
+        ])->assertSessionHasNoErrors();
+
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('cart'))->assertOk()->assertSee('420.00')->assertDontSee('450.00');
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))->assertOk()->assertSee('420.00')->assertDontSee('450.00');
+
+        $this->placeOrder($this->buyer1(), $cart, self::ADDR_1)->assertSessionDoesntHaveErrors();
+        $this->assertSame('420.00', $this->money(DB::table('order_items')->value('price')));
+    }
+
+    public function test_SEL_PROD_014_delete_a_product_with_unfinished_orders(): void
+    {
+        $p02 = $this->p02();
+        $this->makeOrder($this->buyer1(), $p02, 'Preparing'); // To Ship
+
+        $this->as($this->seller1())->delete(route('seller.products.delete', $p02->id))
+            ->assertSessionHas('error', 'Rattan Fruit Basket has unfinished orders, so it can\'t be deleted yet. You can deactivate it to hide it from buyers.');
+
+        $this->assertNotNull(Product::find($p02->id));
+        $this->assertFalse(Product::find($p02->id)->is_archived);
+    }
+
+    public function test_SEL_PROD_015_delete_a_product_with_only_finished_orders(): void
+    {
+        $p04 = $this->p04();
+        $p04->update(['image' => 'products/banig.jpg']);
+        Storage::disk('public')->put('products/banig.jpg', 'x');
+        $orderId = $this->makeOrder($this->buyer1(), $p04, 'Completed');
+
+        $this->as($this->seller1())->delete(route('seller.products.delete', $p04->id))->assertSessionHas('success');
+
+        $this->assertNull(Product::find($p04->id));
+        $this->assertNotNull(Product::withTrashed()->find($p04->id));
+        $this->as($this->seller1())->get(route('seller.dashboard'))->assertDontSee('data-product-search="banig placemat set of 4', false);
+        $this->assertSame([], $this->searchNames('Banig Placemat'));
+        $this->as($this->buyer1())->get(route('shop.seller', $this->seller1()->id))->assertDontSee('class="sp-name">Banig Placemat Set of 4', false);
+
+        // Both order views keep its name, photo and price paid.
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertOk()->assertSee('Banig Placemat Set of 4')->assertSee('storage/products/banig.jpg', false)->assertSee('350');
+        $this->as($this->seller1())->get(route('seller.order.details', $orderId))->assertOk()->assertSee('Banig Placemat Set of 4')->assertSee('storage/products/banig.jpg', false)->assertSee('350.00');
+        Storage::disk('public')->assertExists('products/banig.jpg');
+    }
+
+    public function test_SEL_PROD_016_bulk_deactivate_and_bulk_delete_with_a_mixed_selection(): void
+    {
+        $p02 = $this->p02();
+        $p04 = $this->p04();
+        $this->publish();
+        $buri = $this->product('Buri Placemat Set');
+        $this->makeOrder($this->buyer1(), $p02, 'Preparing');
+        $ids = [$p02->id, $p04->id, $buri->id];
+
+        $this->as($this->seller1())->post(route('seller.products.bulk'), ['bulk_action' => 'deactivate', 'product_ids' => $ids])->assertSessionHas('success', '3 products deactivated.');
+        $this->assertSame(3, Product::whereIn('id', $ids)->where('is_archived', true)->count());
+
+        $this->as($this->seller1())->post(route('seller.products.bulk'), ['bulk_action' => 'activate', 'product_ids' => $ids])->assertSessionHas('success', '3 products reactivated.');
+
+        $this->as($this->seller1())->post(route('seller.products.bulk'), ['bulk_action' => 'delete', 'product_ids' => $ids])
+            ->assertSessionHas('success', '2 products deleted. Skipped because of unfinished orders: Rattan Fruit Basket.');
+
+        $this->assertNotNull(Product::find($p02->id));
+        $this->assertNull(Product::find($p04->id));
+        $this->assertNull(Product::find($buri->id));
+    }
+
+    public function test_SEL_PROD_017_double_click_publish(): void
+    {
+        $token = (string) Str::uuid();
+        $form = ['name' => 'Double Click Test Tote', \App\Support\SubmitOnce::FIELD => $token];
+
+        $this->publish($form)->assertRedirect(route('seller.dashboard'));
+        $this->publish($form)->assertRedirect(route('seller.dashboard'));
+
+        $this->assertSame(1, Product::where('name', 'Double Click Test Tote')->count());
+        $this->as($this->seller1())->get(route('seller.products.create'))->assertSee('name="' . \App\Support\SubmitOnce::FIELD . '"', false);
+    }
+
+    public function test_SEL_PROD_018_edit_another_sellers_product(): void
+    {
+        $p05 = $this->p05();
+        $before = $p05->fresh()->toArray();
+
+        $this->as($this->seller1())->get(route('seller.products.edit', $p05->id))->assertNotFound()->assertDontSee('USB-C Fast Charger 20W');
+        $this->as($this->seller1())->put(route('seller.products.update', $p05->id), [
+            'name' => 'Hacked Charger', 'description' => 'Changed by another seller.', 'category' => 'electronics', 'price' => '1.00', 'stock' => '0',
+        ])->assertForbidden();
+        $this->as($this->seller1())->post(route('seller.products.duplicate', $p05->id))->assertNotFound();
+        $this->as($this->seller1())->delete(route('seller.products.delete', $p05->id))->assertNotFound();
+
+        $this->assertEquals($before, $p05->fresh()->toArray());
+    }
 }

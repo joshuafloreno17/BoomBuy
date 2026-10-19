@@ -169,7 +169,11 @@
 
                     <div class="item">
 
-                        <div>
+                        @if(!empty($item['image']))
+                            <img src="{{ $item['image'] }}" alt="" class="item-photo" width="48" height="48" loading="lazy">
+                        @endif
+
+                        <div class="item-text">
 
                             <div class="item-name">
                                 {{ $item['name'] ?? 'Product' }}

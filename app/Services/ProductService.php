@@ -50,9 +50,14 @@ class ProductService
      */
     public function create(int $sellerId, array $input, ?UploadedFile $image, array $variations = [], array $photos = [], string $coverRef = ''): Product
     {
+        if (!empty($input['draft'])) {
+            return $this->createDraft($sellerId, $input, $image, $photos);
+        }
+
         [$name, $category, $price, $stock, $description, $discount] = $this->fields($sellerId, $input);
 
-        if ($name === '' || $category === '' || $price <= 0 || $stock <= 0 || $description === '') {
+        // Stock 0 is allowed: the product is listed as Sold out.
+        if ($name === '' || $category === '' || $price <= 0 || $stock < 0 || $description === '') {
             throw new ActionFailed('Please complete all product fields.');
         }
 
@@ -101,6 +106,7 @@ class ProductService
             'stock' => $stock,
             'description' => $description,
             'specs' => DeviceSpecs::clean($input['specs'] ?? null, $categoryName),
+            ...$this->listingDetails($input),
         ]);
 
         $stored =['all' => $this->storeFiles($product, null, $general)];
@@ -161,6 +167,11 @@ class ProductService
      */
     public function update(Product $product, int $sellerId, array $input, ?UploadedFile $image, array $gallery = []): Product
     {
+        // A draft saved again as a draft: whatever is filled in so far.
+        if ($product->is_draft && !empty($input['draft'])) {
+            return $this->updateDraft($product, $sellerId, $input, $image, $gallery);
+        }
+
         [$name, $category, $price, $stock, $description, $discount] = $this->fields($sellerId, $input);
 
         if ($name === '' || $category === '' || $price <= 0 || $stock < 0 || $description === '') {
@@ -209,6 +220,11 @@ class ProductService
             throw new ActionFailed('Please keep at least one product photo.');
         }
 
+        // Publishing a draft needs at least one photo, like a new product.
+        if ($product->is_draft && $kept->isEmpty() && !$general && !array_filter($optionAdd)) {
+            throw new ActionFailed('Please add at least one product photo.');
+        }
+
         $product->update([
             'name' => $name,
             'category' => $categoryName,
@@ -217,6 +233,9 @@ class ProductService
             'description' => $description,
             // Only when the form sent them, so other callers keep the specs.
             ...(array_key_exists('specs', $input) ? ['specs' => DeviceSpecs::clean($input['specs'], $categoryName)] : []),
+            ...$this->listingDetails($input),
+            // Saved with Publish: a draft goes live.
+            'is_draft' => false,
         ]);
 
         $removedPaths = $product->images()->whereIn('id', $remove)->pluck('path')->all();
@@ -472,10 +491,97 @@ class ProductService
         ];
     }
 
+    /**
+     * A draft: only the name is needed; everything else may be filled in
+     * later. Buyers never see it (Product::onSale skips drafts).
+     *
+     * @throws ActionFailed
+     */
+    private function createDraft(int $sellerId, array $input, ?UploadedFile $image, array $photos): Product
+    {
+        $name = trim((string) ($input['name'] ?? ''));
+
+        if ($name === '') {
+            throw new ActionFailed('Please enter the product name.');
+        }
+
+        $registered = $this->registeredCategory($sellerId);
+        $categoryName = Categories::label($registered ?? (string) ($input['category'] ?? '')) ?? '';
+        $general = $this->files(array_merge([$image], $photos));
+        $this->checkCount($general, ProductPhotos::MAX_GENERAL, 'for all options');
+
+        $product = Product::create([
+            'seller_id' => $sellerId,
+            'name' => $name,
+            'category' => $categoryName,
+            'price' => is_numeric($input['price'] ?? null) ? round((float) $input['price'], 2) : 0,
+            'stock' => is_numeric($input['stock'] ?? null) ? max(0, (int) $input['stock']) : 0,
+            'description' => trim((string) ($input['description'] ?? '')),
+            ...$this->listingDetails($input),
+            'is_draft' => true,
+        ]);
+
+        $this->storeFiles($product, null, $general);
+        ProductPhotos::sync($product);
+
+        return $product->fresh();
+    }
+
+    /** @throws ActionFailed */
+    private function updateDraft(Product $product, int $sellerId, array $input, ?UploadedFile $image, array $gallery): Product
+    {
+        $name = trim((string) ($input['name'] ?? ''));
+
+        if ($name === '') {
+            throw new ActionFailed('Please enter the product name.');
+        }
+
+        $general = $this->files(array_merge([$image], (array) ($gallery['add'] ?? [])));
+        $this->checkCount($general, ProductPhotos::MAX_GENERAL - $product->images()->whereNull('product_variation_id')->count(), 'for all options');
+
+        $product->update([
+            'name' => $name,
+            'price' => is_numeric($input['price'] ?? null) ? round((float) $input['price'], 2) : $product->price,
+            'stock' => is_numeric($input['stock'] ?? null) ? max(0, (int) $input['stock']) : $product->stock,
+            'description' => trim((string) ($input['description'] ?? $product->description)),
+            ...$this->listingDetails($input),
+        ]);
+
+        $this->storeFiles($product, null, $general);
+        ProductPhotos::sync($product);
+
+        return $product->fresh();
+    }
+
+    /** Brand, condition, shipping weight and size — only the ones the form sent. */
+    private function listingDetails(array $input): array
+    {
+        $details = [];
+
+        if (array_key_exists('brand', $input)) {
+            $brand = trim((string) $input['brand']);
+            $details['brand'] = $brand !== '' ? mb_substr($brand, 0, 60) : null;
+        }
+
+        if (array_key_exists('condition', $input)) {
+            $details['condition'] = in_array($input['condition'], ['New', 'Used'], true) ? $input['condition'] : 'New';
+        }
+
+        foreach (['weight_kg', 'length_cm', 'width_cm', 'height_cm'] as $field) {
+            if (array_key_exists($field, $input)) {
+                $details[$field] = is_numeric($input[$field]) && (float) $input[$field] > 0 ? round((float) $input[$field], 2) : null;
+            }
+        }
+
+        return $details;
+    }
+
     private function ensureUniqueName(int $sellerId, string $name, ?int $exceptId = null): void
     {
+        // Drafts don't count: a duplicated product is a draft with the same name until it is renamed.
         $taken = Product::where('name', $name)
             ->where('seller_id', $sellerId)
+            ->where('is_draft', false)
             ->when($exceptId, fn ($q) => $q->where('id', '!=', $exceptId))
             ->exists();
 

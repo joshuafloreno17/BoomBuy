@@ -221,7 +221,7 @@ class OrderSafetyTest extends TestCase
         $this->actingAsUser($seller)
             ->put(route('seller.products.update', $product->id), [
                 'name' => $product->name, 'category' => 'shoes', 'price' => 250,
-                'stock' => 5, 'description' => 'Still a shoe.',
+                'stock' => 5, 'description' => 'Still a shoe — sample product for the tests.', 'weight_kg' => 0.5,
             ])
             ->assertSessionHas('error');
 

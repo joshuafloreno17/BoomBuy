@@ -376,6 +376,19 @@
 
     @if(count($products ?? []) > 0)
 
+        {{-- Several products at once: tick them, pick an action --}}
+        <form method="POST" action="{{ route('seller.products.bulk') }}" id="bulkProducts" class="bulk-bar" data-confirm="Apply this action to the selected products?" data-confirm-ok="Apply">
+            @csrf
+            <label for="bulk_action" class="bulk-label">Selected products</label>
+            <select id="bulk_action" name="bulk_action" required>
+                <option value="">Choose an action</option>
+                <option value="deactivate">Bulk Deactivate</option>
+                <option value="activate">Bulk Reactivate</option>
+                <option value="delete">Bulk Delete</option>
+            </select>
+            <button type="submit" class="edit-btn">Apply</button>
+        </form>
+
         <div class="products-box">
 
             <table class="products-table is-live">
@@ -424,6 +437,8 @@
 
                                 <div class="product-info">
 
+                                    <input type="checkbox" name="product_ids[]" value="{{ $product->id }}" form="bulkProducts" class="bulk-check" aria-label="Select {{ $product->name }}">
+
                                     <div class="product-icon">
                                         @php
                                             $pImg = $product->image ?? null;
@@ -441,6 +456,9 @@
 
                                         <div class="product-name">
                                             {{ $product->name ?? 'Unnamed Product'}}
+                                            @if($product->is_draft)
+                                                <span class="draft-badge" data-product-status="{{ $product->id }}">Draft</span>
+                                            @endif
                                         </div>
 
                                         <div class="product-slug">
@@ -493,7 +511,7 @@
                                 @endphp
 
                                 <span class="stock-count {{ $stockClass }}">
-                                    {{ $sellable > 0 ? $sellable : 'Out of stock' }}
+                                    {{ $sellable > 0 ? $sellable : 'Out of Stock' }}
                                 </span>
 
                                 @if($product->variations_count > 0)
@@ -538,10 +556,15 @@
                                         <i class="bi bi-palette"></i> Variations
                                     </a>
 
+                                    <form action="{{ route('seller.products.duplicate', ['id' => $product->id]) }}" method="POST">
+                                        @csrf
+                                        <button type="submit" class="edit-btn"><i class="bi bi-copy"></i> Duplicate</button>
+                                    </form>
+
                                     <form
                                         action="{{ route('seller.products.archive', ['id' => $product->id]) }}"
                                         method="POST"
-                                        data-confirm="Archive this product? It will be hidden from the storefront but you can restore it anytime." data-confirm-ok="Archive"
+                                        data-confirm="Deactivate this product? Buyers won't see or buy it until you reactivate it." data-confirm-ok="Deactivate"
                                     >
 
                                         @csrf
@@ -550,7 +573,7 @@
                                             type="submit"
                                             class="edit-btn"
                                         >
-                                            <i class="bi bi-archive"></i> Archive
+                                            <i class="bi bi-archive"></i> Deactivate
                                         </button>
 
                                     </form>

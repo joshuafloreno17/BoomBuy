@@ -843,3 +843,5 @@ textarea {
         padding: 20px;
     }
 }
+
+.save-draft { border: 1px solid #ddd5f2; cursor: pointer; font: inherit; }

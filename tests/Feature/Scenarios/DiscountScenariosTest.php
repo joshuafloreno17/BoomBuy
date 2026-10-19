@@ -22,7 +22,7 @@ class DiscountScenariosTest extends TestCase
 
         $this->actingAsUser($seller)->put(route('seller.products.update', $product->id), [
             'name' => $product->name, 'category' => 'shoes', 'price' => 1000,
-            'discount_percent' => 20, 'stock' => 5, 'description' => 'A shoe.',
+            'discount_percent' => 20, 'stock' => 5, 'description' => 'A shoe — sample product for the tests.', 'weight_kg' => 0.5,
         ])->assertSessionMissing('error');
 
         $product->refresh();
@@ -51,18 +51,18 @@ class DiscountScenariosTest extends TestCase
         $product = $this->makeProduct($seller, ['price' => 1000]);
 
         $this->actingAsUser($seller)->put(route('seller.products.update', $product->id), [
-            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => 95, 'stock' => 5, 'description' => 'A shoe.',
+            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => 95, 'stock' => 5, 'description' => 'A shoe — sample product for the tests.', 'weight_kg' => 0.5,
         ])->assertSessionHas('error', fn ($m) => str_contains($m, 'Discount'));
         $this->assertEquals(1000, $product->fresh()->price);
 
         $this->actingAsUser($seller)->put(route('seller.products.update', $product->id), [
-            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => 10, 'stock' => 5, 'description' => 'A shoe.',
+            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => 10, 'stock' => 5, 'description' => 'A shoe — sample product for the tests.', 'weight_kg' => 0.5,
         ]);
         $this->assertEquals(900, $product->fresh()->price);
 
         // 0 / empty = no discount.
         $this->actingAsUser($seller)->put(route('seller.products.update', $product->id), [
-            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => '', 'stock' => 5, 'description' => 'A shoe.',
+            'name' => $product->name, 'category' => 'shoes', 'price' => 1000, 'discount_percent' => '', 'stock' => 5, 'description' => 'A shoe — sample product for the tests.', 'weight_kg' => 0.5,
         ]);
         $product->refresh();
         $this->assertEquals(1000, $product->price);
@@ -78,7 +78,7 @@ class DiscountScenariosTest extends TestCase
 
         // 50% off makes the base ₱250, and the -₱300 option would be below ₱0.
         $this->actingAsUser($seller)->put(route('seller.products.update', $product->id), [
-            'name' => $product->name, 'category' => 'shoes', 'price' => 500, 'discount_percent' => 50, 'stock' => 5, 'description' => 'A shoe.',
+            'name' => $product->name, 'category' => 'shoes', 'price' => 500, 'discount_percent' => 50, 'stock' => 5, 'description' => 'A shoe — sample product for the tests.', 'weight_kg' => 0.5,
         ])->assertSessionHas('error');
         $this->assertEquals(500, $product->fresh()->price);
     }

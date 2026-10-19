@@ -418,6 +418,8 @@ Route::put('/seller/store-categories/{id}', [StoreCategoryController::class, 'up
 Route::post('/seller/store-categories/{id}/move', [StoreCategoryController::class, 'move'])->whereNumber('id')->name('seller.store-categories.move');
 Route::post('/seller/store-categories/{id}/toggle', [StoreCategoryController::class, 'toggle'])->whereNumber('id')->name('seller.store-categories.toggle');
 Route::delete('/seller/store-categories/{id}', [StoreCategoryController::class, 'destroy'])->whereNumber('id')->name('seller.store-categories.delete');
+Route::post('/seller/products/{id}/duplicate', [SellerController::class, 'duplicateProduct'])->whereNumber('id')->name('seller.products.duplicate');
+Route::post('/seller/products/bulk', [SellerController::class, 'bulkProducts'])->name('seller.products.bulk');
 Route::post('/seller/products/{id}/store-categories', [StoreCategoryController::class, 'assign'])->whereNumber('id')->name('seller.products.store-categories');
 
 

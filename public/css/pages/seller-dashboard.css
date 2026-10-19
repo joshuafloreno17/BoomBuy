@@ -1015,3 +1015,36 @@ a.pd-cod:focus-visible {
 }
 
 .store-cat-line { display: block; margin-top: 5px; font-size: 11px; color: #645a80; }
+
+/* Bulk actions and product status */
+.bulk-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin: 0 0 10px;
+}
+
+.bulk-label { font-size: 12px; font-weight: 700; color: #574e70; }
+
+.bulk-bar select {
+    padding: 8px 10px;
+    border: 1px solid #ddd5f2;
+    border-radius: 8px;
+    font: inherit;
+    font-size: 13px;
+}
+
+.bulk-check { width: 16px; height: 16px; accent-color: #6d4ad1; flex: none; }
+
+.draft-badge {
+    display: inline-block;
+    margin-left: 6px;
+    padding: 1px 8px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-size: 10px;
+    font-weight: 800;
+    vertical-align: middle;
+}

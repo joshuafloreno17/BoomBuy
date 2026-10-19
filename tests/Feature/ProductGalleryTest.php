@@ -45,7 +45,7 @@ class ProductGalleryTest extends TestCase
             'category' => 'shoes',
             'price' => 349,
             'stock' => 10,
-            'description' => 'Holds your phone.',
+            'description' => 'Holds your phone — sample product for the tests.', 'weight_kg' => 0.5,
         ], $overrides);
     }
 
@@ -82,8 +82,9 @@ class ProductGalleryTest extends TestCase
 
         $this->actingAsUser($seller)->post(route('seller.products.store'), $this->form())->assertSessionHas('error');
 
-        $nine = array_map(fn ($i) => $this->photo("p{$i}.png"), range(1, 9));
-        $this->actingAsUser($seller)->post(route('seller.products.store'), $this->form(['photos' => $nine]))->assertSessionHas('error');
+        // 1 to 9 photos (Seller Modules A16): a 10th is too many.
+        $ten = array_map(fn ($i) => $this->photo("p{$i}.png"), range(1, 10));
+        $this->actingAsUser($seller)->post(route('seller.products.store'), $this->form(['photos' => $ten]))->assertSessionHas('error');
 
         $six = array_map(fn ($i) => $this->photo("o{$i}.png"), range(1, 6));
         $this->actingAsUser($seller)->post(route('seller.products.store'), $this->form([

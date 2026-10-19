@@ -50,7 +50,7 @@ class SellerScenariosTest extends TestCase
             'category' => 'shoes',
             'price' => 1200,
             'stock' => 5,
-            'description' => 'Light and comfy.',
+            'description' => 'Light and comfy — sample product for the tests.', 'weight_kg' => 0.5,
             'photos' => [$this->png('shoe.png')],
         ], $over);
     }
@@ -135,7 +135,7 @@ class SellerScenariosTest extends TestCase
 
         $add(['category' => 'electronics'])->assertSessionHas('error', fn ($m) => str_contains($m, 'You can only sell Shoes'));
         $add(['name' => 'Canvas Sneakers'])->assertSessionHas('error', 'You already have a product with this name.');
-        $add(['photos' => []])->assertSessionHas('error', 'Please add at least one product photo.');
+        $add(['photos' => []])->assertSessionHas('error', 'Please add at least 1 product photo (up to 9).');
         $add(['price' => 100, 'variations' => [['type' => 'Size', 'value' => 'Kids', 'price_adjustment' => -150, 'stock' => 3]]])
             ->assertSessionHas('error', fn ($m) => str_contains($m, '₱0 or less'));
 
@@ -152,7 +152,7 @@ class SellerScenariosTest extends TestCase
         $this->asSeller()->post(route('seller.products.store'), $this->productForm(['name' => 'Edit Me']));
         $product = Product::where('name', 'Edit Me')->first();
         $photo = $product->images()->first();
-        $base = ['name' => 'Edit Me', 'category' => 'shoes', 'price' => 1200, 'stock' => 5, 'description' => 'x'];
+        $base = ['name' => 'Edit Me', 'category' => 'shoes', 'price' => 1200, 'stock' => 5, 'description' => 'x — sample product for the tests.', 'weight_kg' => 0.5];
 
         $this->put(route('seller.products.update', $product->id), $base + ['remove_photos' => [$photo->id]])
             ->assertSessionHas('error', 'Please keep at least one product photo.');
@@ -207,10 +207,11 @@ class SellerScenariosTest extends TestCase
 
     public function test_S06_product_with_orders_cannot_be_deleted_but_can_be_archived(): void
     {
+        // Delivered is not finished yet (the buyer may still return it).
         $this->makeOrder($this->buyerAt(), $this->shoes, 'Delivered');
 
         $this->asSeller()->delete(route('seller.products.delete', $this->shoes->id))
-            ->assertSessionHas('error', fn ($m) => str_contains($m, 'Archive it instead'));
+            ->assertSessionHas('error', fn ($m) => str_contains($m, 'unfinished orders'));
         $this->assertNotNull(Product::find($this->shoes->id));
 
         $this->post(route('seller.products.archive', $this->shoes->id))->assertSessionHas('success');

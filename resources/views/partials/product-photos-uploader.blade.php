@@ -208,6 +208,8 @@ window.bbCover = (function () {
 
     // A product needs at least one photo, here or under an option.
     field.form.addEventListener('submit', function (e) {
+        // A draft may be saved without photos.
+        if (e.submitter && e.submitter.value === 'draft') return;
         if (files.length === 0 && !optionsHavePhotos()) {
             e.preventDefault();
             say('Please add at least one product photo, here or under an option.');

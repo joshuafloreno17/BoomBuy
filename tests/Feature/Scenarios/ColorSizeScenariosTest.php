@@ -32,7 +32,7 @@ class ColorSizeScenariosTest extends TestCase
     private function teeWithSizes(): Product
     {
         $this->actingAsUser($this->seller)->post(route('seller.products.store'), [
-            'name' => 'Running Shoe', 'category' => 'shoes', 'price' => 1000, 'stock' => 1, 'description' => 'Light.',
+            'name' => 'Running Shoe', 'category' => 'shoes', 'price' => 1000, 'stock' => 1, 'description' => 'Light — sample product for the tests.', 'weight_kg' => 0.5,
             'photos' => [$this->png()],
             'variations' => [
                 ['type' => 'Color', 'value' => 'Red', 'type2' => 'Size', 'value2' => '9', 'price_adjustment' => 0, 'stock' => 3, 'photos' => [$this->png('red.png')]],
@@ -56,7 +56,7 @@ class ColorSizeScenariosTest extends TestCase
 
         // A row missing its second value is refused.
         $this->post(route('seller.products.store'), [
-            'name' => 'Half Shoe', 'category' => 'shoes', 'price' => 500, 'stock' => 1, 'description' => 'x', 'photos' => [$this->png()],
+            'name' => 'Half Shoe', 'category' => 'shoes', 'price' => 500, 'stock' => 1, 'description' => 'x — sample product for the tests.', 'weight_kg' => 0.5, 'photos' => [$this->png()],
             'variations' => [['type' => 'Color', 'value' => 'Red', 'type2' => 'Size', 'value2' => '', 'stock' => 1]],
         ])->assertSessionHas('error', 'Enter the Size for "Red".');
 

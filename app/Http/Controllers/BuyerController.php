@@ -623,7 +623,8 @@ class BuyerController extends Controller
             ->get()
             ->groupBy('order_id');
 
-        $itemProducts = Product::whereIn('id', $allItems->flatten()->pluck('product_id')->filter()->unique())
+        // Deleted products too: an old order keeps their name and photo.
+        $itemProducts = Product::withTrashed()->whereIn('id', $allItems->flatten()->pluck('product_id')->filter()->unique())
             ->get(['id', 'name', 'image', 'category'])
             ->keyBy('id');
 
