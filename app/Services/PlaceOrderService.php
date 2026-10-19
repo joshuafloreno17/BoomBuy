@@ -29,19 +29,26 @@ class PlaceOrderService
      *
      * @throws CheckoutFailed
      */
-    public function place(array $buyer, array $cart, array $details, ?string $voucherCode = null): array
+    public function place(array $buyer, array $cart, array $details, string|array|null $voucherCodes = null): array
     {
         [$address, $phone, $payment, $location, $fulfillment] = $this->checkDetails($buyer, $details);
 
         $orderItems = $this->buildLines($cart);
 
-        $voucher = $voucherCode ? Voucher::where('code', $voucherCode)->first() : null;
+        $codes = array_filter(array_map(fn ($c) => strtoupper(trim((string) $c)), (array) $voucherCodes));
+        $vouchers = $codes ? Voucher::whereIn('code', $codes)->get() : collect();
 
-        // One order per seller; the voucher lands only on its own seller's
-        // order, and each order carries its own delivery fee (by distance).
-        $plan = CheckoutPlan::build($orderItems, $voucher, $location, $fulfillment);
+        // One order per seller; a store voucher lands only on its own seller's
+        // order, a platform voucher is split across them, and each order
+        // carries its own delivery fee (by distance and weight).
+        $plan = CheckoutPlan::build($orderItems, $vouchers, $location, $fulfillment);
 
-        return $this->create($buyer, $plan, $voucher, $address, $phone, $payment, $location, $fulfillment);
+        // A voucher that stopped applying since the checkout page was shown (A37/B8-010).
+        if ($plan['problems']) {
+            throw new CheckoutFailed(reset($plan['problems']) . ' It has been removed — please review your total and place the order again.', voucherDropped: true);
+        }
+
+        return $this->create($buyer, $plan, $vouchers->whereIn('code', $plan['applied'])->values(), $address, $phone, $payment, $location, $fulfillment);
     }
 
     /** Address, phone and payment method, including the COD pause. */
@@ -189,21 +196,20 @@ class PlaceOrderService
      * the last unit can't both succeed. If any line loses the race, the whole
      * checkout (and its notifications) rolls back instead of overselling.
      */
-    private function create(array $buyer, array $plan, ?Voucher $voucher, string $address, string $phone, string $payment, array $location, string $fulfillment): array
+    private function create(array $buyer, array $plan, \Illuminate\Support\Collection $vouchers, string $address, string $phone, string $payment, array $location, string $fulfillment): array
     {
-        $voucherUsed = collect($plan['orders'])->contains(fn ($o) => $o['voucher_code'] !== null);
-
         $destination = ParcelRoute::centerFor($location['province'], $location['city']);
 
-        return DB::transaction(function () use ($buyer, $plan, $voucher, $voucherUsed, $address, $phone, $payment, $location, $destination, $fulfillment) {
-                if ($voucherUsed && $voucher->usedUpBy((int) $buyer['id'])) {
-                    throw new CheckoutFailed(
-                        'You have already used voucher "' . $voucher->code . '". It has been removed — please review your total and place the order again.',
-                        voucherDropped: true
-                    );
-                }
+        return DB::transaction(function () use ($buyer, $plan, $vouchers, $address, $phone, $payment, $location, $destination, $fulfillment) {
+                // Each voucher used counts once for this checkout.
+                foreach ($vouchers as $voucher) {
+                    if ($voucher->usedUpBy((int) $buyer['id'])) {
+                        throw new CheckoutFailed(
+                            'You have already used voucher "' . $voucher->code . '". It has been removed — please review your total and place the order again.',
+                            voucherDropped: true
+                        );
+                    }
 
-                if ($voucherUsed) {
                     // Conditional so two simultaneous checkouts can't push a
                     // voucher past its max_uses — the loser rolls back.
                     $claimed = Voucher::where('id', $voucher->id)
@@ -212,7 +218,7 @@ class PlaceOrderService
 
                     if (!$claimed) {
                         throw new CheckoutFailed(
-                            'That voucher just reached its usage limit. It has been removed — please review your total and place the order again.',
+                            'Voucher ' . $voucher->code . ' just reached its usage limit. It has been removed — please review your total and place the order again.',
                             voucherDropped: true
                         );
                     }
@@ -231,6 +237,10 @@ class PlaceOrderService
                         'total_amount' => $planned['total'],
                         'voucher_code' => $planned['voucher_code'],
                         'discount_amount' => $planned['discount'],
+                        'platform_voucher_code' => $planned['platform_voucher_code'] ?? null,
+                        'platform_discount' => $planned['platform_discount'] ?? 0,
+                        'shipping_voucher_code' => $planned['shipping_voucher_code'] ?? null,
+                        'shipping_discount' => $planned['shipping_discount'] ?? 0,
                         'delivery_fee' => $planned['delivery_fee'],
                         'delivery_zone' => $planned['zone'],
                         // BoomBuy's cut as it is today, so a later change doesn't rewrite this order.

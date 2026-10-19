@@ -353,6 +353,11 @@
 
             @php $onVacation = !empty($shop['vacation']); @endphp
 
+            {{-- The store's claimable vouchers that cover this product --}}
+            @if($product->seller_id)
+                @include('partials.voucher-strip', ['vouchers' => \App\Models\Voucher::claimable((int) $product->seller_id)->filter(fn ($v) => $v->covers((int) $product->seller_id, (int) $product->id))->values()])
+            @endif
+
             @if($onVacation)
                 <div class="vacation-notice" role="status">
                     <i class="bi bi-umbrella-fill"></i>

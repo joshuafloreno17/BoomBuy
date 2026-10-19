@@ -135,13 +135,31 @@ class OrderStock
      */
     public static function cancelled(int $orderId, string $previousStatus): void
     {
-        $voucherCode = DB::table('orders')
-            ->where('id', $orderId)
-            ->value('voucher_code');
+        $order = DB::table('orders')->where('id', $orderId)->first();
 
-        if ($voucherCode) {
+        // Each voucher on it goes back (A21) — a platform or shipping voucher
+        // shared by several orders of one checkout only when the last of
+        // them is cancelled, since the checkout used it once.
+        foreach (['voucher_code', 'platform_voucher_code', 'shipping_voucher_code'] as $column) {
+            $code = $order->{$column} ?? null;
+
+            if (!$code) {
+                continue;
+            }
+
+            $stillUsed = $order->payment_group && DB::table('orders')
+                ->where('payment_group', $order->payment_group)
+                ->where('id', '!=', $orderId)
+                ->where('status', '!=', 'Cancelled')
+                ->where($column, $code)
+                ->exists();
+
+            if ($stillUsed) {
+                continue;
+            }
+
             DB::table('vouchers')
-                ->where('code', $voucherCode)
+                ->where('code', $code)
                 ->where('used_count', '>', 0)
                 ->decrement('used_count');
         }

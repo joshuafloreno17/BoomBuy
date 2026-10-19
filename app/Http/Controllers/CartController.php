@@ -354,35 +354,13 @@ class CartController extends Controller
         $cart =
             CartContents::prune();
 
-        $appliedVoucher = null;
-        $voucherError = null;
-        $voucherSubtotal = 0;
-
-        $voucherCode = session()->get('applied_voucher');
-
-        if ($voucherCode) {
-
-            $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
-
-            if ($voucher) {
-
-                // A seller-specific voucher can only ever discount that
-                // seller's own lines — never the whole multi-seller cart.
-                $voucherSubtotal = $voucher->seller_id
-                    ? cartSubtotalForSeller($cart, $voucher->seller_id)
-                    : (float) str_replace(',', '', cartSummary($cart)['subtotal']);
-            }
-
-            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal) && !$voucher->usedUpBy((int) session('user.id'))) {
-                $appliedVoucher = $voucher;
-            } else {
-                session()->forget('applied_voucher');
-            }
-        }
+        // The vouchers applied, worked out the way checkout will (the items still for sale).
+        [$cartPlan, $appliedVouchers, $voucherNotices] = $this->voucherPlan($this->buyableLines($cart));
+        $appliedVoucher = $appliedVouchers->first();
 
         return view(
             'pages.cart',
-            compact('cart', 'appliedVoucher', 'voucherError', 'voucherSubtotal')
+            compact('cart', 'appliedVoucher', 'appliedVouchers', 'voucherNotices', 'cartPlan')
         );
     }
 
@@ -401,42 +379,109 @@ class CartController extends Controller
             return back()->with('error', 'Invalid voucher code.');
         }
 
-        // A seller-specific voucher can only discount that seller's own items —
-        // compute the subtotal from just their lines, not the whole cart.
-        if ($voucher->seller_id) {
-
-            $subtotal = cartSubtotalForSeller($cart, $voucher->seller_id);
-
-            if ($subtotal <= 0) {
-                return back()->with('error', 'This voucher only applies to a seller whose products are not in your cart.');
-            }
-
-        } else {
-
-            $summary = cartSummary($cart);
-            $subtotal = (float) str_replace(',', '', $summary['subtotal']);
-        }
-
-        if (!$voucher->isValidFor($subtotal)) {
-            return back()->with('error', 'This voucher is expired, fully used, or your order does not meet its minimum amount.');
-        }
-
         $buyerId = (int) session('user.id');
+        $lines = $this->buyableLines($cart);
+
+        // A store voucher only discounts its own store's items (selected ones, if limited).
+        if ($voucher->kind() === 'store' && $voucher->eligibleSubtotal($lines) <= 0) {
+            return back()->with('error', $voucher->applies_to === 'selected'
+                ? 'Voucher ' . $voucher->code . ' is not applicable to the items in your cart.'
+                : 'This voucher only applies to a seller whose products are not in your cart.');
+        }
+
+        $base = $voucher->kind() === 'store'
+            ? $voucher->eligibleSubtotal($lines)
+            : round(array_sum(array_map(fn ($line) => $line['price'] * $line['quantity'], $lines)), 2);
+
+        if ($problem = $voucher->problemFor($base)) {
+            return back()->with('error', $problem);
+        }
 
         if ($buyerId && $voucher->usedUpBy($buyerId)) {
             return back()->with('error', 'You have already used voucher "' . $voucher->code . '"' . ((int) $voucher->per_buyer_limit > 1 ? ' ' . $voucher->per_buyer_limit . ' times' : '') . '.');
         }
 
-        session()->put('applied_voucher', $voucher->code);
+        // A claimable voucher typed in is saved to the wallet too.
+        if ($buyerId && $voucher->display === 'claimable') {
+            \App\Models\VoucherClaim::firstOrCreate(['voucher_id' => $voucher->id, 'user_id' => $buyerId]);
+        }
 
-        return back()->with('success', 'Voucher "' . $voucher->code . '" applied!');
+        $replaced = \App\Support\VoucherSelection::add($voucher);
+
+        return back()->with('success', 'Voucher "' . $voucher->code . '" applied!'
+            . ($replaced ? ' It replaced ' . $replaced . ' (one voucher of each kind per order).' : ''));
     }
 
     public function removeVoucher()
     {
-        session()->forget('applied_voucher');
+        \App\Support\VoucherSelection::remove(request('voucher_code') ?: null);
 
         return back()->with('success', 'Voucher removed.');
+    }
+
+    /**
+     * The cart lines a buyer can actually buy now, priced like checkout:
+     * ['seller_id', 'product_id', 'variation_id', 'price', 'quantity'].
+     */
+    private function buyableLines(array $cart): array
+    {
+        $lines = [];
+        $products = Product::whereIn('id', array_map(fn ($key) => (int) parseCartKey($key)[0], array_keys($cart)))->get()->keyBy('id');
+
+        foreach ($cart as $key => $quantity) {
+            [$productId, $variationId] = parseCartKey($key);
+            $product = $products->get((int) $productId);
+
+            if (!$product || !$product->isPurchasable() || $product->sellerOnVacation()) {
+                continue;
+            }
+
+            $variation = $variationId ? \App\Models\ProductVariation::find($variationId) : null;
+
+            if ($variationId && !$variation) {
+                continue;
+            }
+
+            $lines[] = [
+                'seller_id' => (int) $product->seller_id,
+                'product_id' => (int) $product->id,
+                'variation_id' => $variation?->id,
+                'price' => $product->unitPrice($variation),
+                'quantity' => (int) $quantity,
+            ];
+        }
+
+        return $lines;
+    }
+
+    /**
+     * The checkout math with the applied vouchers. A voucher that no longer
+     * applies (minimum spend not met any more, expired, ended, used up) is
+     * dropped and the buyer is told why.
+     *
+     * @return array{0: array, 1: \Illuminate\Support\Collection, 2: string[]}
+     */
+    private function voucherPlan(array $lines, ?array $location = null, string $fulfillment = 'delivery'): array
+    {
+        $buyerId = (int) session('user.id');
+        $notices = [];
+
+        foreach (\App\Support\VoucherSelection::vouchers() as $voucher) {
+            if ($buyerId && $voucher->usedUpBy($buyerId)) {
+                $notices[] = 'You have already used voucher ' . $voucher->code . '. It was removed.';
+                \App\Support\VoucherSelection::remove($voucher->code);
+            }
+        }
+
+        $vouchers = \App\Support\VoucherSelection::vouchers();
+        $plan = CheckoutPlan::build($lines, $vouchers, $location, $fulfillment);
+
+        foreach ($plan['problems'] as $code => $problem) {
+            $notices[] = $problem . ' It was removed.';
+            \App\Support\VoucherSelection::remove($code);
+        }
+
+        return [$plan, $vouchers->whereIn('code', $plan['applied'])->values(), $notices];
     }
 
     public function checkout()
@@ -598,44 +643,7 @@ class CartController extends Controller
         |--------------------------------------------------------------------------
         */
 
-        $appliedVoucher = null;
-        $voucherSubtotal = 0;
-        $voucherCode = session()->get('applied_voucher');
-
-        if ($voucherCode) {
-
-            $voucher = \App\Models\Voucher::where('code', $voucherCode)->first();
-
-            if ($voucher) {
-
-                foreach ($cart as $cartKey => $quantity) {
-
-                    [$productId, $variationId] = parseCartKey($cartKey);
-
-                    if (!$products->has($productId)) {
-                        continue;
-                    }
-
-                    $product = $products[$productId];
-
-                    // A seller-specific voucher can only ever discount that
-                    // seller's own lines — never the whole multi-seller cart.
-                    if ($voucher->seller_id && (int) $product->seller_id !== (int) $voucher->seller_id) {
-                        continue;
-                    }
-
-                    $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
-
-                    $voucherSubtotal += $unitPrice * (int) $quantity;
-                }
-            }
-
-            if ($voucher && $voucherSubtotal > 0 && $voucher->isValidFor($voucherSubtotal) && !$voucher->usedUpBy((int) $user['id'])) {
-                $appliedVoucher = $voucher;
-            } else {
-                session()->forget('applied_voucher');
-            }
-        }
+        // Worked out below with the delivery address (CheckoutPlan + the applied vouchers).
 
         /*
         |--------------------------------------------------------------------------
@@ -679,17 +687,19 @@ class CartController extends Controller
 
             $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
 
-            $planLines[] = ['seller_id' => $product->seller_id, 'price' => $unitPrice, 'quantity' => (int) $quantity];
+            $planLines[] = ['seller_id' => $product->seller_id, 'product_id' => (int) $product->id, 'price' => $unitPrice, 'quantity' => (int) $quantity];
         }
 
         // The delivery fee depends on how far each seller is from the address.
         $deliveryTo = PhLocations::locate($savedAddress);
-        $checkoutPlan = CheckoutPlan::build($planLines, $appliedVoucher, $deliveryTo);
+        [$checkoutPlan, $appliedVouchers, $voucherNotices] = $this->voucherPlan($planLines, $deliveryTo);
+        $appliedVoucher = $appliedVouchers->first();
+        $voucherSubtotal = $checkoutPlan['subtotal'];
         $pickupCenter = $deliveryTo ? ParcelRoute::centerFor($deliveryTo['province']) : null;
         $checkoutEta = self::latestEta($checkoutPlan);
 
         // Kept so the page can re-price delivery when another address is picked.
-        session()->put('checkout_quote', ['lines' => $planLines, 'voucher_id' => $appliedVoucher?->id]);
+        session()->put('checkout_quote', ['lines' => $planLines, 'voucher_codes' => $appliedVouchers->pluck('code')->all()]);
 
         return view(
             'pages.checkout',
@@ -698,6 +708,8 @@ class CartController extends Controller
                 'cart',
                 'products',
                 'appliedVoucher',
+                'appliedVouchers',
+                'voucherNotices',
                 'voucherSubtotal',
                 'savedAddress',
                 'savedPhone',
@@ -732,7 +744,7 @@ class CartController extends Controller
         }
 
         $location = PhLocations::locate((string) request('address'));
-        $voucher = !empty($quote['voucher_id']) ? \App\Models\Voucher::find($quote['voucher_id']) : null;
+        $voucher = !empty($quote['voucher_codes']) ? \App\Models\Voucher::whereIn('code', $quote['voucher_codes'])->get() : null;
         $pickupCenter = $location ? ParcelRoute::centerFor($location['province']) : null;
         $fulfillment = request('fulfillment') === 'pickup' && $pickupCenter ? 'pickup' : 'delivery';
         $plan = CheckoutPlan::build($quote['lines'], $voucher, $location, $fulfillment);
@@ -744,6 +756,7 @@ class CartController extends Controller
             'fulfillment' => $fulfillment,
             'pickup_center' => $pickupCenter ? ['name' => $pickupCenter->name, 'address' => $pickupCenter->address ?: $pickupCenter->town] : null,
             'delivery_fee' => $plan['delivery_fee'],
+            'shipping_discount' => $plan['shipping_discount'],
             'total' => $plan['total'],
         ]);
     }
@@ -803,11 +816,11 @@ class CartController extends Controller
                 $user,
                 $cart,
                 request()->only('address', 'phone', 'payment', 'fulfillment'),
-                session()->get('applied_voucher')
+                \App\Support\VoucherSelection::codes()
             );
         } catch (CheckoutFailed $e) {
             if ($e->voucherDropped) {
-                session()->forget('applied_voucher');
+                \App\Support\VoucherSelection::clear();
             }
 
             return $e->backToCart
@@ -815,7 +828,7 @@ class CartController extends Controller
                 : back()->withInput()->with('error', $e->getMessage());
         }
 
-        session()->forget('applied_voucher');
+        \App\Support\VoucherSelection::clear();
 
         if ($isBuyNow) {
             session()->forget('buy_now');

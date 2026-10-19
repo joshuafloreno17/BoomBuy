@@ -96,6 +96,9 @@
                 @endif
             </section>
 
+            {{-- The store's claimable vouchers --}}
+            @include('partials.voucher-strip', ['vouchers' => \App\Models\Voucher::claimable($shop['id'])])
+
             {{-- The store's own categories --}}
             @if(($storeCategories ?? collect())->isNotEmpty())
                 <nav class="store-cats" aria-label="Store categories">

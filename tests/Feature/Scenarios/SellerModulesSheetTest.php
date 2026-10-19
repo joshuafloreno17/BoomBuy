@@ -1569,4 +1569,227 @@ class SellerModulesSheetTest extends TestCase
         $this->as($this->seller1())->get(route('seller.promotions'))->assertSee('data-sale-status="' . $sale->id . '">Ended', false);
         $this->assertRegularPrice($this->p02Everywhere($p02));
     }
+
+    /* ---------------------------------------------------------------
+     | S7 Store Vouchers
+     * --------------------------------------------------------------- */
+
+    /** MCH50 from the Test Data sheet, with any field changed. */
+    private function voucherForm(array $overrides = []): array
+    {
+        return array_merge([
+            'code' => 'MCH50', 'discount_type' => 'fixed', 'discount_value' => '50', 'min_order_amount' => '300',
+            'max_uses' => '100', 'per_buyer_limit' => '1',
+            'starts_at' => now()->format('Y-m-d\TH:i'), 'ends_at' => now()->endOfMonth()->format('Y-m-d\TH:i'),
+            'display' => 'claimable', 'applies_to' => 'all',
+        ], $overrides);
+    }
+
+    private function createVoucher(array $overrides = [], ?\App\Models\User $seller = null)
+    {
+        return $this->as($seller ?? $this->seller1())->from(route('seller.vouchers'))->post(route('seller.vouchers.store'), $this->voucherForm($overrides));
+    }
+
+    private function voucher(string $code): ?\App\Models\Voucher
+    {
+        return \App\Models\Voucher::where('code', $code)->first();
+    }
+
+    /** The buyer applies a code in the cart and checks out by COD; the new order(s). */
+    private function checkoutWithVoucher(\App\Models\User $buyer, array $cart, string $code)
+    {
+        $this->flushSession();
+        $this->actingAsUser($buyer, ['cart' => $cart])->from(route('cart'))->post(route('cart.voucher.apply'), ['voucher_code' => $code]);
+        $applied = session(\App\Support\VoucherSelection::KEY, []);
+
+        return $this->actingAsUser($buyer, ['cart' => $cart, \App\Support\VoucherSelection::KEY => $applied])
+            ->post(route('checkout.place'), ['address' => $buyer->is($this->buyer2()) ? self::ADDR_3 : self::ADDR_1, 'phone' => '09171234567', 'payment' => 'Cash on Delivery']);
+    }
+
+    /** A Seller 1 product at ₱300 (two of them make the sheet's ₱600 checkout). */
+    private function tray(): Product
+    {
+        return $this->world['tray'] ??= $this->makeProduct($this->seller1(), ['name' => 'Banig Serving Tray', 'category' => 'Home & Living', 'price' => 300, 'stock' => 10]);
+    }
+
+    public function test_SEL_VOU_001_create_a_fixed_amount_claimable_voucher(): void
+    {
+        $this->p02();
+        $this->createVoucher()->assertSessionHasNoErrors()->assertSessionHas('success');
+
+        $voucher = $this->voucher('MCH50');
+        $this->assertSame('Ongoing', $voucher->status());
+        $this->assertSame(['fixed', 50.0, 300.0, 100, 1, 'claimable', 'all'], [$voucher->discount_type, (float) $voucher->discount_value, (float) $voucher->min_order_amount, (int) $voucher->max_uses, (int) $voucher->per_buyer_limit, $voucher->display, $voucher->applies_to]);
+
+        foreach ([route('shop.seller', $this->seller1()->id), route('product.details', $this->p02()->id)] as $page) {
+            $this->as($this->buyer1())->get($page)->assertOk()
+                ->assertSee('₱50 off, min. spend ₱300')
+                ->assertSee(route('vouchers.claim', $voucher->id), false)
+                ->assertSee('>Claim</button>', false);
+        }
+    }
+
+    public function test_SEL_VOU_002_create_a_percentage_voucher_with_a_cap(): void
+    {
+        $this->createVoucher(['code' => 'MCH10', 'discount_type' => 'percentage', 'discount_value' => '10', 'max_discount' => '100', 'min_order_amount' => '500', 'max_uses' => '50'])->assertSessionHasNoErrors();
+        $voucher = $this->voucher('MCH10');
+
+        $this->as($this->buyer1())->post(route('vouchers.claim', $voucher->id))->assertSessionHas('success');
+        $this->assertTrue($voucher->claimedBy($this->buyer1()->id));
+
+        // ₱600 of Seller 1 items → exactly ₱60.00 off.
+        $this->checkoutWithVoucher($this->buyer1(), [$this->tray()->id . ':0' => 2], 'MCH10')->assertSessionDoesntHaveErrors();
+        $this->assertSame(['MCH10', '60.00'], [$this->lastOrder($this->buyer1())->voucher_code, $this->money($this->lastOrder($this->buyer1())->discount_amount)]);
+
+        // ₱1,250 (P-03) → capped at ₱100.00, not ₱125.00 (Buyer 2: one use per buyer).
+        $this->checkoutWithVoucher($this->buyer2(), [$this->p03()->id . ':0' => 1], 'MCH10')->assertSessionDoesntHaveErrors();
+        $this->assertSame('100.00', $this->money($this->lastOrder($this->buyer2())->discount_amount));
+    }
+
+    public function test_SEL_VOU_003_code_only_voucher_is_hidden(): void
+    {
+        $p06 = $this->p06();
+        $this->createVoucher(['code' => 'RVSECRET', 'discount_value' => '100', 'min_order_amount' => '1000', 'max_uses' => '20', 'display' => 'code_only'], $this->seller2())->assertSessionHasNoErrors();
+
+        foreach ([route('shop.seller', $this->seller2()->id), route('product.details', $p06->id), route('buyer.vouchers')] as $page) {
+            $this->as($this->buyer1())->get($page)->assertOk()->assertDontSee('RVSECRET')->assertDontSee('₱100 off, min. spend ₱1,000');
+        }
+
+        $black = $p06->variations()->where('variation_value', 'Black')->first();
+        $this->checkoutWithVoucher($this->buyer1(), [$p06->id . ':' . $black->id => 1], 'rvsecret')->assertSessionDoesntHaveErrors();
+        $this->assertSame(['RVSECRET', '100.00'], [$this->lastOrder($this->buyer1())->voucher_code, $this->money($this->lastOrder($this->buyer1())->discount_amount)]);
+    }
+
+    public function test_SEL_VOU_004_voucher_code_format(): void
+    {
+        foreach (['ABC', 'ABCDEFGHIJKLM', 'MCH 50', 'MCH-50'] as $bad) {
+            $this->createVoucher(['code' => $bad])->assertSessionHasErrors(['code' => 'The code must be 4 to 12 letters and numbers, with no spaces or symbols.']);
+        }
+
+        foreach (['ABCD', 'ABCDEFGHIJKL', 'mch75'] as $good) {
+            $this->createVoucher(['code' => $good])->assertSessionHasNoErrors();
+        }
+
+        $this->assertSame(['ABCD', 'ABCDEFGHIJKL', 'MCH75'], \App\Models\Voucher::orderBy('id')->pluck('code')->all());
+    }
+
+    public function test_SEL_VOU_005_duplicate_voucher_code(): void
+    {
+        $this->createVoucher()->assertSessionHasNoErrors();
+        \App\Models\Voucher::create(['seller_id' => null, 'kind' => 'platform', 'code' => 'PLAT100', 'discount_type' => 'fixed', 'discount_value' => 100, 'min_order_amount' => 1000, 'per_buyer_limit' => 1, 'is_active' => true]);
+
+        foreach (['MCH50', 'mch50', 'PLAT100'] as $code) {
+            $this->createVoucher(['code' => $code])->assertSessionHasErrors(['code' => 'The code ' . strtoupper($code) . ' is already used by another voucher.']);
+        }
+
+        $this->assertSame(2, \App\Models\Voucher::count());
+    }
+
+    public function test_SEL_VOU_006_discount_larger_than_the_minimum_spend(): void
+    {
+        $this->createVoucher(['code' => 'BIG500', 'discount_value' => '500', 'min_order_amount' => '100'])
+            ->assertSessionHasErrors(['discount_value' => 'The discount can\'t be more than the minimum spend of ₱100.00.']);
+        $this->createVoucher(['code' => 'EVEN100', 'discount_value' => '100', 'min_order_amount' => '100'])->assertSessionHasNoErrors();
+
+        $this->assertSame(['EVEN100'], \App\Models\Voucher::pluck('code')->all());
+    }
+
+    public function test_SEL_VOU_007_field_validation(): void
+    {
+        foreach ([
+            [['discount_value' => '0'], 'discount_value'],
+            [['discount_type' => 'percentage', 'discount_value' => '0'], 'discount_value'],
+            [['discount_type' => 'percentage', 'discount_value' => '100'], 'discount_value'],
+            [['discount_type' => 'percentage', 'discount_value' => '10', 'max_discount' => '0'], 'max_discount'],
+            [['max_uses' => '0'], 'max_uses'],
+            [['max_uses' => '1', 'per_buyer_limit' => '2'], 'per_buyer_limit'],
+            [['starts_at' => now()->addDays(5)->format('Y-m-d\TH:i'), 'ends_at' => now()->addDay()->format('Y-m-d\TH:i')], 'ends_at'],
+        ] as $i => [$change, $field]) {
+            $this->createVoucher(['code' => 'BAD' . $i . 'X'] + $change);
+            $this->assertSame([$field], $this->errorKeys(), 'case ' . $i);
+        }
+
+        $this->assertSame(0, \App\Models\Voucher::count());
+    }
+
+    public function test_SEL_VOU_008_voucher_for_selected_products_only(): void
+    {
+        $p01 = $this->p01();
+        $p02 = $this->p02();
+        $this->createVoucher(['code' => 'MCHTOTE', 'discount_value' => '30', 'min_order_amount' => '100', 'applies_to' => 'selected', 'product_ids' => [$p01->id]])->assertSessionHasNoErrors();
+        $natM = $this->variant('Natural-M');
+
+        // P-02 alone: not applicable.
+        $this->actingAsUser($this->buyer1(), ['cart' => [$p02->id . ':0' => 1]])->post(route('cart.voucher.apply'), ['voucher_code' => 'MCHTOTE'])
+            ->assertSessionHas('error', 'Voucher MCHTOTE is not applicable to the items in your cart.');
+
+        // P-01 Natural-M alone: ₱30 off.
+        $this->checkoutWithVoucher($this->buyer1(), [$p01->id . ':' . $natM->id => 1], 'MCHTOTE')->assertSessionDoesntHaveErrors();
+        $this->assertSame('30.00', $this->money($this->lastOrder($this->buyer1())->discount_amount));
+
+        // P-01 + P-02: ₱30 off, and the minimum spend counts only P-01 (₱249).
+        $voucher = $this->voucher('MCHTOTE');
+        $lines = [['seller_id' => $this->seller1()->id, 'product_id' => $p01->id, 'price' => 249, 'quantity' => 1], ['seller_id' => $this->seller1()->id, 'product_id' => $p02->id, 'price' => 450, 'quantity' => 1]];
+        $this->assertSame(249.0, $voucher->eligibleSubtotal($lines));
+        $voucher->update(['min_order_amount' => 300]);
+        $this->assertSame('Voucher MCHTOTE needs a minimum spend of ₱300.00 on the items it covers (you have ₱249.00).', \App\Support\CheckoutPlan::build($lines, $voucher)['problems']['MCHTOTE']);
+        $voucher->update(['min_order_amount' => 100]);
+
+        $this->checkoutWithVoucher($this->buyer2(), [$p01->id . ':' . $natM->id => 1, $p02->id . ':0' => 1], 'MCHTOTE')->assertSessionDoesntHaveErrors();
+        $this->assertSame('30.00', $this->money($this->lastOrder($this->buyer2())->discount_amount));
+    }
+
+    public function test_SEL_VOU_009_edit_a_voucher_buyers_already_claimed(): void
+    {
+        $this->createVoucher()->assertSessionHasNoErrors();
+        $voucher = $this->voucher('MCH50');
+        $this->as($this->buyer1())->post(route('vouchers.claim', $voucher->id));
+
+        $update = fn (array $form) => $this->as($this->seller1())->from(route('seller.vouchers'))->put(route('seller.vouchers.update', $voucher->id), $form);
+
+        $update(['min_order_amount' => '500'])->assertSessionHasErrors(['min_order_amount']);
+        $update(['discount_value' => '20'])->assertSessionHasErrors(['discount_value']);
+        $this->assertEquals([50.0, 300.0], [(float) $voucher->fresh()->discount_value, (float) $voucher->fresh()->min_order_amount]);
+
+        $newEnd = $voucher->ends_at->copy()->addDays(7);
+        $update(['ends_at' => $newEnd->format('Y-m-d\TH:i')])->assertSessionHasNoErrors();
+        $update(['max_uses' => '150'])->assertSessionHasNoErrors();
+
+        $this->assertSame($newEnd->format('Y-m-d H:i'), $voucher->fresh()->ends_at->format('Y-m-d H:i'));
+        $this->assertSame(150, (int) $voucher->fresh()->max_uses);
+
+        // The seller's form shows them locked; Buyer 1's wallet shows the new end date.
+        $this->as($this->seller1())->get(route('seller.vouchers'))->assertSee('Amount and minimum spend locked');
+        $this->as($this->buyer1())->get(route('buyer.vouchers'))->assertSee('data-wallet-voucher="MCH50"', false)->assertSee($newEnd->format('M d, Y g:i A'));
+    }
+
+    public function test_SEL_VOU_010_end_a_voucher_buyers_already_claimed(): void
+    {
+        $this->createVoucher()->assertSessionHasNoErrors();
+        $voucher = $this->voucher('MCH50');
+        $this->as($this->buyer1())->post(route('vouchers.claim', $voucher->id));
+
+        // Buyer 2 used it on an order that is now To Ship.
+        $this->checkoutWithVoucher($this->buyer2(), [$this->p02()->id . ':0' => 1], 'MCH50')->assertSessionDoesntHaveErrors();
+        $buyer2Order = $this->lastOrder($this->buyer2());
+        $this->setOrder($buyer2Order->id, ['status' => 'Preparing']);
+
+        $this->as($this->seller1())->post(route('seller.vouchers.end', $voucher->id))->assertSessionHas('success');
+
+        $this->as($this->buyer1())->get(route('buyer.vouchers'))->assertDontSee('data-wallet-voucher="MCH50"', false);
+        $this->actingAsUser($this->buyer1(), ['cart' => [$this->p02()->id . ':0' => 1]])->post(route('cart.voucher.apply'), ['voucher_code' => 'MCH50'])
+            ->assertSessionHas('error', 'Voucher MCH50 has expired.');
+        $this->assertSame('50.00', $this->money(DB::table('orders')->where('id', $buyer2Order->id)->value('discount_amount')));
+    }
+
+    public function test_SEL_VOU_011_usage_counters(): void
+    {
+        $this->createVoucher()->assertSessionHasNoErrors();
+
+        $this->checkoutWithVoucher($this->buyer1(), [$this->p02()->id . ':0' => 1], 'MCH50')->assertSessionDoesntHaveErrors();
+        $this->as($this->seller1())->get(route('seller.vouchers'))->assertSee('Used 1 of 100');
+
+        $this->as($this->buyer1())->post(route('buyer.order.cancel', $this->lastOrder($this->buyer1())->id), ['cancel_reason' => 'Changed my mind'])->assertSessionHas('success');
+        $this->as($this->seller1())->get(route('seller.vouchers'))->assertSee('Used 0 of 100');
+    }
 }

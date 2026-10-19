@@ -773,16 +773,20 @@ class SellerController extends Controller
         }
 
         $vouchers = Voucher::where('seller_id', $user['id'])
+            ->withCount('claims')
+            ->with('products:id,name')
             ->orderByDesc('created_at')
             ->get();
 
+        $products = Product::where('seller_id', $user['id'])->where('is_draft', false)->orderBy('name')->get(['id', 'name']);
+
         return view(
             'pages.seller.vouchers',
-            compact('user', 'vouchers')
+            compact('user', 'vouchers', 'products')
         );
     }
 
-    public function storeVoucher(StoreVoucherRequest $request)
+    public function storeVoucher()
     {
         $user = requireUserRole('seller');
 
@@ -790,20 +794,171 @@ class SellerController extends Controller
             return $user;
         }
 
-        Voucher::create([
+        [$clean, $errors] = \App\Support\VoucherRules::check(request()->all());
+        $productIds = $this->voucherProductIds((int) $user['id'], $clean['applies_to'], $errors);
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors)->with('error', reset($errors));
+        }
+
+        $voucher = Voucher::create($clean + [
             'seller_id' => $user['id'],
-            'code' => strtoupper(request('code')),
-            'discount_type' => request('discount_type'),
-            'discount_value' => request('discount_value'),
-            'min_order_amount' => request('min_order_amount', 0),
-            'max_uses' => request('max_uses') ?: null,
-            // Blank = no limit per buyer.
-            'per_buyer_limit' => request('per_buyer_limit') ?: null,
-            'expires_at' => request('expires_at') ?: null,
+            'kind' => 'store',
+            'used_count' => 0,
             'is_active' => true,
         ]);
 
-        return back()->with('success', 'Voucher created successfully.');
+        $voucher->products()->sync($productIds);
+
+        return back()->with('success', 'Voucher ' . $voucher->code . ' created (' . $voucher->status() . ').');
+    }
+
+    /** The products a "selected products only" voucher covers — the seller's own, at least one. */
+    private function voucherProductIds(int $sellerId, string $appliesTo, array &$errors): array
+    {
+        if ($appliesTo !== 'selected') {
+            return [];
+        }
+
+        $ids = Product::where('seller_id', $sellerId)
+            ->whereIn('id', array_map('intval', (array) request('product_ids', [])))
+            ->pluck('id')
+            ->all();
+
+        if (!$ids) {
+            $errors['product_ids'] = 'Choose at least one of your products for this voucher.';
+        }
+
+        return $ids;
+    }
+
+    /**
+     * Change a voucher. Once any buyer has claimed or used it (A27), only
+     * its end time can be extended and its usage limit raised — everything
+     * else is locked so nobody's claimed voucher changes under them.
+     */
+    public function updateVoucher($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $voucher = Voucher::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$voucher) {
+            abort(404);
+        }
+
+        if ($voucher->status() === 'Ended') {
+            return back()->with('error', 'This voucher has ended and can no longer be changed.');
+        }
+
+        $locked = $voucher->claims()->exists() || (int) $voucher->used_count > 0;
+
+        if ($locked) {
+            $errors = [];
+
+            foreach (['discount_type', 'discount_value', 'min_order_amount', 'max_discount', 'code', 'per_buyer_limit', 'display', 'applies_to'] as $field) {
+                if (request()->has($field) && (string) request($field) !== (string) $this->voucherField($voucher, $field)) {
+                    $errors[$field] = 'Buyers have already claimed this voucher, so only its end date and usage limit can be changed.';
+                }
+            }
+
+            $end = \App\Support\VoucherRules::time(request('ends_at'));
+            $uses = request('max_uses');
+
+            if ($end && $voucher->ends_at && $end->lt($voucher->ends_at)) {
+                $errors['ends_at'] = 'The end date can only be extended.';
+            }
+
+            if ($uses !== null && $uses !== '' && (!ctype_digit((string) $uses) || ($voucher->max_uses !== null && (int) $uses < (int) $voucher->max_uses))) {
+                $errors['max_uses'] = 'The usage limit can only be raised.';
+            }
+
+            if ($errors) {
+                return back()->withInput()->withErrors($errors)->with('error', reset($errors));
+            }
+
+            $voucher->update(array_filter([
+                'ends_at' => $end,
+                'max_uses' => $uses !== null && $uses !== '' ? (int) $uses : null,
+            ], fn ($v) => $v !== null));
+
+            return back()->with('success', 'Voucher ' . $voucher->code . ' updated. Buyers who claimed it see the new end date.');
+        }
+
+        // Fields the form leaves out keep their current values.
+        $current = [
+            'code' => $voucher->code,
+            'discount_type' => $voucher->discount_type,
+            'discount_value' => $this->voucherField($voucher, 'discount_value'),
+            'max_discount' => $this->voucherField($voucher, 'max_discount'),
+            'min_order_amount' => $this->voucherField($voucher, 'min_order_amount'),
+            'max_uses' => (string) $voucher->max_uses,
+            'per_buyer_limit' => (string) $voucher->per_buyer_limit,
+            'starts_at' => $voucher->starts_at?->format('Y-m-d H:i'),
+            'ends_at' => $voucher->ends_at?->format('Y-m-d H:i'),
+            'display' => $voucher->display,
+            'applies_to' => $voucher->applies_to,
+        ];
+
+        if (!request()->has('product_ids')) {
+            request()->merge(['product_ids' => $voucher->products()->pluck('products.id')->all()]);
+        }
+
+        [$clean, $errors] = \App\Support\VoucherRules::check(array_merge($current, array_filter(request()->all(), fn ($v) => $v !== null)), $voucher);
+
+        // A started voucher keeps its start time (it can't be moved into the future).
+        if ($voucher->starts_at && $voucher->starts_at->lte(now())) {
+            $clean['starts_at'] = $voucher->starts_at;
+        }
+
+        $productIds = $this->voucherProductIds((int) $user['id'], $clean['applies_to'], $errors);
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors)->with('error', reset($errors));
+        }
+
+        $voucher->update($clean);
+        $voucher->products()->sync($productIds);
+
+        return back()->with('success', 'Voucher ' . $voucher->code . ' updated.');
+    }
+
+    /** What a voucher field holds, as the form would send it. */
+    private function voucherField(Voucher $voucher, string $field): string
+    {
+        $value = $voucher->{$field};
+
+        return match ($field) {
+            'discount_value', 'min_order_amount', 'max_discount' => $value === null ? '' : rtrim(rtrim(number_format((float) $value, 2, '.', ''), '0'), '.'),
+            default => (string) $value,
+        };
+    }
+
+    /**
+     * End a voucher now: it leaves the wallets of buyers who haven't used
+     * it and checkout stops accepting it. Orders already placed keep their discount.
+     */
+    public function endVoucher($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $voucher = Voucher::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$voucher) {
+            abort(404);
+        }
+
+        $voucher->update(['ended_at' => now()]);
+
+        return back()->with('success', 'Voucher ' . $voucher->code . ' ended. Buyers can no longer use it; orders already placed keep their discount.');
     }
 
     public function toggleVoucher($id)

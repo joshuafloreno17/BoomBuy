@@ -432,10 +432,31 @@
                     </span>
                 </div>
 
-                @if($appliedVoucher && $checkoutDiscount > 0)
-                    <div class="subtotal-row">
-                        <span>Voucher ({{ $appliedVoucher->code }})</span>
-                        <strong style="color:#15803d;">−₱{{ number_format($checkoutDiscount, 2) }}</strong>
+                @foreach($voucherNotices ?? [] as $notice)
+                    <div class="subtotal-row voucher-notice" role="status"><span>{{ $notice }}</span></div>
+                @endforeach
+
+                {{-- Store vouchers (per store), BoomBuy's voucher and the shipping voucher. --}}
+                @foreach($checkoutPlan['orders'] as $planned)
+                    @if($planned['voucher_code'] && $planned['discount'] > 0)
+                        <div class="subtotal-row" data-voucher="{{ $planned['voucher_code'] }}">
+                            <span>Store voucher ({{ $planned['voucher_code'] }})</span>
+                            <strong style="color:#15803d;">−₱{{ number_format($planned['discount'], 2) }}</strong>
+                        </div>
+                    @endif
+                @endforeach
+
+                @if(($checkoutPlan['platform_discount'] ?? 0) > 0)
+                    <div class="subtotal-row" data-voucher="{{ $checkoutPlan['orders'][0]['platform_voucher_code'] ?? '' }}">
+                        <span>BoomBuy voucher ({{ collect($checkoutPlan['orders'])->pluck('platform_voucher_code')->filter()->first() }})</span>
+                        <strong style="color:#15803d;">−₱{{ number_format($checkoutPlan['platform_discount'], 2) }}</strong>
+                    </div>
+                @endif
+
+                @if(($checkoutPlan['shipping_discount'] ?? 0) > 0)
+                    <div class="subtotal-row" data-voucher="{{ collect($checkoutPlan['orders'])->pluck('shipping_voucher_code')->filter()->first() }}">
+                        <span>Shipping voucher ({{ collect($checkoutPlan['orders'])->pluck('shipping_voucher_code')->filter()->first() }})</span>
+                        <strong style="color:#15803d;" id="shippingDiscountValue">−₱{{ number_format($checkoutPlan['shipping_discount'], 2) }}</strong>
                     </div>
                 @endif
 

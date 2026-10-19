@@ -357,37 +357,46 @@
 
                 </div>
 
-                @if($appliedVoucher)
+                @foreach($voucherNotices ?? [] as $notice)
+                    <div class="voucher-notice" role="status">{{ $notice }}</div>
+                @endforeach
 
-                    @php
-                        $discountAmount = $appliedVoucher->calculateDiscount($voucherSubtotal);
-                        $finalTotal = max(0, $subtotal - $discountAmount);
-                    @endphp
+                @php
+                    // Per voucher: a store voucher's discount on its store, the platform one, the shipping one.
+                    $plan = $cartPlan ?? ['orders' => [], 'discount' => 0, 'platform_discount' => 0];
+                    $voucherLines = collect($appliedVouchers ?? [])->map(fn ($voucher) => [
+                        'voucher' => $voucher,
+                        'amount' => match ($voucher->kind()) {
+                            'platform' => (float) $plan['platform_discount'],
+                            'shipping' => null,
+                            default => (float) (collect($plan['orders'])->firstWhere('voucher_code', $voucher->code)['discount'] ?? 0),
+                        },
+                    ]);
+                    $discountAmount = (float) $plan['discount'] + (float) $plan['platform_discount'];
+                    $finalTotal = max(0, $subtotal - $discountAmount);
+                @endphp
 
-                    <div class="summary-row">
-
+                @foreach($voucherLines as $line)
+                    <div class="summary-row" data-voucher="{{ $line['voucher']->code }}">
                         <span>
-                            Voucher ({{ $appliedVoucher->code }})
+                            Voucher ({{ $line['voucher']->code }})
+                            <small class="voucher-kind">{{ ['store' => 'Store', 'platform' => 'BoomBuy', 'shipping' => 'Shipping'][$line['voucher']->kind()] }}</small>
                         </span>
-
                         <strong style="color:#15803d;">
-                            −₱{{ number_format($discountAmount, 2) }}
+                            {{ $line['amount'] === null ? 'At checkout' : '−₱' . number_format($line['amount'], 2) }}
                         </strong>
-
                     </div>
-
-                    <form method="POST" action="{{ route('cart.voucher.remove') }}" style="margin-bottom:12px;">
+                    <form method="POST" action="{{ route('cart.voucher.remove') }}" style="margin:-6px 0 10px;">
                         @csrf
+                        <input type="hidden" name="voucher_code" value="{{ $line['voucher']->code }}">
                         <button type="submit" style="border:none; background:none; color:#be123c; font-size:11px; font-weight:700; cursor:pointer; text-decoration:underline;">
-                            Remove voucher
+                            Remove {{ $line['voucher']->code }}
                         </button>
                     </form>
+                @endforeach
 
-                @else
-
-                    @php
-                        $finalTotal = $subtotal;
-                    @endphp
+                {{-- One store voucher per store, one BoomBuy and one shipping voucher. --}}
+                @if(true)
 
                     <form method="POST" action="{{ route('cart.voucher.apply') }}" style="display:flex; gap:8px; margin-bottom:12px;">
                         @csrf
@@ -448,7 +457,7 @@
             // to patch the discounted total here — keeps the total correct and
             // re-validates the voucher (e.g. if the subtotal drops below its
             // minimum) instead of silently going stale.
-            var cartHasVoucher = @json((bool) $appliedVoucher);
+            var cartHasVoucher = @json(collect($appliedVouchers ?? [])->isNotEmpty());
 
             function updateCartBadge(count) {
                 var badge = document.getElementById('cartCount');

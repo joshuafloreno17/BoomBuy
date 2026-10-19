@@ -556,3 +556,5 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     background: none;
     box-shadow: none;
 }
+
+.subtotal-row.voucher-notice { background: #fff7ed; border-radius: 8px; padding: 8px 10px; color: #9a3412; font-size: 12px; }

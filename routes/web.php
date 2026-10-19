@@ -6,6 +6,7 @@ use App\Http\Controllers\ShopController;
 use App\Http\Controllers\StoreCategoryController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PromotionController;
+use App\Http\Controllers\BuyerVoucherController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -412,6 +413,8 @@ Route::post('/seller/vouchers/{id}/toggle', [SellerController::class, 'toggleVou
 
 
 Route::delete('/seller/vouchers/{id}', [SellerController::class, 'deleteVoucher'])->name('seller.vouchers.delete');
+Route::put('/seller/vouchers/{id}', [SellerController::class, 'updateVoucher'])->whereNumber('id')->name('seller.vouchers.update');
+Route::post('/seller/vouchers/{id}/end', [SellerController::class, 'endVoucher'])->whereNumber('id')->name('seller.vouchers.end');
 
 // Promotions: store sales (S6), flash sales and bundle deals (S8)
 Route::get('/seller/promotions', [PromotionController::class, 'index'])->name('seller.promotions');
@@ -1068,3 +1071,10 @@ Route::get('/pay/{group}', [PaymentController::class, 'show'])->name('payment.sh
 Route::post('/pay/{group}', [PaymentController::class, 'pay'])->name('payment.pay');
 Route::post('/pay/{group}/fail', [PaymentController::class, 'fail'])->name('payment.fail');
 Route::post('/pay/{group}/cancel', [PaymentController::class, 'cancel'])->name('payment.cancel');
+
+// =========================
+// BUYER VOUCHER WALLET
+// =========================
+
+Route::get('/buyer/vouchers', [BuyerVoucherController::class, 'index'])->name('buyer.vouchers');
+Route::post('/vouchers/{id}/claim', [BuyerVoucherController::class, 'claim'])->whereNumber('id')->name('vouchers.claim');

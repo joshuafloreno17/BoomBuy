@@ -357,7 +357,7 @@ class SellerScenariosTest extends TestCase
         $this->assertFalse($voucher->fresh()->is_active);
 
         // A date that has already passed makes a voucher nobody can use.
-        $create(['code' => 'OLDDATE', 'expires_at' => now()->subWeek()->toDateString()])->assertSessionHasErrors('expires_at');
+        $create(['code' => 'OLDDATE', 'expires_at' => now()->subWeek()->toDateString()])->assertSessionHasErrors('ends_at');
     }
 
     public function test_S13b_deleting_a_used_voucher_does_not_change_past_sales(): void

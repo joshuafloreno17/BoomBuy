@@ -55,16 +55,38 @@ class DeliveryFee
     }
 
     /**
+     * Each kg after the first, per zone (Logistics → Zones & Rates; 0 = the
+     * zone fee covers any weight, as before weights were recorded).
+     */
+    public static function perKgFee(string $zone): float
+    {
+        return round((float) PlatformSetting::get(self::perKgKey($zone), '0'), 2);
+    }
+
+    public static function perKgKey(string $zone): string
+    {
+        return 'delivery_fee_per_kg_' . (isset(self::ZONE_SETTINGS[$zone]) ? $zone : 'island');
+    }
+
+    /**
      * @param float  $itemsTotal   item total after voucher discount
      * @param string $fulfillment  "delivery" or "pickup" (at the Sorting Center)
+     * @param ?float $weightKg     the parcel's actual weight; the zone fee is the first kg
      */
-    public static function for(float $itemsTotal, string $zone = 'local', string $fulfillment = 'delivery'): float
+    public static function for(float $itemsTotal, string $zone = 'local', string $fulfillment = 'delivery', ?float $weightKg = null): float
     {
         if ($itemsTotal >= self::freeShippingMin()) {
             return 0.0;
         }
 
-        return $fulfillment === 'pickup' ? self::pickupFee($zone) : self::zoneFee($zone);
+        $fee = $fulfillment === 'pickup' ? self::pickupFee($zone) : self::zoneFee($zone);
+
+        // First kg in the zone fee, then a rate per extra whole kg (1.2 kg → 2 kg).
+        if ($weightKg !== null && $weightKg > 0) {
+            $fee += self::perKgFee($zone) * (self::chargeableKg($weightKg) - 1);
+        }
+
+        return round($fee, 2);
     }
 
     /**

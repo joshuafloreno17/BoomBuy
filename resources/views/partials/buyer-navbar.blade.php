@@ -308,6 +308,10 @@
                         <i class="bi bi-heart-fill"></i> Wishlist
                     </a>
 
+                    <a href="{{ route('buyer.vouchers') }}" role="menuitem" class="{{ $bbActive === 'vouchers' ? 'active' : '' }}">
+                        <i class="bi bi-ticket-perforated-fill"></i> My Vouchers
+                    </a>
+
                     <a href="{{ route('complaints.index') }}" role="menuitem" class="{{ $bbActive === 'complaints' ? 'active' : '' }}">
                         <i class="bi bi-exclamation-triangle-fill"></i> Complaints
                     </a>
@@ -425,7 +429,7 @@
             'shop' => 'shop',
             'orders' => 'orders',
             'messages' => 'messages',
-            'account', 'profile', 'wishlist', 'complaints', 'notifications' => 'me',
+            'account', 'profile', 'wishlist', 'vouchers', 'complaints', 'notifications' => 'me',
             default => null,
         };
     @endphp
