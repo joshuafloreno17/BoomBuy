@@ -98,6 +98,9 @@ class SellerOrderService
             OrderStock::cancelled($orderId, $order->status);
         }
 
+        // A paid order cancelled by the seller: the full amount paid goes back to the buyer.
+        $refundNote = $cancelling ? \App\Support\Payments::startRefund($orderId) : null;
+
         $buyerId = (int) $order->buyer_id;
 
         match ($status) {
@@ -109,7 +112,7 @@ class SellerOrderService
         match ($status) {
             'Confirmed' => createNotification($buyerId, 'Order Confirmed', 'The seller accepted your order #' . $orderId . '.', 'order', $orderId),
             'Preparing' => createNotification($buyerId, 'Order Being Prepared', 'The seller is now preparing your order #' . $orderId . '.', 'order', $orderId),
-            default => createNotification($buyerId, 'Order Cancelled by Seller', 'Your order #' . $orderId . ' was cancelled by the seller. Reason: ' . $reason, 'order', $orderId),
+            default => createNotification($buyerId, 'Order Cancelled by Seller', 'Your order #' . $orderId . ' was cancelled by the seller. Reason: ' . $reason . ($refundNote ? ' ' . $refundNote : ''), 'order', $orderId),
         };
 
         createNotification($sellerId, 'Order Status Updated', 'Order #' . $orderId . ' is now ' . $status . '.', 'order_status', $orderId);

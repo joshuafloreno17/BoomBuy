@@ -97,10 +97,20 @@
         </div>
     </section>
 
+    @php
+        // Actual weight from the products (kg); shipping charges it per whole kg.
+        $labelWeights = \App\Models\Product::withTrashed()->whereIn('id', $items->pluck('product_id'))->pluck('weight_kg', 'id');
+        $labelKg = $items->sum(fn ($i) => (float) ($labelWeights[$i->product_id] ?? 0) * (int) $i->quantity);
+    @endphp
+
     <footer class="label-foot">
         <div>
             <span>Items</span>
             <strong>{{ $items->sum('quantity') }}</strong>
+        </div>
+        <div data-label-weight>
+            <span>Weight</span>
+            <strong>{{ $labelKg > 0 ? rtrim(rtrim(number_format($labelKg, 2), '0'), '.') . ' kg' : '—' }}</strong>
         </div>
         <div>
             <span>{{ $isCod ? 'Collect from buyer' : 'Amount to collect' }}</span>

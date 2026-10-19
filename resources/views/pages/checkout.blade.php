@@ -60,6 +60,8 @@
     >
 
         @csrf
+        {{-- Double-click / Back and resend: one order only. --}}
+        {!! \App\Support\SubmitOnce::field() !!}
 
 
         <div class="checkout-grid">
@@ -212,6 +214,11 @@
                     <i class="bi bi-credit-card-fill"></i> Payment Method
                 </h2>
 
+
+                <div class="form-group">
+                    <label for="note">Note to seller <small style="font-weight:500; color:#857ca0;">(optional, up to 200 characters)</small></label>
+                    <textarea id="note" name="note" rows="2" maxlength="200" placeholder="e.g. Please pack it as a gift." style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #e9e4fa; border-radius:10px; font:inherit; font-size:13px; resize:vertical;">{{ old('note') }}</textarea>
+                </div>
 
                 <div class="form-group">
 

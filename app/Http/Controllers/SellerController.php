@@ -1590,14 +1590,24 @@ class SellerController extends Controller
         $tab = array_key_exists((string) request('tab'), self::ORDER_TABS) ? request('tab') : 'all';
         $search = trim((string) request('q', ''));
 
+        // Optional date range (order date, both ends included).
+        $from = \App\Support\VoucherRules::time(request('from'))?->startOfDay();
+        $to = \App\Support\VoucherRules::time(request('to'))?->endOfDay();
+
+        if ($from && $to && $to->lt($from)) {
+            return redirect()->route('seller.orders', request()->except(['from', 'to']))->with('error', 'The end date must be on or after the start date.');
+        }
+
         // Orders that contain at least one of this seller's items.
-        $mine = function () use ($sellerId) {
+        $mine = function () use ($sellerId, $from, $to) {
             return DB::table('orders')->whereExists(function ($q) use ($sellerId) {
                 $q->select(DB::raw(1))
                     ->from('order_items')
                     ->whereColumn('order_items.order_id', 'orders.id')
                     ->where('order_items.seller_id', $sellerId);
-            });
+            })
+                ->when($from, fn ($q) => $q->where('orders.created_at', '>=', $from))
+                ->when($to, fn ($q) => $q->where('orders.created_at', '<=', $to));
         };
 
         // Order #, buyer name/phone, or one of the product names.

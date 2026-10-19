@@ -214,6 +214,32 @@
                 @endforelse
 
 
+                @if(!empty($order['voucher_code']) && (float) ($order['discount_amount'] ?? 0) > 0)
+                    <div class="summary" data-order-voucher="{{ $order['voucher_code'] }}">
+                        <span>Your voucher ({{ $order['voucher_code'] }})</span>
+                        <span>−₱{{ number_format((float) $order['discount_amount'], 2) }}</span>
+                    </div>
+                @endif
+
+                @if((float) ($order['platform_discount'] ?? 0) > 0)
+                    <div class="summary">
+                        <span>BoomBuy voucher ({{ $order['platform_voucher_code'] }}) <small>· paid by BoomBuy</small></span>
+                        <span>−₱{{ number_format((float) $order['platform_discount'], 2) }}</span>
+                    </div>
+                @endif
+
+                <div class="summary" data-order-shipping>
+                    <span>Shipping fee <small>· paid to delivery</small></span>
+                    <span>₱{{ number_format((float) ($order['delivery_fee'] ?? 0), 2) }}</span>
+                </div>
+
+                @if(!empty($order['buyer_note']))
+                    <div class="summary order-note" data-order-note>
+                        <span>Note from the buyer</span>
+                        <span>{{ $order['buyer_note'] }}</span>
+                    </div>
+                @endif
+
                 <!-- SELLER TOTAL -->
 
                 <div class="summary total">

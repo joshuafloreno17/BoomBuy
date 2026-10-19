@@ -185,6 +185,17 @@
                 @endforelse
             @endif
 
+            {{-- WAITING AT THE SELLER FOR A PICKUP RIDER (view only) --}}
+            <h2 class="section-heading" id="awaiting-pickup"><i class="bi bi-shop"></i> Waiting for Pickup ({{ count($awaitingPickup ?? []) }})</h2>
+            @forelse($awaitingPickup ?? [] as $pickup)
+                <div class="parcel-card" data-awaiting-pickup="{{ $pickup->id }}">
+                    <strong>#{{ $pickup->id }}</strong> · {{ \App\Support\Waybill::number((int) $pickup->id) }} · {{ \App\Support\OrderStatus::label($pickup->status) }}
+                    <small>{{ $pickup->shipping_name }} · pickup {{ $pickup->pickup_date ? \Illuminate\Support\Carbon::parse($pickup->pickup_date)->format('M d') : 'not booked' }} · {{ \App\Support\CodPolicy::isCod($pickup->payment_method) ? 'COD ₱' . number_format((float) $pickup->total_amount, 2) : 'Paid' }}</small>
+                </div>
+            @empty
+                <p class="empty-note">No parcels waiting at sellers.</p>
+            @endforelse
+
             {{-- 2. RECEIVED HERE, BUYER IS IN ANOTHER TOWN --}}
             <h2 class="section-heading" id="to-dispatch"><i class="bi bi-send-fill"></i> To Dispatch ({{ count($toDispatch) }})</h2>
 

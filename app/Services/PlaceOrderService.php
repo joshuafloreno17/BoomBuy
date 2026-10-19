@@ -21,6 +21,9 @@ use Illuminate\Support\Facades\DB;
  */
 class PlaceOrderService
 {
+    /** The buyer's note to the seller for this checkout. */
+    private string $note = '';
+
     /**
      * @param  array  $buyer    The session user (id, name).
      * @param  array  $cart     Cart key ("productId" or "productId:variationId") => quantity.
@@ -69,6 +72,13 @@ class PlaceOrderService
 
         if (mb_strlen($address) > 500) {
             throw CheckoutFailed::inForm('The delivery address is too long.');
+        }
+
+        // Note to the seller: optional, up to 200 characters (shown as text, never as HTML).
+        $this->note = trim((string) ($details['note'] ?? ''));
+
+        if (mb_strlen($this->note) > 200) {
+            throw CheckoutFailed::inForm('The note to the seller can have at most 200 characters (now ' . mb_strlen($this->note) . ').');
         }
 
         // The town and province decide which Sorting Center delivers it.
@@ -273,6 +283,7 @@ class PlaceOrderService
                         'shipping_address' => $address,
                         'shipping_province' => $location['province'],
                         'shipping_city' => $location['city'],
+                        'buyer_note' => $this->note !== '' ? $this->note : null,
                         // The seller drops it at origin; the buyer's town center delivers it.
                         'origin_center_id' => $origin?->id,
                         'destination_center_id' => $destination?->id,

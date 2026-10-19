@@ -107,6 +107,9 @@
                     <input type="search" name="q" value="{{ $search }}" placeholder="Search order #, buyer name, phone or product" aria-label="Search orders">
                 </div>
 
+                <label class="orders-date">From <input type="date" name="from" value="{{ request('from') }}" aria-label="Orders from"></label>
+                <label class="orders-date">To <input type="date" name="to" value="{{ request('to') }}" aria-label="Orders to"></label>
+
                 <button type="submit" class="orders-search-btn"><i class="bi bi-search"></i> Search</button>
 
                 <span id="liveClear" style="display:contents;">

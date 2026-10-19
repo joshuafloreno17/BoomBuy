@@ -93,6 +93,30 @@ class Payments
         return $paid;
     }
 
+    /**
+     * A paid (online) order was cancelled: start a refund of exactly what was
+     * paid for it. Returns the note for the buyer, or null when nothing was
+     * paid (COD, unpaid).
+     */
+    public static function startRefund(int $orderId): ?string
+    {
+        $order = DB::table('orders')->where('id', $orderId)->first();
+
+        if (!$order || ($order->payment_status ?? null) !== 'Paid') {
+            return null;
+        }
+
+        DB::table('orders')->where('id', $orderId)->where('payment_status', 'Paid')->update([
+            'payment_status' => 'Refund Pending',
+            'refund_amount' => round((float) $order->total_amount, 2),
+            'updated_at' => now(),
+        ]);
+
+        OrderTimeline::log($orderId, 'Cancelled', 'Refund started', '₱' . number_format((float) $order->total_amount, 2) . ' back to your ' . $order->payment_method);
+
+        return 'A refund of ₱' . number_format((float) $order->total_amount, 2) . ' to your ' . $order->payment_method . ' has been started.';
+    }
+
     public static function markFailed(int $buyerId, string $group): int
     {
         return DB::table('orders')

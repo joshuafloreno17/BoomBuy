@@ -69,7 +69,7 @@ trait ModuleSheetWorld
         }
 
         $product = $this->makeProduct($this->seller1(), [
-            'name' => 'Abaca Woven Tote Bag', 'category' => 'Home & Living', 'price' => 199, 'stock' => 0,
+            'name' => 'Abaca Woven Tote Bag', 'category' => 'Home & Living', 'price' => 199, 'stock' => 0, 'weight_kg' => 0.4,
             'description' => 'Handwoven abaca tote bag from Bulacan artisans.',
         ]);
 
@@ -101,7 +101,7 @@ trait ModuleSheetWorld
     protected function p02(): Product
     {
         return $this->world['p02'] ??= $this->makeProduct($this->seller1(), [
-            'name' => 'Rattan Fruit Basket', 'category' => 'Home & Living', 'price' => 450, 'stock' => 20,
+            'name' => 'Rattan Fruit Basket', 'category' => 'Home & Living', 'price' => 450, 'stock' => 20, 'weight_kg' => 0.8,
             'description' => 'Handwoven rattan fruit basket, 30 cm wide.',
         ]);
     }
@@ -109,7 +109,7 @@ trait ModuleSheetWorld
     protected function p03(): Product
     {
         return $this->world['p03'] ??= $this->makeProduct($this->seller1(), [
-            'name' => 'Capiz Shell Lamp', 'category' => 'Home & Living', 'price' => 1250, 'stock' => 1,
+            'name' => 'Capiz Shell Lamp', 'category' => 'Home & Living', 'price' => 1250, 'stock' => 1, 'weight_kg' => 1.5,
             'description' => 'Table lamp with a capiz shell shade.',
         ]);
     }
@@ -117,7 +117,7 @@ trait ModuleSheetWorld
     protected function p04(): Product
     {
         return $this->world['p04'] ??= $this->makeProduct($this->seller1(), [
-            'name' => 'Banig Placemat Set of 4', 'category' => 'Home & Living', 'price' => 350, 'stock' => 0,
+            'name' => 'Banig Placemat Set of 4', 'category' => 'Home & Living', 'price' => 350, 'stock' => 0, 'weight_kg' => 0.5,
             'description' => 'Four handwoven banig placemats.',
         ]);
     }
@@ -125,7 +125,7 @@ trait ModuleSheetWorld
     protected function p05(): Product
     {
         return $this->world['p05'] ??= $this->makeProduct($this->seller2(), [
-            'name' => 'USB-C Fast Charger 20W', 'category' => 'Electronics', 'price' => 399, 'stock' => 50,
+            'name' => 'USB-C Fast Charger 20W', 'category' => 'Electronics', 'price' => 399, 'stock' => 50, 'weight_kg' => 0.2,
             'description' => '20W USB-C power delivery wall charger.',
         ]);
     }
@@ -137,7 +137,7 @@ trait ModuleSheetWorld
         }
 
         $product = $this->makeProduct($this->seller2(), [
-            'name' => 'Wireless Earbuds X2', 'category' => 'Electronics', 'price' => 1499, 'stock' => 0,
+            'name' => 'Wireless Earbuds X2', 'category' => 'Electronics', 'price' => 1499, 'stock' => 0, 'weight_kg' => 0.3,
             'description' => 'True wireless earbuds with charging case.',
         ]);
 
@@ -151,9 +151,23 @@ trait ModuleSheetWorld
     protected function p07(): Product
     {
         return $this->world['p07'] ??= $this->makeProduct($this->seller2(), [
-            'name' => 'Power Bank 10000mAh', 'category' => 'Electronics', 'price' => 899, 'stock' => 5,
+            'name' => 'Power Bank 10000mAh', 'category' => 'Electronics', 'price' => 899, 'stock' => 5, 'weight_kg' => 0.4,
             'description' => '10000mAh power bank with two USB ports.',
         ]);
+    }
+
+    /**
+     * The sheet's shipping rates (Test Data): first kg + each extra kg.
+     * Same town/province (Within NCR) ₱50 + ₱15; other islands (Visayas ↔ NCR) ₱120 + ₱40.
+     * No free-shipping minimum, so the fees always show.
+     */
+    protected function sheetRates(): void
+    {
+        foreach (['delivery_fee' => 50, 'delivery_fee_province' => 50, 'delivery_fee_island' => 120, 'delivery_fee_far' => 120,
+            'delivery_fee_per_kg_local' => 15, 'delivery_fee_per_kg_province' => 15, 'delivery_fee_per_kg_island' => 40, 'delivery_fee_per_kg_far' => 40,
+            \App\Support\DeliveryFee::FREE_SHIPPING_KEY => 1000000] as $key => $value) {
+            \App\Models\PlatformSetting::set($key, (string) $value);
+        }
     }
 
     protected function as(User $user): static

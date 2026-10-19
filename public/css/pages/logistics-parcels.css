@@ -586,3 +586,7 @@ a { text-decoration: none; }
     border-color: #6d4ad1;
     box-shadow: 0 0 0 3px #e6dcff;
 }
+
+[data-awaiting-pickup] { display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; margin-bottom: 8px; }
+[data-awaiting-pickup] small { color: #645a80; }
+.empty-note { color: #645a80; font-size: 13px; margin: 0 0 16px; }

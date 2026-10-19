@@ -803,14 +803,23 @@ class CartController extends Controller
             }
         }
 
+        // A second Place Order with the same form (double-click, Back + resend) places nothing.
+        $submitToken = request(\App\Support\SubmitOnce::FIELD);
+
+        if (!\App\Support\SubmitOnce::claim($submitToken)) {
+            return redirect()->route('buyer.orders')->with('success', 'Your order was already placed.');
+        }
+
         try {
             $orderIds = $orders->place(
                 $user,
                 $cart,
-                request()->only('address', 'phone', 'payment', 'fulfillment'),
+                request()->only('address', 'phone', 'payment', 'fulfillment', 'note'),
                 \App\Support\VoucherSelection::codes()
             );
         } catch (CheckoutFailed $e) {
+            \App\Support\SubmitOnce::release($submitToken);
+
             if ($e->voucherDropped) {
                 \App\Support\VoucherSelection::clear();
             }

@@ -1937,4 +1937,178 @@ class SellerModulesSheetTest extends TestCase
         $line = $p04Line([$p02->id . ':0' => 1, $p04->id . ':0' => 1]);
         $this->assertEquals(350.0, $line['total']);
     }
+
+    /* ---------------------------------------------------------------
+     | S9 Order Processing
+     * --------------------------------------------------------------- */
+
+    /** The worked checkout example: Seller 1 (Natural-M + P-02, MCH50) and Seller 2 (P-05), COD to ADDR-1. */
+    private function workedExample(string $note = 'Please pack it as a gift.'): array
+    {
+        $this->sheetRates();
+        $this->createVoucher()->assertSessionHasNoErrors();
+        $cart = [$this->p01()->id . ':' . $this->variant('Natural-M')->id => 1, $this->p02()->id . ':0' => 1, $this->p05()->id . ':0' => 1];
+
+        $this->flushSession();
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->post(route('cart.voucher.apply'), ['voucher_code' => 'MCH50'])->assertSessionHas('success');
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart, \App\Support\VoucherSelection::KEY => ['MCH50']])->post(route('checkout.place'), [
+            'address' => self::ADDR_1, 'phone' => '09171234567', 'payment' => 'Cash on Delivery', 'note' => $note,
+        ])->assertSessionDoesntHaveErrors();
+
+        $orders = DB::table('orders')->where('buyer_id', $this->buyer1()->id)->orderBy('id')->get();
+        $bySeller = fn (int $sellerId) => $orders->first(fn ($o) => DB::table('order_items')->where('order_id', $o->id)->value('seller_id') == $sellerId);
+
+        return ['seller1' => $bySeller($this->seller1()->id), 'seller2' => $bySeller($this->seller2()->id)];
+    }
+
+    private function sellerTabIds(string $tab, array $query = []): array
+    {
+        $orders = $this->as($this->seller1())->get(route('seller.orders', ['tab' => $tab] + $query))->assertOk()->viewData('orders');
+
+        return collect($orders?->items() ?? [])->pluck('id')->map(fn ($id) => (int) $id)->sort()->values()->all();
+    }
+
+    public function test_SEL_ORD_001_order_list_tabs_counts_and_filters(): void
+    {
+        $p02 = $this->p02();
+        $ids = [];
+        foreach (['Pending' => 'to-process', 'Preparing' => 'to-ship', 'Out for Delivery' => 'shipped', 'Completed' => 'completed', 'Cancelled' => 'cancelled'] as $status => $tab) {
+            $ids[$tab] = $this->makeOrder($this->buyer1(), $p02, $status);
+        }
+
+        // Each order appears in exactly one tab (besides All), matching its status.
+        $response = $this->as($this->seller1())->get(route('seller.orders'))->assertOk();
+        $counts = $response->viewData('tabCounts');
+        foreach ($ids as $tab => $id) {
+            $this->assertSame([$id], $this->sellerTabIds($tab), $tab);
+            $this->assertSame(1, $counts[$tab], $tab);
+        }
+        $this->assertSame(5, $counts['all']);
+
+        // A return request is listed under Return Requests.
+        $this->assertArrayHasKey('returns', $counts);
+
+        // Date filter (both ends included) and order # search.
+        DB::table('orders')->where('id', $ids['completed'])->update(['created_at' => now()->subDays(10)]);
+        $this->assertSame([$ids['completed']], $this->sellerTabIds('all', ['from' => now()->subDays(10)->toDateString(), 'to' => now()->subDays(10)->toDateString()]));
+        $this->assertSame([$ids['shipped']], $this->sellerTabIds('all', ['q' => '#' . $ids['shipped']]));
+        $this->as($this->seller1())->get(route('seller.orders', ['from' => now()->toDateString(), 'to' => now()->subDay()->toDateString()]))
+            ->assertSessionHas('error', 'The end date must be on or after the start date.');
+    }
+
+    public function test_SEL_ORD_002_accept_pack_ready_for_pickup_and_print_waybill(): void
+    {
+        $this->sheetRates();
+        $p02 = $this->p02();
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1])->assertSessionDoesntHaveErrors();
+        $order = $this->lastOrder($this->buyer1());
+        $this->assertSame('500.00', $this->money($order->total_amount));
+
+        foreach (['Confirmed', 'Preparing'] as $step) {
+            $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => $step])->assertSessionHas('success');
+        }
+        $this->as($this->seller1())->post(route('seller.order.pickup', $order->id), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
+        $this->assertSame('Ready for Pickup', $this->orderStatus($order->id));
+
+        // Each step has a timestamp on the buyer's timeline.
+        $steps = DB::table('order_events')->where('order_id', $order->id)->orderBy('id')->get();
+        $this->assertSame(['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup'], $steps->pluck('status')->unique()->values()->all());
+        $this->assertTrue($steps->every(fn ($e) => !empty($e->created_at)));
+        $this->assertSame(['Order placed', 'Seller accepted your order', 'Seller is preparing your order'], $steps->pluck('title')->take(3)->all());
+        $this->as($this->buyer1())->get(route('buyer.orders'))->assertOk()->assertSee('#' . $order->id);
+
+        // The waybill: tracking number, ADDR-1, Seller 1's pickup address, 0.8 kg and COD ₱500.00.
+        $this->as($this->seller1())->get(route('seller.order.label', $order->id))->assertOk()
+            ->assertSee(\App\Support\Waybill::number($order->id))
+            ->assertSee(self::ADDR_1)->assertSee('Blk 12 Lot 8, Sampaguita St., Commonwealth, Quezon City')
+            ->assertSee('0.8 kg')->assertSee('COD')->assertSee('₱500.00');
+
+        // BoomBuy Logistics sees it waiting for a pickup rider.
+        $logistics = $this->makeLogistics();
+        $this->actingAsUser($logistics)->get(route('logistics.parcels'))->assertOk()->assertSee('#' . $order->id);
+    }
+
+    public function test_SEL_ORD_003_skip_a_step(): void
+    {
+        $orderId = $this->makeOrder($this->buyer1(), $this->p02(), 'Pending');
+
+        $this->as($this->seller1())->get(route('seller.order.details', $orderId))->assertOk()->assertSee('Accept Order')->assertDontSee('Mark as Ready for Pickup');
+        $this->as($this->seller1())->post(route('seller.order.status', $orderId), ['status' => 'Preparing'])->assertSessionHas('error', 'Accept the order first.');
+        $this->as($this->seller1())->post(route('seller.order.pickup', $orderId), ['pickup_date' => now()->toDateString()])->assertSessionHas('error');
+
+        $this->assertSame('Pending', $this->orderStatus($orderId));
+    }
+
+    public function test_SEL_ORD_004_seller_cancels_a_cod_order(): void
+    {
+        $this->createVoucher()->assertSessionHasNoErrors();
+        $p02 = $this->p02();
+        $this->as($this->buyer1())->post(route('vouchers.claim', $this->voucher('MCH50')->id));
+        $this->checkoutWithVoucher($this->buyer1(), [$p02->id . ':0' => 2], 'MCH50')->assertSessionDoesntHaveErrors();
+        $order = $this->lastOrder($this->buyer1());
+        $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => 'Confirmed']);
+        $this->assertSame(18, $this->stockOf($p02));
+
+        $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => 'Cancelled', 'cancellation_reason' => ''])->assertSessionHas('error', 'Please provide a reason for cancelling this order.');
+        $this->assertSame('Confirmed', $this->orderStatus($order->id));
+
+        $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => 'Cancelled', 'cancellation_reason' => 'Out of stock'])->assertSessionHas('success');
+
+        $this->assertSame('Cancelled', $this->orderStatus($order->id));
+        $this->assertSame(20, $this->stockOf($p02));
+        $this->assertSame(0, (int) $this->voucher('MCH50')->used_count);
+        $this->as($this->buyer1())->get(route('buyer.vouchers'))->assertSee('data-wallet-voucher="MCH50"', false);
+        $this->assertStringContainsString('Reason: Out of stock', DB::table('notifications')->where('user_id', $this->buyer1()->id)->where('title', 'Order Cancelled by Seller')->value('message'));
+    }
+
+    public function test_SEL_ORD_005_seller_cancels_a_prepaid_order(): void
+    {
+        $p02 = $this->p02();
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 1], 'GCash');
+        $order = $this->lastOrder($this->buyer1());
+        $this->as($this->buyer1())->post(route('payment.pay', $order->payment_group));
+        $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => 'Confirmed'])->assertSessionHas('success');
+
+        $this->as($this->seller1())->post(route('seller.order.status', $order->id), ['status' => 'Cancelled', 'cancellation_reason' => 'Out of stock'])->assertSessionHas('success');
+
+        $order = DB::table('orders')->find($order->id);
+        $this->assertSame(['Cancelled', 'Refund Pending'], [$order->status, $order->payment_status]);
+        $this->assertSame($this->money($order->total_amount), $this->money($order->refund_amount));
+        $this->assertStringContainsString('A refund of ₱' . number_format((float) $order->total_amount, 2) . ' to your GCash has been started.', DB::table('notifications')->where('user_id', $this->buyer1()->id)->where('title', 'Order Cancelled by Seller')->value('message'));
+
+        // Not counted in Seller 1's sales.
+        $this->assertEquals(0, $this->as($this->seller1())->get(route('seller.reports'))->viewData('totalSales'));
+    }
+
+    public function test_SEL_ORD_006_no_cancel_after_handover(): void
+    {
+        $orderId = $this->makeOrder($this->buyer1(), $this->p02(), 'Picked Up');
+
+        $this->as($this->seller1())->get(route('seller.order.details', $orderId))->assertOk()->assertDontSee('value="Cancelled"', false);
+        $this->as($this->seller1())->post(route('seller.order.status', $orderId), ['status' => 'Cancelled', 'cancellation_reason' => 'Out of stock'])->assertSessionHas('error');
+
+        $this->assertSame('Picked Up', $this->orderStatus($orderId));
+    }
+
+    public function test_SEL_ORD_007_order_details_accuracy(): void
+    {
+        $orders = $this->workedExample();
+
+        $this->as($this->seller1())->get(route('seller.order.details', $orders['seller1']->id))->assertOk()
+            ->assertSee('Abaca Woven Tote Bag')->assertSee('Color: Natural · Size: M')->assertSee('₱249.00')
+            ->assertSee('Rattan Fruit Basket')->assertSee('₱450.00')
+            ->assertSee('Your voucher (MCH50)')->assertSee('−₱50.00')
+            ->assertSee('₱65.00')
+            ->assertSee('Please pack it as a gift.')
+            ->assertSee('Cash on Delivery')->assertSee(self::ADDR_1)
+            ->assertDontSee('USB-C Fast Charger 20W');
+    }
+
+    public function test_SEL_ORD_008_seller_cannot_open_another_stores_order(): void
+    {
+        $orders = $this->workedExample();
+
+        $this->as($this->seller1())->get(route('seller.order.details', $orders['seller2']->id))->assertNotFound()->assertDontSee('USB-C Fast Charger 20W');
+        $this->as($this->seller1())->get(route('seller.order.label', $orders['seller2']->id))->assertNotFound();
+    }
 }

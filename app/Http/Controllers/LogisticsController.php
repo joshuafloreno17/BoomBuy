@@ -877,6 +877,18 @@ class LogisticsController extends Controller
 
         $buyerReturns = $this->buyerReturnQueues($myCenter, $unassigned, $search);
 
+        // Parcels still at the seller, waiting for a pickup rider of this center's area (view only:
+        // riders accept pickups themselves).
+        $awaitingPickup = DB::table('orders')
+            ->whereIn('status', \App\Support\OrderStatus::AWAITING_PICKUP)
+            ->when($myCenter, fn ($q) => $q->where(fn ($w) => $w->where('origin_center_id', $myCenter->id)->orWhere('origin_branch_id', $myCenter->id)))
+            ->when($unassigned, fn ($q) => $q->whereRaw('0 = 1'))
+            ->when($search !== '', fn ($q) => $q->where(fn ($w) => $w->where('id', (int) ltrim($search, '#'))->orWhere('shipping_name', 'like', '%' . $search . '%')))
+            ->orderBy('pickup_date')
+            ->orderBy('id')
+            ->limit(100)
+            ->get();
+
         // Names of the riders already attached to the listed parcels.
         $riderNames = DB::table('users')
             ->whereIn('id', $onTheRoad->pluck('delivery_rider_id')->merge($failedDeliveries->pluck('delivery_rider_id'))->filter()->unique())
@@ -910,7 +922,8 @@ class LogisticsController extends Controller
                 'returnReady',
                 'codToReceive',
                 'unassigned',
-                'buyerReturns'
+                'buyerReturns',
+                'awaitingPickup'
             )
         );
     }
