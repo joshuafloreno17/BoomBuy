@@ -1,0 +1,28 @@
+Little Haven Baby & Kids — 23 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check littlehaven
+
+onesie-set
+romper-pink
+romper-blue
+romper-yellow
+mittens-booties
+swaddle
+bib-set
+baby-bottle
+feeding-set-pink
+feeding-set-blue
+feeding-set-green
+sippy-cup-pink
+sippy-cup-blue
+breast-pump
+sterilizer
+baby-wipes
+diaper-bag-black
+diaper-bag-grey
+diaper-bag-pink
+baby-bathtub-blue
+baby-bathtub-pink
+hooded-towel
+changing-pad

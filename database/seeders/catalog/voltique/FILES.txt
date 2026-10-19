@@ -1,0 +1,34 @@
+Voltique Electronics — 29 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check voltique
+
+nova-x5-midnight
+nova-x5-ocean
+nova-x5-lavender
+nova-x5-mint
+nova-lite-black
+nova-lite-silver
+pulse-pro-max
+rugged-phone
+charger-20w-white
+charger-20w-black
+charger-bundle
+cable-black
+cable-white
+cable-red
+powerbank-white
+powerbank-black
+powerbank-pink
+wireless-pad
+earbuds-white
+earbuds-black
+headphones-black
+headphones-brown
+headphones-pink
+wired-earphones
+speaker-red
+speaker-blue
+speaker-black
+smart-speaker-charcoal
+smart-speaker-chalk

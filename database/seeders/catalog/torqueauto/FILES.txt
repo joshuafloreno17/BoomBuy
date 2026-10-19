@@ -1,0 +1,25 @@
+Torque Auto Supply — 20 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check torqueauto
+
+car-shampoo
+microfiber-towel
+tire-shine
+car-wax
+dashboard-cleaner
+phone-holder
+seat-cover-black
+seat-cover-grey
+seat-cover-beige
+air-freshener
+steering-cover-black
+steering-cover-brown
+steering-cover-pink
+floor-mats-black
+floor-mats-grey
+tire-inflator
+jumper-cables
+dash-cam
+engine-oil
+wiper-blades

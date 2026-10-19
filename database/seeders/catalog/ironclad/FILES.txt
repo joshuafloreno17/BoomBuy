@@ -1,0 +1,20 @@
+Ironclad Hardware & Tools — 15 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check ironclad
+
+hammer
+screwdriver-set
+wrench
+pliers
+measuring-tape
+cordless-drill
+angle-grinder
+jigsaw
+heat-gun
+glue-gun
+led-bulb
+extension-cord
+faucet
+teflon-tape
+circuit-breaker

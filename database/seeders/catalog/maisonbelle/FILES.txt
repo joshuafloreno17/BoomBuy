@@ -1,0 +1,40 @@
+Maison Belle — 35 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check maisonbelle
+
+linen-blouse-white
+linen-blouse-beige
+linen-blouse-sage
+linen-blouse-pink
+peasant-blouse-taupe
+peasant-blouse-black
+peasant-blouse-wine
+crew-tee-white
+crew-tee-black
+crew-tee-grey
+crew-tee-navy
+crew-tee-red
+crop-top-black
+crop-top-white
+crop-top-brown
+graphic-tee
+floral-dress
+satin-slip-black
+satin-slip-champagne
+satin-slip-emerald
+aline-dress-black
+aline-dress-wine
+sundress-white
+sundress-yellow
+sundress-blue
+shirt-dress-beige
+satchel-tan
+satchel-black
+satchel-cream
+crossbody-red
+crossbody-black
+crossbody-pink
+straw-clutch
+messenger
+canvas-tote-natural

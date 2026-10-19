@@ -1,0 +1,26 @@
+Lumière Beauty — 21 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check lumierebeauty
+
+cleanser
+moisturizer
+sunscreen
+serum
+sheet-mask
+lipstick-red
+lipstick-nude
+lipstick-pink
+lipstick-brown
+cushion-light
+cushion-medium
+eyeshadow
+mascara
+brush-set
+shampoo-set
+hair-dryer-black
+hair-dryer-pink
+body-lotion
+body-wash
+straightener-black
+straightener-pink

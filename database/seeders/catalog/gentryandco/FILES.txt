@@ -1,0 +1,42 @@
+Gentry & Co. Menswear — 37 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check gentryandco
+
+oxford-shirt-white
+oxford-shirt-light-blue
+oxford-shirt-pink
+polo-shirt-black
+polo-shirt-white
+polo-shirt-navy
+polo-shirt-red
+crew-tee-white
+crew-tee-black
+crew-tee-grey
+crew-tee-navy
+crew-tee-olive
+linen-shirt-white
+linen-shirt-beige
+linen-shirt-sage
+barong
+chino-pants-khaki
+chino-pants-navy
+chino-pants-black
+jeans
+jogger-pants-black
+jogger-pants-grey
+cargo-shorts-khaki
+cargo-shorts-olive
+cargo-shorts-black
+slacks-black
+slacks-navy
+denim-jacket
+hoodie-black
+hoodie-grey
+hoodie-navy
+bomber-jacket-black
+bomber-jacket-olive
+windbreaker-black
+windbreaker-navy
+cardigan-grey
+cardigan-brown

@@ -1,0 +1,27 @@
+Inkwell Office & School — 22 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check inkwell
+
+ballpen-set
+mechanical-pencil
+highlighters
+marker
+gel-pens
+notebook-blue
+notebook-pink
+notebook-green
+notebook-black
+bond-paper
+sticky-notes
+index-cards
+planner-black
+planner-pink
+planner-beige
+school-backpack-black
+school-backpack-navy
+school-backpack-pink
+calculator
+stapler
+scissors
+desk-organizer

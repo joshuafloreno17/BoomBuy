@@ -1,0 +1,20 @@
+Harvest Table Pantry — 15 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check harvesttable
+
+dried-mangoes
+banana-chips
+chicharon
+polvoron
+mixed-nuts
+barako-coffee
+calamansi-juice
+tablea
+green-tea
+coconut-water
+rice
+coconut-oil
+honey
+peanut-butter
+bagoong

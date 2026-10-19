@@ -1,0 +1,25 @@
+Evergreen Garden Supply — 20 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check evergreen
+
+snake-plant
+seeds-pack
+succulents
+pothos
+calamansi-seedling
+clay-pot
+hanging-planter-white
+hanging-planter-black
+self-watering-pot-white
+self-watering-pot-grey
+seedling-tray
+ceramic-planter-white
+ceramic-planter-grey
+ceramic-planter-green
+garden-hose
+watering-can-green
+watering-can-red
+pruning-shears
+garden-gloves
+fertilizer

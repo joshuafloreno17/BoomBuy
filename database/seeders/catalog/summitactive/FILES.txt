@@ -1,0 +1,32 @@
+Summit Active Gear — 27 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check summitactive
+
+yoga-mat-purple
+yoga-mat-blue
+yoga-mat-black
+yoga-mat-pink
+dumbbells
+resistance-bands
+jump-rope-black
+jump-rope-blue
+foam-roller-black
+foam-roller-blue
+basketball
+volleyball
+badminton-set
+soccer-ball
+ping-pong-set
+tent-green
+tent-orange
+hiking-backpack-black
+hiking-backpack-green
+hiking-backpack-red
+water-bottle-black
+water-bottle-white
+water-bottle-blue
+water-bottle-pink
+lantern
+sleeping-bag-blue
+sleeping-bag-green

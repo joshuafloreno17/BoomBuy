@@ -1,0 +1,24 @@
+Wonderbox Toys & Hobbies — 19 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check wonderbox
+
+teddy-bear-brown
+teddy-bear-white
+building-blocks
+rc-car-red
+rc-car-blue
+wooden-puzzle
+toy-kitchen
+chess
+dominoes
+playing-cards
+snakes-ladders
+sungka
+speed-cube
+watercolor
+model-kit
+ukulele-natural
+ukulele-pink
+ukulele-blue
+sketchbook

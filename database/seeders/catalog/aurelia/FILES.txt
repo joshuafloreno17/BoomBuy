@@ -1,0 +1,32 @@
+Aurelia Jewelry & Accessories — 27 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check aurelia
+
+pearl-earrings
+chain-necklace-gold
+chain-necklace-silver
+hoop-earrings-gold
+hoop-earrings-silver
+heart-pendant-gold
+heart-pendant-silver
+heart-pendant-rose-gold
+drop-earrings
+silver-ring
+charm-bracelet
+beaded-bracelet-pink
+beaded-bracelet-blue
+beaded-bracelet-black
+bangles-gold
+bangles-silver
+couple-rings
+wristwatch-black
+wristwatch-brown
+wristwatch-silver
+sunglasses-black
+sunglasses-brown
+leather-belt-black
+leather-belt-brown
+hair-clips
+wallet-black
+wallet-brown

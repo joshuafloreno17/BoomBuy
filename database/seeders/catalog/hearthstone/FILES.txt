@@ -1,0 +1,33 @@
+Hearthstone Home & Living — 28 photos
+I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
+Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
+I-check: php artisan boombuy:catalog-check hearthstone
+
+frying-pan
+cookware-set
+plate-set-white
+plate-set-beige
+food-containers
+kettle-silver
+kettle-black
+bed-sheet-white
+bed-sheet-grey
+bed-sheet-blue
+bed-sheet-beige
+pillow
+blanket-grey
+blanket-beige
+blanket-pink
+bath-towel-white
+bath-towel-grey
+bath-towel-blue
+shower-curtain
+scented-candle
+vase-white
+vase-beige
+wall-clock-black
+wall-clock-white
+table-lamp
+throw-pillow-beige
+throw-pillow-green
+throw-pillow-mustard
