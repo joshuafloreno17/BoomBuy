@@ -770,8 +770,7 @@ class BuyerModulesSheetTest extends TestCase
 
         foreach ([$deleted, $inactive] as $product) {
             $this->flushSession();
-            $response = $this->actingAsUser($this->buyer1())->get(route('product.details', $product->id));
-            $this->assertContains($response->status(), [302, 404], $product->name);
+            $response = $this->actingAsUser($this->buyer1())->get(route('product.details', $product->id))->assertNotFound()->assertSee('This product is unavailable');
             $this->assertStringNotContainsString('Add to Cart', $response->getContent());
         }
     }

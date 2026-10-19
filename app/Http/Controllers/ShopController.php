@@ -747,6 +747,11 @@ class ShopController extends Controller
             $product = $matches->count() === 1 ? $matches->first() : null;
         }
 
+        // A deleted product's old link says so clearly (B4).
+        if (!$product && preg_match('/(\d+)$/', (string) $id, $goneId) && Product::onlyTrashed()->whereKey((int) $goneId[1])->exists()) {
+            return response()->view('errors.product-unavailable', [], 404);
+        }
+
         if (!$product) {
             abort(404);
         }
@@ -760,7 +765,7 @@ class ShopController extends Controller
                 && session('user.role') === 'seller';
 
             if (!$isOwner && !session('admin_logged_in')) {
-                abort(404);
+                return response()->view('errors.product-unavailable', [], 404);
             }
         }
 
