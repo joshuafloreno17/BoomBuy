@@ -110,8 +110,13 @@ class Product extends Model
      * product page, cards, cart, checkout and the order: a running store
      * sale, else the product's own "% off", else the regular price.
      */
-    public function unitPrice(?ProductVariation $variation = null): float
+    public function unitPrice(?ProductVariation $variation = null, bool $withFlash = true): float
     {
+        // A live flash sale with units left wins over a store sale (A5).
+        if ($withFlash && !$variation && ($flash = $this->liveFlash())) {
+            return round((float) $flash->flash_price, 2);
+        }
+
         if ($sale = $this->liveSale()) {
             return $sale->priceFor($this->regularUnitPrice($variation));
         }
@@ -119,9 +124,30 @@ class Product extends Model
         return round((float) $this->price + (float) ($variation->price_adjustment ?? 0), 2);
     }
 
-    /** % off shown on the badge right now (sale or the product's own discount), null if none. */
+    /** The flash sale running now with units left (loaded once per request). */
+    private ?FlashSale $liveFlashMemo = null;
+
+    private bool $liveFlashLoaded = false;
+
+    public function liveFlash(): ?FlashSale
+    {
+        if (!$this->liveFlashLoaded) {
+            $this->liveFlashMemo = $this->id ? FlashSale::liveFor((int) $this->id) : null;
+            $this->liveFlashLoaded = true;
+        }
+
+        return $this->liveFlashMemo;
+    }
+
+    /** % off shown on the badge right now (flash, sale or the product's own discount), null if none. */
     public function percentOffNow(): ?int
     {
+        if ($flash = $this->liveFlash()) {
+            $regular = $this->regularUnitPrice();
+
+            return $regular > 0 ? (int) round(100 - $flash->flash_price / $regular * 100) : null;
+        }
+
         if ($sale = $this->liveSale()) {
             return $sale->percentOff($this->regularUnitPrice());
         }

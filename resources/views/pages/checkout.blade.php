@@ -336,9 +336,10 @@
                                 ? \App\Models\ProductVariation::find($variationId)
                                 : null;
 
-                            $unitPrice = $product->unitPrice($lineVariation);
+                            // Flash units, bundle deals and free items: one price per piece.
+                            $pieces = $linePieces[$cartKey] ?? [['price' => $product->unitPrice($lineVariation), 'quantity' => (int) $quantity, 'note' => null]];
 
-                            $subtotal = $unitPrice * $quantity;
+                            $subtotal = collect($pieces)->sum(fn ($p) => $p['price'] * $p['quantity']);
 
                             $total += $subtotal;
 
@@ -372,6 +373,14 @@
                                         @endif
 
                                     </div>
+
+                                    @if(count($pieces) > 1 || ($pieces[0]['note'] ?? null))
+                                        <div class="product-pieces" data-pieces="{{ $cartKey }}">
+                                            @foreach($pieces as $piece)
+                                                <span>{{ $piece['quantity'] }} × ₱{{ number_format($piece['price'], 2) }}@if($piece['note']) <em>{{ ['flash' => 'flash sale', 'bundle' => 'bundle deal', 'free' => 'free'][$piece['note']] }}</em>@endif</span>
+                                            @endforeach
+                                        </div>
+                                    @endif
 
                                 </div>
 

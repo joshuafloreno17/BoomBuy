@@ -210,8 +210,22 @@
                     <span class="price-off">-{{ $percentOff }}%</span>
                 @endif
 
-                @if($liveSale)
+                @php
+                    $liveFlash = $product->liveFlash();
+                    $upcomingFlash = $liveFlash ? null : \App\Models\FlashSale::upcomingFor((int) $product->id);
+                @endphp
+
+                @if($liveFlash)
+                    <span class="price-flash" data-flash-ends="{{ $liveFlash->ends_at->toIso8601String() }}">
+                        <i class="bi bi-lightning-charge-fill"></i> Flash sale · ends in <b data-countdown="{{ $liveFlash->ends_at->toIso8601String() }}">{{ gmdate('H:i:s', max(0, now()->diffInSeconds($liveFlash->ends_at, false))) }}</b>
+                        · <b data-flash-left>{{ $liveFlash->remaining() }} left</b>
+                    </span>
+                @elseif($liveSale)
                     <span class="price-sale-ends" data-sale-ends="{{ $liveSale->stopsAt()->toIso8601String() }}">Sale ends {{ $liveSale->stopsAt()->format('M d, g:i A') }}</span>
+                @endif
+
+                @if($upcomingFlash)
+                    <span class="price-flash is-upcoming"><i class="bi bi-lightning-charge"></i> Upcoming flash sale: {{ peso($upcomingFlash->flash_price) }} at {{ $upcomingFlash->starts_at->format('g:i A') }}</span>
                 @endif
 
             </div>
@@ -1275,6 +1289,23 @@
     @include('partials.buyer-footer')
 
     @include('partials.pwa-register')
+
+<script>
+    // Flash sale countdown; at zero the page reloads to show the normal price.
+    document.querySelectorAll('[data-countdown]').forEach(function (el) {
+        var end = new Date(el.dataset.countdown).getTime();
+        function tick() {
+            var left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+            var h = String(Math.floor(left / 3600)).padStart(2, '0');
+            var m = String(Math.floor(left % 3600 / 60)).padStart(2, '0');
+            var s = String(left % 60).padStart(2, '0');
+            el.textContent = h + ':' + m + ':' + s;
+            if (left === 0) { clearInterval(timer); setTimeout(function () { location.reload(); }, 1500); }
+        }
+        var timer = setInterval(tick, 1000);
+        tick();
+    });
+</script>
 
 </body>
 

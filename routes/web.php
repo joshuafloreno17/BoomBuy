@@ -421,6 +421,9 @@ Route::get('/seller/promotions', [PromotionController::class, 'index'])->name('s
 Route::post('/seller/promotions/sales', [PromotionController::class, 'storeSale'])->name('seller.sales.store');
 Route::put('/seller/promotions/sales/{id}', [PromotionController::class, 'updateSale'])->whereNumber('id')->name('seller.sales.update');
 Route::post('/seller/promotions/sales/{id}/end', [PromotionController::class, 'endSale'])->whereNumber('id')->name('seller.sales.end');
+Route::post('/seller/promotions/flash', [PromotionController::class, 'storeFlash'])->name('seller.flash.store');
+Route::post('/seller/promotions/bundles', [PromotionController::class, 'storeBundle'])->name('seller.bundles.store');
+Route::post('/seller/promotions/bundles/{id}/toggle', [PromotionController::class, 'toggleBundle'])->whereNumber('id')->name('seller.bundles.toggle');
 
 // Store categories: the store's own categories for its shop page (2 levels, up to 3 per product)
 Route::get('/seller/store-categories', [StoreCategoryController::class, 'index'])->name('seller.store-categories');

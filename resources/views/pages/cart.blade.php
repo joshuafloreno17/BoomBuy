@@ -149,8 +149,12 @@
 
                             $itemUnitPrice = $product->unitPrice($itemVariation && !$itemVariation->trashed() ? $itemVariation : null);
 
-                            $itemTotal =
-                                $itemUnitPrice * $quantity;
+                            // Flash units, bundle deals and free items have their own price.
+                            $itemPieces = $cartPieces[$cartKey] ?? null;
+                            $itemTotal = $itemPieces
+                                ? collect($itemPieces)->sum(fn ($p) => $p['price'] * $p['quantity'])
+                                : $itemUnitPrice * $quantity;
+                            $itemSplit = $itemPieces && (count($itemPieces) > 1 || $itemPieces[0]['note']);
 
                             $itemAvailable = $onSaleIds->has($product->id) && !$variationGone;
 
@@ -170,7 +174,7 @@
                                     type="checkbox"
                                     class="item-checkbox"
                                     data-cart-key="{{ $cartKey }}"
-                                    data-unit-price="{{ $itemUnitPrice }}"
+                                    data-unit-price="{{ $quantity > 0 ? round($itemTotal / $quantity, 4) : $itemUnitPrice }}"
                                     data-quantity="{{ $quantity }}"
                                     checked
                                 >
@@ -204,8 +208,12 @@
                                     </div>
                                 @endif
 
-                                <div class="unit-price">
-                                    ₱{{ number_format($itemUnitPrice, 2) }} each
+                                <div class="unit-price" data-unit-label="{{ $cartKey }}">
+                                    @if($itemSplit)
+                                        {{ \App\Support\CartPricing::describe($itemPieces) }}
+                                    @else
+                                        ₱{{ number_format($itemUnitPrice, 2) }} each
+                                    @endif
                                     @if($itemVariation)
                                         <br>{{ $itemVariation->label() }}
                                     @endif

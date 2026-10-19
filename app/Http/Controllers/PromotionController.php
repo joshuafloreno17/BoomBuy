@@ -125,6 +125,163 @@ class PromotionController extends Controller
         return back()->with('success', 'Sale ended. Buyers see the regular price again.');
     }
 
+    /**
+     * A flash sale for one product (without options) in one of today's or
+     * a later day's 2-hour slots: a flash price below the regular price and
+     * a flash quantity no more than the stock.
+     */
+    public function storeFlash()
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::where('seller_id', $user['id'])->where('is_draft', false)->find((int) request('product_id'));
+
+        if (!$product) {
+            return back()->withInput()->withErrors(['product_id' => 'Choose one of your published products.']);
+        }
+
+        $errors = [];
+
+        if ($product->variations()->exists()) {
+            $errors['product_id'] = 'Flash sales are for products without options.';
+        }
+
+        $slot = \App\Models\FlashSale::SLOTS[(int) request('slot', -1)] ?? null;
+        $day = $this->time(request('date'))?->startOfDay();
+
+        if (!$slot || !$day) {
+            $errors['slot'] = 'Choose a day and a time slot.';
+        } else {
+            $start = $day->copy()->setTime($slot[0], 0);
+            $end = $slot[1] === 24 ? $day->copy()->addDay()->startOfDay() : $day->copy()->setTime($slot[1], 0);
+
+            if ($end->lte(now())) {
+                $errors['slot'] = 'That time slot is already over.';
+            } elseif (\App\Models\FlashSale::where('product_id', $product->id)->where('starts_at', '<', $end)->where('ends_at', '>', $start)->exists()) {
+                $errors['slot'] = $product->name . ' already has a flash sale in that slot.';
+            }
+        }
+
+        $price = ProductRules::cleanNumber(request('flash_price'));
+        $regular = $product->regularUnitPrice();
+
+        if ($error = ProductRules::priceError($price, 'Flash price')) {
+            $errors['flash_price'] = $error;
+        } elseif ((float) $price >= $regular) {
+            $errors['flash_price'] = 'The flash price must be lower than the regular price of ₱' . number_format($regular, 2) . '.';
+        }
+
+        $quantity = ProductRules::cleanNumber(request('quantity'));
+
+        if (!preg_match('/^\d+$/', $quantity) || (int) $quantity < 1 || (int) $quantity > (int) $product->stock) {
+            $errors['quantity'] = 'The flash quantity must be from 1 to the stock you have (' . (int) $product->stock . ').';
+        }
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors);
+        }
+
+        $flash = \App\Models\FlashSale::create([
+            'seller_id' => $user['id'],
+            'product_id' => $product->id,
+            'starts_at' => $start,
+            'ends_at' => $end,
+            'flash_price' => round((float) $price, 2),
+            'quantity' => (int) $quantity,
+        ]);
+
+        return redirect()->route('seller.promotions')->with('success', 'Flash sale on ' . $product->name . ' saved: ' . $flash->status() . ', '
+            . $start->format('M d, g:i A') . ' – ' . $end->format('g:i A') . ', ₱' . number_format($flash->flash_price, 2) . ' for ' . $flash->quantity . ' units.');
+    }
+
+    /** A bundle deal: any N items of some products for X% off, or buy X get Y free. */
+    public function storeBundle()
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $sellerId = (int) $user['id'];
+        $errors = [];
+        $type = request('type') === 'bxgy' ? 'bxgy' : 'bundle';
+        $own = fn ($id) => Product::where('seller_id', $sellerId)->where('is_draft', false)->find((int) $id);
+        $name = trim((string) request('name'));
+
+        if ($name === '' || mb_strlen($name) > 80) {
+            $errors['name'] = 'Give the deal a name (up to 80 characters).';
+        }
+
+        if ($type === 'bundle') {
+            $products = Product::where('seller_id', $sellerId)->whereIn('id', array_map('intval', (array) request('product_ids', [])))->pluck('id');
+
+            if ($products->isEmpty()) {
+                $errors['product_ids'] = 'Choose the products that count toward the bundle.';
+            }
+
+            if (!ctype_digit((string) request('min_quantity')) || (int) request('min_quantity') < 2) {
+                $errors['min_quantity'] = 'A bundle needs at least 2 items.';
+            }
+
+            if (!ctype_digit((string) request('percent')) || (int) request('percent') < 1 || (int) request('percent') > 99) {
+                $errors['percent'] = 'The bundle discount must be a whole number from 1% to 99%.';
+            }
+        } else {
+            if (!$own(request('buy_product_id'))) {
+                $errors['buy_product_id'] = 'Choose the product to buy.';
+            }
+
+            if (!$own(request('get_product_id'))) {
+                $errors['get_product_id'] = 'Choose the free product.';
+            }
+
+            foreach (['buy_quantity' => 'buy', 'get_quantity' => 'get free'] as $field => $label) {
+                if (!ctype_digit((string) request($field)) || (int) request($field) < 1) {
+                    $errors[$field] = 'Enter how many to ' . $label . ' (at least 1).';
+                }
+            }
+        }
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors);
+        }
+
+        $bundle = \App\Models\Bundle::create($type === 'bundle'
+            ? ['seller_id' => $sellerId, 'name' => $name, 'type' => 'bundle', 'min_quantity' => (int) request('min_quantity'), 'percent' => (int) request('percent')]
+            : ['seller_id' => $sellerId, 'name' => $name, 'type' => 'bxgy', 'buy_product_id' => (int) request('buy_product_id'), 'buy_quantity' => (int) request('buy_quantity'),
+                'get_product_id' => (int) request('get_product_id'), 'get_quantity' => (int) request('get_quantity')]);
+
+        if ($type === 'bundle') {
+            $bundle->products()->sync($products->all());
+        }
+
+        return redirect()->route('seller.promotions')->with('success', 'Deal saved: ' . $bundle->fresh()->summary() . '.');
+    }
+
+    public function toggleBundle($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $bundle = \App\Models\Bundle::where('seller_id', $user['id'])->find((int) $id);
+
+        if (!$bundle) {
+            abort(404);
+        }
+
+        $bundle->update(['is_active' => !$bundle->is_active]);
+
+        return back()->with('success', $bundle->is_active ? 'Deal turned on.' : 'Deal turned off.');
+    }
+
     /** [start, end, errors] from the form. Start in the future, end after it. */
     private function dates(): array
     {

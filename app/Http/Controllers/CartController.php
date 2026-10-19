@@ -358,9 +358,13 @@ class CartController extends Controller
         [$cartPlan, $appliedVouchers, $voucherNotices] = $this->voucherPlan($this->buyableLines($cart));
         $appliedVoucher = $appliedVouchers->first();
 
+        // Flash units, bundle deals and free items, per line.
+        $cartPieces = collect(\App\Support\CartPricing::price(\App\Support\CartPricing::fromCart($cart)))
+            ->mapWithKeys(fn ($line) => [$line['key'] => $line['pieces']])->all();
+
         return view(
             'pages.cart',
-            compact('cart', 'appliedVoucher', 'appliedVouchers', 'voucherNotices', 'cartPlan')
+            compact('cart', 'appliedVoucher', 'appliedVouchers', 'voucherNotices', 'cartPlan', 'cartPieces')
         );
     }
 
@@ -442,16 +446,11 @@ class CartController extends Controller
                 continue;
             }
 
-            $lines[] = [
-                'seller_id' => (int) $product->seller_id,
-                'product_id' => (int) $product->id,
-                'variation_id' => $variation?->id,
-                'price' => $product->unitPrice($variation),
-                'quantity' => (int) $quantity,
-            ];
+            $lines[] = ['key' => $key, 'product' => $product, 'variation' => $variation, 'quantity' => (int) $quantity];
         }
 
-        return $lines;
+        // Flash units, bundle deals and free items priced like checkout.
+        return \App\Support\CartPricing::planLines(\App\Support\CartPricing::price($lines));
     }
 
     /**
@@ -677,18 +676,10 @@ class CartController extends Controller
         $missingInfo = \App\Support\BuyerProfile::missing((int) $user['id'], false);
         $freeShippingMin = DeliveryFee::freeShippingMin();
 
-        // Same split/fee/voucher math placeOrder will use.
-        $planLines = [];
-
-        foreach ($cart as $cartKey => $quantity) {
-
-            [$productId, $variationId] = parseCartKey($cartKey);
-            $product = $products[$productId];
-
-            $unitPrice = $product->unitPrice($variationId ? \App\Models\ProductVariation::find($variationId) : null);
-
-            $planLines[] = ['seller_id' => $product->seller_id, 'product_id' => (int) $product->id, 'price' => $unitPrice, 'quantity' => (int) $quantity];
-        }
+        // Same split/fee/voucher math placeOrder will use (flash units, bundles, free items included).
+        $pricedLines = \App\Support\CartPricing::price(\App\Support\CartPricing::fromCart($cart));
+        $linePieces = collect($pricedLines)->mapWithKeys(fn ($line) => [$line['key'] => $line['pieces']])->all();
+        $planLines = \App\Support\CartPricing::planLines($pricedLines);
 
         // The delivery fee depends on how far each seller is from the address.
         $deliveryTo = PhLocations::locate($savedAddress);
@@ -711,6 +702,7 @@ class CartController extends Controller
                 'appliedVouchers',
                 'voucherNotices',
                 'voucherSubtotal',
+                'linePieces',
                 'savedAddress',
                 'savedPhone',
                 'addresses',

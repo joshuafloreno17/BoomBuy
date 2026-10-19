@@ -558,3 +558,6 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 }
 
 .subtotal-row.voucher-notice { background: #fff7ed; border-radius: 8px; padding: 8px 10px; color: #9a3412; font-size: 12px; }
+
+.product-pieces { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; font-size: 12px; color: #574e70; }
+.product-pieces em { font-style: normal; font-weight: 700; color: #b45309; }

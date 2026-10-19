@@ -1792,4 +1792,149 @@ class SellerModulesSheetTest extends TestCase
         $this->as($this->buyer1())->post(route('buyer.order.cancel', $this->lastOrder($this->buyer1())->id), ['cancel_reason' => 'Changed my mind'])->assertSessionHas('success');
         $this->as($this->seller1())->get(route('seller.vouchers'))->assertSee('Used 0 of 100');
     }
+
+    /* ---------------------------------------------------------------
+     | S8 Flash Sales & Bundles
+     * --------------------------------------------------------------- */
+
+    /** A flash sale on P-02 in today's 12:00–14:00 slot (slot 6). */
+    private function saveFlash(array $overrides = [])
+    {
+        return $this->as($this->seller1())->from(route('seller.promotions'))->post(route('seller.flash.store'), array_merge([
+            'product_id' => $this->p02()->id, 'date' => now()->toDateString(), 'slot' => 6, 'flash_price' => '299', 'quantity' => '3',
+        ], $overrides));
+    }
+
+    private function flashLive(int $left = 3): \App\Models\FlashSale
+    {
+        $this->saveFlash()->assertSessionHasNoErrors();
+        $flash = \App\Models\FlashSale::firstOrFail();
+        $flash->update(['sold' => 3 - $left]);
+        $this->travelTo(now()->setTime(12, 30));
+
+        return $flash;
+    }
+
+    public function test_SEL_FLASH_001_create_a_flash_sale_in_a_time_slot(): void
+    {
+        $p02 = $this->p02();
+        $this->saveFlash()->assertSessionHasNoErrors()->assertSessionHas('success');
+        $flash = \App\Models\FlashSale::firstOrFail();
+        $this->assertSame('Upcoming', $flash->status());
+        $this->assertSame([now()->setTime(12, 0)->format('Y-m-d H:i'), now()->setTime(14, 0)->format('Y-m-d H:i')], [$flash->starts_at->format('Y-m-d H:i'), $flash->ends_at->format('Y-m-d H:i')]);
+
+        $this->travelTo(now()->setTime(11, 59));
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()
+            ->assertSee('<span id="pdPrice" data-base="450">₱450</span>', false)->assertSee('Upcoming flash sale: ₱299 at 12:00 PM');
+
+        $this->travelTo(now()->setTime(12, 0));
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()
+            ->assertSee('<span id="pdPrice" data-base="450">₱299</span>', false)
+            ->assertSee('data-countdown="' . $flash->ends_at->toIso8601String() . '"', false)
+            ->assertSee('02:00:00')->assertSee('3 left');
+    }
+
+    public function test_SEL_FLASH_002_flash_quantity_and_price_validation(): void
+    {
+        $this->saveFlash(['quantity' => '0'])->assertSessionHasErrors(['quantity' => 'The flash quantity must be from 1 to the stock you have (20).']);
+        $this->saveFlash(['quantity' => '21'])->assertSessionHasErrors(['quantity' => 'The flash quantity must be from 1 to the stock you have (20).']);
+        $this->saveFlash(['flash_price' => '450'])->assertSessionHasErrors(['flash_price' => 'The flash price must be lower than the regular price of ₱450.00.']);
+        $this->assertSame(0, \App\Models\FlashSale::count());
+
+        $this->saveFlash(['quantity' => '20'])->assertSessionHasNoErrors();
+        $this->saveFlash(['flash_price' => '449.99', 'slot' => 7])->assertSessionHasNoErrors();
+        $this->assertSame([20, 449.99], [(int) \App\Models\FlashSale::first()->quantity, (float) \App\Models\FlashSale::latest('id')->first()->flash_price]);
+    }
+
+    public function test_SEL_FLASH_003_price_returns_to_normal_when_flash_quantity_runs_out(): void
+    {
+        $this->flashLive(3);
+        $p02 = $this->p02();
+
+        $this->buy($this->buyer1(), [$p02->id . ':0' => 3])->assertSessionDoesntHaveErrors();
+        $order = $this->lastOrder($this->buyer1());
+        $this->assertSame('897.00', $this->money(DB::table('order_items')->where('order_id', $order->id)->sum(DB::raw('price * quantity'))));
+        $this->assertSame(3, (int) \App\Models\FlashSale::first()->sold);
+
+        $this->as($this->buyer2())->get(route('product.details', $p02->id))->assertSee('<span id="pdPrice" data-base="450">₱450</span>', false)->assertDontSee('Flash sale ·');
+        $this->actingAsUser($this->buyer2(), ['cart' => [$p02->id . ':0' => 1]])->get(route('cart'))->assertSee('₱450.00 each')->assertDontSee('(flash sale)');
+    }
+
+    public function test_SEL_FLASH_004_order_more_than_the_remaining_flash_quantity(): void
+    {
+        $this->flashLive(1);
+        $p02 = $this->p02();
+        $cart = [$p02->id . ':0' => 2];
+
+        $this->actingAsUser($this->buyer1(), ['cart' => $cart])->get(route('checkout', ['items' => $p02->id . ':0']))->assertOk()
+            ->assertSee('1 × ₱299.00')->assertSee('1 × ₱450.00')->assertSee('749.00');
+
+        $this->buy($this->buyer1(), $cart)->assertSessionDoesntHaveErrors();
+        $order = $this->lastOrder($this->buyer1());
+        $lines = DB::table('order_items')->where('order_id', $order->id)->orderBy('id')->get(['price', 'quantity', 'price_note']);
+        $this->assertSame([['299.00', 1, 'flash'], ['450.00', 1, null]], $lines->map(fn ($l) => [$this->money($l->price), (int) $l->quantity, $l->price_note])->all());
+        $this->assertSame('749.00', $this->money($order->total_amount - $order->delivery_fee));
+
+        $this->as($this->seller1())->get(route('seller.order.details', $order->id))->assertSee('₱299.00')->assertSee('₱450.00');
+    }
+
+    public function test_SEL_FLASH_005_flash_sale_ends_at_the_slot_end(): void
+    {
+        $this->flashLive(3);
+        $p02 = $this->p02();
+        $this->assertStringContainsString('₱299', $this->p02Everywhere($p02)['page']);
+
+        $this->travelTo(now()->setTime(14, 0));
+        $this->assertSame('Ended', \App\Models\FlashSale::first()->status());
+        $this->assertRegularPrice($this->p02Everywhere($p02));
+    }
+
+    public function test_SEL_FLASH_006_overlapping_store_sale_and_flash_sale(): void
+    {
+        $p02 = $this->p02();
+        \App\Models\ProductSale::create(['seller_id' => $this->seller1()->id, 'product_id' => $p02->id, 'discount_type' => 'fixed', 'discount_value' => 360, 'starts_at' => now(), 'ends_at' => now()->addDay()]);
+        $this->flashLive(1);
+
+        $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertSee('<span id="pdPrice" data-base="450">₱299</span>', false);
+        $this->actingAsUser($this->buyer1(), ['cart' => [$p02->id . ':0' => 2]])->get(route('checkout', ['items' => $p02->id . ':0']))->assertOk()
+            ->assertSee('1 × ₱299.00')->assertSee('1 × ₱360.00')->assertDontSee('1 × ₱450.00');
+    }
+
+    public function test_SEL_FLASH_007_bundle_deal_item_counting(): void
+    {
+        $p01 = $this->p01();
+        $this->as($this->seller1())->post(route('seller.bundles.store'), ['name' => 'Tote trio', 'type' => 'bundle', 'product_ids' => [$p01->id], 'min_quantity' => 3, 'percent' => 15])->assertSessionHasNoErrors();
+        $natS = $p01->id . ':' . $this->variant('Natural-S')->id;
+        $blackL = $p01->id . ':' . $this->variant('Black-L')->id;
+        $total = fn (array $cart) => array_sum(array_column(\App\Support\CartPricing::price(\App\Support\CartPricing::fromCart($cart)), 'total'));
+
+        // 2 items: no discount.
+        $this->assertEquals(398.0, $total([$natS => 2]));
+        $this->actingAsUser($this->buyer1(), ['cart' => [$natS => 2]])->get(route('cart'))->assertDontSee('(bundle deal)');
+
+        // 3 items (mixed options): 15% of ₱697 = ₱104.55 off.
+        $this->assertEquals(round(697 - 104.55, 2), round($total([$natS => 2, $blackL => 1]), 2));
+        $this->actingAsUser($this->buyer1(), ['cart' => [$natS => 2, $blackL => 1]])->get(route('cart'))->assertSee('(bundle deal)')->assertSee('592.45');
+
+        // One removed: discount gone.
+        $this->assertEquals(498.0, $total([$natS => 1, $blackL => 1]));
+    }
+
+    public function test_SEL_FLASH_008_buy_x_get_y(): void
+    {
+        $p02 = $this->p02();
+        $p04 = $this->p04();
+        DB::table('products')->where('id', $p04->id)->update(['stock' => 10]);
+        $this->as($this->seller1())->post(route('seller.bundles.store'), [
+            'name' => 'Basket + mats', 'type' => 'bxgy', 'buy_product_id' => $p02->id, 'buy_quantity' => 2, 'get_product_id' => $p04->id, 'get_quantity' => 1,
+        ])->assertSessionHasNoErrors();
+        $p04Line = fn (array $cart) => collect(\App\Support\CartPricing::price(\App\Support\CartPricing::fromCart($cart)))->firstWhere('key', $p04->id . ':0');
+
+        $line = $p04Line([$p02->id . ':0' => 2, $p04->id . ':0' => 1]);
+        $this->assertSame([[0.0, 1, 'free']], array_map(fn ($p) => [(float) $p['price'], $p['quantity'], $p['note']], $line['pieces']));
+        $this->actingAsUser($this->buyer1(), ['cart' => [$p02->id . ':0' => 2, $p04->id . ':0' => 1]])->get(route('cart'))->assertSee('1 × ₱0 (free)');
+
+        $line = $p04Line([$p02->id . ':0' => 1, $p04->id . ':0' => 1]);
+        $this->assertEquals(350.0, $line['total']);
+    }
 }

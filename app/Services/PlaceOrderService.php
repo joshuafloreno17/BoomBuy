@@ -178,6 +178,9 @@ class PlaceOrderService
                 'variation_image' => $variation->image ?? null,
                 'price' => $unitPrice,
                 'quantity' => $quantity,
+                // Transient: for CartPricing.
+                'product' => $product,
+                'variation' => $variation,
             ];
         }
 
@@ -185,7 +188,22 @@ class PlaceOrderService
             throw CheckoutFailed::inCart('No valid products found.');
         }
 
-        return $lines;
+        // Flash units, bundle deals, buy X get Y: one order line per price.
+        $priced = \App\Support\CartPricing::price($lines);
+        $orderLines = [];
+
+        foreach ($priced as $line) {
+            foreach ($line['pieces'] as $piece) {
+                $orderLines[] = array_merge(array_diff_key($line, array_flip(['product', 'variation', 'pieces', 'total'])), [
+                    'price' => (float) $piece['price'],
+                    'quantity' => (int) $piece['quantity'],
+                    'price_note' => $piece['note'],
+                    'flash_id' => $piece['flash_id'] ?? null,
+                ]);
+            }
+        }
+
+        return $orderLines;
     }
 
     /**
@@ -286,6 +304,7 @@ class PlaceOrderService
                             'variation_label' => $item['variation_label'] ?? null,
                             'variation_image' => $item['variation_image'] ?? null,
                             'price' => $item['price'],
+                            'price_note' => $item['price_note'] ?? null,
                             'quantity' => $item['quantity'],
                             'created_at' => now(),
                             'updated_at' => now(),
@@ -304,6 +323,17 @@ class PlaceOrderService
                                 $item['product_name'] . ' just sold out while you were checking out. Please adjust your cart and try again.',
                                 voucherDropped: true
                             );
+                        }
+
+                        // Flash units are limited: claim them, or the checkout is re-priced.
+                        if (!empty($item['flash_id'])) {
+                            $claimedFlash = \App\Models\FlashSale::where('id', $item['flash_id'])
+                                ->whereRaw('sold + ? <= quantity', [$item['quantity']])
+                                ->increment('sold', $item['quantity']);
+
+                            if (!$claimedFlash) {
+                                throw CheckoutFailed::inCart($item['product_name'] . ': the flash sale units just ran out. Please review the new price and place the order again.');
+                            }
                         }
 
                         \App\Support\LowStock::check((int) $item['product_id'], !empty($item['variation_id']) ? (int) $item['variation_id'] : null);

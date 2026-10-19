@@ -1566,3 +1566,21 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Flash sale and store sale notes under the price */
+.price-flash, .price-sale-ends {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+    margin-top: 6px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: #fff1f2;
+    color: #be123c;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.price-flash.is-upcoming { background: #fff7ed; color: #9a3412; }
+.price-sale-ends { background: #f3efff; color: #5536b5; }
