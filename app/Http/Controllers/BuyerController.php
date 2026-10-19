@@ -306,7 +306,10 @@ class BuyerController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function storeAddress(StoreAddressRequest $request)
+    /** Most addresses one buyer can save (A30). */
+    public const MAX_ADDRESSES = 10;
+
+    public function storeAddress()
     {
         $user = requireUserRole('buyer');
 
@@ -314,13 +317,38 @@ class BuyerController extends Controller
             return $user;
         }
 
-        $data = $request->validated();
-
         $userId = (int) $user['id'];
 
-        if (\App\Models\BuyerAddress::where('user_id', $userId)->count() >= 10) {
-            return back()->with('error', 'You can save up to 10 addresses. Delete one first.');
+        if (\App\Models\BuyerAddress::where('user_id', $userId)->count() >= self::MAX_ADDRESSES) {
+            return back()->withInput()->with('error', 'You can save up to ' . self::MAX_ADDRESSES . ' addresses. Delete one first.');
         }
+
+        // The address book form sends the parts; older forms (and the app) one line.
+        if (request()->has('province') || request()->has('recipient_name')) {
+            [$parts, $errors] = \App\Support\AddressRules::check(request()->all());
+
+            if ($errors) {
+                return back()->withInput()->withErrors($errors);
+            }
+
+            $makeDefault = request()->boolean('is_default') || !\App\Models\BuyerAddress::where('user_id', $userId)->exists();
+
+            DB::transaction(function () use ($parts, $userId, $makeDefault) {
+                if ($makeDefault) {
+                    \App\Models\BuyerAddress::where('user_id', $userId)->update(['is_default' => false]);
+                }
+
+                \App\Models\BuyerAddress::create($parts + [
+                    'user_id' => $userId,
+                    'label' => trim((string) request('label')) ?: null,
+                    'is_default' => $makeDefault,
+                ]);
+            });
+
+            return back()->with('success', 'Address saved.');
+        }
+
+        $data = app(StoreAddressRequest::class)->validated();
 
         // The first address, or one marked "make default", becomes the default.
         $makeDefault = request()->boolean('is_default')
@@ -370,18 +398,51 @@ class BuyerController extends Controller
         }
 
         $address = \App\Models\BuyerAddress::where('user_id', $user['id'])->findOrFail($id);
-        $wasDefault = $address->is_default;
-        $address->delete();
 
-        // Keep one default while any address is left.
-        if ($wasDefault) {
-            \App\Models\BuyerAddress::where('user_id', $user['id'])
-                ->latest('updated_at')
-                ->first()
-                ?->update(['is_default' => true]);
+        // There is always exactly one default (A30): make another one default first.
+        if ($address->is_default && \App\Models\BuyerAddress::where('user_id', $user['id'])->where('id', '!=', $address->id)->exists()) {
+            return back()->with('error', 'This is your default address. Set another address as default first, then delete this one.');
         }
 
+        // Orders keep their own copy of the address, so they don't change.
+        $address->delete();
+
         return back()->with('success', 'Address deleted.');
+    }
+
+    /** Edit an address-book entry (orders placed with it keep their copy). */
+    public function updateAddress($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $address = \App\Models\BuyerAddress::where('user_id', $user['id'])->findOrFail($id);
+        [$parts, $errors] = \App\Support\AddressRules::check(array_merge($address->only(['recipient_name', 'phone', 'region', 'province', 'city_municipality', 'barangay', 'street']), request()->all()));
+
+        if ($errors) {
+            return back()->withInput()->withErrors($errors);
+        }
+
+        $address->update($parts + ['label' => request()->has('label') ? (trim((string) request('label')) ?: null) : $address->label]);
+
+        return back()->with('success', 'Address updated.');
+    }
+
+    /** One address, for its Edit form (the buyer's own only). */
+    public function editAddress($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $address = \App\Models\BuyerAddress::where('user_id', $user['id'])->findOrFail($id);
+
+        return view('pages.buyer.address-edit', ['user' => $user, 'address' => $address]);
     }
 
     public function profile()
@@ -417,6 +478,28 @@ class BuyerController extends Controller
 
         if (!is_array($user)) {
             return $user;
+        }
+
+        // The profile form: first and last name (letters only, 2–50 each).
+        // Email and phone change through their own verified forms.
+        if (request()->has('first_name')) {
+            $validator = \Illuminate\Support\Facades\Validator::make(request()->all(), [
+                'first_name' => \App\Support\RegistrationRules::name(),
+                'last_name' => \App\Support\RegistrationRules::name(),
+            ], \App\Support\RegistrationRules::messages());
+
+            if ($validator->fails()) {
+                return back()->withInput()->withErrors($validator);
+            }
+
+            $first = preg_replace('/\s+/', ' ', trim((string) request('first_name')));
+            $last = preg_replace('/\s+/', ' ', trim((string) request('last_name')));
+            $dbUser = User::find($user['id']);
+            $dbUser->forceFill(['first_name' => $first, 'last_name' => $last, 'name' => $first . ' ' . $last])->save();
+
+            session()->put('user', array_merge($user, ['name' => $dbUser->name]));
+
+            return back()->with('success', 'Profile updated successfully.');
         }
 
         $name = trim(request('name'));
@@ -499,12 +582,21 @@ class BuyerController extends Controller
             return back()->with('error', 'Current password is incorrect.');
         }
 
-        if (strlen($new) < 8) {
-            return back()->with('error', 'New password must be at least 8 characters.');
-        }
+        // The registration rule (8+, upper, lower, number, symbol), one
+        // message for the rule that failed.
+        $broken = match (true) {
+            strlen($new) < 8 => 'The new password must be at least 8 characters.',
+            !preg_match('/[A-Z]/', $new) => 'The new password needs at least one uppercase letter.',
+            !preg_match('/[a-z]/', $new) => 'The new password needs at least one lowercase letter.',
+            !preg_match('/\d/', $new) => 'The new password needs at least one number.',
+            !preg_match('/[^A-Za-z0-9]/', $new) => 'The new password needs at least one special character (e.g. @ # !).',
+            $new !== $confirm => 'The new passwords do not match.',
+            Hash::check($new, $dbUser->password) => 'The new password must be different from your current password.',
+            default => null,
+        };
 
-        if ($new !== $confirm) {
-            return back()->with('error', 'New passwords do not match.');
+        if ($broken) {
+            return back()->withErrors(['new_password' => $broken])->with('error', $broken);
         }
 
         $dbUser->password = Hash::make($new);
@@ -957,7 +1049,7 @@ class BuyerController extends Controller
             (string) request('request_type'),
             (string) request('reason'),
             (string) request('message'),
-            request()->file('evidence'),
+            request()->file('photos') ?: request()->file('evidence'),
             [
                 'method' => request('refund_method'),
                 'account_name' => request('refund_account_name'),

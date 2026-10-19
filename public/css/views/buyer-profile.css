@@ -492,3 +492,10 @@ a {
         align-items: stretch;
     }
 }
+
+.field-error { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #be123c; }
+.contact-grid { margin-top: 18px; }
+.contact-now { margin: 0 0 6px; font-weight: 700; color: #221a3a; }
+.contact-form { display: flex; gap: 8px; margin-top: 6px; }
+.contact-form input { flex: 1; min-width: 0; }
+.addr-recipient { font-weight: 700; color: #221a3a; }

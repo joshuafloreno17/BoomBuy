@@ -118,10 +118,10 @@ class BuyerScenariosTest extends TestCase
         $go(['current_password' => 'nope', 'new_password' => 'newpass123', 'new_password_confirmation' => 'newpass123'])
             ->assertSessionHas('error', 'Current password is incorrect.');
         $go(['current_password' => 'password123', 'new_password' => 'short', 'new_password_confirmation' => 'short'])
-            ->assertSessionHas('error', 'New password must be at least 8 characters.');
-        $go(['current_password' => 'password123', 'new_password' => 'newpass123', 'new_password_confirmation' => 'newpass999'])
-            ->assertSessionHas('error', 'New passwords do not match.');
-        $go(['current_password' => 'password123', 'new_password' => 'newpass123', 'new_password_confirmation' => 'newpass123'])
+            ->assertSessionHas('error', 'The new password must be at least 8 characters.');
+        $go(['current_password' => 'password123', 'new_password' => 'Newpass@123', 'new_password_confirmation' => 'Newpass@999'])
+            ->assertSessionHas('error', 'The new passwords do not match.');
+        $go(['current_password' => 'password123', 'new_password' => 'Newpass@123', 'new_password_confirmation' => 'Newpass@123'])
             ->assertSessionHas('success');
 
         $this->actingAsUser($buyer)->post(route('buyer.profile.photo'), ['profile_photo' => \Illuminate\Http\UploadedFile::fake()->create('virus.exe', 10)])
@@ -400,7 +400,7 @@ class BuyerScenariosTest extends TestCase
         $this->actingAsUser($buyer)->post(route('buyer.order.received', $manual))->assertSessionHas('success');
         $this->assertNotNull(DB::table('orders')->where('id', $manual)->value('buyer_received_at'));
 
-        $auto = $this->makeOrder($buyer, $this->shoes, 'Delivered', ['delivered_at' => now()->subDays(4)]);
+        $auto = $this->makeOrder($buyer, $this->shoes, 'Delivered', ['delivered_at' => now()->subDays(8)]);
         AutoReceive::sweep(true);
         $this->assertNotNull(DB::table('orders')->where('id', $auto)->value('buyer_received_at'));
         $this->assertTrue($this->notifiedWith($buyer, 'Order Marked as Received'));
@@ -431,6 +431,7 @@ class BuyerScenariosTest extends TestCase
 
             return $this->actingAsUser($buyer)->post(route('buyer.return-refund.store', $orderId), array_merge([
                 'order_item_id' => $item, 'request_type' => 'Return', 'reason' => 'Damaged item',
+                'message' => 'The item arrived damaged in the box.', 'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
                 'refund_method' => 'GCash', 'refund_account_name' => 'Ana Buyer', 'refund_account_number' => '09171234567',
             ], $extra));
         };
@@ -439,8 +440,8 @@ class BuyerScenariosTest extends TestCase
         $request($late)->assertSessionHas('error', 'The 7-day return/refund window for this order has passed.');
 
         $recent = $this->deliveredOrder($buyer, $this->shoes, 2);
-        $request($recent, ['evidence' => \Illuminate\Http\UploadedFile::fake()->create('big.png', 5000, 'image/png')])
-            ->assertSessionHasErrors('evidence');
+        $request($recent, ['photos' => [\Illuminate\Http\UploadedFile::fake()->create('big.png', 6000, 'image/png')]])
+            ->assertSessionHas('error', 'Each photo must be a JPG or PNG image of at most 5 MB.');
 
         // Where the money goes back is required, and a GCash number must look like one.
         $request($recent, ['refund_method' => ''])->assertSessionHas('error', fn ($m) => str_contains($m, 'Choose where we should send your refund'));

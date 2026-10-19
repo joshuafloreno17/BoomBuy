@@ -155,7 +155,7 @@ class BuyerOrderService
         string $type,
         string $reason,
         string $message = '',
-        ?UploadedFile $evidence = null,
+        UploadedFile|array|null $evidence = null,
         array $refundTo = []
     ): string {
         $order = $this->buyerOrder($buyerId, $orderId);
@@ -164,13 +164,11 @@ class BuyerOrderService
             throw new ActionFailed('Only delivered orders can be returned or refunded.');
         }
 
-        if (empty($order->buyer_received_at)) {
-            throw new ActionFailed('Please confirm that you received the order before requesting a return or refund.');
-        }
-
+        // From delivery (A11): within 7 days, before or after the buyer confirmed receipt.
         $windowDays = AutoReceive::RETURN_WINDOW_DAYS;
+        $deliveredAt = $order->delivered_at ?? $order->buyer_received_at ?? $order->updated_at;
 
-        if (Carbon::parse($order->buyer_received_at)->addDays($windowDays)->isPast()) {
+        if (Carbon::parse($deliveredAt)->addDays($windowDays)->isPast()) {
             throw new ActionFailed('The ' . $windowDays . '-day return/refund window for this order has passed.');
         }
 
@@ -184,6 +182,25 @@ class BuyerOrderService
 
         if ($reason === '') {
             throw new ActionFailed('Please select a reason.');
+        }
+
+        // A description of 10–500 characters and 1 to 5 photos (A31).
+        $length = mb_strlen($message);
+
+        if ($length < 10 || $length > 500) {
+            throw new ActionFailed('Please describe the problem in 10 to 500 characters (now ' . $length . ').');
+        }
+
+        $photos = array_values(array_filter(is_array($evidence) ? $evidence : [$evidence], fn ($f) => $f instanceof UploadedFile));
+
+        if (count($photos) < 1 || count($photos) > 5) {
+            throw new ActionFailed('Please add 1 to 5 photos of the item (JPG or PNG, up to 5 MB each).');
+        }
+
+        foreach ($photos as $photo) {
+            if (Validator::make(['photo' => $photo], ['photo' => 'image|mimes:jpg,jpeg,png|max:5120'])->fails()) {
+                throw new ActionFailed('Each photo must be a JPG or PNG image of at most 5 MB.');
+            }
         }
 
         // Where BoomBuy sends the money back.
@@ -219,12 +236,8 @@ class BuyerOrderService
             throw new ActionFailed('A return/refund request already exists for this item.');
         }
 
-        $evidencePath = null;
-
-        if ($evidence) {
-            Validator::make(['evidence' => $evidence], ['evidence' => 'image|max:4096'])->validate();
-            $evidencePath = $evidence->store('return-evidence', 'local');
-        }
+        $stored = array_map(fn (UploadedFile $photo) => $photo->store('return-evidence', 'local'), $photos);
+        $evidencePath = array_shift($stored);
 
         DB::table('return_refund_requests')->insert([
             'order_id' => $orderId,
@@ -235,6 +248,7 @@ class BuyerOrderService
             'reason' => $reason,
             'message' => $message ?: null,
             'evidence' => $evidencePath,
+            'evidence_photos' => $stored ? json_encode($stored) : null,
             'status' => 'pending',
             'refund_amount' => self::refundAmount($order, $item),
             'refund_method' => $refundMethod,

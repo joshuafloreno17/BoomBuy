@@ -9,8 +9,14 @@ class BuyerAddress extends Model
     protected $fillable = [
         'user_id',
         'label',
+        'recipient_name',
         'phone',
         'address',
+        'region',
+        'province',
+        'city_municipality',
+        'barangay',
+        'street',
         'is_default',
     ];
 

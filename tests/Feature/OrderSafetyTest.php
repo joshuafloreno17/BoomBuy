@@ -119,8 +119,8 @@ class OrderSafetyTest extends TestCase
 
         $this->actingAsUser($buyer)->post(route('buyer.profile.password'), [
             'current_password' => 'password123',
-            'new_password' => 'another-pass-1',
-            'new_password_confirmation' => 'another-pass-1',
+            'new_password' => 'Another-pass-1',
+            'new_password_confirmation' => 'Another-pass-1',
         ])->assertSessionHas('success');
 
         $this->assertNull(LoginGate::rememberedUser($buyer->id . '|other-phone'));

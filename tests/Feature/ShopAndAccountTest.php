@@ -197,8 +197,13 @@ class ShopAndAccountTest extends TestCase
         $this->assertTrue($work->fresh()->is_default);
         $this->assertFalse($home->fresh()->is_default);
 
-        // Deleting the default hands it to the remaining address.
-        $this->actingAsUser($buyer)->delete(route('buyer.addresses.delete', $work->id));
+        // The default can't be deleted while another address exists (Buyer Modules A30)…
+        $this->actingAsUser($buyer)->delete(route('buyer.addresses.delete', $work->id))->assertSessionHas('error');
+        $this->assertNotNull($work->fresh());
+
+        // …so another is made default first.
+        $this->actingAsUser($buyer)->post(route('buyer.addresses.default', $home->id));
+        $this->actingAsUser($buyer)->delete(route('buyer.addresses.delete', $work->id))->assertSessionHas('success');
         $this->assertTrue($home->fresh()->is_default);
     }
 

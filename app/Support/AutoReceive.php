@@ -17,7 +17,8 @@ use Illuminate\Support\Facades\DB;
 class AutoReceive
 {
     /** Days after delivery before an order counts as received. */
-    public const DAYS = 3;
+    // Buyer Modules A11: completes on its own 7 days (168 hours) after delivery.
+    public const DAYS = 7;
 
     /** Days after receiving that a return or refund can be requested. */
     public const RETURN_WINDOW_DAYS = 7;
@@ -47,6 +48,8 @@ class AutoReceive
             ->where('status', 'Delivered')
             ->whereNull('buyer_received_at')
             ->whereRaw('COALESCE(delivered_at, updated_at) <= ?', [now()->subDays(self::DAYS)])
+            // Not while a return or refund request on it is open.
+            ->whereNotExists(fn ($q) => $q->select(DB::raw(1))->from('return_refund_requests')->whereColumn('return_refund_requests.order_id', 'orders.id')->whereIn('return_refund_requests.status', \App\Services\ReturnRefundService::OPEN))
             ->get(['id', 'buyer_id', 'delivered_at', 'updated_at']);
 
         $marked = 0;

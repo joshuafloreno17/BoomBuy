@@ -8,6 +8,7 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\PromotionController;
 use App\Http\Controllers\BuyerVoucherController;
 use App\Http\Controllers\SellerEarningsController;
+use App\Http\Controllers\ContactChangeController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\BuyerController;
 use App\Http\Controllers\ComplaintController;
@@ -128,6 +129,8 @@ Route::post('/buyer/profile/password', [BuyerController::class, 'updatePassword'
 
 // Address book
 Route::post('/buyer/addresses', [BuyerController::class, 'storeAddress'])->name('buyer.addresses.store');
+Route::get('/buyer/addresses/{id}/edit', [BuyerController::class, 'editAddress'])->whereNumber('id')->name('buyer.addresses.edit');
+Route::put('/buyer/addresses/{id}', [BuyerController::class, 'updateAddress'])->whereNumber('id')->name('buyer.addresses.update');
 Route::post('/buyer/addresses/{id}/default', [BuyerController::class, 'setDefaultAddress'])->whereNumber('id')->name('buyer.addresses.default');
 Route::delete('/buyer/addresses/{id}', [BuyerController::class, 'deleteAddress'])->whereNumber('id')->name('buyer.addresses.delete');
 
@@ -1091,3 +1094,8 @@ Route::get('/messages/attachment/{id}', [MessageController::class, 'attachment']
 Route::get('/seller/earnings', [SellerEarningsController::class, 'index'])->name('seller.earnings');
 Route::post('/seller/payouts', [SellerEarningsController::class, 'requestPayout'])->name('seller.payouts.store');
 Route::post('/seller/payouts/{id}/cancel', [SellerEarningsController::class, 'cancelPayout'])->whereNumber('id')->name('seller.payouts.cancel');
+
+// Buyer: change email / mobile number with a code (B1)
+Route::post('/buyer/profile/email', [ContactChangeController::class, 'requestEmail'])->middleware('throttle:6,10')->name('buyer.email.request');
+Route::post('/buyer/profile/phone', [ContactChangeController::class, 'requestPhone'])->middleware('throttle:6,10')->name('buyer.phone.request');
+Route::post('/buyer/profile/{kind}/verify', [ContactChangeController::class, 'verify'])->whereIn('kind', ['email', 'phone'])->name('buyer.contact.verify');

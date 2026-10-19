@@ -76,7 +76,7 @@ class JourneyScenariosTest extends TestCase
         $this->as($this->lagunaStaff)->post(route('logistics.riders.receive-cod', $this->lagunaRider->id))->assertSessionHas('success');
         $this->assertTrue($this->notifiedWith($this->seller, 'COD Cash Received'));
 
-        $this->travel(4)->days();
+        $this->travel(8)->days();
         AutoReceive::sweep(true);
         $this->as($buyer)->post(route('buyer.product.review', [$order->id, $this->shoes->id]), ['rating' => 5, 'review' => 'Ganda!'])->assertSessionHas('success');
 

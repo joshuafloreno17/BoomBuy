@@ -161,6 +161,7 @@ class PrivacyAndSellerOrdersTest extends TestCase
             'order_item_id' => $itemId,
             'request_type' => 'Return',
             'reason' => 'Damaged item',
+            'message' => 'The item arrived damaged in the box.',
             'evidence' => $this->photo('damage.png'),
             'refund_method' => 'GCash',
             'refund_account_name' => 'Buyer Name',

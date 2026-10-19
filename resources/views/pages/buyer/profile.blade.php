@@ -103,60 +103,73 @@
         <div class="card">
 
             <h3>Profile Information</h3>
-            <p class="card-sub">Update your name, phone number, and address.</p>
+            <p class="card-sub">Your name, and the email and mobile number you log in and get updates with.</p>
+
+            @php
+                $nameParts = explode(' ', trim($dbUser->name ?? ''), 2);
+                $pendingEmail = \App\Http\Controllers\ContactChangeController::pending((int) $dbUser->id, 'email');
+                $pendingPhone = \App\Http\Controllers\ContactChangeController::pending((int) $dbUser->id, 'phone');
+            @endphp
 
             <form method="POST" action="{{ route('buyer.profile.update') }}">
                 @csrf
 
                 <div class="form-grid">
-
                     <div class="field">
-                        <label for="name">Full Name</label>
-                        <input
-                            type="text"
-                            id="name"
-                            name="name"
-                            value="{{ old('name', $dbUser->name ?? '') }}"
-                            required
-                        >
+                        <label for="first_name">First Name</label>
+                        <input type="text" id="first_name" name="first_name" minlength="2" maxlength="50" value="{{ old('first_name', $dbUser->first_name ?: ($nameParts[0] ?? '')) }}" required>
+                        @error('first_name')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
-
                     <div class="field">
-                        <label for="email">Email Address</label>
-                        <input
-                            type="email"
-                            id="email"
-                            value="{{ $dbUser->email ?? '' }}"
-                            disabled
-                        >
-                        <span class="field-hint">Email address cannot be changed.</span>
+                        <label for="last_name">Last Name</label>
+                        <input type="text" id="last_name" name="last_name" minlength="2" maxlength="50" value="{{ old('last_name', $dbUser->last_name ?: ($nameParts[1] ?? '')) }}" required>
+                        @error('last_name')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
-
-                    <div class="field">
-                        <label for="phone">Phone Number</label>
-                        <input
-                            type="text"
-                            id="phone"
-                            name="phone"
-                            value="{{ old('phone', $dbUser->phone ?? '') }}"
-                            placeholder="09XXXXXXXXX"
-                            required
-                        >
-                    </div>
-
-                    <div class="field" style="grid-column: 1 / -1;">
-                        <label for="profile_province_search">Address</label>
-                        @include('partials.address-fields', ['id' => 'profile', 'value' => $dbUser->address ?? ''])
-                        <span class="field-hint">Used at checkout until you save addresses below.</span>
-                    </div>
-
                 </div>
 
-                <button type="submit" class="save-btn">
-                    Save Changes
-                </button>
-
+                <button type="submit" class="save-btn">Save Changes</button>
             </form>
+
+            <div class="form-grid contact-grid">
+                {{-- Email: a code to the new address; the old one works until it is entered. --}}
+                <div class="field">
+                    <label>Email Address</label>
+                    <p class="contact-now" data-current-email>{{ $dbUser->email }}</p>
+                    <form method="POST" action="{{ route('buyer.email.request') }}" class="contact-form">
+                        @csrf
+                        <input type="email" name="email" placeholder="New email address" value="{{ old('email') }}" required aria-label="New email address">
+                        <button type="submit" class="addr-btn">Send code</button>
+                    </form>
+                    @error('email')<span class="field-error">{{ $message }}</span>@enderror
+                    @if($pendingEmail)
+                        <form method="POST" action="{{ route('buyer.contact.verify', 'email') }}" class="contact-form">
+                            @csrf
+                            <input type="text" name="otp" inputmode="numeric" maxlength="6" placeholder="6-digit code sent to {{ $pendingEmail['value'] }}" required aria-label="Code">
+                            <button type="submit" class="addr-btn">Verify</button>
+                        </form>
+                    @endif
+                </div>
+
+                {{-- Mobile number: the code is emailed (no SMS). --}}
+                <div class="field">
+                    <label>Mobile Number</label>
+                    <p class="contact-now" data-current-phone>{{ $dbUser->phone ?: '—' }}</p>
+                    <form method="POST" action="{{ route('buyer.phone.request') }}" class="contact-form">
+                        @csrf
+                        <input type="text" name="phone" placeholder="09XXXXXXXXX" maxlength="13" value="{{ old('phone') }}" required aria-label="New mobile number">
+                        <button type="submit" class="addr-btn">Send code</button>
+                    </form>
+                    @error('phone')<span class="field-error">{{ $message }}</span>@enderror
+                    @if($pendingPhone)
+                        <form method="POST" action="{{ route('buyer.contact.verify', 'phone') }}" class="contact-form">
+                            @csrf
+                            <input type="text" name="otp" inputmode="numeric" maxlength="6" placeholder="6-digit code (check your email)" required aria-label="Code">
+                            <button type="submit" class="addr-btn">Verify</button>
+                        </form>
+                    @endif
+                </div>
+            </div>
+            @error('otp')<span class="field-error">{{ $message }}</span>@enderror
 
         </div>
 
@@ -183,10 +196,12 @@
                                         <span class="addr-badge"><i class="bi bi-check-lg"></i> Default</span>
                                     @endif
                                 </div>
+                                @if($addr->recipient_name)<span class="addr-recipient">{{ $addr->recipient_name }}</span>@endif
                                 <span>{{ $addr->address }}</span>
                                 <span class="addr-phone"><i class="bi bi-telephone"></i> {{ $addr->phone }}</span>
                             </div>
                             <div class="addr-actions">
+                                <a href="{{ route('buyer.addresses.edit', $addr->id) }}" class="addr-btn">Edit</a>
                                 @unless($addr->is_default)
                                     <form method="POST" action="{{ route('buyer.addresses.default', $addr->id) }}">
                                         @csrf
@@ -205,7 +220,7 @@
             @endif
 
             @if($addresses->count() < 10)
-                <details class="addr-add" @if($errors->has('address') || $errors->has('phone') || $errors->has('label')) open @endif>
+                <details class="addr-add" @if($errors->hasAny(['address', 'phone', 'label', 'recipient_name', 'region', 'province', 'city_municipality', 'barangay', 'street'])) open @endif>
                     <summary><i class="bi bi-plus-lg"></i> Add a new address</summary>
 
                     <form method="POST" action="{{ route('buyer.addresses.store') }}">
@@ -215,18 +230,8 @@
                                 <label for="addr_label">Label <span class="field-hint" style="display:inline;">(optional)</span></label>
                                 <input type="text" id="addr_label" name="label" maxlength="40" placeholder="Home, Work…" value="{{ old('label') }}">
                             </div>
-                            <div class="field">
-                                <label for="addr_phone">Phone Number</label>
-                                <input type="text" id="addr_phone" name="phone" maxlength="20" placeholder="09XXXXXXXXX" value="{{ old('phone', $dbUser->phone ?? '') }}" required>
-                            </div>
-                            <div class="field" style="grid-column: 1 / -1;">
-                                <label for="addr_province_search">Complete Address</label>
-                                @include('partials.address-fields', ['id' => 'addr', 'value' => old('address')])
-                                @error('address')
-                                    <span class="field-hint" style="color:#be123c;">{{ $message }}</span>
-                                @enderror
-                            </div>
                         </div>
+                        @include('partials.address-book-fields', ['address' => null, 'prefix' => 'addr'])
                         <label class="addr-default-check">
                             <input type="checkbox" name="is_default" value="1" @checked($addresses->isEmpty())>
                             Use as my default address

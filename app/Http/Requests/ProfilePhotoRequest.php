@@ -15,7 +15,15 @@ class ProfilePhotoRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'profile_photo' => 'required|image|mimes:jpg,jpeg,png,webp|max:2048',
+            // JPG or PNG (checked by content), up to 5 MB (A16).
+            'profile_photo' => 'required|image|mimes:jpg,jpeg,png|max:5120',
         ];
+    }
+
+    public function messages(): array
+    {
+        $message = 'The profile photo must be a JPG or PNG image of at most 5 MB.';
+
+        return ['profile_photo.image' => $message, 'profile_photo.mimes' => $message, 'profile_photo.max' => $message, 'profile_photo.uploaded' => $message];
     }
 }

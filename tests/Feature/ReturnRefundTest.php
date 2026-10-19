@@ -41,6 +41,7 @@ class ReturnRefundTest extends TestCase
             'request_type' => $type,
             'reason' => 'Damaged item',
             'message' => 'Screen is cracked.',
+            'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
             'refund_method' => 'GCash',
             'refund_account_name' => 'Juan Dela Cruz',
             'refund_account_number' => '09171234567',

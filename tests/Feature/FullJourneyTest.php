@@ -151,6 +151,7 @@ class FullJourneyTest extends TestCase
             'request_type' => 'Refund',
             'reason' => 'Damaged item',
             'message' => 'Left earbud does not charge.',
+            'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
             'refund_method' => 'Maya',
             'refund_account_name' => 'Buyer Name',
             'refund_account_number' => '09171234567',

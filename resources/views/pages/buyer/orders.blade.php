@@ -94,20 +94,13 @@
                     >
 
                     @php
-                        // How many orders each tab holds (same grouping as the cards below).
-                        $tabGroups = [
-                            'to-ship' => ['pending', 'confirmed', 'preparing', 'ready for pickup', 'pickup assigned'],
-                            'to-receive' => ['picked up', 'dropped off', 'at sorting center', 'in transit', 'sorted', 'assigned for delivery', 'out for delivery', 'ready to collect'],
-                            'delivered' => ['delivered', 'completed'],
-                            'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
-                        ];
-                        $tabCounts = ['all' => count($orders), 'to-ship' => 0, 'to-receive' => 0, 'delivered' => 0, 'cancelled' => 0];
+                        // How many orders each tab holds (same grouping as the cards below, App\Support\BuyerOrderTabs).
+                        $tabLabels = \App\Support\BuyerOrderTabs::LABELS;
+                        $tabCounts = array_fill_keys(array_keys($tabLabels), 0);
+                        $tabCounts['all'] = count($orders);
                         foreach ($orders as $o) {
-                            $s = strtolower($o['status'] ?? 'pending');
-                            $g = collect($tabGroups)->search(fn ($list) => in_array($s, $list)) ?: 'to-ship';
-                            $tabCounts[$g]++;
+                            $tabCounts[\App\Support\BuyerOrderTabs::group($o, $returnRequests->get($o['id'], collect())->where('status', '!=', 'cancelled')->isNotEmpty())]++;
                         }
-                        $tabLabels = ['all' => 'All', 'to-ship' => 'To Ship', 'to-receive' => 'To Receive', 'delivered' => 'Delivered', 'cancelled' => 'Cancelled / Returned'];
                     @endphp
 
                     <div class="order-tabs" id="orderTabs">
@@ -141,21 +134,7 @@
                                 in_array($order['status'] ?? '', \App\Support\OrderStatus::DONE, true)
                                 && !empty($order['buyer_received_at']);
 
-                            $statusGroups = [
-                                'to-ship' => ['pending', 'confirmed', 'preparing', 'ready for pickup', 'pickup assigned'],
-                                'to-receive' => ['picked up', 'dropped off', 'at sorting center', 'in transit', 'sorted', 'assigned for delivery', 'out for delivery', 'ready to collect'],
-                                'delivered' => ['delivered', 'completed'],
-                                'cancelled' => ['cancelled', 'delivery failed', 'returning', 'return ready', 'returned to seller'],
-                            ];
-
-                            $orderGroup = 'to-ship';
-
-                            foreach ($statusGroups as $groupKey => $groupStatuses) {
-                                if (in_array($orderStatus, $groupStatuses)) {
-                                    $orderGroup = $groupKey;
-                                    break;
-                                }
-                            }
+                            $orderGroup = \App\Support\BuyerOrderTabs::group($order, $returnRequests->get($order['id'], collect())->where('status', '!=', 'cancelled')->isNotEmpty());
 
                             // Rider + map only mean something once a rider
                             // actually has the parcel; a closed order (cancelled,
@@ -638,6 +617,13 @@
                                                     <i class="bi bi-box-seam-fill"></i> Order Received
                                                 </button>
                                             </form>
+
+                                            {{-- A return or refund within 7 days of delivery (A11). --}}
+                                            @if(\Illuminate\Support\Carbon::parse($order['delivered_at'] ?? $order['updated_at'])->addDays(\App\Support\AutoReceive::RETURN_WINDOW_DAYS)->isFuture())
+                                                <button type="button" class="return-btn" onclick="openReturnRefund('{{ $order['id'] }}')">
+                                                    <i class="bi bi-arrow-return-left"></i> Return / Refund
+                                                </button>
+                                            @endif
                                         @endif
 
                                     @else
@@ -654,6 +640,7 @@
                                             <i class="bi bi-receipt"></i> View Details
                                         </button>
 
+                                        @if(\Illuminate\Support\Carbon::parse($order['delivered_at'] ?? $order['buyer_received_at'] ?? $order['updated_at'])->addDays(\App\Support\AutoReceive::RETURN_WINDOW_DAYS)->isFuture())
                                         <button
                                             type="button"
                                             class="return-btn"
@@ -661,6 +648,7 @@
                                         >
                                             <i class="bi bi-arrow-return-left"></i> Return / Refund
                                         </button>
+                                        @endif
 
                                     @endif
 
@@ -767,8 +755,7 @@
                                     </div>
 
                                     <div class="return-note">
-                                        Your order has already been marked as received.
-                                        Choose the item and tell us why you want a return or refund.
+                                        Choose the item and tell us why you want a return or refund — within 7 days of delivery.
                                     </div>
 
                                     <form
@@ -821,7 +808,10 @@
                                             <textarea
                                                 id="return-message-{{ $order['id'] }}"
                                                 name="message"
-                                                placeholder="Explain what happened (optional)"
+                                                minlength="10"
+                                                maxlength="500"
+                                                required
+                                                placeholder="Explain what happened (10 to 500 characters)"
                                             ></textarea>
                                         </div>
 
@@ -847,13 +837,15 @@
                                         </div>
 
                                         <div class="return-form-group">
-                                            <label for="return-evidence-{{ $order['id'] }}">Photo Evidence (optional)</label>
+                                            <label for="return-evidence-{{ $order['id'] }}">Photos of the item (1 to 5)</label>
                                             @include('partials.file-picker', [
                                                 'id' => 'return-evidence-' . $order['id'],
-                                                'name' => 'evidence',
-                                                'accept' => 'image/*',
-                                                'label' => 'Attach a photo',
-                                                'hint' => 'JPG or PNG · up to 4 MB',
+                                                'name' => 'photos[]',
+                                                'accept' => 'image/jpeg,image/png',
+                                                'label' => 'Attach photos',
+                                                'hint' => 'JPG or PNG · up to 5 MB each · 1 to 5 photos',
+                                                'multiple' => true,
+                                                'required' => true,
                                             ])
                                         </div>
 
@@ -887,7 +879,7 @@
 
 @include('partials.order-timeline', ['steps' => $timelines[$order['id']] ?? collect(), 'plan' => $routePlans[$order['id']] ?? null, 'eta' => $order['eta'] ?? null,'proof' => !empty($order['delivery_proof']) ? route('orders.delivery-proof', $order['id']) : null])
 
-@if($showRider || $orderGroup === 'delivered')
+@if($showRider || in_array($orderGroup, ['completed', 'returns'], true))
 
 {{-- RIDER PROFILE --}}
 @if(!empty($order['rider_name']))
