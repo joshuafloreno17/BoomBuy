@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\SortingCenter;
 use App\Models\User;
 use App\Support\LoginGate;
+use App\Support\PhLocations;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
@@ -36,9 +37,25 @@ class AuthController extends Controller
             return redirect()->route('rider.dashboard');
         }
 
+        // Coverage: the open province centers by island group, with their open branches.
+        $centers = SortingCenter::centers()->where('is_active', true)
+            ->withCount(['branches' => fn ($q) => $q->where('is_active', true)])
+            ->orderBy('province')
+            ->get(['id', 'province']);
+
+        $coverage = ['Luzon' => [], 'Visayas' => [], 'Mindanao' => []];
+
+        foreach ($centers as $center) {
+            $coverage[PhLocations::islandGroup($center->province) ?? 'Luzon'][] = [
+                'province' => PhLocations::provinceLabel($center->province),
+                'branches' => (int) $center->branches_count,
+            ];
+        }
+
         return view('logistics-portal.home', [
-            'centerCount' => SortingCenter::centers()->where('is_active', true)->count(),
+            'centerCount' => $centers->count(),
             'branchCount' => SortingCenter::whereNotNull('parent_id')->where('is_active', true)->count(),
+            'coverage' => $coverage,
         ]);
     }
 
