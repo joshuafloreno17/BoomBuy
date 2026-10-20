@@ -32,7 +32,7 @@
     gap: 14px;
     align-items: center;
     padding: 10px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
 }
 
@@ -84,7 +84,7 @@
 .bn-info small {
     display: block;
     margin-top: 2px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
 }
 
@@ -110,7 +110,7 @@
 .bn-pill.is-live { background: #e9f9ef; color: #15803d; }
 .bn-pill.is-scheduled { background: #fff4d6; color: #a16207; }
 .bn-pill.is-ended,
-.bn-pill.is-off { background: #f1eff5; color: #645a80; }
+.bn-pill.is-off { background: #f1eff5; color: var(--theme-muted); }
 
 .bn-actions {
     display: flex;
@@ -145,12 +145,12 @@
 #banner-form input[type="number"] {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 9px;
     background: #ffffff;
     font-family: inherit;
     font-size: 13px;
-    color: #221a3a;
+    color: var(--theme-ink);
     outline: none;
 }
 
@@ -183,7 +183,7 @@
     width: 56px;
     height: 56px;
     object-fit: contain;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     background: #ffffff;
 }
@@ -195,7 +195,7 @@
 }
 
 .bn-cancel {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;

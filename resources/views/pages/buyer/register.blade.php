@@ -224,7 +224,7 @@
                 </div>
 
                 <div class="field" id="id-field">
-                    <span class="field-label" style="display:block;font-size:14px;font-weight:600;color:#221a3a;margin-bottom:6px">Valid ID</span>
+                    <span class="field-label" style="display:block;font-size:14px;font-weight:600;color:var(--theme-ink);margin-bottom:6px">Valid ID</span>
                     <input type="file" id="id_photo" name="id_photo" class="reg-file-input" accept=".jpg,.jpeg,.png,.pdf" required>
                     <label for="id_photo" class="reg-drop" id="id-drop">
                         <span class="reg-drop-icon"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#6d4ad1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 20h16"/></svg></span>

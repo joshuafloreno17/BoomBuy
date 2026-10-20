@@ -259,7 +259,7 @@ select {
 
 .cat-chip:hover {
     border-color: #c4badf;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .cat-chip i {
@@ -355,7 +355,7 @@ select {
 .cat-chip.is-empty:not(.active) {
     border-style: dashed;
     background: transparent;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .cat-chip.is-empty:not(.active) i {
@@ -523,7 +523,7 @@ select {
     padding: 0 11px;
     border-radius: 999px;
     border: 1px solid #ddd5f2;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     font-size: 12px;
     font-weight: 700;
     color: #463c5e;
@@ -619,7 +619,7 @@ select {
 .sp-media {
     position: relative;
     height: 190px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #b4a7d7;
     font-size: 52px;
     display: flex;
@@ -692,7 +692,7 @@ select {
     align-items: center;
     gap: 5px;
     max-width: 100%;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11.5px;
     font-weight: 600;
     white-space: nowrap;
@@ -842,7 +842,7 @@ select {
     width: 72px;
     height: 72px;
     border-radius: 50%;
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: var(--accent-dark);
     font-size: 30px;
     display: flex;
@@ -902,7 +902,7 @@ select {
 }
 
 .btn-soft:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .load-more {
@@ -920,7 +920,7 @@ select {
     width: 240px;
     height: 5px;
     border-radius: 999px;
-    background: #e9e4fa;
+    background: var(--theme-border);
     overflow: hidden;
 }
 
@@ -1287,7 +1287,7 @@ select {
     z-index: 1;
     padding: 3px 9px;
     border-radius: 999px;
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     color: #fff;
     font-size: 12px;
     font-weight: 800;
@@ -1298,7 +1298,7 @@ select {
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: var(--muted, #645a80);
+    color: var(--muted, var(--theme-muted));
 }
 /* Store banner, and the "On vacation" label (store page + cards) */
 .seller-banner {
@@ -1357,7 +1357,7 @@ select {
     place-items: center;
     overflow: hidden;
     background: #ede7fb;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-weight: 800;
 }
 
@@ -1390,4 +1390,4 @@ select {
 }
 
 .store-cat.is-sub { font-weight: 500; color: #5b4f80; }
-.store-cat.is-active { background: #6d4ad1; border-color: #6d4ad1; color: #fff; }
+.store-cat.is-active { background: var(--theme-primary); border-color: var(--theme-primary); color: #fff; }

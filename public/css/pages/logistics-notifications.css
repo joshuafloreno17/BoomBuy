@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -31,7 +31,7 @@ a { text-decoration: none; }
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -46,7 +46,7 @@ a { text-decoration: none; }
 
 .notification-card {
     width: 100%;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     background: white;
     padding: 18px;
@@ -61,8 +61,8 @@ a { text-decoration: none; }
 }
 
 .notification-card.unread {
-    border-left: 4px solid #6d4ad1;
-    background: #f8f6fe;
+    border-left: 4px solid var(--theme-primary);
+    background: var(--theme-bg);
 }
 
 .notification-card.read {
@@ -80,7 +80,7 @@ a { text-decoration: none; }
     height: 44px;
     flex-shrink: 0;
     border-radius: 11px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -96,11 +96,11 @@ a { text-decoration: none; }
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 17px;
     font-weight: 700;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .notification-message {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     line-height: 1.6;
     margin-top: 3px;
@@ -123,14 +123,14 @@ a { text-decoration: none; }
 .unread-dot {
     width: 7px;
     height: 7px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     border-radius: 50%;
 }
 
 .notification-type {
     display: inline-block;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     padding: 5px 8px;
     border-radius: 6px;
     font-size: 9px;
@@ -153,7 +153,7 @@ a { text-decoration: none; }
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 

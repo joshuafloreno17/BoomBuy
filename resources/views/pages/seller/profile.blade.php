@@ -136,7 +136,7 @@
                     <h3>Shop Profile</h3>
                     <p class="card-sub">
                         This is what buyers see on your shop page.
-                        <a href="{{ route('shop.seller', $user['id']) }}" style="color:#5536b5; font-weight:700;">View my shop →</a>
+                        <a href="{{ route('shop.seller', $user['id']) }}" style="color:var(--theme-primary-hover); font-weight:700;">View my shop →</a>
                     </p>
 
                     <form method="POST" action="{{ route('seller.shop.update') }}" enctype="multipart/form-data">
@@ -231,7 +231,7 @@
 
                         <label style="display:flex; align-items:center; gap:10px; margin-bottom:14px; font-weight:700; cursor:pointer;">
                             <input type="hidden" name="auto_reply_enabled" value="0">
-                            <input type="checkbox" name="auto_reply_enabled" value="1" style="width:18px; height:18px; accent-color:#6d4ad1;" @checked(old('auto_reply_enabled', $autoReply['enabled']))>
+                            <input type="checkbox" name="auto_reply_enabled" value="1" style="width:18px; height:18px; accent-color:var(--theme-primary);" @checked(old('auto_reply_enabled', $autoReply['enabled']))>
                             Send an auto-reply
                         </label>
 

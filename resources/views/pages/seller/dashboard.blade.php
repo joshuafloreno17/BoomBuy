@@ -699,7 +699,7 @@
 
     @endif
 
-    <p id="productSearchEmpty" style="display:none; text-align:center; color:#645a80; font-size:13px; margin:10px 0 24px;">
+    <p id="productSearchEmpty" style="display:none; text-align:center; color:var(--theme-muted); font-size:13px; margin:10px 0 24px;">
         No products match your search.
     </p>
 

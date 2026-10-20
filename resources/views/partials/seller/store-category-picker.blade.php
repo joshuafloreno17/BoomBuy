@@ -36,13 +36,13 @@
 @once
 <style>
     .store-cat-picker { margin-top: 16px; }
-    .store-cat-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 8px; color: #221a3a; }
+    .store-cat-label { display: block; font-weight: 700; font-size: 13px; margin-bottom: 8px; color: var(--theme-ink); }
     .store-cat-label small { font-weight: 500; color: #857ca0; }
     .store-cat-options { display: flex; flex-wrap: wrap; gap: 8px; }
     .store-cat-option { display: inline-flex; align-items: center; gap: 6px; padding: 7px 11px; border: 1px solid #ddd5f2; border-radius: 999px; font-size: 13px; cursor: pointer; background: #fff; }
-    .store-cat-option:has(input:checked) { border-color: #6d4ad1; background: #f3efff; }
+    .store-cat-option:has(input:checked) { border-color: var(--theme-primary); background: #f3efff; }
     .store-cat-option:has(input:disabled) { opacity: .5; cursor: not-allowed; }
-    .store-cat-option input { accent-color: #6d4ad1; }
+    .store-cat-option input { accent-color: var(--theme-primary); }
     .store-cat-hint, .store-cat-empty { display: block; margin-top: 8px; font-size: 12px; color: #574e70; }
     .store-cat-hint.is-limit { color: #be123c; font-weight: 700; }
     .store-cat-error { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #be123c; }

@@ -16,7 +16,7 @@
             max-width: calc(100% - 32px);
             padding: 12px 14px 12px 16px;
             border-radius: 14px;
-            background: #221a3a;
+            background: var(--theme-ink);
             color: #fff;
             font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
             font-size: 13.5px;
@@ -64,19 +64,29 @@
     </script>
 @endif
 <style>
-    /* "Sunrise Market" design system (all-light): warm cream ground, white surfaces, one orange accent. */
+    /* Lavender theme palette: the one place the site's main colors are set. CSS files use var(--theme-*);
+       emails, error pages, /app and JS chart colors keep plain hex. */
     :root {
-        --ink: #221a3a;
-        --muted: #645a80;
+        --theme-primary: #6d4ad1;
+        --theme-primary-hover: #5536b5;
+        --theme-soft: #eee8ff;
+        --theme-lavender: #c9b6ff;
+        --theme-bg: #f8f6fe;
+        --theme-ink: #221a3a;
+        --theme-muted: #645a80;
+        --theme-border: #e9e4fa;
+
+        --ink: var(--theme-ink);
+        --muted: var(--theme-muted);
         --muted-2: #857ca0;
-        --line: #e9e4fa;
-        --cream: #f8f6fe;
+        --line: var(--theme-border);
+        --cream: var(--theme-bg);
         --paper: #ffffff;
-        --accent: #6d4ad1;
-        --accent-dark: #5536b5;
+        --accent: var(--theme-primary);
+        --accent-dark: var(--theme-primary-hover);
         --accent-2: #7b5ce0;
         --accent-soft: #e6dcff;
-        --accent-tint: #eee8ff;
+        --accent-tint: var(--theme-soft);
         --gold: #f5b70b;
         --teal: #0d9488;
         --teal-dark: #0a6f66;
@@ -90,7 +100,7 @@
     /* Logo: BB bag icon + "BoomBuy" (used on auth, error and simple pages). */
     .bb-logo-mark { width: 32px; height: 32px; flex: none; border-radius: 9px; vertical-align: middle; }
     :is(a, div):has(> .bb-logo-mark) { display: inline-flex; align-items: center; gap: 9px; text-decoration: none; }
-    .bb-logo-word { color: #221a3a !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
+    .bb-logo-word { color: var(--theme-ink) !important; font-family: 'Bricolage Grotesque', 'Figtree', sans-serif; font-weight: 800; }
     /* Wordmark: the cart-in-the-"oo" logo as one image (auth, error and simple pages). */
     .bb-logo-wordmark { display: block; width: auto; height: 46px; }
 
@@ -119,7 +129,7 @@
         margin: 0 0 14px;
         padding: 10px 14px;
         background: #fff;
-        border: 1px solid #e9e4fa;
+        border: 1px solid var(--theme-border);
         border-radius: 12px;
         font-size: 13px;
         color: #574e70;
@@ -129,8 +139,8 @@
         align-items: center;
         gap: 6px;
         border: none;
-        background: #eee8ff;
-        color: var(--accent-dark, #5536b5);
+        background: var(--theme-soft);
+        color: var(--accent-dark);
         font-weight: 700;
         font-size: 13px;
         font-family: inherit;

@@ -126,7 +126,7 @@
 
 
         {{-- CHECK EXISTING APPLICATION STATUS --}}
-        <div class="status-check-box" style="background:#fff; border:1px solid #e9e4fa; border-radius:14px; padding:18px; margin-bottom:20px;">
+        <div class="status-check-box" style="background:#fff; border:1px solid var(--theme-border); border-radius:14px; padding:18px; margin-bottom:20px;">
 
             <form method="GET" action="{{ route('rider.apply') }}" style="display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end;">
 
@@ -144,7 +144,7 @@
                     >
                 </div>
 
-                <button type="submit" style="background:#eee8ff; color:#6d4ad1; border:1px solid #c7bce5; border-radius:8px; padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;">
+                <button type="submit" style="background:var(--theme-soft); color:var(--theme-primary); border:1px solid #c7bce5; border-radius:8px; padding:10px 16px; font-size:12px; font-weight:700; cursor:pointer;">
                     Check Status
                 </button>
 

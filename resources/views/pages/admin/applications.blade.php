@@ -198,7 +198,7 @@
                         <form class="approve-form" method="POST" action="{{ route('admin.applications.approve', ['type' => $type, 'id' => $app->id]) }}">
                             @csrf
                             @if ($type === 'seller')
-                                <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid #e9e4fa; border-radius:8px; font-size:11px; font-family:inherit;">
+                                <select name="business_category" {{ empty($app->business_category) ? 'required' : '' }} style="padding:9px 11px; border:1px solid var(--theme-border); border-radius:8px; font-size:11px; font-family:inherit;">
                                     <option value="">
                                         {{ empty($app->business_category) ? 'Registered Category…' : 'Change category…' }}
                                     </option>

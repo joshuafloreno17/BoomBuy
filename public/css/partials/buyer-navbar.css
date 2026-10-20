@@ -6,7 +6,7 @@
     height: 72px;
 
     background: white;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 
     padding: 16px 7%;
 
@@ -42,7 +42,7 @@
     font-family: "Bricolage Grotesque", "Figtree", sans-serif;
     font-size: 22px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .bb-logo img {
@@ -83,13 +83,13 @@
 }
 
 .bb-nav-links a:hover {
-    color: #221a3a;
-    background: #f8f6fe;
+    color: var(--theme-ink);
+    background: var(--theme-bg);
 }
 
 .bb-nav-links a.active {
-    color: #5536b5;
-    background: #eee8ff;
+    color: var(--theme-primary-hover);
+    background: var(--theme-soft);
 }
 
 .bb-nav-search {
@@ -110,7 +110,7 @@
 }
 
 .bb-nav-search:focus-within {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 4px rgba(109, 74, 209, .12);
 }
 
@@ -126,7 +126,7 @@
 
     font-family: inherit;
     font-size: 14.5px;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .bb-nav-search input::placeholder {
@@ -142,7 +142,7 @@
 
     border: none;
     border-radius: 0 10px 10px 0;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     cursor: pointer;
 
@@ -156,7 +156,7 @@
 }
 
 .bb-nav-search .bb-nav-search-btn:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 /* =========================
@@ -229,7 +229,7 @@
     }
 
     .bb-tabbar a.active {
-        color: #5536b5;
+        color: var(--theme-primary-hover);
         font-weight: 800;
     }
 
@@ -243,7 +243,7 @@
         padding: 0 4px;
 
         border-radius: 999px;
-        background: #5536b5;
+        background: var(--theme-primary-hover);
         color: #fff;
 
         font-size: 10px;
@@ -284,7 +284,7 @@
 .bb-nav-right .bb-cart-link {
     position: relative;
 
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 18px;
 
     transition: 0.2s;
@@ -292,7 +292,7 @@
 
 .bb-nav-right .bb-cart-link:hover,
 .bb-nav-right .bb-cart-link.active {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-nav-right .bb-cart-number {
@@ -315,7 +315,7 @@
 
     padding: 6px 10px 6px 6px;
 
-    background: #eee8ff;
+    background: var(--theme-soft);
     border: none;
     cursor: pointer;
 
@@ -325,7 +325,7 @@
     font-size: 13px;
     font-weight: 700;
 
-    color: #221a3a;
+    color: var(--theme-ink);
 
     white-space: nowrap;
 
@@ -344,7 +344,7 @@
 
 .bb-chip-caret {
     font-size: 10px;
-    color: #645a80;
+    color: var(--theme-muted);
     transition: transform 0.2s ease;
 }
 
@@ -371,7 +371,7 @@
     width: 250px;
 
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     box-shadow: 0 18px 40px -12px rgba(34, 26, 58, 0.22);
 
@@ -397,7 +397,7 @@
     padding: 10px 10px 12px;
     margin-bottom: 4px;
 
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .bb-account-head .bb-user-avatar {
@@ -409,7 +409,7 @@
 .bb-account-name {
     font-size: 13.5px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -418,7 +418,7 @@
 
 .bb-account-email {
     font-size: 11.5px;
-    color: #645a80;
+    color: var(--theme-muted);
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -442,7 +442,7 @@
     font-family: inherit;
     font-size: 13px;
     font-weight: 600;
-    color: #221a3a;
+    color: var(--theme-ink);
     text-align: left;
 }
 
@@ -458,21 +458,21 @@
 .bb-account-menu button:hover,
 .bb-account-menu button:focus-visible {
     outline: none;
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .bb-account-menu a.active {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-account-menu a.active i {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-account-menu form {
     margin: 4px 0 0;
     padding-top: 4px;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
 }
 
 .bb-account-menu .bb-account-logout,
@@ -494,7 +494,7 @@
 }
 
 .bb-hover.is-open > .bb-cart-link {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-pop {
@@ -508,7 +508,7 @@
     width: 370px;
 
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     box-shadow: 0 18px 40px -12px rgba(34, 26, 58, 0.22);
 
@@ -527,13 +527,13 @@
     justify-content: space-between;
 
     padding: 12px 14px 10px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .bb-pop-head strong {
     font-size: 13.5px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .bb-pop-head form {
@@ -548,7 +548,7 @@
     font-family: inherit;
     font-size: 11.5px;
     font-weight: 700;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-pop-list {
@@ -571,11 +571,11 @@
 .bb-notif-item:hover,
 .bb-notif-item:focus-visible {
     outline: none;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .bb-notif-item.is-unread {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .bb-notif-item.is-unread:hover {
@@ -588,8 +588,8 @@
     flex-shrink: 0;
 
     border-radius: 10px;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
 
     display: flex;
     align-items: center;
@@ -610,7 +610,7 @@
 
     font-size: 13px;
     font-weight: 700;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .bb-notif-title span {
@@ -624,7 +624,7 @@
     height: 7px;
     flex-shrink: 0;
     border-radius: 50%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .bb-notif-message {
@@ -650,7 +650,7 @@
     padding: 34px 20px;
     text-align: center;
     font-size: 13px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .bb-pop-empty i {
@@ -668,13 +668,13 @@
     text-align: center;
     font-size: 13px;
     font-weight: 700;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .bb-pop-all:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 /* Invisible bridge over the gap between icon and panel, so moving the
@@ -691,7 +691,7 @@
 .bb-pop-head .bb-pop-link {
     font-size: 11.5px;
     font-weight: 700;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-pop-item {
@@ -709,11 +709,11 @@
 .bb-pop-item:hover,
 .bb-pop-item:focus-visible {
     outline: none;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .bb-pop-item.is-unread {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .bb-pop-thumb {
@@ -722,14 +722,14 @@
     flex-shrink: 0;
 
     border-radius: 9px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     object-fit: cover;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-size: 16px;
 }
 
@@ -753,7 +753,7 @@
 
     font-size: 13px;
     font-weight: 700;
-    color: #221a3a;
+    color: var(--theme-ink);
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -764,7 +764,7 @@
     margin-top: 2px;
 
     font-size: 12px;
-    color: #645a80;
+    color: var(--theme-muted);
 
     overflow: hidden;
     text-overflow: ellipsis;
@@ -772,7 +772,7 @@
 }
 
 .bb-pop-item.is-unread .bb-pop-sub {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 600;
 }
 
@@ -780,7 +780,7 @@
     flex-shrink: 0;
     font-size: 12.5px;
     font-weight: 800;
-    color: #6d4ad1;
+    color: var(--theme-primary);
     white-space: nowrap;
 }
 
@@ -796,7 +796,7 @@
 
 .bb-pop-foot {
     padding: 12px 14px;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .bb-pop-summary {
@@ -807,11 +807,11 @@
     margin-bottom: 10px;
 
     font-size: 12px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .bb-pop-summary strong {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 13px;
 }
 
@@ -835,21 +835,21 @@
 
     font-size: 12.5px;
     font-weight: 800;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-pop-btn:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .bb-pop-btn.is-primary {
-    background: #6d4ad1;
-    border-color: #6d4ad1;
+    background: var(--theme-primary);
+    border-color: var(--theme-primary);
     color: #fff;
 }
 
 .bb-pop-btn.is-primary:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 .bb-pop-empty .bb-pop-btn {
@@ -879,7 +879,7 @@
 
     border-radius: 50%;
 
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
 
     display: flex;
@@ -925,7 +925,7 @@
 }
 
 .bb-login-link {
-    color: #6d4ad1;
+    color: var(--theme-primary);
     background: #fff;
     border: 1px solid #e1dbf1;
 
@@ -940,11 +940,11 @@
 }
 
 .bb-login-link:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .bb-register-link {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
 
     padding: 10px 16px;
@@ -958,7 +958,7 @@
 }
 
 .bb-register-link:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 @media (max-width: 1100px) {
@@ -1081,7 +1081,7 @@
     bottom: 3px;
     height: 2.5px;
     border-radius: 2px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     transform: scaleX(0);
     transform-origin: left;
     transition: transform .2s ease;
@@ -1090,7 +1090,7 @@
 .bb-nav-links a:hover,
 .bb-nav-links a.active {
     background: transparent;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .bb-nav-links a.active { font-weight: 800; }
@@ -1102,8 +1102,8 @@
 
 .bb-nav-search {
     height: 48px;
-    background: #f8f6fe;
-    border: 1.5px solid #e9e4fa;
+    background: var(--theme-bg);
+    border: 1.5px solid var(--theme-border);
     border-radius: 16px;
 }
 

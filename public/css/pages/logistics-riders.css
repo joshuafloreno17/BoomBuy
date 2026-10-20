@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -31,7 +31,7 @@ a { text-decoration: none; }
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -58,7 +58,7 @@ a { text-decoration: none; }
 
 .app-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 16px;
@@ -79,7 +79,7 @@ a { text-decoration: none; }
 }
 
 .app-email {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 2px;
 }
@@ -135,9 +135,9 @@ a { text-decoration: none; }
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
-    color: #6d4ad1;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    color: var(--theme-primary);
     padding: 7px 12px;
     border-radius: 8px;
     font-size: 11px;
@@ -175,7 +175,7 @@ a { text-decoration: none; }
 
 .reject-form input[type="text"] {
     padding: 9px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-size: 11px;
     font-family: inherit;
@@ -260,8 +260,8 @@ a { text-decoration: none; }
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
     color: #463c5e;
     padding: 6px 10px;
     border-radius: 20px;
@@ -292,7 +292,7 @@ a { text-decoration: none; }
 
 .area-add-form select {
     padding: 8px 10px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-size: 11px;
     font-family: inherit;
@@ -300,8 +300,8 @@ a { text-decoration: none; }
 }
 
 .add-area-btn {
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     border: 1px dashed #c7bce5;
     border-radius: 8px;
     padding: 8px 14px;
@@ -318,7 +318,7 @@ a { text-decoration: none; }
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 
@@ -350,7 +350,7 @@ a { text-decoration: none; }
 .status-chip {
     padding: 7px 13px;
     border-radius: 999px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     background: #fff;
     color: #574e70;
     font-size: 12px;
@@ -360,13 +360,13 @@ a { text-decoration: none; }
 
 .status-chip.has-work {
     border-color: #c9bdea;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .status-chip.active {
-    background: #eee8ff;
-    border-color: var(--accent, #6d4ad1);
-    color: #5536b5;
+    background: var(--theme-soft);
+    border-color: var(--accent, var(--theme-primary));
+    color: var(--theme-primary-hover);
 }
 
 .rider-search {
@@ -379,7 +379,7 @@ a { text-decoration: none; }
 .rider-search input {
     flex: 1;
     padding: 10px 13px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     font-size: 13px;
     font-family: inherit;
@@ -390,7 +390,7 @@ a { text-decoration: none; }
     padding: 10px 14px;
     border: none;
     border-radius: 10px;
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     color: #fff;
     font-size: 13px;
     cursor: pointer;
@@ -418,15 +418,15 @@ a { text-decoration: none; }
 /* Same as admin Applications: Pending with something waiting is solid. */
 .status-chip.has-work,
 .status-chip.has-work.active {
-    background: var(--accent, #6d4ad1);
-    border-color: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
+    border-color: var(--accent, var(--theme-primary));
     color: #fff;
 }
 
 /* Where the rider lives, and areas that don't fit it (ERP: rider assigned to that area). */
 .area-home {
     margin-left: 8px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11.5px;
     font-weight: 600;
     text-transform: none;

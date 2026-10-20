@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -37,7 +37,7 @@ a {
 }
 
 .header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -71,14 +71,14 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-bottom: 8px;
 }
@@ -90,7 +90,7 @@ a {
 
 .complaint-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 16px;
@@ -111,7 +111,7 @@ a {
 }
 
 .complaint-meta {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-top: 4px;
 }
@@ -120,8 +120,8 @@ a {
     color: #463c5e;
     font-size: 13px;
     line-height: 1.6;
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     padding: 12px 14px;
     margin-bottom: 14px;
@@ -131,9 +131,9 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
-    color: #6d4ad1;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    color: var(--theme-primary);
     padding: 7px 12px;
     border-radius: 8px;
     font-size: 11px;
@@ -177,7 +177,7 @@ a {
 .resolve-form select,
 .resolve-form input[type="text"] {
     width: 100%;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     padding: 9px 11px;
     font-family: inherit;
@@ -186,7 +186,7 @@ a {
 
 .resolve-btn {
     border: none;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     padding: 10px 18px;
     border-radius: 9px;
@@ -197,14 +197,14 @@ a {
 }
 
 .resolve-btn:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 .empty {
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 

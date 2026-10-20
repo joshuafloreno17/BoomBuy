@@ -36,12 +36,12 @@
     .pg-note { margin: 2px 0 8px; font-size: 12.5px; color: #857ca0; }
     .pp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
     .pp-item { position: relative; width: 96px; display: flex; flex-direction: column; gap: 6px; }
-    .pp-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid #e9e4fa; background: #f8f6fe; }
+    .pp-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid var(--theme-border); background: var(--theme-bg); }
     .pp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pp-item.is-cover .pp-thumb { border: 2px solid #6d4ad1; }
-    .pp-badge { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; background: #6d4ad1; color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
-    .pp-opt.pp-opt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: #645a80; cursor: pointer; }
-    .pp-opt input { width: 15px; height: 15px; margin: 0; accent-color: #6d4ad1; }
+    .pp-item.is-cover .pp-thumb { border: 2px solid var(--theme-primary); }
+    .pp-badge { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; background: var(--theme-primary); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
+    .pp-opt.pp-opt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: var(--theme-muted); cursor: pointer; }
+    .pp-opt input { width: 15px; height: 15px; margin: 0; accent-color: var(--theme-primary); }
     .pp-item.is-removed .pp-thumb { opacity: .35; }
     .pp-hint { margin: 6px 0 0; font-size: 12.5px; color: #857ca0; }
 </style>

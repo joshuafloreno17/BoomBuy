@@ -11,8 +11,8 @@
 
         body {
             font-family: 'Figtree', -apple-system, sans-serif;
-            background: #f8f6fe;
-            color: #221a3a;
+            background: var(--theme-bg);
+            color: var(--theme-ink);
 
             min-height: 100vh;
         }
@@ -29,7 +29,7 @@
 
             background: white;
 
-            border: 1px solid #e9e4fa;
+            border: 1px solid var(--theme-border);
             border-radius: 18px;
 
             padding: 45px;
@@ -74,11 +74,11 @@
 
             margin-top: 8px;
 
-            color: #221a3a;
+            color: var(--theme-ink);
         }
 
         .success-card p {
-            color: #645a80;
+            color: var(--theme-muted);
 
             font-size: 14px;
 
@@ -90,7 +90,7 @@
         .order-box {
             background: #faf8fe;
 
-            border: 1px solid #e9e4fa;
+            border: 1px solid var(--theme-border);
 
             border-radius: 12px;
 
@@ -110,7 +110,7 @@
 
             padding: 10px 0;
 
-            border-bottom: 1px solid #e9e4fa;
+            border-bottom: 1px solid var(--theme-border);
 
             font-size: 13px;
         }
@@ -120,19 +120,19 @@
         }
 
         .order-label {
-            color: #645a80;
+            color: var(--theme-muted);
         }
 
         .order-value {
             font-weight: 700;
 
-            color: #221a3a;
+            color: var(--theme-ink);
 
             text-align: right;
         }
 
         .total {
-            color: #6d4ad1;
+            color: var(--theme-primary);
 
             font-size: 18px;
         }
@@ -169,19 +169,19 @@
         }
 
         .btn-primary {
-            background: #6d4ad1;
+            background: var(--theme-primary);
 
             color: white;
         }
 
         .btn-primary:hover {
-            background: #5536b5;
+            background: var(--theme-primary-hover);
         }
 
         .btn-secondary {
-            background: #eee8ff;
+            background: var(--theme-soft);
 
-            color: #6d4ad1;
+            color: var(--theme-primary);
         }
 
         .btn-secondary:hover {

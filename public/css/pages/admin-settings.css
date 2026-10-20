@@ -8,7 +8,7 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     color: #1f2937;
 }
 
@@ -37,7 +37,7 @@ a {
 }
 
 .header p {
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .success-box {
@@ -75,7 +75,7 @@ a {
 }
 
 .card p.desc {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     margin-bottom: 18px;
 }
@@ -89,14 +89,14 @@ a {
     font-size: 12px;
     font-weight: 700;
     margin-bottom: 7px;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .form-group input[type="text"],
 .form-group textarea {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
@@ -126,7 +126,7 @@ a {
 }
 
 .save-btn:hover {
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .announcement-list {
@@ -156,7 +156,7 @@ a {
 }
 
 .announcement-message {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 4px;
 }
@@ -183,7 +183,7 @@ a {
 }
 
 .mini-btn.toggle {
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #6f51c2;
 }
 

@@ -206,13 +206,13 @@
 
                     <i class="bi bi-star-fill" style="color: var(--gold);"></i> {{ $averageRating }}
 
-                    <span style="color:#645a80;">
+                    <span style="color:var(--theme-muted);">
                         ({{ $reviewCount }} {{ $reviewCount === 1 ? 'review' : 'reviews' }})
                     </span>
 
                 @else
 
-                    <span style="color:#645a80;">
+                    <span style="color:var(--theme-muted);">
                         No reviews yet
                     </span>
 
@@ -705,8 +705,8 @@
                     @endif
 
                     @if(!empty($review->seller_reply))
-                        <div class="seller-reply-box" style="background:#f8f6fe; border:1px solid #e9e4fa; border-radius:10px; padding:10px 12px; margin-top:8px;">
-                            <div style="font-size:11px; font-weight:800; color:#5536b5; margin-bottom:3px;">Seller's Response</div>
+                        <div class="seller-reply-box" style="background:var(--theme-bg); border:1px solid var(--theme-border); border-radius:10px; padding:10px 12px; margin-top:8px;">
+                            <div style="font-size:11px; font-weight:800; color:var(--theme-primary-hover); margin-bottom:3px;">Seller's Response</div>
                             <div style="font-size:13px; color:#463c5e;">{{ $review->seller_reply }}</div>
                         </div>
                     @endif

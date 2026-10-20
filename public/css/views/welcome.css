@@ -758,7 +758,7 @@ a { color: inherit; }
     height: 4px;
     margin: 0 4px 0 12px;
     border-radius: 4px;
-    background: #e9e4fa;
+    background: var(--theme-border);
     overflow: hidden;
 }
 
@@ -846,7 +846,7 @@ a { color: inherit; }
     right: 0;
     bottom: 0;
     height: 4px;
-    background: #e9e4fa;
+    background: var(--theme-border);
 }
 
 .lp-sample-bar span {

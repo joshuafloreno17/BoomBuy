@@ -14,14 +14,14 @@
     gap: 6px;
     padding: 9px 16px;
     border-radius: 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     background: #fff;
-    color: var(--accent, #6d4ad1);
+    color: var(--accent, var(--theme-primary));
     font-weight: 700;
     font-size: 14px;
     text-decoration: none;
 }
-.bb-pager-btn:hover { background: #eee8ff; }
+.bb-pager-btn:hover { background: var(--theme-soft); }
 .bb-pager-btn.is-disabled { color: #b5b0c5; background: #f8f7fa; cursor: default; }
 .bb-pager-info { color: #635c77; font-size: 14px; font-weight: 600; }
 .bb-pager-info small { color: #857ca0; font-weight: 500; }

@@ -2,7 +2,7 @@
 
 .bb-footer {
     margin-top: 32px;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
     background: #fff;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
     color: #574e70;
@@ -24,7 +24,7 @@
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
     font-size: 24px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
     text-decoration: none;
 }
 
@@ -53,12 +53,12 @@
 }
 
 .bb-footer-promises i {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .bb-footer h4 {
     margin: 2px 0 10px;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 13px;
     font-weight: 800;
     letter-spacing: .02em;
@@ -98,14 +98,14 @@
 }
 
 .bb-footer ul a:hover {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .bb-footer-bottom {
     max-width: 1320px;
     margin: 20px auto 0;
     padding: 12px 24px 14px;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -115,7 +115,7 @@
 }
 
 .bb-footer-bottom strong {
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .bb-footer-sell {
@@ -123,7 +123,7 @@
     align-items: center;
     min-height: 40px;
     gap: 6px;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-weight: 700;
     text-decoration: none;
 }
@@ -185,11 +185,11 @@
         gap: 5px;
         padding: 4px 9px;
         border-radius: 999px;
-        background: #eee8ff;
+        background: var(--theme-soft);
     }
 
     .bb-footer-col {
-        border-top: 1px solid #e9e4fa;
+        border-top: 1px solid var(--theme-border);
     }
 
     .bb-footer-col summary {

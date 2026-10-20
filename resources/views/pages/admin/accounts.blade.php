@@ -271,7 +271,7 @@
 
                                         <span
                                             style="
-                                                color:#645a80;
+                                                color:var(--theme-muted);
                                                 font-size:11px;
                                             "
                                         >

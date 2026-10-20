@@ -10,17 +10,17 @@
     @include('partials.design-tokens')
 
     <style>
-        body { margin: 0; background: #f8f6fe; font-family: Arial, sans-serif; color: #221a3a; }
+        body { margin: 0; background: var(--theme-bg); font-family: Arial, sans-serif; color: var(--theme-ink); }
         .mb-wrap { max-width: 1100px; margin: 32px auto; padding: 0 16px; }
         .mb-head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 16px; }
         .mb-head h1 { font-size: 22px; margin: 0; display: flex; align-items: center; gap: 8px; }
-        .mb-note { color: #645a80; font-size: 13px; margin: 4px 0 0; }
+        .mb-note { color: var(--theme-muted); font-size: 13px; margin: 4px 0 0; }
         .mb-search { display: flex; gap: 8px; }
         .mb-search input { padding: 9px 12px; border: 1px solid #d9d1f5; border-radius: 10px; min-width: 240px; font-size: 14px; }
         .mb-search button, .mb-search a { padding: 9px 14px; border-radius: 10px; border: 0; background: #7c3aed; color: #fff; font-size: 14px; text-decoration: none; cursor: pointer; }
         .mb-search a { background: #ede9fe; color: #5b21b6; }
         .mb-grid { display: grid; grid-template-columns: minmax(260px, 360px) 1fr; gap: 16px; }
-        .mb-list, .mb-view { background: #fff; border: 1px solid #e9e4fa; border-radius: 16px; overflow: hidden; }
+        .mb-list, .mb-view { background: #fff; border: 1px solid var(--theme-border); border-radius: 16px; overflow: hidden; }
         .mb-list a { display: block; padding: 12px 14px; border-bottom: 1px solid #f1edfc; text-decoration: none; color: inherit; }
         .mb-list a:hover, .mb-list a.on { background: #f5f3ff; }
         .mb-list .to { font-size: 12px; color: #7c3aed; word-break: break-all; }
@@ -29,7 +29,7 @@
         .mb-empty { padding: 28px 16px; text-align: center; color: #8a80a6; font-size: 14px; }
         .mb-view header { padding: 14px 16px; border-bottom: 1px solid #f1edfc; }
         .mb-view header .subj { font-size: 17px; font-weight: 700; }
-        .mb-view header .meta { font-size: 13px; color: #645a80; margin-top: 4px; }
+        .mb-view header .meta { font-size: 13px; color: var(--theme-muted); margin-top: 4px; }
         .mb-view iframe { width: 100%; height: 640px; border: 0; display: block; }
         .bb-viewer-body .mb-view { border: 0; border-radius: 0; }
         .bb-viewer-body .mb-view header { padding-right: 60px; }

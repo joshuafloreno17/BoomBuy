@@ -2,6 +2,6 @@
 
 body {
     margin: 0;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     overflow-x: hidden;
 }

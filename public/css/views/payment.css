@@ -1,11 +1,11 @@
 /* Sandbox payment page (GCash, Maya, card) */
 :root {
-    --pay-bg: #f8f6fe;
+    --pay-bg: var(--theme-bg);
     --pay-card: #ffffff;
-    --pay-ink: #221a3a;
-    --pay-muted: #645a80;
+    --pay-ink: var(--theme-ink);
+    --pay-muted: var(--theme-muted);
     --pay-line: #e6defa;
-    --pay-brand: #6d4ad1;
+    --pay-brand: var(--theme-primary);
 }
 
 body { margin: 0; background: var(--pay-bg); color: var(--pay-ink); font-family: 'Figtree', -apple-system, sans-serif; }

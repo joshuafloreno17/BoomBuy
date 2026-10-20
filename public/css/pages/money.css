@@ -10,7 +10,7 @@
 
 .money-tile {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 16px 18px;
     min-width: 0;
@@ -18,7 +18,7 @@
 
 .money-tile span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11.5px;
     font-weight: 600;
     margin-bottom: 6px;
@@ -39,12 +39,12 @@
 }
 
 .money-tile.is-key {
-    border-color: #6d4ad1;
-    background: #eee8ff;
+    border-color: var(--theme-primary);
+    background: var(--theme-soft);
 }
 
 .money-tile.is-key strong {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .money-tabs {
@@ -60,9 +60,9 @@
     gap: 6px;
     padding: 7px 13px;
     border-radius: 999px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 12.5px;
     font-weight: 700;
 }
@@ -74,8 +74,8 @@
 }
 
 .money-tabs a.active {
-    background: #221a3a;
-    border-color: #221a3a;
+    background: var(--theme-ink);
+    border-color: var(--theme-ink);
     color: #ffffff;
 }
 
@@ -85,7 +85,7 @@
 
 .money-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 18px 20px;
     margin-bottom: 14px;
@@ -99,7 +99,7 @@
 }
 
 .money-card .sub {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12.5px;
     margin-bottom: 12px;
 }
@@ -117,7 +117,7 @@
 }
 
 .money-meta {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 3px;
 }
@@ -144,7 +144,7 @@
 
 .money-pill.is-good { background: #e3f6f4; color: #0a6f66; }
 .money-pill.is-bad { background: #fff1f2; color: #be123c; }
-.money-pill.is-wait { background: #efedf4; color: #645a80; }
+.money-pill.is-wait { background: #efedf4; color: var(--theme-muted); }
 
 .money-grid {
     display: grid;
@@ -152,7 +152,7 @@
     gap: 10px 18px;
     margin: 14px 0;
     padding: 12px 14px;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     border-radius: 12px;
 }
 
@@ -172,7 +172,7 @@
 }
 
 .money-grid .v {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 600;
     overflow-wrap: anywhere;
 }
@@ -180,7 +180,7 @@
 .money-note {
     font-size: 12.5px;
     color: #463c5e;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     border-left: 3px solid #f5b70b;
     padding: 9px 12px;
     border-radius: 8px;
@@ -201,7 +201,7 @@
     gap: 4px;
     font-size: 11.5px;
     font-weight: 700;
-    color: #645a80;
+    color: var(--theme-muted);
     flex: 1 1 180px;
     min-width: 0;
 }
@@ -211,12 +211,12 @@
 .money-form textarea {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .money-form textarea {
@@ -228,7 +228,7 @@
 .money-form select:focus,
 .money-form textarea:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 3px #e6dcff;
 }
 
@@ -240,24 +240,24 @@
     font-size: 12.5px;
     font-weight: 800;
     cursor: pointer;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #ffffff;
     white-space: nowrap;
 }
 
 .money-btn:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 .money-btn.is-quiet {
     background: #ffffff;
-    color: #221a3a;
-    border: 1px solid #e9e4fa;
+    color: var(--theme-ink);
+    border: 1px solid var(--theme-border);
 }
 
 .money-btn.is-quiet:hover {
-    border-color: #6d4ad1;
-    color: #5536b5;
+    border-color: var(--theme-primary);
+    color: var(--theme-primary-hover);
 }
 
 .money-btn.is-danger {
@@ -265,7 +265,7 @@
 }
 
 .money-btn:focus-visible {
-    outline: 2px solid #221a3a;
+    outline: 2px solid var(--theme-ink);
     outline-offset: 2px;
 }
 
@@ -286,7 +286,7 @@
     letter-spacing: .05em;
     text-transform: uppercase;
     padding: 8px 10px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
     white-space: nowrap;
 }
 

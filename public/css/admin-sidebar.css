@@ -2,12 +2,12 @@
    SIDEBAR (shared across all admin pages)
 ========================= */
 
-@import url('portal-sidebar.css?v=7');
+@import url('portal-sidebar.css?v=8');
 
 .sidebar {
     width: 245px;
     background: #ffffff;
-    border-right: 1px solid #e9e4fa;
+    border-right: 1px solid var(--theme-border);
     padding: 24px 14px 16px;
     position: fixed;
     left: 0;
@@ -20,7 +20,7 @@
     flex-direction: column;
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
     scrollbar-width: thin;
-    scrollbar-color: #e9e4fa transparent;
+    scrollbar-color: var(--theme-border) transparent;
 }
 
 .sidebar a {
@@ -62,18 +62,18 @@
 }
 
 .sidebar .menu a:hover {
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 .sidebar .menu a.active {
-    background: #eee8ff;
-    color: #5536b5;
+    background: var(--theme-soft);
+    color: var(--theme-primary-hover);
     font-weight: 700;
 }
 
 .sidebar .menu a.active svg {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .sidebar .menu a .notification-badge {
@@ -82,7 +82,7 @@
     height: 20px;
     padding: 0 6px;
     border-radius: 999px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -115,8 +115,8 @@
 }
 
 .sidebar .logout button:hover {
-    background: #f8f6fe;
-    color: #5536b5;
+    background: var(--theme-bg);
+    color: var(--theme-primary-hover);
 }
 
 /* =========================
@@ -152,7 +152,7 @@
         margin: 8px 6px;
         height: 1px;
         overflow: hidden;
-        background: #e9e4fa;
+        background: var(--theme-border);
         color: transparent;
     }
 
@@ -278,17 +278,17 @@
 
 .sidebar .menu a:hover:not(.active) { padding-left: 16px; }
 .sidebar .menu a:hover svg { transform: scale(1.15) rotate(-6deg); }
-.sidebar .menu a:focus-visible { outline: 2px solid #c9b6ff; outline-offset: -2px; }
+.sidebar .menu a:focus-visible { outline: 2px solid var(--theme-lavender); outline-offset: -2px; }
 
 .sidebar .menu a.active {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
 }
 
 .sidebar .menu a.active svg { color: #fff; }
 
 .sidebar .menu a .notification-badge {
-    background: #c9b6ff;
+    background: var(--theme-lavender);
     color: #1d1033;
 }
 
@@ -297,7 +297,7 @@
     border-color: transparent;
 }
 
-.sidebar .bb-side-avatar { background: #c9b6ff; color: #1d1033; }
+.sidebar .bb-side-avatar { background: var(--theme-lavender); color: #1d1033; }
 .sidebar .bb-side-who strong { color: #fff; }
 .sidebar .bb-side-who small { color: #b9a8dc; }
 .sidebar .bb-side-user .bb-side-logout.bb-side-logout { color: #b9a8dc; }

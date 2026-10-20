@@ -21,11 +21,11 @@
     font-size: 30px;
     font-weight: 800;
     margin: 6px 0 0;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .sec-head-text p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13.5px;
     margin: 6px 0 0;
     max-width: 760px;
@@ -35,7 +35,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 4px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .sec-tab {
@@ -45,7 +45,7 @@
     padding: 10px 16px;
     margin-bottom: -1px;
     border-bottom: 2px solid transparent;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     font-weight: 700;
     text-decoration: none;
@@ -53,19 +53,19 @@
 }
 
 .sec-tab:hover {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .sec-tab.active {
-    color: #5536b5;
-    border-bottom-color: #6d4ad1;
+    color: var(--theme-primary-hover);
+    border-bottom-color: var(--theme-primary);
 }
 
 .sec-badge {
     min-width: 20px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -81,10 +81,10 @@
 
 .sec-chip {
     padding: 6px 14px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 999px;
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 12.5px;
     font-weight: 700;
     text-decoration: none;
@@ -95,8 +95,8 @@
 }
 
 .sec-chip.active {
-    background: #221a3a;
-    border-color: #221a3a;
+    background: var(--theme-ink);
+    border-color: var(--theme-ink);
     color: #fff;
 }
 
@@ -107,7 +107,7 @@
 
 .sec-tab:focus-visible,
 .sec-chip:focus-visible {
-    outline: 2px solid #6d4ad1;
+    outline: 2px solid var(--theme-primary);
     outline-offset: 2px;
 }
 

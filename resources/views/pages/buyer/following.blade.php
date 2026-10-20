@@ -7,7 +7,7 @@
     <style>
         .follow-list { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
         .follow-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 1px solid var(--line, #e7e3f3); border-radius: 14px; background: var(--card, #fff); }
-        .follow-card .avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: #efe9ff; color: #6d4ad1; font-weight: 700; overflow: hidden; flex: none; }
+        .follow-card .avatar { width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background: #efe9ff; color: var(--theme-primary); font-weight: 700; overflow: hidden; flex: none; }
         .follow-card .avatar img { width: 100%; height: 100%; object-fit: cover; }
         .follow-card .info { flex: 1; min-width: 0; }
         .follow-card .info a { font-weight: 700; color: inherit; text-decoration: none; }

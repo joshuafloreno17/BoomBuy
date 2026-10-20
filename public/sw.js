@@ -1,5 +1,5 @@
 // Bump the version whenever this file changes — the old cache is deleted on activate.
-const CACHE_NAME = 'boombuy-v5';
+const CACHE_NAME = 'boombuy-v6';
 const OFFLINE_URL = '/offline.html';
 
 const PRECACHE_ASSETS = [

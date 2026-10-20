@@ -2,7 +2,7 @@
    LOGISTICS SIDEBAR (shared)
 ========================================================= */
 
-@import url('portal-sidebar.css?v=7');
+@import url('portal-sidebar.css?v=8');
 
 .logistics-sidebar {
     position: fixed;
@@ -68,12 +68,12 @@
 }
 
 .logistics-sidebar-link:focus-visible {
-    outline: 2px solid #c9b6ff;
+    outline: 2px solid var(--theme-lavender);
     outline-offset: -2px;
 }
 
 .logistics-sidebar-link.active {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #ffffff;
     font-weight: 700;
 }
@@ -98,7 +98,7 @@
 
 /* The dark rail's brand and profile card. */
 .logistics-sidebar .bb-side-name small {
-    color: #c9b6ff;
+    color: var(--theme-lavender);
 }
 
 .logistics-sidebar .bb-side-user {
@@ -107,7 +107,7 @@
 }
 
 .logistics-sidebar .bb-side-avatar {
-    background: #c9b6ff;
+    background: var(--theme-lavender);
     color: #2a1846;
 }
 
@@ -150,7 +150,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: #c9b6ff;
+    background: var(--theme-lavender);
     color: #2a1846;
     border-radius: 999px;
     font-size: 11px;

@@ -1,7 +1,7 @@
 /* Seller → Store Categories (builds on seller-vouchers.css) */
 .scat-form-row { grid-template-columns: 2fr 1fr; }
 .scat-hint { font-weight: 500; color: #857ca0; }
-.scat-note { font-size: 13px; color: #645a80; margin: -4px 0 16px; line-height: 1.5; }
+.scat-note { font-size: 13px; color: var(--theme-muted); margin: -4px 0 16px; line-height: 1.5; }
 
 .field-error {
     display: block;
@@ -35,14 +35,14 @@
     flex: 1;
     min-width: 0;
     padding: 9px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font: inherit;
     font-size: 13px;
 }
 
 .scat-sub-icon { color: #9b8fc4; }
-.scat-count { font-size: 12px; color: #645a80; white-space: nowrap; }
+.scat-count { font-size: 12px; color: var(--theme-muted); white-space: nowrap; }
 .scat-actions { display: flex; flex-wrap: wrap; gap: 6px; }
 .scat-actions form { display: inline; }
 

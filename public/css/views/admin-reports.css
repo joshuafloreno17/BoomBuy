@@ -14,8 +14,8 @@ html {
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
     overflow-x: hidden;
 }
 
@@ -67,7 +67,7 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 15px;
     padding: 22px;
     transition: 0.2s;
@@ -86,7 +86,7 @@ a {
 }
 
 .stat-title {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
 }
 
@@ -94,7 +94,7 @@ a {
     width: 38px;
     height: 38px;
     border-radius: 9px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -118,7 +118,7 @@ a {
 
 .panel {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 15px;
     padding: 23px;
     margin-bottom: 20px;
@@ -137,7 +137,7 @@ a {
 }
 
 .panel-description {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-top: 5px;
 }
@@ -160,8 +160,8 @@ table {
 th {
     text-align: left;
     padding: 13px;
-    background: #f8f6fe;
-    color: #645a80;
+    background: var(--theme-bg);
+    color: var(--theme-muted);
     font-size: 10px;
     letter-spacing: .5px;
 }
@@ -178,7 +178,7 @@ tr:last-child td {
 
 .amount {
     font-weight: 700;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .status {
@@ -195,7 +195,7 @@ tr:last-child td {
 }
 
 .processing {
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #7a55e6;
 }
 
@@ -236,7 +236,7 @@ tr:last-child td {
     justify-content: space-around;
     gap: 14px;
     padding: 20px 10px 0;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .bar-item {
@@ -251,7 +251,7 @@ tr:last-child td {
 
 .bar {
     width: 45px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     border-radius: 7px 7px 0 0;
     min-height: 4px;
     transition: .2s;
@@ -263,12 +263,12 @@ tr:last-child td {
 
 .bar-label {
     font-size: 10px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .bar-value {
     font-size: 9px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .chart-empty {
@@ -306,7 +306,7 @@ tr:last-child td {
 }
 
 .category-value {
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-size: 11px;
     font-weight: 700;
 }
@@ -321,7 +321,7 @@ tr:last-child td {
 
 .progress-bar {
     height: 100%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     border-radius: 20px;
 }
 
@@ -341,7 +341,7 @@ tr:last-child td {
 }
 
 .seller-label {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 10px;
     margin-top: 3px;
 }

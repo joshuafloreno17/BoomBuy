@@ -16,10 +16,10 @@
 
 /* ---------- colour styles (banner "style") ---------- */
 
-.ph-violet   { --ph-bg: #6d4ad1; --ph-ink: #ffffff; --ph-eyebrow: #e2d8ff; --ph-text: #f1edff; --ph-cta-bg: #ffffff; --ph-cta-ink: #5536b5; --ph-orb-a: #7d5ddc; --ph-orb-b: #5536b5; --ph-big: #c9b6ff; }
-.ph-lavender { --ph-bg: #c9b6ff; --ph-ink: #221a3a; --ph-eyebrow: #3d2488; --ph-text: #3b3058; --ph-cta-bg: #221a3a; --ph-cta-ink: #ffffff; --ph-orb-a: #d9ccff; --ph-orb-b: #b7a2f2; --ph-big: #5536b5; }
-.ph-plum     { --ph-bg: #2a1846; --ph-ink: #ffffff; --ph-eyebrow: #c9b6ff; --ph-text: #e4dcf5; --ph-cta-bg: #c9b6ff; --ph-cta-ink: #2a1846; --ph-orb-a: #3a2560; --ph-orb-b: #4b3178; --ph-big: #c9b6ff; }
-.ph-light    { --ph-bg: #eee8ff; --ph-ink: #221a3a; --ph-eyebrow: #5536b5; --ph-text: #645a80; --ph-cta-bg: #6d4ad1; --ph-cta-ink: #ffffff; --ph-orb-a: #e6dcff; --ph-orb-b: #f8f6fe; --ph-big: #6d4ad1; }
+.ph-violet   { --ph-bg: var(--theme-primary); --ph-ink: #ffffff; --ph-eyebrow: #e2d8ff; --ph-text: #f1edff; --ph-cta-bg: #ffffff; --ph-cta-ink: var(--theme-primary-hover); --ph-orb-a: #7d5ddc; --ph-orb-b: var(--theme-primary-hover); --ph-big: var(--theme-lavender); }
+.ph-lavender { --ph-bg: var(--theme-lavender); --ph-ink: var(--theme-ink); --ph-eyebrow: #3d2488; --ph-text: #3b3058; --ph-cta-bg: var(--theme-ink); --ph-cta-ink: #ffffff; --ph-orb-a: #d9ccff; --ph-orb-b: #b7a2f2; --ph-big: var(--theme-primary-hover); }
+.ph-plum     { --ph-bg: #2a1846; --ph-ink: #ffffff; --ph-eyebrow: var(--theme-lavender); --ph-text: #e4dcf5; --ph-cta-bg: var(--theme-lavender); --ph-cta-ink: #2a1846; --ph-orb-a: #3a2560; --ph-orb-b: #4b3178; --ph-big: var(--theme-lavender); }
+.ph-light    { --ph-bg: var(--theme-soft); --ph-ink: var(--theme-ink); --ph-eyebrow: var(--theme-primary-hover); --ph-text: var(--theme-muted); --ph-cta-bg: var(--theme-primary); --ph-cta-ink: #ffffff; --ph-orb-a: #e6dcff; --ph-orb-b: var(--theme-bg); --ph-big: var(--theme-primary); }
 
 /* ---------- main carousel ---------- */
 
@@ -28,7 +28,7 @@
     min-width: 0;
     border-radius: 22px;
     overflow: hidden;
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .ph-track {
@@ -63,7 +63,7 @@
 .ph-tile:focus-visible,
 .ph-arrow:focus-visible,
 .ph-dots button:focus-visible {
-    outline: 3px solid #c9b6ff;
+    outline: 3px solid var(--theme-lavender);
     outline-offset: -3px;
 }
 
@@ -180,7 +180,7 @@
     border: 0;
     border-radius: 50%;
     background: rgba(255, 255, 255, .92);
-    color: #221a3a;
+    color: var(--theme-ink);
     display: grid;
     place-items: center;
     box-shadow: 0 4px 14px rgba(34, 26, 58, .18);

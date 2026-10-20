@@ -41,11 +41,11 @@
             </div>
             <div class="stat-card">
                 <span>Category Mismatches</span>
-                <strong style="{{ $totalMismatches > 0 ? 'color:#6d4ad1;' : '' }}">{{ $totalMismatches }}</strong>
+                <strong style="{{ $totalMismatches > 0 ? 'color:var(--theme-primary);' : '' }}">{{ $totalMismatches }}</strong>
             </div>
             <div class="stat-card">
                 <span>Flagged Products</span>
-                <strong style="{{ $totalFlagged > 0 ? 'color:#6d4ad1;' : '' }}">{{ $totalFlagged }}</strong>
+                <strong style="{{ $totalFlagged > 0 ? 'color:var(--theme-primary);' : '' }}">{{ $totalFlagged }}</strong>
             </div>
         </div>
 

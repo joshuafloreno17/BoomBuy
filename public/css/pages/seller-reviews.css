@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -71,7 +71,7 @@ a { text-decoration: none; }
 
 .review-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
     margin-bottom: 16px;
@@ -91,7 +91,7 @@ a { text-decoration: none; }
 }
 
 .review-buyer {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-top: 3px;
 }
@@ -110,8 +110,8 @@ a { text-decoration: none; }
 }
 
 .reply-box {
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     padding: 12px 14px;
     margin-top: 10px;
@@ -120,7 +120,7 @@ a { text-decoration: none; }
 .reply-box .reply-label {
     font-size: 11px;
     font-weight: 800;
-    color: #6d4ad1;
+    color: var(--theme-primary);
     margin-bottom: 4px;
 }
 
@@ -133,7 +133,7 @@ a { text-decoration: none; }
     width: 100%;
     min-height: 70px;
     padding: 10px 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     font-family: inherit;
     font-size: 13px;
@@ -141,11 +141,11 @@ a { text-decoration: none; }
     resize: vertical;
 }
 
-.reply-form textarea:focus { border-color: #6d4ad1; }
+.reply-form textarea:focus { border-color: var(--theme-primary); }
 
 .reply-form button {
     margin-top: 8px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     border: none;
     border-radius: 8px;
@@ -156,13 +156,13 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.reply-form button:hover { background: #5536b5; }
+.reply-form button:hover { background: var(--theme-primary-hover); }
 
 .empty {
     text-align: center;
     padding: 60px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 
@@ -170,7 +170,7 @@ a { text-decoration: none; }
 
 .empty h3 { font-family: 'Bricolage Grotesque', sans-serif; margin-bottom: 6px; }
 
-.empty p { color: #645a80; font-size: 13px; }
+.empty p { color: var(--theme-muted); font-size: 13px; }
 
 @media (max-width: 900px) {
     .main-content { margin-left: 72px; width: calc(100% - 72px); }
@@ -178,8 +178,8 @@ a { text-decoration: none; }
 
 .review-filter { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
 .review-filter a { padding: 7px 12px; border-radius: 999px; border: 1px solid #e3dcf6; background: #fff; color: #3f2d86; font-weight: 700; font-size: 13px; text-decoration: none; }
-.review-filter a.is-active { background: #6d4ad1; border-color: #6d4ad1; color: #fff; }
+.review-filter a.is-active { background: var(--theme-primary); border-color: var(--theme-primary); color: #fff; }
 .review-photos { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
 .review-photos img { width: 72px; height: 72px; border-radius: 10px; object-fit: cover; }
 .reply-edit { margin-top: 8px; }
-.reply-edit summary { cursor: pointer; font-size: 12px; font-weight: 700; color: #6d4ad1; }
+.reply-edit summary { cursor: pointer; font-size: 12px; font-weight: 700; color: var(--theme-primary); }

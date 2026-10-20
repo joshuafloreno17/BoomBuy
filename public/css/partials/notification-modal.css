@@ -48,7 +48,7 @@
     border: none;
     border-radius: 50%;
     background: #eceaf2;
-    color: var(--muted, #645a80);
+    color: var(--muted, var(--theme-muted));
 
     display: flex;
     align-items: center;
@@ -61,7 +61,7 @@
 
 .bb-notif-close:hover {
     background: #dfdce7;
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
 }
 
 .bb-notif-icon {
@@ -70,8 +70,8 @@
     margin-bottom: 14px;
 
     border-radius: 13px;
-    background: #eee8ff;
-    color: var(--accent, #6d4ad1);
+    background: var(--theme-soft);
+    color: var(--accent, var(--theme-primary));
 
     display: flex;
     align-items: center;
@@ -84,7 +84,7 @@
     font-family: var(--font-display, 'Bricolage Grotesque', sans-serif);
     font-size: 21px;
     font-weight: 800;
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
     line-height: 1.25;
 
     padding-right: 30px;
@@ -104,8 +104,8 @@
 }
 
 .bb-notif-type {
-    background: #eee8ff;
-    color: var(--accent, #6d4ad1);
+    background: var(--theme-soft);
+    color: var(--accent, var(--theme-primary));
     padding: 4px 8px;
     border-radius: 6px;
     font-size: 9.5px;
@@ -120,7 +120,7 @@
 .bb-notif-message {
     margin-top: 18px;
     padding-top: 18px;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
 
     font-family: var(--font-body, 'Figtree', sans-serif);
     font-size: 14px;
@@ -137,7 +137,7 @@
     padding: 11px 14px;
     border: none;
     border-radius: 10px;
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     color: #fff;
 
     font-family: var(--font-body, 'Figtree', sans-serif);
@@ -149,5 +149,5 @@
 }
 
 .bb-notif-ok:hover {
-    background: var(--accent-dark, #5536b5);
+    background: var(--accent-dark, var(--theme-primary-hover));
 }

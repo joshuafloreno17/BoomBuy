@@ -20,7 +20,7 @@
 }
 
 .addr-fields-cell > span {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     font-weight: 600;
 }
@@ -32,7 +32,7 @@
     border: 1px solid #d9d5e4;
     border-radius: 10px;
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: inherit;
     font-size: 14px;
 }
@@ -45,7 +45,7 @@
 .addr-fields select:focus,
 .addr-fields input[type="text"]:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 3px rgba(109, 74, 209, .1);
 }
 
@@ -76,7 +76,7 @@
     border: 1px solid #d9d5e4;
     border-radius: 10px;
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: inherit;
     font-size: 14px;
     text-overflow: ellipsis;
@@ -86,7 +86,7 @@
 
 .addr-fields .af-combo-input:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 3px rgba(109, 74, 209, .1);
 }
 
@@ -121,7 +121,7 @@
     padding: 6px;
     list-style: none;
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 12px;
     box-shadow: 0 18px 40px -12px rgba(34, 26, 58, .22);
 }
@@ -131,21 +131,21 @@
 .af-combo-option {
     padding: 9px 12px;
     border-radius: 8px;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 14px;
     cursor: pointer;
 }
 
-.af-combo-option b { color: #5536b5; font-weight: 800; }
+.af-combo-option b { color: var(--theme-primary-hover); font-weight: 800; }
 
-.af-combo-option.is-active { background: #eee8ff; }
+.af-combo-option.is-active { background: var(--theme-soft); }
 
 .af-combo-option.is-chosen { font-weight: 700; }
 
 .af-combo-option.is-chosen::after {
     content: '\2713';
     float: right;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .af-combo-empty {

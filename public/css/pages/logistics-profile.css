@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; color: inherit; }
@@ -39,7 +39,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -69,7 +69,7 @@ a { text-decoration: none; color: inherit; }
     align-items: center;
     gap: 16px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 24px;
     margin-bottom: 20px;
@@ -79,7 +79,7 @@ a { text-decoration: none; color: inherit; }
     width: 60px;
     height: 60px;
     border-radius: 50%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -108,7 +108,7 @@ a { text-decoration: none; color: inherit; }
     width: 24px;
     height: 24px;
     background: white;
-    border: 2px solid #f8f6fe;
+    border: 2px solid var(--theme-bg);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -119,12 +119,12 @@ a { text-decoration: none; color: inherit; }
     transition: 0.2s ease;
 }
 
-.avatar-camera:hover { background: #eee8ff; }
+.avatar-camera:hover { background: var(--theme-soft); }
 
 .profile-header h2 { font-size: 18px; }
 
 .profile-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 3px;
 }
@@ -157,14 +157,14 @@ a { text-decoration: none; color: inherit; }
 
 .stat-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 18px 20px;
 }
 
 .stat-label {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -175,12 +175,12 @@ a { text-decoration: none; color: inherit; }
 .stat-value {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 26px;
     margin-bottom: 20px;
@@ -193,7 +193,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .card-sub {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-bottom: 20px;
 }
@@ -213,7 +213,7 @@ a { text-decoration: none; color: inherit; }
 .field input {
     width: 100%;
     padding: 12px 14px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     font-size: 14px;
     font-family: inherit;
@@ -221,10 +221,10 @@ a { text-decoration: none; color: inherit; }
     transition: 0.2s;
 }
 
-.field input:focus { border-color: #6d4ad1; }
+.field input:focus { border-color: var(--theme-primary); }
 
 .field input:disabled {
-    background: #f8f6fe;
+    background: var(--theme-bg);
     color: #857ca0;
     cursor: not-allowed;
 }
@@ -278,7 +278,7 @@ a { text-decoration: none; color: inherit; }
 }
 
 .save-btn {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     border: none;
     border-radius: 10px;
@@ -290,7 +290,7 @@ a { text-decoration: none; color: inherit; }
     transition: 0.2s;
 }
 
-.save-btn:hover { background: #5536b5; }
+.save-btn:hover { background: var(--theme-primary-hover); }
 
 @media (max-width: 560px) {
     .form-grid { grid-template-columns: 1fr; }

@@ -11,7 +11,7 @@
 body {
     font-family: 'Figtree', sans-serif;
     background: #f9f7fe;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 /* =========================
@@ -44,7 +44,7 @@ body {
     width: 43px;
     height: 43px;
     border-radius: 12px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -59,7 +59,7 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .brand-subtitle {
@@ -88,13 +88,13 @@ body {
 }
 
 .menu a:hover {
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     transform: translateX(2px);
 }
 
 .menu a.active {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     box-shadow: 0 8px 18px rgba(109, 74, 209, .16);
 }
@@ -115,7 +115,7 @@ body {
     height: 20px;
     padding: 0 6px;
     border-radius: 20px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     font-size: 10px;
     font-weight: 800;
@@ -126,7 +126,7 @@ body {
 
 .menu a.active .notification-badge {
     background: white;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .logout-area {
@@ -139,7 +139,7 @@ body {
     width: 100%;
     border: none;
     background: transparent;
-    color: #6d4ad1;
+    color: var(--theme-primary);
     text-align: left;
     padding: 12px 14px;
     border-radius: 11px;
@@ -151,7 +151,7 @@ body {
 }
 
 .logout-btn:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 /* =========================
@@ -182,7 +182,7 @@ body {
 }
 
 .page-kicker {
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-size: 11px;
     font-weight: 800;
     letter-spacing: 2px;
@@ -194,7 +194,7 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 34px;
     line-height: 1;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 800;
 }
 
@@ -206,7 +206,7 @@ body {
 
 .profile-pill {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     padding: 10px 15px;
     border-radius: 14px;
     display: flex;
@@ -220,7 +220,7 @@ body {
     width: 32px;
     height: 32px;
     border-radius: 10px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -262,7 +262,7 @@ body {
 
 .card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 17px;
     padding: 25px;
     box-shadow: 0 5px 18px rgba(38, 31, 59, .035);
@@ -288,7 +288,7 @@ body {
     height: 122px;
     border-radius: 50%;
     overflow: hidden;
-    background: #eee8ff;
+    background: var(--theme-soft);
     border: 5px solid #e8e2f8;
     display: flex;
     align-items: center;
@@ -309,7 +309,7 @@ body {
     width: 37px;
     height: 37px;
     border-radius: 50%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     display: flex;
     align-items: center;
@@ -322,14 +322,14 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
     line-height: 1;
-    color: #221a3a;
+    color: var(--theme-ink);
     margin-bottom: 9px;
 }
 
 .role-badge {
     display: inline-block;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     padding: 6px 13px;
     border-radius: 20px;
     font-size: 10px;
@@ -350,13 +350,13 @@ body {
 .upload-box {
     margin-top: 22px;
     padding-top: 20px;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
 }
 
 .upload-label {
     display: block;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     border: 1px solid #e1d9f6;
     padding: 11px;
     border-radius: 10px;
@@ -375,7 +375,7 @@ body {
 .upload-submit-btn {
     display: block;
     width: 100%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     border: none;
     padding: 11px;
@@ -412,7 +412,7 @@ body {
     justify-content: center;
     text-align: center;
     text-decoration: none;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     padding: 12px;
     border-radius: 11px;
@@ -435,12 +435,12 @@ body {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 23px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
     margin-bottom: 18px;
 }
 
 .info {
-    background: #f8f6fe;
+    background: var(--theme-bg);
     border-radius: 13px;
     padding: 4px 13px;
 }
@@ -495,7 +495,7 @@ body {
 }
 
 .stat {
-    background: #f8f6fe;
+    background: var(--theme-bg);
     border: 1px solid #e7e3f0;
     border-radius: 13px;
     padding: 18px 10px;
@@ -513,7 +513,7 @@ body {
     height: 40px;
     margin: 0 auto 8px;
     border-radius: 11px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -525,7 +525,7 @@ body {
     font-size: 27px;
     line-height: 1;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .stat-label {
@@ -651,17 +651,17 @@ body {
 .pw-field input {
     width: 100%;
     padding: 11px 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
     font-family: 'Figtree', sans-serif;
     font-size: 13px;
 }
 
 .pw-field input:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 3px #e6dcff;
 }
 

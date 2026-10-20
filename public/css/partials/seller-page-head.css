@@ -27,7 +27,7 @@
 }
 
 .sp-head-eyebrow a {
-    color: #645a80;
+    color: var(--theme-muted);
     text-decoration: none;
 }
 
@@ -54,7 +54,7 @@
     margin: 6px 0 0;
     font-family: var(--font-body);
     font-size: 13.5px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .sp-head-actions {

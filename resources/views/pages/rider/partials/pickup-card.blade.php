@@ -66,7 +66,7 @@
                 <button type="submit" class="btn status-btn"><i class="bi bi-check2-circle"></i> Picked up</button>
             </form>
         @else
-            <p style="margin:0;color:var(--muted,#645a80);font-size:14px">
+            <p style="margin:0;color:var(--muted,var(--theme-muted));font-size:14px">
                 <i class="bi bi-signpost-2-fill"></i> Bring it to {{ $order->center_name ?? 'the Sorting Center' }}. Staff there will confirm they received it.
             </p>
         @endif

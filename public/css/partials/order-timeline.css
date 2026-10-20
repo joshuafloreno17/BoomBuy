@@ -34,7 +34,7 @@
     margin-top: 3px;
     border-radius: 50%;
     /* Every step here already happened. */
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .order-timeline li.is-latest .order-timeline-dot {
@@ -42,7 +42,7 @@
     height: 14px;
     margin-top: 2px;
     margin-left: -1px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     box-shadow: 0 0 0 5px rgba(109, 74, 209, .18);
 }
 
@@ -66,7 +66,7 @@
 }
 
 .order-timeline-body strong {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 700;
 }
 
@@ -76,7 +76,7 @@
 }
 
 .order-timeline-body span {
-    color: #645a80;
+    color: var(--theme-muted);
     overflow-wrap: anywhere;
 }
 
@@ -124,7 +124,7 @@
 }
 
 .order-timeline.is-route li.is-reached .order-timeline-body strong {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 600;
 }
 
@@ -143,6 +143,6 @@
 }
 
 .order-timeline-body .order-timeline-next.is-next {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-weight: 700;
 }

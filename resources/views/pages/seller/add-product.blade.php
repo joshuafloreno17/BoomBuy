@@ -245,8 +245,8 @@
                         @if(!empty($registeredCategory))
     {{-- Locked: a seller only sells in the category they registered for. --}}
     <input type="hidden" name="category" value="{{ $registeredCategory }}">
-    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #ddd5f2; border-radius:10px; background:#f8f6fe; font-weight:700; color:#221a3a;">
-        <i class="bi bi-lock-fill" style="color:#5536b5;"></i>
+    <div id="category" role="textbox" aria-readonly="true" style="display:flex; align-items:center; gap:8px; min-height:44px; padding:0 14px; border:1px solid #ddd5f2; border-radius:10px; background:var(--theme-bg); font-weight:700; color:var(--theme-ink);">
+        <i class="bi bi-lock-fill" style="color:var(--theme-primary-hover);"></i>
         {{ \App\Support\Categories::LIST[$registeredCategory] }}
     </div>
     <small style="display:block; margin-top:6px; font-size:12px; color:#574e70;">

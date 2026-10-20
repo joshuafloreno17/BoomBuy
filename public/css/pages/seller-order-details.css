@@ -8,11 +8,11 @@
 
 :root {
     --orange: #7a55e6;
-    --orange-dark: #6d4ad1;
-    --orange-light: #eee8ff;
-    --cream: #f8f6fe;
+    --orange-dark: var(--theme-primary);
+    --orange-light: var(--theme-soft);
+    --cream: var(--theme-bg);
     --text: #222028;
-    --muted: #645a80;
+    --muted: var(--theme-muted);
     --border: #e3e1ea;
     --sidebar-width: 245px;
 }
@@ -444,14 +444,14 @@ footer {
     border: 1px solid #d9d2ea;
     border-radius: 10px;
     background: #fff;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 13px;
     font-weight: 700;
     text-decoration: none;
 }
 
 .waybill-btn:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 /* Status on top of the first card, clear of the boxes below it. */
@@ -548,14 +548,14 @@ footer {
 .status-track li.is-current .status-track-dot {
     border-color: var(--orange);
 
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: var(--orange-dark);
 
     box-shadow: 0 0 0 5px rgba(122, 85, 230, .12);
 }
 
 .status-track li.is-current .status-track-label {
-    color: var(--text, #221a3a);
+    color: var(--text, var(--theme-ink));
 
     font-weight: 800;
 }
@@ -563,7 +563,7 @@ footer {
 .status-next-note {
     margin-top: 10px;
 
-    color: #645a80;
+    color: var(--theme-muted);
 
     font-size: 13px;
     line-height: 1.6;
@@ -594,7 +594,7 @@ footer {
 
 .status-stopped span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .status-cancel {
@@ -686,7 +686,7 @@ button.btn-danger:hover {
     margin: 16px 0 4px;
     padding: 12px 14px;
 
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 12px;
 
     background: #faf8fe;
@@ -702,11 +702,11 @@ button.btn-danger:hover {
 
 .dropoff-box strong {
     display: block;
-    color: var(--text, #221a3a);
+    color: var(--text, var(--theme-ink));
 }
 
 .dropoff-box span {
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .dropoff-box .dropoff-label {
@@ -715,16 +715,16 @@ button.btn-danger:hover {
     gap: 6px;
     margin-top: 8px;
     padding: 7px 12px;
-    border: 1.5px solid #221a3a;
+    border: 1.5px solid var(--theme-ink);
     border-radius: 10px;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 12px;
     font-weight: 800;
     text-decoration: none;
 }
 
 .dropoff-box .dropoff-label:hover {
-    background: #221a3a;
+    background: var(--theme-ink);
     color: #ffffff;
 }
 

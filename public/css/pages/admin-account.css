@@ -24,7 +24,7 @@
     place-items: center;
     border-radius: 50%;
     background: #e6dcff;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 22px;
     font-weight: 800;
 }
@@ -39,7 +39,7 @@
 }
 
 .account-head p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     margin-top: 2px;
     overflow-wrap: anywhere;
@@ -62,7 +62,7 @@
 .form-group input[type="password"] {
     width: 100%;
     padding: 11px 13px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 9px;
     font-family: inherit;
     font-size: 13px;
@@ -98,7 +98,7 @@
     align-items: center;
     gap: 8px;
     font-size: 13px;
-    color: #645a80;
+    color: var(--theme-muted);
     margin-bottom: 16px;
     cursor: pointer;
 }

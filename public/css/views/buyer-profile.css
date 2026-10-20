@@ -17,8 +17,8 @@ body {
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -60,7 +60,7 @@ a {
     gap: 16px;
 
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 
     padding: 24px;
@@ -74,7 +74,7 @@ a {
 
     border-radius: 50%;
 
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
 
     display: flex;
@@ -109,7 +109,7 @@ a {
     height: 24px;
 
     background: white;
-    border: 2px solid #f8f6fe;
+    border: 2px solid var(--theme-bg);
     border-radius: 50%;
 
     display: flex;
@@ -124,7 +124,7 @@ a {
 }
 
 .avatar-camera:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .profile-header h2 {
@@ -132,7 +132,7 @@ a {
 }
 
 .profile-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 3px;
 }
@@ -153,7 +153,7 @@ a {
 
 .stat-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
 
     padding: 18px 20px;
@@ -162,7 +162,7 @@ a {
 .stat-label {
     display: block;
 
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     font-weight: 700;
 
@@ -175,7 +175,7 @@ a {
 .stat-value {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 24px;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 @media (max-width: 500px) {
@@ -186,7 +186,7 @@ a {
 
 .card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 
     padding: 26px;
@@ -201,7 +201,7 @@ a {
 }
 
 .card-sub {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-bottom: 20px;
 }
@@ -225,7 +225,7 @@ a {
 
     padding: 12px 14px;
 
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
 
     font-size: 14px;
@@ -237,11 +237,11 @@ a {
 }
 
 .field input:focus {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
 }
 
 .field input:disabled {
-    background: #f8f6fe;
+    background: var(--theme-bg);
     color: #857ca0;
     cursor: not-allowed;
 }
@@ -315,7 +315,7 @@ a {
 }
 
 .save-btn {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
 
     border: none;
@@ -333,7 +333,7 @@ a {
 }
 
 .save-btn:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 /* =========================
@@ -352,7 +352,7 @@ a {
 }
 
 .addr-empty i {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 18px;
 }
 
@@ -371,13 +371,13 @@ a {
     justify-content: space-between;
     gap: 14px;
     padding: 14px 16px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     background: #fff;
 }
 
 .addr-item.is-default {
-    border-color: #221a3a;
+    border-color: var(--theme-ink);
 }
 
 .addr-text {
@@ -394,7 +394,7 @@ a {
     display: flex;
     align-items: center;
     gap: 8px;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 14px;
 }
 
@@ -404,7 +404,7 @@ a {
     gap: 4px;
     padding: 2px 8px;
     border-radius: 999px;
-    background: #221a3a;
+    background: var(--theme-ink);
     color: #fff;
     font-size: 11px;
     font-weight: 800;
@@ -431,7 +431,7 @@ a {
     border: 1px solid #ddd5f2;
     border-radius: 10px;
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: inherit;
     font-size: 12.5px;
     font-weight: 700;
@@ -439,7 +439,7 @@ a {
 }
 
 .addr-btn:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .addr-btn.is-danger {
@@ -457,7 +457,7 @@ a {
     min-height: 40px;
     font-size: 13.5px;
     font-weight: 800;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     cursor: pointer;
     list-style: none;
 }
@@ -483,7 +483,7 @@ a {
 .addr-default-check input {
     width: 17px;
     height: 17px;
-    accent-color: #5536b5;
+    accent-color: var(--theme-primary-hover);
 }
 
 @media (max-width: 600px) {
@@ -495,10 +495,10 @@ a {
 
 .field-error { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #be123c; }
 .contact-grid { margin-top: 18px; }
-.contact-now { margin: 0 0 6px; font-weight: 700; color: #221a3a; }
+.contact-now { margin: 0 0 6px; font-weight: 700; color: var(--theme-ink); }
 .contact-form { display: flex; gap: 8px; margin-top: 6px; }
 .contact-form input { flex: 1; min-width: 0; }
-.addr-recipient { font-weight: 700; color: #221a3a; }
+.addr-recipient { font-weight: 700; color: var(--theme-ink); }
 
 /* Edit-address form — shown inside the shared pop-up viewer */
 .addr-edit-panel h3 {

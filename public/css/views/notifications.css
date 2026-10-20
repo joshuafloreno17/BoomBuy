@@ -123,7 +123,7 @@ a {
 }
 
 .mark-all button:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
     border-color: #c4badf;
 }
 
@@ -156,7 +156,7 @@ a {
     top: 96px;
     padding: 14px 10px;
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 
@@ -207,7 +207,7 @@ a {
 
 .chip:hover {
     border-color: #c4badf;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .chip i {
@@ -270,11 +270,11 @@ a {
     }
 
     .notif-side .chip:hover {
-        background: #f8f6fe;
+        background: var(--theme-bg);
     }
 
     .notif-side .chip.active {
-        background: #eee8ff;
+        background: var(--theme-soft);
         color: var(--accent-dark);
         font-weight: 800;
     }
@@ -313,7 +313,7 @@ a {
 
 .day-list {
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     overflow: hidden;
 }
@@ -332,7 +332,7 @@ a {
 }
 
 .note:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 /* Unread = accent bar + bold title + dot; the card itself stays white. */
@@ -352,7 +352,7 @@ a {
 }
 
 .note.unread:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .note-icon {
@@ -362,7 +362,7 @@ a {
     width: 42px;
     height: 42px;
     border-radius: 12px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: var(--accent);
     font-size: 18px;
 }
@@ -449,7 +449,7 @@ a {
     padding: 48px 20px;
     text-align: center;
     background: #fff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 
@@ -460,7 +460,7 @@ a {
     height: 64px;
     margin-bottom: 14px;
     border-radius: 18px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: var(--accent);
     font-size: 28px;
 }

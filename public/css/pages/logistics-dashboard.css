@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -30,7 +30,7 @@ a { text-decoration: none; }
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -47,7 +47,7 @@ a { text-decoration: none; }
 
 .status-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px 26px;
     margin-bottom: 20px;
@@ -80,7 +80,7 @@ a { text-decoration: none; }
 
 .stat-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 18px 20px;
 }
@@ -89,8 +89,8 @@ a { text-decoration: none; }
     width: 38px;
     height: 38px;
     border-radius: 11px;
-    background: #eee8ff;
-    color: var(--accent, #6d4ad1);
+    background: var(--theme-soft);
+    color: var(--accent, var(--theme-primary));
     display: flex;
     align-items: center;
     justify-content: center;
@@ -100,7 +100,7 @@ a { text-decoration: none; }
 
 .stat-label {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
@@ -111,7 +111,7 @@ a { text-decoration: none; }
 .stat-value {
     font-family: 'Bricolage Grotesque', sans-serif;
     font-size: 26px;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 a.stat-card {
@@ -133,7 +133,7 @@ a.stat-card:hover {
 }
 
 .muted-sm {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 4px;
 }
@@ -156,7 +156,7 @@ a.stat-card:hover {
 .todo-card {
     display: block;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 16px 18px;
     color: inherit;
@@ -170,7 +170,7 @@ a.stat-card:hover {
 
 .todo-card.has-work {
     border-color: #c9bdea;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .todo-top {
@@ -192,8 +192,8 @@ a.stat-card:hover {
 }
 
 .todo-card.has-work .todo-icon {
-    background: #eee8ff;
-    color: var(--accent, #6d4ad1);
+    background: var(--theme-soft);
+    color: var(--accent, var(--theme-primary));
 }
 
 .todo-count {
@@ -203,7 +203,7 @@ a.stat-card:hover {
 }
 
 .todo-card.has-work .todo-count {
-    color: var(--accent, #6d4ad1);
+    color: var(--accent, var(--theme-primary));
 }
 
 .todo-label {
@@ -217,7 +217,7 @@ a.stat-card:hover {
 }
 
 .todo-hint {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     line-height: 1.5;
 }
@@ -232,7 +232,7 @@ a.stat-card:hover {
 
 .panel {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 20px 22px;
 }
@@ -272,13 +272,13 @@ a.stat-card:hover {
 .pipeline-bar span {
     display: block;
     height: 100%;
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     border-radius: 999px;
 }
 
 .pipeline-hint,
 .recent-sub {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
 }
 
@@ -302,7 +302,7 @@ a.stat-card:hover {
 }
 
 .empty-note {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     padding: 18px 0;
 }
@@ -312,7 +312,7 @@ a.stat-card:hover {
     align-items: center;
     gap: 6px;
     margin-top: 14px;
-    color: var(--accent, #6d4ad1);
+    color: var(--accent, var(--theme-primary));
     font-weight: 800;
     font-size: 13px;
 }

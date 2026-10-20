@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -35,7 +35,7 @@ a { text-decoration: none; }
 }
 
 .header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -69,14 +69,14 @@ a { text-decoration: none; }
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-bottom: 8px;
 }
@@ -88,7 +88,7 @@ a { text-decoration: none; }
 
 .seller-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 16px;
@@ -111,13 +111,13 @@ a { text-decoration: none; }
 }
 
 .seller-email {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 3px;
 }
 
 .seller-category {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-top: 5px;
 }
@@ -143,7 +143,7 @@ a { text-decoration: none; }
 
 .warn-form input[type="text"] {
     padding: 8px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-size: 11px;
     font-family: inherit;
@@ -161,7 +161,7 @@ a { text-decoration: none; }
 }
 
 .mini-btn.warn {
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #6f51c2;
 }
 
@@ -217,7 +217,7 @@ a { text-decoration: none; }
 
 .flag-form input[type="text"] {
     padding: 7px 9px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 7px;
     font-size: 11px;
     font-family: inherit;
@@ -234,7 +234,7 @@ a { text-decoration: none; }
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     color: #857ca0;
     font-size: 13px;
@@ -261,7 +261,7 @@ a { text-decoration: none; }
     gap: 6px;
     padding: 8px 14px;
     border-radius: 999px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     background: #fff;
     color: #574e70;
     font-size: 12px;
@@ -270,7 +270,7 @@ a { text-decoration: none; }
 }
 
 .compliance-filter a.active {
-    background: #6d4ad1;
-    border-color: #6d4ad1;
+    background: var(--theme-primary);
+    border-color: var(--theme-primary);
     color: #fff;
 }

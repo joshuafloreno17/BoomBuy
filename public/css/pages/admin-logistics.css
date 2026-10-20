@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -48,7 +48,7 @@ a { text-decoration: none; }
 }
 
 .header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     margin-top: 6px;
 }
@@ -62,14 +62,14 @@ a { text-decoration: none; }
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-bottom: 8px;
 }

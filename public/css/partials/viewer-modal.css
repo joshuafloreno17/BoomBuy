@@ -62,7 +62,7 @@ body.bb-viewer-locked {
     border-radius: 50%;
     border: 2px solid var(--accent-soft, #e6dcff);
     background: #fff;
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
 
     display: flex;
     align-items: center;
@@ -75,8 +75,8 @@ body.bb-viewer-locked {
 
 .bb-viewer-close:hover,
 .bb-viewer-close:focus-visible {
-    border-color: var(--accent, #6d4ad1);
-    color: var(--accent, #6d4ad1);
+    border-color: var(--accent, var(--theme-primary));
+    color: var(--accent, var(--theme-primary));
     outline: none;
 }
 
@@ -91,7 +91,7 @@ body.bb-viewer-locked {
     border-radius: 50%;
     border: 0;
     background: rgba(255, 255, 255, 0.92);
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
 
     display: flex;
     align-items: center;
@@ -204,8 +204,8 @@ body.bb-viewer-locked {
     align-items: center;
     justify-content: center;
 
-    background: var(--accent-tint, #eee8ff);
-    color: var(--accent, #6d4ad1);
+    background: var(--accent-tint, var(--theme-soft));
+    color: var(--accent, var(--theme-primary));
     font-size: 44px;
 }
 
@@ -227,7 +227,7 @@ body.bb-viewer-locked {
     border-radius: 999px;
 
     background: var(--accent-soft, #e6dcff);
-    color: var(--accent-dark, #5536b5);
+    color: var(--accent-dark, var(--theme-primary-hover));
 
     font-size: 12px;
     font-weight: 700;
@@ -239,20 +239,20 @@ body.bb-viewer-locked {
     font-size: 20px;
     font-weight: 800;
     line-height: 1.3;
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
 }
 
 .bb-viewer-meta {
     margin-top: 4px;
     font-size: 13px;
-    color: var(--muted, #645a80);
+    color: var(--muted, var(--theme-muted));
 }
 
 .bb-viewer-text {
     margin-top: 10px;
     font-size: 14px;
     line-height: 1.55;
-    color: var(--ink, #221a3a);
+    color: var(--ink, var(--theme-ink));
 }
 
 .bb-viewer-badge:empty,
@@ -269,7 +269,7 @@ body.bb-viewer-locked {
 
     margin-top: 14px;
     padding-top: 14px;
-    border-top: 1px solid var(--line, #e9e4fa);
+    border-top: 1px solid var(--line, var(--theme-border));
 }
 
 .bb-viewer-actions:empty {
@@ -284,7 +284,7 @@ body.bb-viewer-locked {
     padding: 9px 16px;
     border-radius: 10px;
 
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     color: #fff;
 
     font-size: 14px;
@@ -293,8 +293,8 @@ body.bb-viewer-locked {
 }
 
 .bb-viewer-actions a.is-ghost {
-    background: var(--accent-tint, #eee8ff);
-    color: var(--accent-dark, #5536b5);
+    background: var(--accent-tint, var(--theme-soft));
+    color: var(--accent-dark, var(--theme-primary-hover));
 }
 
 /* ---------- fetched page part / inline form ---------- */

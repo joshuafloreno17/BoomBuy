@@ -38,7 +38,7 @@
 
 .sc-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 20px;
@@ -53,11 +53,11 @@
 }
 
 .sc-card h2 i {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .sc-note {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin: 6px 0 12px;
 }
@@ -98,7 +98,7 @@
     border: 1px solid #d4d2da;
     border-radius: 10px;
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: inherit;
     font-size: 13px;
 }
@@ -109,7 +109,7 @@
 .sc-filter select:focus,
 .sc-filter input:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 3px rgba(109, 74, 209, .1);
 }
 
@@ -118,7 +118,7 @@
     padding: 11px 18px;
     border: none;
     border-radius: 12px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #ffffff;
     font-family: inherit;
     font-size: 13px;
@@ -133,7 +133,7 @@
 
 .sc-add button:hover,
 .sc-staff button:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 /* Staff */
@@ -198,7 +198,7 @@
     text-align: left;
     text-transform: uppercase;
     letter-spacing: .5px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .sc-table td {
@@ -235,15 +235,15 @@
 
 .sc-pill.is-closed {
     background: #f1f0ee;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .sc-toggle {
     padding: 6px 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     background: #ffffff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: inherit;
     font-size: 12px;
     font-weight: 700;
@@ -251,8 +251,8 @@
 }
 
 .sc-toggle:hover {
-    border-color: #6d4ad1;
-    color: #6d4ad1;
+    border-color: var(--theme-primary);
+    color: var(--theme-primary);
 }
 
 .sc-empty {
@@ -296,7 +296,7 @@
 .sc-map {
     height: 460px;
     border-radius: 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     overflow: hidden;
     z-index: 0;
 }

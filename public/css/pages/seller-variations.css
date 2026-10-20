@@ -4,8 +4,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a { text-decoration: none; }
@@ -46,7 +46,7 @@ a { text-decoration: none; }
 
 .card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 25px;
     margin-bottom: 20px;
@@ -70,13 +70,13 @@ a { text-decoration: none; }
     font-size: 11px;
     font-weight: 700;
     margin-bottom: 6px;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .form-group input {
     width: 100%;
     padding: 10px 12px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -84,7 +84,7 @@ a { text-decoration: none; }
 
 .save-btn {
     border: none;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     padding: 11px 20px;
     border-radius: 10px;
@@ -93,17 +93,17 @@ a { text-decoration: none; }
     cursor: pointer;
 }
 
-.save-btn:hover { background: #5536b5; }
+.save-btn:hover { background: var(--theme-primary-hover); }
 
 table { width: 100%; border-collapse: collapse; }
 
 th {
-    background: #f8f6fe;
-    color: #645a80;
+    background: var(--theme-bg);
+    color: var(--theme-muted);
     font-size: 11px;
     text-align: left;
     padding: 10px 14px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 td {
@@ -177,7 +177,7 @@ tr:last-child td { border-bottom: none; }
 
 .card-note {
     font-size: 12.5px;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .var-tr {
@@ -191,12 +191,12 @@ tr:last-child td { border-bottom: none; }
 
 .var-th {
     padding: 8px 4px;
-    background: #f8f6fe;
-    border-bottom: 1px solid #e9e4fa;
+    background: var(--theme-bg);
+    border-bottom: 1px solid var(--theme-border);
     border-radius: 10px 10px 0 0;
     font-size: 11px;
     font-weight: 700;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .var-photo {
@@ -208,7 +208,7 @@ tr:last-child td { border-bottom: none; }
     overflow: hidden;
     border: 1px dashed #d4cde6;
     border-radius: 10px;
-    background: #f8f6fe;
+    background: var(--theme-bg);
     color: #b5afc8;
     font-size: 16px;
     cursor: pointer;
@@ -229,11 +229,11 @@ tr:last-child td { border-bottom: none; }
 
 .var-photo:hover,
 .var-photo.is-changed {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
 }
 
 .var-photo.is-changed::after {
-    content: '¹3';
+    content: 'ï¿½3';
     position: absolute;
     right: 2px;
     bottom: 2px;
@@ -277,7 +277,7 @@ tr:last-child td { border-bottom: none; }
 .var-cell input {
     width: 100%;
     padding: 9px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-family: inherit;
     font-size: 13px;
@@ -286,7 +286,7 @@ tr:last-child td { border-bottom: none; }
 }
 
 .var-cell input:focus {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
 }
 
 .var-cell input.is-out {
@@ -389,17 +389,17 @@ tr:last-child td { border-bottom: none; }
 }
 
 /* Storage (GB) for phones, tablets, laptops */
-.storage-card .card-sub { font-size: 13px; color: #645a80; margin: 4px 0 14px; line-height: 1.5; }
+.storage-card .card-sub { font-size: 13px; color: var(--theme-muted); margin: 4px 0 14px; line-height: 1.5; }
 .storage-card h2 i { color: #7a55e6; margin-right: 4px; }
 .storage-card .sb-sizes { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; margin-bottom: 14px; }
 .storage-card .sb-size {
     display: flex; align-items: center; gap: 6px;
-    background: #fff; border: 1px solid #e9e4fa; border-radius: 10px; padding: 7px 9px;
+    background: #fff; border: 1px solid var(--theme-border); border-radius: 10px; padding: 7px 9px;
     font-weight: 600; cursor: pointer; margin: 0;
 }
 .storage-card .sb-size.is-taken { background: #f6fbfa; border-color: #cdebe7; }
 .storage-card .sb-size input[type="checkbox"] { width: 16px; height: 16px; accent-color: #7a55e6; flex-shrink: 0; }
-.storage-card .sb-size b { font-size: 13px; min-width: 44px; color: #221a3a; }
+.storage-card .sb-size b { font-size: 13px; min-width: 44px; color: var(--theme-ink); }
 .storage-card .sb-size small { font-size: 10.5px; font-weight: 700; color: #0a6f66; }
 .storage-card .sb-size span { font-size: 12px; color: #857ca0; margin-left: auto; }
 .storage-card .sb-size input[type="number"] {

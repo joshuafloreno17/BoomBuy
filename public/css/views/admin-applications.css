@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -46,7 +46,7 @@ a {
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
 }
 
@@ -80,7 +80,7 @@ a {
 
 .tab-btn {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     color: #574e70;
     padding: 10px 18px;
     border-radius: 10px;
@@ -90,8 +90,8 @@ a {
 }
 
 .tab-btn.active {
-    background: #6d4ad1;
-    border-color: #6d4ad1;
+    background: var(--theme-primary);
+    border-color: var(--theme-primary);
     color: white;
 }
 
@@ -99,7 +99,7 @@ a {
 
 .app-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 22px;
     margin-bottom: 16px;
@@ -120,7 +120,7 @@ a {
 }
 
 .app-email {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-top: 2px;
 }
@@ -180,9 +180,9 @@ a {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    background: #f8f6fe;
-    border: 1px solid #e9e4fa;
-    color: #6d4ad1;
+    background: var(--theme-bg);
+    border: 1px solid var(--theme-border);
+    color: var(--theme-primary);
     padding: 7px 12px;
     border-radius: 8px;
     font-size: 11px;
@@ -221,7 +221,7 @@ a {
 
 .reject-form input[type="text"] {
     padding: 9px 11px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 8px;
     font-size: 11px;
     font-family: inherit;
@@ -263,7 +263,7 @@ a {
     text-align: center;
     padding: 55px 20px;
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
 }
 
@@ -313,7 +313,7 @@ a.tab-btn {
     min-width: 20px;
     padding: 1px 7px;
     border-radius: 999px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     font-size: 11px;
     text-align: center;
@@ -321,7 +321,7 @@ a.tab-btn {
 
 .tab-btn.active .pending-dot {
     background: #fff;
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 .filter-row {
@@ -341,7 +341,7 @@ a.tab-btn {
 .status-chip {
     padding: 7px 13px;
     border-radius: 999px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     background: #fff;
     color: #574e70;
     font-size: 12px;
@@ -350,15 +350,15 @@ a.tab-btn {
 }
 
 .status-chip.active {
-    background: #eee8ff;
-    border-color: #6d4ad1;
-    color: #5536b5;
+    background: var(--theme-soft);
+    border-color: var(--theme-primary);
+    color: var(--theme-primary-hover);
 }
 
 /* Pending with something waiting: solid, so it can't be missed. */
 .status-chip.has-work {
-    background: #6d4ad1;
-    border-color: #6d4ad1;
+    background: var(--theme-primary);
+    border-color: var(--theme-primary);
     color: #fff;
 }
 
@@ -372,7 +372,7 @@ a.tab-btn {
 .app-search input {
     flex: 1;
     padding: 10px 13px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     font-size: 13px;
     font-family: inherit;
@@ -383,7 +383,7 @@ a.tab-btn {
     padding: 10px 14px;
     border: none;
     border-radius: 10px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     font-weight: 700;
     font-size: 13px;

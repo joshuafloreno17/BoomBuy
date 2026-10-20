@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -49,7 +49,7 @@ a {
 }
 
 .page-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
 }
 
@@ -88,14 +88,14 @@ a {
 
 .stat-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
 }
 
 .stat-card span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-bottom: 8px;
 }
@@ -109,7 +109,7 @@ a {
 
 .table-card {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     overflow: hidden;
     box-shadow: 0 12px 30px rgba(39, 84, 150, 0.07);
@@ -145,12 +145,12 @@ table {
 }
 
 th {
-    background: #f8f6fe;
-    color: #645a80;
+    background: var(--theme-bg);
+    color: var(--theme-muted);
     font-size: 11px;
     text-align: left;
     padding: 14px 20px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 td {
@@ -181,7 +181,7 @@ tr:hover td {
     height: 38px;
     min-width: 38px;
     border-radius: 50%;
-    background: #eee8ff;
+    background: var(--theme-soft);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -209,8 +209,8 @@ tr:hover td {
 }
 
 .buyer {
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
 }
 
 .seller {
@@ -269,8 +269,8 @@ tr:hover td {
 
 .status-select {
     border: 1px solid #e0dbee;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
     padding: 7px 9px;
     border-radius: 8px;
     font-family: inherit;
@@ -397,12 +397,12 @@ a.stat-card:hover {
 }
 
 a.stat-card.active {
-    border-color: var(--accent, #6d4ad1);
+    border-color: var(--accent, var(--theme-primary));
     box-shadow: 0 0 0 2px rgba(109, 74, 206, .12);
 }
 
 a.stat-card.active span {
-    color: var(--accent, #6d4ad1);
+    color: var(--accent, var(--theme-primary));
     font-weight: 700;
 }
 
@@ -449,7 +449,7 @@ a.stat-card.active span {
 .account-search input:focus,
 .account-toolbar select:focus {
     outline: none;
-    border-color: var(--accent, #6d4ad1);
+    border-color: var(--accent, var(--theme-primary));
 }
 
 .toolbar-btn {
@@ -459,7 +459,7 @@ a.stat-card.active span {
     padding: 11px 16px;
     border: none;
     border-radius: 12px;
-    background: var(--accent, #6d4ad1);
+    background: var(--accent, var(--theme-primary));
     color: #fff;
     font-weight: 700;
     font-size: 13px;
@@ -499,14 +499,14 @@ a.stat-card.active span {
     justify-content: center;
     width: 34px;
     height: 34px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 9px;
     background: #fff;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 15px;
 }
 
 .message-btn:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
     border-color: #c8bfe0;
 }

@@ -576,7 +576,7 @@
                                         <i class="bi bi-box-seam-fill"></i> Add back to stock
                                     </button>
                                 </form>
-                                <span style="font-size:12px; color:#645a80;">Skip this if it came back damaged.</span>
+                                <span style="font-size:12px; color:var(--theme-muted);">Skip this if it came back damaged.</span>
                             </div>
 
                         @elseif(!empty($request->restocked_at))

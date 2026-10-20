@@ -7,8 +7,8 @@
     <style>
         .field-label { display: block; font-size: 12px; font-weight: 700; color: #463c5e; margin-bottom: 8px; }
         .service-areas { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 6px 14px; }
-        .service-area { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; font-weight: 500; color: #221a3a; cursor: pointer; margin: 0; }
-        .service-area input { width: auto; margin-top: 2px; accent-color: #6d4ad1; }
+        .service-area { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; font-weight: 500; color: var(--theme-ink); cursor: pointer; margin: 0; }
+        .service-area input { width: auto; margin-top: 2px; accent-color: var(--theme-primary); }
     </style>
 </head>
 <body>

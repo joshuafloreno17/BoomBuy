@@ -259,7 +259,7 @@
 
                             @if(($order['status'] ?? '') === 'Out for Delivery' && !empty($order['delivery_otp']))
 
-                                <div class="delivery-otp" style="margin:10px 0;padding:10px 14px;border-radius:12px;background:#eee8ff;color:#221a3a;"><i class="bi bi-shield-lock-fill"></i> Delivery OTP: <strong data-delivery-otp>{{ $order['delivery_otp'] }}</strong> — give this code to the rider when you receive the parcel.</div>
+                                <div class="delivery-otp" style="margin:10px 0;padding:10px 14px;border-radius:12px;background:var(--theme-soft);color:var(--theme-ink);"><i class="bi bi-shield-lock-fill"></i> Delivery OTP: <strong data-delivery-otp>{{ $order['delivery_otp'] }}</strong> — give this code to the rider when you receive the parcel.</div>
 
                             @endif
 
@@ -292,7 +292,7 @@
                                             <div class="item-name">
                                                 {{ $item['name'] ?? 'Product' }}
                                                 @if(!empty($item['variation_label']))
-                                                    <span style="color:#645a80; font-weight:400;">({{ $item['variation_label'] }})</span>
+                                                    <span style="color:var(--theme-muted); font-weight:400;">({{ $item['variation_label'] }})</span>
                                                 @endif
                                             </div>
 
@@ -751,7 +751,7 @@
                                                 @csrf
                                                 <label for="why-{{ $returnRequest->id }}" style="flex:1 1 220px; display:grid; gap:4px; font-size:11.5px; font-weight:700;">
                                                     Disagree? Tell BoomBuy why
-                                                    <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid #e9e4fa; border-radius:8px; font:inherit;">
+                                                    <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid var(--theme-border); border-radius:8px; font:inherit;">
                                                 </label>
                                                 <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Escalate to a dispute</button>
                                             </form>
@@ -1056,7 +1056,7 @@
 
                                             @else
 
-                                                <span style="color:#645a80;">
+                                                <span style="color:var(--theme-muted);">
                                                     Rider not assigned yet
                                                 </span>
 

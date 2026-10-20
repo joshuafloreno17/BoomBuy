@@ -243,7 +243,7 @@
                             <h2 id="sales-title">Sales and commission</h2>
                             <p class="ad-muted">Delivered orders · last 6 months</p>
                         </div>
-                        <div class="ad-legend"><span><i style="background:#6d4ad1"></i>Sales</span><span><i style="background:#4ade80"></i>Commission</span></div>
+                        <div class="ad-legend"><span><i style="background:var(--theme-primary)"></i>Sales</span><span><i style="background:#4ade80"></i>Commission</span></div>
                     </div>
                     <svg class="ad-chart" viewBox="0 0 720 230" role="img" aria-label="Sales and commission per month: {{ collect($salesByMonth)->map(fn ($m) => $m['label'] . ' ' . $peso($m['sales']) . ' sales, ' . $peso($m['commission']) . ' commission')->implode('; ') }}">
                         <defs><linearGradient id="adFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6d4ad1" stop-opacity=".28"/><stop offset="1" stop-color="#6d4ad1" stop-opacity="0"/></linearGradient></defs>
@@ -352,7 +352,7 @@
                                     @endphp
                                     <tr>
                                         <td>
-                                            <a href="{{ route('admin.order.details', $order['id']) }}" class="pd-strong" style="color:#221a3a;">#{{ $order['id'] }}</a>
+                                            <a href="{{ route('admin.order.details', $order['id']) }}" class="pd-strong" style="color:var(--theme-ink);">#{{ $order['id'] }}</a>
                                             <div class="pd-sub" style="font-size:12.5px;">{{ \Carbon\Carbon::parse($order['created_at'])->format('M j, g:i A') }}</div>
                                         </td>
                                         <td class="pd-hide-sm">{{ $order['buyer_name'] }}</td>

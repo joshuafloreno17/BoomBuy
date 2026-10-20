@@ -11,7 +11,7 @@
     margin: 0 auto;
     padding: 28px 32px 48px;
     box-sizing: border-box;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-family: 'Figtree', -apple-system, BlinkMacSystemFont, sans-serif;
 }
 
@@ -63,14 +63,14 @@
     gap: 8px;
     height: 44px;
     padding: 0 14px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 12px;
     background: #fff;
     color: #857ca0;
 }
 
 .pd-search:focus-within {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
     box-shadow: 0 0 0 4px rgba(109, 74, 209, .12);
 }
 
@@ -80,7 +80,7 @@
     border: 0;
     outline: 0;
     background: transparent;
-    color: #221a3a;
+    color: var(--theme-ink);
     font: inherit;
 }
 
@@ -91,16 +91,16 @@
     flex: none;
     display: grid;
     place-items: center;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 12px;
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 18px;
 }
 
 .pd-icon-btn:hover {
     border-color: #ddd5f2;
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .pd-icon-btn em {
@@ -112,9 +112,9 @@
     padding: 0 5px;
     display: grid;
     place-items: center;
-    border: 2px solid #f8f6fe;
+    border: 2px solid var(--theme-bg);
     border-radius: 999px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
     font-size: 10.5px;
     font-style: normal;
@@ -139,24 +139,24 @@
 }
 
 .pd-btn-primary {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
 }
 
 .pd-btn-primary:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
     color: #fff;
 }
 
 .pd-btn-ghost {
     border-color: #ddd5f2;
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .pd-btn-ghost:hover {
-    border-color: #6d4ad1;
-    color: #5536b5;
+    border-color: var(--theme-primary);
+    color: var(--theme-primary-hover);
 }
 
 .pd-btn-sm {
@@ -177,10 +177,10 @@
     display: flex;
     flex-direction: column;
     padding: 20px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 18px;
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 a.pd-kpi:hover {
@@ -189,8 +189,8 @@ a.pd-kpi:hover {
 }
 
 .pd-kpi.is-accent {
-    border-color: #6d4ad1;
-    background: #6d4ad1;
+    border-color: var(--theme-primary);
+    background: var(--theme-primary);
     color: #fff;
 }
 
@@ -225,7 +225,7 @@ a.pd-kpi:hover {
 .pd-card {
     min-width: 0;
     padding: 22px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 18px;
     background: #fff;
 }
@@ -250,7 +250,7 @@ a.pd-kpi:hover {
 }
 
 .pd-link {
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 14px;
     font-weight: 700;
     white-space: nowrap;
@@ -261,7 +261,7 @@ a.pd-kpi:hover {
 }
 
 .pd-muted {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13.5px;
 }
 
@@ -278,13 +278,13 @@ a.pd-kpi:hover {
     gap: 12px;
     padding: 12px;
     border-radius: 12px;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
     transition: background .15s ease;
 }
 
 a.pd-todo-item:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .pd-todo-icon {
@@ -295,13 +295,13 @@ a.pd-todo-item:hover {
     place-items: center;
     border-radius: 10px;
     background: #ebe9f1;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 17px;
 }
 
 .pd-todo-item.is-hot .pd-todo-icon {
     background: #e6dcff;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
 }
 
 .pd-todo-text {
@@ -316,7 +316,7 @@ a.pd-todo-item:hover {
 
 .pd-todo-text span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12.5px;
 }
 
@@ -337,7 +337,7 @@ a.pd-todo-item:hover {
     gap: 12px;
     height: 220px;
     padding: 0 4px;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
 }
 
 .pd-bar {
@@ -352,7 +352,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-bar-amount {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     font-weight: 700;
     white-space: nowrap;
@@ -367,7 +367,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-bar.is-today .pd-bar-fill {
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .pd-bar-days {
@@ -385,7 +385,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-bar-days span.is-today {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 700;
 }
 
@@ -394,7 +394,7 @@ a.pd-todo-item:hover {
     display: inline-flex;
     padding: 3px;
     border-radius: 10px;
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .pd-seg a,
@@ -403,7 +403,7 @@ a.pd-todo-item:hover {
     border: 0;
     border-radius: 8px;
     background: transparent;
-    color: #645a80;
+    color: var(--theme-muted);
     font: inherit;
     font-size: 13px;
     font-weight: 600;
@@ -412,7 +412,7 @@ a.pd-todo-item:hover {
 
 .pd-seg .is-on {
     background: #fff;
-    color: #221a3a;
+    color: var(--theme-ink);
     font-weight: 700;
     box-shadow: 0 1px 2px rgba(0, 0, 0, .08);
 }
@@ -450,7 +450,7 @@ a.pd-todo-item:hover {
 }
 
 .pd-table tr.is-link:hover td {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .pd-strong {
@@ -458,14 +458,14 @@ a.pd-todo-item:hover {
 }
 
 .pd-sub {
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .pd-empty {
     padding: 28px 16px;
     border: 1px dashed #ddd5f2;
     border-radius: 14px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     text-align: center;
 }
@@ -473,7 +473,7 @@ a.pd-todo-item:hover {
 .pd-empty i {
     display: block;
     margin-bottom: 6px;
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-size: 24px;
 }
 
@@ -490,7 +490,7 @@ a.pd-todo-item:hover {
     gap: 10px 14px;
     padding: 14px 4px;
     border-top: 1px solid #ebe8f4;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .pd-list-row:first-child {
@@ -505,7 +505,7 @@ a.pd-todo-item:hover {
     place-items: center;
     overflow: hidden;
     border-radius: 50%;
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #4a2e96;
     font-size: 14px;
     font-weight: 700;
@@ -528,7 +528,7 @@ a.pd-todo-item:hover {
 
 .pd-list-main span {
     display: block;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
 }
 
@@ -555,14 +555,14 @@ a.pd-todo-item:hover {
     align-items: center;
     gap: 6px;
     border-radius: 999px;
-    background: #eee8ff;
-    color: #221a3a;
+    background: var(--theme-soft);
+    color: var(--theme-ink);
     font-size: 13px;
     font-weight: 600;
 }
 
 .pd-chip.is-on {
-    background: #221a3a;
+    background: var(--theme-ink);
     color: #fff;
     font-weight: 700;
 }
@@ -573,7 +573,7 @@ a.pd-todo-item:hover {
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
     gap: 8px;
     padding: 8px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 18px;
     background: #fff;
 }
@@ -584,16 +584,16 @@ a.pd-todo-item:hover {
     gap: 2px;
     padding: 16px;
     border-radius: 12px;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a.pd-step:hover {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .pd-step.is-hot {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #fff;
 }
 
@@ -761,7 +761,7 @@ a.pd-step:hover {
     z-index: 50;
     width: min(380px, calc(100vw - 32px));
     overflow: hidden;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     background: #fff;
     box-shadow: 0 18px 40px rgba(34, 26, 58, .14);
@@ -796,8 +796,8 @@ a.pd-step:hover {
     padding: 6px 10px;
     border: 0;
     border-radius: 8px;
-    background: #eee8ff;
-    color: #5536b5;
+    background: var(--theme-soft);
+    color: var(--theme-primary-hover);
     font: inherit;
     font-size: 12.5px;
     font-weight: 700;
@@ -818,15 +818,15 @@ a.pd-step:hover {
     gap: 12px;
     padding: 10px;
     border-radius: 12px;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .pd-pop-item:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .pd-pop-item.is-unread {
-    background: #eee8ff;
+    background: var(--theme-soft);
 }
 
 .pd-pop-item.is-unread::after {
@@ -837,7 +837,7 @@ a.pd-step:hover {
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: #6d4ad1;
+    background: var(--theme-primary);
 }
 
 .pd-pop-icon {
@@ -848,7 +848,7 @@ a.pd-step:hover {
     place-items: center;
     border-radius: 10px;
     background: #ebe9f2;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 16px;
 }
 
@@ -879,7 +879,7 @@ a.pd-step:hover {
 
 .pd-pop-empty {
     padding: 28px 16px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     text-align: center;
 }
@@ -887,7 +887,7 @@ a.pd-step:hover {
 .pd-pop-empty i {
     display: block;
     margin-bottom: 6px;
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-size: 22px;
 }
 
@@ -895,14 +895,14 @@ a.pd-step:hover {
     display: block;
     padding: 12px;
     border-top: 1px solid #ebe8f4;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 13.5px;
     font-weight: 700;
     text-align: center;
 }
 
 .pd-pop-all:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 /* Phones: the bell sits on the left, so the panel spans the screen instead. */

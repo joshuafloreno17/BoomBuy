@@ -1,6 +1,6 @@
 /* Seller → Promotions (builds on seller-vouchers.css) */
-.promo-note { font-size: 13px; color: #645a80; margin: -4px 0 16px; line-height: 1.5; }
-.promo-preview { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #5536b5; }
+.promo-note { font-size: 13px; color: var(--theme-muted); margin: -4px 0 16px; line-height: 1.5; }
+.promo-preview { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: var(--theme-primary-hover); }
 
 .promo-row {
     display: flex;
@@ -14,12 +14,12 @@
 
 .promo-main { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
 .promo-main strong { font-size: 14px; }
-.promo-main small { font-size: 12px; color: #645a80; }
+.promo-main small { font-size: 12px; color: var(--theme-muted); }
 .promo-main .status-badge { align-self: flex-start; }
 
 .promo-actions { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
 .promo-actions form { display: inline-flex; gap: 6px; align-items: center; }
-.promo-edit input { width: 90px; padding: 7px 9px; border: 1px solid #e9e4fa; border-radius: 8px; font: inherit; font-size: 13px; }
+.promo-edit input { width: 90px; padding: 7px 9px; border: 1px solid var(--theme-border); border-radius: 8px; font: inherit; font-size: 13px; }
 
 .field-error { display: block; color: #be123c; font-size: 12px; font-weight: 600; margin-top: 6px; }
 
@@ -30,4 +30,4 @@
 .promo-edit input[type="datetime-local"] { width: 190px; }
 .promo-locked { font-size: 11px; color: #92400e; }
 
-.balance { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; color: #221a3a; }
+.balance { display: block; font-family: 'Bricolage Grotesque', sans-serif; font-size: 24px; color: var(--theme-ink); }

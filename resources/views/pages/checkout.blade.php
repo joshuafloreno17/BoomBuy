@@ -219,7 +219,7 @@
 
                 <div class="form-group">
                     <label for="note">Note to seller <small style="font-weight:500; color:#857ca0;">(optional, up to 200 characters)</small></label>
-                    <textarea id="note" name="note" rows="2" maxlength="200" placeholder="e.g. Please pack it as a gift." style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid #e9e4fa; border-radius:10px; font:inherit; font-size:13px; resize:vertical;">{{ old('note') }}</textarea>
+                    <textarea id="note" name="note" rows="2" maxlength="200" placeholder="e.g. Please pack it as a gift." style="width:100%; box-sizing:border-box; padding:10px 12px; border:1px solid var(--theme-border); border-radius:10px; font:inherit; font-size:13px; resize:vertical;">{{ old('note') }}</textarea>
                 </div>
 
                 <div class="form-group">
@@ -437,7 +437,7 @@
                     <strong id="etaValue">{{ $deliveryTo && $checkoutEta ? $checkoutEta : '—' }}</strong>
                 </div>
 
-                <div class="subtotal-row" style="font-size:11px; color:#645a80;">
+                <div class="subtotal-row" style="font-size:11px; color:var(--theme-muted);">
                     <span>
                         <span id="deliveryZone">
                             @php $zoneLabels = collect($checkoutPlan['orders'])->pluck('zone')->unique()->map(fn ($z) => \App\Support\ParcelRoute::ZONES[$z] ?? $z); @endphp

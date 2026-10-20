@@ -16,7 +16,7 @@
     .bb-auth-logo { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; }
     .bb-portal-tag {
         background: #f1ecfd;
-        color: #6d4ad1;
+        color: var(--theme-primary);
         border: 1px solid #e0d6fb;
         border-radius: 999px;
         padding: 4px 10px;

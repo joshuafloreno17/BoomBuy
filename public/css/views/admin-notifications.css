@@ -10,8 +10,8 @@
 
 body {
     font-family: 'Figtree', sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -55,24 +55,24 @@ a {
     gap: 7px;
     padding: 10px 14px;
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     font-weight: 700;
     transition: 0.2s ease;
 }
 
 .back-button:hover {
-    color: #6d4ad1;
-    background: #eee8ff;
+    color: var(--theme-primary);
+    background: var(--theme-soft);
 }
 
 /* NOTIFICATIONS */
 
 .notification-panel {
     background: #ffffff;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     overflow: hidden;
 }
@@ -92,7 +92,7 @@ a {
 }
 
 .notification-header p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 11px;
     margin-top: 4px;
 }
@@ -121,11 +121,11 @@ a {
 }
 
 .notification-card:hover {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .notification-card.unread {
-    background: #f8f6fe;
+    background: var(--theme-bg);
 }
 
 .notification-card.read {
@@ -138,8 +138,8 @@ a {
     width: 43px;
     height: 43px;
     border-radius: 12px;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -154,7 +154,7 @@ a {
 .notification-title {
     font-size: 13px;
     font-weight: 800;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .notification-message {
@@ -180,7 +180,7 @@ a {
 .unread-dot {
     width: 7px;
     height: 7px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     border-radius: 50%;
 }
 
@@ -188,8 +188,8 @@ a {
     display: inline-flex;
     padding: 4px 8px;
     border-radius: 999px;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     font-size: 8px;
     font-weight: 800;
     text-transform: uppercase;
@@ -216,8 +216,8 @@ a {
     height: 55px;
     margin: 0 auto 14px;
     border-radius: 15px;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -3,8 +3,8 @@
 body {
     margin: 0;
     padding: 24px 16px 48px;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
     font-family: 'Figtree', -apple-system, sans-serif;
 }
 
@@ -18,7 +18,7 @@ body {
 }
 
 .label-back {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
     font-weight: 600;
     text-decoration: none;
@@ -31,7 +31,7 @@ body {
     padding: 10px 16px;
     border: none;
     border-radius: 12px;
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: #ffffff;
     font-family: inherit;
     font-size: 13px;
@@ -40,13 +40,13 @@ body {
 }
 
 .label-print:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 .label-help {
     max-width: 4in;
     margin: 0 auto 16px;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     line-height: 1.5;
 }
@@ -57,14 +57,14 @@ body {
     max-width: 100%;
     min-height: 6in;
     margin: 0 auto;
-    border: 2px solid #221a3a;
+    border: 2px solid var(--theme-ink);
     background: #ffffff;
     display: flex;
     flex-direction: column;
 }
 
 .label > * {
-    border-bottom: 2px solid #221a3a;
+    border-bottom: 2px solid var(--theme-ink);
     padding: 10px 12px;
 }
 
@@ -111,7 +111,7 @@ body {
 
 .label-service {
     padding: 4px 12px;
-    border: 2px solid #221a3a;
+    border: 2px solid var(--theme-ink);
     font-size: 16px;
     font-weight: 900;
     letter-spacing: 1px;
@@ -140,7 +140,7 @@ body {
     display: grid;
     place-items: center;
     border: 1px dashed #857ca0;
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 10px;
     text-align: center;
 }
@@ -156,7 +156,7 @@ body {
     display: flex;
     align-items: center;
     gap: 10px;
-    background: #221a3a;
+    background: var(--theme-ink);
     color: #ffffff;
 }
 
@@ -229,7 +229,7 @@ body {
 .label-line {
     display: block;
     height: 22px;
-    border-bottom: 1px solid #221a3a;
+    border-bottom: 1px solid var(--theme-ink);
 }
 
 .label-foot {

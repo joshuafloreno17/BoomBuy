@@ -1,7 +1,7 @@
 {{-- "% off" next to the product's Price field; shows what buyers will pay. --}}
 @php $discountValue = old('discount_percent', $discount ?? ''); @endphp
 <div class="form-group">
-    <label for="discount_percent">Discount (% off) <small style="font-weight:500;color:var(--bb-muted,#645a80)">· optional</small></label>
+    <label for="discount_percent">Discount (% off) <small style="font-weight:500;color:var(--bb-muted,var(--theme-muted))">· optional</small></label>
     <input
         type="number"
         id="discount_percent"
@@ -12,7 +12,7 @@
         step="1"
         placeholder="0 = no discount"
     >
-    <small id="discount-hint" style="display:block;margin-top:6px;color:var(--bb-muted,#645a80);font-size:13px"></small>
+    <small id="discount-hint" style="display:block;margin-top:6px;color:var(--bb-muted,var(--theme-muted));font-size:13px"></small>
 </div>
 
 <script>

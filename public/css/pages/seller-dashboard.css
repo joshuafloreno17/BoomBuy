@@ -8,8 +8,8 @@
 
 body {
     font-family: 'Figtree', -apple-system, sans-serif;
-    background: #f8f6fe;
-    color: #221a3a;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
 }
 
 a {
@@ -21,7 +21,7 @@ a {
 
 .navbar {
     background: white;
-    border-bottom: 1px solid #e9e4fa;
+    border-bottom: 1px solid var(--theme-border);
     padding: 18px 7%;
     display: flex;
     align-items: center;
@@ -35,7 +35,7 @@ a {
 }
 
 .user {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 13px;
 }
 
@@ -53,7 +53,7 @@ a {
 
 .welcome {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 16px;
     padding: 30px;
     margin-bottom: 30px;
@@ -73,7 +73,7 @@ a {
 }
 
 .welcome p {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 14px;
     margin-top: 8px;
 }
@@ -91,7 +91,7 @@ a {
 }
 
 .alert-error {
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #dc2626;
     padding: 13px 16px;
     border-radius: 9px;
@@ -111,7 +111,7 @@ a {
 
 .stat-card {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 20px;
 
@@ -130,7 +130,7 @@ a {
 .stat-icon {
     width: 52px;
     height: 52px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     border-radius: 12px;
 
     display: flex;
@@ -142,13 +142,13 @@ a {
 }
 
 .stat-title {
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
     margin-bottom: 5px;
 }
 
 .stat-number {
-    color: #221a3a;
+    color: var(--theme-ink);
     font-size: 24px;
     font-weight: 700;
 }
@@ -167,7 +167,7 @@ a {
 }
 
 .add-btn {
-    background: #6d4ad1;
+    background: var(--theme-primary);
     color: white;
     padding: 11px 16px;
     border-radius: 8px;
@@ -176,14 +176,14 @@ a {
 }
 
 .add-btn:hover {
-    background: #5536b5;
+    background: var(--theme-primary-hover);
 }
 
 /* PRODUCTS TABLE */
 
 .products-box {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     overflow: hidden;
 }
@@ -194,8 +194,8 @@ a {
 }
 
 .products-table th {
-    background: #f8f6fe;
-    color: #645a80;
+    background: var(--theme-bg);
+    color: var(--theme-muted);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -230,7 +230,7 @@ a {
 .product-icon {
     width: 52px;
     height: 52px;
-    background: #eee8ff;
+    background: var(--theme-soft);
     border-radius: 10px;
     overflow: hidden;
     flex-shrink: 0;
@@ -245,7 +245,7 @@ a {
 
 .product-name {
     font-weight: 700;
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 .product-slug {
@@ -256,8 +256,8 @@ a {
 
 .category-badge {
     display: inline-block;
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
     padding: 6px 9px;
     border-radius: 6px;
     font-size: 10px;
@@ -265,7 +265,7 @@ a {
 }
 
 .product-price {
-    color: #6d4ad1;
+    color: var(--theme-primary);
     font-weight: 700;
 }
 
@@ -312,8 +312,8 @@ a {
 }
 
 .edit-btn {
-    background: #eee8ff;
-    color: #6d4ad1;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
 }
 
 .edit-btn:hover {
@@ -321,7 +321,7 @@ a {
 }
 
 .delete-btn {
-    background: #eee8ff;
+    background: var(--theme-soft);
     color: #dc2626;
 }
 
@@ -333,11 +333,11 @@ a {
 
 .empty {
     background: white;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 14px;
     padding: 55px 30px;
     text-align: center;
-    color: #645a80;
+    color: var(--theme-muted);
 }
 
 .empty-icon {
@@ -346,25 +346,25 @@ a {
 }
 
 .empty h3 {
-    color: #221a3a;
+    color: var(--theme-ink);
 }
 
 /* FOOTER */
 
 footer {
     background: white;
-    border-top: 1px solid #e9e4fa;
+    border-top: 1px solid var(--theme-border);
     padding: 30px 7%;
 
     display: flex;
     justify-content: space-between;
 
-    color: #645a80;
+    color: var(--theme-muted);
     font-size: 12px;
 }
 
 footer strong {
-    color: #6d4ad1;
+    color: var(--theme-primary);
 }
 
 /* RESPONSIVE */
@@ -502,7 +502,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 .product-search input {
     width: 100%;
     padding: 10px 12px 10px 36px;
-    border: 1px solid #e9e4fa;
+    border: 1px solid var(--theme-border);
     border-radius: 10px;
     font-size: 13px;
     font-family: inherit;
@@ -511,7 +511,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 .product-search input:focus {
     outline: none;
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
 }
 
 @media (max-width: 600px) {
@@ -663,7 +663,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    color: #5536b5;
+    color: var(--theme-primary-hover);
     font-size: 13px;
     font-weight: 800;
 }
@@ -679,7 +679,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     --sd-surface: #fff;
     --sd-shadow: 0 8px 22px -16px rgba(34, 26, 58, 0.35);
     --sd-sub: #574e70;
-    --sd-hero: linear-gradient(150deg, #9175df 0%, #6d4ad1 50%, #5333aa 100%);
+    --sd-hero: linear-gradient(150deg, #9175df 0%, var(--theme-primary) 50%, #5333aa 100%);
 }
 
 .pd .pd-head-m,
@@ -735,7 +735,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         justify-content: center;
         border-radius: 14px;
         background: #fff;
-        color: #5536b5;
+        color: var(--theme-primary-hover);
         font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
         font-size: 19px;
         font-weight: 800;
@@ -781,7 +781,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         border: 0;
         border-radius: 14px;
         background: #fff;
-        color: #5536b5;
+        color: var(--theme-primary-hover);
         font-size: 13px;
         font-weight: 800;
     }
@@ -799,8 +799,8 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
     }
 
     .pd .pd-head .pd-icon-btn em {
-        border-color: #6d4ad1;
-        background: #221a3a;
+        border-color: var(--theme-primary);
+        background: var(--theme-ink);
     }
 
     .pd .pd-head-today {
@@ -869,7 +869,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         border-radius: 18px;
         background: var(--sd-surface);
         box-shadow: var(--sd-shadow);
-        color: #221a3a;
+        color: var(--theme-ink);
     }
 
     .pd .pd-kpis .pd-kpi.is-accent {
@@ -908,7 +908,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         font-size: 16px;
     }
 
-    .pd .pd-kpi-icon.is-orange { background: #eee8ff; color: #5536b5; }
+    .pd .pd-kpi-icon.is-orange { background: var(--theme-soft); color: var(--theme-primary-hover); }
     .pd .pd-kpi-icon.is-teal { background: #e3f6f4; color: #0a6f66; }
     .pd .pd-kpi-icon.is-yellow { background: #fff4d6; color: #7a4f00; }
 
@@ -923,7 +923,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         padding: 16px;
         border: 0;
         border-radius: 20px;
-        background: #221a3a;
+        background: var(--theme-ink);
         color: #fff;
         box-shadow: 0 14px 30px -18px rgba(34, 26, 58, 0.6);
     }
@@ -933,7 +933,7 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         height: 46px;
         border-radius: 15px;
         background: #ffd25e;
-        color: #221a3a;
+        color: var(--theme-ink);
     }
 
     .pd .pd-cod-label {
@@ -1011,10 +1011,10 @@ a.pd-cod {
 
 a.pd-cod:hover,
 a.pd-cod:focus-visible {
-    border-color: #6d4ad1;
+    border-color: var(--theme-primary);
 }
 
-.store-cat-line { display: block; margin-top: 5px; font-size: 11px; color: #645a80; }
+.store-cat-line { display: block; margin-top: 5px; font-size: 11px; color: var(--theme-muted); }
 
 /* Bulk actions and product status */
 .bulk-bar {
@@ -1035,7 +1035,7 @@ a.pd-cod:focus-visible {
     font-size: 13px;
 }
 
-.bulk-check { width: 16px; height: 16px; accent-color: #6d4ad1; flex: none; }
+.bulk-check { width: 16px; height: 16px; accent-color: var(--theme-primary); flex: none; }
 
 .draft-badge {
     display: inline-block;

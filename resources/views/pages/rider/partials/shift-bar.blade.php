@@ -49,16 +49,16 @@
 
 @once
     <style>
-        .shift-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin: 0 0 16px; border-radius: 14px; background: #fff; border: 1px solid #e9e4fa; }
+        .shift-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; margin: 0 0 16px; border-radius: 14px; background: #fff; border: 1px solid var(--theme-border); }
         .shift-bar form { margin: 0; }
         .shift-state { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-        .shift-state small { color: #645a80; }
+        .shift-state small { color: var(--theme-muted); }
         .shift-dot { width: 10px; height: 10px; border-radius: 50%; background: #b3aac8; }
         .shift-bar.is-online .shift-dot { background: #0d9488; box-shadow: 0 0 0 4px #e3f6f4; }
-        .job-offer { border: 2px solid #6d4ad1; }
-        .offer-timer { font-weight: 800; color: #6d4ad1; }
+        .job-offer { border: 2px solid var(--theme-primary); }
+        .offer-timer { font-weight: 800; color: var(--theme-primary); }
         .scan-form { display: flex; gap: 8px; flex-wrap: wrap; width: 100%; }
-        .scan-form input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid #e9e4fa; border-radius: 10px; font: inherit; }
+        .scan-form input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--theme-border); border-radius: 10px; font: inherit; }
     </style>
     <script>
         // Count each offer down; at 0 Accept is disabled (the server refuses it too).
