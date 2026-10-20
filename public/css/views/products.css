@@ -454,6 +454,10 @@ select {
 .filters {
     position: sticky;
     top: 96px;
+    /* Taller than the screen? Scroll inside, so the bottom filters show without reaching the footer */
+    max-height: calc(100vh - 112px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
     background: #fff;
     border: 1px solid var(--line);
     border-radius: 20px;
@@ -461,6 +465,36 @@ select {
     display: flex;
     flex-direction: column;
     gap: 22px;
+}
+
+/* Slim floating scrollbar that stays clear of the rounded corners */
+.filters::-webkit-scrollbar {
+    width: 6px;
+}
+
+.filters::-webkit-scrollbar-track {
+    background: transparent;
+    margin: 18px 0;
+}
+
+.filters::-webkit-scrollbar-thumb {
+    background: transparent;
+    border-radius: 999px;
+}
+
+.filters:hover::-webkit-scrollbar-thumb {
+    background: #d6cdef;
+}
+
+.filters::-webkit-scrollbar-thumb:hover {
+    background: #b9acdf;
+}
+
+@supports not selector(::-webkit-scrollbar) {
+    .filters {
+        scrollbar-width: thin;
+        scrollbar-color: #d6cdef transparent;
+    }
 }
 
 .filters-head {
@@ -510,6 +544,26 @@ select {
     border: 1px solid #ddd5f2;
     border-radius: 10px;
     font-size: 13px;
+}
+
+/* "Ships from" dropdown, styled like the price inputs */
+.filter-group select {
+    width: 100%;
+    min-height: 40px;
+    padding: 0 36px 0 12px;
+    border: 1px solid #ddd5f2;
+    border-radius: 10px;
+    background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='%23574e70' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 6l5 5 5-5'/%3E%3C/svg%3E") no-repeat right 12px center;
+    -webkit-appearance: none;
+    appearance: none;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    cursor: pointer;
+}
+
+.filter-group select:hover {
+    border-color: #c4badf;
 }
 
 .price-picks {

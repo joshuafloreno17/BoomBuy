@@ -315,3 +315,30 @@
 @media (prefers-reduced-motion: reduce) {
     .sidebar .menu a, .sidebar .menu a svg { transition: none; }
 }
+
+/* Logo stays at the top and the profile / Log out at the bottom;
+   only the menu between them scrolls on short screens. */
+.sidebar {
+    overflow: hidden;
+}
+
+.sidebar .bb-side-brand,
+.sidebar .logout {
+    flex-shrink: 0;
+}
+
+.sidebar .menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #3a2560 transparent;
+}
+
+.sidebar .logout {
+    margin-top: 0;
+    padding-top: 12px;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}
