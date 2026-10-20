@@ -26,11 +26,11 @@ return [
             'linen-blouse-white', 'linen-blouse-beige', 'linen-blouse-sage', 'linen-blouse-pink',
             'peasant-blouse-taupe', 'peasant-blouse-black', 'peasant-blouse-wine',
             'crew-tee-white', 'crew-tee-black', 'crew-tee-grey', 'crew-tee-navy', 'crew-tee-red',
-            'crop-top-black', 'crop-top-white', 'crop-top-brown', 'graphic-tee', 'floral-dress',
+            'crop-top-black', 'crop-top-white', 'crop-top-brown', 'graphic-tee-black', 'graphic-tee-white', 'floral-dress-white', 'floral-dress-blue', 'floral-dress-teal',
             'satin-slip-black', 'satin-slip-champagne', 'satin-slip-emerald', 'aline-dress-black', 'aline-dress-wine',
-            'sundress-white', 'sundress-yellow', 'sundress-blue', 'shirt-dress-beige',
+            'sundress-white', 'sundress-yellow', 'sundress-blue', 'shirt-dress-beige', 'shirt-dress-black', 'shirt-dress-red',
             'satchel-tan', 'satchel-black', 'satchel-cream', 'crossbody-red', 'crossbody-black', 'crossbody-pink',
-            'straw-clutch', 'messenger', 'canvas-tote-natural',
+            'straw-clutch-white', 'straw-clutch-gold', 'straw-clutch-black', 'messenger-brown', 'messenger-black', 'canvas-tote-olive',
         ],
     ],
     'gentryandco' => [
@@ -38,7 +38,7 @@ return [
         'photos' => [
             'oxford-shirt-white', 'oxford-shirt-light-blue', 'oxford-shirt-pink',
             'polo-shirt-black', 'polo-shirt-white', 'polo-shirt-navy', 'polo-shirt-red',
-            'crew-tee-white', 'crew-tee-black', 'crew-tee-grey', 'crew-tee-navy', 'crew-tee-olive',
+            'crew-tee-white', 'crew-tee-black', 'crew-tee-grey', 'crew-tee-olive',
             'linen-shirt-white', 'linen-shirt-beige', 'linen-shirt-sage', 'barong',
             'chino-pants-khaki', 'chino-pants-navy', 'chino-pants-black', 'jeans', 'jogger-pants-black', 'jogger-pants-grey',
             'cargo-shorts-khaki', 'cargo-shorts-olive', 'cargo-shorts-black', 'slacks-black', 'slacks-navy',
@@ -49,7 +49,7 @@ return [
     'littlehaven' => [
         'shop' => 'Little Haven Baby & Kids',
         'photos' => [
-            'onesie-set', 'romper-pink', 'romper-blue', 'romper-yellow', 'mittens-booties', 'swaddle', 'bib-set',
+            'onesie-set', 'romper-pink', 'romper-blue', 'romper-yellow', 'mittens-booties-pink', 'mittens-booties-blue', 'swaddle', 'bib-set',
             'baby-bottle', 'feeding-set-pink', 'feeding-set-blue', 'feeding-set-green', 'sippy-cup-pink', 'sippy-cup-blue',
             'breast-pump', 'sterilizer', 'baby-wipes', 'diaper-bag-black', 'diaper-bag-grey', 'diaper-bag-pink',
             'baby-bathtub-blue', 'baby-bathtub-pink', 'hooded-towel', 'changing-pad',
@@ -114,10 +114,10 @@ return [
     'pawsandwhiskers' => [
         'shop' => 'Paws & Whiskers Pet Co.',
         'photos' => [
-            'dog-food', 'leash-collar-red', 'leash-collar-blue', 'leash-collar-black', 'dog-bed-grey', 'dog-bed-brown',
-            'chew-toy', 'dog-shampoo', 'cat-food', 'cat-litter', 'scratching-post', 'teaser-wand',
-            'litter-box-grey', 'litter-box-blue', 'pet-bowl', 'pet-carrier-grey', 'pet-carrier-pink',
-            'grooming-brush', 'water-fountain', 'nail-clipper',
+            'dog-food', 'collar-red', 'collar-blue', 'collar-black', 'leash-blue', 'leash-pink',
+            'dog-bed-grey', 'dog-bed-brown', 'dog-shampoo', 'cat-food', 'wet-cat-food', 'cat-litter',
+            'scratching-post', 'teaser-wand', 'litter-scoop', 'pet-bowl', 'pet-carrier', 'grooming-brush',
+            'travel-bottle',
         ],
     ],
     'wonderbox' => [
@@ -155,9 +155,9 @@ return [
     'ironclad' => [
         'shop' => 'Ironclad Hardware & Tools',
         'photos' => [
-            'hammer', 'screwdriver-set', 'wrench', 'pliers', 'measuring-tape',
-            'cordless-drill', 'angle-grinder', 'jigsaw', 'heat-gun', 'glue-gun',
-            'led-bulb', 'extension-cord', 'faucet', 'teflon-tape', 'circuit-breaker',
+            'hammer', 'screwdriver-set', 'wrench', 'pliers', 'hex-key-set', 'utility-knife',
+            'cordless-drill', 'air-compressor', 'work-light', 'extension-cord', 'measuring-tape', 'spirit-level',
+            'safety-goggles', 'work-gloves', 'toolbox',
         ],
     ],
     'evergreen' => [

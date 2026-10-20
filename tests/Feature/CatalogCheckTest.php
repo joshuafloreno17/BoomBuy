@@ -11,12 +11,12 @@ class CatalogCheckTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        $this->dir = database_path('seeders/catalog/ironclad');
+        $this->dir = database_path('seeders/catalog/evergreen');
     }
 
     protected function tearDown(): void
     {
-        foreach (['hammer.png', 'Claw Hammer.jpg', 'Wrench (1).JPG'] as $file) {
+        foreach (['clay-pot.png', 'Garden Rake.jpg', 'Fertilizer (1).JPG'] as $file) {
             @unlink("{$this->dir}/{$file}");
         }
         parent::tearDown();
@@ -27,7 +27,7 @@ class CatalogCheckTest extends TestCase
         $list = require database_path('seeders/catalog/photo-list.php');
 
         $this->assertCount(16, $list);
-        $this->assertSame(390, array_sum(array_map(fn ($shop) => count($shop['photos']), $list)));
+        $this->assertSame(397, array_sum(array_map(fn ($shop) => count($shop['photos']), $list)));
 
         $this->artisan('boombuy:catalog-check')->assertSuccessful();
 
@@ -38,16 +38,16 @@ class CatalogCheckTest extends TestCase
 
     public function test_it_counts_good_photos_and_suggests_names_for_misnamed_ones(): void
     {
-        $this->artisan('boombuy:catalog-check ironclad')->assertSuccessful();
+        $this->artisan('boombuy:catalog-check evergreen')->assertSuccessful();
 
-        file_put_contents("{$this->dir}/hammer.png", 'x');
-        file_put_contents("{$this->dir}/Claw Hammer.jpg", 'x');
-        file_put_contents("{$this->dir}/Wrench (1).JPG", 'x');
+        file_put_contents("{$this->dir}/clay-pot.png", 'x');
+        file_put_contents("{$this->dir}/Garden Rake.jpg", 'x');
+        file_put_contents("{$this->dir}/Fertilizer (1).JPG", 'x');
 
-        $this->artisan('boombuy:catalog-check ironclad')
-            ->expectsOutputToContain('Wrench (1).JPG  →  palitan ng wrench')
-            ->expectsOutputToContain('Claw Hammer.jpg  →  wala sa listahan')
-            ->expectsOutputToContain('Kabuuan: 1 / 15 photos.')
+        $this->artisan('boombuy:catalog-check evergreen')
+            ->expectsOutputToContain('Fertilizer (1).JPG  →  palitan ng fertilizer')
+            ->expectsOutputToContain('Garden Rake.jpg  →  wala sa listahan')
+            ->expectsOutputToContain('Kabuuan: 1 / 20 photos.')
             ->assertSuccessful();
     }
 

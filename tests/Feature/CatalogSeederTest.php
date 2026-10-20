@@ -24,16 +24,15 @@ class CatalogSeederTest extends TestCase
         Storage::fake('public');
         $this->seed([SortingCenterSeeder::class, SellerShopsSeeder::class, CatalogSeeder::class]);
 
-        $this->assertSame(30, Product::count());
+        $this->assertSame(135, Product::count());
         $this->seed(CatalogSeeder::class);
-        $this->assertSame(30, Product::count());
+        $this->assertSame(135, Product::count());
 
-        // Every product is on one of its shop's shelves; a product whose photos are in
-        // database/seeders/catalog/ gets a cover that exists (the rest wait for their photos).
+        // Every product has a cover that exists and sits on one of its shop's shelves;
+        // every color has its own photo.
         foreach (Product::with('storeCategories')->get() as $product) {
-            if ($product->image) {
-                Storage::disk('public')->assertExists($product->image);
-            }
+            $this->assertNotEmpty($product->image, $product->name);
+            Storage::disk('public')->assertExists($product->image);
             $this->assertCount(1, $product->storeCategories, $product->name);
             $this->assertSame($product->seller_id, $product->storeCategories->first()->seller_id);
         }

@@ -1,4 +1,4 @@
-Gentry & Co. Menswear — 37 photos
+Gentry & Co. Menswear — 36 photos
 I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
 Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
 I-check: php artisan boombuy:catalog-check gentryandco
@@ -13,7 +13,6 @@ polo-shirt-red
 crew-tee-white
 crew-tee-black
 crew-tee-grey
-crew-tee-navy
 crew-tee-olive
 linen-shirt-white
 linen-shirt-beige

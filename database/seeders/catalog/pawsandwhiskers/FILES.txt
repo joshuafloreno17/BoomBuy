@@ -1,25 +1,24 @@
-Paws & Whiskers Pet Co. — 20 photos
+Paws & Whiskers Pet Co. — 19 photos
 I-save ang bawat photo sa folder na ito gamit ang eksaktong pangalan sa ibaba.
 Puwede ang .jpg, .png o .webp. Isang photo bawat pangalan.
 I-check: php artisan boombuy:catalog-check pawsandwhiskers
 
 dog-food
-leash-collar-red
-leash-collar-blue
-leash-collar-black
+collar-red
+collar-blue
+collar-black
+leash-blue
+leash-pink
 dog-bed-grey
 dog-bed-brown
-chew-toy
 dog-shampoo
 cat-food
+wet-cat-food
 cat-litter
 scratching-post
 teaser-wand
-litter-box-grey
-litter-box-blue
+litter-scoop
 pet-bowl
-pet-carrier-grey
-pet-carrier-pink
+pet-carrier
 grooming-brush
-water-fountain
-nail-clipper
+travel-bottle

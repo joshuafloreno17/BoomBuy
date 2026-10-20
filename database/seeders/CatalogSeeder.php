@@ -73,7 +73,6 @@ class CatalogSeeder extends Seeder
                             'Storage' => ['128GB', '256GB|+2000', '512GB|+5000'],
                         ],
                         'out' => ['Mint', '512GB'],
-                        'photos' => ['nova-x5-2.jpg'],
                     ],
                     [
                         'name' => 'Nova Lite 4G Smartphone', 'in' => 'Phones', 'price' => 6499, 'weight' => 0.35, 'brand' => 'Nova',
@@ -89,7 +88,7 @@ class CatalogSeeder extends Seeder
                         'description' => "Flagship camera phone with a 200MP main sensor and 3x optical zoom.\n\n• 6.8\" AMOLED, 120Hz\n• 12GB RAM for heavy gaming\n• 65W charging: 0 to 100% in 40 minutes",
                         'specs' => ['brand' => 'Pulse', 'model' => 'Pro Max', 'ram' => '12GB', 'screen' => '6.8" AMOLED, 120Hz', 'processor' => 'Octa-core 3.2GHz', 'rear_camera' => '200MP + 12MP + 10MP', 'front_camera' => '32MP', 'battery' => '5,000 mAh', 'network' => '5G'] + self::PHONE,
                         'options' => ['Storage' => ['256GB', '512GB|+6000']],
-                        'photos' => ['pulse-pro-max.jpg', 'pulse-pro-max-2.jpg'],
+                        'photos' => ['pulse-pro-max.jpg'],
                     ],
                     [
                         'name' => 'Rugged Field Phone IP68', 'in' => 'Phones', 'price' => 9990, 'weight' => 0.5, 'brand' => 'Nova',
@@ -102,12 +101,11 @@ class CatalogSeeder extends Seeder
                         'name' => '20W USB-C Fast Charger', 'in' => 'Chargers & Cables', 'price' => 399, 'weight' => 0.12,
                         'description' => "Compact 20W USB-C PD wall charger. Charges an iPhone or Android phone to 50% in about 30 minutes.\n\n• Over-heat and over-current protection\n• Works with any USB-C cable",
                         'options' => ['Color' => ['White' => 'charger-20w-white.jpg', 'Black' => 'charger-20w-black.jpg']],
-                        'photos' => ['charger-20w-2.jpg'],
                     ],
                     [
                         'name' => '18W Charger + Cable Bundle', 'in' => 'Chargers & Cables', 'price' => 549, 'discount' => 10, 'weight' => 0.2, 'stock' => 40,
                         'description' => "Everything in one box: an 18W fast wall charger and a 1m charging cable.\n\n• Ideal replacement or spare set\n• Comes in a gift-ready box",
-                        'photos' => ['charger-bundle.jpg', 'charger-bundle-2.jpg'],
+                        'photos' => ['charger-bundle.jpg'],
                     ],
                     [
                         'name' => 'USB-C Braided Cable', 'in' => 'Chargers & Cables', 'price' => 249, 'weight' => 0.08,
@@ -116,7 +114,6 @@ class CatalogSeeder extends Seeder
                             'Color' => ['Black' => 'cable-black.jpg', 'White' => 'cable-white.jpg', 'Red' => 'cable-red.jpg'],
                             'Length' => ['1m', '2m|+50'],
                         ],
-                        'photos' => ['cable-2.jpg'],
                     ],
                     [
                         'name' => '10,000mAh Power Bank', 'in' => 'Chargers & Cables', 'price' => 899, 'weight' => 0.25,
@@ -127,13 +124,12 @@ class CatalogSeeder extends Seeder
                     [
                         'name' => '15W Wireless Charging Pad', 'in' => 'Chargers & Cables', 'price' => 799, 'weight' => 0.15, 'stock' => 25,
                         'description' => "Just set your phone down to charge. Works with Qi phones and earbuds, even through a thin case.\n\n• Soft light shows when it's charging\n• Non-slip base",
-                        'photos' => ['wireless-pad.jpg', 'wireless-pad-2.jpg'],
+                        'photos' => ['wireless-pad.jpg'],
                     ],
                     [
                         'name' => 'Wireless Earbuds X2 (ANC)', 'in' => 'Audio > Earbuds & Headphones', 'price' => 1499, 'discount' => 15, 'weight' => 0.1,
                         'description' => "True wireless earbuds with active noise cancelling for commutes and calls.\n\n• Up to 30 hours with the case\n• Touch controls, Bluetooth 5.3\n• Sweat resistant",
                         'options' => ['Color' => ['White' => 'earbuds-white.jpg', 'Black' => 'earbuds-black.jpg']],
-                        'photos' => ['earbuds-2.jpg', 'earbuds-3.jpg'],
                     ],
                     [
                         'name' => 'Over-Ear Bluetooth Headphones', 'in' => 'Audio > Earbuds & Headphones', 'price' => 1899, 'weight' => 0.3,
@@ -143,7 +139,7 @@ class CatalogSeeder extends Seeder
                     [
                         'name' => 'Wired Earphones with Mic', 'in' => 'Audio > Earbuds & Headphones', 'price' => 199, 'weight' => 0.05, 'stock' => 120,
                         'description' => "Classic in-ear earphones with a built-in mic and play/pause button.\n\n• 3.5mm plug\n• Tangle-resistant cable",
-                        'photos' => ['wired-earphones.jpg', 'wired-earphones-2.jpg', 'wired-earphones-3.jpg'],
+                        'photos' => ['wired-earphones.jpg'],
                     ],
                     [
                         'name' => 'Portable Bluetooth Speaker IPX7', 'in' => 'Audio > Speakers', 'price' => 1299, 'weight' => 0.4,
@@ -154,7 +150,6 @@ class CatalogSeeder extends Seeder
                         'name' => 'Smart Home Speaker', 'in' => 'Audio > Speakers', 'price' => 2999, 'weight' => 0.35,
                         'description' => "Voice-controlled smart speaker: play music, set alarms and control smart lights hands-free.\n\n• Works over Wi-Fi and Bluetooth\n• Room-filling 360° sound",
                         'options' => ['Color' => ['Charcoal' => 'smart-speaker-charcoal.jpg', 'Chalk' => 'smart-speaker-chalk.jpg']],
-                        'photos' => ['smart-speaker-2.jpg'],
                     ],
                 ],
             ],
@@ -199,14 +194,18 @@ class CatalogSeeder extends Seeder
                     [
                         'name' => 'Oversized Graphic Tee', 'in' => 'Tops > T-Shirts', 'price' => 399, 'weight' => 0.25,
                         'description' => "Relaxed oversized tee with a hand-drawn rose print on the back.\n\n• Heavyweight cotton\n• Drop shoulders; size down for a regular fit",
-                        'options' => ['Size' => ['M', 'L', 'XL']],
-                        'photos' => ['graphic-tee.jpg', 'graphic-tee-2.jpg'],
+                        'options' => [
+                            'Color' => ['Black' => 'graphic-tee-black.jpg', 'White' => 'graphic-tee-white.jpg'],
+                            'Size' => ['M', 'L', 'XL'],
+                        ],
                     ],
                     [
                         'name' => 'Floral Midi Dress', 'in' => 'Dresses', 'price' => 899, 'discount' => 10, 'weight' => 0.3,
-                        'description' => "Flowy midi dress in a bright floral print, perfect for brunches, beach trips and family events.\n\n• Lightweight chiffon\n• Fully lined",
-                        'options' => ['Size' => ['S', 'M', 'L', 'XL']],
-                        'photos' => ['floral-dress.jpg', 'floral-dress-2.jpg'],
+                        'description' => "Flowy midi dress in a soft floral print, perfect for brunches, beach trips and family events.\n\n• Lightweight chiffon\n• Fully lined",
+                        'options' => [
+                            'Color' => ['White' => 'floral-dress-white.jpg', 'Blue' => 'floral-dress-blue.jpg', 'Teal' => 'floral-dress-teal.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
                     ],
                     [
                         'name' => 'Satin Slip Dress', 'in' => 'Dresses', 'price' => 799, 'weight' => 0.25,
@@ -215,7 +214,6 @@ class CatalogSeeder extends Seeder
                             'Color' => ['Black' => 'satin-slip-black.jpg', 'Champagne' => 'satin-slip-champagne.jpg', 'Emerald' => 'satin-slip-emerald.jpg'],
                             'Size' => ['S', 'M', 'L'],
                         ],
-                        'photos' => ['satin-slip-2.jpg'],
                     ],
                     [
                         'name' => 'Classic A-Line Dress', 'in' => 'Dresses', 'price' => 649, 'weight' => 0.3,
@@ -224,7 +222,6 @@ class CatalogSeeder extends Seeder
                             'Color' => ['Black' => 'aline-dress-black.jpg', 'Wine' => 'aline-dress-wine.jpg'],
                             'Size' => ['S', 'M', 'L'],
                         ],
-                        'photos' => ['aline-dress-2.jpg'],
                     ],
                     [
                         'name' => 'Smocked Sundress', 'in' => 'Dresses', 'price' => 699, 'weight' => 0.3,
@@ -233,13 +230,14 @@ class CatalogSeeder extends Seeder
                             'Color' => ['White' => 'sundress-white.jpg', 'Yellow' => 'sundress-yellow.jpg', 'Blue' => 'sundress-blue.jpg'],
                             'Size' => ['S', 'M', 'L'],
                         ],
-                        'photos' => ['sundress-2.jpg'],
                     ],
                     [
                         'name' => 'Linen Shirt Dress', 'in' => 'Dresses', 'price' => 999, 'weight' => 0.35,
-                        'description' => "Long, relaxed linen dress in a natural beige. Simple, comfortable and easy to style.\n\n• Linen-cotton blend\n• Side pockets",
-                        'options' => ['Size' => ['S', 'M', 'L', 'XL']],
-                        'photos' => ['shirt-dress-beige.jpg'],
+                        'description' => "Long, relaxed linen shirt dress. Simple, comfortable and easy to style.\n\n• Linen-cotton blend\n• Side pockets",
+                        'options' => [
+                            'Color' => ['Beige' => 'shirt-dress-beige.jpg', 'Black' => 'shirt-dress-black.jpg', 'Red' => 'shirt-dress-red.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
                     ],
                     [
                         'name' => 'Structured Leather Satchel', 'in' => 'Bags', 'price' => 1299, 'discount' => 20, 'weight' => 0.8,
@@ -252,19 +250,650 @@ class CatalogSeeder extends Seeder
                         'options' => ['Color' => ['Red' => 'crossbody-red.jpg', 'Black' => 'crossbody-black.jpg', 'Pink' => 'crossbody-pink.jpg']],
                     ],
                     [
-                        'name' => 'Woven Straw Clutch', 'in' => 'Bags', 'price' => 799, 'weight' => 0.3, 'stock' => 18,
+                        'name' => 'Woven Straw Clutch', 'in' => 'Bags', 'price' => 799, 'weight' => 0.3,
                         'description' => "Hand-woven straw clutch for beach weddings and summer outings.\n\n• Fold-over flap\n• Lined inside",
-                        'photos' => ['straw-clutch.jpg', 'straw-clutch-2.jpg'],
+                        'options' => ['Color' => ['White' => 'straw-clutch-white.jpg', 'Gold' => 'straw-clutch-gold.jpg', 'Black' => 'straw-clutch-black.jpg']],
                     ],
                     [
-                        'name' => 'Vintage Leather Messenger', 'in' => 'Bags', 'price' => 1099, 'weight' => 0.9, 'stock' => 12,
-                        'description' => "Rustic brown leather messenger bag that only gets better with age.\n\n• Two front buckle pockets\n• Padded shoulder strap",
-                        'photos' => ['messenger.jpg', 'messenger-2.jpg'],
+                        'name' => 'Vintage Leather Messenger', 'in' => 'Bags', 'price' => 1099, 'weight' => 0.9,
+                        'description' => "Rustic leather messenger bag that only gets better with age.\n\n• Two front buckle pockets\n• Padded shoulder strap",
+                        'options' => ['Color' => ['Brown' => 'messenger-brown.jpg', 'Black' => 'messenger-black.jpg']],
                     ],
                     [
                         'name' => 'Canvas Everyday Tote', 'in' => 'Bags', 'price' => 349, 'weight' => 0.2, 'stock' => 60,
-                        'description' => "Plain, sturdy canvas tote for groceries, books or the gym. Reusable and easy to wash.\n\n• Long handles fit over the shoulder",
-                        'photos' => ['canvas-tote-natural.jpg'],
+                        'description' => "Sturdy olive canvas tote with a long strap, for groceries, books or the gym. Reusable and easy to wash.\n\n• Fits over the shoulder or across the body",
+                        'photos' => ['canvas-tote-olive.jpg'],
+                    ],
+                ],
+            ],
+
+            'gentryandco@boombuy.test' => [
+                'folder' => 'gentryandco',
+                'categories' => ['Shirts' => [], 'Pants & Shorts' => [], 'Outerwear' => []],
+                'products' => [
+                    [
+                        'name' => 'Oxford Button-Down Shirt', 'in' => 'Shirts', 'price' => 899, 'discount' => 10, 'weight' => 0.3,
+                        'description' => "Smart long-sleeve Oxford shirt that works for the office and weekends.\n\n• 100% cotton Oxford weave\n• Button-down collar, regular fit",
+                        'options' => [
+                            'Color' => ['White' => 'oxford-shirt-white.jpg', 'Light Blue' => 'oxford-shirt-light-blue.jpg', 'Pink' => 'oxford-shirt-pink.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL|+50'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Classic Polo Shirt', 'in' => 'Shirts', 'price' => 549, 'weight' => 0.25,
+                        'description' => "Breathable piqué polo with a clean, classic look.\n\n• Cotton piqué knit\n• Two-button placket, ribbed collar",
+                        'options' => [
+                            'Color' => ['Black' => 'polo-shirt-black.jpg', 'White' => 'polo-shirt-white.jpg', 'Navy' => 'polo-shirt-navy.jpg', 'Red' => 'polo-shirt-red.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Plain Crew Neck T-Shirt', 'in' => 'Shirts', 'price' => 249, 'weight' => 0.2,
+                        'description' => "Everyday 100% cotton crew-neck tee. Soft, thick and keeps its shape after washing.\n\n• Regular fit",
+                        'options' => [
+                            'Color' => ['White' => 'crew-tee-white.jpg', 'Black' => 'crew-tee-black.jpg', 'Grey' => 'crew-tee-grey.jpg', 'Olive' => 'crew-tee-olive.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Linen Short Sleeve Shirt', 'in' => 'Shirts', 'price' => 699, 'weight' => 0.25,
+                        'description' => "Cool, airy linen-blend shirt made for hot days and beach trips.\n\n• Camp collar\n• Relaxed fit",
+                        'options' => [
+                            'Color' => ['White' => 'linen-shirt-white.jpg', 'Beige' => 'linen-shirt-beige.jpg', 'Sage' => 'linen-shirt-sage.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Barong Tagalog (Jusi)', 'in' => 'Shirts', 'price' => 1899, 'weight' => 0.3,
+                        'description' => "Classic jusi barong with hand-finished embroidery for weddings and formal events.\n\n• Wear with a white undershirt\n• Dry clean recommended",
+                        'options' => ['Size' => ['S', 'M', 'L', 'XL|+100']],
+                        'photos' => ['barong.jpg'],
+                    ],
+                    [
+                        'name' => 'Slim Fit Chino Pants', 'in' => 'Pants & Shorts', 'price' => 799, 'discount' => 15, 'weight' => 0.5,
+                        'description' => "Stretch cotton chinos with a modern slim cut.\n\n• Fits office and casual looks\n• Four pockets",
+                        'options' => [
+                            'Color' => ['Khaki' => 'chino-pants-khaki.jpg', 'Navy' => 'chino-pants-navy.jpg', 'Black' => 'chino-pants-black.jpg'],
+                            'Size' => ['30', '32', '34', '36'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Dark Wash Slim Jeans', 'in' => 'Pants & Shorts', 'price' => 999, 'weight' => 0.6,
+                        'description' => "Dark indigo slim jeans with a bit of stretch for all-day comfort.\n\n• Five-pocket style\n• Zip fly",
+                        'options' => ['Size' => ['30', '32', '34', '36']],
+                        'photos' => ['jeans.jpg'],
+                    ],
+                    [
+                        'name' => 'Jogger Pants', 'in' => 'Pants & Shorts', 'price' => 499, 'weight' => 0.4,
+                        'description' => "Soft fleece joggers with an elastic waist and cuffed ankles.\n\n• Side zip pockets\n• Drawstring waist",
+                        'options' => [
+                            'Color' => ['Black' => 'jogger-pants-black.jpg', 'Grey' => 'jogger-pants-grey.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Cargo Shorts', 'in' => 'Pants & Shorts', 'price' => 449, 'weight' => 0.35,
+                        'description' => "Durable cotton twill cargo shorts with plenty of pockets.\n\n• Above-the-knee length\n• Two flap cargo pockets",
+                        'options' => [
+                            'Color' => ['Khaki' => 'cargo-shorts-khaki.jpg', 'Olive' => 'cargo-shorts-olive.jpg', 'Black' => 'cargo-shorts-black.jpg'],
+                            'Size' => ['30', '32', '34', '36'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Formal Slacks', 'in' => 'Pants & Shorts', 'price' => 899, 'weight' => 0.45,
+                        'description' => "Wrinkle-resistant slacks with a sharp crease for work and events.\n\n• Flat front\n• Hook-and-bar closure",
+                        'options' => [
+                            'Color' => ['Black' => 'slacks-black.jpg', 'Navy' => 'slacks-navy.jpg'],
+                            'Size' => ['30', '32', '34', '36'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Denim Jacket', 'in' => 'Outerwear', 'price' => 1299, 'weight' => 0.8,
+                        'description' => "Classic blue denim trucker jacket that goes with almost everything.\n\n• Button front\n• Two chest pockets",
+                        'options' => ['Size' => ['S', 'M', 'L', 'XL']],
+                        'photos' => ['denim-jacket.jpg'],
+                    ],
+                    [
+                        'name' => 'Zip-Up Hoodie', 'in' => 'Outerwear', 'price' => 799, 'discount' => 10, 'weight' => 0.6,
+                        'description' => "Cozy fleece-lined hoodie with a full zip, great for aircon rooms and rainy days.\n\n• Kangaroo pockets\n• Drawstring hood",
+                        'options' => [
+                            'Color' => ['Black' => 'hoodie-black.jpg', 'Grey' => 'hoodie-grey.jpg', 'Navy' => 'hoodie-navy.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Bomber Jacket', 'in' => 'Outerwear', 'price' => 1499, 'weight' => 0.7,
+                        'description' => "Lightweight bomber jacket with ribbed cuffs and hem.\n\n• Water-repellent shell\n• Inner pocket",
+                        'options' => [
+                            'Color' => ['Black' => 'bomber-jacket-black.jpg', 'Olive' => 'bomber-jacket-olive.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Windbreaker Jacket', 'in' => 'Outerwear', 'price' => 999, 'weight' => 0.4,
+                        'description' => "Packable windbreaker that blocks wind and light rain.\n\n• Hood tucks into the collar\n• Zip pockets",
+                        'options' => [
+                            'Color' => ['Black' => 'windbreaker-black.jpg', 'Navy' => 'windbreaker-navy.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Knit Cardigan', 'in' => 'Outerwear', 'price' => 899, 'weight' => 0.5,
+                        'description' => "Soft knit cardigan to layer over a tee or polo.\n\n• Button front\n• Ribbed cuffs and hem",
+                        'options' => [
+                            'Color' => ['Grey' => 'cardigan-grey.jpg', 'Brown' => 'cardigan-brown.jpg'],
+                            'Size' => ['S', 'M', 'L', 'XL'],
+                        ],
+                    ],
+                ],
+            ],
+
+            'littlehaven@boombuy.test' => [
+                'folder' => 'littlehaven',
+                'categories' => ['Baby Clothing' => [], 'Feeding' => [], 'Diapering & Bath' => []],
+                'products' => [
+                    [
+                        'name' => 'Cotton Baby Onesie Set', 'in' => 'Baby Clothing', 'price' => 499, 'discount' => 10, 'weight' => 0.3,
+                        'description' => "Set of soft cotton onesies with snap buttons for easy diaper changes.\n\n• Gentle on baby's skin\n• Machine washable",
+                        'options' => ['Size' => ['0-3M', '3-6M', '6-12M']],
+                        'photos' => ['onesie-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Baby Romper', 'in' => 'Baby Clothing', 'price' => 349, 'weight' => 0.15,
+                        'description' => "Cute, breathable romper for everyday wear and photo shoots.\n\n• Soft cotton\n• Snap closure",
+                        'options' => [
+                            'Color' => ['Pink' => 'romper-pink.jpg', 'Blue' => 'romper-blue.jpg', 'Yellow' => 'romper-yellow.jpg'],
+                            'Size' => ['0-3M', '3-6M', '6-12M'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Baby Mittens & Booties Set', 'in' => 'Baby Clothing', 'price' => 199, 'weight' => 0.1,
+                        'description' => "Keeps tiny hands and feet warm and stops scratching.\n\n• Soft cotton knit\n• Fits 0-6 months",
+                        'options' => ['Color' => ['Pink' => 'mittens-booties-pink.jpg', 'Blue' => 'mittens-booties-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Swaddle Blanket', 'in' => 'Baby Clothing', 'price' => 299, 'weight' => 0.2, 'stock' => 40,
+                        'description' => "Light muslin swaddle that helps newborns sleep snug and calm.\n\n• 120 × 120 cm\n• Gets softer with every wash",
+                        'photos' => ['swaddle.jpg'],
+                    ],
+                    [
+                        'name' => 'Baby Bib Set', 'in' => 'Baby Clothing', 'price' => 249, 'weight' => 0.15, 'stock' => 50,
+                        'description' => "Set of waterproof-backed bibs for mealtime and drooling.\n\n• Adjustable snap\n• Easy to wipe clean",
+                        'photos' => ['bib-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Anti-Colic Baby Bottle', 'in' => 'Feeding', 'price' => 399, 'weight' => 0.15, 'stock' => 45,
+                        'description' => "Anti-colic vent helps reduce gas and fussiness during feeding.\n\n• BPA-free\n• Soft silicone nipple",
+                        'photos' => ['baby-bottle.jpg'],
+                    ],
+                    [
+                        'name' => 'Silicone Feeding Set', 'in' => 'Feeding', 'price' => 599, 'discount' => 12, 'weight' => 0.4,
+                        'description' => "Suction plate, bowl and spoon set made for baby-led weaning.\n\n• Food-grade silicone\n• Dishwasher and microwave safe",
+                        'options' => ['Color' => ['Pink' => 'feeding-set-pink.jpg', 'Blue' => 'feeding-set-blue.jpg', 'Green' => 'feeding-set-green.jpg']],
+                    ],
+                    [
+                        'name' => 'Sippy Cup', 'in' => 'Feeding', 'price' => 249, 'weight' => 0.15,
+                        'description' => "Spill-proof sippy cup with easy-grip handles for toddlers.\n\n• Soft spout\n• BPA-free",
+                        'options' => ['Color' => ['Pink' => 'sippy-cup-pink.jpg', 'Blue' => 'sippy-cup-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Electric Breast Pump', 'in' => 'Feeding', 'price' => 2499, 'weight' => 0.8, 'stock' => 15,
+                        'description' => "Quiet electric breast pump with adjustable suction levels.\n\n• Rechargeable\n• Comes with a bottle",
+                        'photos' => ['breast-pump.jpg'],
+                    ],
+                    [
+                        'name' => 'Bottle Sterilizer', 'in' => 'Feeding', 'price' => 1899, 'weight' => 1.5, 'stock' => 12,
+                        'description' => "Steam sterilizer that cleans up to six bottles in minutes.\n\n• Kills 99.9% of germs\n• Auto shut-off",
+                        'photos' => ['sterilizer.jpg'],
+                    ],
+                    [
+                        'name' => 'Baby Wipes (80 sheets)', 'in' => 'Diapering & Bath', 'price' => 89, 'weight' => 0.5, 'stock' => 150,
+                        'description' => "Gentle, unscented wipes for diaper changes and quick clean-ups.\n\n• Alcohol-free\n• 80 thick sheets",
+                        'photos' => ['baby-wipes.jpg'],
+                    ],
+                    [
+                        'name' => 'Diaper Bag Backpack', 'in' => 'Diapering & Bath', 'price' => 1299, 'discount' => 15, 'weight' => 0.8,
+                        'description' => "Roomy backpack with insulated bottle pockets and a changing mat.\n\n• Water-resistant\n• Stroller straps",
+                        'options' => ['Color' => ['Black' => 'diaper-bag-black.jpg', 'Grey' => 'diaper-bag-grey.jpg', 'Pink' => 'diaper-bag-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Baby Bathtub', 'in' => 'Diapering & Bath', 'price' => 899, 'weight' => 1.2,
+                        'description' => "Sturdy baby tub with a non-slip seat for newborns to toddlers.\n\n• Drain plug\n• Easy to store",
+                        'options' => ['Color' => ['Blue' => 'baby-bathtub-blue.jpg', 'Pink' => 'baby-bathtub-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Hooded Baby Towel', 'in' => 'Diapering & Bath', 'price' => 349, 'weight' => 0.3, 'stock' => 35,
+                        'description' => "Soft, absorbent hooded towel that keeps baby warm after a bath.\n\n• Cotton terry\n• 75 × 75 cm",
+                        'photos' => ['hooded-towel.jpg'],
+                    ],
+                    [
+                        'name' => 'Changing Pad', 'in' => 'Diapering & Bath', 'price' => 449, 'weight' => 0.4, 'stock' => 25,
+                        'description' => "Waterproof changing pad for home or on the go.\n\n• Wipe-clean surface\n• Folds flat",
+                        'photos' => ['changing-pad.jpg'],
+                    ],
+                ],
+            ],
+
+            'hearthstone@boombuy.test' => [
+                'folder' => 'hearthstone',
+                'categories' => ['Kitchen' => [], 'Bedding & Bath' => [], 'Home Decor' => []],
+                'products' => [
+                    [
+                        'name' => 'Non-Stick Frying Pan', 'in' => 'Kitchen', 'price' => 699, 'discount' => 15, 'weight' => 1.0,
+                        'description' => "Non-stick pan for eggs, fish and everyday cooking with less oil.\n\n• Works on gas and induction\n• Heat-safe handle",
+                        'options' => ['Size' => ['24cm', '28cm|+150']],
+                        'photos' => ['frying-pan.jpg'],
+                    ],
+                    [
+                        'name' => 'Stainless Cookware Set', 'in' => 'Kitchen', 'price' => 2999, 'weight' => 4.5, 'stock' => 10,
+                        'description' => "Stainless steel pots and pans set with glass lids.\n\n• Even-heating base\n• Dishwasher safe",
+                        'photos' => ['cookware-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Ceramic Dinner Plate Set', 'in' => 'Kitchen', 'price' => 899, 'weight' => 3.0,
+                        'description' => "Set of 6 ceramic dinner plates for daily meals and get-togethers.\n\n• Microwave and dishwasher safe\n• 27 cm",
+                        'options' => ['Color' => ['White' => 'plate-set-white.jpg', 'Beige' => 'plate-set-beige.jpg']],
+                    ],
+                    [
+                        'name' => 'Glass Food Containers', 'in' => 'Kitchen', 'price' => 799, 'weight' => 2.0, 'stock' => 30,
+                        'description' => "Glass meal-prep containers with locking lids.\n\n• Oven, microwave and freezer safe\n• Leak-proof",
+                        'photos' => ['food-containers.jpg'],
+                    ],
+                    [
+                        'name' => 'Electric Kettle 1.7L', 'in' => 'Kitchen', 'price' => 999, 'weight' => 1.2,
+                        'description' => "Fast-boil 1.7L kettle for coffee, tea and instant noodles.\n\n• Auto shut-off\n• Boil-dry protection",
+                        'options' => ['Color' => ['Silver' => 'kettle-silver.jpg', 'Black' => 'kettle-black.jpg']],
+                    ],
+                    [
+                        'name' => 'Cotton Bed Sheet Set', 'in' => 'Bedding & Bath', 'price' => 1199, 'discount' => 20, 'weight' => 1.2,
+                        'description' => "Soft, breathable cotton fitted sheet with two pillowcases.\n\n• Deep pockets\n• Machine washable",
+                        'options' => [
+                            'Color' => ['White' => 'bed-sheet-white.jpg', 'Grey' => 'bed-sheet-grey.jpg', 'Blue' => 'bed-sheet-blue.jpg', 'Beige' => 'bed-sheet-beige.jpg'],
+                            'Size' => ['Single', 'Double|+200', 'Queen|+400'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Memory Foam Pillow', 'in' => 'Bedding & Bath', 'price' => 699, 'weight' => 1.0, 'stock' => 30,
+                        'description' => "Contoured memory foam pillow that supports your neck all night.\n\n• Removable, washable cover",
+                        'photos' => ['pillow.jpg'],
+                    ],
+                    [
+                        'name' => 'Microfiber Blanket', 'in' => 'Bedding & Bath', 'price' => 599, 'weight' => 1.0,
+                        'description' => "Light, super-soft blanket for aircon rooms and movie nights.\n\n• 150 × 200 cm\n• Does not shed",
+                        'options' => ['Color' => ['Grey' => 'blanket-grey.jpg', 'Beige' => 'blanket-beige.jpg', 'Pink' => 'blanket-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Bath Towel Set', 'in' => 'Bedding & Bath', 'price' => 799, 'weight' => 1.2,
+                        'description' => "Thick, absorbent cotton towels: bath, hand and face towel.\n\n• Quick-dry\n• Soft after many washes",
+                        'options' => ['Color' => ['White' => 'bath-towel-white.jpg', 'Grey' => 'bath-towel-grey.jpg', 'Blue' => 'bath-towel-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Shower Curtain', 'in' => 'Bedding & Bath', 'price' => 399, 'weight' => 0.5, 'stock' => 25,
+                        'description' => "Water-repellent shower curtain with rust-proof hooks included.\n\n• 180 × 180 cm",
+                        'photos' => ['shower-curtain.jpg'],
+                    ],
+                    [
+                        'name' => 'Scented Candle', 'in' => 'Home Decor', 'price' => 349, 'weight' => 0.4, 'stock' => 40,
+                        'description' => "Soy wax candle in a glass jar with a calming scent.\n\n• Up to 40 hours burn time",
+                        'photos' => ['scented-candle.jpg'],
+                    ],
+                    [
+                        'name' => 'Ceramic Flower Vase', 'in' => 'Home Decor', 'price' => 499, 'weight' => 0.8,
+                        'description' => "Minimalist ceramic vase for fresh or dried flowers.\n\n• Matte finish",
+                        'options' => ['Color' => ['White' => 'vase-white.jpg', 'Beige' => 'vase-beige.jpg']],
+                    ],
+                    [
+                        'name' => 'Wall Clock', 'in' => 'Home Decor', 'price' => 599, 'weight' => 0.7,
+                        'description' => "Clean, easy-to-read wall clock with a silent sweep movement.\n\n• No ticking\n• 30 cm",
+                        'options' => ['Color' => ['Black' => 'wall-clock-black.jpg', 'White' => 'wall-clock-white.jpg']],
+                    ],
+                    [
+                        'name' => 'LED Table Lamp', 'in' => 'Home Decor', 'price' => 799, 'discount' => 10, 'weight' => 0.8, 'stock' => 20,
+                        'description' => "Dimmable LED lamp for reading, studying and bedside light.\n\n• Three light colors\n• USB powered",
+                        'photos' => ['table-lamp.jpg'],
+                    ],
+                    [
+                        'name' => 'Throw Pillow Cover', 'in' => 'Home Decor', 'price' => 199, 'weight' => 0.15,
+                        'description' => "Textured throw pillow cover to refresh your sofa or bed.\n\n• 45 × 45 cm\n• Hidden zipper",
+                        'options' => ['Color' => ['Beige' => 'throw-pillow-beige.jpg', 'Green' => 'throw-pillow-green.jpg', 'Mustard' => 'throw-pillow-mustard.jpg']],
+                    ],
+                ],
+            ],
+
+            'summitactive@boombuy.test' => [
+                'folder' => 'summitactive',
+                'categories' => ['Fitness' => [], 'Ball Sports' => [], 'Camping & Hiking' => []],
+                'products' => [
+                    [
+                        'name' => 'Yoga Mat', 'in' => 'Fitness', 'price' => 599, 'discount' => 15, 'weight' => 1.0,
+                        'description' => "Non-slip 6mm yoga mat for yoga, pilates and home workouts.\n\n• Cushioned and light\n• Carry strap included",
+                        'options' => ['Color' => ['Purple' => 'yoga-mat-purple.jpg', 'Blue' => 'yoga-mat-blue.jpg', 'Black' => 'yoga-mat-black.jpg', 'Pink' => 'yoga-mat-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Dumbbell Set', 'in' => 'Fitness', 'price' => 1999, 'weight' => 10, 'stock' => 12,
+                        'description' => "Pair of dumbbells for strength training at home.\n\n• Rubber coating protects your floor\n• Comfortable grip",
+                        'options' => ['Weight' => ['2 × 3kg', '2 × 5kg|+600']],
+                        'photos' => ['dumbbells.jpg'],
+                    ],
+                    [
+                        'name' => 'Resistance Bands Set', 'in' => 'Fitness', 'price' => 399, 'weight' => 0.4, 'stock' => 40,
+                        'description' => "Five resistance levels for strength, stretching and rehab.\n\n• Carry pouch included",
+                        'photos' => ['resistance-bands.jpg'],
+                    ],
+                    [
+                        'name' => 'Jump Rope', 'in' => 'Fitness', 'price' => 199, 'weight' => 0.2,
+                        'description' => "Adjustable speed rope for cardio and boxing workouts.\n\n• Smooth ball-bearing handles",
+                        'options' => ['Color' => ['Black' => 'jump-rope-black.jpg', 'Blue' => 'jump-rope-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Foam Roller', 'in' => 'Fitness', 'price' => 499, 'weight' => 0.6,
+                        'description' => "Textured foam roller to loosen tight muscles after training.\n\n• 33 cm, firm density",
+                        'options' => ['Color' => ['Black' => 'foam-roller-black.jpg', 'Blue' => 'foam-roller-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Basketball (Size 7)', 'in' => 'Ball Sports', 'price' => 799, 'weight' => 0.7, 'stock' => 25,
+                        'description' => "Official size 7 basketball with a deep-channel grip for indoor and outdoor courts.",
+                        'photos' => ['basketball.jpg'],
+                    ],
+                    [
+                        'name' => 'Volleyball', 'in' => 'Ball Sports', 'price' => 649, 'weight' => 0.4, 'stock' => 25,
+                        'description' => "Soft-touch volleyball for the beach, the gym or the barangay court.\n\n• Official size 5",
+                        'photos' => ['volleyball.jpg'],
+                    ],
+                    [
+                        'name' => 'Badminton Racket Set', 'in' => 'Ball Sports', 'price' => 899, 'discount' => 10, 'weight' => 0.6, 'stock' => 20,
+                        'description' => "Two lightweight rackets with shuttlecocks and a carry bag.\n\n• Ready to play",
+                        'photos' => ['badminton-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Soccer Ball', 'in' => 'Ball Sports', 'price' => 599, 'weight' => 0.45, 'stock' => 25,
+                        'description' => "Durable stitched soccer ball for training and matches.\n\n• Size 5",
+                        'photos' => ['soccer-ball.jpg'],
+                    ],
+                    [
+                        'name' => 'Table Tennis Paddle Set', 'in' => 'Ball Sports', 'price' => 499, 'weight' => 0.4, 'stock' => 20,
+                        'description' => "Two paddles and three balls for home or office ping-pong.",
+                        'photos' => ['ping-pong-set.jpg'],
+                    ],
+                    [
+                        'name' => '2-Person Camping Tent', 'in' => 'Camping & Hiking', 'price' => 1999, 'discount' => 15, 'weight' => 2.5,
+                        'description' => "Easy-setup dome tent for two, with a rain fly.\n\n• Sets up in 10 minutes\n• Carry bag included",
+                        'options' => ['Color' => ['Green' => 'tent-green.jpg', 'Orange' => 'tent-orange.jpg']],
+                    ],
+                    [
+                        'name' => 'Hiking Backpack 40L', 'in' => 'Camping & Hiking', 'price' => 1499, 'weight' => 1.2,
+                        'description' => "40L backpack for day hikes and weekend trips.\n\n• Padded back and hip belt\n• Rain cover",
+                        'options' => ['Color' => ['Black' => 'hiking-backpack-black.jpg', 'Green' => 'hiking-backpack-green.jpg', 'Red' => 'hiking-backpack-red.jpg']],
+                    ],
+                    [
+                        'name' => 'Insulated Water Bottle', 'in' => 'Camping & Hiking', 'price' => 599, 'weight' => 0.4,
+                        'description' => "Keeps drinks cold for 24 hours or hot for 12.\n\n• Stainless steel\n• Leak-proof cap",
+                        'options' => [
+                            'Color' => ['Black' => 'water-bottle-black.jpg', 'White' => 'water-bottle-white.jpg', 'Blue' => 'water-bottle-blue.jpg', 'Pink' => 'water-bottle-pink.jpg'],
+                            'Size' => ['500ml', '750ml|+100'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Camping Lantern', 'in' => 'Camping & Hiking', 'price' => 449, 'weight' => 0.4, 'stock' => 30,
+                        'description' => "Bright LED lantern for camping and brownouts.\n\n• Rechargeable\n• Hanging hook",
+                        'photos' => ['lantern.jpg'],
+                    ],
+                    [
+                        'name' => 'Sleeping Bag', 'in' => 'Camping & Hiking', 'price' => 999, 'weight' => 1.2,
+                        'description' => "Light sleeping bag for camping and overnight trips.\n\n• Packs small\n• Two-way zipper",
+                        'options' => ['Color' => ['Blue' => 'sleeping-bag-blue.jpg', 'Green' => 'sleeping-bag-green.jpg']],
+                    ],
+                ],
+            ],
+
+            'lumierebeauty@boombuy.test' => [
+                'folder' => 'lumierebeauty',
+                'categories' => ['Skincare' => [], 'Makeup' => [], 'Hair & Body' => []],
+                'products' => [
+                    [
+                        'name' => 'Gentle Facial Cleanser', 'in' => 'Skincare', 'price' => 299, 'weight' => 0.2, 'stock' => 50,
+                        'description' => "Mild foaming cleanser that removes dirt and oil without drying.\n\n• For all skin types\n• 150ml",
+                        'photos' => ['cleanser.jpg'],
+                    ],
+                    [
+                        'name' => 'Hydrating Moisturizer', 'in' => 'Skincare', 'price' => 449, 'weight' => 0.15, 'stock' => 40,
+                        'description' => "Lightweight gel-cream that keeps skin soft and hydrated all day.\n\n• Non-sticky\n• 50ml",
+                        'photos' => ['moisturizer.jpg'],
+                    ],
+                    [
+                        'name' => 'Sunscreen SPF 50', 'in' => 'Skincare', 'price' => 399, 'discount' => 10, 'weight' => 0.1, 'stock' => 60,
+                        'description' => "Broad-spectrum SPF 50 PA++++ sunscreen with no white cast.\n\n• Water resistant\n• 50ml",
+                        'photos' => ['sunscreen.jpg'],
+                    ],
+                    [
+                        'name' => 'Vitamin C Serum', 'in' => 'Skincare', 'price' => 549, 'weight' => 0.1, 'stock' => 35,
+                        'description' => "Brightening serum that helps even out skin tone and dark spots.\n\n• 30ml dropper bottle",
+                        'photos' => ['serum.jpg'],
+                    ],
+                    [
+                        'name' => 'Sheet Mask Pack (10 pcs)', 'in' => 'Skincare', 'price' => 299, 'weight' => 0.3, 'stock' => 50,
+                        'description' => "Ten hydrating sheet masks for a quick at-home glow.",
+                        'photos' => ['sheet-mask.jpg'],
+                    ],
+                    [
+                        'name' => 'Matte Liquid Lipstick', 'in' => 'Makeup', 'price' => 249, 'weight' => 0.05,
+                        'description' => "Long-wearing matte lipstick that does not transfer.\n\n• Lasts up to 8 hours",
+                        'options' => ['Shade' => ['Red' => 'lipstick-red.jpg', 'Nude' => 'lipstick-nude.jpg', 'Pink' => 'lipstick-pink.jpg', 'Brown' => 'lipstick-brown.jpg']],
+                    ],
+                    [
+                        'name' => 'Cushion Foundation', 'in' => 'Makeup', 'price' => 699, 'discount' => 15, 'weight' => 0.1,
+                        'description' => "Light, dewy coverage in a handy cushion compact with SPF.\n\n• Refill included",
+                        'options' => ['Shade' => ['Light' => 'cushion-light.jpg', 'Medium' => 'cushion-medium.jpg']],
+                    ],
+                    [
+                        'name' => 'Eyeshadow Palette', 'in' => 'Makeup', 'price' => 499, 'weight' => 0.15, 'stock' => 30,
+                        'description' => "Everyday palette of matte and shimmer shades.\n\n• Highly pigmented\n• Mirror inside",
+                        'photos' => ['eyeshadow.jpg'],
+                    ],
+                    [
+                        'name' => 'Waterproof Mascara', 'in' => 'Makeup', 'price' => 299, 'weight' => 0.05, 'stock' => 45,
+                        'description' => "Lengthening, smudge-proof mascara that survives humid days.",
+                        'photos' => ['mascara.jpg'],
+                    ],
+                    [
+                        'name' => 'Makeup Brush Set', 'in' => 'Makeup', 'price' => 599, 'weight' => 0.3, 'stock' => 25,
+                        'description' => "Soft synthetic brushes for face and eyes, with a case.",
+                        'photos' => ['brush-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Shampoo & Conditioner Set', 'in' => 'Hair & Body', 'price' => 499, 'weight' => 1.0, 'stock' => 30,
+                        'description' => "Nourishing shampoo and conditioner for smooth, frizz-free hair.\n\n• 2 × 400ml",
+                        'photos' => ['shampoo-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Hair Dryer', 'in' => 'Hair & Body', 'price' => 1299, 'discount' => 10, 'weight' => 0.7,
+                        'description' => "Ionic hair dryer that dries fast and reduces frizz.\n\n• Two heat and speed settings\n• Cool shot button",
+                        'options' => ['Color' => ['Black' => 'hair-dryer-black.jpg', 'Pink' => 'hair-dryer-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Body Lotion', 'in' => 'Hair & Body', 'price' => 249, 'weight' => 0.45, 'stock' => 50,
+                        'description' => "Fast-absorbing lotion that keeps skin moisturized for 24 hours.\n\n• 400ml pump bottle",
+                        'photos' => ['body-lotion.jpg'],
+                    ],
+                    [
+                        'name' => 'Body Wash', 'in' => 'Hair & Body', 'price' => 229, 'weight' => 0.5, 'stock' => 50,
+                        'description' => "Refreshing body wash with a light, clean scent.\n\n• 500ml",
+                        'photos' => ['body-wash.jpg'],
+                    ],
+                    [
+                        'name' => 'Hair Straightener', 'in' => 'Hair & Body', 'price' => 999, 'weight' => 0.5,
+                        'description' => "Ceramic flat iron that heats up in 30 seconds.\n\n• Adjustable temperature\n• Auto shut-off",
+                        'options' => ['Color' => ['Black' => 'straightener-black.jpg', 'Pink' => 'straightener-pink.jpg']],
+                    ],
+                ],
+            ],
+
+            'pawsandwhiskers@boombuy.test' => [
+                'folder' => 'pawsandwhiskers',
+                'categories' => ['Dog' => [], 'Cat' => [], 'Pet Essentials' => []],
+                'products' => [
+                    [
+                        'name' => 'Dry Dog Food 3kg', 'in' => 'Dog', 'price' => 699, 'weight' => 3.1, 'stock' => 30,
+                        'description' => "Complete, balanced dry food for adult dogs.\n\n• Real meat as the first ingredient\n• 3kg bag",
+                        'photos' => ['dog-food.jpg'],
+                    ],
+                    [
+                        'name' => 'Dog Collar', 'in' => 'Dog', 'price' => 199, 'weight' => 0.1,
+                        'description' => "Durable nylon collar with a quick-release buckle and a D-ring for the leash.",
+                        'options' => [
+                            'Color' => ['Red' => 'collar-red.jpg', 'Blue' => 'collar-blue.jpg', 'Black' => 'collar-black.jpg'],
+                            'Size' => ['S', 'M', 'L'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Dog Leash', 'in' => 'Dog', 'price' => 249, 'weight' => 0.2,
+                        'description' => "Strong 1.5m leash with a comfortable handle for daily walks.",
+                        'options' => ['Color' => ['Blue' => 'leash-blue.jpg', 'Pink' => 'leash-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Pet Bed', 'in' => 'Dog', 'price' => 899, 'discount' => 10, 'weight' => 1.0,
+                        'description' => "Soft, round bed with raised sides for dogs and cats to curl up in.\n\n• Washable cover",
+                        'options' => [
+                            'Color' => ['Grey' => 'dog-bed-grey.jpg', 'Brown' => 'dog-bed-brown.jpg'],
+                            'Size' => ['S', 'M|+200', 'L|+400'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Pet Shampoo', 'in' => 'Dog', 'price' => 299, 'weight' => 0.5, 'stock' => 40,
+                        'description' => "Gentle shampoo that cleans and deodorizes without drying the coat.\n\n• 500ml",
+                        'photos' => ['dog-shampoo.jpg'],
+                    ],
+                    [
+                        'name' => 'Dry Cat Food 1.5kg', 'in' => 'Cat', 'price' => 499, 'weight' => 1.6, 'stock' => 30,
+                        'description' => "Complete dry food for adult cats with taurine for healthy eyes and heart.\n\n• 1.5kg bag",
+                        'photos' => ['cat-food.jpg'],
+                    ],
+                    [
+                        'name' => 'Wet Cat Food (12 pouches)', 'in' => 'Cat', 'price' => 449, 'weight' => 1.0, 'stock' => 30,
+                        'description' => "Tasty wet food pouches cats love.\n\n• 12 × 85g",
+                        'photos' => ['wet-cat-food.jpg'],
+                    ],
+                    [
+                        'name' => 'Cat Litter 10L', 'in' => 'Cat', 'price' => 349, 'weight' => 5.0, 'stock' => 35,
+                        'description' => "Clumping litter with strong odor control.\n\n• Low dust",
+                        'photos' => ['cat-litter.jpg'],
+                    ],
+                    [
+                        'name' => 'Cat Scratching Post', 'in' => 'Cat', 'price' => 699, 'weight' => 2.0, 'stock' => 15,
+                        'description' => "Sisal scratching post that saves your sofa.\n\n• Sturdy base",
+                        'photos' => ['scratching-post.jpg'],
+                    ],
+                    [
+                        'name' => 'Cat Teaser Wand', 'in' => 'Cat', 'price' => 149, 'weight' => 0.1, 'stock' => 50,
+                        'description' => "Feather wand toy for playtime and exercise.",
+                        'photos' => ['teaser-wand.jpg'],
+                    ],
+                    [
+                        'name' => 'Litter Scoop', 'in' => 'Pet Essentials', 'price' => 99, 'weight' => 0.1, 'stock' => 60,
+                        'description' => "Sturdy litter scoop with a long handle.",
+                        'photos' => ['litter-scoop.jpg'],
+                    ],
+                    [
+                        'name' => 'Stainless Pet Bowl', 'in' => 'Pet Essentials', 'price' => 199, 'weight' => 0.3, 'stock' => 50,
+                        'description' => "Rust-proof stainless bowl with a non-slip base.\n\n• Dishwasher safe",
+                        'photos' => ['pet-bowl.jpg'],
+                    ],
+                    [
+                        'name' => 'Pet Carrier', 'in' => 'Pet Essentials', 'price' => 1299, 'weight' => 2.0, 'stock' => 12,
+                        'description' => "Ventilated hard carrier for vet visits and travel.\n\n• Secure door lock\n• For cats and small dogs",
+                        'photos' => ['pet-carrier.jpg'],
+                    ],
+                    [
+                        'name' => 'Grooming Brush', 'in' => 'Pet Essentials', 'price' => 249, 'weight' => 0.15, 'stock' => 40,
+                        'description' => "Self-cleaning slicker brush that removes loose fur and tangles.",
+                        'photos' => ['grooming-brush.jpg'],
+                    ],
+                    [
+                        'name' => 'Portable Pet Water Bottle', 'in' => 'Pet Essentials', 'price' => 299, 'weight' => 0.2, 'stock' => 35,
+                        'description' => "Leak-proof water bottle with a drinking tray for walks and trips.",
+                        'photos' => ['travel-bottle.jpg'],
+                    ],
+                ],
+            ],
+
+            'ironclad@boombuy.test' => [
+                'folder' => 'ironclad',
+                'categories' => ['Hand Tools' => [], 'Power & Electrical' => [], 'Measuring, Safety & Storage' => []],
+                'products' => [
+                    [
+                        'name' => 'Claw Hammer', 'in' => 'Hand Tools', 'price' => 299, 'weight' => 0.7, 'stock' => 30,
+                        'description' => "Steel claw hammer with a shock-absorbing grip.\n\n• 16 oz head",
+                        'photos' => ['hammer.jpg'],
+                    ],
+                    [
+                        'name' => 'Screwdriver Set', 'in' => 'Hand Tools', 'price' => 399, 'weight' => 0.6, 'stock' => 25,
+                        'description' => "Flat and Phillips screwdrivers in common sizes.\n\n• Magnetic tips",
+                        'photos' => ['screwdriver-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Adjustable Wrench', 'in' => 'Hand Tools', 'price' => 349, 'weight' => 0.4, 'stock' => 25,
+                        'description' => "Chrome vanadium adjustable wrench for nuts and bolts.\n\n• 10 inch",
+                        'photos' => ['wrench.jpg'],
+                    ],
+                    [
+                        'name' => 'Pliers Set', 'in' => 'Hand Tools', 'price' => 499, 'weight' => 0.8, 'stock' => 20,
+                        'description' => "Combination, long-nose and cutting pliers with insulated grips.",
+                        'photos' => ['pliers.jpg'],
+                    ],
+                    [
+                        'name' => 'Hex Key Set', 'in' => 'Hand Tools', 'price' => 199, 'weight' => 0.3, 'stock' => 35,
+                        'description' => "Allen keys in metric sizes, for furniture and bikes.\n\n• Holder included",
+                        'photos' => ['hex-key-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Utility Knife', 'in' => 'Hand Tools', 'price' => 149, 'weight' => 0.15, 'stock' => 40,
+                        'description' => "Retractable cutter with a locking blade.\n\n• Spare blades included",
+                        'photos' => ['utility-knife.jpg'],
+                    ],
+                    [
+                        'name' => 'Cordless Drill', 'in' => 'Power & Electrical', 'price' => 2499, 'discount' => 12, 'weight' => 1.8, 'stock' => 10,
+                        'description' => "Rechargeable drill-driver for wood, metal and screws.\n\n• Two speeds\n• Battery and charger included",
+                        'photos' => ['cordless-drill.jpg'],
+                    ],
+                    [
+                        'name' => 'Portable Air Compressor', 'in' => 'Power & Electrical', 'price' => 1799, 'weight' => 1.5, 'stock' => 10,
+                        'description' => "Compact air compressor for car tires, bike tires and balls.\n\n• Digital pressure gauge",
+                        'photos' => ['air-compressor.jpg'],
+                    ],
+                    [
+                        'name' => 'LED Work Light', 'in' => 'Power & Electrical', 'price' => 699, 'weight' => 0.8, 'stock' => 15,
+                        'description' => "Bright, rechargeable work light with a folding stand.",
+                        'photos' => ['work-light.jpg'],
+                    ],
+                    [
+                        'name' => 'Extension Cord', 'in' => 'Power & Electrical', 'price' => 399, 'weight' => 0.6, 'stock' => 30,
+                        'description' => "Multi-outlet extension cord with a safety switch.\n\n• 3 meters",
+                        'photos' => ['extension-cord.jpg'],
+                    ],
+                    [
+                        'name' => 'Measuring Tape 5m', 'in' => 'Measuring, Safety & Storage', 'price' => 179, 'weight' => 0.25, 'stock' => 40,
+                        'description' => "5-meter tape with an auto-lock and belt clip.",
+                        'photos' => ['measuring-tape.jpg'],
+                    ],
+                    [
+                        'name' => 'Spirit Level', 'in' => 'Measuring, Safety & Storage', 'price' => 249, 'weight' => 0.4, 'stock' => 20,
+                        'description' => "Aluminum spirit level for shelves, frames and tiles.",
+                        'photos' => ['spirit-level.jpg'],
+                    ],
+                    [
+                        'name' => 'Safety Goggles', 'in' => 'Measuring, Safety & Storage', 'price' => 149, 'weight' => 0.1, 'stock' => 40,
+                        'description' => "Clear, anti-fog goggles that protect your eyes from dust and debris.",
+                        'photos' => ['safety-goggles.jpg'],
+                    ],
+                    [
+                        'name' => 'Work Gloves', 'in' => 'Measuring, Safety & Storage', 'price' => 199, 'weight' => 0.15, 'stock' => 40,
+                        'description' => "Tough leather work gloves for building, gardening and hauling.",
+                        'photos' => ['work-gloves.jpg'],
+                    ],
+                    [
+                        'name' => 'Toolbox', 'in' => 'Measuring, Safety & Storage', 'price' => 599, 'weight' => 1.5, 'stock' => 15,
+                        'description' => "Plastic toolbox with a lift-out tray and small-parts compartments.",
+                        'photos' => ['toolbox.jpg'],
                     ],
                 ],
             ],
