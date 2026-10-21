@@ -197,7 +197,21 @@ class ShopController extends Controller
 
     private const ALSO_LIKE = 12;
 
-    private const SHOP_SORTS = ['newest', 'price_low', 'price_high', 'rating', 'best_selling'];
+    private const SHOP_SORTS = ['foryou', 'newest', 'price_low', 'price_high', 'rating', 'best_selling'];
+
+    /** Orders the filtered products by ForYou::shopOrder (a CASE on the id, so paging still works). */
+    private function orderForYou($query)
+    {
+        $positions = \App\Support\ForYou::shopOrder((clone $query)->get(), session('user'));
+
+        if (empty($positions)) {
+            return $query->orderByDesc('created_at');
+        }
+
+        $cases = collect($positions)->map(fn ($position, $id) => 'WHEN ' . (int) $id . ' THEN ' . (int) $position)->implode(' ');
+
+        return $query->orderByRaw('CASE products.id ' . $cases . ' ELSE ' . count($positions) . ' END');
+    }
 
     public function sellerShop(int $seller)
     {
@@ -228,6 +242,10 @@ class ShopController extends Controller
 
         $search = trim(mb_substr((string) request('search'), 0, 100));
 
+        if ($search !== '' && session('user.role') === 'buyer' && !request()->boolean('partial')) {
+            \App\Support\ForYou::searched($search);
+        }
+
         // Price range (ends included). A negative price or Min above Max is
         // refused with a message and the range is not applied.
         $min = is_numeric(request('min')) ? (float) request('min') : null;
@@ -252,7 +270,8 @@ class ShopController extends Controller
         $inStock = request()->boolean('in_stock');
         // Only products with a % off (the promo banners' "On sale" link).
         $deals = request()->boolean('deals');
-        $sort = in_array(request('sort'), self::SHOP_SORTS, true) ? request('sort') : 'newest';
+        // The Shop opens on "For you"; a seller's own shop on its newest.
+        $sort = in_array(request('sort'), self::SHOP_SORTS, true) ? request('sort') : ($sellerId ? 'newest' : 'foryou');
 
         // Each word must appear somewhere in the name, category or
         // description — so "iphone pro" finds "iPhone 18 Pro Max" and
@@ -315,6 +334,7 @@ class ShopController extends Controller
             'price_high' => $query->orderByDesc('price'),
             'rating' => $query->orderByDesc('reviews_avg_rating')->orderByDesc('reviews_count'),
             'best_selling' => $query->orderByDesc('sold_count'),
+            'foryou' => $this->orderForYou($query),
             default => $query->orderByDesc('created_at'),
         };
 
@@ -408,7 +428,7 @@ class ShopController extends Controller
             ->groupBy(fn ($row) => Categories::slug($row->category))
             ->map(fn ($rows) => (int) $rows->sum('total'));
 
-        $categories = collect(Categories::LIST)
+        $categories = collect(Categories::byPopularity())
             ->map(fn ($label, $slug) => [
                 'slug' => $slug,
                 'label' => $label,
@@ -576,7 +596,7 @@ class ShopController extends Controller
                 ->sortDesc()
                 ->keys();
 
-            $popular = $bySize->merge(array_keys(Categories::LIST))->unique()->take(8);
+            $popular = $bySize->merge(Categories::POPULAR)->unique()->take(8);
 
             return response()->json([
                 'products' => [],
@@ -769,6 +789,11 @@ class ShopController extends Controller
             }
         }
 
+        // Feeds the buyer home's "For you".
+        if (session('user.role') === 'buyer') {
+            \App\Support\ForYou::viewed($product->id);
+        }
+
         // REAL reviews for this product — no reviews yet means no orders
         // have been delivered and rated for it, which is expected/honest.
         $reviews = DB::table('product_reviews')
@@ -892,11 +917,70 @@ class ShopController extends Controller
         );
     }
 
-    // The old category directory listed categories the shop does not have;
-    // the Shop page has the real 16 as chips.
+    // Every category, best sellers first (Categories::POPULAR): product
+    // count, shops, starting price, a few photos and each shop's shelves.
     public function categories()
     {
-        return redirect()->route('products');
+        $products = Product::onSale()
+            ->withSoldCount()
+            ->get(['products.id', 'products.name', 'products.category', 'products.price', 'products.image', 'products.seller_id', 'products.created_at'])
+            ->groupBy(fn ($product) => Categories::slug($product->category) ?? '');
+
+        $sellerIds = $products->flatten()->pluck('seller_id')->unique();
+
+        // A shop's top-level shelves, each with the categories of the
+        // products on it, so a shelf only shows under its own category.
+        $productSlugs = $products->flatten()->mapWithKeys(fn ($p) => [$p->id => Categories::slug($p->category) ?? '']);
+        $shelfSlugs = DB::table('product_store_category as psc')
+            ->join('store_categories as sc', 'sc.id', '=', 'psc.store_category_id')
+            ->whereIn('psc.product_id', $productSlugs->keys())
+            ->get(['psc.product_id', 'sc.id', 'sc.parent_id'])
+            ->groupBy(fn ($row) => $row->parent_id ?? $row->id)
+            ->map(fn ($rows) => $rows->map(fn ($row) => $productSlugs[$row->product_id] ?? null)->filter()->unique());
+
+        $shelves = \App\Models\StoreCategory::whereIn('seller_id', $sellerIds)
+            ->whereNull('parent_id')
+            ->where('is_hidden', false)
+            ->orderBy('sort_order')
+            ->orderBy('id')
+            ->get(['id', 'seller_id', 'name'])
+            ->each(fn ($shelf) => $shelf->slugs = $shelfSlugs->get($shelf->id, collect()))
+            ->groupBy('seller_id');
+
+        $categories = collect(Categories::byPopularity())
+            ->map(function ($label, $slug) use ($products, $shelves) {
+                $items = $products->get($slug, collect());
+                $sellers = $items->pluck('seller_id')->unique();
+
+                return [
+                    'slug' => $slug,
+                    'label' => $label,
+                    'tagline' => Categories::TAGLINES[$slug] ?? '',
+                    'icon' => Categories::icon($slug),
+                    'count' => $items->count(),
+                    'shops' => $sellers->count(),
+                    'sold' => (int) $items->sum('sold_count'),
+                    'from' => $items->isNotEmpty() ? (float) $items->min('price') : null,
+                    // Best sellers first, then the newest, photos only.
+                    'photos' => $items->filter(fn ($p) => $p->image)
+                        ->sortByDesc(fn ($p) => [(int) $p->sold_count, $p->created_at?->timestamp ?? 0])
+                        ->take(4)
+                        ->map(fn ($p) => ['url' => productImageUrl($p->image), 'name' => $p->name])
+                        ->values()
+                        ->all(),
+                    'shelves' => $sellers->flatMap(fn ($id) => $shelves->get($id, collect())->filter(fn ($s) => $s->slugs->contains($slug))->map(fn ($s) => [
+                        'name' => $s->name,
+                        'url' => route('shop.seller', [$id, 'store_category' => $s->id]),
+                    ]))->unique('name')->take(4)->values()->all(),
+                ];
+            })
+            ->values();
+
+        return view('pages.categories', [
+            'categories' => $categories,
+            'totalProducts' => $products->flatten()->count(),
+            'totalShops' => $sellerIds->count(),
+        ]);
     }
 
     // Terms, privacy and return policies — the text the admin saves in

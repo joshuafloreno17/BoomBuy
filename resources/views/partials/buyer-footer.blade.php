@@ -25,7 +25,7 @@
                 <li><a href="{{ route('products') }}">All products</a></li>
                 <li><a href="{{ route('products', ['sort' => 'newest']) }}">New arrivals</a></li>
                 {{-- Buyers are sent from the landing page to /buyer, so they get the shop's category chips instead. --}}
-                <li><a href="{{ $bbFooterBuyer ? route('products') : route('home') . '#categories' }}">Categories</a></li>
+                <li><a href="{{ route('categories') }}">Categories</a></li>
             </ul>
         </details>
 

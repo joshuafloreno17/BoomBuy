@@ -798,7 +798,17 @@ select {
     font-size: 21px;
     font-weight: 800;
     color: var(--accent-dark);
+    line-height: 1.2;
+    overflow-wrap: normal;
+}
+
+/* Each amount stays whole; a long range wraps after the dash. */
+.sp-amt {
     white-space: nowrap;
+}
+
+.sp-price.is-range {
+    font-size: 18px;
 }
 
 /* Add to cart + Buy now, side by side */
@@ -1307,6 +1317,10 @@ select {
 
     .sp-price {
         font-size: 18px;
+    }
+
+    .sp-price.is-range {
+        font-size: 15px;
     }
 
     .sp-btn {

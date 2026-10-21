@@ -32,17 +32,8 @@
         $heroProduct = $featuredProducts->first();
         $heroShop = $heroProduct ? ($featuredShops->get($heroProduct->seller_id)['name'] ?? null) : null;
         $freeMin = \App\Support\DeliveryFee::freeShippingMin();
-        $landingCats = array_slice(\App\Support\Categories::LIST, 0, 8, true);
-        $catNotes = [
-            'electronics' => 'Gadgets & devices',
-            'womens-fashion' => 'Style & clothing',
-            'mens-fashion' => 'Everyday style',
-            'kids-baby' => 'For little ones',
-            'home-living' => 'Home essentials',
-            'sports-outdoors' => 'Gear for moving',
-            'beauty-personal-care' => 'Skin, hair & more',
-            'food-beverages' => 'Snacks & pantry',
-        ];
+        $landingCats = array_slice(\App\Support\Categories::byPopularity(), 0, 8, true);
+        $catNotes = \App\Support\Categories::TAGLINES;
     @endphp
 
     <main>
@@ -96,7 +87,7 @@
                         <h2 class="lp-h2">Shop by category</h2>
                         <p class="lp-sub">16 categories, each from sellers who specialise in it.</p>
                     </div>
-                    <a href="{{ route('products') }}" class="lp-more">See all categories →</a>
+                    <a href="{{ route('categories') }}" class="lp-more">See all categories →</a>
                 </div>
 
                 <div class="lp-cats">

@@ -532,6 +532,21 @@ button {
     gap: 20px;
 }
 
+/* "For you": which categories the picks come from */
+.discover-because {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: -4px 0 14px;
+    font-size: 13.5px;
+    font-weight: 600;
+    color: #574e70;
+}
+
+.discover-because i {
+    color: var(--theme-primary);
+}
+
 .discover-empty {
     padding: 40px 20px;
     border: 1px dashed #ddd5f2;

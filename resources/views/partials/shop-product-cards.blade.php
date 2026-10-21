@@ -58,7 +58,8 @@
                 @endif
             </span>
 
-            <span class="sp-price">{{ peso($product['price']) }}@if(($product['price_max'] ?? 0) > $product['price']) – {{ peso($product['price_max']) }}@endif @if($product['original_price'] ?? null) <s class="sp-was">{{ peso($product['original_price']) }}</s>@endif</span>
+            @php($isRange = ($product['price_max'] ?? 0) > $product['price'])
+            <span class="sp-price{{ $isRange ? ' is-range' : '' }}"><span class="sp-amt">{{ peso($product['price']) }}</span>@if($isRange) – <span class="sp-amt">{{ peso($product['price_max']) }}</span>@endif @if($product['original_price'] ?? null) <s class="sp-was">{{ peso($product['original_price']) }}</s>@endif</span>
 
             <div class="sp-actions">
                 @if($product['vacation'] ?? false)

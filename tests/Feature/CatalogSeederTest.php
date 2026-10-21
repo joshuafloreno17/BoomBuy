@@ -24,9 +24,9 @@ class CatalogSeederTest extends TestCase
         Storage::fake('public');
         $this->seed([SortingCenterSeeder::class, SellerShopsSeeder::class, CatalogSeeder::class]);
 
-        $this->assertSame(135, Product::count());
+        $this->assertSame(240, Product::count());
         $this->seed(CatalogSeeder::class);
-        $this->assertSame(135, Product::count());
+        $this->assertSame(240, Product::count());
 
         // Every product has a cover that exists and sits on one of its shop's shelves;
         // every color has its own photo.
@@ -63,5 +63,12 @@ class CatalogSeederTest extends TestCase
         $this->get(route('product.details', Str::slug($iphone->name) . '-' . $iphone->id))
             ->assertOk()->assertSee('Burgundy')->assertSee('1TB')->assertSee('seed-voltique-iphone-18-pro-burgundy-');
         $this->get(route('products', ['category' => 'womens-fashion']))->assertOk()->assertSee('Satin Slip Dress');
+
+        // The last seven shops: shoes in Color × Size with a photo per color.
+        $running = Product::where('name', 'Running Shoes')->firstOrFail();
+        $this->assertSame('Shoes', $running->category);
+        $this->assertSame(18, $running->variations()->count());
+        $this->assertSame(3, ProductImage::where('product_id', $running->id)->whereNotNull('product_variation_id')->count());
+        $this->get(route('products', ['category' => 'garden-outdoor']))->assertOk()->assertSee('Calamansi Seedling');
     }
 }

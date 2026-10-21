@@ -151,7 +151,17 @@ class BuyerController extends Controller
             ->values()
             ->all();
 
+        $forYou = \App\Support\ForYou::picks(
+            $buyerId,
+            DB::table('users')->where('id', $buyerId)->value('sex'),
+            $wishlistIds,
+            collect(array_keys(\App\Support\CartContents::prune()))->map(fn ($key) => (int) parseCartKey($key)[0])->unique()->all(),
+            $visible
+        );
+
         $discover = [
+            'foryou' => $toCards($forYou['products']),
+            'foryou_because' => $forYou['categories'],
             'latest' => $toCards($visible()->latest()->take(6)->get()),
             'top' => $toCards(
                 $visible()

@@ -122,26 +122,43 @@ class PromoHero
         return $slides;
     }
 
-    /** Best sellers first, then the newest — only ones with a photo, so a slide never shows an empty frame. */
+    /** The categories the product slides come from, one product each, in this order. */
+    private const SLIDE_CATEGORIES = ['electronics', 'womens-fashion', 'shoes', 'mens-fashion', 'beauty-personal-care'];
+
+    /**
+     * One product from each of the best-selling categories: its best seller,
+     * else its priciest (a phone, not a cable). Only ones with a photo, so a
+     * slide never shows an empty frame. Topped up from any category.
+     */
     private static function productSlides(): array
     {
-        $products = Product::onSale()
+        $pick = fn ($query) => $query->onSale()
             ->withSoldCount()
             ->whereNotNull('image')
             ->where('image', '!=', '')
             ->orderByDesc('sold_count')
-            ->orderByDesc('id')
-            ->take(3)
-            ->get();
+            ->orderByDesc('price')
+            ->orderByDesc('id');
+
+        $products = collect(self::SLIDE_CATEGORIES)
+            ->map(fn ($slug) => $pick(Product::where('category', Categories::LIST[$slug]))->first())
+            ->filter()
+            ->take(4)
+            ->values();
+
+        if ($products->count() < 3) {
+            $products = $products->merge($pick(Product::whereNotIn('id', $products->pluck('id')))->take(3 - $products->count())->get());
+        }
 
         $shops = SellerShop::many($products->pluck('seller_id'));
 
         return $products->values()->map(function ($product, $i) use ($shops) {
             $sold = (int) ($product->sold_count ?? 0);
+            $category = Categories::label($product->category);
 
             return self::slide([
                 'style' => $i % 2 === 0 ? 'violet' : 'lavender',
-                'eyebrow' => $sold > 0 ? 'Best seller · ' . number_format($sold) . ' sold' : 'Just listed',
+                'eyebrow' => $sold > 0 ? 'Best seller · ' . number_format($sold) . ' sold' : ($category ? 'Trending in ' . $category : 'Just listed'),
                 'title' => Str::limit($product->name, 40),
                 'text' => ($shops->get($product->seller_id)['name'] ?? 'BoomBuy seller') . ' · ₱' . number_format($product->price),
                 'cta' => 'View product',
@@ -172,8 +189,8 @@ class PromoHero
             return null;
         }
 
-        ksort($bySlug);
-        $slugs = array_keys($bySlug);
+        // Rotates through the best-selling half of the categories.
+        $slugs = array_values(array_intersect(array_slice(Categories::POPULAR, 0, 8), array_keys($bySlug))) ?: array_keys($bySlug);
         $slug = $slugs[(int) now()->isoWeek() % count($slugs)];
         $label = Categories::LIST[$slug];
         $total = $bySlug[$slug];

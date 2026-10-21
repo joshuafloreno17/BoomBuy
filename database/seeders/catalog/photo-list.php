@@ -143,7 +143,7 @@ return [
         'shop' => 'Stride Footwear Co.',
         'photos' => [
             'canvas-sneakers-white', 'canvas-sneakers-black', 'canvas-sneakers-red',
-            'running-shoes-black', 'running-shoes-grey', 'running-shoes-blue', 'slip-on-black', 'slip-on-white',
+            'running-shoes-black', 'running-shoes-white', 'running-shoes-blue', 'slip-on-black', 'slip-on-white',
             'high-top-white', 'high-top-black', 'kids-sneakers-pink', 'kids-sneakers-blue',
             'oxford-shoes-black', 'oxford-shoes-brown', 'pumps-black', 'pumps-nude', 'loafers-black', 'loafers-brown',
             'doll-shoes-black', 'doll-shoes-beige', 'school-shoes',

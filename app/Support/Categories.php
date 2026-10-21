@@ -85,6 +85,44 @@ class Categories
         return $slug !== false ? self::LIST[$slug] : null;
     }
 
+    /**
+     * Buyer-facing order: what sells most on Philippine marketplaces first.
+     * Forms keep LIST's order; the Categories page, the landing grid, the
+     * Shop chips and the search suggestions use this one.
+     */
+    public const POPULAR = [
+        'electronics', 'womens-fashion', 'beauty-personal-care', 'home-living',
+        'mens-fashion', 'shoes', 'food-beverages', 'kids-baby',
+        'sports-outdoors', 'jewelry-accessories', 'toys-games-hobbies', 'pet-supplies',
+        'automotive', 'office-school', 'tools-home-improvement', 'garden-outdoor',
+    ];
+
+    /** Short line under each category's name. */
+    public const TAGLINES = [
+        'electronics' => 'Phones, audio & chargers',
+        'womens-fashion' => 'Tops, dresses & bags',
+        'beauty-personal-care' => 'Skin, makeup & hair',
+        'home-living' => 'Bedding, kitchen & decor',
+        'mens-fashion' => 'Shirts, pants & jackets',
+        'shoes' => 'Sneakers, sandals & formal',
+        'food-beverages' => 'Snacks, pantry & drinks',
+        'kids-baby' => 'Feeding, clothes & care',
+        'sports-outdoors' => 'Fitness, ball games & camping',
+        'jewelry-accessories' => 'Rings, watches & bags',
+        'toys-games-hobbies' => 'Toys, board games & crafts',
+        'pet-supplies' => 'Food, toys & grooming',
+        'automotive' => 'Car care & accessories',
+        'office-school' => 'Pens, paper & school bags',
+        'tools-home-improvement' => 'Hand & power tools',
+        'garden-outdoor' => 'Plants, pots & gardening',
+    ];
+
+    /** LIST in POPULAR order (slug => label). */
+    public static function byPopularity(): array
+    {
+        return array_replace(array_flip(self::POPULAR), self::LIST);
+    }
+
     /** Slug for a stored label or old category, for pre-selecting a <select>. */
     public static function slug(?string $value): ?string
     {

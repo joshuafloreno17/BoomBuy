@@ -897,6 +897,625 @@ class CatalogSeeder extends Seeder
                     ],
                 ],
             ],
+            'harvesttable@boombuy.test' => [
+                'folder' => 'harvesttable',
+                'categories' => ['Snacks & Sweets' => [], 'Coffee & Drinks' => [], 'Pantry Staples' => []],
+                'products' => [
+                    [
+                        'name' => 'Dried Mangoes', 'in' => 'Snacks & Sweets', 'price' => 189, 'discount' => 10, 'weight' => 0.2,
+                        'description' => "Sweet, chewy dried mangoes from Cebu — a classic pasalubong.\n\n• Made from ripe Philippine mangoes",
+                        'options' => ['Size' => ['100g', '200g|+150']],
+                        'photos' => ['dried-mangoes.jpg'],
+                    ],
+                    [
+                        'name' => 'Banana Chips', 'in' => 'Snacks & Sweets', 'price' => 99, 'weight' => 0.25, 'stock' => 60,
+                        'description' => "Crunchy, lightly sweetened banana chips. Great for baon and movie nights.\n\n• 250g resealable pack",
+                        'photos' => ['banana-chips.jpg'],
+                    ],
+                    [
+                        'name' => 'Pork Chicharon', 'in' => 'Snacks & Sweets', 'price' => 129, 'weight' => 0.15, 'stock' => 50,
+                        'description' => "Crispy pork rinds, best with spicy vinegar.\n\n• 150g pack",
+                        'photos' => ['chicharon.jpg'],
+                    ],
+                    [
+                        'name' => 'Classic Polvoron', 'in' => 'Snacks & Sweets', 'price' => 149, 'weight' => 0.2, 'stock' => 45,
+                        'description' => "Melt-in-your-mouth milk polvoron, individually wrapped.\n\n• 12 pieces per pack",
+                        'photos' => ['polvoron.jpg'],
+                    ],
+                    [
+                        'name' => 'Mixed Nuts Jar', 'in' => 'Snacks & Sweets', 'price' => 299, 'weight' => 0.4, 'stock' => 30,
+                        'description' => "Roasted almonds, cashews, peanuts and walnuts in a reusable jar.\n\n• Lightly salted\n• 350g",
+                        'photos' => ['mixed-nuts.jpg'],
+                    ],
+                    [
+                        'name' => 'Kapeng Barako', 'in' => 'Coffee & Drinks', 'price' => 249, 'weight' => 0.25,
+                        'description' => "Strong, bold Batangas barako coffee — ground and ready to brew.\n\n• 100% Liberica beans",
+                        'options' => ['Size' => ['250g', '500g|+200']],
+                        'photos' => ['barako-coffee.jpg'],
+                    ],
+                    [
+                        'name' => 'Calamansi Juice', 'in' => 'Coffee & Drinks', 'price' => 89, 'weight' => 0.5, 'stock' => 60,
+                        'description' => "Refreshing calamansi juice drink, best served cold.\n\n• 500ml bottle",
+                        'photos' => ['calamansi-juice.jpg'],
+                    ],
+                    [
+                        'name' => 'Tablea Chocolate', 'in' => 'Coffee & Drinks', 'price' => 179, 'weight' => 0.2, 'stock' => 40,
+                        'description' => "Pure cacao tablea for thick, rich tsokolate and champorado.\n\n• 200g",
+                        'photos' => ['tablea.jpg'],
+                    ],
+                    [
+                        'name' => 'Green Tea Bags', 'in' => 'Coffee & Drinks', 'price' => 159, 'weight' => 0.1, 'stock' => 50,
+                        'description' => "Light and soothing green tea.\n\n• 25 tea bags",
+                        'photos' => ['green-tea.jpg'],
+                    ],
+                    [
+                        'name' => 'Coconut Water', 'in' => 'Coffee & Drinks', 'price' => 69, 'weight' => 0.4, 'stock' => 80,
+                        'description' => "Natural coconut water with no added sugar.\n\n• 350ml",
+                        'photos' => ['coconut-water.jpg'],
+                    ],
+                    [
+                        'name' => 'Premium Jasmine Rice', 'in' => 'Pantry Staples', 'price' => 399, 'weight' => 5,
+                        'description' => "Soft, fragrant jasmine rice for everyday meals.\n\n• Well-milled",
+                        'options' => ['Size' => ['5kg', '10kg|+380']],
+                        'photos' => ['rice.jpg'],
+                    ],
+                    [
+                        'name' => 'Virgin Coconut Oil', 'in' => 'Pantry Staples', 'price' => 249, 'weight' => 0.5, 'stock' => 35,
+                        'description' => "Cold-pressed virgin coconut oil for cooking, skin and hair.\n\n• 500ml",
+                        'photos' => ['coconut-oil.jpg'],
+                    ],
+                    [
+                        'name' => 'Pure Wild Honey', 'in' => 'Pantry Staples', 'price' => 349, 'discount' => 10, 'weight' => 0.5, 'stock' => 25,
+                        'description' => "Raw wild honey from local beekeepers.\n\n• 500g jar",
+                        'photos' => ['honey.jpg'],
+                    ],
+                    [
+                        'name' => 'Creamy Peanut Butter', 'in' => 'Pantry Staples', 'price' => 199, 'weight' => 0.4, 'stock' => 40,
+                        'description' => "Smooth peanut butter made from roasted Philippine peanuts.\n\n• 340g jar",
+                        'photos' => ['peanut-butter.jpg'],
+                    ],
+                    [
+                        'name' => 'Bagoong Alamang', 'in' => 'Pantry Staples', 'price' => 149, 'weight' => 0.3, 'stock' => 40,
+                        'description' => "Sautéed shrimp paste, sweet-spicy — perfect with green mango and kare-kare.\n\n• 250g jar",
+                        'photos' => ['bagoong.jpg'],
+                    ],
+                ],
+            ],
+            'torqueauto@boombuy.test' => [
+                'folder' => 'torqueauto',
+                'categories' => ['Car Care' => [], 'Interior & Accessories' => [], 'Tools & Parts' => []],
+                'products' => [
+                    [
+                        'name' => 'Car Shampoo', 'in' => 'Car Care', 'price' => 299, 'weight' => 1.0, 'stock' => 30,
+                        'description' => "pH-balanced car shampoo that lifts dirt without stripping wax.\n\n• 1 liter",
+                        'photos' => ['car-shampoo.jpg'],
+                    ],
+                    [
+                        'name' => 'Microfiber Towel', 'in' => 'Car Care', 'price' => 149, 'weight' => 0.2,
+                        'description' => "Soft, lint-free microfiber towels for washing, drying and detailing.\n\n• 40 × 40 cm",
+                        'options' => ['Pack' => ['3 pcs', '6 pcs|+120']],
+                        'photos' => ['microfiber-towel.jpg'],
+                    ],
+                    [
+                        'name' => 'Tire Shine Spray', 'in' => 'Car Care', 'price' => 349, 'weight' => 0.7, 'stock' => 25,
+                        'description' => "Gives tires a deep, wet-look shine that lasts.\n\n• 680ml spray",
+                        'photos' => ['tire-shine.jpg'],
+                    ],
+                    [
+                        'name' => 'Spray Car Wax', 'in' => 'Car Care', 'price' => 499, 'discount' => 10, 'weight' => 0.6, 'stock' => 20,
+                        'description' => "Quick spray wax for a glossy, water-beading finish.\n\n• 473ml",
+                        'photos' => ['car-wax.jpg'],
+                    ],
+                    [
+                        'name' => 'Dashboard Cleaner', 'in' => 'Car Care', 'price' => 249, 'weight' => 0.5, 'stock' => 30,
+                        'description' => "Cleans and protects dashboards, consoles and door panels.\n\n• Non-greasy finish",
+                        'photos' => ['dashboard-cleaner.jpg'],
+                    ],
+                    [
+                        'name' => 'Car Phone Holder', 'in' => 'Interior & Accessories', 'price' => 349, 'weight' => 0.3, 'stock' => 35,
+                        'description' => "Suction-mount phone holder for the dashboard or windshield.\n\n• One-touch lock\n• Fits 4.7–6.9 inch phones",
+                        'photos' => ['phone-holder.jpg'],
+                    ],
+                    [
+                        'name' => 'Leatherette Seat Cover Set', 'in' => 'Interior & Accessories', 'price' => 2499, 'discount' => 15, 'weight' => 4.0,
+                        'description' => "Full set of padded seat covers for 5-seater cars.\n\n• Easy to wipe clean\n• Universal fit",
+                        'options' => ['Color' => ['Black' => 'seat-cover-black.jpg', 'Grey' => 'seat-cover-grey.jpg', 'Beige' => 'seat-cover-beige.jpg']],
+                    ],
+                    [
+                        'name' => 'Car Air Freshener', 'in' => 'Interior & Accessories', 'price' => 129, 'weight' => 0.05, 'stock' => 60,
+                        'description' => "Vent clip air freshener that keeps your car smelling fresh for weeks.",
+                        'photos' => ['air-freshener.jpg'],
+                    ],
+                    [
+                        'name' => 'Steering Wheel Cover', 'in' => 'Interior & Accessories', 'price' => 399, 'weight' => 0.3,
+                        'description' => "Non-slip steering wheel cover for a better grip.\n\n• Fits 37–38 cm wheels",
+                        'options' => ['Color' => ['Black' => 'steering-cover-black.jpg', 'Brown' => 'steering-cover-brown.jpg', 'Pink' => 'steering-cover-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Car Floor Mats', 'in' => 'Interior & Accessories', 'price' => 899, 'weight' => 2.5,
+                        'description' => "Set of 4 carpet floor mats with anti-slip backing.\n\n• Trim to fit",
+                        'options' => ['Color' => ['Black' => 'floor-mats-black.jpg', 'Grey' => 'floor-mats-grey.jpg']],
+                    ],
+                    [
+                        'name' => 'Portable Tire Inflator', 'in' => 'Tools & Parts', 'price' => 1499, 'weight' => 1.2, 'stock' => 15,
+                        'description' => "12V tire inflator that plugs into your car's socket.\n\n• Pressure gauge\n• Nozzles for balls and bikes",
+                        'photos' => ['tire-inflator.jpg'],
+                    ],
+                    [
+                        'name' => 'Jumper Cables', 'in' => 'Tools & Parts', 'price' => 699, 'weight' => 1.5, 'stock' => 20,
+                        'description' => "Heavy-duty booster cables to jump-start a dead battery.\n\n• 3 meters\n• Insulated clamps",
+                        'photos' => ['jumper-cables.jpg'],
+                    ],
+                    [
+                        'name' => 'Full HD Dash Cam', 'in' => 'Tools & Parts', 'price' => 2999, 'discount' => 15, 'weight' => 0.3, 'stock' => 12,
+                        'description' => "1080p dash cam with night vision and loop recording.\n\n• Wide-angle lens\n• Parking mode",
+                        'photos' => ['dash-cam.jpg'],
+                    ],
+                    [
+                        'name' => 'Fully Synthetic Engine Oil 4L', 'in' => 'Tools & Parts', 'price' => 1699, 'weight' => 4.0, 'stock' => 15,
+                        'description' => "Fully synthetic 0W-40 engine oil for gasoline engines.\n\n• 4 liters",
+                        'photos' => ['engine-oil.jpg'],
+                    ],
+                    [
+                        'name' => 'Wiper Blades', 'in' => 'Tools & Parts', 'price' => 499, 'weight' => 0.5,
+                        'description' => "Pair of quiet, streak-free wiper blades.\n\n• Universal hook",
+                        'options' => ['Length' => ['18" + 22"', '20" + 24"|+50']],
+                        'photos' => ['wiper-blades.jpg'],
+                    ],
+                ],
+            ],
+            'inkwell@boombuy.test' => [
+                'folder' => 'inkwell',
+                'categories' => ['Writing' => [], 'Paper & Notebooks' => [], 'School & Desk' => []],
+                'products' => [
+                    [
+                        'name' => 'Ballpen Set', 'in' => 'Writing', 'price' => 99, 'weight' => 0.1, 'stock' => 80,
+                        'description' => "Smooth-writing ballpens in black, blue and red.\n\n• 0.7mm tip\n• 10 pens",
+                        'photos' => ['ballpen-set.jpg'],
+                    ],
+                    [
+                        'name' => 'Mechanical Pencil', 'in' => 'Writing', 'price' => 79, 'weight' => 0.05, 'stock' => 60,
+                        'description' => "0.5mm mechanical pencil with a soft grip and eraser.\n\n• Lead refill included",
+                        'photos' => ['mechanical-pencil.jpg'],
+                    ],
+                    [
+                        'name' => 'Highlighters', 'in' => 'Writing', 'price' => 129, 'weight' => 0.1, 'stock' => 50,
+                        'description' => "Bright, quick-drying highlighters for notes and reviewers.\n\n• 4 colors",
+                        'photos' => ['highlighters.jpg'],
+                    ],
+                    [
+                        'name' => 'Permanent Marker', 'in' => 'Writing', 'price' => 49, 'weight' => 0.03, 'stock' => 100,
+                        'description' => "Waterproof marker for labels, boxes and projects.\n\n• Black, fine tip",
+                        'photos' => ['marker.jpg'],
+                    ],
+                    [
+                        'name' => 'Gel Pens Set', 'in' => 'Writing', 'price' => 149, 'discount' => 10, 'weight' => 0.1, 'stock' => 45,
+                        'description' => "Colorful gel pens for journaling and notes.\n\n• 10 colors",
+                        'photos' => ['gel-pens.jpg'],
+                    ],
+                    [
+                        'name' => 'Spiral Notebook', 'in' => 'Paper & Notebooks', 'price' => 89, 'weight' => 0.3,
+                        'description' => "Sturdy spiral notebook with ruled pages.\n\n• 80 leaves\n• A5 size",
+                        'options' => ['Color' => ['Blue' => 'notebook-blue.jpg', 'Pink' => 'notebook-pink.jpg', 'Green' => 'notebook-green.jpg', 'Black' => 'notebook-black.jpg']],
+                    ],
+                    [
+                        'name' => 'A4 Bond Paper', 'in' => 'Paper & Notebooks', 'price' => 279, 'weight' => 2.5, 'stock' => 40,
+                        'description' => "Bright white copy paper for printing and photocopying.\n\n• 500 sheets\n• 70gsm",
+                        'photos' => ['bond-paper.jpg'],
+                    ],
+                    [
+                        'name' => 'Sticky Notes', 'in' => 'Paper & Notebooks', 'price' => 99, 'weight' => 0.2, 'stock' => 60,
+                        'description' => "Pastel sticky notes for reminders and bookmarks.\n\n• 400 sheets",
+                        'photos' => ['sticky-notes.jpg'],
+                    ],
+                    [
+                        'name' => 'Index Cards', 'in' => 'Paper & Notebooks', 'price' => 59, 'weight' => 0.1, 'stock' => 70,
+                        'description' => "Ruled index cards for flashcards and reporting.\n\n• 3 × 5 inch\n• 100 cards",
+                        'photos' => ['index-cards.jpg'],
+                    ],
+                    [
+                        'name' => '2027 Planner', 'in' => 'Paper & Notebooks', 'price' => 349, 'weight' => 0.4,
+                        'description' => "Hardbound daily planner for 2027.\n\n• Monthly and weekly pages\n• Ribbon bookmark",
+                        'options' => ['Color' => ['Black' => 'planner-black.jpg', 'Pink' => 'planner-pink.jpg', 'Beige' => 'planner-beige.jpg']],
+                    ],
+                    [
+                        'name' => 'School Backpack', 'in' => 'School & Desk', 'price' => 899, 'discount' => 10, 'weight' => 0.7,
+                        'description' => "Water-resistant backpack with a padded laptop pocket.\n\n• Fits 15.6 inch laptops",
+                        'options' => ['Color' => ['Black' => 'school-backpack-black.jpg', 'Navy' => 'school-backpack-navy.jpg', 'Pink' => 'school-backpack-pink.jpg']],
+                    ],
+                    [
+                        'name' => 'Scientific Calculator', 'in' => 'School & Desk', 'price' => 699, 'weight' => 0.2, 'stock' => 25,
+                        'description' => "Scientific calculator for algebra, trigonometry and statistics.\n\n• 240 functions",
+                        'photos' => ['calculator.jpg'],
+                    ],
+                    [
+                        'name' => 'Stapler', 'in' => 'School & Desk', 'price' => 149, 'weight' => 0.2, 'stock' => 40,
+                        'description' => "Compact stapler that binds up to 20 sheets.\n\n• Staples included",
+                        'photos' => ['stapler.jpg'],
+                    ],
+                    [
+                        'name' => 'Scissors', 'in' => 'School & Desk', 'price' => 79, 'weight' => 0.1, 'stock' => 50,
+                        'description' => "Stainless steel scissors with comfortable grips.\n\n• 7 inch",
+                        'photos' => ['scissors.jpg'],
+                    ],
+                    [
+                        'name' => 'Desk Organizer', 'in' => 'School & Desk', 'price' => 299, 'weight' => 0.5, 'stock' => 25,
+                        'description' => "Keeps pens, notes and small supplies tidy on your desk.\n\n• 5 compartments",
+                        'photos' => ['desk-organizer.jpg'],
+                    ],
+                ],
+            ],
+            'wonderbox@boombuy.test' => [
+                'folder' => 'wonderbox',
+                'categories' => ['Toys' => [], 'Board & Card Games' => [], 'Hobbies & Music' => []],
+                'products' => [
+                    [
+                        'name' => 'Plush Teddy Bear', 'in' => 'Toys', 'price' => 499, 'weight' => 0.5,
+                        'description' => "Soft, huggable teddy bear — a perfect gift.\n\n• 40 cm tall",
+                        'options' => ['Color' => ['Brown' => 'teddy-bear-brown.jpg', 'White' => 'teddy-bear-white.jpg']],
+                    ],
+                    [
+                        'name' => 'Building Blocks Set', 'in' => 'Toys', 'price' => 799, 'weight' => 1.0, 'stock' => 20,
+                        'description' => "Colorful building blocks that spark creativity.\n\n• 500 pieces\n• For ages 6+",
+                        'photos' => ['building-blocks.jpg'],
+                    ],
+                    [
+                        'name' => 'Remote Control Car', 'in' => 'Toys', 'price' => 1299, 'discount' => 15, 'weight' => 0.8,
+                        'description' => "Fast RC sports car with a rechargeable battery.\n\n• 2.4GHz remote\n• Up to 20 km/h",
+                        'options' => ['Color' => ['Red' => 'rc-car-red.jpg', 'Blue' => 'rc-car-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Wooden Jigsaw Puzzle', 'in' => 'Toys', 'price' => 249, 'weight' => 0.3, 'stock' => 30,
+                        'description' => "Bright wooden puzzle in a storage tray.\n\n• For ages 3+",
+                        'photos' => ['wooden-puzzle.jpg'],
+                    ],
+                    [
+                        'name' => 'Toy Kitchen Set', 'in' => 'Toys', 'price' => 1499, 'weight' => 2.0, 'stock' => 10,
+                        'description' => "Pretend-play kitchen with stove, sink and utensils.\n\n• Lights and sounds",
+                        'photos' => ['toy-kitchen.jpg'],
+                    ],
+                    [
+                        'name' => 'Wooden Chess Set', 'in' => 'Board & Card Games', 'price' => 399, 'weight' => 0.8, 'stock' => 20,
+                        'description' => "Classic wooden chess board with hand-finished pieces.\n\n• Folds for storage",
+                        'photos' => ['chess.jpg'],
+                    ],
+                    [
+                        'name' => 'Dominoes', 'in' => 'Board & Card Games', 'price' => 199, 'weight' => 0.4, 'stock' => 30,
+                        'description' => "Double-six dominoes in a carry case.\n\n• 28 tiles",
+                        'photos' => ['dominoes.jpg'],
+                    ],
+                    [
+                        'name' => 'Playing Cards', 'in' => 'Board & Card Games', 'price' => 99, 'weight' => 0.1, 'stock' => 60,
+                        'description' => "Plastic-coated playing cards that shuffle smoothly.\n\n• 2 decks",
+                        'photos' => ['playing-cards.jpg'],
+                    ],
+                    [
+                        'name' => 'Snakes & Ladders', 'in' => 'Board & Card Games', 'price' => 149, 'weight' => 0.3, 'stock' => 35,
+                        'description' => "The family favorite board game.\n\n• Dice and counters included",
+                        'photos' => ['snakes-ladders.jpg'],
+                    ],
+                    [
+                        'name' => 'Sungka Board', 'in' => 'Board & Card Games', 'price' => 599, 'weight' => 1.2, 'stock' => 15,
+                        'description' => "Traditional Filipino sungka board carved from wood.\n\n• Shells included",
+                        'photos' => ['sungka.jpg'],
+                    ],
+                    [
+                        'name' => 'Speed Cube 3×3', 'in' => 'Hobbies & Music', 'price' => 199, 'weight' => 0.1, 'stock' => 40,
+                        'description' => "Smooth-turning 3×3 puzzle cube for beginners and speedcubers.",
+                        'photos' => ['speed-cube.jpg'],
+                    ],
+                    [
+                        'name' => 'Watercolor Paint Set', 'in' => 'Hobbies & Music', 'price' => 249, 'weight' => 0.3, 'stock' => 30,
+                        'description' => "Bright watercolor cakes with brushes.\n\n• 24 colors",
+                        'photos' => ['watercolor.jpg'],
+                    ],
+                    [
+                        'name' => 'Model Car Kit', 'in' => 'Hobbies & Music', 'price' => 699, 'weight' => 0.5, 'stock' => 12,
+                        'description' => "Build-it-yourself scale model car.\n\n• 1:24 scale\n• Glue and paint not included",
+                        'photos' => ['model-kit.jpg'],
+                    ],
+                    [
+                        'name' => 'Soprano Ukulele', 'in' => 'Hobbies & Music', 'price' => 1199, 'weight' => 0.8,
+                        'description' => "Easy-to-play 21 inch ukulele for beginners.\n\n• Nylon strings\n• Gig bag included",
+                        'options' => ['Color' => ['Natural' => 'ukulele-natural.jpg', 'Pink' => 'ukulele-pink.jpg', 'Blue' => 'ukulele-blue.jpg']],
+                    ],
+                    [
+                        'name' => 'Sketchbook', 'in' => 'Hobbies & Music', 'price' => 149, 'weight' => 0.4, 'stock' => 40,
+                        'description' => "Spiral sketchbook with thick drawing paper.\n\n• A4\n• 50 sheets",
+                        'photos' => ['sketchbook.jpg'],
+                    ],
+                ],
+            ],
+            'aurelia@boombuy.test' => [
+                'folder' => 'aurelia',
+                'categories' => ['Earrings & Necklaces' => [], 'Rings & Bracelets' => [], 'Watches & Accessories' => []],
+                'products' => [
+                    [
+                        'name' => 'Pearl Stud Earrings', 'in' => 'Earrings & Necklaces', 'price' => 399, 'weight' => 0.05, 'stock' => 30,
+                        'description' => "Classic freshwater pearl studs on sterling silver posts.\n\n• Hypoallergenic",
+                        'photos' => ['pearl-earrings.jpg'],
+                    ],
+                    [
+                        'name' => 'Layered Chain Necklace', 'in' => 'Earrings & Necklaces', 'price' => 499, 'weight' => 0.05,
+                        'description' => "Double-layer chain necklace that goes with everything.\n\n• Tarnish-resistant\n• Adjustable length",
+                        'options' => ['Color' => ['Gold' => 'chain-necklace-gold.jpg', 'Silver' => 'chain-necklace-silver.jpg']],
+                    ],
+                    [
+                        'name' => 'Hoop Earrings', 'in' => 'Earrings & Necklaces', 'price' => 349, 'discount' => 10, 'weight' => 0.05,
+                        'description' => "Lightweight everyday hoops.\n\n• 3 cm\n• Stainless steel",
+                        'options' => ['Color' => ['Gold' => 'hoop-earrings-gold.jpg', 'Silver' => 'hoop-earrings-silver.jpg']],
+                    ],
+                    [
+                        'name' => 'Heart Pendant Necklace', 'in' => 'Earrings & Necklaces', 'price' => 599, 'weight' => 0.05,
+                        'description' => "Puffed heart pendant on a fine chain — a sweet gift.\n\n• 45 cm chain",
+                        'options' => ['Color' => ['Gold' => 'heart-pendant-gold.jpg', 'Silver' => 'heart-pendant-silver.jpg', 'Rose Gold' => 'heart-pendant-rose-gold.jpg']],
+                    ],
+                    [
+                        'name' => 'Crystal Drop Earrings', 'in' => 'Earrings & Necklaces', 'price' => 449, 'weight' => 0.05, 'stock' => 20,
+                        'description' => "Elegant drop earrings with sparkling crystals for special nights.",
+                        'photos' => ['drop-earrings.jpg'],
+                    ],
+                    [
+                        'name' => 'Sterling Silver Ring', 'in' => 'Rings & Bracelets', 'price' => 699, 'weight' => 0.03,
+                        'description' => "Organic-shaped 925 sterling silver ring.\n\n• Polished finish",
+                        'options' => ['Size' => ['6', '7', '8']],
+                        'photos' => ['silver-ring.jpg'],
+                    ],
+                    [
+                        'name' => 'Seashell Charm Bracelet', 'in' => 'Rings & Bracelets', 'price' => 399, 'weight' => 0.03, 'stock' => 25,
+                        'description' => "Gold-tone paperclip chain bracelet with a seashell charm.",
+                        'photos' => ['charm-bracelet.jpg'],
+                    ],
+                    [
+                        'name' => 'Beaded Stone Bracelet', 'in' => 'Rings & Bracelets', 'price' => 249, 'weight' => 0.05,
+                        'description' => "Stretchy natural-stone bead bracelet.\n\n• 8mm beads\n• One size fits most",
+                        'options' => ['Color' => ['Pink' => 'beaded-bracelet-pink.jpg', 'Blue' => 'beaded-bracelet-blue.jpg', 'Black' => 'beaded-bracelet-black.jpg']],
+                    ],
+                    [
+                        'name' => 'Bangle Set', 'in' => 'Rings & Bracelets', 'price' => 449, 'weight' => 0.1,
+                        'description' => "Set of textured bangles to stack and wear together.\n\n• 3 pieces",
+                        'options' => ['Color' => ['Gold' => 'bangles-gold.jpg', 'Silver' => 'bangles-silver.jpg']],
+                    ],
+                    [
+                        'name' => 'Couple Rings', 'in' => 'Rings & Bracelets', 'price' => 899, 'discount' => 10, 'weight' => 0.05, 'stock' => 15,
+                        'description' => "Matching titanium steel bands for him and her.\n\n• Message us your two sizes after ordering",
+                        'photos' => ['couple-rings.jpg'],
+                    ],
+                    [
+                        'name' => 'Minimalist Wristwatch', 'in' => 'Watches & Accessories', 'price' => 1499, 'weight' => 0.1,
+                        'description' => "Clean, easy-to-read quartz watch.\n\n• Water resistant\n• 1 year warranty",
+                        'options' => ['Color' => ['Black' => 'wristwatch-black.jpg', 'Brown' => 'wristwatch-brown.jpg', 'Silver' => 'wristwatch-silver.jpg']],
+                    ],
+                    [
+                        'name' => 'Classic Sunglasses', 'in' => 'Watches & Accessories', 'price' => 499, 'weight' => 0.05,
+                        'description' => "UV400 sunglasses with a timeless square frame.\n\n• Case included",
+                        'options' => ['Color' => ['Black' => 'sunglasses-black.jpg', 'Brown' => 'sunglasses-brown.jpg']],
+                    ],
+                    [
+                        'name' => 'Leather Belt', 'in' => 'Watches & Accessories', 'price' => 599, 'weight' => 0.2,
+                        'description' => "Genuine leather belt with a metal buckle.\n\n• 3.5 cm wide",
+                        'options' => [
+                            'Color' => ['Black' => 'leather-belt-black.jpg', 'Brown' => 'leather-belt-brown.jpg'],
+                            'Size' => ['M', 'L', 'XL'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Flower Hair Clips', 'in' => 'Watches & Accessories', 'price' => 149, 'weight' => 0.05, 'stock' => 40,
+                        'description' => "Matte flower claw clips that hold your hair all day.\n\n• Set of 3",
+                        'photos' => ['hair-clips.jpg'],
+                    ],
+                    [
+                        'name' => 'Bifold Leather Wallet', 'in' => 'Watches & Accessories', 'price' => 699, 'weight' => 0.15,
+                        'description' => "Slim bifold wallet with card slots and a bill compartment.",
+                        'options' => ['Color' => ['Black' => 'wallet-black.jpg', 'Brown' => 'wallet-brown.jpg']],
+                    ],
+                ],
+            ],
+            'stridefootwear@boombuy.test' => [
+                'folder' => 'stridefootwear',
+                'categories' => ['Sneakers' => [], 'Formal & Work' => [], 'Sandals & Slippers' => []],
+                'products' => [
+                    [
+                        'name' => 'Canvas Sneakers', 'in' => 'Sneakers', 'price' => 799, 'weight' => 0.8,
+                        'description' => "Everyday low-top canvas sneakers.\n\n• Cushioned insole\n• Rubber sole",
+                        'options' => [
+                            'Color' => ['White' => 'canvas-sneakers-white.jpg', 'Black' => 'canvas-sneakers-black.jpg', 'Red' => 'canvas-sneakers-red.jpg'],
+                            'Size' => ['38', '39', '40', '41', '42', '43'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Running Shoes', 'in' => 'Sneakers', 'price' => 1999, 'discount' => 15, 'weight' => 0.8,
+                        'description' => "Lightweight running shoes with responsive cushioning.\n\n• Breathable mesh upper",
+                        'options' => [
+                            'Color' => ['Black' => 'running-shoes-black.jpg', 'White' => 'running-shoes-white.jpg', 'Blue' => 'running-shoes-blue.jpg'],
+                            'Size' => ['39', '40', '41', '42', '43', '44'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Slip-On Sneakers', 'in' => 'Sneakers', 'price' => 699, 'weight' => 0.6,
+                        'description' => "Knit slip-ons that are easy to wear all day.\n\n• Stretchy, breathable upper",
+                        'options' => [
+                            'Color' => ['Black' => 'slip-on-black.jpg', 'White' => 'slip-on-white.jpg'],
+                            'Size' => ['37', '38', '39', '40', '41', '42'],
+                        ],
+                    ],
+                    [
+                        'name' => 'High-Top Sneakers', 'in' => 'Sneakers', 'price' => 1299, 'weight' => 0.9,
+                        'description' => "Leather-look high-tops with a padded collar.",
+                        'options' => [
+                            'Color' => ['White' => 'high-top-white.jpg', 'Black' => 'high-top-black.jpg'],
+                            'Size' => ['39', '40', '41', '42', '43'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Kids Sneakers', 'in' => 'Sneakers', 'price' => 599, 'weight' => 0.5,
+                        'description' => "Easy hook-and-loop sneakers for active kids.",
+                        'options' => [
+                            'Color' => ['Pink' => 'kids-sneakers-pink.jpg', 'Blue' => 'kids-sneakers-blue.jpg'],
+                            'Size' => ['28', '29', '30', '31', '32', '33'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Leather Oxford Shoes', 'in' => 'Formal & Work', 'price' => 1799, 'weight' => 1.0,
+                        'description' => "Polished lace-up Oxfords for the office and formal events.",
+                        'options' => [
+                            'Color' => ['Black' => 'oxford-shoes-black.jpg', 'Brown' => 'oxford-shoes-brown.jpg'],
+                            'Size' => ['39', '40', '41', '42', '43', '44'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Pointed Pumps', 'in' => 'Formal & Work', 'price' => 1299, 'weight' => 0.6,
+                        'description' => "Elegant pointed-toe pumps with a comfortable mid heel.\n\n• 5 cm heel",
+                        'options' => [
+                            'Color' => ['Black' => 'pumps-black.jpg', 'Nude' => 'pumps-nude.jpg'],
+                            'Size' => ['35', '36', '37', '38', '39'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Penny Loafers', 'in' => 'Formal & Work', 'price' => 1499, 'discount' => 10, 'weight' => 0.9,
+                        'description' => "Smart slip-on loafers for work or weekends.",
+                        'options' => [
+                            'Color' => ['Black' => 'loafers-black.jpg', 'Brown' => 'loafers-brown.jpg'],
+                            'Size' => ['39', '40', '41', '42', '43'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Doll Shoes', 'in' => 'Formal & Work', 'price' => 499, 'weight' => 0.4,
+                        'description' => "Soft ballet flats with a cute bow.",
+                        'options' => [
+                            'Color' => ['Black' => 'doll-shoes-black.jpg', 'Beige' => 'doll-shoes-beige.jpg'],
+                            'Size' => ['35', '36', '37', '38', '39'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Black School Shoes', 'in' => 'Formal & Work', 'price' => 899, 'weight' => 0.8,
+                        'description' => "Durable black school shoes that pass the uniform check.",
+                        'options' => ['Size' => ['35', '36', '37', '38', '39', '40', '41']],
+                        'photos' => ['school-shoes.jpg'],
+                    ],
+                    [
+                        'name' => 'Buckle Slides', 'in' => 'Sandals & Slippers', 'price' => 399, 'weight' => 0.4,
+                        'description' => "Comfy double-buckle slides for everyday wear.",
+                        'options' => [
+                            'Color' => ['Black' => 'slides-black.jpg', 'White' => 'slides-white.jpg'],
+                            'Size' => ['37', '38', '39', '40', '41', '42'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Strap Sandals', 'in' => 'Sandals & Slippers', 'price' => 599, 'weight' => 0.5,
+                        'description' => "Adjustable strap sandals with a cushioned footbed.",
+                        'options' => [
+                            'Color' => ['Black' => 'strap-sandals-black.jpg', 'Brown' => 'strap-sandals-brown.jpg'],
+                            'Size' => ['37', '38', '39', '40', '41', '42'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Rubber Flip-Flops', 'in' => 'Sandals & Slippers', 'price' => 199, 'weight' => 0.3,
+                        'description' => "Classic rubber tsinelas for the beach and the house.",
+                        'options' => [
+                            'Color' => ['Black' => 'flip-flops-black.jpg', 'Blue' => 'flip-flops-blue.jpg', 'Pink' => 'flip-flops-pink.jpg'],
+                            'Size' => ['36', '38', '40', '42'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Wedge Sandals', 'in' => 'Sandals & Slippers', 'price' => 999, 'weight' => 0.7,
+                        'description' => "Wedge sandals that add height without hurting your feet.\n\n• 7 cm wedge",
+                        'options' => [
+                            'Color' => ['Black' => 'wedge-sandals-black.jpg', 'Beige' => 'wedge-sandals-beige.jpg'],
+                            'Size' => ['35', '36', '37', '38', '39'],
+                        ],
+                    ],
+                    [
+                        'name' => 'Fluffy House Slippers', 'in' => 'Sandals & Slippers', 'price' => 299, 'weight' => 0.3,
+                        'description' => "Soft, fluffy slippers for lazy days at home.",
+                        'options' => [
+                            'Color' => ['Grey' => 'house-slippers-grey.jpg', 'Pink' => 'house-slippers-pink.jpg'],
+                            'Size' => ['S (36-37)', 'M (38-39)', 'L (40-41)'],
+                        ],
+                    ],
+                ],
+            ],
+            'evergreen@boombuy.test' => [
+                'folder' => 'evergreen',
+                'categories' => ['Plants & Seeds' => [], 'Pots & Planters' => [], 'Garden Tools' => []],
+                'products' => [
+                    [
+                        'name' => 'Snake Plant', 'in' => 'Plants & Seeds', 'price' => 349, 'weight' => 2.0, 'stock' => 15,
+                        'description' => "Low-maintenance indoor plant that cleans the air.\n\n• Comes in a white pot",
+                        'photos' => ['snake-plant.jpg'],
+                    ],
+                    [
+                        'name' => 'Pinakbet Vegetable Seeds', 'in' => 'Plants & Seeds', 'price' => 99, 'weight' => 0.05, 'stock' => 60,
+                        'description' => "Seed pack for your own pinakbet garden: okra, sitaw, ampalaya and talong.",
+                        'photos' => ['seeds-pack.jpg'],
+                    ],
+                    [
+                        'name' => 'Succulent Trio', 'in' => 'Plants & Seeds', 'price' => 299, 'discount' => 10, 'weight' => 0.8, 'stock' => 20,
+                        'description' => "Three easy-care succulents in mini ceramic pots.",
+                        'photos' => ['succulents.jpg'],
+                    ],
+                    [
+                        'name' => 'Golden Pothos', 'in' => 'Plants & Seeds', 'price' => 249, 'weight' => 1.0, 'stock' => 20,
+                        'description' => "Trailing pothos that grows fast — great for shelves and hanging pots.",
+                        'photos' => ['pothos.jpg'],
+                    ],
+                    [
+                        'name' => 'Calamansi Seedling', 'in' => 'Plants & Seeds', 'price' => 199, 'weight' => 1.5, 'stock' => 20,
+                        'description' => "Grafted calamansi seedling that fruits in a pot.\n\n• Around 1 ft tall",
+                        'photos' => ['calamansi-seedling.jpg'],
+                    ],
+                    [
+                        'name' => 'Terracotta Clay Pot', 'in' => 'Pots & Planters', 'price' => 149, 'weight' => 1.2, 'stock' => 30,
+                        'description' => "Breathable clay pot with a drainage hole.\n\n• 8 inch",
+                        'photos' => ['clay-pot.jpg'],
+                    ],
+                    [
+                        'name' => 'Hanging Planter', 'in' => 'Pots & Planters', 'price' => 349, 'weight' => 0.6,
+                        'description' => "Ceramic hanging planter with an adjustable rope.",
+                        'options' => ['Color' => ['White' => 'hanging-planter-white.jpg', 'Black' => 'hanging-planter-black.jpg']],
+                    ],
+                    [
+                        'name' => 'Self-Watering Pot', 'in' => 'Pots & Planters', 'price' => 299, 'weight' => 0.5,
+                        'description' => "Pot with a water reservoir so your plants stay watered for days.",
+                        'options' => ['Color' => ['White' => 'self-watering-pot-white.jpg', 'Grey' => 'self-watering-pot-grey.jpg']],
+                    ],
+                    [
+                        'name' => 'Glazed Ceramic Planter', 'in' => 'Pots & Planters', 'price' => 499, 'weight' => 1.5,
+                        'description' => "Glazed ceramic planter for indoor plants.\n\n• 6 inch\n• Drainage hole",
+                        'options' => ['Color' => ['White' => 'ceramic-planter-white.jpg', 'Grey' => 'ceramic-planter-grey.jpg', 'Green' => 'ceramic-planter-green.jpg']],
+                    ],
+                    [
+                        'name' => 'Seedling Tray', 'in' => 'Pots & Planters', 'price' => 129, 'weight' => 0.2, 'stock' => 40,
+                        'description' => "Reusable 72-cell tray for starting seeds.",
+                        'photos' => ['seedling-tray.jpg'],
+                    ],
+                    [
+                        'name' => 'Garden Hose 15m', 'in' => 'Garden Tools', 'price' => 699, 'weight' => 2.0, 'stock' => 15,
+                        'description' => "Flexible, kink-resistant garden hose with fittings.\n\n• 15 meters",
+                        'photos' => ['garden-hose.jpg'],
+                    ],
+                    [
+                        'name' => 'Watering Can', 'in' => 'Garden Tools', 'price' => 249, 'weight' => 0.5,
+                        'description' => "5-liter watering can with a gentle rose spout.",
+                        'options' => ['Color' => ['Green' => 'watering-can-green.jpg', 'Red' => 'watering-can-red.jpg']],
+                    ],
+                    [
+                        'name' => 'Pruning Shears', 'in' => 'Garden Tools', 'price' => 299, 'weight' => 0.3, 'stock' => 25,
+                        'description' => "Sharp bypass pruners for stems and small branches.\n\n• Safety lock",
+                        'photos' => ['pruning-shears.jpg'],
+                    ],
+                    [
+                        'name' => 'Garden Gloves', 'in' => 'Garden Tools', 'price' => 149, 'weight' => 0.1, 'stock' => 40,
+                        'description' => "Rubber-coated gloves that protect your hands from thorns and soil.",
+                        'photos' => ['garden-gloves.jpg'],
+                    ],
+                    [
+                        'name' => 'Organic Fertilizer Pellets', 'in' => 'Garden Tools', 'price' => 199, 'weight' => 1.0, 'stock' => 40,
+                        'description' => "Slow-release organic fertilizer for vegetables and flowers.\n\n• 1kg",
+                        'photos' => ['fertilizer.jpg'],
+                    ],
+                ],
+            ],
         ];
     }
 

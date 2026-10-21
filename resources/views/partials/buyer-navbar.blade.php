@@ -20,8 +20,7 @@
 
 @if($bbNavUser)
 
-    {{-- Buyers: the Shop page, where the category chips are. --}}
-    <a href="{{ route('products') }}">
+    <a href="{{ route('categories') }}" class="{{ $bbActive === 'categories' ? 'active' : '' }}">
         Categories
     </a>
 
@@ -34,8 +33,7 @@
 
 @else
 
-    {{-- Guests: jump to the category grid on the landing page. --}}
-    <a href="{{ route('home') }}#categories">
+    <a href="{{ route('categories') }}" class="{{ $bbActive === 'categories' ? 'active' : '' }}">
         Categories
     </a>
 
@@ -430,7 +428,7 @@
         // Pages reached from the Me screen keep "Me" highlighted.
         $bbTab = match ($bbActive) {
             'home' => 'home',
-            'shop' => 'shop',
+            'shop', 'categories' => 'shop',
             'orders' => 'orders',
             'messages' => 'messages',
             'account', 'profile', 'wishlist', 'vouchers', 'complaints', 'notifications' => 'me',

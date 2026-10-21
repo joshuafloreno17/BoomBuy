@@ -165,6 +165,29 @@ class ShopAndAccountTest extends TestCase
             ->assertDontSee('Pet Supplies');
     }
 
+    public function test_categories_page_lists_best_sellers_first_with_their_own_shelves(): void
+    {
+        $tech = $this->makeSeller('electronics');
+        $charger = $this->makeProduct($tech, ['name' => 'USB Charger', 'category' => 'Electronics', 'price' => 399]);
+        $mug = $this->makeProduct($tech, ['name' => 'Coffee Mug', 'category' => 'Home & Living']);
+
+        $phones = \App\Models\StoreCategory::create(['seller_id' => $tech->id, 'name' => 'Phone Gear']);
+        $kitchen = \App\Models\StoreCategory::create(['seller_id' => $tech->id, 'name' => 'Kitchen Stuff']);
+        $charger->storeCategories()->attach($phones->id);
+        $mug->storeCategories()->attach($kitchen->id);
+
+        $page = $this->get(route('categories'))->assertOk()
+            ->assertSeeInOrder(['Electronics', "Women&#039;s Fashion", 'Beauty &amp; Personal Care', 'Garden &amp; Outdoor'], false)
+            ->assertSee('from <strong>₱399</strong>', false)
+            ->assertSee('Coming soon');
+
+        // Each shelf only under the category of the products on it.
+        $html = $page->getContent();
+        $electronics = substr($html, strpos($html, '>Electronics</a>'), 2000);
+        $this->assertStringContainsString('Phone Gear', $electronics);
+        $this->assertStringNotContainsString('Kitchen Stuff', $electronics);
+    }
+
     public function test_shop_page_shows_only_that_sellers_products(): void
     {
         $shoes = $this->makeSeller('shoes', 'Stride Footwear Co.');
@@ -280,5 +303,54 @@ class ShopAndAccountTest extends TestCase
         foreach (['buyer.dashboard', 'buyer.account', 'buyer.orders', 'buyer.profile', 'cart', 'wishlist.index', 'notifications'] as $route) {
             $this->actingAsUser($buyer)->get(route($route))->assertOk();
         }
+    }
+
+    public function test_shop_opens_on_for_you_and_newest_is_still_a_choice(): void
+    {
+        $tech = $this->makeSeller('electronics');
+        $pets = $this->makeSeller('pet-supplies');
+        $this->makeProduct($tech, ['name' => 'Pocket Phone', 'category' => 'Electronics', 'created_at' => now()->subDay()]);
+        $this->makeProduct($pets, ['name' => 'Dog Collar', 'category' => 'Pet Supplies']);
+
+        $male = $this->makeUser('buyer', ['sex' => 'Male']);
+
+        $this->actingAsUser($male)->get(route('products'))->assertOk()
+            ->assertSee('<option value="foryou" selected>', false)
+            ->assertSeeInOrder(['Pocket Phone', 'Dog Collar']);
+
+        $this->get(route('products', ['sort' => 'newest']))->assertOk()
+            ->assertSeeInOrder(['Dog Collar', 'Pocket Phone']);
+    }
+
+    public function test_buyer_home_for_you_follows_sex_then_what_the_buyer_views_and_searches(): void
+    {
+        $tech = $this->makeSeller('electronics');
+        $sports = $this->makeSeller('sports-outdoors');
+        $women = $this->makeSeller('womens-fashion');
+        $pets = $this->makeSeller('pet-supplies');
+        $this->makeProduct($tech, ['name' => 'Pocket Phone', 'category' => 'Electronics', 'image' => 'products/a.png']);
+        $this->makeProduct($sports, ['name' => 'Basketball Size 7', 'category' => 'Sports & Outdoors', 'image' => 'products/b.png']);
+        $this->makeProduct($women, ['name' => 'Linen Blouse', 'category' => "Women's Fashion", 'image' => 'products/c.png']);
+        $collar = $this->makeProduct($pets, ['name' => 'Dog Collar', 'category' => 'Pet Supplies', 'image' => 'products/d.png']);
+
+        $forYou = function ($html) {
+            $start = strpos($html, 'id="discover-foryou"');
+
+            return substr($html, $start, strpos($html, 'id="discover-latest"') - $start);
+        };
+
+        // No history yet: gadgets and sports for a male buyer, not pet supplies.
+        $male = $this->makeUser('buyer', ['sex' => 'Male']);
+        $picks = $forYou($this->actingAsUser($male)->get(route('buyer.dashboard'))->assertOk()->getContent());
+        $this->assertStringContainsString('Pocket Phone', $picks);
+        $this->assertStringContainsString('Basketball Size 7', $picks);
+        $this->assertStringNotContainsString('Dog Collar', $picks);
+
+        // Viewing and searching pet things brings them in.
+        $this->get(route('product.details', $collar->id))->assertOk();
+        $this->get(route('products', ['search' => 'collar']))->assertOk();
+        $picks = $forYou($this->get(route('buyer.dashboard'))->assertOk()->getContent());
+        $this->assertStringContainsString('Dog Collar', $picks);
+        $this->assertStringContainsString('Because you like Pet Supplies', $picks);
     }
 }

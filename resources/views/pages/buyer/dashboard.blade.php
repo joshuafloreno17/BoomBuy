@@ -20,6 +20,7 @@
         $codLabel = $cod['blocked'] ? 'COD paused' : ($cod['strikes'] > 0 ? 'COD ' . $cod['strikes'] . '/' . $cod['limit'] : 'COD OK');
 
         $discoverTabs = [
+            'foryou' => ['label' => 'For you', 'empty' => 'Browse a few products and we\'ll pick ones you\'ll like.'],
             'latest' => ['label' => 'Latest', 'empty' => 'No products yet.'],
             'sale' => ['label' => 'On sale', 'empty' => 'Nothing is on sale right now.'],
             'top' => ['label' => 'Top rated', 'empty' => 'No rated products yet — reviews show up here once buyers rate their orders.'],
@@ -281,6 +282,9 @@
                         aria-labelledby="discover-tab-{{ $key }}"
                         @unless($loop->first) hidden @endunless
                     >
+                        @if($key === 'foryou' && count($discover[$key]) && $discover['foryou_because'])
+                            <p class="discover-because"><i class="bi bi-stars"></i> Because you like {{ \Illuminate\Support\Arr::join($discover['foryou_because'], ', ', ' and ') }}</p>
+                        @endif
                         @if(count($discover[$key]) === 0)
                             <div class="discover-empty">{{ $tab['empty'] }}</div>
                         @else

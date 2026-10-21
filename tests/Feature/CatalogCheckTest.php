@@ -47,7 +47,7 @@ class CatalogCheckTest extends TestCase
         $this->artisan('boombuy:catalog-check evergreen')
             ->expectsOutputToContain('Fertilizer (1).JPG  →  palitan ng fertilizer')
             ->expectsOutputToContain('Garden Rake.jpg  →  wala sa listahan')
-            ->expectsOutputToContain('Kabuuan: 1 / 20 photos.')
+            ->expectsOutputToContain('Kabuuan: 20 / 20 photos.')
             ->assertSuccessful();
     }
 

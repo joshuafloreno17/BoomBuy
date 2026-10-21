@@ -1098,7 +1098,7 @@ class SellerModulesSheetTest extends TestCase
     {
         $p01 = $this->p01();
 
-        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote Bag']))->assertOk()->assertSee('₱199 – ₱299');
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote Bag']))->assertOk()->assertSee('₱199</span> – <span class="sp-amt">₱299', false);
         $this->as($this->buyer1())->get(route('product.details', $p01->id))->assertOk()->assertSee('₱199 – ₱299');
 
         // Picking Natural-M shows ₱249.00 only (the page swaps in that option's price).
@@ -1400,7 +1400,7 @@ class SellerModulesSheetTest extends TestCase
     {
         $this->assertStringContainsString('<span id="pdPrice" data-base="450">₱450</span>', $views['page']);
         $this->assertStringNotContainsString('class="price-off"', $views['page']);
-        $this->assertStringContainsString('<span class="sp-price">₱450 </span>', $views['card']);
+        $this->assertStringContainsString('<span class="sp-price"><span class="sp-amt">₱450</span> </span>', $views['card']);
         $this->assertStringContainsString('450.00', $views['cart']);
         $this->assertStringNotContainsString('360.00', $views['cart']);
         $this->assertStringContainsString('450.00', $views['checkout']);
@@ -1440,7 +1440,7 @@ class SellerModulesSheetTest extends TestCase
         $this->assertStringContainsString('<s class="price-was" id="pdPriceWas" data-extra="90">₱450</s>', $views['page']);
         $this->assertStringContainsString('<span class="price-off">-20%</span>', $views['page']);
         $this->assertStringContainsString('<span class="sp-off">-20%</span>', $views['card']);
-        $this->assertStringContainsString('₱360  <s class="sp-was">₱450</s>', $views['card']);
+        $this->assertStringContainsString('₱360</span>  <s class="sp-was">₱450</s>', $views['card']);
         $this->assertStringContainsString('360.00', $views['cart']);
         $this->assertStringContainsString('360.00', $views['checkout']);
     }
@@ -1534,7 +1534,7 @@ class SellerModulesSheetTest extends TestCase
         }
 
         $this->as($this->buyer1())->get(route('product.details', $p01->id))->assertSee('₱179.10 – ₱269.10');
-        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote']))->assertSee('₱179.10 – ₱269.10');
+        $this->as($this->buyer1())->get(route('products', ['search' => 'Abaca Woven Tote']))->assertSee('₱179.10</span> – <span class="sp-amt">₱269.10', false);
     }
 
     public function test_SEL_DISC_009_edit_a_running_sale(): void

@@ -7,7 +7,7 @@ canvas-sneakers-white
 canvas-sneakers-black
 canvas-sneakers-red
 running-shoes-black
-running-shoes-grey
+running-shoes-white
 running-shoes-blue
 slip-on-black
 slip-on-white

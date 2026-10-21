@@ -166,6 +166,9 @@
                     <i class="bi {{ $cat['icon'] }}"></i> {{ $cat['label'] }} <small>{{ $cat['count'] ?: 'Soon' }}</small>
                 </a>
             @endforeach
+            @unless($shop)
+                <a href="{{ route('categories') }}" class="cat-chip"><i class="bi bi-compass-fill"></i> All categories <i class="bi bi-arrow-right"></i></a>
+            @endunless
         </nav>
         <button type="button" class="cat-arrow is-next" data-cat-scroll="1" aria-label="Scroll categories right"><i class="bi bi-chevron-right"></i></button>
         </div>
@@ -277,6 +280,9 @@
                     <label class="sort-control">
                         <span>Sort by</span>
                         <select name="sort" form="shopFilters" aria-label="Sort products" data-autosubmit>
+                            @unless($shop)
+                                <option value="foryou" @selected($filters['sort'] === 'foryou')>For you</option>
+                            @endunless
                             <option value="newest" @selected($filters['sort'] === 'newest')>Newest</option>
                             <option value="price_low" @selected($filters['sort'] === 'price_low')>Price: Low to High</option>
                             <option value="price_high" @selected($filters['sort'] === 'price_high')>Price: High to Low</option>
