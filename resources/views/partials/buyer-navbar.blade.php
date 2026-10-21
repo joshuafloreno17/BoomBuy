@@ -434,29 +434,40 @@
             'account', 'profile', 'wishlist', 'vouchers', 'complaints', 'notifications' => 'me',
             default => null,
         };
+        $bbDockI = array_search($bbTab, ['home', 'shop', 'orders', 'messages', 'me'], true);
     @endphp
 
     {{-- 📱 Bottom tab bar on phones --}}
-    <nav class="bb-tabbar" aria-label="Main">
-        <a href="{{ route('buyer.dashboard') }}" class="{{ $bbTab === 'home' ? 'active' : '' }}" @if($bbTab === 'home') aria-current="page" @endif>
-            <i class="bi {{ $bbTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home
+    <link rel="stylesheet" href="{{ vasset('css/partials/phone-tabbar.css') }}">
+    <nav @class(['bb-dock', 'has-bubble' => $bbDockI !== false]) data-dock="buyer" style="--dock-i: {{ (int) $bbDockI }}" aria-label="Main">
+        <span class="bb-dock-bubble" aria-hidden="true"></span>
+        <a href="{{ route('buyer.dashboard') }}" data-dock-tab @class(['active is-lift' => $bbTab === 'home']) @if($bbTab === 'home') aria-current="page" @endif>
+            <span class="bb-dock-ico"><i class="bi {{ $bbTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i></span>Home
         </a>
-        <a href="{{ route('products') }}" class="{{ $bbTab === 'shop' ? 'active' : '' }}" @if($bbTab === 'shop') aria-current="page" @endif>
-            <i class="bi {{ $bbTab === 'shop' ? 'bi-grid-fill' : 'bi-grid' }}"></i>Shop
+        <a href="{{ route('products') }}" data-dock-tab @class(['active is-lift' => $bbTab === 'shop']) @if($bbTab === 'shop') aria-current="page" @endif>
+            <span class="bb-dock-ico"><i class="bi {{ $bbTab === 'shop' ? 'bi-bag-fill' : 'bi-bag' }}"></i></span>Shop
         </a>
-        <a href="{{ route('buyer.orders') }}" class="{{ $bbTab === 'orders' ? 'active' : '' }}" @if($bbTab === 'orders') aria-current="page" @endif>
-            <i class="bi {{ $bbTab === 'orders' ? 'bi-box-seam-fill' : 'bi-box-seam' }}"></i>Orders
+        <a href="{{ route('buyer.orders') }}" data-dock-tab @class(['active is-lift' => $bbTab === 'orders']) @if($bbTab === 'orders') aria-current="page" @endif aria-label="Orders{{ $bbActiveOrders > 0 ? ' (' . $bbActiveOrders . ' in progress)' : '' }}">
+            <span class="bb-dock-ico">
+                <i class="bi {{ $bbTab === 'orders' ? 'bi-box-seam-fill' : 'bi-box-seam' }}"></i>
+                @if($bbActiveOrders > 0)
+                    <span class="bb-dock-count">{{ $bbActiveOrders > 99 ? '99+' : $bbActiveOrders }}</span>
+                @endif
+            </span>Orders
         </a>
-        <a href="{{ route('messages.index') }}" class="{{ $bbTab === 'messages' ? 'active' : '' }}" @if($bbTab === 'messages') aria-current="page" @endif aria-label="Chat{{ $bbMessageCount > 0 ? ' (' . $bbMessageCount . ' unread)' : '' }}">
-            @if($bbMessageCount > 0)
-                <span class="bb-tabbar-count">{{ $bbMessageCount > 99 ? '99+' : $bbMessageCount }}</span>
-            @endif
-            <i class="bi {{ $bbTab === 'messages' ? 'bi-chat-dots-fill' : 'bi-chat-dots' }}"></i>Chat
+        <a href="{{ route('messages.index') }}" data-dock-tab @class(['active is-lift' => $bbTab === 'messages']) @if($bbTab === 'messages') aria-current="page" @endif aria-label="Chat{{ $bbMessageCount > 0 ? ' (' . $bbMessageCount . ' unread)' : '' }}">
+            <span class="bb-dock-ico">
+                <i class="bi {{ $bbTab === 'messages' ? 'bi-chat-dots-fill' : 'bi-chat-dots' }}"></i>
+                @if($bbMessageCount > 0)
+                    <span class="bb-dock-count">{{ $bbMessageCount > 99 ? '99+' : $bbMessageCount }}</span>
+                @endif
+            </span>Chat
         </a>
-        <a href="{{ route('buyer.account') }}" class="{{ $bbTab === 'me' ? 'active' : '' }}" @if($bbTab === 'me') aria-current="page" @endif>
-            <i class="bi {{ $bbTab === 'me' ? 'bi-person-fill' : 'bi-person' }}"></i>Me
+        <a href="{{ route('buyer.account') }}" data-dock-tab @class(['active is-lift' => $bbTab === 'me']) @if($bbTab === 'me') aria-current="page" @endif>
+            <span class="bb-dock-ico"><i class="bi {{ $bbTab === 'me' ? 'bi-person-fill' : 'bi-person' }}"></i></span>Me
         </a>
     </nav>
+    @include('partials.phone-dock-script')
 
     <script>document.body.classList.add('has-bb-tabbar');</script>
 

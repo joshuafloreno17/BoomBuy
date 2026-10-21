@@ -98,30 +98,35 @@
     };
     $rCount = fn ($n) => $n > 99 ? '99+' : $n;
     $rUnread = $riderUnreadNotifications + $riderUnreadMessages;
+    $rDockI = array_search($rTab, ['home', 'pickups', 'deliveries', 'profit', 'more'], true);
 @endphp
 
 {{-- 📱 Bottom tab bar on phones --}}
 <link rel="stylesheet" href="{{ vasset('css/partials/phone-tabbar.css') }}">
-<nav class="bb-stabbar" aria-label="Main">
-    <a href="{{ route('rider.dashboard') }}" @class(['active' => $rTab === 'home']) @if($rTab === 'home') aria-current="page" @endif>
-        <i class="bi {{ $rTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home
+<nav class="bb-dock has-bubble" data-dock="rider" style="--dock-i: {{ (int) $rDockI }}" aria-label="Main">
+    <span class="bb-dock-bubble" aria-hidden="true"></span>
+    <a href="{{ route('rider.dashboard') }}" data-dock-tab @class(['active is-lift' => $rTab === 'home']) @if($rTab === 'home') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi {{ $rTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i></span>Home
     </a>
-    <a href="{{ route('rider.pickups') }}" @class(['active' => $rTab === 'pickups']) @if($rTab === 'pickups') aria-current="page" @endif>
-        <i class="bi bi-box-arrow-in-down"></i>Pickups
+    <a href="{{ route('rider.pickups') }}" data-dock-tab @class(['active is-lift' => $rTab === 'pickups']) @if($rTab === 'pickups') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi bi-box-arrow-in-down"></i></span>Pickups
     </a>
-    <a href="{{ route('rider.deliveries') }}" @class(['active' => $rTab === 'deliveries']) @if($rTab === 'deliveries') aria-current="page" @endif>
-        <i class="bi {{ $rTab === 'deliveries' ? 'bi-truck-front-fill' : 'bi-truck' }}"></i>Deliveries
+    <a href="{{ route('rider.deliveries') }}" data-dock-tab @class(['active is-lift' => $rTab === 'deliveries']) @if($rTab === 'deliveries') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi {{ $rTab === 'deliveries' ? 'bi-truck-front-fill' : 'bi-truck' }}"></i></span>Deliveries
     </a>
-    <a href="{{ route('rider.profit') }}" @class(['active' => $rTab === 'profit']) @if($rTab === 'profit') aria-current="page" @endif>
-        <i class="bi bi-cash-stack"></i>Profit
+    <a href="{{ route('rider.profit') }}" data-dock-tab @class(['active is-lift' => $rTab === 'profit']) @if($rTab === 'profit') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi bi-cash-stack"></i></span>Profit
     </a>
-    <button type="button" @class(['active' => $rTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $rUnread > 0 ? ' (' . $rUnread . ' unread)' : '' }}">
-        @if($rUnread > 0)
-            <span class="bb-stabbar-dot"></span>
-        @endif
-        <i class="bi bi-list"></i>More
+    <button type="button" data-dock-tab @class(['active is-lift' => $rTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $rUnread > 0 ? ' (' . $rUnread . ' unread)' : '' }}">
+        <span class="bb-dock-ico">
+            <i class="bi bi-list"></i>
+            @if($rUnread > 0)
+                <span class="bb-dock-dot"></span>
+            @endif
+        </span>More
     </button>
 </nav>
+@include('partials.phone-dock-script')
 
 <div class="bb-smore" id="bbSmore" role="dialog" aria-modal="true" aria-label="More" hidden>
     <div class="bb-smore-backdrop" data-smore-close></div>
@@ -165,6 +170,7 @@
 
         function close() {
             sheet.hidden = true;
+            if (window.bbDock) window.bbDock.reset();
             document.body.classList.remove('bb-smore-open');
             opener.focus();
         }

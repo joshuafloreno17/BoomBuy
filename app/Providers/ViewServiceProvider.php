@@ -121,6 +121,7 @@ class ViewServiceProvider extends ServiceProvider
             'bbActive' => $data['activeNav'] ?? null,
             'bbNotificationCount' => 0,
             'bbMessageCount' => 0,
+            'bbActiveOrders' => 0,
         ];
 
         if (!$user) {
@@ -146,6 +147,13 @@ class ViewServiceProvider extends ServiceProvider
         return array_merge($nav, [
             'bbNotificationCount' => Inbox::unreadNotifications($meId),
             'bbMessageCount' => Inbox::unreadMessages($meId),
+            // Orders still on their way (to ship + to receive) — the phone tab bar's Orders badge.
+            'bbActiveOrders' => ($user['role'] ?? '') === 'buyer'
+                ? DB::table('orders')
+                    ->where('buyer_id', $meId)
+                    ->whereIn('status', array_merge(\App\Http\Controllers\BuyerController::TO_SHIP_STATUSES, \App\Http\Controllers\BuyerController::TO_RECEIVE_STATUSES))
+                    ->count()
+                : 0,
             'bbRecentNotifications' => Notification::where('user_id', $meId)->latest()->limit(6)->get(),
             'bbMeId' => $meId,
             'bbRecentChats' => $recentChats,

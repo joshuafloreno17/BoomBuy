@@ -121,36 +121,45 @@
         default => 'more',
     };
     $sCount = fn ($n) => $n > 99 ? '99+' : $n;
+    $sDockI = array_search($sTab, ['home', 'orders', 'products', 'messages', 'more'], true);
 @endphp
 
 {{-- 📱 Bottom tab bar on phones --}}
 <link rel="stylesheet" href="{{ vasset('css/partials/phone-tabbar.css') }}">
-<nav class="bb-stabbar" aria-label="Main">
-    <a href="{{ route('seller.dashboard') }}" @class(['active' => $sTab === 'home']) @if($sTab === 'home') aria-current="page" @endif>
-        <i class="bi {{ $sTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i>Home
+<nav class="bb-dock has-bubble" data-dock="seller" style="--dock-i: {{ (int) $sDockI }}" aria-label="Main">
+    <span class="bb-dock-bubble" aria-hidden="true"></span>
+    <a href="{{ route('seller.dashboard') }}" data-dock-tab @class(['active is-lift' => $sTab === 'home']) @if($sTab === 'home') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi {{ $sTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i></span>Home
     </a>
-    <a href="{{ route('seller.orders') }}" @class(['active' => $sTab === 'orders']) @if($sTab === 'orders') aria-current="page" @endif aria-label="Orders{{ $sellerOrdersToShip > 0 ? ' (' . $sellerOrdersToShip . ' to ship)' : '' }}">
-        @if($sellerOrdersToShip > 0)
-            <span class="bb-stabbar-count">{{ $sCount($sellerOrdersToShip) }}</span>
-        @endif
-        <i class="bi {{ $sTab === 'orders' ? 'bi-box-seam-fill' : 'bi-box-seam' }}"></i>Orders
+    <a href="{{ route('seller.orders') }}" data-dock-tab @class(['active is-lift' => $sTab === 'orders']) @if($sTab === 'orders') aria-current="page" @endif aria-label="Orders{{ $sellerOrdersToShip > 0 ? ' (' . $sellerOrdersToShip . ' to ship)' : '' }}">
+        <span class="bb-dock-ico">
+            <i class="bi {{ $sTab === 'orders' ? 'bi-box-seam-fill' : 'bi-box-seam' }}"></i>
+            @if($sellerOrdersToShip > 0)
+                <span class="bb-dock-count">{{ $sCount($sellerOrdersToShip) }}</span>
+            @endif
+        </span>Orders
     </a>
-    <a href="{{ route('seller.dashboard') }}#my-products" @class(['active' => $sTab === 'products']) @if($sTab === 'products') aria-current="page" @endif>
-        <i class="bi {{ $sTab === 'products' ? 'bi-grid-fill' : 'bi-grid' }}"></i>Products
+    <a href="{{ route('seller.dashboard') }}#my-products" data-dock-tab @class(['active is-lift' => $sTab === 'products']) @if($sTab === 'products') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi {{ $sTab === 'products' ? 'bi-grid-fill' : 'bi-grid' }}"></i></span>Products
     </a>
-    <a href="{{ route('messages.index') }}" @class(['active' => $sTab === 'messages']) @if($sTab === 'messages') aria-current="page" @endif aria-label="Chat{{ $sellerUnreadMessages > 0 ? ' (' . $sellerUnreadMessages . ' unread)' : '' }}">
-        @if($sellerUnreadMessages > 0)
-            <span class="bb-stabbar-count">{{ $sCount($sellerUnreadMessages) }}</span>
-        @endif
-        <i class="bi {{ $sTab === 'messages' ? 'bi-chat-dots-fill' : 'bi-chat-dots' }}"></i>Chat
+    <a href="{{ route('messages.index') }}" data-dock-tab @class(['active is-lift' => $sTab === 'messages']) @if($sTab === 'messages') aria-current="page" @endif aria-label="Chat{{ $sellerUnreadMessages > 0 ? ' (' . $sellerUnreadMessages . ' unread)' : '' }}">
+        <span class="bb-dock-ico">
+            <i class="bi {{ $sTab === 'messages' ? 'bi-chat-dots-fill' : 'bi-chat-dots' }}"></i>
+            @if($sellerUnreadMessages > 0)
+                <span class="bb-dock-count">{{ $sCount($sellerUnreadMessages) }}</span>
+            @endif
+        </span>Chat
     </a>
-    <button type="button" @class(['active' => $sTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $sellerUnreadNotifications > 0 ? ' (' . $sellerUnreadNotifications . ' unread notifications)' : '' }}">
-        @if($sellerUnreadNotifications > 0)
-            <span class="bb-stabbar-dot"></span>
-        @endif
-        <i class="bi bi-list"></i>More
+    <button type="button" data-dock-tab @class(['active is-lift' => $sTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $sellerUnreadNotifications > 0 ? ' (' . $sellerUnreadNotifications . ' unread notifications)' : '' }}">
+        <span class="bb-dock-ico">
+            <i class="bi bi-list"></i>
+            @if($sellerUnreadNotifications > 0)
+                <span class="bb-dock-dot"></span>
+            @endif
+        </span>More
     </button>
 </nav>
+@include('partials.phone-dock-script')
 
 <div class="bb-smore" id="bbSmore" role="dialog" aria-modal="true" aria-label="More" hidden>
     <div class="bb-smore-backdrop" data-smore-close></div>
@@ -195,6 +204,7 @@
         function close() {
             sheet.hidden = true;
             document.body.classList.remove('bb-smore-open');
+            if (window.bbDock) window.bbDock.reset();
             opener.focus();
         }
 

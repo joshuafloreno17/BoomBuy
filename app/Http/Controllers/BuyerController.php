@@ -40,9 +40,9 @@ class BuyerController extends Controller
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
-    private const TO_SHIP_STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'];
+    public const TO_SHIP_STATUSES = ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'];
 
-    private const TO_RECEIVE_STATUSES = ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
+    public const TO_RECEIVE_STATUSES = ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch', 'Assigned for Delivery', 'Out for Delivery', 'Ready to Collect'];
 
     public function dashboard()
     {
