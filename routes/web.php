@@ -277,9 +277,6 @@ Route::get('/admin/settings', [AdminController::class, 'settings'])->name('admin
 Route::post('/admin/settings/commission', [AdminController::class, 'updateCommission'])->name('admin.settings.commission.update');
 
 
-Route::post('/admin/settings/test-sheets/seed', [AdminController::class, 'prepareTestSheets'])->name('admin.settings.testsheet.seed');
-Route::post('/admin/settings/test-sheets/clear', [AdminController::class, 'clearTestSheets'])->name('admin.settings.testsheet.clear');
-
 Route::post('/admin/settings/delivery-fee',[AdminController::class, 'updateDeliveryFee'])->name('admin.settings.delivery-fee.update');
 
 // Sorting Centers: one per town; which center each logistics account works at.
@@ -985,11 +982,6 @@ Route::get('/logistics/riders/create', [LogisticsController::class, 'createRider
 Route::post('/logistics/riders/create', [LogisticsController::class, 'storeRider'])->name('logistics.riders.store');
 
 Route::post('/logistics/riders/{userId}/resend-activation', [LogisticsController::class, 'resendRiderActivation'])->middleware('throttle:5,10,rider-activation')->name('logistics.riders.resend-activation');
-
-
-// Test mailbox: mail to the test sheets' @example.com accounts (App\Support\MailCatcher)
-Route::get('/mailbox', [\App\Http\Controllers\TestMailboxController::class, 'index'])->name('mailbox');
-Route::get('/mailbox/{id}', [\App\Http\Controllers\TestMailboxController::class, 'show'])->whereNumber('id')->name('mailbox.show');
 
 
 // Verify OTP Page

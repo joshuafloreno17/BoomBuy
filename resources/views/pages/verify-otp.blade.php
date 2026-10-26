@@ -25,12 +25,6 @@
             We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 5 minutes.
         </p>
 
-        @if (\App\Support\MailCatcher::catches((string) session('otp_email')))
-            <p style="background:#f5f3ff; color:#5b21b6; padding:10px; border-radius:8px; font-size:13px;">
-                Test address — read the code in the <a href="{{ route('mailbox', ['to' => session('otp_email')]) }}" target="_blank" style="color:#7c3aed; font-weight:700;">Test Mailbox</a>.
-            </p>
-        @endif
-
         @if ($errors->any())
             <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px;">
                 {{ $errors->first() }}

@@ -897,29 +897,6 @@ class AdminController extends Controller
         return back()->with('success', 'Commission rate updated to ' . $rate . '%.');
     }
 
-    /** Settings → Test Sheet Data: the black-box sheets' Test Data tab (App\Services\TestSheetData). */
-    public function prepareTestSheets(\App\Services\TestSheetData $data)
-    {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        $data->seed();
-
-        return back()->with('success', 'Test Data is ready for the Module tests: accounts, products P-01 to P-07, vouchers and zones & rates.');
-    }
-
-    public function clearTestSheets(\App\Services\TestSheetData $data)
-    {
-        if (!session()->get('admin_logged_in')) {
-            return redirect()->route('admin.login');
-        }
-
-        $log = $data->clear();
-
-        return back()->with('success', 'Ready for the Account Creation tests: ' . $log['Test accounts removed'] . ' @example.com account(s) removed.');
-    }
-
     public function updateDeliveryFee(DeliveryFeeRequest $request)
     {
         if (!session()->get('admin_logged_in')) {

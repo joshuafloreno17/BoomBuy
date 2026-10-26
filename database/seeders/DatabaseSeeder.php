@@ -32,6 +32,8 @@ class DatabaseSeeder extends Seeder
             SellerShopsSeeder::class,
             // Each seller's town: its Sorting Center, a logistics staff account and a rider.
             LogisticsNetworkSeeder::class,
+            // A branch in each province's next big town, with its staff and a rider.
+            BranchNetworkSeeder::class,
         ]);
     }
 }
