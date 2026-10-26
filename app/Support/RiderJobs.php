@@ -30,14 +30,45 @@ class RiderJobs
             ->count();
     }
 
+    /** An Online rider whose app sent no location for this long counts as Offline. */
+    public const LOCATION_STALE_MINUTES = 5;
+
     public static function isOnline(int $riderId): bool
     {
-        return (bool) DB::table('users')->where('id', $riderId)->value('is_online');
+        $rider = DB::table('users')->where('id', $riderId)->first(['is_online', 'location_at']);
+
+        return $rider !== null && self::reachable($rider);
     }
 
-    public static function setOnline(int $riderId, bool $online): void
+    /** Online and (when location is required) the app sent a location in the last 5 minutes. */
+    public static function reachable(object $rider): bool
     {
-        DB::table('users')->where('id', $riderId)->update(['is_online' => $online, 'online_at' => $online ? now() : null, 'updated_at' => now()]);
+        if (!$rider->is_online) {
+            return false;
+        }
+
+        if (!config('app.rider_location')) {
+            return true;
+        }
+
+        return !empty($rider->location_at)
+            && \Illuminate\Support\Carbon::parse($rider->location_at)->gte(now()->subMinutes(self::LOCATION_STALE_MINUTES));
+    }
+
+    public static function setOnline(int $riderId, bool $online, ?float $lat = null, ?float $lng = null): void
+    {
+        DB::table('users')->where('id', $riderId)->update(array_merge(
+            ['is_online' => $online, 'online_at' => $online ? now() : null, 'updated_at' => now()],
+            $online && $lat !== null && $lng !== null ? ['location_lat' => $lat, 'location_lng' => $lng, 'location_at' => now()] : []
+        ));
+    }
+
+    /** The rider app's position while Online; null = location is off, so no new offers. */
+    public static function saveLocation(int $riderId, ?float $lat, ?float $lng): void
+    {
+        DB::table('users')->where('id', $riderId)->update($lat === null || $lng === null
+            ? ['location_at' => null]
+            : ['location_lat' => $lat, 'location_lng' => $lng, 'location_at' => now()]);
     }
 
     /** The Sorting Center of the rider's company; null = not tied to one (head office, or applied on their own). */
@@ -72,13 +103,13 @@ class RiderJobs
             ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
             ->where('users.id', $riderId)
             ->where('users.role', 'rider')
-            ->first(['users.name', 'users.status', 'users.is_online', 'rider_applications.status as application_status']);
+            ->first(['users.name', 'users.status', 'users.is_online', 'users.location_at', 'rider_applications.status as application_status']);
 
         return match (true) {
             !$rider => 'Rider not found.',
             $rider->status !== 'Active' || $rider->application_status !== 'Approved' => $rider->name . ' is not an active rider.',
             !self::worksFor($riderId, $centerId) => $rider->name . ' works for another logistics company.',
-            $mustBeOnline && !$rider->is_online => $rider->name . ' is offline.',
+            $mustBeOnline && !self::reachable($rider) => $rider->name . ' is offline.',
             self::activeCount($riderId) >= self::ACTIVE_LIMIT => $rider->name . ' already has ' . self::ACTIVE_LIMIT . ' active jobs (the limit).',
             default => null,
         };

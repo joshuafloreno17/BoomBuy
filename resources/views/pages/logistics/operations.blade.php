@@ -62,7 +62,18 @@
                                         <td>{{ $shipment->tracking_number }}</td>
                                         <td>#{{ $shipment->id }}</td>
                                         <td>{{ $shipment->shipping_name }}</td>
-                                        <td>{{ $shipment->status_label }}</td>
+                                        <td>
+                                            {{ $shipment->status_label }}
+                                            @if(!empty($shipment->delivered_at))
+                                                {{-- Where and when the rider's phone was at the handover (M13). --}}
+                                                <small class="muted" style="display:block">
+                                                    {{ \Illuminate\Support\Carbon::parse($shipment->delivered_at)->format('M d, g:i A') }}
+                                                    @if($shipment->delivered_lat !== null)
+                                                        · <a href="https://www.google.com/maps/search/?api=1&amp;query={{ $shipment->delivered_lat }},{{ $shipment->delivered_lng }}" target="_blank" rel="noopener" data-delivered-gps><i class="bi bi-geo-alt"></i> {{ $shipment->delivered_lat }}, {{ $shipment->delivered_lng }}</a>
+                                                    @endif
+                                                </small>
+                                            @endif
+                                        </td>
                                         <td>{{ \Illuminate\Support\Carbon::parse($shipment->created_at)->format('M d, Y') }}</td>
                                         <td>
                                             <details>
@@ -217,13 +228,22 @@
                 <h2>Riders</h2>
                 <div class="table-wrap">
                     <table>
-                        <thead><tr><th>Rider</th><th>Status</th><th>Shift</th><th>Active jobs</th><th>Delivered today</th></tr></thead>
+                        <thead><tr><th>Rider</th><th>Status</th><th>Shift</th><th>Location</th><th>Active jobs</th><th>Delivered today</th></tr></thead>
                         <tbody>
                             @foreach($riders as $rider)
                                 <tr data-rider="{{ $rider->id }}">
                                     <td>{{ $rider->name }}</td>
                                     <td>{{ $rider->status }}</td>
                                     <td>{{ $rider->is_online ? 'Online' : 'Offline' }}</td>
+                                    <td>
+                                        @if($rider->location_at && $rider->location_lat !== null)
+                                            <a href="https://www.google.com/maps/search/?api=1&amp;query={{ $rider->location_lat }},{{ $rider->location_lng }}" target="_blank" rel="noopener">
+                                                <i class="bi bi-geo-alt"></i> {{ \Illuminate\Support\Carbon::parse($rider->location_at)->diffForHumans() }}
+                                            </a>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                     <td>{{ $rider->active_jobs }}/{{ \App\Support\RiderJobs::ACTIVE_LIMIT }}</td>
                                     <td>{{ $rider->delivered_today }}</td>
                                 </tr>

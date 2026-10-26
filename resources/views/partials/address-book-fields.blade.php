@@ -18,6 +18,10 @@
 @endphp
 
 <div class="ab-fields" data-address-book="{{ $prefix }}">
+    <div class="ab-locate">
+        <button type="button" class="ab-locate-btn" data-ab-locate><i class="bi bi-crosshair"></i> Use my location</button>
+        <span class="ab-locate-note" data-ab-locate-note role="status"></span>
+    </div>
     <div class="form-grid">
         <div class="field">
             <label for="{{ $prefix }}_recipient">Recipient name</label>
@@ -26,7 +30,7 @@
         </div>
         <div class="field">
             <label for="{{ $prefix }}_phone">Phone number</label>
-            <input type="text" id="{{ $prefix }}_phone" name="phone" maxlength="13" pattern="(09|\+639)[0-9]{9}" placeholder="09XXXXXXXXX" value="{{ $v('phone') }}" required>
+            <input type="text" id="{{ $prefix }}_phone" name="phone" inputmode="tel" autocomplete="tel" maxlength="13" pattern="(09|\+639)[0-9]{9}" placeholder="09XXXXXXXXX" value="{{ $v('phone') }}" required>
             @error('phone', $bag)<span class="field-error">{{ $message }}</span>@enderror
         </div>
         <div class="field">
@@ -72,6 +76,12 @@
 <style>
     .ab-fields .field-error { display: block; margin-top: 6px; font-size: 12px; font-weight: 700; color: #be123c; }
     .ab-fields select { width: 100%; }
+    .ab-locate { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; margin-bottom: 12px; }
+    .ab-locate-btn { display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 999px; border: 1px solid var(--theme-primary); background: #fff; color: var(--theme-primary); font: inherit; font-weight: 700; cursor: pointer; }
+    .ab-locate-btn[disabled] { opacity: .6; cursor: progress; }
+    .ab-locate-note { font-size: 13px; color: var(--theme-muted); }
+    .ab-locate-note.is-error { color: #be123c; }
+    .ab-locate-note button { margin-left: 6px; border: 0; background: none; color: var(--theme-primary); font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
 </style>
 <script>
     window.BB_REGIONS = @json(\App\Support\PhLocations::provincesByRegionName());
@@ -142,6 +152,108 @@
             loadBarangays().then(function () {
                 fillBarangays(brgy.dataset.old);
             }).catch(function () {});
+
+            setupLocate(box);
+        }
+
+        /*
+         * "Use my location" (mobile sheet BUY-ADDR-010): the phone's position
+         * → OpenStreetMap's address for it → the matching region, province,
+         * city and barangay in the lists. Everything stays editable; with
+         * location off the address is simply typed in.
+         */
+        function fold(text) {
+            return String(text || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+                .replace(/\(.*?\)/g, '').replace(/^(city|municipality) of /, '').replace(/ city$/, '')
+                .replace(/[^a-z0-9]+/g, ' ').trim();
+        }
+
+        function pick(options, names) {
+            var wanted = names.filter(Boolean).map(fold);
+            return (options || []).find(function (o) { return wanted.indexOf(fold(o)) !== -1; })
+                || (options || []).find(function (o) { return wanted.indexOf(fold(o).replace(/^barangay /, '')) !== -1; })
+                || '';
+        }
+
+        function placeFrom(addr) {
+            var all = [addr.province, addr.state, addr.county, addr.region, addr.state_district];
+            var isNcr = all.some(function (v) { return /metro manila|national capital/i.test(v || ''); });
+            var place = { region: '', province: '', city_municipality: '', barangay: '' };
+
+            Object.keys(window.BB_REGIONS).some(function (region) {
+                var found = isNcr ? window.BB_REGIONS[region].find(function (p) { return /NCR/.test(p); }) : pick(window.BB_REGIONS[region], all);
+                if (found) { place.region = region; place.province = found; }
+                return !!found;
+            });
+
+            if (place.province) {
+                place.city_municipality = pick(window.BB_TOWNS[place.province], [addr.city, addr.town, addr.municipality, addr.village, addr.city_district]);
+            }
+
+            if (place.city_municipality && barangays && barangays[place.province]) {
+                place.barangay = pick(barangays[place.province][place.city_municipality], [addr.quarter, addr.suburb, addr.village, addr.neighbourhood, addr.hamlet, addr.city_district]);
+            }
+
+            place.street = [addr.house_number, addr.road].filter(Boolean).join(' ');
+
+            return place;
+        }
+
+        function setupLocate(box) {
+            var btn = box.querySelector('[data-ab-locate]');
+            var note = box.querySelector('[data-ab-locate-note]');
+            if (!btn || btn.__wired) return;
+            btn.__wired = true;
+
+            function say(text, isError, withSettings) {
+                note.textContent = text;
+                note.classList.toggle('is-error', !!isError);
+                if (withSettings && window.BoomBuyApp) {
+                    var open = document.createElement('button');
+                    open.type = 'button';
+                    open.textContent = 'Open Settings';
+                    open.addEventListener('click', function () { window.BoomBuyApp.postMessage(JSON.stringify({ action: 'settings' })); });
+                    note.appendChild(open);
+                }
+            }
+
+            if (!navigator.geolocation) { btn.hidden = true; return; }
+
+            btn.addEventListener('click', function () {
+                btn.disabled = true;
+                say('Finding your location…');
+
+                navigator.geolocation.getCurrentPosition(function (p) {
+                    var url = 'https://nominatim.openstreetmap.org/reverse?format=jsonv2&addressdetails=1&zoom=18&accept-language=en'
+                        + '&lat=' + p.coords.latitude + '&lon=' + p.coords.longitude;
+
+                    Promise.all([fetch(url).then(function (r) { return r.json(); }), loadBarangays()]).then(function (res) {
+                        var place = placeFrom((res[0] && res[0].address) || {});
+                        btn.disabled = false;
+
+                        if (!place.province) {
+                            say('We couldn\'t match your location to a province. Please pick your address below.', true);
+                            return;
+                        }
+
+                        var street = box.querySelector('input[name=street]');
+                        box.__abFill(place);
+                        if (street && !street.value.trim() && place.street) street.value = place.street;
+
+                        say(place.barangay
+                            ? 'Filled in from your location. Check it, and add your house number if it is missing.'
+                            : 'Filled in what we could from your location. Please pick the rest below.');
+                    }).catch(function () {
+                        btn.disabled = false;
+                        say('We couldn\'t look up your address right now. Please pick it below.', true);
+                    });
+                }, function (err) {
+                    btn.disabled = false;
+                    say(err && err.code === 1
+                        ? 'Location is off for BoomBuy. You can still type your address below.'
+                        : 'We couldn\'t get your location. You can still type your address below.', true, err && err.code === 1);
+                }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 });
+            });
         }
 
         function setupAll() {

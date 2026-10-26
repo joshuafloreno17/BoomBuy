@@ -51,7 +51,13 @@ class RiderWorkController extends Controller
                 throw new ActionFailed('Your rider application is ' . strtolower((string) ($application ?? 'missing')) . ', so you can\'t go Online yet.');
             }
 
-            RiderJobs::setOnline((int) $user['id'], $online);
+            [$lat, $lng] = $this->position();
+
+            if ($online && config('app.rider_location') && $lat === null) {
+                throw new ActionFailed('Location is needed to go Online. Allow location for the BoomBuy app in your phone\'s Settings, then try again.');
+            }
+
+            RiderJobs::setOnline((int) $user['id'], $online, $lat, $lng);
 
             if (!$online) {
                 // Open offers go to the next rider.
@@ -61,6 +67,43 @@ class RiderWorkController extends Controller
 
             return $online ? 'You are Online. New job offers will come to you.' : 'You are Offline. You keep the jobs you already have.';
         });
+    }
+
+    /**
+     * The rider app sends its position every minute while Online; "off"
+     * means the phone's location is turned off, so no new offers until it
+     * is back (mobile sheet M13).
+     */
+    public function location()
+    {
+        $user = requireUserRole('rider');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        [$lat, $lng] = request()->boolean('off') ? [null, null] : $this->position();
+
+        if ($lat === null && !request()->boolean('off')) {
+            return response()->json(['ok' => false, 'message' => 'Send lat and lng.'], 422);
+        }
+
+        RiderJobs::saveLocation((int) $user['id'], $lat, $lng);
+
+        return response()->json(['ok' => true, 'online' => RiderJobs::isOnline((int) $user['id'])]);
+    }
+
+    /** [lat, lng] from the request, or [null, null] when missing or out of range. */
+    private function position(): array
+    {
+        $lat = request('lat');
+        $lng = request('lng');
+
+        if (!is_numeric($lat) || !is_numeric($lng) || abs((float) $lat) > 90 || abs((float) $lng) > 180) {
+            return [null, null];
+        }
+
+        return [round((float) $lat, 7), round((float) $lng, 7)];
     }
 
     public function offers(DispatchService $dispatch)

@@ -117,12 +117,12 @@
                 <div class="form-grid">
                     <div class="field">
                         <label for="first_name">First Name</label>
-                        <input type="text" id="first_name" name="first_name" minlength="2" maxlength="50" value="{{ old('first_name', $dbUser->first_name ?: ($nameParts[0] ?? '')) }}" required>
+                        <input type="text" id="first_name" name="first_name" autocapitalize="words" minlength="2" maxlength="50" value="{{ old('first_name', $dbUser->first_name ?: ($nameParts[0] ?? '')) }}" required>
                         @error('first_name')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
                     <div class="field">
                         <label for="last_name">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" minlength="2" maxlength="50" value="{{ old('last_name', $dbUser->last_name ?: ($nameParts[1] ?? '')) }}" required>
+                        <input type="text" id="last_name" name="last_name" autocapitalize="words" minlength="2" maxlength="50" value="{{ old('last_name', $dbUser->last_name ?: ($nameParts[1] ?? '')) }}" required>
                         @error('last_name')<span class="field-error">{{ $message }}</span>@enderror
                     </div>
                 </div>

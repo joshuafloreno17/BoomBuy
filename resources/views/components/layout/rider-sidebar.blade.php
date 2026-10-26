@@ -192,3 +192,4 @@
 </script>
 
 @include('partials.confirm-modal')
+@include('partials.rider-location', ['user' => $user])

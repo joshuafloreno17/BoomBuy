@@ -80,11 +80,13 @@ class LogisticsOpsController extends Controller
             ->join('rider_applications', 'rider_applications.user_id', '=', 'users.id')
             ->where('users.role', 'rider')
             ->where('rider_applications.status', 'Approved')
-            ->select('users.id', 'users.name', 'users.status', 'users.is_online')
+            ->select('users.id', 'users.name', 'users.status', 'users.is_online', 'users.location_lat', 'users.location_lng', 'users.location_at')
             ->distinct()
             ->get()
             ->filter(fn ($r) => RiderJobs::worksFor((int) $r->id, $center ?: null))
             ->map(function ($r) {
+                // Online only while the app keeps sending its location.
+                $r->is_online = RiderJobs::reachable($r);
                 $r->active_jobs = RiderJobs::activeCount((int) $r->id);
                 $r->delivered_today = DB::table('orders')->where('delivery_rider_id', $r->id)->whereDate('delivered_at', today())->count();
                 $r->assignable = $r->status === 'Active' && $r->is_online && $r->active_jobs < RiderJobs::ACTIVE_LIMIT;

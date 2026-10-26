@@ -55,15 +55,15 @@
                 <div class="grid">
                     <div class="field">
                         <label for="first_name">First Name</label>
-                        <input type="text" id="first_name" name="first_name" value="{{ old('first_name') }}" minlength="2" maxlength="50" required>
+                        <input type="text" id="first_name" name="first_name" autocapitalize="words" value="{{ old('first_name') }}" minlength="2" maxlength="50" required>
                     </div>
                     <div class="field">
                         <label for="last_name">Last Name</label>
-                        <input type="text" id="last_name" name="last_name" value="{{ old('last_name') }}" minlength="2" maxlength="50" required>
+                        <input type="text" id="last_name" name="last_name" autocapitalize="words" value="{{ old('last_name') }}" minlength="2" maxlength="50" required>
                     </div>
                     <div class="field">
                         <label for="middle_initial">Middle Initial <span class="opt">(optional)</span></label>
-                        <input type="text" id="middle_initial" name="middle_initial" value="{{ old('middle_initial') }}" maxlength="5">
+                        <input type="text" id="middle_initial" name="middle_initial" autocapitalize="words" value="{{ old('middle_initial') }}" maxlength="5">
                     </div>
                     <div class="field">
                         <label for="sex">Sex</label>

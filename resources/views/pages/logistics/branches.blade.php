@@ -140,8 +140,8 @@
                             <form method="POST" action="{{ route('logistics.branches.staff', $branch->id) }}" class="br-form">
                                 @csrf
                                 <input type="hidden" name="staff_for" value="{{ $branch->id }}">
-                                <label><span>First name</span><input type="text" name="first_name" minlength="2" maxlength="50" required></label>
-                                <label><span>Last name</span><input type="text" name="last_name" minlength="2" maxlength="50" required></label>
+                                <label><span>First name</span><input type="text" name="first_name" autocapitalize="words" minlength="2" maxlength="50" required></label>
+                                <label><span>Last name</span><input type="text" name="last_name" autocapitalize="words" minlength="2" maxlength="50" required></label>
                                 <label><span>Mobile number</span><input type="tel" name="phone" pattern="09[0-9]{9}" maxlength="11" placeholder="09XXXXXXXXX" required></label>
                                 <label><span>Email (their login)</span><input type="email" name="email" maxlength="255" required></label>
                                 <label><span>Password</span><input type="password" name="password" minlength="8" maxlength="72" autocomplete="new-password" required></label>

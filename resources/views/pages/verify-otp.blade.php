@@ -6,6 +6,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ $isLogistics ? 'Verify Code - BoomBuy Logistics' : 'Verify Code - BoomBuy' }}</title>
 
     @include('partials.pwa-head')
@@ -25,6 +26,18 @@
             We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 5 minutes.
         </p>
 
+        @php
+            // Counts down from when the code was sent, so it keeps running
+            // while the user is away in the mail app.
+            $otpExpiresAt = session('otp_expires_at');
+        @endphp
+        @if ($otpExpiresAt)
+            <p id="otpTimer" data-expires="{{ \Illuminate\Support\Carbon::parse($otpExpiresAt)->toIso8601String() }}"
+                style="color:var(--theme-muted); font-size:13px; margin:-4px 0 14px;">
+                Code expires in <strong id="otpTimerLeft">5:00</strong>
+            </p>
+        @endif
+
         @if ($errors->any())
             <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px;">
                 {{ $errors->first() }}
@@ -40,6 +53,7 @@
         <form method="POST" action="{{ route('otp.verify') }}">
             @csrf
             <input type="text" name="otp_code" maxlength="6" placeholder="000000"
+                inputmode="numeric" pattern="\d{6}" title="Enter the 6-digit code." autocomplete="one-time-code"
                 style="width:100%; box-sizing:border-box; font-size:28px; letter-spacing:10px; text-align:center; padding:14px; border:1px solid var(--theme-border); border-radius:10px; margin-bottom:16px;" required autofocus>
 
             <button type="submit"
@@ -56,6 +70,35 @@
         </form>
 
     </div>
+
+    <script>
+    (function () {
+        var timer = document.getElementById('otpTimer');
+        if (!timer) return;
+        var left = document.getElementById('otpTimerLeft');
+        var end = new Date(timer.dataset.expires).getTime();
+
+        function tick() {
+            var s = Math.max(0, Math.round((end - Date.now()) / 1000));
+            if (s === 0) {
+                timer.innerHTML = 'The code has expired. Tap <strong>Resend Code</strong> for a new one.';
+                timer.style.color = '#dc2626';
+                return;
+            }
+            left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+            setTimeout(tick, 1000);
+        }
+
+        tick();
+        // Coming back from the mail app: show the real time left at once.
+        document.addEventListener('visibilitychange', function () {
+            if (!document.hidden && Date.now() < end) {
+                var s = Math.round((end - Date.now()) / 1000);
+                left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+            }
+        });
+    })();
+    </script>
 
     @include('partials.pwa-register')
 

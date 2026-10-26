@@ -589,6 +589,7 @@ Route::get('/logistics/rider/deliveries/history', [RiderController::class, 'deli
 
 // Rider Modules R1–R7: Online/Offline, job offers, waybill scan, returns, vehicle, COD remittance
 Route::post('/logistics/rider/availability', [\App\Http\Controllers\RiderWorkController::class, 'availability'])->name('rider.availability');
+Route::post('/logistics/rider/location', [\App\Http\Controllers\RiderWorkController::class, 'location'])->name('rider.location');
 Route::get('/logistics/rider/offers', [\App\Http\Controllers\RiderWorkController::class, 'offers'])->name('rider.offers');
 Route::post('/logistics/rider/offers/{id}', [\App\Http\Controllers\RiderWorkController::class, 'respond'])->whereNumber('id')->name('rider.offers.respond');
 Route::post('/logistics/rider/pickup/{id}/scan', [\App\Http\Controllers\RiderWorkController::class, 'scanPickup'])->whereNumber('id')->name('rider.pickup.scan');

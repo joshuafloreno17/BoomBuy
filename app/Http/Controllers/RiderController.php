@@ -296,7 +296,10 @@ class RiderController extends Controller
             (string) request('failure_reason'),
             request()->file('delivery_proof'),
             request('otp'),
-            request('cod_amount')
+            request('cod_amount'),
+            is_numeric(request('lat')) && is_numeric(request('lng')) && abs((float) request('lat')) <= 90 && abs((float) request('lng')) <= 180
+                ? [round((float) request('lat'), 7), round((float) request('lng'), 7)]
+                : null
         ));
     }
 

@@ -75,6 +75,10 @@ return [
     // Delivery, the exact amount collected (Rider Modules R5, A32/A24).
     'delivery_checks' => (bool) env('DELIVERY_CHECKS', true),
 
+    // Riders need location to go Online and count as Offline once the app
+    // stops sending it for 5 minutes (mobile sheet M13).
+    'rider_location' => (bool) env('RIDER_LOCATION', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

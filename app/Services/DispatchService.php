@@ -311,9 +311,11 @@ class DispatchService
             ->where('users.status', 'Active')
             ->where('users.is_online', true)
             ->where('rider_applications.status', 'Approved')
-            ->select('users.id', 'users.name')
+            ->select('users.id', 'users.name', 'users.is_online', 'users.location_at')
             ->distinct()
             ->get()
+            // Location off, or the app closed for 5 minutes: no new offers.
+            ->filter(fn ($r) => RiderJobs::reachable($r))
             ->filter(fn ($r) => RiderJobs::worksFor((int) $r->id, $centerId) && RiderJobs::activeCount((int) $r->id) < RiderJobs::ACTIVE_LIMIT)
             ->sortBy(function ($r) use ($town) {
                 $areas = DB::table('rider_areas')->where('rider_id', $r->id)->get(['province', 'city_municipality']);

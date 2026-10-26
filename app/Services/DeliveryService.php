@@ -40,7 +40,8 @@ class DeliveryService
      *
      * @throws ActionFailed
      */
-    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = '', ?UploadedFile $proof = null, ?string $otp = null, ?string $codAmount = null): string
+    /** $where: [lat, lng] of the phone when the parcel was handed over, if the app sent it. */
+    public function updateStatus(int $riderId, int $orderId, string $status, string $failureCode = '', string $failureDetails = '', ?UploadedFile $proof = null, ?string $otp = null, ?string $codAmount = null, ?array $where = null): string
     {
         $status = trim($status);
 
@@ -98,6 +99,8 @@ class DeliveryService
 
             $delivered = [
                 'delivered_at' => now(),
+                'delivered_lat' => $where[0] ?? null,
+                'delivered_lng' => $where[1] ?? null,
                 // What the rider earns for it, at today's fee.
                 'rider_fee' => \App\Support\DeliveryFee::baseFee(),
                 'delivery_proof' => $proof->store('delivery-proofs', 'local'),
