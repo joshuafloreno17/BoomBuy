@@ -16,7 +16,7 @@ use Illuminate\Support\Str;
  * A working logistics setup everywhere:
  *
  *   - every provincial BoomBuy Sorting Center has a logistics staff account
- *     (hub.<province>@boombuy.test) — unless it already has staff;
+ *     (sortingcenter.<province>@boombuy.test) — unless it already has staff;
  *   - a center left with more than one of those test accounts (from the
  *     older town-named ones) keeps just one;
  *   - every seller's town has an approved rider whose area is that town
@@ -59,7 +59,7 @@ class LogisticsNetworkSeeder extends Seeder
 
     /**
      * One seeded staff account per center is enough. Keeps
-     * hub.<province>@boombuy.test (or the oldest one) and removes the rest;
+     * sortingcenter.<province>@boombuy.test (or the oldest one) and removes the rest;
      * an account other records still point to is switched off instead.
      * Real staff accounts (not @boombuy.test) are never touched.
      */
@@ -69,7 +69,7 @@ class LogisticsNetworkSeeder extends Seeder
 
         $seeded = DB::table('users')
             ->where('role', 'logistics')
-            ->where('email', 'like', 'hub.%@boombuy.test')
+            ->where('email', 'like', 'sortingcenter.%@boombuy.test')
             ->whereNotNull('sorting_center_id')
             ->orderBy('id')
             ->get(['id', 'email', 'sorting_center_id'])
@@ -81,7 +81,7 @@ class LogisticsNetworkSeeder extends Seeder
             }
 
             $province = SortingCenter::whereKey($centerId)->value('province');
-            $preferred = 'hub.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test';
+            $preferred = 'sortingcenter.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test';
             $keep = $accounts->firstWhere('email', $preferred) ?? $accounts->first();
 
             foreach ($accounts->where('id', '!=', $keep->id) as $extra) {
@@ -114,7 +114,7 @@ class LogisticsNetworkSeeder extends Seeder
 
             [$first, $last, $sex] = self::STAFF_NAMES[$added % count(self::STAFF_NAMES)];
             $staff = User::firstOrCreate(
-                ['email' => 'hub.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test'],
+                ['email' => 'sortingcenter.' . Str::slug(PhLocations::provinceLabel($province)) . '@boombuy.test'],
                 [
                     'name' => "$first $last",
                     'first_name' => $first,

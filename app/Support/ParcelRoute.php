@@ -67,11 +67,17 @@ class ParcelRoute
     /**
      * The open delivery branch of this center in the buyer's town, if there
      * is one with staff to receive parcels. None → the center's own riders
-     * deliver from the center.
+     * deliver from the center. A branch in the center's own town is skipped:
+     * the center is right there, so the parcel goes straight to it.
      */
     public static function branchFor(?int $centerId, ?string $province, ?string $city): ?SortingCenter
     {
         if (!$centerId || !$province || !$city) {
+            return null;
+        }
+
+        $centerTown = SortingCenter::whereKey($centerId)->value('city_municipality');
+        if (PhLocations::sameTown($centerTown, $city)) {
             return null;
         }
 

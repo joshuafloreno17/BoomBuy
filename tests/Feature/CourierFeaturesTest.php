@@ -347,9 +347,9 @@ class CourierFeaturesTest extends TestCase
         $cebu = $this->makeCenter('Cebu', 'Cebu City');
 
         $town = $this->makeLogistics();
-        $town->forceFill(['email' => 'hub.mandaue@boombuy.test'])->save();
+        $town->forceFill(['email' => 'sortingcenter.mandaue@boombuy.test'])->save();
         $province = $this->makeLogistics();
-        $province->forceFill(['email' => 'hub.cebu@boombuy.test'])->save();
+        $province->forceFill(['email' => 'sortingcenter.cebu@boombuy.test'])->save();
         $real = $this->makeLogistics();
         DB::table('users')->whereIn('id', [$town->id, $province->id, $real->id])->update(['sorting_center_id' => $cebu->id]);
 

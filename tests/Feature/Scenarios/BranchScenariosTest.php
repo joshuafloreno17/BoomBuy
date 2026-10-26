@@ -162,6 +162,28 @@ class BranchScenariosTest extends TestCase
         $this->assertNull(DB::table('orders')->where('id', $other)->value('branch_id'));
     }
 
+    public function test_BR11_a_branch_in_the_centers_own_town_is_skipped(): void
+    {
+        // Like Branch – Cebu City next to the Cebu center in Cebu City.
+        $cityBranch = $this->branchOf($this->laguna, 'Calamba City');
+        $this->staffAt($cityBranch);
+
+        $id = $this->makeOrder($this->buyer, $this->phone, 'At Sorting Center', [
+            'shipping_address' => '5 Rizal St, Calamba City, Laguna',
+            'shipping_province' => 'Laguna',
+            'shipping_city' => 'Calamba City',
+            'origin_center_id' => $this->cebu->id,
+            'destination_center_id' => $this->laguna->id,
+            'current_center_id' => $this->laguna->id,
+        ]);
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.sort', $id))->assertSessionHas('success');
+        $this->assertNull(DB::table('orders')->where('id', $id)->value('branch_id'));
+
+        // Pickup side: a seller in Calamba City brings it straight to the center.
+        $this->assertNull(\App\Support\ParcelRoute::branchFor($this->laguna->id, 'Laguna', 'Calamba City'));
+        $this->assertSame($this->santaCruz->id, \App\Support\ParcelRoute::branchFor($this->laguna->id, 'Laguna', 'Santa Cruz')?->id);
+    }
+
     public function test_BR04_failed_delivery_goes_back_to_the_branch_and_a_released_rider_returns_it_there(): void
     {
         $id = $this->atLagunaCenter();
@@ -188,10 +210,12 @@ class BranchScenariosTest extends TestCase
 
     public function test_BR06_full_flow_seller_branch_to_buyer_branch(): void
     {
-        $cebuCity = $this->branchOf($this->cebu, 'Cebu City');
+        // The seller is in Mandaue City, which has its own branch.
+        $cebuCity = $this->branchOf($this->cebu, 'Mandaue City');
         $cebuBranchStaff = $this->staffAt($cebuCity);
-        $pickupRider = $this->riderFor($this->cebu, 'Cebu City');
+        $pickupRider = $this->riderFor($this->cebu, 'Mandaue City');
         $seller = User::find($this->phone->seller_id);
+        $seller->forceFill(['city_municipality' => 'Mandaue City', 'address' => 'Poblacion, Mandaue City, Cebu'])->save();
 
         $id = $this->makeOrder($this->buyer, $this->phone, 'Preparing', [
             'shipping_address' => self::LAGUNA_ADDRESS,
@@ -201,11 +225,11 @@ class BranchScenariosTest extends TestCase
             'destination_center_id' => $this->laguna->id,
         ]);
 
-        // Seller books the pickup: the parcel will go to the Cebu City branch.
+        // Seller books the pickup: the parcel will go to the Mandaue City branch.
         $this->actingAsUser($seller)->post(route('seller.order.pickup', $id), ['pickup_date' => now()->toDateString()])->assertSessionHas('success');
         $this->assertSame($cebuCity->id, (int) DB::table('orders')->where('id', $id)->value('origin_branch_id'));
 
-        // The Cebu City rider accepts and picks it up, and is told to bring it to the branch.
+        // The Mandaue City rider accepts and picks it up, and is told to bring it to the branch.
         $this->actingAsUser($pickupRider)->post(route('rider.pickup.accept', $id))->assertSessionHas('success');
         $this->actingAsUser($pickupRider)->post(route('rider.pickup.picked-up', $id))->assertSessionHas('success');
         $this->assertTrue($this->notifiedWith($pickupRider, 'Bring Parcel to Branch'));
@@ -223,7 +247,7 @@ class BranchScenariosTest extends TestCase
         $this->actingAsUser($cebuBranchStaff)->post(route('logistics.parcels.to-center-all'))->assertSessionHas('success');
         $this->assertSame('To Sorting Center', $this->orderStatusOf($id));
         $this->assertTrue($this->notifiedWith($this->cebuStaff, 'Incoming Parcel'));
-        $this->actingAsUser($this->cebuStaff)->get(route('logistics.parcels'))->assertSee('Sent by BoomBuy Branch – Cebu City');
+        $this->actingAsUser($this->cebuStaff)->get(route('logistics.parcels'))->assertSee('Sent by BoomBuy Branch – Mandaue City');
         $this->actingAsUser($this->cebuStaff)->post(route('logistics.parcels.confirm-received', $id))->assertSessionHas('success');
         $this->assertSame('At Sorting Center', $this->orderStatusOf($id));
         $this->assertSame($this->cebu->id, (int) DB::table('orders')->where('id', $id)->value('current_center_id'));
