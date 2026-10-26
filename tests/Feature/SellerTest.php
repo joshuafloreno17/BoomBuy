@@ -174,7 +174,7 @@ class SellerTest extends TestCase
         $this->addVariation($product, 'Blue', 30);
 
         // 9 + 30, not the old base stock of 40.
-        $this->actingAsUser($seller)->get(route('seller.dashboard'))
+        $this->actingAsUser($seller)->get(route('seller.products'))
             ->assertOk()
             ->assertSee('across 2 options')
             ->assertViewHas('products', fn ($products) => (int) $products->first()->sellable_stock === 39);

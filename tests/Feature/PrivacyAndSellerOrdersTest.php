@@ -110,12 +110,12 @@ class PrivacyAndSellerOrdersTest extends TestCase
             ->assertDontSee('Order #' . $theirs);
     }
 
-    public function test_seller_dashboard_has_a_product_search(): void
+    public function test_seller_products_page_has_a_product_search(): void
     {
         $seller = $this->makeSeller();
         $this->makeProduct($seller, ['name' => 'Canvas Slip-on']);
 
-        $this->actingAsUser($seller)->get(route('seller.dashboard'))
+        $this->actingAsUser($seller)->get(route('seller.products'))
             ->assertOk()
             ->assertSee('id="productSearch"', false)
             ->assertSee('data-product-search="canvas slip-on', false);

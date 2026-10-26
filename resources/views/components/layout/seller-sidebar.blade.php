@@ -19,6 +19,11 @@
             <span class="label-text">Dashboard</span>
         </a>
 
+        <a href="{{ route('seller.products') }}" @class(['active' => $active === 'products'])>
+            <i class="bi bi-grid-fill"></i>
+            <span class="label-text">Products</span>
+        </a>
+
         <a href="{{ route('seller.orders') }}" @class(['active' => $active === 'orders'])>
             <i class="bi bi-cart-fill"></i>
             <span class="label-text">Orders</span>
@@ -139,7 +144,7 @@
             @endif
         </span>Orders
     </a>
-    <a href="{{ route('seller.dashboard') }}#my-products" data-dock-tab @class(['active is-lift' => $sTab === 'products']) @if($sTab === 'products') aria-current="page" @endif>
+    <a href="{{ route('seller.products') }}" data-dock-tab @class(['active is-lift' => $sTab === 'products']) @if($sTab === 'products') aria-current="page" @endif>
         <span class="bb-dock-ico"><i class="bi {{ $sTab === 'products' ? 'bi-grid-fill' : 'bi-grid' }}"></i></span>Products
     </a>
     <a href="{{ route('messages.index') }}" data-dock-tab @class(['active is-lift' => $sTab === 'messages']) @if($sTab === 'messages') aria-current="page" @endif aria-label="Chat{{ $sellerUnreadMessages > 0 ? ' (' . $sellerUnreadMessages . ' unread)' : '' }}">

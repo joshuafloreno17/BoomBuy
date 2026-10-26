@@ -26,7 +26,7 @@
             <x-seller-page-head
                 title="Edit Product"
                 subtitle="Update your product information below."
-                :crumbs="['My Products' => route('seller.dashboard')]"
+                :crumbs="['My Products' => route('seller.products')]"
             />
 
             <div class="card">
@@ -459,7 +459,7 @@
                     <div class="actions">
 
                         <a
-                            href="{{ route('seller.dashboard') }}"
+                            href="{{ route('seller.products') }}"
                             class="cancel-btn"
                         >
                             Cancel

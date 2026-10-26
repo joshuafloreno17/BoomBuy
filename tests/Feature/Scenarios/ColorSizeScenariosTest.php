@@ -39,7 +39,7 @@ class ColorSizeScenariosTest extends TestCase
                 ['type' => 'Color', 'value' => 'Red', 'type2' => 'Size', 'value2' => '10', 'price_adjustment' => 50, 'stock' => 0],
                 ['type' => 'Color', 'value' => 'Blue', 'type2' => 'Size', 'value2' => '9', 'price_adjustment' => 0, 'stock' => 2],
             ],
-        ])->assertRedirect(route('seller.dashboard'));
+        ])->assertRedirect(route('seller.products'));
 
         return Product::where('name', 'Running Shoe')->firstOrFail();
     }

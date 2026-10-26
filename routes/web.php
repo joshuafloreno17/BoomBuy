@@ -376,6 +376,9 @@ Route::post('/admin/order/{id}/return', [AdminController::class, 'forceReturn'])
 
 Route::get('/seller', [SellerController::class, 'dashboard'])->name('seller.dashboard');
 
+// Every product of the shop (live, drafts, archived)
+Route::get('/seller/products', [SellerController::class, 'products'])->name('seller.products');
+
 /*
 |--------------------------------------------------------------------------
 | SELLER PROFILE

@@ -379,7 +379,7 @@
                         </button>
 
                         <a
-                            href="{{ route('seller.dashboard') }}"
+                            href="{{ route('seller.products') }}"
                             class="cancel"
                         >
                             Cancel

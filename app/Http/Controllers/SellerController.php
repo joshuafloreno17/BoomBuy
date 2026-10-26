@@ -44,22 +44,15 @@ class SellerController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        // Only for the counts and "Running low"; the full list is on /seller/products.
         $products = Product::where(
             'seller_id',
             $user['id']
         )->where('is_archived', false)
-            ->with('storeCategories.parent')
-            ->withAvg('reviews', 'rating')
-            ->withCount(['reviews', 'variations'])
             // With options, the stock is theirs added up (what buyers can actually order).
             ->withSellableStock()
             ->latest()
             ->get();
-
-        $archivedProducts = Product::where(
-            'seller_id',
-            $user['id']
-        )->where('is_archived', true)->latest()->get();
 
         /*
         |--------------------------------------------------------------------------
@@ -309,7 +302,6 @@ class SellerController extends Controller
             compact(
                 'user',
                 'products',
-                'archivedProducts',
                 'totalProducts',
                 'totalOrders',
                 'pendingOrders',
@@ -335,6 +327,38 @@ class SellerController extends Controller
                 'starCounts',
                 'latestReview'
             )
+        );
+    }
+
+    /** Every product of the seller: live (with drafts) and archived. */
+    public function products()
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $products = Product::where(
+            'seller_id',
+            $user['id']
+        )->where('is_archived', false)
+            ->with('storeCategories.parent')
+            ->withAvg('reviews', 'rating')
+            ->withCount(['reviews', 'variations'])
+            // With options, the stock is theirs added up (what buyers can actually order).
+            ->withSellableStock()
+            ->latest()
+            ->get();
+
+        $archivedProducts = Product::where(
+            'seller_id',
+            $user['id']
+        )->where('is_archived', true)->latest()->get();
+
+        return view(
+            'pages.seller.products',
+            compact('user', 'products', 'archivedProducts')
         );
     }
 
@@ -1440,7 +1464,7 @@ class SellerController extends Controller
         $token = request(\App\Support\SubmitOnce::FIELD);
 
         if (!\App\Support\SubmitOnce::claim($token)) {
-            return redirect()->route('seller.dashboard')->with('success', 'That product was already saved.');
+            return redirect()->route('seller.products')->with('success', 'That product was already saved.');
         }
 
         $draft = request('action') === 'draft';
@@ -1508,7 +1532,7 @@ class SellerController extends Controller
         StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
 
         return redirect()
-            ->route('seller.dashboard')
+            ->route('seller.products')
             ->with('success', $draft
                 ? $product->name . ' was saved as a draft. Buyers won\'t see it until you publish it.'
                 : $product->name . ' has been added to your store!');
@@ -2127,7 +2151,7 @@ class SellerController extends Controller
         }
 
         return redirect()
-            ->route('seller.dashboard')
+            ->route('seller.products')
             ->with('success', match (true) {
                 $input['draft'] => 'Draft saved.',
                 $publishing => $product->name . ' is now published.',
@@ -2304,7 +2328,7 @@ class SellerController extends Controller
         }
 
         return redirect()
-            ->route('seller.dashboard')
+            ->route('seller.products')
             ->with(
                 'success',
                 $productName . ' deleted successfully!'

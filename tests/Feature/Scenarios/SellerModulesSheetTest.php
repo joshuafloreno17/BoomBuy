@@ -469,7 +469,7 @@ class SellerModulesSheetTest extends TestCase
         $this->assertSame(0, $p02->storeCategories()->count());
         $this->assertFalse((bool) $p02->is_archived);
 
-        $this->as($this->seller1())->get(route('seller.dashboard'))->assertOk()
+        $this->as($this->seller1())->get(route('seller.products'))->assertOk()
             ->assertSeeInOrder(['data-store-cats="' . $p02->id . '"', 'Uncategorized'], false);
         $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()->assertSee('Add to Cart');
         $this->as($this->buyer1())->get(route('shop.seller', $this->seller1()->id))->assertSee('Rattan Fruit Basket');
@@ -613,7 +613,7 @@ class SellerModulesSheetTest extends TestCase
         $kitchen = \App\Models\StoreCategory::create(['seller_id' => $this->seller1()->id, 'name' => 'Kitchen & Dining']);
 
         $this->publish(['store_categories' => [$kitchen->id], 'store_categories_sent' => 1])
-            ->assertRedirect(route('seller.dashboard'))->assertSessionHasNoErrors();
+            ->assertRedirect(route('seller.products'))->assertSessionHasNoErrors();
 
         $product = $this->product('Buri Placemat Set');
         $this->assertNotNull($product);
@@ -634,7 +634,7 @@ class SellerModulesSheetTest extends TestCase
         $this->assertStringEndsWith('.png', $paths[1]);
         $this->assertSame($paths[0], $product->image);
 
-        $this->as($this->seller1())->get(route('seller.dashboard'))->assertSee('Buri Placemat Set');
+        $this->as($this->seller1())->get(route('seller.products'))->assertSee('Buri Placemat Set');
 
         // Buyers find it in search, in Home & Living and in the store's Kitchen & Dining.
         $this->assertContains('Buri Placemat Set', $this->searchNames('Buri Placemat Set'));
@@ -787,11 +787,11 @@ class SellerModulesSheetTest extends TestCase
     {
         $this->as($this->seller1())->from(route('seller.products.create'))->post(route('seller.products.store'), [
             'action' => 'draft', 'name' => 'Draft Woven Fan',
-        ])->assertSessionHasNoErrors()->assertRedirect(route('seller.dashboard'));
+        ])->assertSessionHasNoErrors()->assertRedirect(route('seller.products'));
 
         $draft = $this->product('Draft Woven Fan');
         $this->assertTrue($draft->is_draft);
-        $this->as($this->seller1())->get(route('seller.dashboard'))->assertSee('data-product-status="' . $draft->id . '">Draft', false);
+        $this->as($this->seller1())->get(route('seller.products'))->assertSee('data-product-status="' . $draft->id . '">Draft', false);
 
         $this->assertSame([], $this->searchNames('Draft Woven Fan'));
         $this->as($this->buyer1())->get(route('product.details', $draft->id))->assertNotFound();
@@ -897,7 +897,7 @@ class SellerModulesSheetTest extends TestCase
 
         $this->assertNull(Product::find($p04->id));
         $this->assertNotNull(Product::withTrashed()->find($p04->id));
-        $this->as($this->seller1())->get(route('seller.dashboard'))->assertDontSee('data-product-search="banig placemat set of 4', false);
+        $this->as($this->seller1())->get(route('seller.products'))->assertDontSee('data-product-search="banig placemat set of 4', false);
         $this->assertSame([], $this->searchNames('Banig Placemat'));
         $this->as($this->buyer1())->get(route('shop.seller', $this->seller1()->id))->assertDontSee('class="sp-name">Banig Placemat Set of 4', false);
 
@@ -934,8 +934,8 @@ class SellerModulesSheetTest extends TestCase
         $token = (string) Str::uuid();
         $form = ['name' => 'Double Click Test Tote', \App\Support\SubmitOnce::FIELD => $token];
 
-        $this->publish($form)->assertRedirect(route('seller.dashboard'));
-        $this->publish($form)->assertRedirect(route('seller.dashboard'));
+        $this->publish($form)->assertRedirect(route('seller.products'));
+        $this->publish($form)->assertRedirect(route('seller.products'));
 
         $this->assertSame(1, Product::where('name', 'Double Click Test Tote')->count());
         $this->as($this->seller1())->get(route('seller.products.create'))->assertSee('name="' . \App\Support\SubmitOnce::FIELD . '"', false);
@@ -997,7 +997,7 @@ class SellerModulesSheetTest extends TestCase
 
     public function test_SEL_VAR_001_create_a_product_with_2_variation_types(): void
     {
-        $this->publishVariants($this->coinPurseRows())->assertSessionHasNoErrors()->assertRedirect(route('seller.dashboard'));
+        $this->publishVariants($this->coinPurseRows())->assertSessionHasNoErrors()->assertRedirect(route('seller.products'));
 
         $product = $this->product('Buri Coin Purse');
         $rows = $product->variations()->orderBy('id')->get();
@@ -1310,7 +1310,7 @@ class SellerModulesSheetTest extends TestCase
         $this->as($this->buyer2())->get(route('product.details', $p07->id))->assertOk()->assertSee('Out of stock', false);
         $this->as($this->buyer2())->get(route('products', ['search' => 'Power Bank 10000mAh']))->assertSee('Sold out');
         $this->as($this->buyer2())->post(route('cart.add', $p07->id), ['quantity' => 1])->assertSessionHas('error');
-        $this->as($this->seller2())->get(route('seller.dashboard'))->assertSeeInOrder(['Power Bank 10000mAh', 'Out of Stock']);
+        $this->as($this->seller2())->get(route('seller.products'))->assertSeeInOrder(['Power Bank 10000mAh', 'Out of Stock']);
     }
 
     public function test_SEL_INV_008_low_stock_alert_at_the_threshold(): void

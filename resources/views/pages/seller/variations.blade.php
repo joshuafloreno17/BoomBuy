@@ -26,7 +26,7 @@
             <x-seller-page-head
                 :title="'Variations — ' . $product->name"
                 subtitle="Each option has its own stock. Buyers pick one on the product page."
-                :crumbs="['My Products' => route('seller.dashboard'), $product->name => route('seller.products.edit', $product->id)]"
+                :crumbs="['My Products' => route('seller.products'), $product->name => route('seller.products.edit', $product->id)]"
             />
 
             @if(session('success'))

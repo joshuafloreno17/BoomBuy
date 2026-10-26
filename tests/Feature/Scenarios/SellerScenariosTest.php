@@ -140,7 +140,7 @@ class SellerScenariosTest extends TestCase
             ->assertSessionHas('error', fn ($m) => str_contains($m, '₱0 or less'));
 
         $add(['name' => 'Trail Runner', 'variations' => [['type' => 'Size', 'value' => '9', 'price_adjustment' => 0, 'stock' => 3]]])
-            ->assertRedirect(route('seller.dashboard'));
+            ->assertRedirect(route('seller.products'));
         $created = Product::where('name', 'Trail Runner')->first();
         $this->assertSame('Shoes', $created->category);
         $this->assertSame(1, $created->variations()->count());
@@ -162,7 +162,7 @@ class SellerScenariosTest extends TestCase
             ->assertSessionHas('error', fn ($m) => str_contains($m, '₱0 or less'));
 
         $this->put(route('seller.products.update', $product->id), array_merge($base, ['price' => 1500]))
-            ->assertRedirect(route('seller.dashboard'));
+            ->assertRedirect(route('seller.products'));
         $this->assertEquals(1500, $product->fresh()->price);
     }
 
