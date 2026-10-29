@@ -45,6 +45,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\RememberPushToken::class,
         ]);
 
+        // Clickjacking / MIME-sniffing protection on every response (web and API).
+        $middleware->append(\App\Http\Middleware\SecurityHeaders::class);
+
         // Set by the app itself (not by this site), so it isn't encrypted.
         $middleware->encryptCookies(except: [\App\Support\PushNotifications::COOKIE]);
     })

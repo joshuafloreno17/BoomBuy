@@ -370,8 +370,10 @@ class CartController extends Controller
     private function returnHereAfterLogin(): void
     {
         $previous = url()->previous();
+        // Same host exactly — "boombuy.store.evil.com" also starts with "https://boombuy.store".
+        $sameSite = parse_url($previous, PHP_URL_HOST) === request()->getHost();
 
-        if (!session('user') && str_starts_with($previous, url('/')) && !str_contains($previous, '/login')) {
+        if (!session('user') && $sameSite && !str_contains($previous, '/login')) {
             session()->put('after_login', $previous);
         }
     }
