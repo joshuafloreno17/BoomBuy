@@ -373,6 +373,102 @@ class BranchScenariosTest extends TestCase
         $this->assertSame($this->cebu->id, (int) DB::table('orders')->where('id', $id)->value('current_center_id'));
     }
 
+    public function test_BR12_pick_up_buyer_collects_at_the_branch_in_their_town(): void
+    {
+        // Checkout offers the Santa Cruz branch, not the Calamba center.
+        $this->actingAsUser($this->buyer, ['cart' => ["{$this->phone->id}:0" => 1]])->get(route('checkout'))
+            ->assertOk()->assertSee('BoomBuy Branch – Santa Cruz');
+        $this->getJson(route('checkout.quote', ['address' => self::LAGUNA_ADDRESS, 'fulfillment' => 'pickup']))
+            ->assertOk()->assertJson(['fulfillment' => 'pickup', 'pickup_center' => ['name' => 'BoomBuy Branch – Santa Cruz']]);
+
+        $this->actingAsUser($this->buyer, ['cart' => ["{$this->phone->id}:0" => 1]])->post(route('checkout.place'), [
+            'address' => self::LAGUNA_ADDRESS,
+            'phone' => '09171234567',
+            'payment' => 'Cash on Delivery',
+            'fulfillment' => 'pickup',
+        ])->assertRedirect();
+
+        $id = (int) DB::table('orders')->where('buyer_id', $this->buyer->id)->value('id');
+        $this->assertSame($this->santaCruz->id, (int) DB::table('orders')->where('id', $id)->value('branch_id'));
+        $this->assertSame($this->laguna->id, (int) DB::table('orders')->where('id', $id)->value('destination_center_id'));
+
+        // Cebu → Laguna: it doesn't wait at the center, it goes on to the branch.
+        DB::table('orders')->where('id', $id)->update(['status' => 'In Transit', 'origin_center_id' => $this->cebu->id]);
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.confirm-arrival', $id))
+            ->assertSessionHas('success', fn ($m) => str_contains($m, 'sort it for BoomBuy Branch – Santa Cruz'));
+        $this->assertSame('At Sorting Center', $this->orderStatusOf($id));
+
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.sort', $id))
+            ->assertSessionHas('success', fn ($m) => str_contains($m, 'for pick-up'));
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.to-branch', $id))->assertSessionHas('success');
+        $this->actingAsUser($this->branchStaff)->post(route('logistics.parcels.at-branch', $id))->assertSessionHas('success');
+
+        // Ready at the branch — no rider.
+        $this->assertSame('Ready to Collect', $this->orderStatusOf($id));
+        $this->assertSame($this->santaCruz->id, (int) DB::table('orders')->where('id', $id)->value('current_center_id'));
+        $this->assertTrue(DB::table('notifications')->where('user_id', $this->buyer->id)->where('title', 'Ready to Collect')->where('message', 'like', '%BoomBuy Branch – Santa Cruz%')->exists());
+        $this->actingAsUser($this->branchStaff)->get(route('logistics.parcels'))->assertSee('Ready to Collect (1)');
+        $this->actingAsUser($this->lagunaStaff)->get(route('logistics.parcels'))->assertSee('Ready to Collect (0)');
+        $this->actingAsUser($this->buyer)->get(route('buyer.orders'))->assertOk()->assertSee('Ready to collect at BoomBuy Branch – Santa Cruz');
+
+        // Only the branch hands it over, and takes the COD cash.
+        $code = DB::table('orders')->where('id', $id)->value('pickup_code');
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.hand-to-buyer', $id), ['pickup_code' => $code])->assertSessionHas('error');
+        $this->actingAsUser($this->branchStaff)->post(route('logistics.parcels.hand-to-buyer', $id), ['pickup_code' => $code])->assertSessionHas('success');
+        $this->assertSame('Completed', $this->orderStatusOf($id));
+        $this->assertSame($this->santaCruz->id, (int) DB::table('orders')->where('id', $id)->value('cod_remitted_center_id'));
+    }
+
+    public function test_BR13_pick_up_waits_at_the_center_when_the_branch_closed_meanwhile(): void
+    {
+        $id = $this->makeOrder($this->buyer, $this->phone, 'In Transit', [
+            'fulfillment' => 'pickup',
+            'pickup_code' => '123456',
+            'shipping_address' => self::LAGUNA_ADDRESS,
+            'shipping_province' => 'Laguna',
+            'shipping_city' => 'Santa Cruz',
+            'origin_center_id' => $this->cebu->id,
+            'destination_center_id' => $this->laguna->id,
+            'branch_id' => $this->santaCruz->id,
+        ]);
+        $this->santaCruz->update(['is_active' => false]);
+
+        $this->actingAsUser($this->lagunaStaff)->post(route('logistics.parcels.confirm-arrival', $id))
+            ->assertSessionHas('success', fn ($m) => str_contains($m, 'collects it here'));
+        $this->assertSame('Ready to Collect', $this->orderStatusOf($id));
+        $this->assertNull(DB::table('orders')->where('id', $id)->value('branch_id'));
+        $this->assertSame($this->laguna->id, (int) DB::table('orders')->where('id', $id)->value('current_center_id'));
+
+        // A town without an open branch: checkout offers the province center, as before.
+        $this->actingAsUser($this->buyer, ['cart' => ["{$this->phone->id}:0" => 1]])->get(route('checkout'))->assertOk();
+        $this->getJson(route('checkout.quote', ['address' => self::LAGUNA_ADDRESS, 'fulfillment' => 'pickup']))
+            ->assertOk()->assertJson(['pickup_center' => ['name' => $this->laguna->name]]);
+    }
+
+    public function test_BR14_a_pick_up_parcel_the_buyer_never_collects_at_the_branch_goes_back(): void
+    {
+        $id = $this->makeOrder($this->buyer, $this->phone, 'At Sorting Center', [
+            'fulfillment' => 'pickup',
+            'pickup_code' => '123456',
+            'shipping_address' => self::LAGUNA_ADDRESS,
+            'shipping_province' => 'Laguna',
+            'shipping_city' => 'Santa Cruz',
+            'origin_center_id' => $this->cebu->id,
+            'destination_center_id' => $this->laguna->id,
+            'current_center_id' => $this->laguna->id,
+            'branch_id' => $this->santaCruz->id,
+        ]);
+        $centers = app(\App\Services\SortingCenterService::class);
+        $centers->sort($id);
+        $centers->dispatchToBranch($id);
+        $centers->confirmAtBranch($id);
+        $this->assertSame('Ready to Collect', $this->orderStatusOf($id));
+
+        $this->actingAsUser($this->branchStaff)->post(route('logistics.parcels.return-to-seller', $id))
+            ->assertSessionHas('success', fn ($m) => str_contains($m, 'BoomBuy Sorting Center – Cebu'));
+        $this->assertSame('Returning', $this->orderStatusOf($id));
+    }
+
     public function test_BR05_admin_opens_a_branch_and_assigns_its_staff(): void
     {
         $this->actingAsAdmin()->post(route('admin.sorting-centers.branches.store'), ['parent_id' => $this->laguna->id, 'city_municipality' => 'Pagsanjan'])

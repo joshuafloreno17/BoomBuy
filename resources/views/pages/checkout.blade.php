@@ -197,12 +197,12 @@
                         <label class="fulfillment-option {{ $pickupCenter ? '' : 'is-disabled' }}" id="pickupOption">
                             <input type="radio" name="fulfillment" value="pickup" @checked($wantsPickup) @disabled(!$pickupCenter)>
                             <span>
-                                <strong><i class="bi bi-building"></i> Pick up at the Sorting Center</strong>
+                                <strong><i class="bi bi-building"></i> Pick up at a BoomBuy center</strong>
                                 <small id="pickupCenterText">
                                     @if($pickupCenter)
                                         {{ $pickupCenter->name }} — {{ $pickupCenter->address ?: $pickupCenter->town }}. Lower delivery fee; bring your order number.
                                     @else
-                                        Pick your province first to see the Sorting Center near you.
+                                        Pick your province first to see the BoomBuy center near you.
                                     @endif
                                 </small>
                             </span>
@@ -614,7 +614,7 @@
                         pickupOption.classList.toggle('is-disabled', !q.pickup_center);
                         pickupText.textContent = q.pickup_center
                             ? q.pickup_center.name + ' — ' + q.pickup_center.address + '. Lower delivery fee; bring your order number.'
-                            : 'Pick your province first to see the Sorting Center near you.';
+                            : 'Pick your province first to see the BoomBuy center near you.';
 
                         if (!q.pickup_center && pickupRadio.checked) {
                             deliveryRadio.checked = true;

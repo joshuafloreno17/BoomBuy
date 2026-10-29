@@ -121,7 +121,7 @@ class CourierFeaturesTest extends TestCase
         $this->actingAsUser($buyer, ['cart' => $cart])->get(route('checkout'))
             ->assertOk()
             ->assertSee('Estimated arrival')
-            ->assertSee('Pick up at the Sorting Center');
+            ->assertSee('Pick up at a BoomBuy center');
 
         $address = '15 P. Guevarra St, Poblacion, Santa Cruz, Laguna';
 

@@ -49,9 +49,9 @@ class LogisticsBranchController extends Controller
             ->get(['id', 'name', 'email', 'phone', 'status', 'sorting_center_id'])
             ->groupBy('sorting_center_id');
 
-        // Parcels each branch has now: on the truck to it, or there.
+        // Parcels each branch has now: on the truck to it, or there (pick-ups included).
         $parcelCounts = DB::table('orders')
-            ->whereIn('status', ['Received at Branch', 'To Branch', 'At Branch'])
+            ->whereIn('status', ['Received at Branch', 'To Branch', 'At Branch', 'Ready to Collect'])
             ->selectRaw("CASE WHEN status = 'To Branch' THEN branch_id ELSE current_center_id END as branch, COUNT(*) as total")
             ->groupBy('branch')
             ->pluck('total', 'branch');

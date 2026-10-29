@@ -225,7 +225,7 @@
                                         <div class="order-track-note order-track-eta">
                                             <i class="bi bi-calendar-check"></i> Estimated arrival: <strong>{{ $order['eta'] }}</strong>
                                             @if(($order['fulfillment'] ?? 'delivery') === 'pickup')
-                                                · you'll pick it up at the Sorting Center
+                                                · you'll pick it up at {{ $order['pickup_place'] ?? 'the BoomBuy center' }}
                                             @endif
                                         </div>
                                     @endif

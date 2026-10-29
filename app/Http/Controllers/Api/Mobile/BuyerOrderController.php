@@ -41,7 +41,7 @@ class BuyerOrderController extends MobileController
         'At Branch' => [3, 'At the BoomBuy branch in your town — a rider will be assigned next.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
-        'Ready to Collect' => [4, 'Ready at the Sorting Center — give the staff your pickup code to collect it.'],
+        'Ready to Collect' => [4, 'Ready at your BoomBuy pickup center — give the staff your pickup code to collect it.'],
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
@@ -318,8 +318,8 @@ class BuyerOrderController extends MobileController
                 'delivery_fee' => round((float) $order->delivery_fee, 2),
                 'fulfillment' => $order->fulfillment ?? 'delivery',
                 'pickup_code' => ($order->fulfillment ?? '') === 'pickup' ? $order->pickup_code : null,
-                'pickup_center' => ($order->fulfillment ?? '') === 'pickup' && $order->destination_center_id
-                    ? optional(\App\Models\SortingCenter::find($order->destination_center_id), fn ($c) => ['name' => $c->name, 'address' => $c->address ?: $c->town])
+                'pickup_center' => ($order->fulfillment ?? '') === 'pickup' && ($collectAt = \App\Support\ParcelRoute::collectionPointId($order))
+                    ? optional(\App\Models\SortingCenter::find($collectAt), fn ($c) => ['name' => $c->name, 'address' => $c->address ?: $c->town])
                     : null,
                 'shipping_name' => $order->shipping_name,
                 'shipping_phone' => $order->shipping_phone,

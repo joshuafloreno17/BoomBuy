@@ -36,7 +36,7 @@ class BuyerController extends Controller
         'At Branch' => [3, 'At the BoomBuy branch in your town — a rider will be assigned next.'],
         'Assigned for Delivery' => [3, 'Assigned to a rider for delivery.'],
         'Out for Delivery' => [4, 'Rider is on the way — arriving soon.'],
-        'Ready to Collect' => [4, 'Ready at the Sorting Center — give the staff your pickup code to collect it.'],
+        'Ready to Collect' => [4, 'Ready at your BoomBuy pickup center — give the staff your pickup code to collect it.'],
         'Delivery Failed' => [4, 'Delivery attempt failed — it will be rescheduled.'],
     ];
 
@@ -889,6 +889,12 @@ class BuyerController extends Controller
         $routeCenters = \App\Models\SortingCenter::whereIn('id', collect($orders)
             ->flatMap(fn ($o) => [$o['origin_center_id'] ?? null, $o['destination_center_id'] ?? null, $o['origin_branch_id'] ?? null, $o['branch_id'] ?? null])
             ->filter()->unique())->get(['id', 'name'])->keyBy('id');
+        // Pick-up orders: the center or branch the buyer collects at.
+        $orders = array_map(fn ($o) => $o + [
+            'pickup_place' => ($o['fulfillment'] ?? 'delivery') === 'pickup'
+                ? $routeCenters->get(\App\Support\ParcelRoute::collectionPointId($o))?->name
+                : null,
+        ], $orders);
         $routePlans = collect($orders)->mapWithKeys(fn ($o) => [
             $o['id'] => \App\Support\OrderTimeline::plan($o, $timelines[$o['id']] ?? collect(), $routeCenters),
         ]);

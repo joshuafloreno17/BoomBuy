@@ -52,14 +52,28 @@ class FlashSale extends Model
         return $this->status() === 'Ongoing';
     }
 
+    /** Every live flash sale is read once per request, not once per product card. */
     public static function liveFor(int $productId): ?self
     {
-        return self::where('product_id', $productId)
-            ->where('starts_at', '<=', now())
-            ->where('ends_at', '>', now())
-            ->whereColumn('sold', '<', 'quantity')
-            ->orderBy('id')
-            ->first();
+        $attributes = request()->attributes;
+        $key = self::class . '.live';
+
+        if (!$attributes->has($key)) {
+            $attributes->set($key, self::where('starts_at', '<=', now())
+                ->where('ends_at', '>', now())
+                ->whereColumn('sold', '<', 'quantity')
+                ->orderBy('id')
+                ->get()
+                ->groupBy('product_id'));
+        }
+
+        return $attributes->get($key)->get($productId)?->first();
+    }
+
+    /** Forget the live list after units are claimed, so this request re-reads it. */
+    public static function forgetLive(): void
+    {
+        request()->attributes->remove(self::class . '.live');
     }
 
     /** The next flash sale of a product today, before it starts ("upcoming flash sale"). */

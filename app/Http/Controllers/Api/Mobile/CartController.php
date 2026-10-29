@@ -148,7 +148,7 @@ class CartController extends MobileController
         $phone = $default->phone ?? (string) $buyer->phone;
 
         $location = PhLocations::locate($address);
-        $pickupCenter = $location ? ParcelRoute::centerFor($location['province']) : null;
+        $pickupCenter = $location ? ParcelRoute::pickupPointFor($location['province'], $location['city']) : null;
         $fulfillment = $request->input('fulfillment') === 'pickup' && $pickupCenter ? 'pickup' : 'delivery';
         $plan = CheckoutPlan::build($planLines, $voucher, $location, $fulfillment);
         $shops = SellerShop::many(collect($planLines)->pluck('seller_id'));

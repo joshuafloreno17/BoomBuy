@@ -255,8 +255,12 @@ class PlaceOrderService
     private function create(array $buyer, array $plan, \Illuminate\Support\Collection $vouchers, string $address, string $phone, string $payment, array $location, string $fulfillment): array
     {
         $destination = ParcelRoute::centerFor($location['province'], $location['city']);
+        // Pick-up in a town with a branch: the buyer collects it there.
+        $pickupBranch = $fulfillment === 'pickup' && $destination
+            ? ParcelRoute::branchFor($destination->id, $location['province'], $location['city'])
+            : null;
 
-        return DB::transaction(function () use ($buyer, $plan, $vouchers, $address, $phone, $payment, $location, $destination, $fulfillment) {
+        return DB::transaction(function () use ($buyer, $plan, $vouchers, $address, $phone, $payment, $location, $destination, $pickupBranch, $fulfillment) {
                 // Each voucher used counts once for this checkout.
                 foreach ($vouchers as $voucher) {
                     if ($voucher->usedUpBy((int) $buyer['id'])) {
@@ -315,6 +319,7 @@ class PlaceOrderService
                         // The seller drops it at origin; the buyer's town center delivers it.
                         'origin_center_id' => $origin?->id,
                         'destination_center_id' => $destination?->id,
+                        'branch_id' => $pickupBranch?->id,
                         'payment_method' => $payment,
                         ...\App\Support\Payments::forNewOrder($payment, $paymentGroup),
                         'created_at' => now(),
@@ -373,6 +378,8 @@ class PlaceOrderService
                             if (!$claimedFlash) {
                                 throw CheckoutFailed::inCart($item['product_name'] . ': the flash sale units just ran out. Please review the new price and place the order again.');
                             }
+
+                            \App\Models\FlashSale::forgetLive();
                         }
 
                         \App\Support\LowStock::check((int) $item['product_id'], !empty($item['variation_id']) ? (int) $item['variation_id'] : null);

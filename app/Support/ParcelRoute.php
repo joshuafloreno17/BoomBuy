@@ -89,6 +89,31 @@ class ParcelRoute
             ->first(fn ($branch) => DB::table('users')->where('role', 'logistics')->where('status', 'Active')->where('sorting_center_id', $branch->id)->exists());
     }
 
+    /**
+     * Where a pick-up buyer collects: the branch in their town when it has
+     * staff, else their province's center.
+     */
+    public static function pickupPointFor(?string $province, ?string $city): ?SortingCenter
+    {
+        $center = self::centerFor($province);
+
+        return $center ? (self::branchFor($center->id, $province, $city) ?? $center) : null;
+    }
+
+    /** The center or branch a pick-up order waits at (or will wait at). */
+    public static function collectionPointId(object|array $order): ?int
+    {
+        $order = (object) $order;
+
+        if (($order->status ?? null) === 'Ready to Collect' && !empty($order->current_center_id)) {
+            return (int) $order->current_center_id;
+        }
+
+        $id = ($order->branch_id ?? null) ?: ($order->destination_center_id ?? null);
+
+        return $id ? (int) $id : null;
+    }
+
     /** The branch, if it is open and has staff to take parcels in. */
     public static function usableBranch($branchId): ?SortingCenter
     {

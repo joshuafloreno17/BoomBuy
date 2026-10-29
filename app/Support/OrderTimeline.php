@@ -120,11 +120,11 @@ class OrderTimeline
             $stops[] = [7, 'On its way to ' . $destination];
             $stops[] = [8, 'Arrived at ' . $destination];
         }
-        if (!$pickup && ($branch = $name($order->branch_id ?? null))) {
+        if ($branch = $name($order->branch_id ?? null)) {
             $stops[] = [9, 'At ' . $branch];
         }
         $stops[] = $pickup
-            ? [10, 'Ready to collect at ' . ($destination ?? 'the Sorting Center')]
+            ? [10, 'Ready to collect at ' . ($branch ?? $destination ?? 'the Sorting Center')]
             : [10, 'Out for delivery'];
         $stops[] = [11, $pickup ? 'Collected' : 'Delivered'];
 

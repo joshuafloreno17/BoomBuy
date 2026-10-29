@@ -728,7 +728,7 @@ class CartController extends Controller
         [$checkoutPlan, $appliedVouchers, $voucherNotices] = $this->voucherPlan($planLines, $deliveryTo);
         $appliedVoucher = $appliedVouchers->first();
         $voucherSubtotal = $checkoutPlan['subtotal'];
-        $pickupCenter = $deliveryTo ? ParcelRoute::centerFor($deliveryTo['province']) : null;
+        $pickupCenter = $deliveryTo ? ParcelRoute::pickupPointFor($deliveryTo['province'], $deliveryTo['city']) : null;
         $checkoutEta = self::latestEta($checkoutPlan);
 
         // Kept so the page can re-price delivery when another address is picked.
@@ -779,7 +779,7 @@ class CartController extends Controller
 
         $location = PhLocations::locate((string) request('address'));
         $voucher = !empty($quote['voucher_codes']) ? \App\Models\Voucher::whereIn('code', $quote['voucher_codes'])->get() : null;
-        $pickupCenter = $location ? ParcelRoute::centerFor($location['province']) : null;
+        $pickupCenter = $location ? ParcelRoute::pickupPointFor($location['province'], $location['city']) : null;
         $fulfillment = request('fulfillment') === 'pickup' && $pickupCenter ? 'pickup' : 'delivery';
         $plan = CheckoutPlan::build($quote['lines'], $voucher, $location, $fulfillment);
 
@@ -980,8 +980,9 @@ class CartController extends Controller
             $order['payment_method'];
 
         $order['eta'] = ParcelRoute::etaLabel($order['delivery_zone'] ?? null, $order['created_at'] ?? null);
-        $order['pickup_center'] = ($order['fulfillment'] ?? 'delivery') === 'pickup' && !empty($order['destination_center_id'])
-            ? \App\Models\SortingCenter::find($order['destination_center_id'])
+        $collectAt = ParcelRoute::collectionPointId($order);
+        $order['pickup_center'] = ($order['fulfillment'] ?? 'delivery') === 'pickup' && $collectAt
+            ? \App\Models\SortingCenter::find($collectAt)
             : null;
 
         // A multi-seller checkout creates one order per seller — show them all.

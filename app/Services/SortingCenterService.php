@@ -79,6 +79,12 @@ class SortingCenterService
         );
 
         if (!$goesOn && $this->isPickup($order)) {
+            if ($branch = $this->pickupBranch($order)) {
+                createNotification((int) $order->buyer_id, 'Parcel at Sorting Center', 'Your order #' . $orderId . ' arrived at ' . $hereName . '. It will be sent on to ' . $branch->name . ', where you pick it up.', 'order', $orderId);
+
+                return 'Parcel #' . $orderId . ' confirmed as received. Next: sort it for ' . $branch->name . ', where the buyer picks it up.';
+            }
+
             $this->readyToCollect($order, $here ? (int) $here : null);
 
             return 'Parcel #' . $orderId . ' confirmed as received. The buyer collects it here.';
@@ -211,6 +217,12 @@ class SortingCenterService
         OrderTimeline::log($orderId, 'At Sorting Center', 'Arrived at ' . $hereName, null, (int) $order->destination_center_id);
 
         if ($this->isPickup($order)) {
+            if ($branch = $this->pickupBranch($order)) {
+                createNotification((int) $order->buyer_id, 'Parcel Near You', 'Your order #' . $orderId . ' arrived at ' . $hereName . '. It will be sent on to ' . $branch->name . ', where you pick it up.', 'order', $orderId);
+
+                return 'Parcel #' . $orderId . ' confirmed as arrived. Next: sort it for ' . $branch->name . ', where the buyer picks it up.';
+            }
+
             $this->readyToCollect($order, (int) $order->destination_center_id);
 
             return 'Parcel #' . $orderId . ' confirmed as arrived. The buyer collects it here.';
@@ -311,11 +323,32 @@ class SortingCenterService
             throw new ActionFailed('Dispatch this parcel to ' . ParcelRoute::centerName((int) $order->destination_center_id) . ' first — that center sorts and delivers it.');
         }
 
-        if ($this->isPickup($order)) {
-            throw new ActionFailed('The buyer chose to pick this parcel up at the Sorting Center — it doesn\'t go to a rider.');
-        }
-
         $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
+
+        // Pick-up: it goes to the branch in the buyer's town, or — when that
+        // branch has closed since — waits here for the buyer.
+        if ($this->isPickup($order)) {
+            $branch = $this->pickupBranch($order);
+
+            if (!$branch) {
+                $this->readyToCollect($order, $order->current_center_id ? (int) $order->current_center_id : null);
+
+                return 'Parcel #' . $orderId . ' is a pick-up order. The buyer collects it here.';
+            }
+
+            $updated = DB::table('orders')->where('id', $orderId)->where('status', 'At Sorting Center')->update([
+                'status' => 'Sorted',
+                'updated_at' => now(),
+            ]);
+
+            if (!$updated) {
+                throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+            }
+
+            OrderTimeline::log($orderId, 'Sorted', 'Sorted for pick-up at ' . $branch->name, null, $order->current_center_id ? (int) $order->current_center_id : null);
+
+            return 'Parcel #' . $orderId . ' sorted to ' . $branch->name . ' for pick-up. Next: dispatch it to that branch.';
+        }
 
         $area = self::deliveryArea($order);
 
@@ -522,6 +555,13 @@ class SortingCenterService
         $branchName = ParcelRoute::centerName((int) $order->branch_id);
 
         OrderTimeline::log($orderId, 'At Branch', 'Arrived at ' . $branchName, null, (int) $order->branch_id);
+
+        if ($this->isPickup($order)) {
+            $this->readyToCollect($order, (int) $order->branch_id);
+
+            return 'Parcel #' . $orderId . ' is here. The buyer collects it here.';
+        }
+
         createNotification((int) $order->buyer_id, 'Parcel at Your Branch', 'Your order #' . $orderId . ' arrived at ' . $branchName . ' and will be given to a rider for delivery shortly.', 'order', $orderId);
 
         return 'Parcel #' . $orderId . ' is here. Next: assign the rider for its area.';
@@ -1084,11 +1124,19 @@ class SortingCenterService
         return ($order->fulfillment ?? 'delivery') === 'pickup';
     }
 
-    /** A pick-up parcel reached the buyer's center: it waits there for them. */
+    /** The open branch a pick-up order is meant for (null: collect at the center). */
+    private function pickupBranch(object $order): ?\App\Models\SortingCenter
+    {
+        return $this->isPickup($order) ? ParcelRoute::usableBranch($order->branch_id ?? null) : null;
+    }
+
+    /** A pick-up parcel reached the buyer's center or branch: it waits there for them. */
     private function readyToCollect(object $order, ?int $here): void
     {
-        DB::table('orders')->where('id', $order->id)->where('status', 'At Sorting Center')->update([
+        DB::table('orders')->where('id', $order->id)->whereIn('status', ['At Sorting Center', 'Sorted', 'At Branch'])->update([
             'status' => 'Ready to Collect',
+            // Collected somewhere other than its branch (it closed): forget the branch.
+            'branch_id' => $here && (int) ($order->branch_id ?? 0) === $here ? $here : null,
             'updated_at' => now(),
         ]);
 

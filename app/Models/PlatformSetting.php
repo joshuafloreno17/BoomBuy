@@ -11,13 +11,21 @@ class PlatformSetting extends Model
         'value',
     ];
 
+    /** All settings, read once per request (a product grid asks for the fees once per card). */
     public static function get(string $key, string $default = ''): string
     {
-        return static::where('key', $key)->value('value') ?? $default;
+        $attributes = request()->attributes;
+
+        if (!$attributes->has(self::class)) {
+            $attributes->set(self::class, static::pluck('value', 'key')->all());
+        }
+
+        return $attributes->get(self::class)[$key] ?? $default;
     }
 
     public static function set(string $key, string $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
+        request()->attributes->remove(self::class);
     }
 }

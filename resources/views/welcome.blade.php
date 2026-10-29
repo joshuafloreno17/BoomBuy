@@ -96,7 +96,9 @@
                             <span class="lp-cat-media">
                                 <i class="bi {{ \App\Support\Categories::ICONS[$slug] ?? 'bi-box-seam-fill' }}" aria-hidden="true"></i>
                                 {{-- Drop public/images/categories/<slug>.jpg to show a photo here. --}}
-                                <img src="{{ asset('images/categories/' . $slug . '.jpg') }}" alt="" loading="lazy" onerror="this.remove()">
+                                @if(is_file(public_path('images/categories/' . $slug . '.jpg')))
+                                    <img src="{{ asset('images/categories/' . $slug . '.jpg') }}" alt="" loading="lazy" onerror="this.remove()">
+                                @endif
                             </span>
                             <strong>{{ $label }}</strong>
                             <small>{{ $catNotes[$slug] ?? '' }}</small>
