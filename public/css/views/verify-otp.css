@@ -226,3 +226,295 @@
         text-indent: 0.4em;
     }
 }
+
+/* ------------------------------------------------------------------
+   Mini Vault: six code boxes and a padlock that clicks open.
+   Only with JavaScript (.is-boxes); without it the single input above
+   stays as it is.
+   ------------------------------------------------------------------ */
+
+.otp-lock {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 4px;
+    border-radius: 16px;
+    background: #eee8ff;
+    color: var(--reg-accent);
+    transition: background .3s ease, color .3s ease;
+}
+
+.otp-lock svg {
+    width: 28px;
+    height: 28px;
+    overflow: visible;
+}
+
+.otp-shackle {
+    transform-origin: 16px 11px;
+    transition: transform .45s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+.otp-lock::before,
+.otp-lock::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border: 2px solid #16a34a;
+    border-radius: 16px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.otp-spark {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 6px;
+    height: 6px;
+    margin: -3px;
+    border-radius: 2px;
+    background: #16a34a;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.otp-spark:nth-of-type(odd) {
+    width: 5px;
+    height: 5px;
+    background: #f5b70b;
+}
+
+.otp-boxes {
+    display: none;
+}
+
+.otp-card.is-boxes .otp-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.otp-entry {
+    position: relative;
+}
+
+.otp-card.is-boxes .otp-boxes {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 10px;
+}
+
+/* The real input stays on top of the boxes, invisible, so taps, paste and
+   phone code autofill all still land in it. */
+.otp-card.is-boxes .otp-input {
+    position: absolute;
+    inset: 0;
+    height: 100%;
+    opacity: 0;
+    font-size: 16px;
+    cursor: text;
+}
+
+.otp-box {
+    position: relative;
+    height: 64px;
+    overflow: hidden;
+    border: 1.5px solid rgba(109, 74, 209, 0.25);
+    border-radius: 14px;
+    background: #faf8ff;
+    transition: border-color .2s ease, box-shadow .2s ease, background .3s ease;
+}
+
+.otp-box span {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font: 900 28px 'Figtree', sans-serif;
+    color: #1d1536;
+    transform: translateY(100%);
+    transition: transform .28s cubic-bezier(.2, 1.4, .4, 1);
+}
+
+.otp-box.has {
+    border-color: var(--reg-accent);
+}
+
+.otp-box.has span {
+    transform: none;
+}
+
+.otp-box.cur {
+    border-color: #7c5ce8;
+    background: #ffffff;
+    box-shadow: 0 0 0 4px rgba(124, 92, 232, 0.16);
+}
+
+.otp-box.cur::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 30%;
+    bottom: 30%;
+    width: 2px;
+    margin-left: -1px;
+    background: #7c5ce8;
+    animation: otp-caret 1s steps(2) infinite;
+}
+
+.otp-msg {
+    min-height: 0;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.otp-msg.is-bad {
+    color: #be123c;
+}
+
+.otp-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: background .3s ease, opacity .2s ease, box-shadow .3s ease;
+}
+
+.otp-card.is-boxes .otp-btn:disabled {
+    opacity: .5;
+    box-shadow: none;
+    cursor: default;
+}
+
+.otp-spin {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, .4);
+    border-top-color: #ffffff;
+    border-radius: 50%;
+    animation: otp-spin .7s linear infinite;
+}
+
+.otp-shake {
+    animation: otp-shake .4s;
+}
+
+.otp-foot {
+    transition: opacity .3s ease;
+}
+
+/* ---------- wrong code ---------- */
+
+.otp-card.is-bad .otp-box {
+    border-color: #e11d48;
+    background: #fff1f2;
+}
+
+.otp-card.is-bad .otp-box span {
+    color: #be123c;
+}
+
+.otp-card.is-bad .otp-lock {
+    background: #fff1f2;
+    color: #e11d48;
+}
+
+/* ---------- right code: lock pops open, rings and sparks, boxes go green
+   in a wave, the title slides in and the button shines ---------- */
+
+.otp-card.is-ok .otp-lock {
+    background: #16a34a;
+    color: #ffffff;
+    animation: otp-lockpop .5s cubic-bezier(.3, 1.6, .5, 1);
+}
+
+.otp-card.is-ok .otp-shackle {
+    transform: translateY(-4px) rotate(-28deg);
+}
+
+.otp-card.is-ok .otp-lock::before { animation: otp-ring .9s .15s ease-out forwards; }
+.otp-card.is-ok .otp-lock::after { animation: otp-ring .9s .4s ease-out forwards; }
+.otp-card.is-ok .otp-spark { animation: otp-spark .7s .2s cubic-bezier(.2, .8, .3, 1) forwards; }
+
+.otp-card.is-ok .otp-box {
+    border-color: #16a34a;
+    background: #e8f8ee;
+    transition-delay: calc(var(--i) * 70ms);
+    animation: otp-wave .55s calc(var(--i) * 70ms) both;
+}
+
+.otp-card.is-ok .otp-box span {
+    color: #15803d;
+    transition: color .2s calc(var(--i) * 70ms), transform .28s;
+}
+
+.otp-card.is-ok [data-otp-title],
+.otp-card.is-ok [data-otp-sub] {
+    animation: otp-fadeup .45s both;
+}
+
+.otp-card.is-ok [data-otp-sub] {
+    animation-delay: .08s;
+}
+
+.otp-card.is-ok .otp-btn {
+    position: relative;
+    overflow: hidden;
+    background: #16a34a;
+    box-shadow: 0 18px 40px -14px rgba(22, 163, 74, .8);
+    animation: otp-fadeup .4s .45s both;
+}
+
+.otp-card.is-ok .otp-btn::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -50%;
+    width: 40%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, .45), transparent);
+    transform: skewX(-20deg);
+    animation: otp-shine 2.4s 1s ease-in-out infinite;
+}
+
+.otp-arr {
+    display: inline-block;
+    animation: otp-nudge 1.2s 1s ease-in-out infinite;
+}
+
+.otp-card.is-ok .otp-foot {
+    opacity: 0;
+    pointer-events: none;
+}
+
+@keyframes otp-caret { 50% { opacity: 0; } }
+@keyframes otp-spin { to { transform: rotate(360deg); } }
+@keyframes otp-shake { 15%, 55% { transform: translateX(-7px); } 35%, 75% { transform: translateX(7px); } }
+@keyframes otp-lockpop { 40% { transform: scale(1.18) rotate(-6deg); } }
+@keyframes otp-ring { from { opacity: .8; transform: scale(1); } to { opacity: 0; transform: scale(1.9); } }
+@keyframes otp-spark { from { opacity: 1; transform: rotate(var(--a)) translateY(0) scale(1); } to { opacity: 0; transform: rotate(var(--a)) translateY(-46px) scale(.4); } }
+@keyframes otp-wave { 35% { transform: translateY(-9px); } 65% { transform: translateY(2px); } }
+@keyframes otp-fadeup { from { opacity: 0; transform: translateY(8px); } }
+@keyframes otp-shine { 0% { left: -50%; } 45%, 100% { left: 130%; } }
+@keyframes otp-nudge { 50% { transform: translateX(4px); } }
+
+@media (max-width: 600px) {
+    .otp-card.is-boxes .otp-boxes { gap: 7px; }
+    .otp-box { height: 56px; }
+    .otp-box span { font-size: 24px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .otp-card *,
+    .otp-card *::before,
+    .otp-card *::after {
+        animation-duration: .01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: .01ms !important;
+    }
+}

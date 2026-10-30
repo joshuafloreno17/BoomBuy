@@ -60,7 +60,12 @@
             <button type="button" class="ph-arrow is-next" data-ph-next aria-label="Next promotion"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
             <div class="ph-dots">
                 @foreach($slides as $i => $s)
-                    <button type="button" class="{{ $i === 0 ? 'is-active' : '' }}" data-ph-dot="{{ $i }}" aria-label="Show promotion {{ $i + 1 }}" @if($i === 0) aria-current="true" @endif></button>
+                    @php
+                        // Short tab label (wide screens): the eyebrow before any " · ", else the title;
+                        // "Trending in Shoes" → "Shoes". CSS trims anything still too long.
+                        $dotLabel = preg_replace('/^Trending in /', '', trim(explode(' · ', $s['eyebrow'] ?: $s['title'])[0]));
+                    @endphp
+                    <button type="button" class="{{ $i === 0 ? 'is-active' : '' }}" data-ph-dot="{{ $i }}" aria-label="Show promotion {{ $i + 1 }}: {{ $s['title'] }}" @if($i === 0) aria-current="true" @endif><span class="ph-dot-label">{{ $dotLabel }}</span></button>
                 @endforeach
             </div>
         @endif

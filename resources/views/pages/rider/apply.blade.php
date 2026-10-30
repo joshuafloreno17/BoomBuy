@@ -136,7 +136,7 @@
                         id="check_email"
                         name="email"
                         value="{{ $checkedEmail ?? '' }}"
-                        placeholder="Enter the email you applied with"
+                        placeholder="you@example.com"
                         style="width:100%; padding:10px 12px; border:1px solid #d9d4e7; border-radius:8px; font-family:inherit; font-size:12px;"
                     >
                 </div>
@@ -589,7 +589,7 @@
         id="email"
         name="email"
         value="{{ old('email') }}"
-        placeholder="Enter your email address"
+        placeholder="you@example.com"
         autocomplete="email"
         required
     >
@@ -608,7 +608,7 @@
             name="password"
             pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}"
             title="At least 8 characters with an uppercase letter, a lowercase letter, a number and a special character."
-            placeholder="Create a password"
+            placeholder="Min. 8 · A-Z, a-z, 0-9 and a symbol"
             autocomplete="new-password"
             minlength="8"
             required
@@ -635,7 +635,7 @@
             type="password"
             id="password_confirmation"
             name="password_confirmation"
-            placeholder="Confirm your password"
+            placeholder="Type the same password again"
             autocomplete="new-password"
             required
         >

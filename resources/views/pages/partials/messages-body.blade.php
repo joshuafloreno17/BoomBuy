@@ -329,7 +329,11 @@
             <input type="search" id="newChatSearch" placeholder="Search a shop, name or email" autocomplete="off" aria-label="Search people">
         </div>
         <div class="new-chat-results" id="newChatResults" data-url="{{ route('messages.recipients') }}">
-            <p class="new-chat-hint">Loading…</p>
+            <div class="bb-skel" aria-label="Loading">
+                @for ($i = 0; $i < 5; $i++)
+                    <div class="bb-skel-row"><span class="bb-skel-thumb is-round"></span><span class="bb-skel-lines"><span></span><span></span></span></div>
+                @endfor
+            </div>
         </div>
     </dialog>
 @endif
@@ -414,6 +418,10 @@
         function search(q) {
             if (controller) controller.abort();
             controller = new AbortController();
+            var mine = controller;
+
+            // Skeleton rows over the old list while this one loads (shown after 150ms).
+            results.classList.add('bb-skel-overlay');
 
             fetch(results.dataset.url + '?q=' + encodeURIComponent(q), {
                 headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' },
@@ -422,7 +430,10 @@
             })
                 .then(function (r) { return r.json(); })
                 .then(function (data) { show(data.people || []); })
-                .catch(function () {});
+                .catch(function () {})
+                .finally(function () {
+                    if (controller === mine) results.classList.remove('bb-skel-overlay');
+                });
         }
 
         // Every keystroke (even one letter, or clearing the box) updates the list.

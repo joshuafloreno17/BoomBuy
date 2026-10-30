@@ -331,7 +331,7 @@
                                 type="password"
                                 name="password"
                                 id="login-password"
-                                placeholder="Enter your password"
+                                placeholder="••••••••"
                                 autocomplete="current-password"
                                 required
                             >

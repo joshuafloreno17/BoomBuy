@@ -490,7 +490,39 @@ class AuthController extends Controller
         return view('pages.verify-otp');
     }
 
+    /**
+     * The verify page posts here with fetch() so it can play the unlock
+     * animation before leaving; a plain form post still gets the redirects.
+     * JSON: {ok, message, redirect?} — a wrong code stays on the page (422),
+     * anything that leaves the page sends where to go.
+     */
     public function verifyOtp()
+    {
+        $response = $this->completeOtpVerification();
+
+        if (!request()->expectsJson() || !$response instanceof \Illuminate\Http\RedirectResponse) {
+            return $response;
+        }
+
+        $to = $response->getTargetUrl();
+        $staysHere = parse_url($to, PHP_URL_PATH) === parse_url(route('otp.show'), PHP_URL_PATH);
+        $error = session('error');
+
+        if ($error) {
+            if ($staysHere) {
+                // Shown by the page itself; don't flash it again on the next load.
+                session()->forget('error');
+
+                return response()->json(['ok' => false, 'message' => $error], 422);
+            }
+
+            return response()->json(['ok' => false, 'message' => $error, 'redirect' => $to], 422);
+        }
+
+        return response()->json(['ok' => true, 'message' => session('success'), 'redirect' => $to]);
+    }
+
+    private function completeOtpVerification()
     {
         $pending = session()->get('pending_registration');
 

@@ -59,7 +59,7 @@
                 id="email"
                 name="email"
                 value="{{ old('email') }}"
-                placeholder="Enter your registered email"
+                placeholder="you@example.com"
                 autocomplete="email"
                 class="auth-input"
                 required

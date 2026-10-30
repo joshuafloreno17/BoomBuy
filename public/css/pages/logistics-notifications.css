@@ -182,3 +182,18 @@ a { text-decoration: none; }
         padding-left: 0;
     }
 }
+
+/* Chevron: tells the card opens something. */
+.notification-go {
+    align-self: center;
+    flex: 0 0 auto;
+    color: var(--theme-muted, #645a80);
+    font-size: 14px;
+    opacity: 0.6;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+.notification-card:hover .notification-go {
+    opacity: 1;
+    transform: translateX(2px);
+}

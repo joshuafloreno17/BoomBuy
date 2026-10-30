@@ -64,6 +64,22 @@
         return i;
     }
 
+    // Grey placeholder rows while suggestions load (css/partials/skeleton.css).
+    function skeleton(rows) {
+        var box = el('div', 'bb-skel');
+        box.setAttribute('aria-label', 'Loading');
+        for (var i = 0; i < rows; i++) {
+            var row = el('div', 'bb-skel-row');
+            var lines = el('span', 'bb-skel-lines');
+            lines.appendChild(el('span'));
+            lines.appendChild(el('span'));
+            row.appendChild(el('span', 'bb-skel-thumb'));
+            row.appendChild(lines);
+            box.appendChild(row);
+        }
+        return box;
+    }
+
     // Wraps each typed word inside the label with <mark>, built node by node.
     function highlighted(text, query) {
         var span = el('span', 'bb-suggest-name');
@@ -337,10 +353,11 @@
                 panel.appendChild(section);
             }
 
-            var popularSlot = el('div');
-            panel.appendChild(popularSlot);
-
             var chosen = category();
+
+            // Cached popular categories arrive instantly; anything else gets skeleton rows first.
+            var popularSlot = (chosen || !popularCache) ? skeleton(3) : el('div');
+            panel.appendChild(popularSlot);
 
             if (chosen) {
                 // A category is already picked: show what's new in it, not other categories.
@@ -357,12 +374,13 @@
                     }
                     slot.appendChild(browseCategoryRow());
                     popularSlot.replaceWith(slot);
-                }).catch(function () { /* offline — recent searches still work */ });
+                }).catch(function () { popularSlot.remove(); /* offline — recent searches still work */ });
             } else {
                 popular().then(function (categories) {
-                    if (input.value.trim() !== '' || category() || !categories.length) return;
+                    if (input.value.trim() !== '' || category()) return;
+                    if (!categories.length) { popularSlot.remove(); return; }
                     popularSlot.replaceWith(categorySection('Popular categories', categories));
-                }).catch(function () { /* offline — recent searches still work */ });
+                }).catch(function () { popularSlot.remove(); /* offline — recent searches still work */ });
             }
 
             open();
@@ -444,12 +462,22 @@
 
                 var chosen = category();
 
+                // A slow answer swaps the stale list for skeleton rows; a fast one never shows them.
+                var slow = setTimeout(function () {
+                    if (mine !== requestId) return;
+                    panel.textContent = '';
+                    panel.appendChild(skeleton(4));
+                    open();
+                }, 150);
+
                 fetchSuggestions(q, chosen).then(function (data) {
+                    clearTimeout(slow);
                     // Ignore answers to older keystrokes (or another category) that arrive late.
                     if (mine === requestId && input.value.trim() === q && category() === chosen) {
                         renderResults(q, data);
                     }
                 }).catch(function () {
+                    clearTimeout(slow);
                     if (mine !== requestId) return;
                     panel.textContent = '';
                     panel.appendChild(el('div', 'bb-suggest-loading', 'Suggestions are unavailable right now — press Enter to search.'));

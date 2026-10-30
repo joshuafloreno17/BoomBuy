@@ -125,6 +125,8 @@
 
                                     </div>
 
+                                    <i class="bi bi-chevron-right notification-go" aria-hidden="true"></i>
+
                                 </div>
 
 

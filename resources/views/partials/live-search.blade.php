@@ -6,6 +6,8 @@
     Every selector in data-live-target is swapped with the same element from
     the freshly rendered page (so counts, tabs and pagination stay in sync).
     Typing waits 300ms; selects apply right away; Enter still works.
+    While it loads, the last target (the list itself) shows skeleton rows
+    (css/partials/skeleton.css); the others just fade.
     Without JavaScript the form simply submits as before.
 --}}
 @once
@@ -40,8 +42,9 @@
             if (controller) controller.abort();
             controller = new AbortController();
 
-            targets.forEach(function (sel) {
-                document.querySelectorAll(sel).forEach(function (el) { el.classList.add('bb-live-loading'); });
+            targets.forEach(function (sel, i) {
+                var cls = i === targets.length - 1 ? 'bb-skel-overlay' : 'bb-live-loading';
+                document.querySelectorAll(sel).forEach(function (el) { el.classList.add(cls); });
             });
 
             fetch(url, {
@@ -78,7 +81,7 @@
                 })
                 .finally(function () {
                     targets.forEach(function (sel) {
-                        document.querySelectorAll(sel).forEach(function (el) { el.classList.remove('bb-live-loading'); });
+                        document.querySelectorAll(sel).forEach(function (el) { el.classList.remove('bb-live-loading', 'bb-skel-overlay'); });
                     });
                 });
         }

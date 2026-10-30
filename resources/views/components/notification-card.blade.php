@@ -45,6 +45,9 @@
 
         </div>
 
+        {{-- Shows the card opens something. --}}
+        <i class="bi bi-chevron-right notification-go" aria-hidden="true"></i>
+
     </div>
 
 

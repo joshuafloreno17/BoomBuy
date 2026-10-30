@@ -73,7 +73,7 @@
                     type="password"
                     id="password"
                     name="password"
-                    placeholder="Enter new password"
+                    placeholder="Min. 8 · A-Z, a-z, 0-9 and a symbol"
                     autocomplete="new-password"
                     minlength="8"
                     class="auth-input"
@@ -93,7 +93,7 @@
                     type="password"
                     id="password_confirmation"
                     name="password_confirmation"
-                    placeholder="Confirm new password"
+                    placeholder="Type the same password again"
                     autocomplete="new-password"
                     class="auth-input"
                     required

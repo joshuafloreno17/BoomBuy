@@ -165,7 +165,7 @@
                             <option value="">Select city / municipality first</option>
                         </select>
                         {{-- For the few towns with no barangay list: typed instead. --}}
-                        <input type="text" id="barangay_text" maxlength="60" placeholder="Type your barangay" hidden disabled>
+                        <input type="text" id="barangay_text" maxlength="60" placeholder="e.g. San Isidro" hidden disabled>
                     </div>
                     <div class="field">
                         <label for="street">Street <span class="req">*</span></label>

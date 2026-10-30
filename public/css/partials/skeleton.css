@@ -1,0 +1,131 @@
+/*
+    Loading skeletons: grey placeholder rows with a soft shimmer, shown while
+    AJAX content is on its way (instead of a spinner or a faded old list).
+
+    1. .bb-skel / .bb-skel-row: real elements a script inserts (search suggest,
+       new chat search). Use skeletonRows(n) markup:
+       <div class="bb-skel"><div class="bb-skel-row"><span class="bb-skel-thumb"></span>
+       <span class="bb-skel-lines"><span></span><span></span></span></div>…</div>
+    2. .bb-skel-overlay: a list being refreshed by partials.live-search gets
+       rows painted over it. It only fades in after 150ms, so a fast answer
+       never flashes.
+*/
+
+:root {
+    --bb-skel-base: #ece8f6;
+    --bb-skel-shine: rgba(255, 255, 255, 0.75);
+}
+
+@keyframes bb-skel-shimmer {
+    from { background-position: -320px 0; }
+    to { background-position: calc(100% + 320px) 0; }
+}
+
+@keyframes bb-skel-in {
+    to { opacity: 1; }
+}
+
+/* ---------- inserted rows ---------- */
+
+.bb-skel {
+    display: grid;
+    gap: 14px;
+    padding: 12px 14px;
+}
+
+.bb-skel-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.bb-skel-thumb,
+.bb-skel-lines > span {
+    display: block;
+    border-radius: 8px;
+    background:
+        linear-gradient(90deg, transparent, var(--bb-skel-shine), transparent) no-repeat,
+        var(--bb-skel-base);
+    background-size: 320px 100%, auto;
+    animation: bb-skel-shimmer 1.3s linear infinite;
+}
+
+.bb-skel-thumb {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+}
+
+.bb-skel-thumb.is-round {
+    border-radius: 50%;
+}
+
+.bb-skel-lines {
+    display: grid;
+    flex: 1;
+    gap: 8px;
+    min-width: 0;
+}
+
+.bb-skel-lines > span {
+    width: 70%;
+    height: 11px;
+}
+
+.bb-skel-lines > span + span {
+    width: 42%;
+    height: 9px;
+}
+
+.bb-skel-row:nth-child(2n) .bb-skel-lines > span:first-child { width: 58%; }
+.bb-skel-row:nth-child(3n) .bb-skel-lines > span:first-child { width: 80%; }
+
+/* ---------- overlay on a refreshing list ---------- */
+
+.bb-skel-overlay {
+    position: relative;
+    min-height: 180px;
+}
+
+.bb-skel-overlay::before,
+.bb-skel-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    pointer-events: none;
+    animation: bb-skel-in 0.2s ease 0.15s forwards;
+}
+
+/* The rows. Each 68px tile: a 40px thumb, a title bar, a shorter sub bar and a divider. */
+.bb-skel-overlay::before {
+    z-index: 5;
+    background:
+        linear-gradient(var(--bb-skel-base) 0 40px, transparent 40px) 16px 14px / 40px 68px repeat-y,
+        linear-gradient(var(--bb-skel-base) 0 12px, transparent 12px) 72px 18px / 48% 68px repeat-y,
+        linear-gradient(var(--bb-skel-base) 0 9px, transparent 9px) 72px 40px / 28% 68px repeat-y,
+        linear-gradient(transparent 67px, var(--theme-border, #e9e4fa) 67px) 0 0 / 100% 68px repeat-y,
+        var(--bb-skel-surface, #fff);
+}
+
+/* The shimmer sweeping across them. */
+.bb-skel-overlay::after {
+    z-index: 6;
+    background: linear-gradient(90deg, transparent, var(--bb-skel-shine), transparent) no-repeat;
+    background-size: 320px 100%;
+    animation: bb-skel-in 0.2s ease 0.15s forwards, bb-skel-shimmer 1.3s linear 0.15s infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .bb-skel-thumb,
+    .bb-skel-lines > span {
+        animation: none;
+        background: var(--bb-skel-base);
+    }
+
+    .bb-skel-overlay::after {
+        display: none;
+    }
+}
