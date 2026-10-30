@@ -32,8 +32,25 @@
 
                     <button type="submit" class="filter-btn">Apply</button>
 
+                    {{-- The browser's (or the app's) print screen — pick a printer or "Save as PDF". --}}
+                    <button type="button" class="print-btn" onclick="window.print()">
+                        <i class="bi bi-printer"></i> Print / Save PDF
+                    </button>
+
                 </form>
             </x-seller-page-head>
+
+            {{-- Only on paper / in the PDF, in place of the page head above. --}}
+            <div class="print-head">
+                <div>
+                    <strong>{{ $shopName }}</strong>
+                    <span>Sales Report · BoomBuy Seller Center</span>
+                </div>
+                <div class="print-head-meta">
+                    <span>{{ \Carbon\Carbon::parse($from)->format('M d, Y') }} – {{ \Carbon\Carbon::parse($to)->format('M d, Y') }}</span>
+                    <small>Generated {{ now()->format('M d, Y g:i A') }}</small>
+                </div>
+            </div>
 
             <div class="stats">
 
@@ -194,6 +211,14 @@
                         y: { grid: { display: false }, ticks: { callback: function (v) { return bbShortLabel(this.getLabelForValue(v)); } } }
                     }
                 }
+            });
+
+            // Redraw the charts at the paper's width so they aren't cut off or stretched.
+            window.addEventListener('beforeprint', function () {
+                Object.values(Chart.instances).forEach(function (c) { c.resize(); });
+            });
+            window.addEventListener('afterprint', function () {
+                Object.values(Chart.instances).forEach(function (c) { c.resize(); });
             });
         });
     </script>

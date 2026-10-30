@@ -9,6 +9,7 @@ use App\Models\ProductVariation;
 use App\Support\Categories;
 use App\Support\DeviceSpecs;
 use App\Support\ProductPhotos;
+use App\Support\ProhibitedItems;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\DB;
 
@@ -154,6 +155,9 @@ class ProductService
 
         ProductPhotos::sync($product);
 
+        // Mentions a prohibited item → hidden until the admin reviews it.
+        ProhibitedItems::screen($product->fresh());
+
         return $product->fresh();
     }
 
@@ -226,6 +230,10 @@ class ProductService
             throw new ActionFailed('Please add at least one product photo.');
         }
 
+        // Checked again only when the words change, so a product the admin
+        // already cleared isn't flagged again by a price or stock edit.
+        $recheck = $product->is_draft || $product->name !== $name || $product->description !== $description;
+
         $product->update([
             'name' => $name,
             'category' => $categoryName,
@@ -263,6 +271,10 @@ class ProductService
 
         ProductPhotos::sync($product);
         ProductPhotos::deleteUnused($removedPaths);
+
+        if ($recheck) {
+            ProhibitedItems::screen($product->fresh());
+        }
 
         return $product->fresh();
     }

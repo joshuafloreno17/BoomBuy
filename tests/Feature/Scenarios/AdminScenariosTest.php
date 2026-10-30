@@ -232,6 +232,20 @@ class AdminScenariosTest extends TestCase
         $this->assertEquals($seller->viewData('commissionOwed'), $row['commission']);
     }
 
+    public function test_A10b_seller_report_prints_with_shop_name_and_dates(): void
+    {
+        $this->makeOrder($this->buyerAt(), $this->shoes, 'Delivered');
+
+        $this->actingAsUser($this->seller)
+            ->get(route('seller.reports', ['from' => '2026-10-01', 'to' => '2026-10-31']))
+            ->assertOk()
+            ->assertSee('window.print()', false)
+            ->assertSee('Print / Save PDF')
+            ->assertSee('class="print-head"', false)
+            ->assertSee('Santa Cruz Kicks')
+            ->assertSee('Oct 01, 2026 – Oct 31, 2026');
+    }
+
     public function test_A11_settings_fees_announcement_and_policies(): void
     {
         $this->admin()->post(route('admin.settings.commission.update'), ['commission_rate' => 150])->assertSessionHasErrors('commission_rate');

@@ -774,10 +774,15 @@ class SellerController extends Controller
         // The chart gets every day of the range (₱0 included); the table keeps only days with sales.
         $trendDays = $this->everyDay($dailySales, $from, $to);
 
+        // Heading of the printed / saved-as-PDF copy.
+        $shopName = DB::table('seller_applications')->where('user_id', $user['id'])->value('business_name')
+            ?: ($user['name'] ?? 'Seller');
+
         return view(
             'pages.seller.reports',
             compact(
                 'user',
+                'shopName',
                 'from',
                 'to',
                 'totalSales',
@@ -1531,11 +1536,21 @@ class SellerController extends Controller
 
         StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
 
+        if ($product->is_flagged) {
+            return redirect()->route('seller.products')->with('error', self::autoFlaggedMessage($product));
+        }
+
         return redirect()
             ->route('seller.products')
             ->with('success', $draft
                 ? $product->name . ' was saved as a draft. Buyers won\'t see it until you publish it.'
                 : $product->name . ' has been added to your store!');
+    }
+
+    /** Shown after a save that ProhibitedItems flagged. */
+    private static function autoFlaggedMessage(Product $product): string
+    {
+        return $product->name . ' was saved but is hidden from the Shop: ' . lcfirst(str_replace('Auto-flagged: ', '', (string) $product->flag_reason));
     }
 
     /** What the Add/Edit Product form sends besides photos and options. */
@@ -2124,6 +2139,8 @@ class SellerController extends Controller
             }
         }
 
+        $wasFlagged = (bool) $product->is_flagged;
+
         try {
             $products->update(
                 $product,
@@ -2148,6 +2165,10 @@ class SellerController extends Controller
         // Forms that show the store categories send them (an empty list clears them).
         if (request()->has('store_categories_sent')) {
             StoreCategoryController::syncProduct($product, (array) request('store_categories', []));
+        }
+
+        if (!$wasFlagged && $product->fresh()->is_flagged) {
+            return redirect()->route('seller.products')->with('error', self::autoFlaggedMessage($product->fresh()));
         }
 
         return redirect()

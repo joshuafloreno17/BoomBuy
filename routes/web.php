@@ -307,6 +307,9 @@ Route::delete('/admin/banners/{id}', [PromoBannerController::class, 'destroy'])-
 
 Route::post('/admin/settings/policies', [AdminController::class, 'updatePolicies'])->name('admin.settings.policies.update');
 
+// Seller compliance: products mentioning these words are hidden on save.
+Route::post('/admin/settings/prohibited-words', [AdminController::class, 'updateProhibitedWords'])->name('admin.settings.prohibited.update');
+
 
 
 

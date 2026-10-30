@@ -181,6 +181,25 @@
 
         </div>
 
+        <!-- PROHIBITED ITEMS -->
+
+        <div class="card">
+            <h2><i class="bi bi-shield-exclamation"></i> Prohibited Items</h2>
+            <p class="desc">A product whose name or description mentions one of these is hidden from the Shop the moment the seller saves it, and shows up on <a href="{{ route('admin.compliance') }}">Seller Compliance</a> for you to review. One word or phrase per line; whole words only. A word you add is also checked against products already listed.</p>
+
+            <form method="POST" action="{{ route('admin.settings.prohibited.update') }}">
+                @csrf
+
+                <div class="form-group">
+                    <label for="prohibited_words">Words and phrases</label>
+                    <textarea id="prohibited_words" name="prohibited_words" rows="8" required>{{ old('prohibited_words', implode("\n", \App\Support\ProhibitedItems::words())) }}</textarea>
+                </div>
+
+                <button type="submit" class="save-btn">Save List</button>
+            </form>
+
+        </div>
+
     </div>
 
     </main>

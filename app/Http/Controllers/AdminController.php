@@ -23,6 +23,7 @@ use App\Http\Requests\CommissionRateRequest;
 use App\Http\Requests\DeliveryFeeRequest;
 use App\Http\Requests\AnnouncementRequest;
 use App\Http\Requests\PoliciesRequest;
+use App\Http\Requests\ProhibitedWordsRequest;
 
 class AdminController extends Controller
 {
@@ -971,6 +972,29 @@ class AdminController extends Controller
         PlatformSetting::set('return_policy', trim((string) request('return_policy', '')));
 
         return back()->with('success', 'Platform policies updated successfully.');
+    }
+
+    public function updateProhibitedWords(ProhibitedWordsRequest $request)
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $words = \App\Support\ProhibitedItems::parse($request->validated('prohibited_words'));
+
+        if ($words === []) {
+            return back()->withInput()->with('error', 'Please keep at least one word on the list.');
+        }
+
+        $added = array_values(array_diff($words, \App\Support\ProhibitedItems::words()));
+
+        PlatformSetting::set(\App\Support\ProhibitedItems::SETTING, implode("\n", $words));
+
+        // Products already listed are checked against the new words only.
+        $flagged = \App\Support\ProhibitedItems::scanFor($added);
+
+        return back()->with('success', 'Prohibited items list saved (' . count($words) . ' words).'
+            . ($flagged > 0 ? ' ' . $flagged . ' listed product(s) mention a new word and were hidden — see Seller Compliance.' : ''));
     }
 
     public function updateAccountStatus($id)

@@ -213,6 +213,27 @@ class RiderScenariosTest extends TestCase
             ->assertViewHas('history', fn ($h) => $h->count() === 1);
     }
 
+    public function test_R08b_profit_chart_has_every_day_of_the_range(): void
+    {
+        $this->assigned('Delivered', ['delivered_at' => now()->subDays(2)]);
+
+        $page = $this->asRider()->get(route('rider.profit', ['from' => now()->subDays(6)->toDateString(), 'to' => now()->toDateString()]))
+            ->assertOk()
+            ->assertSee('id="profitChart"', false);
+
+        $days = $page->viewData('chartDays');
+        $this->assertCount(7, $days);
+        $this->assertSame(now()->subDays(6)->toDateString(), $days->first()['day']);
+        $this->assertEquals(50.0, $days->firstWhere('day', now()->subDays(2)->toDateString())['profit']);
+        $this->assertSame(0, $days->firstWhere('day', now()->subDay()->toDateString())['deliveries']);
+
+        // No deliveries → a short note instead of an empty chart.
+        $this->get(route('rider.profit', ['from' => now()->subDays(90)->toDateString(), 'to' => now()->subDays(80)->toDateString()]))
+            ->assertOk()
+            ->assertDontSee('id="profitChart"', false)
+            ->assertSee('No completed deliveries in this date range yet.');
+    }
+
     public function test_R08b_changing_the_fee_later_does_not_change_past_earnings(): void
     {
         // Delivered the normal way, while the fee is ₱50.

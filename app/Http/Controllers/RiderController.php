@@ -405,6 +405,21 @@ class RiderController extends Controller
             ->sortKeysDesc()
             ->values();
 
+        // The chart gets every day of the range, ₱0 included (oldest first);
+        // ranges over ~3 months keep only the days with deliveries.
+        $start = Carbon::parse($from)->startOfDay();
+        $end = Carbon::parse($to)->startOfDay();
+        $chartDays = $dailyProfit->reverse()->values();
+
+        if ($end->gte($start) && $start->diffInDays($end) <= 92) {
+            $byDay = $dailyProfit->keyBy('day');
+            $chartDays = collect();
+
+            for ($day = $start->copy(); $day->lte($end); $day->addDay()) {
+                $chartDays->push($byDay[$day->toDateString()] ?? ['day' => $day->toDateString(), 'deliveries' => 0, 'profit' => 0.0]);
+            }
+        }
+
         // Pay per job (A33) and the COD money to remit (A24).
         $payToday = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfDay(), now()->endOfDay());
         $payWeek = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfWeek(), now()->endOfWeek());
@@ -423,7 +438,8 @@ class RiderController extends Controller
                 'totalDeliveries',
                 'totalProfit',
                 'completedDeliveries',
-                'dailyProfit'
+                'dailyProfit',
+                'chartDays'
             )
         );
     }

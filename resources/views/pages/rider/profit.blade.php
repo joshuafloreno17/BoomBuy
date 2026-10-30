@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => 'Profit — BoomBuy Rider'])
 
     <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/rider-profit.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/rider-profit.css') }}">
 </head>
 
 <body>
@@ -77,6 +77,15 @@
             </div>
 
             <div class="panel">
+                <h2>Earnings per Day</h2>
+                @if($totalDeliveries === 0)
+                    <p class="chart-empty">No completed deliveries in this date range yet.</p>
+                @else
+                    <div class="chart-box"><canvas id="profitChart"></canvas></div>
+                @endif
+            </div>
+
+            <div class="panel">
                 <h2>Daily Breakdown</h2>
 
                 <table>
@@ -108,6 +117,58 @@
     </main>
 
     @include('partials.pwa-register')
+
+    @if($totalDeliveries > 0)
+        <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+        @include('partials.chart-defaults')
+        <script>
+            var profitLabels = @json($chartDays->map(fn($r) => \Carbon\Carbon::parse($r['day'])->format('M d')));
+            var profitValues = @json($chartDays->map(fn($r) => (float) $r['profit']));
+            var deliveryCounts = @json($chartDays->map(fn($r) => (int) $r['deliveries']));
+
+            // Bars = ₱ earned that day; line = how many deliveries.
+            bbCharts(function () {
+                new Chart(document.getElementById('profitChart'), {
+                    data: {
+                        labels: profitLabels,
+                        datasets: [{
+                            type: 'bar',
+                            label: 'Profit',
+                            data: profitValues,
+                            backgroundColor: '#b5a4e2',
+                            hoverBackgroundColor: '#6d4ad1',
+                            borderRadius: 5,
+                            maxBarThickness: 26,
+                            yAxisID: 'y',
+                        }, {
+                            type: 'line',
+                            label: 'Deliveries',
+                            data: deliveryCounts,
+                            borderColor: '#1f9d6b',
+                            backgroundColor: '#1f9d6b',
+                            tension: 0,
+                            pointRadius: profitLabels.length > 45 ? 0 : 3,
+                            yAxisID: 'y1',
+                        }]
+                    },
+                    options: {
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { display: true, position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } },
+                            tooltip: { callbacks: { label: function (c) {
+                                return c.dataset.yAxisID === 'y' ? 'Profit: ' + bbPeso(c.parsed.y) : 'Deliveries: ' + c.parsed.y;
+                            } } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, suggestedMax: 200, ticks: { callback: bbPesoAxis, maxTicksLimit: 6 } },
+                            y1: { beginAtZero: true, position: 'right', grid: { display: false }, ticks: { precision: 0, maxTicksLimit: 6 }, suggestedMax: 4 },
+                            x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+                        }
+                    }
+                });
+            });
+        </script>
+    @endif
 
 </body>
 </html>
