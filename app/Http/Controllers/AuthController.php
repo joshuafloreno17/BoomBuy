@@ -66,6 +66,34 @@ class AuthController extends Controller
 
     public function login()
     {
+        // The login page signs in with fetch() so its opening animation only
+        // plays once the server has said yes. It asks for JSON; a normal form
+        // post (no JavaScript) still gets the redirects below.
+        if (!request()->expectsJson()) {
+            return $this->attemptLogin();
+        }
+
+        session()->forget('error');
+        $response = $this->attemptLogin();
+
+        if (session()->has('error')) {
+            $payload = [
+                'ok' => false,
+                'error' => session('error'),
+                'hint' => session('portal_hint'),
+            ];
+
+            // Shown by the page itself, so don't let them flash on the next one.
+            session()->forget(['error', 'portal_hint', '_old_input']);
+
+            return response()->json($payload, 422);
+        }
+
+        return response()->json(['ok' => true, 'redirect' => $response->getTargetUrl()]);
+    }
+
+    private function attemptLogin()
+    {
         $email = strtolower(trim(request('email')));
         $password = request('password');
 
@@ -90,6 +118,7 @@ class AuthController extends Controller
         // and password live on its `users` row (changed from Admin > My Account).
         if (!$logisticsPortal && \App\Support\AdminLogin::attempt($email, $password)) {
             \App\Support\AdminLogin::startSession();
+            session()->flash('bb_build_in', true);
 
             return redirect()
                 ->route('admin.dashboard')
@@ -138,6 +167,9 @@ class AuthController extends Controller
 
         LoginGate::startSession($user);
 
+        // The first page after signing in builds itself in (partials.build-in).
+        session()->flash('bb_build_in', true);
+
         // Remember Me — a 30-day token cookie that logs this browser back in
         // after the normal session expires (see RestoreRememberedLogin).
         if (request('remember')) {
@@ -183,7 +215,8 @@ class AuthController extends Controller
 
     public function showRegisterChoose()
     {
-        return view('register.choose');
+        // The login page, already flipped over to the account types.
+        return view('pages.login', ['join' => true]);
     }
 
     public function submitRegisterRole()

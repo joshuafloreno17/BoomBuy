@@ -188,10 +188,10 @@ class LogisticsPortalTest extends TestCase
         $this->withSession(['pending_registration' => ['role' => 'logistics', 'email' => 'hub@example.com'], 'otp_email' => 'hub@example.com'])
             ->get(route('otp.show'))->assertOk()
             ->assertSee('Verify Code - BoomBuy Logistics')
-            ->assertSee('<span class="bb-portal-tag">Logistics</span>', false);
+            ->assertSee('<span class="reg-portal-tag">Logistics</span>', false);
 
         $this->withSession(['pending_registration' => ['role' => 'seller', 'email' => 'shop@example.com'], 'otp_email' => 'shop@example.com'])
             ->get(route('otp.show'))->assertOk()
-            ->assertDontSee('<span class="bb-portal-tag">Logistics</span>', false);
+            ->assertDontSee('<span class="reg-portal-tag">Logistics</span>', false);
     }
 }

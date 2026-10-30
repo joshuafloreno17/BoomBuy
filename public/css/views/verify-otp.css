@@ -1,0 +1,228 @@
+/* The small one-card pages in the sign-up look: the email code after
+   sign-up, and forgot / reset password. Layout and orb come from
+   register-shell.css; this is just the card. */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+.otp-card {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.otp-card .reg-head {
+    margin-bottom: 0;
+}
+
+.otp-card h2 {
+    font-size: 28px;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+}
+
+.otp-sub {
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--reg-muted);
+}
+
+.otp-sub strong {
+    color: #1d1536;
+    word-break: break-all;
+}
+
+.otp-timer {
+    font-size: 14px;
+    color: var(--reg-muted);
+}
+
+.otp-timer strong {
+    color: var(--reg-kicker);
+}
+
+.otp-timer.is-expired {
+    color: #b42318;
+}
+
+.otp-alert {
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.otp-alert.is-error {
+    background: #fff1f2;
+    border: 1px solid #fecdd3;
+    color: #be123c;
+}
+
+.otp-alert.is-ok {
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    color: #15803d;
+}
+
+.otp-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.otp-label {
+    font-size: 14px;
+    font-weight: 700;
+}
+
+.otp-input {
+    width: 100%;
+    height: 72px;
+    border: 1.5px solid rgba(109, 74, 209, 0.25);
+    border-radius: 16px;
+    background: #faf8ff;
+    font: 900 32px 'Figtree', sans-serif;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    text-align: center;
+    color: #1d1536;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.otp-input::placeholder {
+    color: #cfc6ea;
+}
+
+.otp-input:focus {
+    border-color: #7c5ce8;
+    box-shadow: 0 0 0 4px rgba(124, 92, 232, 0.16);
+    background: #ffffff;
+}
+
+/* Email and password boxes (forgot / reset password) */
+.auth-input {
+    width: 100%;
+    height: 52px;
+    padding: 0 16px;
+    border: 1.5px solid rgba(109, 74, 209, 0.25);
+    border-radius: 14px;
+    background: #ffffff;
+    font: 500 15px 'Figtree', sans-serif;
+    color: #1d1536;
+    outline: none;
+    transition: border-color .2s ease, box-shadow .2s ease;
+}
+
+.auth-input:focus {
+    border-color: #7c5ce8;
+    box-shadow: 0 0 0 4px rgba(124, 92, 232, 0.16);
+}
+
+.auth-input.input-error {
+    border-color: #d92d20;
+}
+
+.auth-password {
+    position: relative;
+}
+
+.auth-password .auth-input {
+    padding-right: 52px;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 4px;
+    top: 4px;
+    width: 44px;
+    height: 44px;
+    border: none;
+    border-radius: 10px;
+    background: transparent;
+    color: #6b6480;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.password-toggle:hover {
+    color: var(--theme-primary);
+}
+
+.field-error-msg {
+    display: none;
+    margin-top: -4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #b42318;
+}
+
+.otp-btn {
+    height: 56px;
+    border: none;
+    border-radius: 14px;
+    background: var(--theme-primary);
+    color: #ffffff;
+    font: 800 16px 'Figtree', sans-serif;
+    cursor: pointer;
+    box-shadow: 0 18px 40px -14px rgba(124, 92, 232, 0.9);
+    transition: background .2s ease;
+}
+
+.otp-btn:hover {
+    background: var(--theme-primary-hover);
+}
+
+.otp-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 14px;
+    border-top: 1px solid var(--reg-line);
+    font-size: 14px;
+    color: var(--reg-muted);
+}
+
+.otp-foot a {
+    color: var(--reg-kicker);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.otp-foot form {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.otp-foot button {
+    min-height: 36px;
+    border: none;
+    background: none;
+    font: 800 14px 'Figtree', sans-serif;
+    color: var(--reg-kicker);
+    cursor: pointer;
+}
+
+@media (max-width: 600px) {
+    .otp-card {
+        padding-bottom: 28px;
+    }
+
+    .otp-card h2 {
+        font-size: 24px;
+    }
+
+    .otp-input {
+        font-size: 28px;
+        letter-spacing: 0.4em;
+        text-indent: 0.4em;
+    }
+}

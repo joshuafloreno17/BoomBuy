@@ -1,6 +1,5 @@
 /* Moved out of resources/views/pages/rider/apply.blade.php */
 
-@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
 
 * {
     margin: 0;
@@ -495,12 +494,79 @@ footer {
     }
 }
 
-/* Keep the footer at the bottom of the screen even when the form is short. */
-body {
-    display: flex;
-    flex-direction: column;
+/* Sign-up look (register-shell.css): the form sits in the white card */
+
+.reg-inner .application-form {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
 }
 
-body > .page {
-    flex: 1 0 auto;
+.reg-night .form-section {
+    margin: 28px 0 0;
+}
+
+.reg-night .section-title {
+    font-family: 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    border-bottom-color: rgba(109, 74, 209, 0.14);
+}
+
+.reg-night .section-title span {
+    border-radius: 12px;
+    background: #efe9fd;
+    color: var(--theme-primary);
+}
+
+.reg-night label {
+    font-size: 13.5px;
+    font-weight: 700;
+    color: #1d1536;
+}
+
+.reg-night input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.reg-night select,
+.reg-night textarea {
+    min-height: 48px;
+    padding: 11px 14px;
+    border: 1.5px solid #e3e1ea;
+    border-radius: 12px;
+    background: #ffffff;
+    font-size: 15px;
+}
+
+.reg-night input:focus,
+.reg-night select:focus,
+.reg-night textarea:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 4px #e6dcff;
+}
+
+.reg-night .field-hint,
+.reg-night .file-help {
+    font-size: 12.5px;
+}
+
+.reg-night .alert,
+.reg-night .status-box,
+.reg-night .requirements-note,
+.reg-night .status-check-box {
+    border-radius: 14px !important;
+    margin-top: 16px;
+}
+
+.reg-night .submit-btn {
+    height: 56px;
+    border-radius: 14px;
+    background: var(--theme-primary);
+    font: 800 16px 'Figtree', sans-serif;
+    box-shadow: 0 18px 40px -14px rgba(124, 92, 232, 0.9);
+}
+
+.reg-night .submit-btn:hover {
+    background: var(--theme-primary-hover);
 }

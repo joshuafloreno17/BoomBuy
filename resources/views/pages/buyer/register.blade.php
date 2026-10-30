@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'Register — BoomBuy'])
+    @include('partials.head', ['title' => 'Register — BoomBuy', 'fonts' => true])
 
     <link rel="stylesheet" href="{{ vasset('css/views/buyer-register.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/register-shell.css') }}">
 </head>
-<body>
+<body class="reg-night">
 
 @php
     // Which wizard step each field lives on, so a failed submit reopens
@@ -28,45 +29,35 @@
 
 <div class="reg">
 
-    <aside class="reg-side">
-        <a href="{{ route('home') }}" class="reg-logo">
-            <span class="reg-logo-tile"><img src="{{ vasset('images/icon.svg') }}" alt="" width="32" height="32"></span>
-            BoomBuy
-        </a>
-
-        <div class="reg-pitch">
-            <span class="reg-eyebrow">Join BoomBuy</span>
-            <h1>Find it. Love it. <span>Boom</span> — it's yours.</h1>
-            <p>Trusted local sellers, flexible payments, and doorstep delivery — all in one account.</p>
-        </div>
-
-        <ul class="reg-perks">
-            <li>
-                <span class="reg-perk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="20" height="13" rx="2"/><path d="M2 10h20"/></svg></span>
-                <div><strong>GCash, Maya, card or COD</strong><small>Pay the way you like at checkout.</small></div>
-            </li>
-            <li>
-                <span class="reg-perk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1 7h13v10H1z"/><path d="M14 10h5l4 4v3h-9"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="18" r="2"/></svg></span>
-                <div><strong>Delivered by BoomBuy riders</strong><small>Track your order from the seller to you.</small></div>
-            </li>
-            <li>
-                <span class="reg-perk-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/><path d="M9 12l2 2 4-4"/></svg></span>
-                <div><strong>Verified buyers</strong><small>Your valid ID keeps the marketplace safe.</small></div>
-            </li>
-        </ul>
-    </aside>
+    @include('partials.register-side', [
+        'kicker' => 'Buyer account',
+        'headline' => ['Let’s set up', 'your account.'],
+        'blurb' => 'A few details at a time. The ring fills up as you go.',
+        // One per wizard step, then the email code that follows sign-up.
+        'steps' => [
+            ['Personal info', 'user'],
+            ['Delivery address', 'pin'],
+            ['ID and password', 'shield'],
+            ['Review', 'review'],
+        ],
+    ])
 
     <main class="reg-main">
     <div class="reg-inner">
 
-        <div class="reg-top">
-            <a href="{{ route('register') }}" class="reg-back"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Back</a>
-            <span>Have an account? <a href="{{ route('login') }}">Log in</a></span>
-        </div>
-
         <div class="reg-head">
-            <h2>Create your account</h2>
-            <p id="reg-step-label">It takes about 2 minutes · Step 1 of 4</p>
+            <div class="reg-card-top">
+                <span class="reg-kicker" id="reg-step-label">Buyer account · Step 1 of 4</span>
+                <a href="{{ route('login') }}#join" class="reg-back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Change role</a>
+            </div>
+
+            <ol class="reg-bars" id="reg-steps">
+                @foreach (['Personal info', 'Address', 'Verify', 'Review'] as $i => $name)
+                    <li data-step="{{ $i + 1 }}">
+                        <button type="button" class="reg-bar" data-goto="{{ $i + 1 }}" aria-label="Step {{ $i + 1 }}: {{ $name }}"></button>
+                    </li>
+                @endforeach
+            </ol>
         </div>
 
         @if ($errors->any() || session('error'))
@@ -81,18 +72,6 @@
                 </div>
             </div>
         @endif
-
-        <ol class="reg-steps" id="reg-steps">
-            @foreach (['Personal info', 'Address', 'Verify', 'Review'] as $i => $name)
-                <li data-step="{{ $i + 1 }}">
-                    <span class="reg-step-bar"></span>
-                    <button type="button" class="reg-step-btn" data-goto="{{ $i + 1 }}">
-                        <span class="reg-step-dot"><span>{{ $i + 1 }}</span><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12l5 5 9-10"/></svg></span>
-                        <span class="reg-step-name">{{ $name }}</span>
-                    </button>
-                </li>
-            @endforeach
-        </ol>
 
         <form method="POST" action="{{ route('buyer.register') }}" enctype="multipart/form-data" id="reg-form" novalidate>
             @csrf
@@ -135,7 +114,7 @@
                     </div>
                     <div class="field">
                         <label for="age">Age</label>
-                        <input type="text" id="age" name="age" value="{{ old('age') }}" readonly tabindex="-1" placeholder="Auto-computed">
+                        <input type="text" id="age" name="age" value="{{ old('age') }}" readonly tabindex="-1" placeholder="Auto">
                     </div>
                 </div>
 
@@ -329,6 +308,8 @@
             <p class="reg-private"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Your information is kept private and only used for your BoomBuy account.</p>
         </form>
 
+        <p class="reg-signin">Already have an account? <a href="{{ route('login') }}">Log in</a></p>
+
     </div>
     </main>
 
@@ -346,7 +327,6 @@
     initAgeCalc('birthdate', 'age');
 
     (function () {
-        var STEP_NAMES = ['Personal info', 'Address', 'Verify', 'Review'];
         var SERVER_ERRORS = @json($errors->toArray());
         var MAX_ID_BYTES = 5 * 1024 * 1024;
 
@@ -463,13 +443,14 @@
                 li.classList.toggle('is-done', i + 1 < n || (i + 1 < reached && i + 1 !== n));
             });
 
-            stepLabel.textContent = 'It takes about 2 minutes · Step ' + n + ' of 4 · ' + STEP_NAMES[n - 1];
+            stepLabel.textContent = 'Buyer account · Step ' + n + ' of 4';
             backBtn.hidden = n === 1;
             nextBtn.hidden = n === 4;
             submitBtn.hidden = n !== 4;
 
             if (n === 2) updateAddress();
             if (n === 4) fillReview();
+            if (window.bbRegSide) window.bbRegSide.show(n);
         }
 
         function goTo(n) {

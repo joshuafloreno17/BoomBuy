@@ -1,209 +1,165 @@
 @php
     // Opened from the BoomBuy Logistics login (see AuthController::showForgotPassword).
     $isLogistics = session('auth_portal') === 'logistics';
+
+    $eyeOff = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
 @endphp
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
 
-    @include('partials.head', ['title' => $isLogistics ? 'Create New Password — BoomBuy Logistics' : 'Create New Password — BoomBuy'])
+    @include('partials.head', ['title' => $isLogistics ? 'Create New Password — BoomBuy Logistics' : 'Create New Password — BoomBuy', 'fonts' => true])
 
-    <link rel="stylesheet" href="{{ vasset('css/views/reset-password.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/register-shell.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/verify-otp.css') }}">
 
 </head>
 
-<body>
+<body class="reg-night {{ $isLogistics ? 'is-logistics' : '' }}">
 
-<nav class="navbar">
+<div class="reg">
 
-    @include('partials.auth-logo', ['logistics' => $isLogistics])
+    @include('partials.register-side', [
+        'logistics' => $isLogistics,
+        'roleStep' => false,
+        'finalStep' => '',
+        'kicker' => 'Password reset',
+        'headline' => ['Choose a new', 'password.'],
+        'blurb' => 'Use the code from your email, then pick something only you know.',
+        'steps' => [['Your email', 'mail'], ['New password', 'key']],
+    ])
 
-</nav>
+    <main class="reg-main">
+    <div class="reg-inner otp-card">
 
-
-<div class="wrapper">
-
-    <div class="card">
-
-        <div class="header">
-
-            <div class="icon">
-                <i class="bi bi-shield-lock-fill"></i>
+        <div class="reg-head">
+            <div class="reg-card-top">
+                <span class="reg-kicker">{{ $isLogistics ? 'BoomBuy Logistics Security' : 'BoomBuy Security' }}</span>
             </div>
-
-            <small>
-                {{ $isLogistics ? 'BoomBuy Logistics Security' : 'BoomBuy Security' }}
-            </small>
-
-            <h1>
-                Create New Password
-            </h1>
-
-            <p>
-                Enter the 6-digit code we emailed you, then choose a new password.
-            </p>
-
+            <h2>Create new password</h2>
+            <p class="otp-sub">Enter the 6-digit code we emailed you, then choose a new password.</p>
         </div>
 
-
         @if(session('error'))
-
-            <div class="message">
-                {{ session('error') }}
-            </div>
-
+            <div class="otp-alert is-error" role="alert">{{ session('error') }}</div>
         @endif
-
 
         @if(session('success'))
-
-            <div class="message success">
-                {{ session('success') }}
-            </div>
-
+            <div class="otp-alert is-ok" role="status">{{ session('success') }}</div>
         @endif
 
-
-        <form
-            method="POST"
-            action="{{ route('password.update') }}"
-        >
+        <form method="POST" action="{{ route('password.update') }}" class="otp-form">
 
             @csrf
 
+            <label for="otp_code" class="otp-label">Verification code</label>
+            <input
+                type="text"
+                id="otp_code"
+                name="otp_code"
+                placeholder="000000"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+                class="otp-input"
+                required
+                autofocus
+            >
 
-            <div class="form-group">
-
-                <label>
-                    Verification Code
-                </label>
-
+            <label for="password" class="otp-label">New password</label>
+            <div class="auth-password">
                 <input
-                    type="text"
-                    id="otp_code"
-                    name="otp_code"
-                    placeholder="6-digit code from your email"
-                    maxlength="6"
-                    inputmode="numeric"
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter new password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    class="auth-input"
                     required
                 >
-
+                <button
+                    type="button"
+                    class="password-toggle"
+                    data-target="password"
+                    aria-label="Show password"
+                >{!! $eyeOff !!}</button>
             </div>
 
-
-            <div class="form-group">
-
-                <label>
-                    New Password
-                </label>
-
-                <div class="password-wrapper">
-                    <input
-                        type="password"
-                        id="password"
-                        name="password"
-                        placeholder="Enter new password"
-                        minlength="8"
-                        required
-                    >
-                    <button
-                        type="button"
-                        class="password-toggle"
-                        data-target="password"
-                        aria-label="Show password"
-                    ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
-                </div>
-
+            <label for="password_confirmation" class="otp-label">Confirm new password</label>
+            <div class="auth-password">
+                <input
+                    type="password"
+                    id="password_confirmation"
+                    name="password_confirmation"
+                    placeholder="Confirm new password"
+                    autocomplete="new-password"
+                    class="auth-input"
+                    required
+                >
+                <button
+                    type="button"
+                    class="password-toggle"
+                    data-target="password_confirmation"
+                    aria-label="Show password"
+                >{!! $eyeOff !!}</button>
             </div>
 
+            <span class="field-error-msg" id="password-match-msg">
+                Passwords do not match.
+            </span>
 
-            <div class="form-group">
-
-                <label>
-                    Confirm New Password
-                </label>
-
-                <div class="password-wrapper">
-                    <input
-                        type="password"
-                        id="password_confirmation"
-                        name="password_confirmation"
-                        placeholder="Confirm new password"
-                        required
-                    >
-                    <button
-                        type="button"
-                        class="password-toggle"
-                        data-target="password_confirmation"
-                        aria-label="Show password"
-                    ><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg></button>
-                </div>
-
-                <span class="field-error-msg" id="password-match-msg">
-                    Passwords do not match.
-                </span>
-
-            </div>
-
-
-            <button type="submit">
-
-                Change Password
-
-            </button>
+            <button type="submit" class="otp-btn">Change password</button>
 
         </form>
 
+        <div class="otp-foot">
+            <a href="{{ route($isLogistics ? 'logistics.login' : 'login') }}">← Back to login</a>
+            <a href="{{ route('password.request', $isLogistics ? ['portal' => 'logistics'] : []) }}">Send a new code</a>
+        </div>
+
     </div>
+    </main>
 
 </div>
 
-    <script>
-        (function () {
-            var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
-            var EYE_OFF_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>';
+<script>
+    window.bbRegSide.show(2);
 
-            document.querySelectorAll('.password-toggle').forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    var input = document.getElementById(btn.dataset.target);
-                    if (!input) return;
+    (function () {
+        var EYE_ICON = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+        var EYE_OFF_ICON = @json($eyeOff);
 
-                    var show = input.type === 'password';
-                    input.type = show ? 'text' : 'password';
-                    btn.innerHTML = show ? EYE_ICON : EYE_OFF_ICON;
-                    btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-                });
+        document.querySelectorAll('.password-toggle').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var input = document.getElementById(btn.dataset.target);
+                if (!input) return;
+
+                var show = input.type === 'password';
+                input.type = show ? 'text' : 'password';
+                btn.innerHTML = show ? EYE_ICON : EYE_OFF_ICON;
+                btn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
             });
+        });
 
-            var pwd = document.getElementById('password');
-            var confirmPwd = document.getElementById('password_confirmation');
-            var msg = document.getElementById('password-match-msg');
+        var pwd = document.getElementById('password');
+        var confirmPwd = document.getElementById('password_confirmation');
+        var msg = document.getElementById('password-match-msg');
 
-            if (pwd && confirmPwd) {
-                function checkMatch() {
-                    if (confirmPwd.value === '') {
-                        confirmPwd.classList.remove('input-error');
-                        if (msg) msg.style.display = 'none';
-                        return;
-                    }
+        function checkMatch() {
+            var typed = confirmPwd.value !== '';
+            var differ = typed && confirmPwd.value !== pwd.value;
+            confirmPwd.classList.toggle('input-error', differ);
+            msg.style.display = differ ? 'block' : 'none';
+        }
 
-                    if (confirmPwd.value !== pwd.value) {
-                        confirmPwd.classList.add('input-error');
-                        if (msg) msg.style.display = 'block';
-                    } else {
-                        confirmPwd.classList.remove('input-error');
-                        if (msg) msg.style.display = 'none';
-                    }
-                }
+        pwd.addEventListener('input', checkMatch);
+        confirmPwd.addEventListener('input', checkMatch);
+    })();
+</script>
 
-                pwd.addEventListener('input', checkMatch);
-                confirmPwd.addEventListener('input', checkMatch);
-            }
-        })();
-    </script>
-
-    @include('partials.pwa-register')
+@include('partials.pwa-register')
 
 </body>
 

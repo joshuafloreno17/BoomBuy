@@ -1,39 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'BoomBuy — Rider Application'])
+    @include('partials.head', ['title' => 'BoomBuy — Rider Application', 'fonts' => true])
 
     <link rel="stylesheet" href="{{ vasset('css/views/rider-apply.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/register-shell.css') }}">
 </head>
 
-<body>
+<body class="reg-night">
 
-    <nav class="navbar">
+<div class="reg">
 
-        <a href="{{ route('home') }}" class="logo">
-            <img src="{{ vasset('images/logo-wordmark.svg') }}" alt="BoomBuy" class="bb-logo-wordmark" width="131" height="46">
-        </a>
+    @include('partials.register-side', [
+        'kicker' => 'Rider account',
+        'headline' => ['Become a', 'BoomBuy Rider.'],
+        'blurb' => 'Your details, your vehicle and your documents. The ring fills up as you go.',
+        'steps' => [
+            ['Personal info', 'user'],
+            ['Vehicle', 'bike'],
+            ['Documents', 'docs'],
+            ['Account', 'shield'],
+        ],
+    ])
 
-        <a href="{{ route('register') }}" class="back-btn">
-            ← Back
-        </a>
+    <main class="reg-main">
+    <div class="reg-inner">
 
-    </nav>
-
-
-    <main class="page">
-
-        <div class="page-header">
-
-            <small>Rider Verification</small>
-
-            <h1>Become a BoomBuy Rider</h1>
-
-            <p>
-                Submit your personal information, vehicle details,
-                and required documents for verification.
-            </p>
-
+        <div class="reg-head">
+            <div class="reg-card-top">
+                <span class="reg-kicker">Rider account</span>
+                <a href="{{ route('login') }}#join" class="reg-back"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>Change role</a>
+            </div>
         </div>
 
 
@@ -169,7 +166,7 @@
                  PERSONAL INFORMATION
             ========================== -->
 
-            <section class="form-section">
+            <section class="form-section" data-section="1">
 
                 <h2 class="section-title">
                     <span><i class="bi bi-person-fill"></i></span>
@@ -266,7 +263,7 @@
                  VEHICLE INFORMATION
             ========================== -->
 
-            <section class="form-section">
+            <section class="form-section" data-section="2">
 
                 <h2 class="section-title">
                     <span><i class="bi bi-bicycle"></i></span>
@@ -400,7 +397,7 @@
                  DOCUMENT REQUIREMENTS
             ========================== -->
 
-            <section class="form-section">
+            <section class="form-section" data-section="3">
 
                 <h2 class="section-title">
                     <span><i class="bi bi-file-earmark-text-fill"></i></span>
@@ -572,8 +569,17 @@
 
             </section>
 
+            <section class="form-section" data-section="4">
+
+                <h2 class="section-title">
+                    <span><i class="bi bi-shield-lock-fill"></i></span>
+                    Account
+                </h2>
+
+                <div class="form-grid">
+
             {{-- EMAIL --}}
-<div class="form-group">
+<div class="form-group full">
     <label for="email">
         Email Address
     </label>
@@ -647,6 +653,10 @@
     </span>
 </div>
 
+                </div>
+
+            </section>
+
 
             <!-- =========================
                  SUBMIT
@@ -682,12 +692,10 @@
 
         </form>
 
+    </div>
     </main>
 
-
-    <footer>
-        © 2026 BoomBuy · Rider Verification
-    </footer>
+</div>
 
     @include('partials.terms-modal')
 
@@ -775,6 +783,25 @@
                     });
                 });
             }
+        })();
+
+        // One long form: the orb and checklist follow the section on screen.
+        (function () {
+            var sections = document.querySelectorAll('[data-section]');
+
+            window.bbRegSide.show(1);
+
+            if (!('IntersectionObserver' in window)) return;
+
+            var seen = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        window.bbRegSide.show(+entry.target.dataset.section);
+                    }
+                });
+            }, { rootMargin: '-45% 0px -50% 0px' });
+
+            sections.forEach(function (section) { seen.observe(section); });
         })();
     </script>
 

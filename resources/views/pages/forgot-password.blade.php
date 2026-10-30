@@ -7,126 +7,81 @@
 
 <head>
 
-    @include('partials.head', ['title' => $isLogistics ? 'Forgot Password — BoomBuy Logistics' : 'Forgot Password — BoomBuy'])
+    @include('partials.head', ['title' => $isLogistics ? 'Forgot Password — BoomBuy Logistics' : 'Forgot Password — BoomBuy', 'fonts' => true])
 
-    <link rel="stylesheet" href="{{ vasset('css/views/forgot-password.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/register-shell.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/verify-otp.css') }}">
 
 </head>
 
-<body>
+<body class="reg-night {{ $isLogistics ? 'is-logistics' : '' }}">
 
+<div class="reg">
 
-<nav class="navbar">
+    @include('partials.register-side', [
+        'logistics' => $isLogistics,
+        'roleStep' => false,
+        'finalStep' => '',
+        'kicker' => 'Password reset',
+        'headline' => ['Forgot your', 'password?'],
+        'blurb' => 'It happens. We’ll email you a code so you can set a new one.',
+        'steps' => [['Your email', 'mail'], ['New password', 'key']],
+    ])
 
-    @include('partials.auth-logo', ['logistics' => $isLogistics])
+    <main class="reg-main">
+    <div class="reg-inner otp-card">
 
-</nav>
-
-
-<div class="wrapper">
-
-    <div>
-
-        <div class="card">
-
-            <div class="header">
-
-                <div class="icon">
-                    <i class="bi bi-key-fill"></i>
-                </div>
-
-                <small>
-                    {{ $isLogistics ? 'BoomBuy Logistics Account' : 'BoomBuy Account' }}
-                </small>
-
-                <h1>
-                    Forgot Password?
-                </h1>
-
-                <p>
-                    Enter the email address connected
-                    to your {{ $isLogistics ? 'BoomBuy Logistics' : 'BoomBuy' }} account.
-                </p>
-
+        <div class="reg-head">
+            <div class="reg-card-top">
+                <span class="reg-kicker">{{ $isLogistics ? 'BoomBuy Logistics Account' : 'BoomBuy Account' }}</span>
             </div>
-
-
-            @if(session('error'))
-
-                <div class="message error">
-                    {{ session('error') }}
-                </div>
-
-            @endif
-
-
-            @if(session('success'))
-
-                <div class="message success">
-                    {{ session('success') }}
-                </div>
-
-            @endif
-
-
-            <form
-                method="POST"
-                action="{{ route('password.email') }}"
-            >
-
-                @csrf
-
-
-                <div class="form-group">
-
-                    <label for="email">
-                        Email Address
-                    </label>
-
-                    <input
-                        type="email"
-                        id="email"
-                        name="email"
-                        value="{{ old('email') }}"
-                        placeholder="Enter your registered email"
-                        autocomplete="email"
-                        required
-                    >
-
-                </div>
-
-
-                <button type="submit">
-                    Continue
-                </button>
-
-            </form>
-
-
-            <div class="back">
-
-                <a href="{{ route($isLogistics ? 'logistics.login' : 'login') }}">
-                    ← Back to Login
-                </a>
-
-            </div>
-
+            <h2>Forgot password?</h2>
+            <p class="otp-sub">
+                Enter the email address connected to your {{ $isLogistics ? 'BoomBuy Logistics' : 'BoomBuy' }} account.
+            </p>
         </div>
 
+        @if(session('error'))
+            <div class="otp-alert is-error" role="alert">{{ session('error') }}</div>
+        @endif
 
-        <div class="footer">
+        @if(session('success'))
+            <div class="otp-alert is-ok" role="status">{{ session('success') }}</div>
+        @endif
 
-            © 2026 BoomBuy ·
-            Shop. Sell. Deliver.
+        <form method="POST" action="{{ route('password.email') }}" class="otp-form">
 
+            @csrf
+
+            <label for="email" class="otp-label">Email address</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                value="{{ old('email') }}"
+                placeholder="Enter your registered email"
+                autocomplete="email"
+                class="auth-input"
+                required
+                autofocus
+            >
+
+            <button type="submit" class="otp-btn">Send the code</button>
+
+        </form>
+
+        <div class="otp-foot">
+            <a href="{{ route($isLogistics ? 'logistics.login' : 'login') }}">← Back to login</a>
         </div>
 
     </div>
+    </main>
 
 </div>
 
+<script>window.bbRegSide.show(1);</script>
 
-    @include('partials.pwa-register')
+@include('partials.pwa-register')
 
 </body>
 

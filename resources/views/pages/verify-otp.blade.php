@@ -1,106 +1,136 @@
 @php
-    // Signing up for BoomBuy Logistics: show the Logistics tag.
-    $isLogistics = session('pending_registration.role') === 'logistics';
+    // The last step of every sign-up: the left side shows the steps of the
+    // form they just filled in, all done, with the email code next.
+    $role = session('pending_registration.role') ?? 'buyer';
+    $isLogistics = $role === 'logistics';
+
+    $flows = [
+        'buyer' => ['Buyer account', route('buyer.register'), [
+            ['Personal info', 'user'], ['Delivery address', 'pin'], ['ID and password', 'shield'], ['Review', 'review'],
+        ]],
+        'seller' => ['Seller account', route('seller.register'), [
+            ['Personal info', 'user'], ['Business details', 'brief'], ['Shop address', 'pin'], ['Documents', 'docs'],
+        ]],
+        'logistics' => ['Logistics account', route('logistics.register'), [
+            ['Contact person', 'user'], ['Company details', 'brief'], ['Address and service areas', 'map'], ['Documents', 'docs'],
+        ]],
+        'rider' => ['Rider account', route('rider.apply'), [
+            ['Rider application', 'user'],
+        ]],
+    ];
+    [$kicker, $registerUrl, $steps] = $flows[$role] ?? $flows['buyer'];
+
+    // Counts down from when the code was sent, so it keeps running
+    // while the user is away in the mail app.
+    $otpExpiresAt = session('otp_expires_at');
 @endphp
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ $isLogistics ? 'Verify Code - BoomBuy Logistics' : 'Verify Code - BoomBuy' }}</title>
+    @include('partials.head', ['title' => $isLogistics ? 'Verify Code - BoomBuy Logistics' : 'Verify Code - BoomBuy', 'fonts' => true])
 
-    @include('partials.pwa-head')
-    @include('partials.design-tokens')
-
+    <link rel="stylesheet" href="{{ vasset('css/views/register-shell.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/verify-otp.css') }}">
 </head>
-<body style="margin:0; padding:0; background:var(--theme-bg); font-family: Arial, sans-serif;">
+<body class="reg-night {{ $isLogistics ? 'is-logistics' : '' }}">
 
-    <div style="max-width:420px; margin:60px auto; background:#fff; border-radius:16px; border:1px solid var(--theme-border); padding:32px; text-align:center;">
+<div class="reg">
 
-        <div style="font-size:22px; font-weight:800; margin-bottom:16px;">
-            @include('partials.auth-logo', ['logistics' => $isLogistics])
+    @include('partials.register-side', [
+        'logistics' => $isLogistics,
+        'verifying' => true,
+        'kicker' => $kicker,
+        'headline' => ['One last', 'step.'],
+        'blurb' => 'We just need to confirm your email address.',
+        'steps' => $steps,
+    ])
+
+    <main class="reg-main">
+    <div class="reg-inner otp-card">
+
+        <div class="reg-head">
+            <div class="reg-card-top">
+                <span class="reg-kicker">Verify your email</span>
+            </div>
+            <h2>Enter the 6-digit code</h2>
+            <p class="otp-sub">
+                We sent a code to <strong>{{ session('otp_email') }}</strong>. It expires in 5 minutes.
+            </p>
         </div>
 
-        <h1 style="font-size:20px; color:var(--theme-ink);">Enter Verification Code</h1>
-        <p style="color:var(--theme-muted); font-size:14px;">
-            We sent a 6-digit code to <strong>{{ session('otp_email') }}</strong>. It expires in 5 minutes.
-        </p>
-
-        @php
-            // Counts down from when the code was sent, so it keeps running
-            // while the user is away in the mail app.
-            $otpExpiresAt = session('otp_expires_at');
-        @endphp
         @if ($otpExpiresAt)
-            <p id="otpTimer" data-expires="{{ \Illuminate\Support\Carbon::parse($otpExpiresAt)->toIso8601String() }}"
-                style="color:var(--theme-muted); font-size:13px; margin:-4px 0 14px;">
+            <p class="otp-timer" id="otpTimer" data-expires="{{ \Illuminate\Support\Carbon::parse($otpExpiresAt)->toIso8601String() }}">
                 Code expires in <strong id="otpTimerLeft">5:00</strong>
             </p>
         @endif
 
+        @if (session('error'))
+            <div class="otp-alert is-error" role="alert">{{ session('error') }}</div>
+        @endif
+
         @if ($errors->any())
-            <div style="background:#fee2e2; color:#dc2626; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px;">
-                {{ $errors->first() }}
-            </div>
+            <div class="otp-alert is-error" role="alert">{{ $errors->first() }}</div>
         @endif
 
         @if (session('status'))
-            <div style="background:#e5ffe8; color:#2c8c3c; padding:10px; border-radius:8px; margin-bottom:16px; font-size:13px;">
-                {{ session('status') }}
-            </div>
+            <div class="otp-alert is-ok" role="status">{{ session('status') }}</div>
         @endif
 
-        <form method="POST" action="{{ route('otp.verify') }}">
+        <form method="POST" action="{{ route('otp.verify') }}" class="otp-form">
             @csrf
-            <input type="text" name="otp_code" maxlength="6" placeholder="000000"
+            <label for="otp_code" class="otp-label">Verification code</label>
+            <input type="text" id="otp_code" name="otp_code" maxlength="6" placeholder="000000"
                 inputmode="numeric" pattern="\d{6}" title="Enter the 6-digit code." autocomplete="one-time-code"
-                style="width:100%; box-sizing:border-box; font-size:28px; letter-spacing:10px; text-align:center; padding:14px; border:1px solid var(--theme-border); border-radius:10px; margin-bottom:16px;" required autofocus>
+                class="otp-input" required autofocus>
 
-            <button type="submit"
-                style="width:100%; background:var(--theme-primary); color:#fff; border:none; padding:14px; border-radius:10px; font-size:15px; font-weight:700; cursor:pointer;">
-                Verify
-            </button>
+            <button type="submit" class="otp-btn">Verify and finish</button>
         </form>
 
-        <form method="POST" action="{{ route('otp.resend') }}" style="margin-top:16px;">
-            @csrf
-            <button type="submit" style="background:none; border:none; color:var(--theme-primary); font-size:13px; cursor:pointer; text-decoration:underline;">
-                Resend Code
-            </button>
-        </form>
+        <div class="otp-foot">
+            <a href="{{ $registerUrl }}">← Wrong email? Start again</a>
+
+            <form method="POST" action="{{ route('otp.resend') }}">
+                @csrf
+                <span>Didn’t get it?</span>
+                <button type="submit">Resend code</button>
+            </form>
+        </div>
 
     </div>
+    </main>
 
-    <script>
-    (function () {
-        var timer = document.getElementById('otpTimer');
-        if (!timer) return;
-        var left = document.getElementById('otpTimerLeft');
-        var end = new Date(timer.dataset.expires).getTime();
+</div>
 
-        function tick() {
-            var s = Math.max(0, Math.round((end - Date.now()) / 1000));
-            if (s === 0) {
-                timer.innerHTML = 'The code has expired. Tap <strong>Resend Code</strong> for a new one.';
-                timer.style.color = '#dc2626';
-                return;
-            }
-            left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-            setTimeout(tick, 1000);
+<script>
+(function () {
+    var timer = document.getElementById('otpTimer');
+    if (!timer) return;
+    var left = document.getElementById('otpTimerLeft');
+    var end = new Date(timer.dataset.expires).getTime();
+
+    function tick() {
+        var s = Math.max(0, Math.round((end - Date.now()) / 1000));
+        if (s === 0) {
+            timer.innerHTML = 'The code has expired. Tap <strong>Resend code</strong> for a new one.';
+            timer.classList.add('is-expired');
+            return;
         }
+        left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        setTimeout(tick, 1000);
+    }
 
-        tick();
-        // Coming back from the mail app: show the real time left at once.
-        document.addEventListener('visibilitychange', function () {
-            if (!document.hidden && Date.now() < end) {
-                var s = Math.round((end - Date.now()) / 1000);
-                left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
-            }
-        });
-    })();
-    </script>
+    tick();
+    // Coming back from the mail app: show the real time left at once.
+    document.addEventListener('visibilitychange', function () {
+        if (!document.hidden && Date.now() < end) {
+            var s = Math.round((end - Date.now()) / 1000);
+            left.textContent = Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+        }
+    });
+})();
+</script>
 
-    @include('partials.pwa-register')
+@include('partials.pwa-register')
 
 </body>
 </html>
