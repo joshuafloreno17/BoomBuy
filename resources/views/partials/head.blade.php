@@ -16,3 +16,4 @@
 @include('partials.pwa-head')
 @include('partials.design-tokens')
 @include('partials.build-in')
+@include('partials.instant-feedback')

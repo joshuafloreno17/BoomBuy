@@ -117,6 +117,35 @@
 </div>
 
 <script>
+    // Going back to the login (Back to login, Change role, Log in): this page
+    // slides out to the right and the login slides in from the left — the
+    // login reads the same `bbPortalSwitch` note as its portal switch.
+    document.addEventListener('DOMContentLoaded', function () {
+        var reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+        var portal = @json($logistics ? 'logistics' : 'market');
+
+        document.querySelectorAll('.reg a[href]').forEach(function (link) {
+            var path = new URL(link.href, location.href).pathname;
+            if (path !== '/login' && path !== '/logistics/login') return;
+
+            link.addEventListener('click', function (event) {
+                if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+
+                try { sessionStorage.setItem('bbPortalSwitch', portal + ':from-left'); } catch (e) {}
+                if (reduce) return;
+
+                event.preventDefault();
+                document.body.classList.add('reg-leaving');
+                setTimeout(function () { window.location.href = link.href; }, 260);
+            });
+        });
+
+        // Back button: the browser may restore this page mid-slide.
+        window.addEventListener('pageshow', function (event) {
+            if (event.persisted) document.body.classList.remove('reg-leaving');
+        });
+    });
+
     // The sticky Back / Continue bar gets its shadow only while it sits over
     // the form, i.e. while its own place (a marker right after it) is below
     // the bottom of the screen.

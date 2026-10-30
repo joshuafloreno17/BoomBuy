@@ -465,6 +465,21 @@ body.reg-night.is-logistics {
     animation: regOrbIn .6s cubic-bezier(.2, .8, .2, 1) .1s both;
 }
 
+/* Leaving for the login: the card slides out to the right, the rest fades
+   (the login then slides in from the left — see partials.register-side). */
+body.reg-leaving .reg-main {
+    opacity: 0;
+    transform: translateX(48px);
+    transition: opacity .26s ease-in, transform .26s ease-in;
+}
+
+body.reg-leaving .reg-side,
+body.reg-leaving .reg-orb-wrap,
+body.reg-leaving .auth-net {
+    opacity: 0;
+    transition: opacity .24s ease-in;
+}
+
 @keyframes regUp {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: none; }
