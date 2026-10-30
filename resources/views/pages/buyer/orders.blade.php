@@ -632,17 +632,19 @@
 
                                     @if(empty($order['buyer_received_at']))
 
-                                        <button
-                                            type="button"
-                                            class="track-btn is-ghost"
-                                            onclick="toggleTracking('{{ $trackingId }}')"
-                                        >
-                                            @if($isClosed)
+                                        @if($isClosed)
+                                            <button
+                                                type="button"
+                                                class="track-btn is-ghost"
+                                                onclick="toggleTracking('{{ $trackingId }}')"
+                                            >
                                                 <i class="bi bi-receipt"></i> View Details
-                                            @else
+                                            </button>
+                                        @else
+                                            <a href="{{ route('buyer.order.track', $order['id']) }}" class="track-btn is-ghost">
                                                 <i class="bi bi-geo-alt-fill"></i> Track Order
-                                            @endif
-                                        </button>
+                                            </a>
+                                        @endif
 
                                         @if($canCancel)
                                             <button

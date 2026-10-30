@@ -33,7 +33,15 @@
             ])>
                 <span class="order-timeline-dot" aria-hidden="true"></span>
                 <div class="order-timeline-body">
-                    <strong>{{ $stop->title }}</strong>
+                    @if(in_array($stop->rank, $mapStops ?? [], true))
+                        {{-- Track package: shows this Sorting Center on the map. --}}
+                        <button type="button" class="order-timeline-maplink" data-map-stop="{{ $stop->rank }}">
+                            <strong>{{ $stop->title }}</strong>
+                            <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                        </button>
+                    @else
+                        <strong>{{ $stop->title }}</strong>
+                    @endif
                     @if($stop->detail)
                         <span>{{ $stop->detail }}</span>
                     @endif

@@ -152,6 +152,7 @@ Route::post('/wishlist/toggle/{id}', [BuyerController::class, 'toggleWishlist'])
 */
 
 Route::get('/buyer/orders', [BuyerController::class, 'orders'])->name('buyer.orders');
+Route::get('/buyer/orders/{id}/track', [BuyerController::class, 'track'])->whereNumber('id')->name('buyer.order.track');
 
 
 Route::post('/buyer/orders/{id}/received', [BuyerController::class, 'markReceived'])->name('buyer.order.received');

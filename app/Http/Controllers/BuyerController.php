@@ -905,6 +905,72 @@ class BuyerController extends Controller
         );
     }
 
+    /**
+     * Track package: the route map (seller's Sorting Center → buyer's), the
+     * timeline, ETA, waybill and what to pay on delivery for one order.
+     */
+    public function track($id)
+    {
+        $user = requireUserRole('buyer');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $order = DB::table('orders')->where('id', $id)->where('buyer_id', $user['id'])->first();
+
+        abort_unless($order, 404);
+
+        $items = DB::table('order_items')->where('order_id', $order->id)->orderBy('id')->get();
+        $products = Product::withTrashed()->whereIn('id', $items->pluck('product_id')->filter())
+            ->get(['id', 'name', 'image', 'category'])->keyBy('id');
+        $shops = \App\Support\SellerShop::many($items->pluck('seller_id'));
+
+        $items = $items->map(function ($item) use ($products, $shops) {
+            $product = $products->get($item->product_id ?? 0);
+
+            return [
+                'name' => $item->product_name ?? 'Product',
+                'variation' => $item->variation_label ?? null,
+                'quantity' => (int) ($item->quantity ?? 1),
+                'image' => ($item->variation_image ?? null) ?: ($product->image ?? null),
+                'category' => $product->category ?? null,
+                'slug' => $product ? Str::slug($product->name) . '-' . $product->id : null,
+                'shop' => $shops->get((int) ($item->seller_id ?? 0))['name'] ?? null,
+            ];
+        });
+
+        $centers = \App\Models\SortingCenter::whereIn('id', array_filter([
+            $order->origin_center_id ?? null, $order->destination_center_id ?? null,
+            $order->origin_branch_id ?? null, $order->branch_id ?? null,
+        ]))->get(['id', 'parent_id', 'name', 'province', 'city_municipality', 'address'])->keyBy('id');
+
+        $steps = \App\Support\OrderTimeline::forOrders([(int) $order->id])->get($order->id, collect());
+        $plan = \App\Support\OrderTimeline::plan($order, $steps, $centers);
+
+        // Seller's town → Sorting Centers → buyer's town, the landmarks and the truck.
+        $map = \App\Support\TrackMap::build($order, $plan, $centers);
+
+        $done = in_array($order->status, \App\Support\OrderStatus::DONE, true);
+        $closed = $done || in_array($order->status, ['Cancelled', 'Returned to Seller'], true);
+
+        return view('pages.buyer.track', [
+            'user' => $user,
+            'order' => $order,
+            'items' => $items,
+            'steps' => $steps,
+            'plan' => $plan,
+            'route' => $map['route'],
+            'truckAt' => $map['truck'],
+            'landmarks' => $map['landmarks'],
+            'fromLabel' => $map['from'],
+            'toLabel' => $map['to'],
+            'eta' => $closed ? null : \App\Support\ParcelRoute::etaLabel($order->delivery_zone ?? null, $order->created_at),
+            'waybill' => \App\Support\Waybill::number((int) $order->id),
+            'codDue' => !$closed && CodPolicy::isCod($order->payment_method ?? null) ? (float) $order->total_amount : null,
+        ]);
+    }
+
     public function markReceived($id, BuyerOrderService $orders)
     {
         return $this->buyerOrderAction(fn (array $user) => $orders->markReceived((int) $user['id'], (int) $id));

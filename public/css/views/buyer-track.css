@@ -1,0 +1,402 @@
+/* Buyer → Track package (pages/buyer/track.blade.php) */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Figtree', -apple-system, sans-serif;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
+}
+
+.track-page {
+    width: 92%;
+    max-width: 1200px;
+    margin: 28px auto 48px;
+}
+
+/* Map + cards on the left, history + items on the right; one column on a phone. */
+.track-layout {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    align-items: flex-start;
+}
+
+.track-main {
+    flex: 999 1 560px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.track-side {
+    flex: 1 1 340px;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.track-card,
+.track-map-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-card);
+}
+
+.track-card {
+    padding: 18px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* ===== Map ===== */
+
+.track-map-card {
+    overflow: hidden;
+}
+
+/* Own stacking layer: Leaflet's panes (z-index 400–1000) stay under the sticky navbar. */
+.track-map {
+    position: relative;
+    z-index: 0;
+    isolation: isolate;
+    height: 400px;
+    background: #e4ecee;
+}
+
+/* The OpenStreetMap credit their licence asks for, kept small and quiet. */
+.track-map .leaflet-control-attribution {
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.55);
+    color: #8a8499;
+    padding: 0 6px;
+}
+
+.track-map .leaflet-control-attribution a {
+    color: #8a8499;
+}
+
+.track-map-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 16px;
+    padding: 10px 16px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.track-map-legend .is-line {
+    display: inline-block;
+    width: 18px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--theme-primary);
+    vertical-align: middle;
+    margin-right: 4px;
+}
+
+.track-status-pill {
+    margin-left: auto;
+    background: var(--theme-ink);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 999px;
+}
+
+.track-tip {
+    font-family: 'Figtree', -apple-system, sans-serif;
+    font-size: 12px;
+    line-height: 1.35;
+    color: var(--theme-ink);
+    border: 0;
+    border-radius: 10px;
+    padding: 6px 10px;
+    box-shadow: 0 4px 14px rgba(34, 26, 58, 0.16);
+}
+
+.track-tip b {
+    color: var(--theme-primary-hover);
+}
+
+.track-pin {
+    color: var(--theme-primary);
+    font-size: 30px;
+    line-height: 30px;
+    text-align: center;
+}
+
+/* Sorting Center landmark: filled once the parcel has passed, ringed where it is now. */
+.track-landmark {
+    border-radius: 50%;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    border: 3px solid var(--theme-primary);
+    background: #fff;
+    color: var(--theme-primary);
+    box-shadow: 0 3px 10px rgba(34, 26, 58, 0.22);
+}
+
+.track-landmark.is-reached {
+    background: var(--theme-primary);
+    color: #fff;
+    border-color: #fff;
+}
+
+.track-landmark.is-here {
+    background: var(--theme-primary);
+    color: #fff;
+    border-color: #fff;
+    box-shadow: 0 0 0 6px rgba(109, 74, 209, 0.25), 0 3px 10px rgba(34, 26, 58, 0.22);
+}
+
+.track-popup .leaflet-popup-content {
+    margin: 12px 14px;
+    font-family: 'Figtree', -apple-system, sans-serif;
+}
+
+.track-pop {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.track-pop + .track-pop {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+}
+
+.track-pop b {
+    font-size: 13px;
+    color: var(--theme-ink);
+}
+
+.track-pop em {
+    font-style: normal;
+    font-weight: 700;
+    color: var(--muted-2);
+}
+
+.track-pop em.is-reached {
+    color: var(--theme-primary-hover);
+}
+
+/* Sorting Center steps in the tracking history open them on the map. */
+.order-timeline-maplink {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.order-timeline-maplink i {
+    color: var(--theme-primary);
+    font-size: 13px;
+}
+
+.order-timeline-maplink:hover strong,
+.order-timeline-maplink:focus-visible strong {
+    color: var(--theme-primary-hover);
+    text-decoration: underline;
+}
+
+.track-truck {
+    background: var(--theme-primary);
+    color: #fff;
+    border: 3px solid #fff;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(34, 26, 58, 0.3);
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    font-size: 17px;
+}
+
+/* ===== ETA / COD / courier cards ===== */
+
+.track-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+}
+
+.track-kicker {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.track-eta {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--theme-primary-hover);
+}
+
+.track-cod {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--muted);
+}
+
+.track-cod strong {
+    color: var(--theme-ink);
+}
+
+.track-cod-tag {
+    background: var(--teal-bg);
+    color: var(--teal-dark);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.track-courier {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.track-courier-logo {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--theme-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 13px;
+    flex-shrink: 0;
+}
+
+.track-waybill {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+}
+
+.track-copy {
+    width: 44px;
+    height: 44px;
+    margin: -12px 0;
+    border: 0;
+    background: transparent;
+    color: var(--theme-primary);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.track-leg {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+/* ===== History + items ===== */
+
+.track-heading {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.track-tz {
+    margin: 0;
+    font-size: 11px;
+    color: var(--muted-2);
+}
+
+.track-items {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.track-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    text-decoration: none;
+    color: var(--theme-ink);
+}
+
+.track-item-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.track-item-text strong {
+    font-size: 14px;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.track-item-text small {
+    font-size: 12px;
+    color: var(--muted);
+}
+
+.track-item .bi-chevron-right {
+    color: var(--muted-2);
+}
+
+@media (max-width: 640px) {
+    .track-page {
+        width: auto;
+        margin: 16px 16px 32px;
+    }
+
+    .track-map {
+        height: 280px;
+    }
+}

@@ -550,6 +550,10 @@
         font-weight: 700;
         cursor: pointer;
         font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
     }
 
     .track-btn:hover {
