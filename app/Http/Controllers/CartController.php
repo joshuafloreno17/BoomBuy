@@ -128,7 +128,8 @@ class CartController extends Controller
         }
 
         // The seller's most-per-buyer (orders placed before count too).
-        if ($limitError = $product->purchaseLimitError((int) $user['id'], $currentQuantity + $requestedQty)) {
+        // Every option of the product counts: 2 Red + 2 Blue is 4 of it.
+        if ($limitError = $product->purchaseLimitError((int) $user['id'], CartContents::quantityOf($cart, (int) $product->id) + $requestedQty)) {
             return $this->addResult(false, $limitError);
         }
 
@@ -271,7 +272,7 @@ class CartController extends Controller
             } elseif ((int) $rawQty > $effectiveStock) {
                 $blocked = true;
                 $blockMessage = 'Only ' . $effectiveStock . ' available.';
-            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, (int) $rawQty))) {
+            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, CartContents::quantityOf($cart, $productId) - (int) $cart[$key] + (int) $rawQty))) {
                 $blocked = true;
                 $blockMessage = $limitError;
             } else {
@@ -282,7 +283,7 @@ class CartController extends Controller
             if ($cart[$key] >= $effectiveStock) {
                 $blocked = true;
                 $blockMessage = 'Only ' . $effectiveStock . ' available.';
-            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, $cart[$key] + 1))) {
+            } elseif ($product && ($limitError = $product->purchaseLimitError($buyerId, CartContents::quantityOf($cart, $productId) + 1))) {
                 $blocked = true;
                 $blockMessage = $limitError;
             } else {
@@ -736,6 +737,10 @@ class CartController extends Controller
         // Kept so the page can re-price delivery when another address is picked.
         session()->put('checkout_quote', ['lines' => $planLines, 'voucher_codes' => $appliedVouchers->pluck('code')->all()]);
 
+        // What this page is ordering, so Place Order can't order something else.
+        $checkoutSource = !empty($buyNow) ? 'buy_now' : 'cart';
+        $checkoutItems = self::itemsFingerprint($cart);
+
         return view(
             'pages.checkout',
             compact(
@@ -756,7 +761,9 @@ class CartController extends Controller
                 'deliveryTo',
                 'missingInfo',
                 'pickupCenter',
-                'checkoutEta'
+                'checkoutEta',
+                'checkoutSource',
+                'checkoutItems'
             )
         );
     }
@@ -807,6 +814,14 @@ class CartController extends Controller
         return $slowest ? ParcelRoute::etaLabel($slowest) : null;
     }
 
+    /** The exact lines and quantities of a checkout, to compare with what the page showed. */
+    private static function itemsFingerprint(array $cart): string
+    {
+        ksort($cart);
+
+        return sha1(json_encode(array_map('intval', $cart)));
+    }
+
     public function placeOrder(PlaceOrderService $orders)
     {
         $user = requireUserRole('buyer');
@@ -827,8 +842,11 @@ class CartController extends Controller
 
         // What is being ordered: a "Buy now" item, or the lines the buyer
         // selected on the cart page (everything else stays in the cart).
+        // The form says which one it was showing: a Buy Now started in another
+        // tab must not replace the cart items on this page. (No field: an older form.)
         $buyNow = session()->get('buy_now', []);
-        $isBuyNow = !empty($buyNow);
+        $source = request('checkout_source');
+        $isBuyNow = $source ? $source === 'buy_now' : !empty($buyNow);
 
         if ($isBuyNow) {
             $cart = $buyNow;
@@ -853,6 +871,19 @@ class CartController extends Controller
 
         if (!\App\Support\SubmitOnce::claim($submitToken)) {
             return redirect()->route('buyer.orders')->with('success', 'Your order was already placed.');
+        }
+
+        // The items changed since this page was shown (another tab): nothing is
+        // ordered until the buyer has seen the new list. After the token check,
+        // so a double-click still answers "already placed".
+        $shownItems = request('checkout_items');
+
+        if ($shownItems && !hash_equals((string) $shownItems, self::itemsFingerprint($cart))) {
+            \App\Support\SubmitOnce::release($submitToken);
+
+            return redirect()
+                ->route('checkout', $isBuyNow && $buyNow ? ['buy_now' => 1] : [])
+                ->with('error', 'The items in your checkout changed, maybe in another tab. Please review them and place the order again.');
         }
 
         try {

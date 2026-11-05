@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\FlashSale;
 use App\Models\Product;
 use App\Models\ProductVariation;
 use Illuminate\Support\Facades\DB;
@@ -164,8 +165,25 @@ class OrderStock
                 ->decrement('used_count');
         }
 
-        if (in_array($previousStatus, self::RESTOCKABLE_ON_CANCEL)) {
-            self::restore($orderId);
+        // Flash units go back with the stock, so the next buyer can get that price.
+        if (in_array($previousStatus, self::RESTOCKABLE_ON_CANCEL) && self::restore($orderId) !== null) {
+            self::returnFlashUnits($orderId);
+        }
+    }
+
+    /** Give an order's flash units back to their sale. Older orders didn't save which sale. */
+    private static function returnFlashUnits(int $orderId): void
+    {
+        $items = DB::table('order_items')->where('order_id', $orderId)->whereNotNull('flash_id')->get();
+
+        foreach ($items as $item) {
+            FlashSale::where('id', $item->flash_id)
+                ->where('sold', '>=', $item->quantity)
+                ->decrement('sold', $item->quantity);
+        }
+
+        if ($items->isNotEmpty()) {
+            FlashSale::forgetLive();
         }
     }
 }

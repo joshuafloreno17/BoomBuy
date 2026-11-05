@@ -64,6 +64,9 @@
         {!! \App\Support\SubmitOnce::field() !!}
         {{-- The total shown here; a price that changes before Place Order must be confirmed. --}}
         <input type="hidden" name="expected_total" id="expectedTotal" value="{{ number_format($checkoutPlan['total'], 2, '.', '') }}">
+        {{-- The items shown here; another tab's Buy Now or cart change must not swap them. --}}
+        <input type="hidden" name="checkout_source" value="{{ $checkoutSource }}">
+        <input type="hidden" name="checkout_items" value="{{ $checkoutItems }}">
 
 
         <div class="checkout-grid">

@@ -175,7 +175,8 @@ class PlaceOrderService
                 throw CheckoutFailed::inCart($product->name . ': ' . Product::VACATION_MESSAGE);
             }
 
-            if ($this->buyerId && ($limitError = $product->purchaseLimitError($this->buyerId, $quantity))) {
+            // All of this checkout's options of the product count together.
+            if ($this->buyerId && ($limitError = $product->purchaseLimitError($this->buyerId, \App\Support\CartContents::quantityOf($cart, (int) $productId)))) {
                 throw CheckoutFailed::inCart($limitError);
             }
 
@@ -349,6 +350,7 @@ class PlaceOrderService
                             'variation_image' => $item['variation_image'] ?? null,
                             'price' => $item['price'],
                             'price_note' => $item['price_note'] ?? null,
+                            'flash_id' => $item['flash_id'] ?? null,
                             'quantity' => $item['quantity'],
                             'created_at' => now(),
                             'updated_at' => now(),

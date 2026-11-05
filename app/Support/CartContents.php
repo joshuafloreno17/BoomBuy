@@ -59,6 +59,20 @@ class CartContents
         return $clean;
     }
 
+    /** How many of a product the cart holds, across all its options. */
+    public static function quantityOf(array $cart, int $productId): int
+    {
+        $total = 0;
+
+        foreach ($cart as $key => $quantity) {
+            if (parseCartKey($key)[0] === $productId) {
+                $total += max(0, (int) $quantity);
+            }
+        }
+
+        return $total;
+    }
+
     /** Items the buyer can still buy: a removed option's line stays in the cart but isn't counted. */
     public static function count(): int
     {

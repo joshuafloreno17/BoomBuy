@@ -253,4 +253,265 @@ class OrderSafetyTest extends TestCase
             ->assertSee('No longer available')
             ->assertSee('data-cart-key="' . $live->id . ':0"', false);
     }
+
+    /** The hidden fields of the checkout page: what its Place Order button sends. */
+    private function placeOrderForm($page): array
+    {
+        preg_match_all('/<input type="hidden" name="(expected_total|checkout_source|checkout_items|_submit_token)"[^>]*value="([^"]*)"/', $page->getContent(), $found);
+
+        return array_combine($found[1], $found[2]) + ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'];
+    }
+
+    public function test_buy_now_in_another_tab_does_not_replace_the_cart_being_checked_out(): void
+    {
+        $seller = $this->makeSeller();
+        $cartItem = $this->makeProduct($seller, ['name' => 'Cart Item', 'price' => 500]);
+        $other = $this->makeProduct($seller, ['name' => 'Other Tab Item', 'price' => 500]);
+
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$cartItem->id}:0" => 1]]);
+        $cartTab = $this->placeOrderForm($this->get(route('checkout'))->assertOk());
+        $this->post(route('buy.now', $other->id), ['quantity' => 1]);
+
+        $this->post(route('checkout.place'), $cartTab)->assertRedirect();
+
+        $this->assertSame(['Cart Item'], \Illuminate\Support\Facades\DB::table('order_items')->pluck('product_name')->all());
+        $this->assertSame(10, (int) $other->fresh()->stock);
+
+        // The Buy Now tab is still good, and places only its own item.
+        $this->post(route('checkout.place'), $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1]))))->assertRedirect();
+        $this->assertSame(['Cart Item', 'Other Tab Item'], \Illuminate\Support\Facades\DB::table('order_items')->orderBy('id')->pluck('product_name')->all());
+    }
+
+    public function test_a_second_buy_now_stops_the_first_tab_from_ordering_it(): void
+    {
+        $seller = $this->makeSeller();
+        $first = $this->makeProduct($seller, ['price' => 500]);
+        $second = $this->makeProduct($seller, ['price' => 500]);
+
+        $this->actingAsUser($this->makeUser());
+        $this->post(route('buy.now', $first->id), ['quantity' => 1]);
+        $firstTab = $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1])));
+        $this->post(route('buy.now', $second->id), ['quantity' => 1]);
+
+        $this->post(route('checkout.place'), $firstTab)
+            ->assertRedirect(route('checkout', ['buy_now' => 1]))
+            ->assertSessionHas('error');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_a_cart_changed_in_another_tab_is_reviewed_before_ordering(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 500, 'stock' => 10]);
+
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$product->id}:0" => 1]]);
+        $stale = $this->placeOrderForm($this->get(route('checkout')));
+        $this->post(route('cart.update', "{$product->id}:0"), ['action' => 'set', 'quantity' => 2]);
+
+        // Left out so only the items can refuse it, not the price check.
+        $this->post(route('checkout.place'), array_diff_key($stale, ['expected_total' => 1]))
+            ->assertRedirect(route('checkout'))
+            ->assertSessionHas('error');
+        $this->assertDatabaseCount('orders', 0);
+
+        // The reviewed page goes through.
+        $this->post(route('checkout.place'), $this->placeOrderForm($this->get(route('checkout'))))->assertRedirect();
+        $this->assertSame(2, (int) \Illuminate\Support\Facades\DB::table('order_items')->value('quantity'));
+    }
+
+    public function test_a_buy_now_form_with_no_buy_now_left_orders_nothing(): void
+    {
+        $seller = $this->makeSeller();
+        $item = $this->makeProduct($seller);
+        $inCart = $this->makeProduct($seller);
+
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$inCart->id}:0" => 1]]);
+        $this->post(route('buy.now', $item->id), ['quantity' => 1]);
+        $buyNowTab = $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1])));
+        $this->get(route('checkout')); // Opening the cart's checkout drops the Buy Now.
+
+        $this->post(route('checkout.place'), $buyNowTab)->assertRedirect(route('checkout'))->assertSessionHas('error');
+
+        $this->assertDatabaseCount('orders', 0);
+    }
+
+    public function test_double_clicking_buy_now_place_order_says_already_placed(): void
+    {
+        $item = $this->makeProduct($this->makeSeller());
+
+        $this->actingAsUser($this->makeUser());
+        $this->post(route('buy.now', $item->id), ['quantity' => 1]);
+        $form = $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1])));
+
+        $this->post(route('checkout.place'), $form)->assertRedirect();
+        $this->post(route('checkout.place'), $form)
+            ->assertRedirect(route('buyer.orders'))
+            ->assertSessionHas('success', 'Your order was already placed.');
+
+        $this->assertDatabaseCount('orders', 1);
+    }
+
+    private function flashSale(\App\Models\Product $product, int $units): \App\Models\FlashSale
+    {
+        return \App\Models\FlashSale::create([
+            'seller_id' => $product->seller_id, 'product_id' => $product->id,
+            'starts_at' => now()->subHour(), 'ends_at' => now()->addHour(),
+            'flash_price' => 500, 'quantity' => $units, 'sold' => 0,
+        ]);
+    }
+
+    private function orderFlashUnits(\App\Models\User $buyer, \App\Models\Product $product, int $quantity, string $payment = 'Cash on Delivery'): int
+    {
+        $this->actingAsUser($buyer, ['cart' => ["{$product->id}:0" => $quantity]])
+            ->post(route('checkout.place'), ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => $payment])
+            ->assertRedirect();
+
+        return (int) DB::table('orders')->where('buyer_id', $buyer->id)->latest('id')->value('id');
+    }
+
+    public function test_cancelling_gives_the_flash_units_back_for_the_next_buyer(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 1000, 'stock' => 10]);
+        $flash = $this->flashSale($product, 3);
+        $buyer = $this->makeUser();
+
+        $orderId = $this->orderFlashUnits($buyer, $product, 3);
+        $this->assertSame(3, (int) $flash->fresh()->sold);
+
+        $this->actingAsUser($buyer)->post(route('buyer.order.cancel', $orderId), ['cancel_reason' => 'Changed my mind']);
+        $this->assertSame('Cancelled', $this->orderStatus($orderId));
+        $this->assertSame(10, (int) $product->fresh()->stock);
+        $this->assertSame(0, (int) $flash->fresh()->sold);
+
+        // Someone else gets the flash price again.
+        $next = $this->orderFlashUnits($this->makeUser(), $product, 1);
+        $this->assertEquals(500, DB::table('order_items')->where('order_id', $next)->value('price'));
+    }
+
+    public function test_an_unpaid_order_running_out_of_time_gives_the_flash_units_back(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 1000, 'stock' => 10]);
+        $flash = $this->flashSale($product, 2);
+
+        $this->orderFlashUnits($this->makeUser(), $product, 2, 'GCash');
+        $this->assertSame(2, (int) $flash->fresh()->sold);
+
+        DB::table('orders')->update(['pay_by' => now()->subMinute()]);
+        \App\Support\Payments::sweep();
+
+        $this->assertSame(10, (int) $product->fresh()->stock);
+        $this->assertSame(0, (int) $flash->fresh()->sold);
+    }
+
+    public function test_only_the_flash_part_of_a_line_goes_back_to_the_sale(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 1000, 'stock' => 10]);
+        $flash = $this->flashSale($product, 2);
+        $flash->update(['sold' => 1]); // Someone else's unit stays sold.
+
+        $orderId = $this->orderFlashUnits($this->makeUser(), $product, 3); // 1 flash + 2 regular
+        $this->assertSame(2, (int) $flash->fresh()->sold);
+
+        \App\Support\OrderStock::cancelled($orderId, 'Pending');
+        $this->assertSame(1, (int) $flash->fresh()->sold);
+
+        // A second call can't give them back twice.
+        \App\Support\OrderStock::cancelled($orderId, 'Pending');
+        $this->assertSame(1, (int) $flash->fresh()->sold);
+    }
+
+    public function test_flash_units_stay_sold_once_the_parcel_left_the_seller(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 1000, 'stock' => 10]);
+        $flash = $this->flashSale($product, 2);
+
+        $orderId = $this->orderFlashUnits($this->makeUser(), $product, 2);
+        \App\Support\OrderStock::cancelled($orderId, 'Picked Up');
+
+        $this->assertSame(8, (int) $product->fresh()->stock);
+        $this->assertSame(2, (int) $flash->fresh()->sold);
+    }
+
+    public function test_cancelling_an_older_order_without_a_saved_flash_sale_still_works(): void
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['price' => 1000, 'stock' => 10]);
+        $flash = $this->flashSale($product, 2);
+
+        $orderId = $this->orderFlashUnits($this->makeUser(), $product, 2);
+        DB::table('order_items')->where('order_id', $orderId)->update(['flash_id' => null]);
+
+        \App\Support\OrderStock::cancelled($orderId, 'Pending');
+
+        $this->assertSame(10, (int) $product->fresh()->stock);
+        $this->assertSame(2, (int) $flash->fresh()->sold);
+    }
+
+    /** A product of at most 2 per buyer, in two colors. */
+    private function limitedProduct(): array
+    {
+        $product = $this->makeProduct($this->makeSeller(), ['purchase_limit' => 2]);
+
+        return [$product, $this->addVariation($product, 'Red', 10), $this->addVariation($product, 'Blue', 10)];
+    }
+
+    public function test_the_purchase_limit_counts_every_option_when_adding_to_the_cart(): void
+    {
+        [$product, $red, $blue] = $this->limitedProduct();
+
+        $this->actingAsUser($this->makeUser());
+        $this->post(route('cart.add', $product->id), ['quantity' => 1, 'variation_id' => $red->id])->assertSessionHas('success');
+        $this->post(route('cart.add', $product->id), ['quantity' => 1, 'variation_id' => $blue->id])->assertSessionHas('success');
+        $this->post(route('cart.add', $product->id), ['quantity' => 1, 'variation_id' => $blue->id])->assertSessionHas('error');
+
+        $this->assertSame(["{$product->id}:{$red->id}" => 1, "{$product->id}:{$blue->id}" => 1], session('cart'));
+    }
+
+    public function test_the_purchase_limit_counts_every_option_when_changing_the_quantity(): void
+    {
+        [$product, $red, $blue] = $this->limitedProduct();
+        $redKey = "{$product->id}:{$red->id}";
+        $blueKey = "{$product->id}:{$blue->id}";
+
+        $this->actingAsUser($this->makeUser(), ['cart' => [$redKey => 1, $blueKey => 1]]);
+
+        $this->post(route('cart.update', $blueKey), ['action' => 'increase'])->assertSessionHas('error');
+        $this->post(route('cart.update', $blueKey), ['action' => 'set', 'quantity' => 2])->assertSessionHas('error');
+        $this->assertSame(1, session('cart')[$blueKey]);
+
+        // Lowering one option makes room for the other.
+        $this->post(route('cart.update', $redKey), ['action' => 'decrease']);
+        $this->post(route('cart.update', $blueKey), ['action' => 'set', 'quantity' => 2])->assertSessionMissing('error');
+        $this->assertSame([$blueKey => 2], session('cart'));
+    }
+
+    public function test_the_purchase_limit_counts_every_option_at_checkout(): void
+    {
+        [$product, $red, $blue] = $this->limitedProduct();
+        $form = ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'];
+
+        // A cart from before the limit was set, or a selection sent straight to Place Order.
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$product->id}:{$red->id}" => 2, "{$product->id}:{$blue->id}" => 2]])
+            ->post(route('checkout.place'), $form)
+            ->assertRedirect(route('cart'))
+            ->assertSessionHas('error');
+        $this->assertDatabaseCount('orders', 0);
+
+        // Exactly the limit across two options goes through.
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$product->id}:{$red->id}" => 1, "{$product->id}:{$blue->id}" => 1]])
+            ->post(route('checkout.place'), $form)
+            ->assertRedirect();
+        $this->assertSame(2, (int) DB::table('order_items')->sum('quantity'));
+    }
+
+    public function test_the_purchase_limit_still_counts_earlier_orders_of_any_option(): void
+    {
+        [$product, $red, $blue] = $this->limitedProduct();
+        $buyer = $this->makeUser();
+        $form = ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'];
+
+        $this->actingAsUser($buyer, ['cart' => ["{$product->id}:{$red->id}" => 2]])->post(route('checkout.place'), $form)->assertRedirect();
+
+        $this->post(route('cart.add', $product->id), ['quantity' => 1, 'variation_id' => $blue->id])->assertSessionHas('error');
+        $this->assertDatabaseCount('orders', 1);
+    }
 }
