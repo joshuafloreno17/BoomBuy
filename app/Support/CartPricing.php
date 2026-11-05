@@ -138,7 +138,15 @@ class CartPricing
     private static function buyXGetY(array $lines, Bundle $bundle): array
     {
         $bought = collect($lines)->filter(fn ($line) => (int) $line['product']->id === (int) $bundle->buy_product_id)->sum('quantity');
-        $sets = intdiv((int) $bought, max(1, (int) $bundle->buy_quantity));
+        // Free units of the product being bought are in that count too: buy 2 get 1
+        // of one product takes 3 in the cart, and only 1 of them is free.
+        $setSize = max(1, (int) $bundle->buy_quantity);
+
+        if ((int) $bundle->buy_product_id === (int) $bundle->get_product_id) {
+            $setSize += (int) $bundle->get_quantity;
+        }
+
+        $sets = intdiv((int) $bought, $setSize);
         $free = $sets * (int) $bundle->get_quantity;
 
         if ($free <= 0) {

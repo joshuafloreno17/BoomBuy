@@ -503,6 +503,43 @@ class OrderSafetyTest extends TestCase
         $this->assertSame(2, (int) DB::table('order_items')->sum('quantity'));
     }
 
+    public function test_buy_x_get_y_of_one_product_needs_the_bought_units_paid(): void
+    {
+        // [buy, get, in the cart, paid for, free]
+        $cases = [[1, 1, 1, 1, 0], [1, 1, 2, 1, 1], [1, 1, 10, 5, 5], [2, 1, 2, 2, 0], [2, 1, 3, 2, 1], [2, 1, 10, 7, 3]];
+
+        foreach ($cases as [$buy, $get, $inCart, $paidFor, $free]) {
+            $seller = $this->makeSeller();
+            $product = $this->makeProduct($seller, ['price' => 500, 'stock' => 50]);
+            \App\Models\Bundle::create(['seller_id' => $seller->id, 'name' => 'Promo', 'type' => 'bxgy', 'buy_product_id' => $product->id, 'buy_quantity' => $buy, 'get_product_id' => $product->id, 'get_quantity' => $get, 'is_active' => true]);
+
+            $this->actingAsUser($this->makeUser(), ['cart' => ["{$product->id}:0" => $inCart]])
+                ->post(route('checkout.place'), ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'])
+                ->assertRedirect();
+
+            $items = DB::table('order_items')->where('product_id', $product->id)->get();
+            $label = "buy {$buy} get {$get}, {$inCart} in the cart";
+            $this->assertEquals($paidFor * 500, $items->sum(fn ($item) => $item->price * $item->quantity), $label);
+            $this->assertEquals($free, $items->where('price_note', 'free')->sum('quantity'), $label);
+            $this->assertSame(50 - $inCart, (int) $product->fresh()->stock, $label);
+        }
+    }
+
+    public function test_buy_x_get_y_of_another_product_still_needs_only_the_bought_units(): void
+    {
+        $seller = $this->makeSeller();
+        $bought = $this->makeProduct($seller, ['price' => 500]);
+        $gift = $this->makeProduct($seller, ['price' => 200]);
+        \App\Models\Bundle::create(['seller_id' => $seller->id, 'name' => 'Promo', 'type' => 'bxgy', 'buy_product_id' => $bought->id, 'buy_quantity' => 1, 'get_product_id' => $gift->id, 'get_quantity' => 1, 'is_active' => true]);
+
+        $this->actingAsUser($this->makeUser(), ['cart' => ["{$bought->id}:0" => 1, "{$gift->id}:0" => 1]])
+            ->post(route('checkout.place'), ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'])
+            ->assertRedirect();
+
+        $this->assertEquals(500, DB::table('order_items')->sum('price'));
+        $this->assertEquals(0, DB::table('order_items')->where('product_id', $gift->id)->value('price'));
+    }
+
     public function test_the_purchase_limit_still_counts_earlier_orders_of_any_option(): void
     {
         [$product, $red, $blue] = $this->limitedProduct();
