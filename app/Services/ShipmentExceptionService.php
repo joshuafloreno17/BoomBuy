@@ -23,6 +23,9 @@ class ShipmentExceptionService
         'At Sorting Center' => ['Picked Up', 'In Transit', 'To Sorting Center'],
     ];
 
+    /** Orders the seller still holds — not yet in logistics' hands. */
+    private const WITH_SELLER = ['Pending', 'Confirmed', 'Preparing', 'Processing', 'Ready for Pickup', 'Pickup Assigned'];
+
     /** @throws ActionFailed */
     public function override(int $orderId, string $status, string $reason, int $userId, ?int $centerId = null): string
     {
@@ -33,12 +36,20 @@ class ShipmentExceptionService
             throw new ActionFailed('A parcel that is ' . $order->status . ' can\'t be set to ' . $status . ' by hand.');
         }
 
+        $isCod = \App\Support\CodPolicy::isCod((string) $order->payment_method);
+        // Only an Out for Delivery parcel was with the rider; one still
+        // Assigned for Delivery never left, so its cash came in here (L2).
+        $riderHadIt = $order->status === 'Out for Delivery';
+
         $extra = match ($status) {
             'Delivered' => [
                 'delivered_at' => now(),
-                'rider_fee' => \App\Support\DeliveryFee::baseFee(),
-                'cod_collected_at' => \App\Support\CodPolicy::isCod((string) $order->payment_method) ? now() : null,
-                'cod_amount_collected' => \App\Support\CodPolicy::isCod((string) $order->payment_method) ? round((float) $order->total_amount, 2) : null,
+                // 0, not null: a null fee is read as "today's base fee" on the rider's earnings.
+                'rider_fee' => $riderHadIt ? \App\Support\DeliveryFee::baseFee() : 0,
+                'cod_collected_at' => $isCod ? now() : null,
+                'cod_amount_collected' => $isCod ? round((float) $order->total_amount, 2) : null,
+                'cod_remitted_at' => $isCod && !$riderHadIt ? now() : null,
+                'cod_remitted_center_id' => $isCod && !$riderHadIt ? ($centerId ?: $order->current_center_id) : null,
             ],
             'At Sorting Center' => ['sorting_center_received_at' => now()],
             default => [],
@@ -83,6 +94,12 @@ class ShipmentExceptionService
             throw new ActionFailed('This parcel is already ' . $order->status . '.');
         }
 
+        // Still with the seller: logistics never had it, so it can't be lost
+        // or damaged in transit (L1). The seller or buyer cancels it instead.
+        if (in_array($order->status, self::WITH_SELLER, true)) {
+            throw new ActionFailed('This order is still with the seller (' . $order->status . '), so it can\'t be marked ' . strtolower($status) . ' by logistics. It can be cancelled instead.');
+        }
+
         $updated = DB::table('orders')->where('id', $order->id)->where('status', $order->status)->update([
             'status' => $status, 'exception_reason' => $reason, 'exception_photo' => $photo, 'exception_at' => now(), 'updated_at' => now(),
         ]);
@@ -122,8 +139,14 @@ class ShipmentExceptionService
             throw new ActionFailed('Parcel not found.');
         }
 
-        if ($centerId && !in_array($centerId, array_map('intval', array_filter([$order->origin_center_id, $order->destination_center_id, $order->current_center_id, $order->branch_id])), true)) {
-            throw new ActionFailed('This parcel belongs to another logistics company.');
+        // A parcel sitting at a center is that center's to act on (L3); one
+        // between centers (In Transit, on its way in) belongs to its route.
+        $here = $order->current_center_id ? [(int) $order->current_center_id] : array_map('intval', array_filter([$order->origin_center_id, $order->destination_center_id, $order->branch_id]));
+
+        if ($centerId && !in_array($centerId, $here, true)) {
+            throw new ActionFailed($order->current_center_id
+                ? 'This parcel is at ' . (\App\Support\ParcelRoute::centerName((int) $order->current_center_id) ?? 'another Sorting Center') . ', so only that center can act on it.'
+                : 'This parcel belongs to another logistics company.');
         }
 
         return $order;
