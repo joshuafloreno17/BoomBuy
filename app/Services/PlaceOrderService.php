@@ -27,6 +27,50 @@ class PlaceOrderService
     /** Who is checking out (for per-buyer limits). */
     private int $buyerId = 0;
 
+    /** The name the rider asks for: the saved address's recipient, if one was picked. */
+    private ?string $recipient = null;
+
+    /**
+     * The recipient name of the saved address the buyer picked — only when
+     * it is theirs and the address and phone weren't changed by hand.
+     */
+    private function recipientFor(int $buyerId, array $details, string $address, string $phone): ?string
+    {
+        $savedId = (int) ($details['saved_address'] ?? 0);
+
+        if (!$savedId || !$buyerId) {
+            return null;
+        }
+
+        $saved = \App\Models\BuyerAddress::where('id', $savedId)->where('user_id', $buyerId)->first();
+
+        if (!$saved || !self::sameAddress((string) $saved->address, $address)
+            || preg_replace('/\D/', '', (string) $saved->phone) !== preg_replace('/\D/', '', $phone)) {
+            return null;
+        }
+
+        $name = trim((string) $saved->recipient_name);
+
+        return $name !== '' ? $name : null;
+    }
+
+    /**
+     * Same street, town and province — the checkout form rebuilds the text
+     * from its dropdowns, so labels like "Metro Manila" vs "Metro Manila (NCR)"
+     * can differ in wording only.
+     */
+    private static function sameAddress(string $a, string $b): bool
+    {
+        $x = PhLocations::split($a);
+        $y = PhLocations::split($b);
+        $street = fn ($s) => mb_strtolower(preg_replace('/\s+/', ' ', trim((string) $s)));
+
+        return $x['province'] !== null
+            && $x['province'] === $y['province']
+            && ($x['city'] ?? null) === ($y['city'] ?? null)
+            && $street($x['street']) === $street($y['street']);
+    }
+
     /**
      * @param  array  $buyer    The session user (id, name).
      * @param  array  $cart     Cart key ("productId" or "productId:variationId") => quantity.
@@ -40,6 +84,7 @@ class PlaceOrderService
         [$address, $phone, $payment, $location, $fulfillment] = $this->checkDetails($buyer, $details);
 
         $this->buyerId = (int) ($buyer['id'] ?? 0);
+        $this->recipient = $this->recipientFor($this->buyerId, $details, $address, $phone);
         $orderItems = $this->buildLines($cart);
 
         $codes = array_filter(array_map(fn ($c) => strtoupper(trim((string) $c)), (array) $voucherCodes));
@@ -311,7 +356,7 @@ class PlaceOrderService
                         'pickup_code' => $fulfillment === 'pickup' ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT) : null,
                         // The seller's workflow starts here.
                         'status' => 'Pending',
-                        'shipping_name' => $buyer['name'] ?? 'Buyer',
+                        'shipping_name' => $this->recipient ?? ($buyer['name'] ?? 'Buyer'),
                         'shipping_phone' => $phone,
                         'shipping_address' => $address,
                         'shipping_province' => $location['province'],
@@ -365,9 +410,10 @@ class PlaceOrderService
                                 ->decrement('stock', $item['quantity']);
 
                         if (!$decremented) {
-                            throw new CheckoutFailed(
-                                $item['product_name'] . ' just sold out while you were checking out. Please adjust your cart and try again.',
-                                voucherDropped: true
+                            // The vouchers stay applied: nothing is wrong with them, and
+                            // their use was rolled back with this transaction (B5).
+                            throw CheckoutFailed::inCart(
+                                $item['product_name'] . ' just sold out while you were checking out. Please adjust your cart and try again.'
                             );
                         }
 

@@ -613,9 +613,14 @@ class CartController extends Controller
                     array_flip(session()->get('checkout_selection'))
                 );
 
+                // The items picked are gone (ordered in another tab, removed):
+                // never fall back to the whole cart — ask for a new pick (B6).
                 if (empty($cart)) {
                     session()->forget('checkout_selection');
-                    $cart = session()->get('cart', []);
+
+                    return redirect()
+                        ->route('cart')
+                        ->with('error', 'The items you selected are no longer in your cart. Please select the items to check out again.');
                 }
             }
         }
@@ -890,7 +895,7 @@ class CartController extends Controller
             $orderIds = $orders->place(
                 $user,
                 $cart,
-                request()->only('address', 'phone', 'payment', 'fulfillment', 'note', 'expected_total'),
+                request()->only('address', 'phone', 'payment', 'fulfillment', 'note', 'expected_total', 'saved_address'),
                 \App\Support\VoucherSelection::codes()
             );
         } catch (CheckoutFailed $e) {
@@ -903,6 +908,12 @@ class CartController extends Controller
             return $e->backToCart
                 ? redirect()->route('cart')->with('error', $e->getMessage())
                 : back()->withInput()->with('error', $e->getMessage());
+        } catch (\Throwable $e) {
+            // Nothing was ordered (the transaction rolled back): let the
+            // same form be sent again instead of answering "already placed".
+            \App\Support\SubmitOnce::release($submitToken);
+
+            throw $e;
         }
 
         \App\Support\VoucherSelection::clear();

@@ -22,6 +22,9 @@ class BuyerOrderService
     /** Return/refund requests that still block a new one for the same item. */
     private const OPEN_REQUEST_STATUSES = ReturnRefundService::OPEN;
 
+    /** Finished requests that gave the money or the item back: no second one for the same item. */
+    private const SETTLED_REQUEST_STATUSES = ['completed', 'returned'];
+
     /**
      * @return string  What happened, for the buyer.
      *
@@ -237,6 +240,17 @@ class BuyerOrderService
             throw new ActionFailed('A return/refund request already exists for this item.');
         }
 
+        // An item already refunded or returned can't be refunded a second time.
+        $alreadySettled = DB::table('return_refund_requests')
+            ->where('order_id', $orderId)
+            ->where('order_item_id', $orderItemId)
+            ->whereIn('status', self::SETTLED_REQUEST_STATUSES)
+            ->exists();
+
+        if ($alreadySettled) {
+            throw new ActionFailed('This item was already refunded or returned.');
+        }
+
         $stored = array_map(fn (UploadedFile $photo) => $photo->store('return-evidence', 'local'), $photos);
         $evidencePath = array_shift($stored);
 
@@ -275,13 +289,14 @@ class BuyerOrderService
 
     /**
      * What the buyer gets back for one line: what they paid for it — its
-     * price less its share of the order's voucher discount. The delivery
-     * fee isn't refunded.
+     * price less its share of the order's voucher discounts (the store
+     * voucher and the BoomBuy platform voucher). The delivery fee and the
+     * shipping voucher aren't part of it.
      */
     public static function refundAmount(object $order, object $item): float
     {
         $line = (float) $item->price * (int) $item->quantity;
-        $discount = (float) ($order->discount_amount ?? 0);
+        $discount = (float) ($order->discount_amount ?? 0) + (float) ($order->platform_discount ?? 0);
 
         if ($discount <= 0) {
             return round($line, 2);
