@@ -133,7 +133,16 @@ class Product extends Model
     public function liveFlash(): ?FlashSale
     {
         if (!$this->liveFlashLoaded) {
-            $this->liveFlashMemo = $this->id ? FlashSale::liveFor((int) $this->id) : null;
+            $flash = $this->id ? FlashSale::liveFor((int) $this->id) : null;
+
+            // A flash sale only counts while it is cheaper than the price the
+            // buyer would pay without it (S2): the seller may have lowered the
+            // price, or a store sale may be cheaper, since it was set up.
+            if ($flash && (float) $flash->flash_price >= $this->unitPrice(null, false)) {
+                $flash = null;
+            }
+
+            $this->liveFlashMemo = $flash;
             $this->liveFlashLoaded = true;
         }
 

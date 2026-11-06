@@ -46,7 +46,7 @@ class SellerBalance
      * orders, less payouts requested or paid (A15). Cancelled, returned and
      * refunded amounts never count.
      *
-     * @return array{pending: float, available: float, completed: float, paid_out: float, requested: float}
+     * @return array{pending: float, available: float, owed: float, held: float, completed: float, paid_out: float, requested: float}
      */
     public static function balances(int $sellerId): array
     {
@@ -55,8 +55,21 @@ class SellerBalance
             ->where(fn ($q) => $q->whereNull('payment_status')->orWhereNotIn('payment_status', array_merge(Payments::UNPAID, ['Refund Pending', 'Refunded'])))
             ->pluck('id');
 
-        $pending = self::orders($sellerId, null, null, null, $inProgress->all())->sum('earning');
-        $completed = self::orders($sellerId, null, null, ['Completed'])->sum('earning');
+        // A Completed order with an open return/refund request is held (S1):
+        // it waits in Pending until the request is settled, so its money
+        // can't be paid out and then refunded.
+        $held = DB::table('return_refund_requests')
+            ->where('seller_id', $sellerId)
+            ->whereIn('status', \App\Services\ReturnRefundService::OPEN)
+            ->pluck('order_id')
+            ->unique()
+            ->all();
+
+        $completedRows = self::orders($sellerId, null, null, ['Completed']);
+        $heldEarning = $completedRows->whereIn('id', $held)->sum('earning');
+
+        $pending = self::orders($sellerId, null, null, null, $inProgress->all())->sum('earning') + $heldEarning;
+        $completed = $completedRows->whereNotIn('id', $held)->sum('earning');
 
         $payouts = DB::table('seller_payout_requests')->where('seller_id', $sellerId)->whereIn('status', ['Pending', 'Paid'])
             ->selectRaw("SUM(CASE WHEN status = 'Paid' THEN amount ELSE 0 END) as paid, SUM(CASE WHEN status = 'Pending' THEN amount ELSE 0 END) as requested")
@@ -64,10 +77,15 @@ class SellerBalance
 
         $paid = round((float) ($payouts->paid ?? 0), 2);
         $requested = round((float) ($payouts->requested ?? 0), 2);
+        $left = round((float) $completed - $paid - $requested, 2);
 
         return [
             'pending' => round((float) $pending, 2),
-            'available' => round(max(0, (float) $completed - $paid - $requested), 2),
+            'available' => max(0.0, $left),
+            // A refund after a payout: what the seller owes BoomBuy, taken
+            // from later earnings before anything is Available again (S1).
+            'owed' => max(0.0, -$left),
+            'held' => round((float) $heldEarning, 2),
             'completed' => round((float) $completed, 2),
             'paid_out' => $paid,
             'requested' => $requested,

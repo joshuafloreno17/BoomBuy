@@ -70,31 +70,45 @@ class SellerEarningsController extends Controller
         }
 
         $amount = ProductRules::cleanNumber(request('amount'));
-        $balances = SellerBalance::balances($sellerId);
-        $error = match (true) {
-            DB::table('seller_payout_requests')->where('seller_id', $sellerId)->where('status', 'Pending')->exists() => 'You already have a payout request pending. Wait for it to be paid (or cancel it) before asking again.',
-            !preg_match('/^\d+(\.\d{1,2})?$/', $amount) => 'Enter the amount in pesos, e.g. 100.00.',
-            (float) $amount < SellerBalance::PAYOUT_MIN => 'A payout must be at least ₱' . number_format(SellerBalance::PAYOUT_MIN, 2) . '.',
-            round((float) $amount, 2) > $balances['available'] => 'You can request at most your Available balance of ₱' . number_format($balances['available'], 2) . '.',
-            default => null,
-        };
+
+        // Checked and saved under a lock on the seller's row, so two tabs
+        // sending at once can't both pass the "one pending request" check (S3).
+        $error = DB::transaction(function () use ($sellerId, $amount) {
+            DB::table('users')->where('id', $sellerId)->lockForUpdate()->first();
+
+            $balances = SellerBalance::balances($sellerId);
+            $error = match (true) {
+                DB::table('seller_payout_requests')->where('seller_id', $sellerId)->where('status', 'Pending')->exists() => 'You already have a payout request pending. Wait for it to be paid (or cancel it) before asking again.',
+                $balances['owed'] > 0 => 'You owe BoomBuy ₱' . number_format($balances['owed'], 2) . ' for a refund made after a payout. It comes out of your next earnings before you can request a payout.',
+                !preg_match('/^\d+(\.\d{1,2})?$/', $amount) => 'Enter the amount in pesos, e.g. 100.00.',
+                (float) $amount < SellerBalance::PAYOUT_MIN => 'A payout must be at least ₱' . number_format(SellerBalance::PAYOUT_MIN, 2) . '.',
+                round((float) $amount, 2) > $balances['available'] => 'You can request at most your Available balance of ₱' . number_format($balances['available'], 2) . '.',
+                default => null,
+            };
+
+            if ($error) {
+                return $error;
+            }
+
+            DB::table('seller_payout_requests')->insert([
+                'seller_id' => $sellerId,
+                'amount' => round((float) $amount, 2),
+                'status' => 'Pending',
+                'method' => request('method') ?: null,
+                'account_name' => request('account_name') ?: null,
+                'account_number' => request('account_number') ?: null,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+
+            return null;
+        });
 
         if ($error) {
             SubmitOnce::release($token);
 
             return back()->withInput()->withErrors(['amount' => $error])->with('error', $error);
         }
-
-        DB::table('seller_payout_requests')->insert([
-            'seller_id' => $sellerId,
-            'amount' => round((float) $amount, 2),
-            'status' => 'Pending',
-            'method' => request('method') ?: null,
-            'account_name' => request('account_name') ?: null,
-            'account_number' => request('account_number') ?: null,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
 
         return redirect()->route('seller.earnings')->with('success', 'Payout of ₱' . number_format((float) $amount, 2) . ' requested. It shows as Pending until BoomBuy sends it.');
     }

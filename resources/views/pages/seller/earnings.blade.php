@@ -33,12 +33,15 @@
                     <div class="form-group">
                         <label>Pending</label>
                         <strong class="balance" data-balance="pending">₱{{ number_format($balances['pending'], 2) }}</strong>
-                        <small class="promo-note" style="margin:4px 0 0;">Orders not yet completed. Moves to Available when the buyer confirms (or 7 days after delivery).</small>
+                        <small class="promo-note" style="margin:4px 0 0;">Orders not yet completed. Moves to Available when the buyer confirms (or 7 days after delivery).@if($balances['held'] > 0) Includes ₱{{ number_format($balances['held'], 2) }} held while a return or refund request is open.@endif</small>
                     </div>
                     <div class="form-group">
                         <label>Available</label>
                         <strong class="balance" data-balance="available">₱{{ number_format($balances['available'], 2) }}</strong>
                         <small class="promo-note" style="margin:4px 0 0;">Completed orders, less payouts requested or paid.</small>
+                        @if($balances['owed'] > 0)
+                            <small class="field-error" data-balance="owed" style="display:block;margin-top:4px;">You owe BoomBuy ₱{{ number_format($balances['owed'], 2) }} for a refund made after a payout. It comes out of your next earnings.</small>
+                        @endif
                     </div>
                     <div class="form-group">
                         <label>Paid out</label>
