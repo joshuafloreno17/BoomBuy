@@ -69,6 +69,18 @@ class CodRemittanceService
             throw new ActionFailed('Enter the amount you are remitting (more than ₱0, up to 2 decimals).');
         }
 
+        // Checked and saved under a lock on the rider's row, so two taps at
+        // once can't both pass the "one pending remittance" check (D5).
+        return DB::transaction(function () use ($riderId, $amount) {
+            DB::table('users')->where('id', $riderId)->lockForUpdate()->first();
+
+            return $this->submitLocked($riderId, $amount);
+        });
+    }
+
+    /** @throws ActionFailed */
+    private function submitLocked(int $riderId, string $amount): string
+    {
         if (DB::table('cod_remittances')->where('rider_id', $riderId)->where('status', 'Pending')->exists()) {
             throw new ActionFailed('You already have a remittance waiting for confirmation.');
         }
@@ -151,14 +163,39 @@ class CodRemittanceService
         $collected = DB::table('orders')
             ->whereNotNull('cod_collected_at')
             ->whereBetween('cod_collected_at', [$start, $end])
-            ->get(['id', 'delivery_rider_id', 'total_amount', 'cod_amount_collected'])
+            ->get(['id', 'delivery_rider_id', 'total_amount', 'cod_amount_collected', 'cod_remitted_at'])
             ->filter(fn ($o) => $o->delivery_rider_id && RiderJobs::worksFor((int) $o->delivery_rider_id, $centerId))
             ->groupBy('delivery_rider_id');
 
-        return $collected->map(function ($orders, $riderId) use ($start, $end) {
-            $total = round((float) $orders->sum(fn ($o) => (float) ($o->cod_amount_collected ?? $o->total_amount)), 2);
-            $remittances = DB::table('cod_remittances')->where('rider_id', $riderId)->where('status', '!=', 'Cancelled')->whereBetween('created_at', [$start, $end])->get();
-            $remitted = round((float) $remittances->sum('amount'), 2);
+        return $collected->map(function ($orders, $riderId) {
+            $value = fn ($o) => (float) ($o->cod_amount_collected ?? $o->total_amount);
+            $total = round((float) $orders->sum($value), 2);
+            $ids = $orders->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+            // Matched by the orders each remittance pays for, not the day it
+            // was sent (D4): cash collected Monday and remitted Tuesday still
+            // counts for Monday. A remittance's amount is spread over its
+            // orders by their value, so a short one shows short on its days.
+            $remittances = DB::table('cod_remittances')->where('rider_id', $riderId)->where('status', '!=', 'Cancelled')->get()
+                ->map(fn ($r) => (object) ['row' => $r, 'covers' => array_map('intval', json_decode((string) $r->order_ids, true) ?: [])])
+                ->filter(fn ($r) => array_intersect($r->covers, $ids));
+
+            $covered = [];
+            $remitted = 0.0;
+
+            foreach ($remittances as $r) {
+                $coveredValues = DB::table('orders')->whereIn('id', $r->covers)->get(['id', 'total_amount', 'cod_amount_collected'])->keyBy('id');
+                $expected = (float) $coveredValues->sum($value);
+
+                foreach (array_intersect($r->covers, $ids) as $id) {
+                    $covered[] = $id;
+                    $remitted += $expected > 0 ? (float) $r->row->amount * $value($coveredValues[$id]) / $expected : 0;
+                }
+            }
+
+            // Cash handed in at the center (no remittance): counts in full.
+            $remitted += (float) $orders->whereNotIn('id', $covered)->filter(fn ($o) => !empty($o->cod_remitted_at))->sum($value);
+            $remitted = round($remitted, 2);
 
             return (object) [
                 'rider_id' => (int) $riderId,
@@ -168,7 +205,7 @@ class CodRemittanceService
                 'remitted' => $remitted,
                 'difference' => round($remitted - $total, 2),
                 'short' => $remitted < $total,
-                'pending' => $remittances->firstWhere('status', 'Pending'),
+                'pending' => $remittances->pluck('row')->firstWhere('status', 'Pending'),
             ];
         })->values();
     }

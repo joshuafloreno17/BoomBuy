@@ -46,7 +46,7 @@ class FlashReminders
             ->where('f.starts_at', '<=', now()->addMinutes(self::MINUTES_BEFORE))
             ->where('f.ends_at', '>', now())
             ->limit(200)
-            ->get(['r.id', 'r.user_id', 'f.product_id', 'f.flash_price', 'f.starts_at', 'p.name']);
+            ->get(['r.id', 'r.user_id', 'r.flash_sale_id', 'f.product_id', 'f.flash_price', 'f.starts_at', 'p.name']);
 
         $sent = 0;
 
@@ -58,6 +58,14 @@ class FlashReminders
                 ->update(['notified_at' => now(), 'updated_at' => now()]);
 
             if (!$claimed) {
+                continue;
+            }
+
+            // No longer cheaper than the price (lowered since, or a store sale): no reminder (S4).
+            $product = \App\Models\Product::find((int) $reminder->product_id);
+            $sale = \App\Models\FlashSale::find((int) $reminder->flash_sale_id);
+
+            if (!$product || !$sale || !$product->flashIsCheaper($sale)) {
                 continue;
             }
 

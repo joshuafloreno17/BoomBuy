@@ -103,6 +103,30 @@ class SellerReviewFixesTest extends TestCase
         $this->assertSame(1, DB::table('seller_payout_requests')->count());
     }
 
+    /** S4: an upcoming flash sale that is no longer cheaper isn't announced or reminded. */
+    public function test_an_upcoming_flash_sale_dearer_than_the_price_is_not_announced(): void
+    {
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['price' => 1000, 'stock' => 10]);
+        $sale = FlashSale::create([
+            'seller_id' => $seller->id, 'product_id' => $product->id,
+            'starts_at' => now()->addMinutes(2), 'ends_at' => now()->addHour(),
+            'flash_price' => 800, 'quantity' => 5,
+        ]);
+        $buyer = $this->makeUser();
+        \App\Support\FlashReminders::set($buyer->id, $sale->id);
+
+        $this->assertSame($sale->id, $product->fresh()->upcomingFlash()?->id);
+
+        $product->update(['price' => 700]);
+        $this->assertNull($product->fresh()->upcomingFlash());
+
+        $this->get(route('product.details', $product->id))->assertOk()->assertDontSee('Upcoming flash sale');
+
+        \App\Support\FlashReminders::sweep();
+        $this->assertDatabaseMissing('notifications', ['user_id' => $buyer->id, 'title' => 'Flash sale starting soon']);
+    }
+
     /** S2: a flash sale that is no longer cheaper than the price is ignored. */
     public function test_a_flash_sale_dearer_than_the_price_is_ignored(): void
     {

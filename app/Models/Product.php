@@ -138,7 +138,7 @@ class Product extends Model
             // A flash sale only counts while it is cheaper than the price the
             // buyer would pay without it (S2): the seller may have lowered the
             // price, or a store sale may be cheaper, since it was set up.
-            if ($flash && (float) $flash->flash_price >= $this->unitPrice(null, false)) {
+            if ($flash && !$this->flashIsCheaper($flash)) {
                 $flash = null;
             }
 
@@ -147,6 +147,24 @@ class Product extends Model
         }
 
         return $this->liveFlashMemo;
+    }
+
+    /**
+     * Today's next flash sale, if it would still be cheaper than the price
+     * without it — the same rule as liveFlash() (S4), so the product page
+     * never announces a "flash sale" dearer than today's price.
+     */
+    public function upcomingFlash(): ?FlashSale
+    {
+        $flash = $this->id ? FlashSale::upcomingFor((int) $this->id) : null;
+
+        return $flash && $this->flashIsCheaper($flash) ? $flash : null;
+    }
+
+    /** A flash price beats the price the buyer would pay without it. */
+    public function flashIsCheaper(FlashSale $flash): bool
+    {
+        return (float) $flash->flash_price < $this->unitPrice(null, false);
     }
 
     /** % off shown on the badge right now (flash, sale or the product's own discount), null if none. */

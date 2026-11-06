@@ -207,7 +207,7 @@ class CartController extends MobileController
             $orderIds = $orders->place(
                 $this->sessionUser($request),
                 $cart,
-                $request->only('address', 'phone', 'payment', 'fulfillment'),
+                $request->only('address', 'phone', 'payment', 'fulfillment', 'note', 'expected_total', 'saved_address'),
                 $voucherCode
             );
         } catch (CheckoutFailed $e) {

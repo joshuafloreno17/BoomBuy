@@ -101,6 +101,23 @@ class RiderReviewFixesTest extends TestCase
         $cod->submit($rider->id, '1');
     }
 
+    /** D4: cash collected one day and remitted the next counts for the day it was collected. */
+    public function test_reconciliation_matches_remittances_to_their_orders(): void
+    {
+        $rider = $this->makeRider();
+        $cod = app(CodRemittanceService::class);
+        $yesterday = now()->subDay();
+
+        $this->parcelWith($rider, 'Delivered', ['payment_method' => 'Cash on Delivery', 'cod_collected_at' => $yesterday, 'cod_amount_collected' => 1000]);
+        $cod->submit($rider->id, '1000');
+
+        $row = $cod->reconciliation(null, $yesterday->toDateString())->firstWhere('rider_id', $rider->id);
+        $this->assertSame([1000.0, 1000.0, false], [$row->collected, $row->remitted, $row->short]);
+
+        // Nothing was collected today, so today shows nothing for this rider.
+        $this->assertNull($cod->reconciliation(null, now()->toDateString())->firstWhere('rider_id', $rider->id));
+    }
+
     /** D3: cash handed in at the center cancels the rider's pending remittance for it. */
     public function test_a_center_hand_in_cancels_the_pending_remittance(): void
     {

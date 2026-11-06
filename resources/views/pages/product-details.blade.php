@@ -253,7 +253,7 @@
 
                 @php
                     $liveFlash = $product->liveFlash();
-                    $upcomingFlash = $liveFlash ? null : \App\Models\FlashSale::upcomingFor((int) $product->id);
+                    $upcomingFlash = $liveFlash ? null : $product->upcomingFlash();
                 @endphp
 
                 @if($liveFlash)
