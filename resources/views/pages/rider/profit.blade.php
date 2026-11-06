@@ -48,10 +48,10 @@
                     <small>{{ $cod['orders']->count() }} order(s){{ $cod['shortfall'] > 0 ? ' · ₱' . number_format($cod['shortfall'], 2) . ' outstanding' : '' }}{{ $cod['pending'] ? ' · ₱' . number_format($cod['pending']->amount, 2) . ' pending confirmation' : '' }}</small>
                 </div>
             </section>
-            @if($cod['held'] > 0 && !$cod['pending'])
+            @if($cod['balance'] > 0 && !$cod['pending'])
                 <form method="POST" action="{{ route('rider.cod.remit') }}" class="filter-form" style="margin-bottom:18px;">
                     @csrf
-                    <div><label for="remitAmount">Remit COD (₱)</label><input type="number" id="remitAmount" name="amount" step="0.01" min="0.01" value="{{ number_format($cod['held'], 2, '.', '') }}"></div>
+                    <div><label for="remitAmount">Remit COD (₱)</label><input type="number" id="remitAmount" name="amount" step="0.01" min="0.01" value="{{ number_format($cod['balance'], 2, '.', '') }}"></div>
                     <button type="submit" class="filter-btn">Send remittance</button>
                 </form>
             @endif

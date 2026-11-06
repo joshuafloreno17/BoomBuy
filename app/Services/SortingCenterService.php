@@ -1068,6 +1068,19 @@ class SortingCenterService
             ->whereNull('cod_remitted_at')
             ->update(['cod_remitted_at' => now(), 'cod_remitted_center_id' => $receivingCenter, 'updated_at' => now()]);
 
+        // A remittance the rider sent for this same cash is now settled here:
+        // cancel it, so confirming it later can't record the money twice (D3).
+        $handedIn = $orders->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        foreach (DB::table('cod_remittances')->where('rider_id', $riderId)->where('status', 'Pending')->get() as $remittance) {
+            $covers = array_map('intval', json_decode((string) $remittance->order_ids, true) ?: []);
+
+            if ($covers && !array_diff($covers, $handedIn)) {
+                DB::table('cod_remittances')->where('id', $remittance->id)->where('status', 'Pending')
+                    ->update(['status' => 'Cancelled', 'updated_at' => now()]);
+            }
+        }
+
         $total = (float) $orders->sum('total_amount');
         $centerName = ParcelRoute::centerName($receivingCenter ? (int) $receivingCenter : null) ?? 'the Sorting Center';
 
@@ -1199,6 +1212,68 @@ class SortingCenterService
         }
 
         return $rider;
+    }
+
+    /**
+     * Take a parcel back from its delivery rider (D1): the rider was
+     * suspended, quit, or can't finish it. Assigned for Delivery parcels are
+     * still here; an Out for Delivery one is taken back once the rider (or
+     * someone for them) has brought it in. It waits to be assigned again,
+     * and it doesn't count as a failed delivery attempt.
+     *
+     * @throws ActionFailed
+     */
+    public function takeBack(int $orderId, ?int $centerId = null): string
+    {
+        $order = $this->parcel($orderId);
+
+        if (!in_array($order->status, ['Assigned for Delivery', 'Out for Delivery'], true)) {
+            throw new ActionFailed('This parcel is not with a delivery rider.');
+        }
+
+        $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
+
+        $this->release($order, 'Taken back from the rider by the Sorting Center');
+
+        return 'Parcel #' . $orderId . ' is back here and waiting for a new rider.';
+    }
+
+    /**
+     * Back to the status it was assigned from (Sorted, or At Branch for a
+     * branch's parcel). A rider who stops being Active is handled in bulk by
+     * RiderRelease.
+     */
+    private function release(object $order, string $why): void
+    {
+        $riderId = (int) $order->delivery_rider_id;
+        $backTo = !empty($order->branch_id) && (int) $order->current_center_id === (int) $order->branch_id ? 'At Branch' : 'Sorted';
+
+        $updated = DB::table('orders')
+            ->where('id', $order->id)
+            ->where('status', $order->status)
+            ->where('delivery_rider_id', $riderId)
+            ->update([
+                'status' => $backTo,
+                'delivery_rider_id' => null,
+                'delivery_otp' => null,
+                'otp_failures' => 0,
+                'otp_locked_until' => null,
+                'updated_at' => now(),
+            ]);
+
+        if (!$updated) {
+            throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        OrderTimeline::log((int) $order->id, $backTo, 'Back at the Sorting Center', $why . '. A new rider will be assigned.', $order->current_center_id);
+
+        if ($riderId) {
+            createNotification($riderId, 'Delivery Taken Back', 'Order #' . $order->id . ' was taken back by the Sorting Center and is no longer assigned to you.', 'delivery_status', (int) $order->id);
+        }
+
+        if ($order->status === 'Out for Delivery') {
+            createNotification((int) $order->buyer_id, 'Delivery Delayed', 'Your order #' . $order->id . ' is back at the Sorting Center and will be sent out again with another rider.', 'order', (int) $order->id);
+        }
     }
 
     /** Only from the status just checked, so two logistics staff can't both act on it. */

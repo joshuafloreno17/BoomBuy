@@ -28,14 +28,20 @@ class CodRemittanceService
             ->get(['id', 'total_amount', 'cod_amount_collected', 'cod_collected_at']);
     }
 
-    /** Short amounts of confirmed remittances, still owed by the rider. */
+    /**
+     * What the rider still owes from confirmed remittances: everything they
+     * were expected to hand in less everything they did. A later remittance
+     * of more than its orders pays the old shortfall off (D2).
+     */
     public function shortfall(int $riderId): float
     {
-        return round((float) DB::table('cod_remittances')
+        $totals = DB::table('cod_remittances')
             ->where('rider_id', $riderId)
             ->where('status', 'Confirmed')
-            ->whereColumn('amount', '<', 'expected')
-            ->sum(DB::raw('expected - amount')), 2);
+            ->selectRaw('COALESCE(SUM(expected), 0) as expected, COALESCE(SUM(amount), 0) as amount')
+            ->first();
+
+        return round(max(0, (float) $totals->expected - (float) $totals->amount), 2);
     }
 
     /** @return array{held: float, orders: Collection, pending: ?object, shortfall: float, balance: float} */
@@ -68,15 +74,19 @@ class CodRemittanceService
         }
 
         $orders = $this->held($riderId);
+        $shortfall = $this->shortfall($riderId);
 
-        if ($orders->isEmpty()) {
+        // Cash still held, or an old shortfall to pay off (D2).
+        if ($orders->isEmpty() && $shortfall <= 0) {
             throw new ActionFailed('You have no Cash on Delivery money to remit.');
         }
 
         $expected = round((float) $orders->sum(fn ($o) => (float) ($o->cod_amount_collected ?? $o->total_amount)), 2);
+        $owed = round($expected + $shortfall, 2);
 
-        if (round((float) $amount, 2) > $expected) {
-            throw new ActionFailed('That is more than the ₱' . number_format($expected, 2) . ' you collected.');
+        if (round((float) $amount, 2) > $owed) {
+            throw new ActionFailed('That is more than the ₱' . number_format($owed, 2) . ' you owe'
+                . ($shortfall > 0 ? ' (₱' . number_format($expected, 2) . ' collected + ₱' . number_format($shortfall, 2) . ' outstanding).' : '.'));
         }
 
         DB::table('cod_remittances')->insert([
@@ -105,7 +115,9 @@ class CodRemittanceService
             ->update(['status' => 'Confirmed', 'confirmed_by' => $logisticsUserId, 'confirmed_at' => now(), 'updated_at' => now()]);
 
         if (!$confirmed) {
-            throw new ActionFailed('This remittance was already confirmed.');
+            throw new ActionFailed($remittance->status === 'Cancelled'
+                ? 'This remittance was cancelled — the Sorting Center already received that cash from the rider.'
+                : 'This remittance was already confirmed.');
         }
 
         DB::table('orders')->whereIn('id', json_decode($remittance->order_ids, true) ?: [])->whereNull('cod_remitted_at')
@@ -117,10 +129,13 @@ class CodRemittanceService
             'remittance' => $remittanceId, 'amount' => (float) $remittance->amount, 'expected' => (float) $remittance->expected, 'shortfall' => max(0, $short),
         ], $logisticsUserId);
 
-        createNotification((int) $remittance->rider_id, 'Remittance Confirmed', 'Your COD remittance of ₱' . number_format((float) $remittance->amount, 2) . ' was confirmed.'
-            . ($short > 0 ? ' You still owe ₱' . number_format($short, 2) . '.' : ''), 'delivery_status');
+        $stillOwed = $this->shortfall((int) $remittance->rider_id);
+        $paidOff = $short < 0 ? ' ₱' . number_format(-$short, 2) . ' went to the outstanding balance.' : '';
 
-        return 'Remittance of ₱' . number_format((float) $remittance->amount, 2) . ' confirmed.' . ($short > 0 ? ' Shortfall: ₱' . number_format($short, 2) . '.' : '');
+        createNotification((int) $remittance->rider_id, 'Remittance Confirmed', 'Your COD remittance of ₱' . number_format((float) $remittance->amount, 2) . ' was confirmed.'
+            . $paidOff . ($stillOwed > 0 ? ' You still owe ₱' . number_format($stillOwed, 2) . '.' : ''), 'delivery_status');
+
+        return 'Remittance of ₱' . number_format((float) $remittance->amount, 2) . ' confirmed.' . $paidOff . ($stillOwed > 0 ? ' Shortfall: ₱' . number_format($stillOwed, 2) . '.' : '');
     }
 
     /**
@@ -142,7 +157,7 @@ class CodRemittanceService
 
         return $collected->map(function ($orders, $riderId) use ($start, $end) {
             $total = round((float) $orders->sum(fn ($o) => (float) ($o->cod_amount_collected ?? $o->total_amount)), 2);
-            $remittances = DB::table('cod_remittances')->where('rider_id', $riderId)->whereBetween('created_at', [$start, $end])->get();
+            $remittances = DB::table('cod_remittances')->where('rider_id', $riderId)->where('status', '!=', 'Cancelled')->whereBetween('created_at', [$start, $end])->get();
             $remitted = round((float) $remittances->sum('amount'), 2);
 
             return (object) [

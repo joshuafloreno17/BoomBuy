@@ -1051,6 +1051,12 @@ class LogisticsController extends Controller
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmBack((int) $id, $myCenter));
     }
 
+    /** Take a parcel back from its delivery rider so another rider can deliver it (D1). */
+    public function takeBackParcel($id, SortingCenterService $center)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $center->takeBack((int) $id, $myCenter));
+    }
+
     public function rescheduleParcel($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->reschedule((int) $id, request('rider_id'), $myCenter));

@@ -560,7 +560,7 @@
 
             @endforelse
 
-            {{-- 4. ON THE ROAD (read-only) --}}
+            {{-- 4. ON THE ROAD (take back only, when the rider can't finish it) --}}
             <h2 class="section-heading" id="on-the-road"><i class="bi bi-truck"></i> On the Road ({{ count($onTheRoad) }})</h2>
 
             @forelse ($onTheRoad as $order)
@@ -580,6 +580,12 @@
                             · attempt {{ $order->delivery_attempts + 1 }} of 2
                         @endif
                     </div>
+                    {{-- The rider can't finish it (suspended, quit, sick): take it back for another rider. --}}
+                    <form method="POST" action="{{ route('logistics.parcels.take-back', $order->id) }}"
+                          data-confirm="{{ $order->status === 'Out for Delivery' ? 'Only take it back once the parcel is here at the Sorting Center. It will wait for a new rider.' : 'Take this parcel back from the rider? It will wait for a new rider.' }}">
+                        @csrf
+                        <button type="submit" class="reject-btn"><i class="bi bi-arrow-counterclockwise"></i> Take Back From Rider</button>
+                    </form>
                 </div>
 
             @empty

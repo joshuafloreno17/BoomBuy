@@ -963,6 +963,7 @@ Route::post('/logistics/parcels/{id}/assign', [LogisticsController::class, 'assi
 
 
 Route::post('/logistics/parcels/{id}/confirm-back', [LogisticsController::class, 'confirmParcelBack'])->name('logistics.parcels.confirm-back');
+Route::post('/logistics/parcels/{id}/take-back', [LogisticsController::class, 'takeBackParcel'])->whereNumber('id')->name('logistics.parcels.take-back');
 Route::post('/logistics/parcels/{id}/reschedule', [LogisticsController::class, 'rescheduleParcel'])->name('logistics.parcels.reschedule');
 
 

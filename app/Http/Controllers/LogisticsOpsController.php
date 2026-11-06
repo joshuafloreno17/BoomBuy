@@ -224,10 +224,16 @@ class LogisticsOpsController extends Controller
             DB::table('orders')->whereIn('id', $pickups)->update(['status' => 'Ready for Pickup', 'rider_id' => null, 'dispatch_unassigned_at' => now(), 'updated_at' => now()]);
             DB::table('job_offers')->where('rider_id', $rider->id)->where('status', 'pending')->update(['status' => 'cancelled', 'updated_at' => now()]);
 
-            AuditLog::record('rider.suspended', 'rider', (int) $rider->id, ['from' => $rider->status, 'to' => 'Suspended', 'reason' => $reason, 'unassigned_jobs' => $pickups->all()], (int) $user['id']);
+            // Their deliveries go back to Awaiting Assignment and their COD cash
+            // is called in — the same as an admin suspension or a deactivation (D1).
+            $released = \App\Support\RiderRelease::release((int) $rider->id);
+
+            AuditLog::record('rider.suspended', 'rider', (int) $rider->id, ['from' => $rider->status, 'to' => 'Suspended', 'reason' => $reason, 'unassigned_jobs' => $pickups->all(), 'released' => $released], (int) $user['id']);
             createNotification((int) $rider->id, 'Account Suspended', 'Your rider account was suspended by your logistics company. Reason: ' . $reason, 'account_status');
 
-            return $rider->name . ' was suspended.' . ($pickups->isNotEmpty() ? ' ' . $pickups->count() . ' pickup(s) moved to the Unassigned queue.' : '');
+            return $rider->name . ' was suspended.'
+                . ($pickups->isNotEmpty() ? ' ' . $pickups->count() . ' pickup(s) moved to the Unassigned queue.' : '')
+                . \App\Support\RiderRelease::summary($released);
         });
     }
 
