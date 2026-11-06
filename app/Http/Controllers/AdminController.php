@@ -155,12 +155,8 @@ class AdminController extends Controller
 
         $commissionRate = (float) PlatformSetting::get('commission_rate', '10');
 
-        $deliveredTodaySales = (float) DB::table('orders')
-            ->whereIn('status', \App\Support\OrderStatus::DONE)
-            ->whereRaw('DATE(COALESCE(delivered_at, updated_at)) = ?', [$today])
-            ->sum(DB::raw('total_amount - delivery_fee'));
-
-        $commissionToday = round($deliveredTodaySales * $commissionRate / 100, 2);
+        // Delivered sales and commission today: worked out below with the
+        // month chart, the same way as Reports (A1).
 
         // A seller counts once approved (same rule as the Applications page) and not suspended.
         $activeSellers = DB::table('users')
@@ -244,18 +240,32 @@ class AdminController extends Controller
 
         // Delivered sales and BoomBuy's commission per month, last 6 months (line chart).
         // Grouped by month in PHP (works on every database).
-        $monthSales = DB::table('orders')
+        // The same per-order figures as Reports (SellerBalance): the seller's
+        // items less their own voucher and refunds, commission at the order's
+        // saved rate. BoomBuy's own vouchers and the delivery fee don't count (A1).
+        $windowOrders = DB::table('orders')
             ->whereIn('status', \App\Support\OrderStatus::DONE)
             ->whereRaw('COALESCE(delivered_at, updated_at) >= ?', [$months->first()])
-            ->get(['total_amount', 'delivery_fee', 'commission_rate', 'delivered_at', 'updated_at'])
-            ->groupBy(fn ($o) => substr((string) ($o->delivered_at ?? $o->updated_at), 0, 7));
-        $salesByMonth = $months->map(function ($month) use ($monthSales, $commissionRate) {
+            ->pluck('updated_at', 'id');
+        $sellerIds = $windowOrders->isEmpty() ? collect() : DB::table('order_items')
+            ->whereIn('order_id', $windowOrders->keys())
+            ->distinct()
+            ->pluck('seller_id');
+        $sellerRows = $sellerIds
+            ->flatMap(fn ($sellerId) => \App\Support\SellerBalance::orders((int) $sellerId, null, null, null, $windowOrders->keys()->all()));
+        $deliveredOn = fn ($o) => (string) ($o->delivered_at ?? $windowOrders[$o->id] ?? '');
+        $monthSales = $sellerRows->groupBy(fn ($o) => substr($deliveredOn($o), 0, 7));
+
+        $todayRows = $sellerRows->filter(fn ($o) => substr($deliveredOn($o), 0, 10) === \Illuminate\Support\Carbon::parse($today)->toDateString());
+        $deliveredTodaySales = round((float) $todayRows->sum(fn ($o) => max(0, $o->items - $o->voucher - $o->refunds)), 2);
+        $commissionToday = round((float) $todayRows->sum('commission'), 2);
+        $salesByMonth = $months->map(function ($month) use ($monthSales) {
             $rows = $monthSales->get($month->format('Y-m'), collect());
 
             return [
                 'label' => $month->format('M'),
-                'sales' => round((float) $rows->sum(fn ($o) => $o->total_amount - $o->delivery_fee), 2),
-                'commission' => round((float) $rows->sum(fn ($o) => ($o->total_amount - $o->delivery_fee) * ($o->commission_rate ?? $commissionRate) / 100), 2),
+                'sales' => round((float) $rows->sum(fn ($o) => max(0, $o->items - $o->voucher - $o->refunds)), 2),
+                'commission' => round((float) $rows->sum('commission'), 2),
             ];
         })->all();
 
@@ -1786,6 +1796,53 @@ class AdminController extends Controller
         return $this->adminAction(fn () => $returns->markRefunded((int) $id, (string) request('reference'), \App\Support\SupportAccount::id()));
     }
 
+    /**
+     * Payouts & Refunds (A2, A3): seller payout requests and refunds of
+     * cancelled paid orders that BoomBuy still has to send.
+     */
+    public function payouts()
+    {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
+        $payouts = DB::table('seller_payout_requests')
+            ->leftJoin('users', 'users.id', '=', 'seller_payout_requests.seller_id')
+            ->where('seller_payout_requests.status', 'Pending')
+            ->orderBy('seller_payout_requests.created_at')
+            ->get(['seller_payout_requests.*', 'users.name as seller_name']);
+
+        $refunds = DB::table('orders')
+            ->leftJoin('users', 'users.id', '=', 'orders.buyer_id')
+            ->where('orders.payment_status', 'Refund Pending')
+            ->orderBy('orders.updated_at')
+            ->get(['orders.*', 'users.name as buyer_name']);
+
+        $recent = DB::table('seller_payout_requests')
+            ->leftJoin('users', 'users.id', '=', 'seller_payout_requests.seller_id')
+            ->where('seller_payout_requests.status', 'Paid')
+            ->orderByDesc('seller_payout_requests.paid_at')
+            ->limit(10)
+            ->get(['seller_payout_requests.*', 'users.name as seller_name']);
+
+        return view('pages.admin.payouts', [
+            'payouts' => $payouts,
+            'refunds' => $refunds,
+            'recent' => $recent,
+            'shops' => \App\Support\SellerShop::many($payouts->pluck('seller_id')->merge($recent->pluck('seller_id'))),
+        ]);
+    }
+
+    public function payPayout($id, \App\Services\PayoutService $payouts)
+    {
+        return $this->adminAction(fn () => $payouts->markPaid((int) $id, (string) request('reference')));
+    }
+
+    public function refundOrder($id)
+    {
+        return $this->adminAction(fn () => \App\Support\Payments::markRefunded((int) $id, (string) request('reference')));
+    }
+
     /** Runs an admin action and flashes its message (or the rule it broke). */
     private function adminAction(callable $action)
     {
@@ -1999,12 +2056,21 @@ class AdminController extends Controller
     /** Compliance → Riders: stuck deliveries, failed attempts, complaints. */
     public function complianceRiders()
     {
+        // Checked first, so a visitor who isn't the admin never runs the query (A4).
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
         return $this->peopleCompliance('riders', \App\Support\PeopleCompliance::riders());
     }
 
     /** Compliance → Buyers: COD pauses for cancelling/refusing, complaints. */
     public function complianceBuyers()
     {
+        if (!session()->get('admin_logged_in')) {
+            return redirect()->route('admin.login');
+        }
+
         return $this->peopleCompliance('buyers', \App\Support\PeopleCompliance::buyers());
     }
 

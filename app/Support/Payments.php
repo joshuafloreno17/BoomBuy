@@ -117,6 +117,42 @@ class Payments
         return 'A refund of ₱' . number_format((float) $order->total_amount, 2) . ' to your ' . $order->payment_method . ' has been started.';
     }
 
+    /**
+     * BoomBuy sent the refund of a cancelled paid order (A3): Refund Pending
+     * becomes Refunded, with the transfer reference on the order's timeline.
+     *
+     * @throws \App\Exceptions\ActionFailed
+     */
+    public static function markRefunded(int $orderId, string $reference): string
+    {
+        $order = DB::table('orders')->where('id', $orderId)->first();
+
+        if (!$order || ($order->payment_status ?? null) !== 'Refund Pending') {
+            throw new \App\Exceptions\ActionFailed('This order has no refund waiting to be sent.');
+        }
+
+        $reference = trim($reference);
+
+        if ($reference === '') {
+            throw new \App\Exceptions\ActionFailed('Enter the transfer\'s reference number so the buyer can check it.');
+        }
+
+        $reference = Str::limit($reference, 100, '');
+
+        $updated = DB::table('orders')->where('id', $orderId)->where('payment_status', 'Refund Pending')
+            ->update(['payment_status' => 'Refunded', 'updated_at' => now()]);
+
+        if (!$updated) {
+            throw new \App\Exceptions\ActionFailed('This refund was just updated. Please refresh and try again.');
+        }
+
+        $amount = '₱' . number_format((float) ($order->refund_amount ?: $order->total_amount), 2);
+        OrderTimeline::log($orderId, (string) $order->status, 'Refund sent', $amount . ' back to your ' . $order->payment_method . ' · ref ' . $reference);
+        createNotification((int) $order->buyer_id, 'Refund Sent', 'BoomBuy sent your refund of ' . $amount . ' for order #' . $orderId . ' to your ' . $order->payment_method . '. Reference: ' . $reference . '.', 'order', $orderId);
+
+        return 'Refund of ' . $amount . ' for order #' . $orderId . ' marked as sent.';
+    }
+
     public static function markFailed(int $buyerId, string $group): int
     {
         return DB::table('orders')

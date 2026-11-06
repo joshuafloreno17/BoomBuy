@@ -784,6 +784,11 @@ Route::get('/admin/returns', [AdminController::class, 'returns'])->name('admin.r
 Route::post('/admin/returns/{id}/decide', [AdminController::class, 'decideReturn'])->name('admin.returns.decide');
 Route::post('/admin/returns/{id}/refunded', [AdminController::class, 'refundReturn'])->name('admin.returns.refunded');
 
+// Payouts & Refunds: seller payout requests and refunds of cancelled paid orders (A2, A3)
+Route::get('/admin/payouts', [AdminController::class, 'payouts'])->name('admin.payouts');
+Route::post('/admin/payouts/{id}/paid', [AdminController::class, 'payPayout'])->whereNumber('id')->name('admin.payouts.paid');
+Route::post('/admin/orders/{id}/refunded', [AdminController::class, 'refundOrder'])->whereNumber('id')->name('admin.orders.refunded');
+
 
 
 
