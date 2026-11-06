@@ -42,7 +42,7 @@ class LoginJsonTest extends TestCase
         $this->assertSame($buyer->id, session('user.id'));
     }
 
-    public function test_only_the_first_page_after_login_builds_itself_in(): void
+    public function test_only_the_first_page_after_login_crossfades_in(): void
     {
         $email = $this->lowercase($this->makeSeller());
 

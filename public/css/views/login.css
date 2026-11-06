@@ -1,6 +1,6 @@
 /* Login — marketplace (/login) and BoomBuy Logistics (/logistics/login).
    Copy on the left, the orb playing an order's journey in the middle,
-   the login card on the right. Signing in grows the orb over the page. */
+   the login card on the right. Signing in plays the "Boom!" on the orb. */
 
 
 * {
@@ -379,6 +379,14 @@ body.is-join .auth-dots {
     border: 1px solid var(--auth-ring);
 }
 
+/* Holds the orbits, so they can be pulled in while they keep turning. */
+.auth-orbits {
+    position: absolute;
+    inset: 0;
+    transition: transform .3s ease-out, opacity .3s ease-out;
+    will-change: transform;
+}
+
 .auth-orbit {
     position: absolute;
     inset: 0;
@@ -454,8 +462,6 @@ body.is-join .auth-dots {
     margin: -110px 0 0 -110px;
     border-radius: 50%;
     background: radial-gradient(circle at 34% 26%, #ffffff 0%, #d3c6fa 10%, #8b6cf0 38%, #5533c4 66%, #24125e 100%);
-
-    transition: transform .7s cubic-bezier(.7, 0, .2, 1);
     will-change: transform;
 }
 
@@ -1015,32 +1021,62 @@ body.is-join .auth-flip {
     padding: 0 16px 24px;
 }
 
-/* SIGNED IN: the orb grows over everything, then the next page loads */
+/* SIGNING IN. Only transform and opacity move here, on a few small layers:
+   the next page is loading at the same time and must not be held up. */
 
-body.is-leaving {
-    overflow: hidden;
+/* Checking: the icons fade into the orb. A wrong password brings them back. */
+body.is-checking .auth-orbits {
+    transform: scale(.6);
+    opacity: 0;
+    transition: transform .5s ease-in, opacity .5s ease-in;
 }
 
-body.is-leaving .auth-orb {
-    z-index: 50;
-}
-
-body.is-leaving .auth-ball {
-    transform: scale(14);
-}
-
-body.is-leaving .auth-orb-stage::before,
-body.is-leaving .auth-ball-content,
-body.is-leaving .auth-ring,
-body.is-leaving .auth-orbit,
-body.is-leaving .auth-dots,
-body.is-leaving .auth-copy {
+body.is-checking .auth-ring {
     opacity: 0;
 }
 
-body.is-leaving .auth-card {
+/* Signed in: one pulse, one ring, one word. */
+.auth-shock {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 220px;
+    height: 220px;
+    margin: -110px 0 0 -110px;
+    border-radius: 50%;
+    border: 3px solid #7c5ce8;
     opacity: 0;
-    transform: scale(.92) translateY(10px);
+    pointer-events: none;
+}
+
+.auth-boom {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 38px;
+    font-weight: 900;
+    letter-spacing: -.02em;
+    opacity: 0;
+}
+
+body.is-boom .auth-ball {
+    animation: authBoomBall .3s ease-out both;
+}
+
+body.is-boom .auth-ball-content {
+    opacity: 0;
+    transition: opacity .1s ease;
+}
+
+body.is-boom .auth-boom {
+    animation: authBoomWord .25s ease-out both;
+}
+
+body.is-boom .auth-shock {
+    animation: authShock .45s ease-out both;
 }
 
 /* SWITCHING PORTALS: out toward where you're going, the other page in
@@ -1136,10 +1172,23 @@ html.bb-switch-in .auth-net-lines path {
 
 @keyframes authShake {
     0%, 100% { transform: translateX(0); }
-    20% { transform: translateX(-8px); }
-    40% { transform: translateX(7px); }
-    60% { transform: translateX(-5px); }
-    80% { transform: translateX(3px); }
+    33% { transform: translateX(-5px); }
+    66% { transform: translateX(4px); }
+}
+
+@keyframes authBoomBall {
+    0%, 100% { transform: scale(1); }
+    40% { transform: scale(1.05); }
+}
+
+@keyframes authBoomWord {
+    from { opacity: 0; transform: scale(.85); }
+    to { opacity: 1; transform: none; }
+}
+
+@keyframes authShock {
+    from { opacity: .7; transform: scale(1); }
+    to { opacity: 0; transform: scale(3.5); }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1147,8 +1196,14 @@ html.bb-switch-in .auth-net-lines path {
     .auth-orbit,
     .auth-sat,
     .auth-orb-stage::before,
-    .auth-card.is-shake {
+    .auth-card.is-shake,
+    body.is-boom .auth-ball,
+    body.is-boom .auth-shock {
         animation: none !important;
+    }
+
+    .auth-orbits {
+        transition: none !important;
     }
 }
 
@@ -1330,6 +1385,10 @@ html.bb-switch-in .auth-net-lines path {
         transform: scale(.7);
     }
 
+    .auth-boom {
+        font-size: 46px;
+    }
+
     .auth-dots {
         display: none;
     }
@@ -1364,6 +1423,10 @@ html.bb-switch-in .auth-net-lines path {
         top: 50%;
         margin: -180px 0 0 -180px;
         transform: scale(.6);
+    }
+
+    .auth-boom {
+        font-size: 54px;
     }
 
     .auth-dots {

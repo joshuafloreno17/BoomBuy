@@ -167,7 +167,7 @@ class AuthController extends Controller
 
         LoginGate::startSession($user);
 
-        // The first page after signing in builds itself in (partials.build-in).
+        // The first page after signing in crossfades in (partials.build-in).
         session()->flash('bb_build_in', true);
 
         // Remember Me — a 30-day token cookie that logs this browser back in

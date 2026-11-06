@@ -152,19 +152,26 @@
                 <span class="auth-ring is-outer"></span>
                 <span class="auth-ring is-inner"></span>
 
-                <div class="auth-orbit">
-                    <span class="auth-sat is-top"><svg viewBox="0 0 24 24">{!! $icons[$satellites[0]] !!}</svg></span>
-                    <span class="auth-sat is-bottom">
-                        @if($satellites[1])
-                            <svg viewBox="0 0 24 24">{!! $icons[$satellites[1]] !!}</svg>
-                        @else
-                            ₱
-                        @endif
-                    </span>
-                </div>
+                {{-- The wave when signing in succeeds. --}}
+                <span class="auth-shock"></span>
 
-                <div class="auth-orbit is-inner">
-                    <span class="auth-sat"><svg viewBox="0 0 24 24">{!! $icons[$satellites[2]] !!}</svg></span>
+                <div class="auth-orbits">
+
+                    <div class="auth-orbit">
+                        <span class="auth-sat is-top"><svg viewBox="0 0 24 24">{!! $icons[$satellites[0]] !!}</svg></span>
+                        <span class="auth-sat is-bottom">
+                            @if($satellites[1])
+                                <svg viewBox="0 0 24 24">{!! $icons[$satellites[1]] !!}</svg>
+                            @else
+                                ₱
+                            @endif
+                        </span>
+                    </div>
+
+                    <div class="auth-orbit is-inner">
+                        <span class="auth-sat"><svg viewBox="0 0 24 24">{!! $icons[$satellites[2]] !!}</svg></span>
+                    </div>
+
                 </div>
 
                 {{-- Progress ring, drawn while choosing an account type. --}}
@@ -192,6 +199,7 @@
                             <strong id="authStepLabel">{{ $journey[0][0] }}</strong>
                         </span>
                     </div>
+                    <strong class="auth-boom">Boom!</strong>
                 </div>
 
             </div>
@@ -814,7 +822,9 @@
 
 
         /* =========================
-           SIGN IN — check first, then play the orb
+           SIGN IN — the icons go into the orb while checking; on success
+           the orb goes "Boom!" and the next page starts loading at once,
+           so the animation never adds to the wait.
         ========================= */
 
         (function () {
@@ -867,6 +877,7 @@
 
                 event.preventDefault();
                 busy(true);
+                document.body.classList.add('is-checking');
 
                 fetch(form.action, {
                     method: 'POST',
@@ -897,20 +908,24 @@
                     })
                     .then(function (data) {
 
-                        // Signed in: the orb grows over the page, then we go.
                         clearInterval(window.bbOrbTimer);
-                        document.body.classList.add('is-leaving');
+                        document.body.classList.add('is-boom');
 
-                        const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+                        // Crossfade into the next page, for this trip only: the
+                        // first page after login opts in too (partials.build-in).
+                        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                            const crossfade = document.createElement('style');
+                            crossfade.textContent = '@view-transition { navigation: auto; }';
+                            document.head.appendChild(crossfade);
+                        }
 
-                        setTimeout(function () {
-                            window.location.assign(data.redirect);
-                        }, reduce ? 0 : 550);
+                        window.location.assign(data.redirect);
 
                     })
                     .catch(function (error) {
 
                         busy(false);
+                        document.body.classList.remove('is-checking');
 
                         if (error && error.message) {
                             showError(error.message, error.hint);
@@ -921,6 +936,14 @@
 
                     });
 
+            });
+
+            // Back button: the browser may restore this page mid-"Boom!".
+            window.addEventListener('pageshow', function (event) {
+                if (event.persisted) {
+                    busy(false);
+                    document.body.classList.remove('is-checking', 'is-boom');
+                }
             });
 
         })();
