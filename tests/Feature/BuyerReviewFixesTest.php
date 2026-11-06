@@ -53,6 +53,47 @@ class BuyerReviewFixesTest extends TestCase
         $this->assertEquals(900.0, (float) DB::table('return_refund_requests')->where('order_item_id', $itemId)->value('refund_amount'));
     }
 
+    /** A completed refund of the order's only item, as BoomBuy records it once sent. */
+    private function refundedOrder(array $orderOverrides, float $refundAmount): array
+    {
+        $buyer = $this->makeUser();
+        $seller = $this->makeSeller();
+        $product = $this->makeProduct($seller, ['price' => 1000, 'stock' => 5]);
+        $orderId = $this->makeOrder($buyer, $product, 'Completed', $orderOverrides + [
+            'commission_rate' => 10,
+            'delivered_at' => now()->subDays(2),
+            'buyer_received_at' => now()->subDay(),
+        ]);
+        $itemId = DB::table('order_items')->where('order_id', $orderId)->value('id');
+
+        DB::table('return_refund_requests')->insert([
+            'order_id' => $orderId, 'order_item_id' => $itemId, 'buyer_id' => $buyer->id, 'seller_id' => $seller->id,
+            'request_type' => 'Refund', 'reason' => 'Damaged item', 'status' => 'completed',
+            'refund_amount' => $refundAmount, 'refunded_at' => now(), 'created_at' => now(), 'updated_at' => now(),
+        ]);
+
+        return [$seller, $orderId];
+    }
+
+    /** R1: a fully refunded item earns the seller nothing, whichever voucher was used. */
+    public function test_a_refunded_item_earns_the_seller_nothing(): void
+    {
+        // BoomBuy voucher: the buyer got ₱900 back; BoomBuy carries its own ₱100.
+        [$seller, $orderId] = $this->refundedOrder(['total_amount' => 900, 'platform_discount' => 100], 900);
+        $row = \App\Support\SellerBalance::orders((int) $seller->id)->firstWhere('id', $orderId);
+        $this->assertEquals(0.0, $row->earning);
+        $this->assertEquals(0.0, \App\Support\SellerBalance::summary((int) $seller->id)['earnings']);
+
+        // The seller's own ₱100 store voucher: also nothing left (and never below zero).
+        $seller2 = $this->makeSeller('shoes', 'Second Shop');
+        $voucher = \App\Models\Voucher::create(['seller_id' => $seller2->id, 'code' => 'STORE100', 'discount_type' => 'fixed', 'discount_value' => 100, 'min_order_amount' => 100, 'is_active' => true]);
+        [$s2, $orderId2] = $this->refundedOrder(['total_amount' => 900, 'voucher_code' => $voucher->code, 'discount_amount' => 100], 900);
+        DB::table('order_items')->where('order_id', $orderId2)->update(['seller_id' => $seller2->id]);
+        DB::table('return_refund_requests')->where('order_id', $orderId2)->update(['seller_id' => $seller2->id]);
+        $row2 = \App\Support\SellerBalance::orders((int) $seller2->id)->firstWhere('id', $orderId2);
+        $this->assertEquals(0.0, $row2->earning);
+    }
+
     /** B2: an item already refunded can't be refunded again; a rejected one can be asked again. */
     public function test_a_refunded_item_cannot_be_refunded_twice(): void
     {

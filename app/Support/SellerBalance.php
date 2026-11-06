@@ -102,22 +102,29 @@ class SellerBalance
             return collect();
         }
 
-        $refunds = DB::table('return_refund_requests')
-            ->whereIn('order_id', $rows->pluck('id'))
-            ->where('seller_id', $sellerId)
-            ->where('status', 'completed')
-            ->whereNotNull('refunded_at')
-            ->selectRaw('order_id, SUM(refund_amount) as total')
-            ->groupBy('order_id')
+        // The value of the refunded lines (price × quantity). Not refund_amount:
+        // that is what the buyer got back, which also leaves out BoomBuy's own
+        // platform voucher — BoomBuy carries that, not the seller.
+        $refundedLines = DB::table('return_refund_requests')
+            ->join('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+            ->whereIn('return_refund_requests.order_id', $rows->pluck('id'))
+            ->where('return_refund_requests.seller_id', $sellerId)
+            ->where('return_refund_requests.status', 'completed')
+            ->whereNotNull('return_refund_requests.refunded_at')
+            ->selectRaw('return_refund_requests.order_id, SUM(order_items.price * order_items.quantity) as total')
+            ->groupBy('return_refund_requests.order_id')
             ->pluck('total', 'order_id');
 
         $defaultRate = (float) PlatformSetting::get('commission_rate', '10');
 
-        return $rows->map(function ($row) use ($sellerId, $refunds, $defaultRate) {
+        return $rows->map(function ($row) use ($sellerId, $refundedLines, $defaultRate) {
             $items = (float) $row->items;
             // Only the seller's own vouchers come out of their sales.
             $voucher = (int) $row->voucher_seller_id === $sellerId ? (float) $row->discount_amount : 0.0;
-            $refunded = (float) ($refunds[$row->id] ?? 0);
+            // What the seller loses: the refunded lines less their share of the
+            // seller's own voucher (already taken off above).
+            $lines = (float) ($refundedLines[$row->id] ?? 0);
+            $refunded = $items > 0 ? $lines - $voucher * min(1, $lines / $items) : 0.0;
             $net = max(0, $items - $voucher - $refunded);
             $rate = $row->commission_rate !== null ? (float) $row->commission_rate : $defaultRate;
             $commission = round($net * $rate / 100, 2);
