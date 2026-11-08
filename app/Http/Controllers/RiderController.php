@@ -146,14 +146,17 @@ class RiderController extends Controller
 
         // Items for pickup: new requests nearby + pickups this rider accepted.
         $pickups = app(\App\Services\PickupService::class);
+        // The Today list shows them as job cards (a pickup offer can be accepted right there).
+        $pickupsAvailable = $pickups->available((int) $user['id']);
+        $pickupsMine = $pickups->mine((int) $user['id']);
         $pickupCounts = [
-            'available' => $pickups->available((int) $user['id'])->count(),
-            'mine' => $pickups->mine((int) $user['id'])->count(),
+            'available' => $pickupsAvailable->count(),
+            'mine' => $pickupsMine->count(),
         ];
 
         return view(
             'pages.rider.dashboard',
-            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts')
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts', 'pickupsAvailable', 'pickupsMine')
         );
     }
 

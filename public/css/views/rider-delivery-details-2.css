@@ -40,3 +40,219 @@
     color: #0a6f66;
     font-size: 13px;
 }
+
+/* =========================================================
+   Hand-over checklist (2026-11-08): photo → buyer's code → cash.
+========================================================= */
+.handover {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    background: #faf8fe;
+}
+
+.ho-head strong {
+    display: block;
+    font-size: 15px;
+}
+
+.ho-head small {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.ho-step {
+    display: flex;
+    gap: 12px;
+    padding: 12px;
+    background: #ffffff;
+    border: 1.5px solid var(--theme-border);
+    border-radius: 14px;
+}
+
+.ho-step.is-done {
+    border-color: #86efac;
+}
+
+.ho-n {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
+    font-weight: 800;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.ho-n i { display: none; }
+.ho-step.is-done .ho-n { background: #15803d; color: #ffffff; }
+.ho-step.is-done .ho-n i { display: inline; }
+.ho-step.is-done .ho-n b { display: none; }
+
+.ho-body {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ho-title {
+    font-size: 14px;
+    font-weight: 800;
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.ho-title em {
+    font-style: normal;
+    color: var(--theme-primary);
+}
+
+.ho-body small {
+    font-size: 12px;
+    color: var(--theme-muted);
+    line-height: 1.4;
+}
+
+/* Photo: one big tap target, with a preview once taken. */
+.ho-file {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.ho-photo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    min-height: 52px;
+    padding: 8px;
+    border: 1.5px dashed #c9b6ff;
+    border-radius: 12px;
+    background: #faf8ff;
+    color: var(--theme-primary);
+    font-weight: 800;
+    font-size: 15px;
+    cursor: pointer;
+}
+
+.ho-photo img {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+.ho-file:focus-visible + .ho-photo,
+.ho-photo:focus-within {
+    outline: 3px solid var(--theme-primary);
+    outline-offset: 2px;
+}
+
+/* Code: six boxes over one real input. */
+.ho-code {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 6px;
+}
+
+.ho-code span {
+    height: 50px;
+    border: 2px solid var(--theme-border);
+    border-radius: 12px;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Space Mono', ui-monospace, Consolas, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--theme-ink);
+}
+
+.ho-code span:not(:empty) { border-color: var(--theme-primary); }
+.ho-code.is-focus span.is-next,
+.ho-code.is-focus span:first-child:empty { border-color: var(--theme-primary); box-shadow: 0 0 0 3px var(--theme-soft); }
+
+.ho-code input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    font-size: 16px;
+    cursor: text;
+}
+
+/* Cash: one tap for the exact amount. */
+.ho-exact {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    min-height: 48px;
+    padding: 0 12px;
+    border: 1.5px dashed #c9b6ff;
+    border-radius: 12px;
+    background: #faf8ff;
+    color: var(--theme-ink);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.ho-box {
+    width: 20px;
+    height: 20px;
+    border-radius: 6px;
+    border: 2px solid var(--theme-primary);
+    background: #ffffff;
+    flex-shrink: 0;
+}
+
+.ho-exact.is-on {
+    border-style: solid;
+    border-color: #15803d;
+    background: #f0fdf4;
+}
+
+.ho-exact.is-on .ho-box {
+    border-color: #15803d;
+    background: #15803d url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.5'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 14px no-repeat;
+}
+
+.ho-other summary {
+    font-size: 12px;
+    color: var(--theme-muted);
+    cursor: pointer;
+    text-align: center;
+}
+
+.ho-other input {
+    width: 100%;
+    margin-top: 6px;
+    padding: 10px 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 16px;
+}
+
+.update-btn.is-waiting,
+.update-btn:disabled {
+    opacity: .55;
+    cursor: not-allowed;
+}

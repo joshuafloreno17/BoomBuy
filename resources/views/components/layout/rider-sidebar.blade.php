@@ -89,16 +89,16 @@
 
 @php
     // Phones get a bottom tab bar instead of the icon rail; the rest of the menu sits under "More".
+    // Today holds every job (deliveries + pickups), so those pages light up Today.
     $rTab = match ($active) {
-        'dashboard' => 'home',
-        'pickups' => 'pickups',
-        'deliveries' => 'deliveries',
-        'profit' => 'profit',
+        'dashboard', 'pickups', 'deliveries' => 'home',
+        'profit' => 'cash',
+        'history' => 'history',
         default => 'more',
     };
     $rCount = fn ($n) => $n > 99 ? '99+' : $n;
     $rUnread = $riderUnreadNotifications + $riderUnreadMessages;
-    $rDockI = array_search($rTab, ['home', 'pickups', 'deliveries', 'profit', 'more'], true);
+    $rDockI = array_search($rTab, ['home', 'cash', 'history', 'more'], true);
 @endphp
 
 {{-- 📱 Bottom tab bar on phones --}}
@@ -106,16 +106,13 @@
 <nav class="bb-dock has-bubble" data-dock="rider" style="--dock-i: {{ (int) $rDockI }}" aria-label="Main">
     <span class="bb-dock-bubble" aria-hidden="true"></span>
     <a href="{{ route('rider.dashboard') }}" data-dock-tab @class(['active is-lift' => $rTab === 'home']) @if($rTab === 'home') aria-current="page" @endif>
-        <span class="bb-dock-ico"><i class="bi {{ $rTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i></span>Home
+        <span class="bb-dock-ico"><i class="bi {{ $rTab === 'home' ? 'bi-house-door-fill' : 'bi-house-door' }}"></i></span>Today
     </a>
-    <a href="{{ route('rider.pickups') }}" data-dock-tab @class(['active is-lift' => $rTab === 'pickups']) @if($rTab === 'pickups') aria-current="page" @endif>
-        <span class="bb-dock-ico"><i class="bi bi-box-arrow-in-down"></i></span>Pickups
+    <a href="{{ route('rider.profit') }}" data-dock-tab @class(['active is-lift' => $rTab === 'cash']) @if($rTab === 'cash') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi bi-cash-stack"></i></span>Cash
     </a>
-    <a href="{{ route('rider.deliveries') }}" data-dock-tab @class(['active is-lift' => $rTab === 'deliveries']) @if($rTab === 'deliveries') aria-current="page" @endif>
-        <span class="bb-dock-ico"><i class="bi {{ $rTab === 'deliveries' ? 'bi-truck-front-fill' : 'bi-truck' }}"></i></span>Deliveries
-    </a>
-    <a href="{{ route('rider.profit') }}" data-dock-tab @class(['active is-lift' => $rTab === 'profit']) @if($rTab === 'profit') aria-current="page" @endif>
-        <span class="bb-dock-ico"><i class="bi bi-cash-stack"></i></span>Profit
+    <a href="{{ route('rider.deliveries.history') }}" data-dock-tab @class(['active is-lift' => $rTab === 'history']) @if($rTab === 'history') aria-current="page" @endif>
+        <span class="bb-dock-ico"><i class="bi bi-clock-history"></i></span>History
     </a>
     <button type="button" data-dock-tab @class(['active is-lift' => $rTab === 'more']) data-smore-open aria-haspopup="dialog" aria-controls="bbSmore" aria-label="More{{ $rUnread > 0 ? ' (' . $rUnread . ' unread)' : '' }}">
         <span class="bb-dock-ico">
@@ -137,6 +134,8 @@
             <button type="button" class="bb-smore-x" data-smore-close aria-label="Close"><i class="bi bi-x-lg"></i></button>
         </div>
         <div class="bb-smore-grid">
+            <a href="{{ route('rider.pickups') }}" @class(['active' => $active === 'pickups'])><i class="bi bi-box-arrow-in-down"></i>All pickups</a>
+            <a href="{{ route('rider.deliveries') }}" @class(['active' => $active === 'deliveries'])><i class="bi bi-truck"></i>All deliveries</a>
             <a href="{{ route('messages.index') }}" @class(['active' => $active === 'messages'])>
                 <i class="bi bi-chat-dots-fill"></i>Messages
                 @if($riderUnreadMessages > 0)
@@ -149,7 +148,6 @@
                     <span class="bb-stabbar-count">{{ $rCount($riderUnreadNotifications) }}</span>
                 @endif
             </a>
-            <a href="{{ route('rider.deliveries.history') }}" @class(['active' => $active === 'history'])><i class="bi bi-clock-history"></i>History</a>
             <a href="{{ route('complaints.index') }}" @class(['active' => $active === 'complaints'])><i class="bi bi-exclamation-triangle-fill"></i>Complaints</a>
             <a href="{{ route('rider.profile') }}" @class(['active' => $active === 'profile'])><i class="bi bi-person-fill"></i>My Profile</a>
             <form action="{{ route('logout') }}" method="POST" onsubmit="return bbConfirmSubmit(event, this, 'Are you sure you want to log out?');">

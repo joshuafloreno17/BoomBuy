@@ -23,6 +23,16 @@
 
         <div class="track-main">
 
+            {{-- On its way to the door: the code to give the rider, big, before anything else. --}}
+            @if($order->status === 'Out for Delivery' && !empty($order->delivery_otp))
+                @include('partials.delivery-code-card', [
+                    'code' => $order->delivery_otp,
+                    'rider' => !empty($order->delivery_rider_id) ? \Illuminate\Support\Facades\DB::table('users')->where('id', $order->delivery_rider_id)->value('name') : null,
+                    'amount' => $order->total_amount,
+                    'isCod' => \App\Support\CodPolicy::isCod($order->payment_method ?? null),
+                ])
+            @endif
+
             {{-- Seller's Sorting Center → buyer's address, on the real map. --}}
             @if($route)
                 <section class="track-map-card" aria-label="Route map">

@@ -63,33 +63,9 @@
                         @endif
                     </a>
                 </div>
-                <div class="rd-hero-today">
-                    <span class="rd-hero-today-icon" aria-hidden="true"><i class="bi bi-truck"></i></span>
-                    @if($toDeliverCount > 0)
-                        <span><strong>{{ $toDeliverCount }} {{ $toDeliverCount === 1 ? 'parcel' : 'parcels' }} to deliver</strong>{{ $inTransitCount > 0 ? $inTransitCount . ' out for delivery now' : 'Pick them up at the Sorting Center' }}</span>
-                    @else
-                        <span><strong>No deliveries right now</strong>Parcels from the Sorting Center show up here.</span>
-                    @endif
-                </div>
             </section>
 
-            <div class="rd-tiles">
-                <a href="{{ route('rider.deliveries') }}" class="rd-tile">
-                    <span class="rd-tile-icon is-orange" aria-hidden="true"><i class="bi bi-box-seam"></i></span>
-                    <strong>{{ $toDeliverCount }}</strong>
-                    <span>To deliver</span>
-                </a>
-                <a href="{{ route('rider.pickups') }}" class="rd-tile">
-                    <span class="rd-tile-icon is-yellow" aria-hidden="true"><i class="bi bi-box-arrow-in-down"></i></span>
-                    <strong>{{ $pickupTotal }}</strong>
-                    <span>Pickups</span>
-                </a>
-                <a href="{{ route('rider.deliveries.history') }}" class="rd-tile">
-                    <span class="rd-tile-icon is-teal" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
-                    <strong>{{ $deliveredCount }}</strong>
-                    <span>Delivered</span>
-                </a>
-            </div>
+            @include('pages.rider.partials.today-jobs')
 
             <!-- =====================================================
                  WELCOME
@@ -267,6 +243,8 @@
 
             </section>
 
+            {{-- The older summary + list: the Today list above covers them on phones. --}}
+            <div class="rd-old-jobs">
             @if(isset($codHeld) && $codHeld->isNotEmpty())
                 <div class="cod-remit rd-cod">
                     <i class="bi bi-cash-stack"></i>
@@ -413,6 +391,8 @@
 
             @endif
 
+
+            </div>
 
             <!-- =====================================================
                  RIDER TIP

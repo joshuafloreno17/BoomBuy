@@ -325,3 +325,14 @@
     .bb-dock-bubble,
     .bb-dock-ico { transition: none; }
 }
+
+/* Rider dock: 4 tabs (Today · Cash · History · More). */
+@media (max-width: 760px) {
+    .bb-dock[data-dock="rider"] {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+
+    .bb-dock[data-dock="rider"] .bb-dock-bubble {
+        left: calc(var(--dock-pad) + (100% - 2 * var(--dock-pad)) / 4 * (var(--dock-i) + 0.5) - 22px);
+    }
+}

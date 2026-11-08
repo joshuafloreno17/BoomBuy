@@ -1,0 +1,304 @@
+/* Rider "Today" (pages/rider/partials/today-jobs): cash held + one list of jobs. */
+
+.tj {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin: 0 0 24px;
+}
+
+.tj-cash {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    border-radius: 18px;
+    background: #2a1846;
+    color: #ffffff;
+}
+
+.tj-cash > div {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.tj-cash small {
+    font-size: 12px;
+    color: #c9b6ff;
+}
+
+.tj-cash strong {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 24px;
+}
+
+.tj-cash-btn {
+    min-height: 44px;
+    padding: 0 18px;
+    border-radius: 12px;
+    background: #c9b6ff;
+    color: #2a1846;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.tj-cash-none {
+    font-size: 12px;
+    color: #b9a8dc;
+}
+
+.tj-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+.tj-head h2 {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 20px;
+}
+
+.tj-head span {
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.tj-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 14px;
+    border: 1px solid var(--theme-border);
+    border-radius: 18px;
+    background: #ffffff;
+}
+
+.tj-card.is-now {
+    border: 2px solid var(--theme-primary);
+    padding: 13px;
+}
+
+.tj-card.is-pickup.is-now {
+    border-color: #15803d;
+}
+
+.tj-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.tj-tag {
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+}
+
+.tj-tag.is-deliver {
+    background: var(--theme-primary);
+    color: #ffffff;
+}
+
+.tj-tag.is-pickup {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.tj-wb {
+    font-family: 'Space Mono', ui-monospace, Consolas, monospace;
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.tj-state {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--theme-muted);
+}
+
+.tj-who {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.tj-who strong {
+    font-size: 16px;
+}
+
+.tj-who span {
+    font-size: 13px;
+    color: var(--theme-muted);
+    overflow-wrap: anywhere;
+}
+
+.tj-money {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.tj-money b {
+    color: var(--theme-ink);
+}
+
+.tj-collect {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #fef3c7;
+    color: #92400e;
+    font-weight: 800;
+}
+
+.tj-paid {
+    padding: 4px 9px;
+    border-radius: 999px;
+    background: #dcfce7;
+    color: #166534;
+    font-weight: 800;
+}
+
+.tj-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.tj-btn {
+    flex: 1;
+    min-height: 46px;
+    padding: 0 14px;
+    border: 0;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 800;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.tj-btn.is-main {
+    background: var(--theme-primary);
+    color: #ffffff;
+}
+
+.tj-btn.is-main.is-green {
+    background: #15803d;
+}
+
+.tj-btn.is-ghost {
+    background: #ffffff;
+    border: 1px solid var(--theme-border);
+    color: var(--theme-ink);
+}
+
+/* Pickup: the scan form (the app adds "Scan with camera" to it). */
+.tj-scan {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0;
+}
+
+.tj-scan input {
+    width: 100%;
+    min-height: 46px;
+    padding: 0 12px;
+    border: 1.5px solid var(--theme-border);
+    border-radius: 12px;
+    font-family: 'Space Mono', ui-monospace, Consolas, monospace;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.tj-scan .btn {
+    width: 100%;
+    min-height: 46px;
+    border-radius: 12px;
+}
+
+.tj-note {
+    margin: 0;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.tj-card.is-offer {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+    border: 1.5px dashed #c9b6ff;
+    background: #faf8ff;
+}
+
+.tj-card.is-offer form {
+    margin: 0;
+}
+
+.tj-card.is-offer .tj-btn {
+    flex: none;
+}
+
+.tj-offer-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tj-offer-text small {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--theme-primary);
+}
+
+.tj-offer-text strong {
+    font-size: 15px;
+}
+
+.tj-offer-text span {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.tj-empty {
+    padding: 26px 16px;
+    border: 1px dashed var(--theme-border);
+    border-radius: 18px;
+    background: #ffffff;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tj-empty span {
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+/* Phones: Today replaces the older summary, pickup box and delivery list below it. */
+@media (max-width: 760px) {
+    .rd-old-jobs {
+        display: none;
+    }
+}

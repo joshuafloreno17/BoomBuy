@@ -374,26 +374,68 @@
 
                 </select>
 
-                {{-- PROOF OF DELIVERY: a photo of the hand-over --}}
-                <div id="proofBox" class="proof-box" style="display:none;">
-                    <label class="failure-label" for="deliveryProof">
-                        <i class="bi bi-camera-fill"></i> Proof of delivery
-                    </label>
-                    <p class="proof-hint">Take a photo of the parcel with the buyer (or at their door). JPG, PNG or WEBP, up to 5 MB.</p>
-                    <input type="file" name="delivery_proof" id="deliveryProof" accept="image/*" capture="environment">
+                {{-- HAND-OVER: photo, the buyer's code and the cash — a checklist; "Confirm delivered" turns on when all are done. --}}
+                @php
+                    $hoCod = \App\Support\CodPolicy::isCod($delivery['payment_method'] ?? '');
+                    $hoAmount = (float) ($delivery['total_amount'] ?? 0);
+                    $hoAskCash = $hoCod && config('app.delivery_checks');
+                    $hoBuyer = trim(explode(' ', (string) ($delivery['buyer_name'] ?? 'the buyer'))[0]) ?: 'the buyer';
+                @endphp
+                <div id="proofBox" class="proof-box handover" style="display:none;" data-ho>
+                    <div class="ho-head">
+                        <strong>Hand the parcel to {{ $delivery['buyer_name'] ?? 'the buyer' }}</strong>
+                        <small data-ho-left>Do the steps below, then confirm.</small>
+                    </div>
+
+                    <div class="ho-step" data-ho-step="photo">
+                        <span class="ho-n" aria-hidden="true"><i class="bi bi-check-lg"></i><b>1</b></span>
+                        <div class="ho-body">
+                            <label class="ho-title" for="deliveryProof">Proof of delivery photo</label>
+                            <small>The parcel with the buyer, or at their door. JPG, PNG or WEBP, up to 5 MB.</small>
+                            <label class="ho-photo" for="deliveryProof">
+                                <img data-ho-preview alt="Your delivery photo" hidden>
+                                <span data-ho-photo-text><i class="bi bi-camera-fill"></i> Take photo</span>
+                            </label>
+                            <input type="file" name="delivery_proof" id="deliveryProof" accept="image/*" capture="environment" class="ho-file">
+                        </div>
+                    </div>
+
                     @if(!empty($delivery['delivery_otp']))
-                        <label class="failure-label" for="deliveryOtp"><i class="bi bi-shield-lock-fill"></i> Buyer's delivery OTP</label>
-                        <input type="text" name="otp" id="deliveryOtp" inputmode="numeric" maxlength="6" pattern="\d{6}" placeholder="6-digit code from the buyer" autocomplete="one-time-code">
+                        <div class="ho-step" data-ho-step="code">
+                            <span class="ho-n" aria-hidden="true"><i class="bi bi-check-lg"></i><b>2</b></span>
+                            <div class="ho-body">
+                                <label class="ho-title" for="deliveryOtp">Buyer's delivery OTP</label>
+                                <small>Ask {{ $hoBuyer }} for the 6-digit code — it's in My Orders on their phone.</small>
+                                <div class="ho-code">
+                                    <span></span><span></span><span></span><span></span><span></span><span></span>
+                                    <input type="text" name="otp" id="deliveryOtp" inputmode="numeric" maxlength="6" pattern="\d{6}" autocomplete="one-time-code" aria-label="6-digit code from the buyer">
+                                </div>
+                            </div>
+                        </div>
                     @endif
-                    @if(config('app.delivery_checks') && \App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
-                        <label class="failure-label" for="codAmount"><i class="bi bi-cash-coin"></i> COD amount collected</label>
-                        <input type="number" name="cod_amount" id="codAmount" step="0.01" min="0" placeholder="{{ number_format((float) ($delivery['total_amount'] ?? 0), 2, '.', '') }}">
-                    @elseif(!\App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
-                        <p class="proof-cod"><i class="bi bi-check-circle-fill"></i> Paid online — COD ₱0.00, collect nothing.</p>
-                    @endif
-                    @if(\App\Support\CodPolicy::isCod($delivery['payment_method'] ?? ''))
-                        <p class="proof-cod"><i class="bi bi-cash-coin"></i> Collect <strong>₱{{ number_format((float) ($delivery['total_amount'] ?? 0), 2) }}</strong> in cash, then hand it in at the Sorting Center.</p>
-                    @endif
+
+                    <div class="ho-step" data-ho-step="cash" @if(!$hoAskCash) data-ho-done-already @endif>
+                        <span class="ho-n" aria-hidden="true"><i class="bi bi-check-lg"></i><b>{{ !empty($delivery['delivery_otp']) ? 3 : 2 }}</b></span>
+                        <div class="ho-body">
+                            @if($hoCod)
+                                <span class="ho-title">Collect the cash <em>₱{{ number_format($hoAmount, 2) }}</em></span>
+                                <small>Cash on Delivery — hand it in at the Sorting Center after.</small>
+                                @if($hoAskCash)
+                                    <button type="button" class="ho-exact" data-ho-exact="{{ number_format($hoAmount, 2, '.', '') }}">
+                                        <span class="ho-box" aria-hidden="true"></span> I collected exactly ₱{{ number_format($hoAmount, 2) }}
+                                    </button>
+                                    <details class="ho-other">
+                                        <summary>Got a different amount? Type it</summary>
+                                        <label class="failure-label" for="codAmount">COD amount collected</label>
+                                        <input type="number" name="cod_amount" id="codAmount" step="0.01" min="0" placeholder="{{ number_format($hoAmount, 2, '.', '') }}">
+                                    </details>
+                                @endif
+                            @else
+                                <span class="ho-title">Nothing to collect</span>
+                                <small>Paid online — COD ₱0.00, collect nothing.</small>
+                            @endif
+                        </div>
+                    </div>
                 </div>
 
                 <div id="failureReasonBox" class="failure-box" style="display:none;">
@@ -449,7 +491,7 @@
                     (function () {
                         var select = document.getElementById('deliveryStatusSelect');
                         var form = select.form;
-                        var submit = form.querySelector('.update-btn');
+                        var submitBtn = function () { return form.querySelector('.update-btn'); };
                         var labels = {
                             'Out for Delivery': 'Confirm: Out for Delivery',
                             'Delivered': 'Confirm delivered',
@@ -464,9 +506,90 @@
                                     other.classList.toggle('is-picked', other === button);
                                 });
                                 form.classList.add('dd-picked');
-                                submit.innerHTML = '<i class="bi bi-check2-circle"></i> ' + labels[select.value];
+                                submitBtn().innerHTML = '<i class="bi bi-check2-circle"></i> ' + labels[select.value];
+                                if (window.bbHandoverCheck) window.bbHandoverCheck();
                             });
                         });
+                    })();
+
+                    // Hand-over checklist: photo preview, the 6 code boxes, one tap for the exact cash,
+                    // and "Confirm delivered" only once every step is done.
+                    (function () {
+                        var box = document.querySelector('[data-ho]');
+                        if (!box) return;
+                        var select = document.getElementById('deliveryStatusSelect');
+                        var form = select.form;
+                        var file = document.getElementById('deliveryProof');
+                        var otp = document.getElementById('deliveryOtp');
+                        var cod = document.getElementById('codAmount');
+                        var exact = box.querySelector('[data-ho-exact]');
+                        var left = box.querySelector('[data-ho-left]');
+
+                        function step(name) { return box.querySelector('[data-ho-step="' + name + '"]'); }
+
+                        function check() {
+                            var steps = {
+                                photo: file && file.files && file.files.length > 0,
+                                code: !otp || /^\d{6}$/.test(otp.value),
+                                cash: !cod || cod.value !== ''
+                            };
+                            var todo = 0;
+                            Object.keys(steps).forEach(function (k) {
+                                var el = step(k);
+                                if (!el) return;
+                                var done = steps[k] || el.hasAttribute('data-ho-done-already');
+                                el.classList.toggle('is-done', !!done);
+                                if (!done) todo++;
+                            });
+                            var delivering = select.value === 'Delivered';
+                            left.textContent = todo ? todo + ' of ' + box.querySelectorAll('[data-ho-step]').length + ' left — then confirm.' : 'All done — confirm delivered below.';
+                            var submit = form.querySelector('.update-btn');
+                            if (!submit) return;
+                            submit.disabled = delivering && todo > 0;
+                            submit.classList.toggle('is-waiting', delivering && todo > 0);
+                        }
+                        window.bbHandoverCheck = check;
+
+                        file.addEventListener('change', function () {
+                            var img = box.querySelector('[data-ho-preview]');
+                            var text = box.querySelector('[data-ho-photo-text]');
+                            if (file.files && file.files[0]) {
+                                img.src = URL.createObjectURL(file.files[0]);
+                                img.hidden = false;
+                                text.innerHTML = '<i class="bi bi-arrow-repeat"></i> Retake';
+                            }
+                            check();
+                        });
+
+                        if (otp) {
+                            var cells = box.querySelectorAll('.ho-code span');
+                            otp.addEventListener('input', function () {
+                                otp.value = otp.value.replace(/\D/g, '').slice(0, 6);
+                                cells.forEach(function (c, i) {
+                                    c.textContent = otp.value[i] || '';
+                                    c.classList.toggle('is-next', i === otp.value.length);
+                                });
+                                check();
+                            });
+                            otp.addEventListener('focus', function () { box.querySelector('.ho-code').classList.add('is-focus'); });
+                            otp.addEventListener('blur', function () { box.querySelector('.ho-code').classList.remove('is-focus'); });
+                        }
+
+                        if (exact && cod) {
+                            exact.addEventListener('click', function () {
+                                var on = !exact.classList.contains('is-on');
+                                exact.classList.toggle('is-on', on);
+                                cod.value = on ? exact.dataset.hoExact : '';
+                                check();
+                            });
+                            cod.addEventListener('input', function () {
+                                exact.classList.toggle('is-on', cod.value === exact.dataset.hoExact);
+                                check();
+                            });
+                        }
+
+                        select.addEventListener('change', check);
+                        document.addEventListener('DOMContentLoaded', check);
                     })();
                 </script>
 

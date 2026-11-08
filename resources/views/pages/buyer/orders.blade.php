@@ -259,7 +259,12 @@
 
                             @if(($order['status'] ?? '') === 'Out for Delivery' && !empty($order['delivery_otp']))
 
-                                <div class="delivery-otp" style="margin:10px 0;padding:10px 14px;border-radius:12px;background:var(--theme-soft);color:var(--theme-ink);"><i class="bi bi-shield-lock-fill"></i> Delivery OTP: <strong data-delivery-otp>{{ $order['delivery_otp'] }}</strong> — give this code to the rider when you receive the parcel.</div>
+                                @include('partials.delivery-code-card', [
+                                    'code' => $order['delivery_otp'],
+                                    'rider' => $order['rider_name'] ?? null,
+                                    'amount' => $order['total'] ?? $order['total_amount'] ?? 0,
+                                    'isCod' => $isCod,
+                                ])
 
                             @endif
 
