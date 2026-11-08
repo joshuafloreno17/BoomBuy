@@ -269,3 +269,9 @@ body {
         print-color-adjust: exact;
     }
 }
+
+/* Inside the seller's label side panel (an iframe): just the label. */
+body.is-embed {
+    padding: 12px;
+    background: transparent;
+}

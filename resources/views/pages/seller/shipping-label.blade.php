@@ -7,8 +7,9 @@
     <link rel="stylesheet" href="{{ vasset('css/views/shipping-label.css') }}">
 </head>
 
-<body>
+<body @class(["is-embed" => request()->boolean("embed")])>
 
+@unless(request()->boolean("embed"))
 <div class="label-toolbar">
     <a href="{{ route('seller.order.details', $order->id) }}" class="label-back"><i class="bi bi-arrow-left"></i> Back to order</a>
     <button type="button" class="label-print" onclick="window.print()"><i class="bi bi-printer-fill"></i> Print label</button>
@@ -18,6 +19,7 @@
     Print this and stick it on the parcel. A rider picks it up and brings it to
     <strong>{{ $origin->name ?? 'your Sorting Center' }}</strong>, where the staff scan the QR code.
 </p>
+@endunless
 
 <article class="label" aria-label="Shipping label {{ $waybill }}">
 
@@ -133,6 +135,14 @@
             box.textContent = 'Scan unavailable — type the waybill no.';
             box.classList.add('is-fallback');
         }
+
+        // Opened from the app with ?print=1: hand it to the phone's print screen
+        // after the page has loaded (the app hooks window.print on page load).
+        @if(request()->boolean('print'))
+            window.addEventListener('load', function () {
+                setTimeout(function () { window.print(); }, 700);
+            });
+        @endif
     })();
 </script>
 

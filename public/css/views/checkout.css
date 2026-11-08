@@ -561,3 +561,18 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
 
 .product-pieces { display: flex; flex-wrap: wrap; gap: 4px 10px; margin-top: 4px; font-size: 12px; color: #574e70; }
 .product-pieces em { font-style: normal; font-weight: 700; color: #b45309; }
+
+/* Order Summary: only as tall as its content, and it stays in view under
+   the navbar while the buyer scrolls the form (Total + Place Order always
+   visible). One column on phones, so it just flows there. */
+.checkout-grid > .summary-card {
+    align-self: start;
+    position: sticky;
+    top: 104px;
+}
+
+@media (max-width: 800px) {
+    .checkout-grid > .summary-card {
+        position: static;
+    }
+}

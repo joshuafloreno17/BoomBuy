@@ -1029,6 +1029,34 @@ class CartController extends Controller
             ? \App\Models\SortingCenter::find($collectAt)
             : null;
 
+        // Item photos, the shop and the parcel's route for the "What happens next" card.
+        $productImages = DB::table('products')
+            ->whereIn('id', collect($order['items'])->pluck('product_id')->filter()->unique())
+            ->pluck('image', 'id');
+
+        foreach ($order['items'] as &$item) {
+            $item['image_url'] = productImageUrl(($item['variation_image'] ?? null) ?: ($productImages[$item['product_id']] ?? null));
+        }
+        unset($item);
+
+        $sellerId = (int) ($order['items'][0]['seller_id'] ?? 0);
+        $seller = $sellerId ? DB::table('users')->where('id', $sellerId)->first(['id', 'name', 'province', 'city_municipality']) : null;
+        $shopName = $sellerId ? DB::table('seller_applications')->where('user_id', $sellerId)->latest('id')->value('business_name') : null;
+        $originCenter = $seller ? ParcelRoute::centerFor($seller->province, $seller->city_municipality) : null;
+        $destCenter = ParcelRoute::centerFor($order['shipping_province'] ?? null, $order['shipping_city'] ?? null);
+        $destBranch = $destCenter ? ParcelRoute::branchFor($destCenter->id, $order['shipping_province'] ?? null, $order['shipping_city'] ?? null) : null;
+
+        $order['seller'] = $seller ? [
+            'id' => $seller->id,
+            'shop' => $shopName ?: $seller->name,
+            'town' => trim(implode(', ', array_filter([$seller->city_municipality, $seller->province]))),
+        ] : null;
+        $order['route'] = [
+            'origin' => $originCenter?->name,
+            'destination' => $destCenter?->name,
+            'branch' => $destBranch?->name,
+        ];
+
         // A multi-seller checkout creates one order per seller — show them all.
         $checkoutOrders = DB::table('orders')
             ->whereIn('id', (array) session('checkout_order_ids', [$order['id']]))

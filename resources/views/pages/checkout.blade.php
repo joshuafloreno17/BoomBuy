@@ -318,7 +318,7 @@
 
             {{-- ORDER SUMMARY --}}
 
-            <div class="card">
+            <div class="card summary-card">
 
                 <h2>
                     <i class="bi bi-receipt"></i> Order Summary

@@ -445,7 +445,7 @@
                             <div>
                                 <strong>Pack it and attach the shipping label</strong>
                                 <span>The rider brings it to {{ $dropOffCenter->name ?? 'your BoomBuy Sorting Center' }}.</span>
-                                <a href="{{ route('seller.order.label', $order['id']) }}" target="_blank" rel="noopener" class="dropoff-label">
+                                <a href="{{ route('seller.order.label', $order['id']) }}" class="dropoff-label" data-label-panel data-waybill="{{ \App\Support\Waybill::number((int) $order['id']) }}" data-center="{{ $dropOffCenter->name ?? 'your BoomBuy Sorting Center' }}">
                                     <i class="bi bi-printer-fill"></i> Print shipping label ({{ \App\Support\Waybill::number((int) $order['id']) }})
                                 </a>
                             </div>
@@ -556,6 +556,8 @@
     </main>
 
 </div>
+
+    @include('partials.label-panel')
 
     @include('partials.pwa-register')
 
