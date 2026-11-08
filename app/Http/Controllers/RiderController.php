@@ -154,9 +154,12 @@ class RiderController extends Controller
             'mine' => $pickupsMine->count(),
         ];
 
+        // Earned today (pickups + deliveries) for the Today tiles.
+        $payToday = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfDay(), now()->endOfDay());
+
         return view(
             'pages.rider.dashboard',
-            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts', 'pickupsAvailable', 'pickupsMine')
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts', 'pickupsAvailable', 'pickupsMine', 'payToday')
         );
     }
 
@@ -426,6 +429,8 @@ class RiderController extends Controller
         // Pay per job (A33) and the COD money to remit (A24).
         $payToday = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfDay(), now()->endOfDay());
         $payWeek = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfWeek(), now()->endOfWeek());
+        // Everything earned in the chosen dates: deliveries and pickups.
+        $payRange = \App\Support\RiderJobs::pay((int) $user['id'], Carbon::parse($from)->startOfDay(), Carbon::parse($to)->endOfDay());
         $cod = app(\App\Services\CodRemittanceService::class)->balance((int) $user['id']);
 
         return view(
@@ -433,6 +438,7 @@ class RiderController extends Controller
             compact(
                 'payToday',
                 'payWeek',
+                'payRange',
                 'cod',
                 'user',
                 'from',
@@ -509,7 +515,14 @@ class RiderController extends Controller
             ->sortByDesc('at')
             ->values();
 
-        return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to', 'jobs'));
+        // Buyer, address, item count and COD for each job card.
+        $jobOrderIds = $jobs->pluck('order_id')->unique()->values();
+        $jobOrders = DB::table('orders')->whereIn('id', $jobOrderIds)
+            ->get(['id', 'shipping_name', 'shipping_address', 'total_amount', 'payment_method'])->keyBy('id');
+        $jobItemCounts = DB::table('order_items')->whereIn('order_id', $jobOrderIds)
+            ->select('order_id', DB::raw('COUNT(*) as total'))->groupBy('order_id')->pluck('total', 'order_id');
+
+        return view('pages.rider.delivery-history', compact('user', 'history', 'from', 'to', 'jobs', 'jobOrders', 'jobItemCounts'));
     }
 
     /** A rider added by a logistics company opens the emailed link to set their password. */

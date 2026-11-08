@@ -77,6 +77,38 @@
         document.addEventListener('visibilitychange', function () { if (!document.hidden) ping(); });
     }
 
+    // Opening the app goes Online by itself: once per app session, and not
+    // again after the rider tapped Go Offline (until the app is opened anew).
+    function store(key, value) {
+        try {
+            if (value === undefined) return sessionStorage.getItem(key);
+            sessionStorage.setItem(key, value);
+        } catch (e) { return null; }
+    }
+
+    if (!online && !store('bbStayOffline') && !store('bbAutoOnlineTried') && navigator.geolocation) {
+        store('bbAutoOnlineTried', '1');
+        navigator.geolocation.getCurrentPosition(function (p) {
+            fetch(url, {
+                method: 'POST',
+                credentials: 'same-origin',
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': token },
+                body: JSON.stringify({ lat: p.coords.latitude, lng: p.coords.longitude, auto_online: 1 })
+            }).then(function (r) { return r.json(); }).then(function (data) {
+                if (data && data.went_online) window.location.reload();
+            }).catch(function () {});
+        }, function () { warn(true); }, options);
+    }
+
+    // The rider chose to stop: stay Offline for this app session.
+    document.addEventListener('submit', function (e) {
+        var form = e.target;
+        if (!(form instanceof HTMLFormElement) || !/\/logistics\/rider\/availability$/.test(form.action)) return;
+        var flag = form.querySelector('input[name=online]');
+        if (flag && flag.value === '0') store('bbStayOffline', '1');
+        if (flag && flag.value === '1') { try { sessionStorage.removeItem('bbStayOffline'); } catch (err) {} }
+    });
+
     function needLocation() {
         var message = 'Location is needed to go Online, so BoomBuy can offer you jobs near you. Allow location for the BoomBuy app, then tap Go Online again.';
         if (inApp && window.bbConfirm) {

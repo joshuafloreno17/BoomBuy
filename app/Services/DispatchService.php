@@ -301,6 +301,9 @@ class DispatchService
      */
     private function candidates(object $order): Collection
     {
+        // Riders whose app went quiet for a while are Offline before we pick.
+        RiderJobs::expireStale();
+
         $sellerId = (int) DB::table('order_items')->where('order_id', $order->id)->value('seller_id');
         $town = ParcelRoute::sellerLocation($sellerId);
         $centerId = $order->origin_center_id ? (int) $order->origin_center_id : null;

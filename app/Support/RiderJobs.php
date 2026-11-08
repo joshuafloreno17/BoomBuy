@@ -55,6 +55,45 @@ class RiderJobs
             && \Illuminate\Support\Carbon::parse($rider->location_at)->gte(now()->subMinutes(self::LOCATION_STALE_MINUTES));
     }
 
+    /** No location from the app for this long and an Online rider is set Offline. */
+    public const AUTO_OFFLINE_MINUTES = 30;
+
+    /**
+     * Riders whose app went quiet (phone off, app closed, no signal) for
+     * AUTO_OFFLINE_MINUTES are set Offline, and their open offers go to the
+     * next rider. Only when location is on (without it nothing pings).
+     */
+    public static function expireStale(): int
+    {
+        if (!config('app.rider_location')) {
+            return 0;
+        }
+
+        $cutoff = now()->subMinutes(self::AUTO_OFFLINE_MINUTES);
+        $ids = DB::table('users')
+            ->where('role', 'rider')
+            ->where('is_online', true)
+            ->where(fn ($q) => $q->where('location_at', '<', $cutoff)
+                ->orWhere(fn ($n) => $n->whereNull('location_at')->where(fn ($o) => $o->whereNull('online_at')->orWhere('online_at', '<', $cutoff))))
+            ->pluck('id');
+
+        if ($ids->isEmpty()) {
+            return 0;
+        }
+
+        DB::table('users')->whereIn('id', $ids)->update(['is_online' => false, 'online_at' => null, 'updated_at' => now()]);
+        DB::table('job_offers')->whereIn('rider_id', $ids)->where('status', 'pending')->update(['expires_at' => now()->subSecond()]);
+
+        return $ids->count();
+    }
+
+    /** Can this rider go Online at all (active account, approved application)? */
+    public static function canGoOnline(int $riderId): bool
+    {
+        return DB::table('users')->where('id', $riderId)->value('status') === 'Active'
+            && DB::table('rider_applications')->where('user_id', $riderId)->latest('id')->value('status') === 'Approved';
+    }
+
     public static function setOnline(int $riderId, bool $online, ?float $lat = null, ?float $lng = null): void
     {
         DB::table('users')->where('id', $riderId)->update(array_merge(

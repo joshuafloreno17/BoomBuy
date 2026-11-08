@@ -11,9 +11,9 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    padding: 14px 16px;
-    border-radius: 18px;
-    background: #2a1846;
+    padding: 18px;
+    border-radius: 20px;
+    background: #2a1a5c;
     color: #ffffff;
 }
 
@@ -21,28 +21,113 @@
     flex: 1;
     display: flex;
     flex-direction: column;
+    gap: 2px;
 }
 
 .tj-cash small {
-    font-size: 12px;
-    color: #c9b6ff;
+    font-size: 12.5px;
+    color: #cfc6f2;
 }
 
 .tj-cash strong {
     font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
-    font-size: 24px;
+    font-size: 30px;
+    letter-spacing: -0.5px;
+    line-height: 1.1;
 }
 
 .tj-cash-btn {
-    min-height: 44px;
-    padding: 0 18px;
-    border-radius: 12px;
-    background: #c9b6ff;
-    color: #2a1846;
+    min-height: 48px;
+    padding: 0 20px;
+    border-radius: 14px;
+    background: #d9ceff;
+    color: #2a1a5c;
     font-weight: 800;
     display: inline-flex;
     align-items: center;
     text-decoration: none;
+}
+
+/* Done today / To do / Earned */
+.tj-tiles {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.tj-tiles > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    background: #ffffff;
+    min-width: 0;
+}
+
+.tj-tiles span {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--theme-muted);
+}
+
+.tj-tiles strong {
+    font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.tj-tiles strong.is-money {
+    color: #0f7a53;
+}
+
+/* Finished today: one row each */
+.tj-done {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    background: #ffffff;
+    color: var(--theme-ink);
+    text-decoration: none;
+}
+
+.tj-done-icon {
+    width: 36px;
+    height: 36px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #ddf5ea;
+    color: #0f7a53;
+    display: grid;
+    place-items: center;
+    font-size: 17px;
+}
+
+.tj-done-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.tj-done-text strong {
+    font-size: 14px;
+}
+
+.tj-done-text small {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.tj-done b {
+    font-size: 14px;
+    font-weight: 800;
+    color: #0f7a53;
 }
 
 .tj-cash-none {
@@ -281,17 +366,35 @@
 }
 
 .tj-empty {
-    padding: 26px 16px;
-    border: 1px dashed var(--theme-border);
+    padding: 22px 16px;
+    border: 1.5px dashed #d6ccf5;
     border-radius: 18px;
     background: #ffffff;
     text-align: center;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    align-items: center;
+    gap: 6px;
+}
+
+.tj-empty > i {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+.tj-empty strong {
+    font-size: 15px;
 }
 
 .tj-empty span {
+    max-width: 260px;
     font-size: 13px;
     color: var(--theme-muted);
 }
@@ -300,5 +403,60 @@
 @media (max-width: 760px) {
     .rd-old-jobs {
         display: none;
+    }
+
+    /* Online / Offline card (pages/rider/partials/shift-bar) */
+    .main-content .shift-bar {
+        margin: 0 0 14px;
+        padding: 12px 12px 12px 16px;
+        border-radius: 18px;
+    }
+
+    .main-content .shift-state {
+        display: grid;
+        grid-template-columns: auto 1fr;
+        column-gap: 12px;
+        row-gap: 0;
+        align-items: center;
+    }
+
+    .main-content .shift-state .shift-dot {
+        grid-row: span 2;
+        width: 12px;
+        height: 12px;
+    }
+
+    .main-content .shift-bar.is-online .shift-dot {
+        background: #16a36f;
+        box-shadow: 0 0 0 4px #ddf5ea;
+    }
+
+    .main-content .shift-state strong {
+        font-size: 15px;
+    }
+
+    .main-content .shift-state small {
+        font-size: 12px;
+    }
+
+    .main-content .shift-bar .btn {
+        min-height: 44px;
+        padding: 0 14px;
+        border-radius: 12px;
+        font-size: 13px;
+        font-weight: 700;
+        gap: 6px;
+    }
+
+    .main-content .shift-bar.is-online .btn {
+        border: 1.5px solid var(--theme-primary);
+        background: #ffffff;
+        color: var(--theme-primary-hover);
+    }
+
+    .main-content .shift-bar.is-offline .btn {
+        border: 0;
+        background: var(--theme-primary);
+        color: #ffffff;
     }
 }

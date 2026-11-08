@@ -10,7 +10,10 @@
     $tjMine = collect($pickupsMine ?? []);
     $tjOffers = collect($pickupsAvailable ?? []);
     $tjTodo = $tjDeliveries->count() + $tjMine->count();
-    $tjDone = collect($delivered ?? [])->filter(fn ($o) => !empty($o['delivered_at'] ?? null) && \Illuminate\Support\Carbon::parse($o['delivered_at'])->isToday())->count();
+    $tjDoneList = collect($delivered ?? [])->filter(fn ($o) => !empty($o['delivered_at'] ?? null) && \Illuminate\Support\Carbon::parse($o['delivered_at'])->isToday())
+        ->sortByDesc('delivered_at')->values();
+    $tjDone = $tjDoneList->count();
+    $tjCodOrders = collect($codHeld ?? [])->count();
 @endphp
 
 <link rel="stylesheet" href="{{ vasset('css/partials/rider-today.css') }}">
@@ -21,12 +24,21 @@
         <div>
             <small>Cash you're holding</small>
             <strong>₱{{ number_format($tjCash, 2) }}</strong>
+            @if($tjCash > 0)
+                <small>From {{ $tjCodOrders }} COD order{{ $tjCodOrders === 1 ? '' : 's' }}</small>
+            @endif
         </div>
         @if($tjCash > 0)
             <a href="{{ route('rider.profit') }}#remitAmount" class="tj-cash-btn">Remit</a>
         @else
             <span class="tj-cash-none">Nothing to remit</span>
         @endif
+    </div>
+
+    <div class="tj-tiles">
+        <div><span>Done today</span><strong>{{ $tjDone }}</strong></div>
+        <div><span>To do</span><strong>{{ $tjTodo }}</strong></div>
+        <div><span>Earned</span><strong class="is-money">₱{{ number_format((float) ($payToday['total'] ?? 0), 2) }}</strong></div>
     </div>
 
     <div class="tj-head">
@@ -117,8 +129,22 @@
 
     @if($tjTodo === 0 && $tjOffers->isEmpty())
         <div class="tj-empty">
+            <i class="bi bi-box-seam" aria-hidden="true"></i>
             <strong>No jobs right now</strong>
             <span>Stay Online — new pickups and deliveries show up here.</span>
         </div>
     @endif
+
+    @foreach($tjDoneList as $done)
+        <a href="{{ route('rider.delivery.details', $done['id']) }}" class="tj-done">
+            <span class="tj-done-icon" aria-hidden="true"><i class="bi bi-check-lg"></i></span>
+            <span class="tj-done-text">
+                <strong>Order #{{ $done['id'] }} · Delivered</strong>
+                <small>{{ \Illuminate\Support\Carbon::parse($done['delivered_at'])->format('g:i A') }} · {{ $done['buyer_name'] ?? 'Buyer' }}</small>
+            </span>
+            @if(($done['rider_fee'] ?? null) !== null)
+                <b>+₱{{ number_format((float) $done['rider_fee'], 2) }}</b>
+            @endif
+        </a>
+    @endforeach
 </section>

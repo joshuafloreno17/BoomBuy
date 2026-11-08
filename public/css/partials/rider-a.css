@@ -1,0 +1,764 @@
+/*
+ * Rider pages, "A · Clean Lavender" (History, Cash & earnings, Profile).
+ * One narrow column of white cards on the lavender page; the same look on
+ * phones (the app) and on a computer.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Figtree:wght@400;500;600;700;800&display=swap');
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: 'Figtree', sans-serif;
+    background: var(--theme-bg);
+    color: var(--theme-ink);
+}
+
+a {
+    color: var(--theme-primary);
+    text-decoration: none;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+/* Page column */
+.ra {
+    width: calc(100% - 40px);
+    max-width: 720px;
+    margin: 36px auto 80px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+@media (max-width: 760px) {
+    .ra {
+        width: 100%;
+        margin: 0;
+        padding: 22px 16px 28px;
+    }
+}
+
+/* Heading */
+.ra-head {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ra-kicker {
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.4px;
+    color: var(--theme-primary);
+}
+
+.ra-head h1 {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.15;
+}
+
+.ra-head p {
+    margin: 0;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+/* Card */
+.ra-card {
+    background: #fff;
+    border: 1px solid var(--theme-border);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ra-card > h2 {
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 15px;
+    font-weight: 800;
+}
+
+.ra-card > h2 > i {
+    color: var(--theme-primary);
+    font-size: 17px;
+}
+
+/* Segmented control (date presets, job filters) */
+.ra-seg {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: #eae5fa;
+}
+
+.ra-seg > a,
+.ra-seg > button,
+.ra-seg > summary {
+    min-height: 40px;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: #4a4366;
+    font: 600 13px 'Figtree', sans-serif;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    cursor: pointer;
+    text-align: center;
+}
+
+.ra-seg > .is-on {
+    background: #fff;
+    color: var(--theme-ink);
+    font-weight: 800;
+    box-shadow: 0 1px 4px rgba(30, 24, 56, 0.12);
+}
+
+/* Job filter: count on top, label under it */
+.ra-seg.is-count > button {
+    min-height: 54px;
+    flex-direction: column;
+    gap: 1px;
+    padding: 0;
+}
+
+.ra-seg.is-count b {
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--theme-ink);
+}
+
+.ra-seg.is-count span {
+    font-size: 11.5px;
+    font-weight: 600;
+}
+
+.ra-seg.is-count .is-on b {
+    color: var(--theme-primary);
+}
+
+.ra-seg.is-count .is-zero b {
+    color: #a49cbf;
+}
+
+/* Date range: a button that opens From / To */
+.ra-range {
+    background: #fff;
+    border: 1px solid var(--theme-border);
+    border-radius: 14px;
+}
+
+.ra-range > summary {
+    min-height: 46px;
+    padding: 0 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    list-style: none;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.ra-range > summary::-webkit-details-marker {
+    display: none;
+}
+
+.ra-range > summary > i:first-child {
+    color: var(--theme-primary);
+}
+
+.ra-range > summary > span {
+    flex: 1;
+}
+
+.ra-range > summary > i:last-child {
+    color: var(--theme-muted);
+    transition: transform 0.15s ease;
+}
+
+.ra-range[open] > summary > i:last-child {
+    transform: rotate(180deg);
+}
+
+.ra-range form {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 0 14px 14px;
+}
+
+.ra-range form .ra-btn {
+    grid-column: span 2;
+}
+
+/* Fields */
+.ra-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+    font-size: 12px;
+    font-weight: 700;
+    color: #4a4366;
+}
+
+.ra-field input,
+.ra-field select {
+    width: 100%;
+    min-width: 0;
+    min-height: 44px;
+    padding: 0 12px;
+    border: 1px solid #dcd4f3;
+    border-radius: 12px;
+    background: #fbfaff;
+    color: var(--theme-ink);
+    font: 600 14px 'Figtree', sans-serif;
+}
+
+.ra-field input:focus {
+    outline: none;
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 3px #e6dcff;
+}
+
+.ra-field small {
+    font-weight: 500;
+    color: var(--theme-muted);
+}
+
+/* Buttons */
+.ra-btn {
+    min-height: 48px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 14px;
+    background: var(--theme-primary);
+    color: #fff;
+    font: 700 15px 'Figtree', sans-serif;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+}
+
+.ra-btn:hover {
+    background: var(--theme-primary-hover);
+}
+
+.ra-btn.is-dark {
+    background: #2a1a5c;
+}
+
+.ra-btn.is-dark:hover {
+    background: #3a2878;
+}
+
+.ra-btn.is-ghost {
+    background: #fff;
+    border: 1.5px solid var(--theme-primary);
+    color: var(--theme-primary-hover);
+}
+
+/* A line: label left, value right */
+.ra-line {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+}
+
+.ra-line > span:first-child {
+    color: #4a4366;
+}
+
+.ra-line > span:last-child,
+.ra-line > b {
+    font-weight: 700;
+    text-align: right;
+}
+
+.ra-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #efebfa;
+}
+
+/* Big number with an icon (earned in range) */
+.ra-stat {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.ra-stat-icon {
+    width: 40px;
+    height: 40px;
+    flex-shrink: 0;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    font-size: 18px;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
+}
+
+.ra-stat-icon.is-green {
+    background: #ddf5ea;
+    color: #0f7a53;
+}
+
+.ra-stat-icon.is-amber {
+    background: #fde7c7;
+    color: #a54c06;
+}
+
+.ra-stat > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.ra-stat small {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.ra-stat strong {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.ra-stat > span {
+    font-size: 12px;
+    color: var(--theme-muted);
+    text-align: right;
+}
+
+.ra-money {
+    color: #0f7a53;
+}
+
+/* Small tiles */
+.ra-tiles {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ra-tiles.is-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.ra-tile {
+    background: #fff;
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ra-tile span {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--theme-muted);
+}
+
+.ra-tile strong {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 19px;
+    font-weight: 800;
+}
+
+/* Banner (missing documents, notices) */
+.ra-note {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 11px 13px;
+    border-radius: 14px;
+    font-size: 13px;
+    line-height: 1.45;
+    background: #fff4e5;
+    border: 1px solid #f6d5a8;
+    color: #7a4a12;
+}
+
+.ra-note > i {
+    margin-top: 1px;
+    color: #b45309;
+}
+
+.ra-note.is-success {
+    background: #eafaf0;
+    border-color: #cdeedb;
+    color: #146c3c;
+}
+
+.ra-note.is-success > i {
+    color: #15803d;
+}
+
+.ra-note.is-error {
+    background: #fff0ef;
+    border-color: #f7d4d1;
+    color: #b42318;
+}
+
+.ra-note.is-error > i {
+    color: #c62828;
+}
+
+/* Day label in lists */
+.ra-day {
+    margin: 6px 0 -2px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--theme-muted);
+    text-transform: uppercase;
+}
+
+/* Empty state */
+.ra-empty {
+    padding: 26px 18px;
+    border: 1.5px dashed #d6ccf5;
+    border-radius: 18px;
+    background: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+}
+
+.ra-empty > i {
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
+    display: grid;
+    place-items: center;
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+.ra-empty strong {
+    font-size: 15px;
+}
+
+.ra-empty span {
+    max-width: 280px;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.ra-end {
+    font-size: 12px;
+    color: var(--theme-muted);
+    text-align: center;
+}
+
+/* Job card (History) */
+.ra-job {
+    background: #fff;
+    border: 1px solid var(--theme-border);
+    border-radius: 20px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.ra-job-top {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.ra-job-top > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ra-job-top strong {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+}
+
+.ra-job-top small {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.ra-job .status-pill {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ra-job-info {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: 13px;
+    color: #4a4366;
+}
+
+.ra-job-info > div {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    overflow-wrap: anywhere;
+}
+
+.ra-job-info i {
+    color: var(--theme-primary);
+}
+
+.ra-job-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
+    padding-top: 12px;
+    border-top: 1px solid #efebfa;
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.ra-job-foot b {
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f7a53;
+}
+
+.ra-job-foot b.is-zero {
+    color: var(--theme-muted);
+}
+
+/* Upload tiles (Profile documents) */
+.ra-ups {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.ra-up {
+    position: relative;
+    border: 1.5px dashed #cfc3f2;
+    border-radius: 14px;
+    background: #fbfaff;
+    padding: 14px 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.ra-up:focus-within {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 3px #e6dcff;
+}
+
+.ra-up input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.ra-up > i {
+    font-size: 20px;
+    color: var(--theme-primary);
+}
+
+.ra-up strong {
+    font-size: 13px;
+}
+
+.ra-up small {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: #b45309;
+    overflow-wrap: anywhere;
+}
+
+.ra-up small.is-ok {
+    color: #0f7a53;
+}
+
+.ra-up-view {
+    font-size: 12px;
+    font-weight: 700;
+}
+
+/* Profile header */
+.ra-me {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.ra-avatar {
+    position: relative;
+    width: 60px;
+    height: 60px;
+    flex-shrink: 0;
+}
+
+.ra-avatar > span,
+.ra-avatar > img {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    object-fit: cover;
+    background: #e6deff;
+    color: var(--theme-primary-hover);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 21px;
+    font-weight: 800;
+}
+
+.ra-avatar label {
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 2px solid #fff;
+    background: var(--theme-primary);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.ra-avatar input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+}
+
+.ra-me > div {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ra-me strong {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 21px;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.ra-me small {
+    font-size: 12px;
+    color: var(--theme-muted);
+}
+
+.ra-badge {
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 999px;
+    background: #ddf5ea;
+    color: #0b6b48;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.ra-badge.is-wait {
+    background: #fff4e5;
+    color: #8a4b0b;
+}
+
+/* Two fields side by side, one column on narrow phones */
+.ra-pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+}
+
+@media (max-width: 420px) {
+    .ra-pair {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Chart */
+.ra-chart {
+    position: relative;
+    height: 220px;
+}
+
+/* Day list (Cash) */
+.ra-days {
+    display: flex;
+    flex-direction: column;
+}
+
+.ra-days > div {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 11px 0;
+    border-top: 1px solid #efebfa;
+    font-size: 13px;
+}
+
+.ra-days > div:first-child {
+    border-top: 0;
+    padding-top: 0;
+}
+
+.ra-days small {
+    color: var(--theme-muted);
+}
+
+.ra-days b {
+    font-weight: 800;
+}

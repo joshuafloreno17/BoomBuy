@@ -40,9 +40,7 @@
 
             @include('partials.announcement-banner')
 
-            @include('pages.rider.partials.shift-bar')
-
-            {{-- PHONES: orange hero (greeting + today's job) and three tiles, instead of the welcome, shortcuts and stats below. --}}
+            {{-- PHONES: greeting header, then Online/Offline, cash and Today's jobs, instead of the welcome, shortcuts and stats below. --}}
             @php
                 $greetHour = (int) now()->format('G');
                 $toDeliverCount = count($myDeliveryAssignments ?? []);
@@ -51,7 +49,7 @@
             @endphp
             <section class="rd-hero" aria-label="Today">
                 <div class="rd-hero-top">
-                    <span class="rd-hero-avatar" aria-hidden="true">{{ mb_strtoupper(mb_substr($user['name'] ?? 'R', 0, 1)) }}</span>
+                    <span class="rd-hero-avatar" aria-hidden="true">{{ collect(preg_split('/\s+/', trim($user['name'] ?? 'Rider')))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: 'R' }}</span>
                     <span class="rd-hero-who">
                         <span class="rd-hero-greet" data-greet>{{ $greetHour >= 5 && $greetHour < 12 ? 'Good morning' : ($greetHour >= 12 && $greetHour < 18 ? 'Good afternoon' : 'Good evening') }}</span>
                         <strong>{{ $user['name'] ?? 'Rider' }}</strong>
@@ -64,6 +62,8 @@
                     </a>
                 </div>
             </section>
+
+            @include('pages.rider.partials.shift-bar')
 
             @include('pages.rider.partials.today-jobs')
 

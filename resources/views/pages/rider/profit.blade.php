@@ -1,116 +1,133 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    @include('partials.head', ['title' => 'Profit — BoomBuy Rider'])
+    @include('partials.head', ['title' => 'Cash & Earnings — BoomBuy Rider'])
 
     <link rel="stylesheet" href="{{ vasset('css/rider-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ vasset('css/pages/rider-profit.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/partials/rider-a.css') }}">
 </head>
 
 <body>
 
     <x-layout.rider-sidebar active="profit" :user="$user" />
 
+    @php
+        $todayStr = today()->toDateString();
+        $presets = [
+            'today' => ['label' => 'Today', 'from' => $todayStr, 'to' => $todayStr],
+            'week' => ['label' => 'Week', 'from' => today()->startOfWeek()->toDateString(), 'to' => $todayStr],
+            '30' => ['label' => '30 days', 'from' => today()->subDays(30)->toDateString(), 'to' => $todayStr],
+        ];
+        $activePreset = collect($presets)->search(fn ($p) => $p['from'] === $from && $p['to'] === $to);
+
+        $fromDate = \Illuminate\Support\Carbon::parse($from);
+        $toDate = \Illuminate\Support\Carbon::parse($to);
+        $rangeLabel = $fromDate->isSameDay($toDate)
+            ? $fromDate->format('M j, Y')
+            : ($fromDate->year === $toDate->year
+                ? $fromDate->format('M j') . ' – ' . ($fromDate->month === $toDate->month ? $toDate->format('j, Y') : $toDate->format('M j, Y'))
+                : $fromDate->format('M j, Y') . ' – ' . $toDate->format('M j, Y'));
+        $earnedTitle = match ($activePreset) {
+            'today' => 'Earned today',
+            'week' => 'Earned this week · ' . $rangeLabel,
+            default => 'Earned · ' . $rangeLabel,
+        };
+    @endphp
+
     <main class="main-content">
 
-        <div class="container">
+        <div class="ra">
 
-            <div class="page-header">
-
-                <div>
-                    <h1>Profit</h1>
-                    <p>Your delivery earnings for the selected date range.</p>
-                </div>
-
-                <form method="GET" action="{{ route('rider.profit') }}" class="filter-form">
-
-                    <div>
-                        <label for="from">From</label>
-                        <input type="date" id="from" name="from" value="{{ $from }}">
-                    </div>
-
-                    <div>
-                        <label for="to">To</label>
-                        <input type="date" id="to" name="to" value="{{ $to }}">
-                    </div>
-
-                    <button type="submit" class="filter-btn">Apply</button>
-
-                </form>
-
+            <div class="ra-head">
+                <span class="ra-kicker">RIDER CENTER</span>
+                <h1>Cash &amp; earnings</h1>
             </div>
 
-            {{-- PAY PER JOB (A33) AND COD TO REMIT (A24) --}}
-            <section class="rider-pay" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0;">
-                <div class="summary-card"><span>Today</span><strong data-pay-today>₱{{ number_format($payToday['total'], 2) }}</strong><small>{{ $payToday['pickups'] }} pickup(s) × ₱{{ number_format(\App\Support\RiderJobs::PICKUP_PAY, 2) }} · {{ $payToday['deliveries'] }} delivery(ies)</small></div>
-                <div class="summary-card"><span>This week</span><strong data-pay-week>₱{{ number_format($payWeek['total'], 2) }}</strong><small>Failed attempts pay ₱0.00</small></div>
-                <div class="summary-card"><span>COD to remit</span><strong data-cod-balance>₱{{ number_format($cod['balance'], 2) }}</strong>
-                    <small>{{ $cod['orders']->count() }} order(s){{ $cod['shortfall'] > 0 ? ' · ₱' . number_format($cod['shortfall'], 2) . ' outstanding' : '' }}{{ $cod['pending'] ? ' · ₱' . number_format($cod['pending']->amount, 2) . ' pending confirmation' : '' }}</small>
-                </div>
-            </section>
-            @if($cod['balance'] > 0 && !$cod['pending'])
-                <form method="POST" action="{{ route('rider.cod.remit') }}" class="filter-form" style="margin-bottom:18px;">
-                    @csrf
-                    <div><label for="remitAmount">Remit COD (₱)</label><input type="number" id="remitAmount" name="amount" step="0.01" min="0.01" value="{{ number_format($cod['balance'], 2, '.', '') }}"></div>
-                    <button type="submit" class="filter-btn">Send remittance</button>
-                </form>
+            @if(session('success'))
+                <div class="ra-note is-success" role="status"><i class="bi bi-check-circle-fill"></i><span>{{ session('success') }}</span></div>
+            @endif
+            @if(session('error'))
+                <div class="ra-note is-error" role="alert"><i class="bi bi-x-circle-fill"></i><span>{{ session('error') }}</span></div>
             @endif
 
-
-            <div class="stats">
-
-                <div class="stat-card">
-                    <span>Completed Deliveries</span>
-                    <strong>{{ number_format($totalDeliveries) }}</strong>
-                </div>
-
-                <div class="stat-card">
-                    <span>Fee per Delivery</span>
-                    <strong>₱{{ number_format($deliveryFee, 2) }}</strong>
-                </div>
-
-                <div class="stat-card">
-                    <span>Total Profit</span>
-                    <strong>₱{{ number_format($totalProfit, 2) }}</strong>
-                </div>
-
+            <div class="ra-seg" role="group" aria-label="Date range">
+                @foreach($presets as $key => $preset)
+                    <a href="{{ route('rider.profit', ['from' => $preset['from'], 'to' => $preset['to']]) }}" @class(['is-on' => $activePreset === $key]) @if($activePreset === $key) aria-current="true" @endif>{{ $preset['label'] }}</a>
+                @endforeach
+                <button type="button" @class(['is-on' => $activePreset === false]) data-open-range><i class="bi bi-calendar3"></i> Custom</button>
             </div>
 
-            <div class="panel">
-                <h2>Earnings per Day</h2>
-                @if($totalDeliveries === 0)
-                    <p class="chart-empty">No completed deliveries in this date range yet.</p>
+            <details class="ra-range" id="customRange" @if($activePreset === false) open @endif>
+                <summary><i class="bi bi-calendar3"></i><span>{{ $rangeLabel }}</span><i class="bi bi-chevron-down"></i></summary>
+                <form method="GET" action="{{ route('rider.profit') }}">
+                    <label class="ra-field" for="from">From<input type="date" id="from" name="from" value="{{ $from }}"></label>
+                    <label class="ra-field" for="to">To<input type="date" id="to" name="to" value="{{ $to }}"></label>
+                    <button type="submit" class="ra-btn">Show these dates</button>
+                </form>
+            </details>
+
+            {{-- PAY PER JOB (A33) for the chosen dates --}}
+            <section class="ra-card" aria-label="Earnings">
+                <div class="ra-stat">
+                    <div>
+                        <small>{{ $earnedTitle }}</small>
+                        <strong style="font-size:34px;line-height:1.15">₱{{ number_format($payRange['total'], 2) }}</strong>
+                    </div>
+                </div>
+                <div class="ra-lines">
+                    <div class="ra-line"><span>Deliveries · {{ $payRange['deliveries'] }}</span><span>₱{{ number_format($payRange['delivery_pay'], 2) }}</span></div>
+                    <div class="ra-line"><span>Pickups · {{ $payRange['pickups'] }} × ₱{{ number_format(\App\Support\RiderJobs::PICKUP_PAY, 2) }}</span><span>₱{{ number_format($payRange['pickup_pay'], 2) }}</span></div>
+                    <div class="ra-line"><span>Failed attempts</span><span>₱0.00</span></div>
+                </div>
+            </section>
+
+            {{-- COD TO REMIT (A24) --}}
+            <section class="ra-card" aria-label="Cash on Delivery to remit" style="background:#fff7ec;border-color:#f6ddb8">
+                <div class="ra-stat">
+                    <span class="ra-stat-icon is-amber"><i class="bi bi-cash-stack"></i></span>
+                    <div><small style="color:#7a4a12">COD to remit</small><strong data-cod-balance>₱{{ number_format($cod['balance'], 2) }}</strong></div>
+                </div>
+                <span style="font-size:12.5px;color:#7a4a12">
+                    {{ $cod['orders']->count() }} order{{ $cod['orders']->count() === 1 ? '' : 's' }}{{ $cod['shortfall'] > 0 ? ' · ₱' . number_format($cod['shortfall'], 2) . ' outstanding' : '' }}{{ $cod['pending'] ? ' · ₱' . number_format($cod['pending']->amount, 2) . ' pending confirmation' : '' }}
+                </span>
+                @if($cod['balance'] > 0 && !$cod['pending'])
+                    <form method="POST" action="{{ route('rider.cod.remit') }}" style="display:flex;flex-direction:column;gap:10px">
+                        @csrf
+                        <label class="ra-field" for="remitAmount" style="color:#7a4a12">Amount to remit (₱)<input type="number" id="remitAmount" name="amount" step="0.01" min="0.01" value="{{ number_format($cod['balance'], 2, '.', '') }}"></label>
+                        <button type="submit" class="ra-btn is-dark">Remit ₱{{ number_format($cod['balance'], 2) }}</button>
+                    </form>
+                @elseif($cod['pending'])
+                    <div class="ra-note" style="background:#fff;border-color:#f6ddb8"><i class="bi bi-hourglass-split"></i><span>Your Sorting Center still has to confirm the ₱{{ number_format($cod['pending']->amount, 2) }} you sent.</span></div>
                 @else
-                    <div class="chart-box"><canvas id="profitChart"></canvas></div>
+                    <span style="font-size:13px;font-weight:700;color:#0f7a53"><i class="bi bi-check-circle-fill"></i> Nothing to remit</span>
                 @endif
+            </section>
+
+            <div class="ra-tiles">
+                <div class="ra-tile"><span>Today</span><strong data-pay-today>₱{{ number_format($payToday['total'], 2) }}</strong></div>
+                <div class="ra-tile"><span>This week</span><strong data-pay-week>₱{{ number_format($payWeek['total'], 2) }}</strong></div>
             </div>
 
-            <div class="panel">
-                <h2>Daily Breakdown</h2>
-
-                <table>
-                    <thead>
-                        <tr>
-                            <th>DATE</th>
-                            <th>DELIVERIES</th>
-                            <th>PROFIT</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($dailyProfit as $row)
-                            <tr>
-                                <td>{{ \Carbon\Carbon::parse($row['day'])->format('M d, Y') }}</td>
-                                <td>{{ $row['deliveries'] }}</td>
-                                <td>₱{{ number_format($row['profit'], 2) }}</td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="3" class="empty-message">No completed deliveries in this date range.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
+            <section class="ra-card" aria-label="Delivery earnings per day">
+                <h2><i class="bi bi-bar-chart-fill"></i> Delivery earnings per day</h2>
+                @if($totalDeliveries === 0)
+                    <div class="ra-empty" style="border:0;padding:12px 0">
+                        <i class="bi bi-bar-chart"></i>
+                        <strong>No completed deliveries in this date range yet.</strong>
+                        <span>Completed deliveries show up here by day.</span>
+                    </div>
+                @else
+                    <div class="ra-chart"><canvas id="profitChart"></canvas></div>
+                    <div class="ra-days">
+                        @foreach($dailyProfit as $row)
+                            <div>
+                                <span>{{ \Carbon\Carbon::parse($row['day'])->format('D, M d') }} <small>· {{ $row['deliveries'] }} deliver{{ $row['deliveries'] === 1 ? 'y' : 'ies' }}</small></span>
+                                <b class="ra-money">₱{{ number_format($row['profit'], 2) }}</b>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
 
         </div>
 
@@ -118,51 +135,49 @@
 
     @include('partials.pwa-register')
 
+    <script>
+        // "Custom" opens the From / To picker.
+        (function () {
+            var open = document.querySelector('[data-open-range]');
+            var range = document.getElementById('customRange');
+            if (!open || !range) return;
+            open.addEventListener('click', function () {
+                range.open = true;
+                range.querySelector('input').focus();
+            });
+        })();
+    </script>
+
     @if($totalDeliveries > 0)
         <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
         @include('partials.chart-defaults')
         <script>
             var profitLabels = @json($chartDays->map(fn($r) => \Carbon\Carbon::parse($r['day'])->format('M d')));
             var profitValues = @json($chartDays->map(fn($r) => (float) $r['profit']));
-            var deliveryCounts = @json($chartDays->map(fn($r) => (int) $r['deliveries']));
 
-            // Bars = ₱ earned that day; line = how many deliveries.
+            // One bar per day: ₱ earned from deliveries.
             bbCharts(function () {
                 new Chart(document.getElementById('profitChart'), {
+                    type: 'bar',
                     data: {
                         labels: profitLabels,
                         datasets: [{
-                            type: 'bar',
-                            label: 'Profit',
+                            label: 'Earned',
                             data: profitValues,
-                            backgroundColor: '#b5a4e2',
+                            backgroundColor: '#c9b9f2',
                             hoverBackgroundColor: '#6d4ad1',
-                            borderRadius: 5,
-                            maxBarThickness: 26,
-                            yAxisID: 'y',
-                        }, {
-                            type: 'line',
-                            label: 'Deliveries',
-                            data: deliveryCounts,
-                            borderColor: '#1f9d6b',
-                            backgroundColor: '#1f9d6b',
-                            tension: 0,
-                            pointRadius: profitLabels.length > 45 ? 0 : 3,
-                            yAxisID: 'y1',
+                            borderRadius: 6,
+                            maxBarThickness: 24,
                         }]
                     },
                     options: {
-                        interaction: { mode: 'index', intersect: false },
                         plugins: {
-                            legend: { display: true, position: 'bottom', labels: { boxWidth: 12, usePointStyle: true } },
-                            tooltip: { callbacks: { label: function (c) {
-                                return c.dataset.yAxisID === 'y' ? 'Profit: ' + bbPeso(c.parsed.y) : 'Deliveries: ' + c.parsed.y;
-                            } } }
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function (c) { return 'Earned: ' + bbPeso(c.parsed.y); } } }
                         },
                         scales: {
-                            y: { beginAtZero: true, suggestedMax: 200, ticks: { callback: bbPesoAxis, maxTicksLimit: 6 } },
-                            y1: { beginAtZero: true, position: 'right', grid: { display: false }, ticks: { precision: 0, maxTicksLimit: 6 }, suggestedMax: 4 },
-                            x: { grid: { display: false }, ticks: { maxTicksLimit: 10 } }
+                            y: { beginAtZero: true, suggestedMax: 200, ticks: { callback: bbPesoAxis, maxTicksLimit: 5 } },
+                            x: { grid: { display: false }, ticks: { maxTicksLimit: 7 } }
                         }
                     }
                 });

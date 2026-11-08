@@ -88,9 +88,19 @@ class RiderWorkController extends Controller
             return response()->json(['ok' => false, 'message' => 'Send lat and lng.'], 422);
         }
 
-        RiderJobs::saveLocation((int) $user['id'], $lat, $lng);
+        // Opening the app goes Online by itself (the page sends auto_online once
+        // per app session, and not after the rider chose Go Offline).
+        $wasOnline = (bool) DB::table('users')->where('id', $user['id'])->value('is_online');
+        $wentOnline = false;
 
-        return response()->json(['ok' => true, 'online' => RiderJobs::isOnline((int) $user['id'])]);
+        if (request()->boolean('auto_online') && $lat !== null && !$wasOnline && RiderJobs::canGoOnline((int) $user['id'])) {
+            RiderJobs::setOnline((int) $user['id'], true, $lat, $lng);
+            $wentOnline = true;
+        } else {
+            RiderJobs::saveLocation((int) $user['id'], $lat, $lng);
+        }
+
+        return response()->json(['ok' => true, 'online' => RiderJobs::isOnline((int) $user['id']), 'went_online' => $wentOnline]);
     }
 
     /** [lat, lng] from the request, or [null, null] when missing or out of range. */

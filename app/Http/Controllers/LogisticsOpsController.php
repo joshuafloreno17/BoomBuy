@@ -67,6 +67,9 @@ class LogisticsOpsController extends Controller
             return $user;
         }
 
+        // Show riders whose app went quiet for a while as Offline.
+        \App\Support\RiderJobs::expireStale();
+
         $center = $this->center($user);
         $center = $center === false ? -1 : $center;
         $dispatch->sweep();

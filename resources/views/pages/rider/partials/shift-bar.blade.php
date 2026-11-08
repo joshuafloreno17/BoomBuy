@@ -1,6 +1,7 @@
 {{-- Online/Offline and the job offers waiting for this rider (Rider Modules R2/R3). --}}
 @php
     $shiftRiderId = (int) ($user['id'] ?? 0);
+    \App\Support\RiderJobs::expireStale();
     $shiftOnline = \App\Support\RiderJobs::isOnline($shiftRiderId);
     $shiftOffers = app(\App\Services\DispatchService::class)->offersFor($shiftRiderId);
     $shiftActive = \App\Support\RiderJobs::activeCount($shiftRiderId);
