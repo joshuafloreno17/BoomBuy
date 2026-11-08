@@ -37,7 +37,8 @@
             @endif
 
             {{-- STORE SALES --}}
-            <div class="card" id="sales">
+            <div class="card sm-sheet" id="sales" data-sm-sheet="create" aria-label="Create a store sale">
+                <div class="sm-sheet-head sm-only"><strong>Create a store sale</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                 <h2>Create a Store Sale</h2>
                 <p class="promo-note">One sale per product at a time. It starts and ends on its own at the times you set; you can change the discount or end it early.</p>
 
@@ -85,6 +86,8 @@
                     <button type="submit" class="save-btn">Save Sale</button>
                 </form>
             </div>
+
+            <div class="sm-bar sm-only"><button type="button" class="sm-bar-main" data-sm-sheet-open="create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create a store sale</button></div>
 
             <div class="card">
                 <h2>My Store Sales</h2>

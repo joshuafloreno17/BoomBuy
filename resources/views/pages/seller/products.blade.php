@@ -43,6 +43,11 @@
             </div>
         @endif
 
+        @if(count($products ?? []) > 0)
+            {{-- 📱 Phones: checkboxes and the bulk bar only show after tapping Select --}}
+            <button type="button" class="sm-select-btn sm-only" data-sm-select aria-pressed="false">Select</button>
+        @endif
+
         <a
             href="{{ route('seller.products.create') }}"
             class="add-btn"
@@ -414,6 +419,21 @@
                 });
 
                 empty.style.display = shown === 0 && term !== '' ? 'block' : 'none';
+            });
+        })();
+
+        // Phones: "Select" shows the checkboxes and turns the bulk form into the bottom bar.
+        (function () {
+            var btn = document.querySelector('[data-sm-select]');
+            if (!btn) return;
+
+            btn.addEventListener('click', function () {
+                var on = document.body.classList.toggle('sm-selecting');
+                btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+                btn.textContent = on ? 'Cancel' : 'Select';
+                if (!on) {
+                    document.querySelectorAll('.bulk-check').forEach(function (c) { c.checked = false; });
+                }
             });
         })();
     </script>

@@ -49,6 +49,8 @@
                     </div>
                 </div>
 
+                <div class="sm-sheet-wrap sm-sheet" data-sm-sheet="payout" aria-label="Request a payout">
+                <div class="sm-sheet-head sm-only"><strong>Request a payout</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                 <h2 style="margin-top:12px;">Request a Payout</h2>
                 <form method="POST" action="{{ route('seller.payouts.store') }}" data-submit-once>
                     @csrf
@@ -74,6 +76,8 @@
                     </div>
                     <button type="submit" class="save-btn">Request Payout</button>
                 </form>
+                </div>
+                <div class="sm-bar sm-only"><button type="button" class="sm-bar-main" data-sm-sheet-open="payout"><i class="bi bi-wallet2" aria-hidden="true"></i> Request payout</button></div>
 
                 @foreach($payouts as $payout)
                     <div class="promo-row" data-payout="{{ $payout->id }}">

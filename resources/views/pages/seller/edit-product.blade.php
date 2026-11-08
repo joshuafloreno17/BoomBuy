@@ -456,23 +456,23 @@
                     </section>
 
                     {{-- ACTIONS --}}
-                    <div class="actions">
+                    <div class="actions sm-bar">
 
                         <a
                             href="{{ route('seller.products') }}"
-                            class="cancel-btn"
+                            class="cancel-btn sm-desk"
                         >
                             Cancel
                         </a>
 
 
                         @if($product->is_draft)
-                            <button type="submit" class="cancel-btn" name="action" value="draft" formnovalidate>Save as Draft</button>
-                            <button type="submit" class="save-btn" name="action" value="publish">Publish</button>
+                            <button type="submit" class="cancel-btn sm-bar-ghost" name="action" value="draft" formnovalidate>Save as Draft</button>
+                            <button type="submit" class="save-btn sm-bar-main" name="action" value="publish">Publish</button>
                         @else
                             <button
                                 type="submit"
-                                class="save-btn"
+                                class="save-btn sm-bar-main"
                             >
                                 Save Changes
                             </button>

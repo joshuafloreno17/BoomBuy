@@ -171,7 +171,8 @@
             @endif
 
             {{-- ADD ONE --}}
-            <div class="card">
+            <div class="card sm-sheet" data-sm-sheet="create" aria-label="Add an option">
+                <div class="sm-sheet-head sm-only"><strong>Add an option</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                 <h2>Add an option</h2>
 
                 <form method="POST" action="{{ route('seller.products.variations.store', $product->id) }}" enctype="multipart/form-data">
@@ -230,6 +231,13 @@
                     <button type="submit" class="save-btn"><i class="bi bi-plus-lg"></i> Add option</button>
 
                 </form>
+            </div>
+
+            <div class="sm-bar sm-only">
+                <button type="button" class="{{ $variations->isEmpty() ? 'sm-bar-main' : 'sm-bar-ghost' }}" data-sm-sheet-open="create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add an option</button>
+                @if($variations->isNotEmpty())
+                    <button type="submit" form="variationsForm" class="sm-bar-main"><i class="bi bi-check2" aria-hidden="true"></i> Save</button>
+                @endif
             </div>
 
         </div>

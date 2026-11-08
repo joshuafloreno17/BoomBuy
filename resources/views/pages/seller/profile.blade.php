@@ -130,9 +130,25 @@
 
             <div class="profile-main">
 
+            {{-- 📱 Phones: a short menu; each section opens on its own (same forms as below). --}}
+            @if($application)
+                <span class="sm-menu-label sm-only">Shop</span>
+                <nav class="sm-links sm-only" aria-label="Shop settings">
+                    <a href="#shop" data-sm-sheet-open="shop">Shop details <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                    <a href="#vacation" data-sm-sheet-open="vacation">Vacation mode <span class="sm-menu-end"><span class="sm-pill {{ !empty($application->vacation_mode) ? 'is-amber' : 'is-green' }}">{{ !empty($application->vacation_mode) ? 'On' : 'Off' }}</span><i class="bi bi-chevron-right" aria-hidden="true"></i></span></a>
+                    <a href="#auto-reply" data-sm-sheet-open="auto-reply">Chat auto-reply <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                </nav>
+            @endif
+            <span class="sm-menu-label sm-only">Account</span>
+            <nav class="sm-links sm-only" aria-label="Account settings">
+                <a href="#sm-info" data-sm-sheet-open="info">Profile information <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                <a href="#sm-password" data-sm-sheet-open="password">Change password <i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+            </nav>
+
             @if($application)
                 <!-- SHOP PROFILE: name + about text shown on the shop page; category stays as registered -->
-                <div class="card" id="shop">
+                <div class="card sm-sheet" id="shop" data-sm-sheet="shop" aria-label="Shop details">
+                    <div class="sm-sheet-head sm-only"><strong>Shop details</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                     <h3>Shop Profile</h3>
                     <p class="card-sub">
                         This is what buyers see on your shop page.
@@ -196,7 +212,8 @@
                 </div>
 
                 <!-- VACATION MODE: products stay visible but can't be ordered -->
-                <div class="card" id="vacation">
+                <div class="card sm-sheet" id="vacation" data-sm-sheet="vacation" aria-label="Vacation mode">
+                    <div class="sm-sheet-head sm-only"><strong>Vacation mode</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                     <h3>Vacation Mode</h3>
                     <p class="card-sub">
                         Going away? Buyers can still see your shop and products, marked "On vacation", but they can't
@@ -218,7 +235,8 @@
                 </div>
 
                 <!-- CHAT AUTO-REPLY: sent when a buyer messages the shop and you haven't replied in a while -->
-                <div class="card" id="auto-reply">
+                <div class="card sm-sheet" id="auto-reply" data-sm-sheet="auto-reply" aria-label="Chat auto-reply">
+                    <div class="sm-sheet-head sm-only"><strong>Chat auto-reply</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                     <h3>Chat Auto-reply</h3>
                     <p class="card-sub">
                         Sent automatically when a buyer messages you, so they know you got it. At most once every
@@ -250,7 +268,8 @@
 
             <!-- PROFILE INFORMATION -->
 
-            <div class="card card-wide">
+            <div class="card card-wide sm-sheet" id="sm-info" data-sm-sheet="info" aria-label="Profile information">
+                <div class="sm-sheet-head sm-only"><strong>Profile information</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
 
                 <h3>Profile Information</h3>
                 <p class="card-sub">Update your name, phone number, and address.</p>
@@ -315,7 +334,8 @@
 
             <!-- CHANGE PASSWORD -->
 
-            <div class="card card-wide">
+            <div class="card card-wide sm-sheet" id="sm-password" data-sm-sheet="password" aria-label="Change password">
+                <div class="sm-sheet-head sm-only"><strong>Change password</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
 
                 <h3>Change Password</h3>
                 <p class="card-sub">Update your account password.</p>

@@ -1,6 +1,9 @@
 {{-- Seller → Promotions: flash sales and bundle deals (S8). Needs $products, $flashSales, $bundles. --}}
 
 <div class="card" id="flash">
+    <button type="button" class="sm-inline-open sm-only" data-sm-sheet-open="flash"><i class="bi bi-lightning-charge" aria-hidden="true"></i> Create a flash sale</button>
+    <div class="sm-sheet" data-sm-sheet="flash" aria-label="Create a flash sale">
+    <div class="sm-sheet-head sm-only"><strong>Create a flash sale</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
     <h2>Create a Flash Sale</h2>
     <p class="promo-note">A flash price for a limited number of units in one 2-hour slot. When the flash units run out, the price goes back to normal (or to your store sale).</p>
 
@@ -41,6 +44,7 @@
         </div>
         <button type="submit" class="save-btn">Save Flash Sale</button>
     </form>
+    </div>
 
     @if($flashSales->isNotEmpty())
         <h2 style="margin-top:22px;">My Flash Sales</h2>
@@ -57,6 +61,9 @@
 </div>
 
 <div class="card" id="bundles">
+    <button type="button" class="sm-inline-open sm-only" data-sm-sheet-open="bundle"><i class="bi bi-boxes" aria-hidden="true"></i> Create a bundle deal</button>
+    <div class="sm-sheet" data-sm-sheet="bundle" aria-label="Create a bundle deal">
+    <div class="sm-sheet-head sm-only"><strong>Create a bundle deal</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
     <h2>Create a Bundle Deal</h2>
     <p class="promo-note">Bundle: any number of items (any options) of the products you pick get a % off. Buy X Get Y: buying X units of one product makes Y units of another free.</p>
 
@@ -120,6 +127,7 @@
 
         <button type="submit" class="save-btn">Save Deal</button>
     </form>
+    </div>
 
     @if($bundles->isNotEmpty())
         <h2 style="margin-top:22px;">My Deals</h2>

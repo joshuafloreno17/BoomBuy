@@ -96,7 +96,7 @@
                 @endif
             </div>
 
-            <div class="panel">
+            <div class="panel" data-sm-limit="5">
                 <h2>Sales by Product</h2>
 
                 <table>
@@ -121,9 +121,12 @@
                         @endforelse
                     </tbody>
                 </table>
+                @if($productSales->count() > 5)
+                    <button type="button" class="sm-more sm-only" data-sm-more data-more="Show all {{ $productSales->count() }} products" data-less="Show top 5">Show all {{ $productSales->count() }} products</button>
+                @endif
             </div>
 
-            <div class="panel">
+            <div class="panel" data-sm-limit="7">
                 <h2>Daily Sales</h2>
 
                 <table>
@@ -146,6 +149,9 @@
                         @endforelse
                     </tbody>
                 </table>
+                @if($dailySales->count() > 7)
+                    <button type="button" class="sm-more sm-only" data-sm-more data-more="Show all {{ $dailySales->count() }} days" data-less="Show 7 days">Show all {{ $dailySales->count() }} days</button>
+                @endif
             </div>
 
         </div>

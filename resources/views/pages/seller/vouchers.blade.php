@@ -34,7 +34,8 @@
                 <div class="error-box">{{ session('error') }}</div>
             @endif
 
-            <div class="card">
+            <div class="card sm-sheet" data-sm-sheet="create" aria-label="Create voucher">
+                <div class="sm-sheet-head sm-only"><strong>Create voucher</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                 <h2>Create Voucher</h2>
 
                 <form method="POST" action="{{ route('seller.vouchers.store') }}">
@@ -126,6 +127,8 @@
 
                 </form>
             </div>
+
+            <div class="sm-bar sm-only"><button type="button" class="sm-bar-main" data-sm-sheet-open="create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Create voucher</button></div>
 
             <div class="card">
                 <h2>My Vouchers</h2>

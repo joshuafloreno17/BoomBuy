@@ -64,11 +64,14 @@
                     {!! \App\Support\SubmitOnce::field() !!}
 
 
+                    {{-- 📱 Phones: which step you're on (filled in by the script at the bottom) --}}
+                    <nav class="sm-steps sm-only" data-sm-steps aria-label="Steps"></nav>
+
                     {{-- Wide screens: what the product is on the left; price, stock, photos and Save on the right (stays in view). --}}
                     <div class="ap-layout">
 
                     <div class="ap-main">
-                    <section class="ap-card">
+                    <section class="ap-card" data-sm-step="Details">
                     <h2 class="ap-card-title">Product details</h2>
 
                     <!-- PRODUCT NAME -->
@@ -117,7 +120,7 @@
 
                     </section>
 
-                    <section class="ap-card">
+                    <section class="ap-card" data-sm-step="Options">
                     <!-- SPECIFICATIONS (phones, tablets, laptops) -->
                     @include('partials.device-specs-fields', ['specs' => null, 'show' => ($registeredCategory ?? null) === 'electronics' || old('category') === 'electronics'])
 
@@ -180,7 +183,7 @@
                     </div>{{-- .ap-main --}}
 
                     <aside class="ap-side">
-                    <section class="ap-card">
+                    <section class="ap-card" data-sm-step="Price">
                     <h2 class="ap-card-title">Price &amp; stock</h2>
 
                     <!-- PRICE -->
@@ -349,20 +352,25 @@
 
                     </section>
 
-                    <section class="ap-card">
+                    <section class="ap-card" data-sm-step="Photos">
                     <!-- PHOTOS FOR ALL OPTIONS (or the product's photos when it has no options) -->
                     @include('partials.product-photos-uploader')
                     @error('photos')<span class="field-error">{{ $message }}</span>@enderror
                     </section>
 
                     <!-- BUTTONS -->
-                    <div class="buttons">
+                    <div class="buttons sm-bar">
+
+                        {{-- 📱 Phones walk the form one card at a time --}}
+                        <button type="button" class="sm-bar-ghost sm-only" data-sm-back hidden>Back</button>
+                        <button type="button" class="sm-bar-main sm-only" data-sm-next hidden>Next</button>
 
                         <button
                             type="submit"
-                            class="save"
+                            class="save sm-bar-main"
                             name="action"
                             value="publish"
+                            data-sm-publish
                         >
                             <i class="bi bi-check-circle-fill"></i> Publish
                         </button>
@@ -370,17 +378,18 @@
                         {{-- Only the name is needed for a draft; buyers never see it. --}}
                         <button
                             type="submit"
-                            class="cancel save-draft"
+                            class="cancel save-draft sm-bar-ghost"
                             name="action"
                             value="draft"
                             formnovalidate
+                            data-sm-draft
                         >
                             <i class="bi bi-file-earmark"></i> Save as Draft
                         </button>
 
                         <a
                             href="{{ route('seller.products') }}"
-                            class="cancel"
+                            class="cancel sm-desk"
                         >
                             Cancel
                         </a>
@@ -590,6 +599,82 @@
             }
             syncType();
         });
+    })();
+
+    // 📱 Phones: one card per step (Details → Options → Price → Photos).
+    // Same form and fields; only which card shows changes. Desktop is untouched.
+    (function () {
+        var steps = Array.prototype.slice.call(document.querySelectorAll('[data-sm-step]'));
+        var nav = document.querySelector('[data-sm-steps]');
+        var back = document.querySelector('[data-sm-back]');
+        var next = document.querySelector('[data-sm-next]');
+        var publish = document.querySelector('[data-sm-publish]');
+        var draft = document.querySelector('[data-sm-draft]');
+        if (!steps.length || !nav || !back || !next || !publish) return;
+
+        var phone = window.matchMedia('(max-width: 760px)');
+        var form = publish.form;
+        var current = 0;
+
+        nav.innerHTML = steps.map(function (s, i) {
+            return '<button type="button" data-sm-go="' + i + '"><span></span>' + s.getAttribute('data-sm-step') + '</button>';
+        }).join('');
+
+        function stepOf(el) {
+            for (var i = 0; i < steps.length; i++) if (steps[i].contains(el)) return i;
+            return -1;
+        }
+
+        function show(i) {
+            current = Math.max(0, Math.min(steps.length - 1, i));
+            var on = phone.matches;
+            document.body.classList.toggle('sm-stepping', on);
+            steps.forEach(function (s, n) { s.classList.toggle('is-step', n === current); });
+            nav.querySelectorAll('[data-sm-go]').forEach(function (b, n) {
+                b.classList.toggle('is-done', n < current);
+                b.classList.toggle('is-now', n === current);
+                if (n === current) b.setAttribute('aria-current', 'step'); else b.removeAttribute('aria-current');
+            });
+            var last = current === steps.length - 1;
+            back.classList.toggle('sm-off', current === 0 || last);
+            next.classList.toggle('sm-off', last);
+            next.textContent = last ? 'Next' : 'Next: ' + steps[current + 1].getAttribute('data-sm-step');
+            publish.classList.toggle('sm-off', on && !last);
+            if (draft) draft.classList.toggle('sm-off', on && !last);
+            if (on) window.scrollTo(0, 0);
+        }
+
+        // Only move on when this card's own required fields are filled.
+        function cardOk() {
+            var bad = steps[current].querySelector(':invalid');
+            if (!bad) return true;
+            if (bad.reportValidity) bad.reportValidity();
+            return false;
+        }
+
+        next.addEventListener('click', function () { if (cardOk()) show(current + 1); });
+        back.addEventListener('click', function () { show(current - 1); });
+        nav.addEventListener('click', function (e) {
+            var b = e.target.closest('[data-sm-go]');
+            if (b) show(parseInt(b.getAttribute('data-sm-go'), 10));
+        });
+
+        // Publish checks every card: jump to the first one with a missing field.
+        publish.addEventListener('click', function (e) {
+            if (!phone.matches || form.checkValidity()) return;
+            var bad = form.querySelector(':invalid');
+            var at = stepOf(bad);
+            if (at < 0) return;
+            e.preventDefault();
+            show(at);
+            setTimeout(function () { if (bad.reportValidity) bad.reportValidity(); }, 50);
+        });
+
+        phone.addEventListener('change', function () { show(current); });
+
+        // Came back from the server with errors: open the card that has the first one.
+        var err = document.querySelector('[data-sm-step] .field-error, [data-sm-step] .is-invalid');
+        show(err ? Math.max(0, stepOf(err)) : 0);
     })();
 </script>
 

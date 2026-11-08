@@ -36,7 +36,8 @@
                 </div>
             @endif
 
-            <div class="card">
+            <div class="card sm-sheet" data-sm-sheet="create" aria-label="Add category">
+                <div class="sm-sheet-head sm-only"><strong>Add category</strong><button type="button" class="sm-sheet-x" data-sm-sheet-close aria-label="Close"><i class="bi bi-x-lg" aria-hidden="true"></i></button></div>
                 <h2>Add Category</h2>
 
                 <form method="POST" action="{{ route('seller.store-categories.store') }}">
@@ -65,6 +66,8 @@
                     <button type="submit" class="save-btn">Add Category</button>
                 </form>
             </div>
+
+            <div class="sm-bar sm-only"><button type="button" class="sm-bar-main" data-sm-sheet-open="create"><i class="bi bi-plus-lg" aria-hidden="true"></i> Add category</button></div>
 
             <div class="card">
                 <h2>My Categories</h2>
@@ -120,7 +123,7 @@
                         </div>
                     </div>
                 @empty
-                    <p class="empty-message">No store categories yet. Add one above.</p>
+                    <p class="empty-message">No store categories yet. Add your first one to group your products.</p>
                 @endforelse
             </div>
 
