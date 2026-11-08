@@ -193,4 +193,30 @@ class OrderTimeline
 
         return $steps->sortBy('created_at')->values();
     }
+
+    /**
+     * The same step in the seller's words: the log is written for the buyer
+     * ("Seller accepted your order", "You confirmed you received it").
+     */
+    public static function forSeller(object $step): object
+    {
+        $titles = [
+            'Order placed' => 'Order placed by the buyer',
+            'Seller accepted your order' => 'You accepted the order',
+            'Seller is preparing your order' => 'You started preparing it',
+            'Seller booked a rider pickup' => 'You booked a rider pickup',
+            'Seller handed it to the rider' => 'You handed it to the rider',
+            'You confirmed you received it' => 'The buyer confirmed they received it',
+            'Cancelled by you' => 'Cancelled by the buyer',
+        ];
+        $details = [
+            'The rider is on the way to you' => 'The rider is on the way to the buyer',
+        ];
+
+        $step = clone $step;
+        $step->title = $titles[$step->title] ?? $step->title;
+        $step->detail = $details[$step->detail ?? ''] ?? $step->detail;
+
+        return $step;
+    }
 }

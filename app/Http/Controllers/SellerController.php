@@ -1930,12 +1930,17 @@ class SellerController extends Controller
             ? DB::table('users')->where('id', $order['rider_id'])->first()
             : null;
 
+        // The rider who brought it to the buyer (the pickup rider is rider_id).
+        $deliveryRider = !empty($order['delivery_rider_id'])
+            ? DB::table('users')->where('id', $order['delivery_rider_id'])->first(['id', 'name', 'phone'])
+            : null;
+
         // Lets the seller spot buyers who often cancel or refuse COD parcels.
         $buyerHistory = CodPolicy::buyerHistory((int) $order['buyer_id']);
 
         return view(
             'pages.seller.order-details',
-            compact('user', 'order', 'assignedRider', 'buyerHistory')
+            compact('user', 'order', 'assignedRider', 'deliveryRider', 'buyerHistory')
         );
     }
 
