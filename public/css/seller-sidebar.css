@@ -281,3 +281,31 @@
 @media (prefers-reduced-motion: reduce) {
     .sidebar .menu a, .sidebar .menu a i, .sidebar .side-add { transition: none; }
 }
+
+/* Logo stays at the top and Add Product + the profile / Log out at the
+   bottom; only the menu between them scrolls on short screens (same as
+   the admin sidebar). */
+.sidebar {
+    overflow: hidden;
+}
+
+.sidebar .bb-side-brand,
+.sidebar .side-add,
+.sidebar .sidebar-footer {
+    flex-shrink: 0;
+}
+
+.sidebar .menu {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #4b3178 transparent;
+}
+
+.sidebar .sidebar-footer {
+    margin-top: 0;
+    border-top: 1px solid rgba(255, 255, 255, .08);
+}

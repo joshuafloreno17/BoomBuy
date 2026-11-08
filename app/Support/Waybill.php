@@ -13,10 +13,20 @@ class Waybill
         return 'BB-' . str_pad((string) $orderId, 6, '0', STR_PAD_LEFT);
     }
 
-    /** The order id in "BB-000066", "bb000066", "#66" or "66"; null when it isn't one. */
+    /**
+     * The order id in "BB-000066", "bb000066", "#66" or "66" — or in the
+     * label's QR link (".../logistics/scan/BB-000066"), which is what a phone
+     * scanner reads; null when it isn't one.
+     */
     public static function parse(?string $code): ?int
     {
-        $code = strtoupper(trim((string) $code));
+        $code = trim((string) $code);
+
+        if (preg_match('#/logistics/scan/([^/?\#\s]+)/?(?:[?\#].*)?$#i', $code, $m)) {
+            $code = rawurldecode($m[1]);
+        }
+
+        $code = strtoupper(trim($code));
 
         if (preg_match('/^(?:BB-?|#)?0*(\d{1,9})$/', $code, $m)) {
             return (int) $m[1] ?: null;

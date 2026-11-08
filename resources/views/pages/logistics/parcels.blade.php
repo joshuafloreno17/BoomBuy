@@ -102,7 +102,7 @@
             @endif
 
             {{-- 1. DROP-OFFS AWAITING CONFIRMATION --}}
-            <h2 class="section-heading" id="awaiting-confirmation"><i class="bi bi-envelope-paper-fill"></i> Seller Drop-offs ({{ count($awaitingConfirmation) }})</h2>
+            <h2 class="section-heading" id="awaiting-confirmation"><i class="bi bi-box-arrow-in-down"></i> Pickup Arrivals ({{ count($awaitingConfirmation) }})</h2>
 
             @forelse ($awaitingConfirmation as $order)
 
@@ -135,7 +135,7 @@
 
                 <div class="empty">
                     <div class="empty-icon"><i class="bi bi-box-seam-fill"></i></div>
-                    <h3>{{ $search !== '' ? 'No matches here' : 'No Drop-offs Waiting' }}</h3>
+                    <h3>{{ $search !== '' ? 'No matches here' : 'No Pickups Waiting' }}</h3>
                     <p>Parcels pickup riders bring here (or a branch's truck brings in) appear until you confirm them.</p>
                 </div>
 

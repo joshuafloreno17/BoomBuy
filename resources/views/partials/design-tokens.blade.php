@@ -65,6 +65,12 @@
     </script>
 @endif
 <style>
+    /* Pages never move sideways: nothing wider than the screen can scroll
+       the page left/right, and a sideways touchpad swipe doesn't slide it
+       (tables and chip rows that scroll inside their own box still do). */
+    html { overflow-x: clip; overscroll-behavior-x: none; }
+    body { overscroll-behavior-x: none; }
+
     /* Lavender theme palette: the one place the site's main colors are set. CSS files use var(--theme-*);
        emails, error pages, /app and JS chart colors keep plain hex. */
     :root {
