@@ -950,6 +950,7 @@ Route::post('/logistics/parcels/{id}/sort', [LogisticsController::class, 'sortPa
 Route::post('/logistics/parcels/{id}/confirm-arrival', [LogisticsController::class, 'confirmParcelArrival'])->name('logistics.parcels.confirm-arrival');
 
 Route::post('/logistics/parcels/dispatch-all', [LogisticsController::class, 'dispatchAllParcels'])->name('logistics.parcels.dispatch-all');
+Route::post('/logistics/parcels/bulk', [LogisticsController::class, 'bulkParcels'])->name('logistics.parcels.bulk');
 Route::post('/logistics/parcels/{id}/to-branch', [LogisticsController::class, 'dispatchParcelToBranch'])->whereNumber('id')->name('logistics.parcels.to-branch');
 Route::post('/logistics/parcels/{id}/to-center', [LogisticsController::class, 'sendParcelToCenter'])->whereNumber('id')->name('logistics.parcels.to-center');
 Route::post('/logistics/parcels/to-center-all', [LogisticsController::class, 'sendAllToCenter'])->name('logistics.parcels.to-center-all');

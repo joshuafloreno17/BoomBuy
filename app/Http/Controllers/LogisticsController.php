@@ -996,6 +996,45 @@ class LogisticsController extends Controller
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmAtBranch((int) $id, $myCenter));
     }
 
+    /**
+     * "Confirm all" / "Sort all" on the Parcels page: the same one-parcel
+     * actions, run for each listed parcel. Parcels that moved on meanwhile
+     * are skipped and named; the rest still go through.
+     */
+    public function bulkParcels(SortingCenterService $center)
+    {
+        return $this->parcelAction(function (?int $myCenter) use ($center) {
+            $steps = [
+                'received' => fn (int $id) => $center->confirmReceived($id, $myCenter),
+                'arrival' => fn (int $id) => $center->confirmArrival($id, $myCenter),
+                'branch' => fn (int $id) => $center->confirmAtBranch($id, $myCenter),
+                'sort' => fn (int $id) => $center->sort($id, $myCenter),
+            ];
+            $done = 0;
+            $skipped = [];
+
+            foreach ($steps as $field => $step) {
+                foreach (array_slice((array) request($field, []), 0, 200) as $id) {
+                    try {
+                        $step((int) $id);
+                        $done++;
+                    } catch (ActionFailed) {
+                        $skipped[] = '#' . (int) $id;
+                    }
+                }
+            }
+
+            if ($done === 0) {
+                throw new ActionFailed($skipped
+                    ? 'Nothing changed — ' . implode(', ', $skipped) . ' already moved on. Refresh the page.'
+                    : 'Choose at least one parcel.');
+            }
+
+            return $done . ' ' . \Illuminate\Support\Str::plural('parcel', $done) . ' done.'
+                . ($skipped ? ' Skipped ' . implode(', ', $skipped) . ' (already moved on).' : '');
+        });
+    }
+
     public function dispatchAllParcels(SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->dispatchAll((int) request('destination_center_id'), $myCenter));

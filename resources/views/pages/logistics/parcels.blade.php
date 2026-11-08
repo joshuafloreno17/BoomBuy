@@ -4,7 +4,7 @@
     @include('partials.head', ['title' => 'Parcels — BoomBuy Logistics'])
 
     <link rel="stylesheet" href="{{ vasset('css/logistics-sidebar.css') }}">
-    <link rel="stylesheet" href="{{ asset('css/pages/logistics-parcels.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/pages/logistics-parcels.css') }}">
 </head>
 
 <body>
@@ -17,7 +17,7 @@
 
             <div class="page-header">
                 <h1>Parcels</h1>
-                <p>Confirm what sellers drop off, send parcels on to the Sorting Center near the buyer, assign riders for final-mile delivery, and handle failed deliveries.</p>
+                <p>{{ $isBranch ? 'Confirm what arrives, send seller parcels to the Sorting Center, give riders their deliveries and hand pick-ups to buyers.' : 'Confirm what arrives, sort it, send it on, and give riders their deliveries — one tab at a time.' }}</p>
                 <p class="center-badge">
                     <i class="bi bi-building"></i>
                     @if ($myCenter)
@@ -54,29 +54,120 @@
 
             <div id="liveResults">
 
-            {{-- JUMP LINKS --}}
-            <nav class="section-jump" aria-label="Parcel sections">
-                <a href="#awaiting-confirmation" class="{{ count($awaitingConfirmation) ? 'has-work' : '' }}">Arrivals <span>{{ count($awaitingConfirmation) }}</span></a>
-                @if ($isBranch || $isHeadOffice)
-                    <a href="#to-center" class="{{ count($toCenter) ? 'has-work' : '' }}">To center <span>{{ count($toCenter) }}</span></a>
-                @endif
-                <a href="#to-dispatch" class="{{ count($toDispatch) ? 'has-work' : '' }}">To dispatch <span>{{ count($toDispatch) }}</span></a>
-                <a href="#incoming" class="{{ count($incoming) ? 'has-work' : '' }}">Incoming <span>{{ count($incoming) }}</span></a>
-                <a href="#to-sort" class="{{ count($toSort) ? 'has-work' : '' }}">To sort <span>{{ count($toSort) }}</span></a>
-                @unless ($isBranch)
-                    <a href="#to-branch" class="{{ count($toBranch) ? 'has-work' : '' }}">To branches <span>{{ count($toBranch) }}</span></a>
-                @endunless
-                @if ($isBranch || $isHeadOffice)
-                    <a href="#from-center" class="{{ count($incomingToBranch) ? 'has-work' : '' }}">From center <span>{{ count($incomingToBranch) }}</span></a>
-                @endif
-                <a href="#awaiting-assignment" class="{{ count($awaitingAssignment) ? 'has-work' : '' }}">Assign rider <span>{{ count($awaitingAssignment) }}</span></a>
-                <a href="#failed-deliveries" class="{{ count($failedDeliveries) ? 'has-work' : '' }}">Failed <span>{{ count($failedDeliveries) }}</span></a>
-                <a href="#on-the-road">On the road <span>{{ count($onTheRoad) }}</span></a>
-                <a href="#ready-to-collect" class="{{ count($readyToCollect) ? 'has-work' : '' }}">Pick-ups <span>{{ count($readyToCollect) }}</span></a>
-                <a href="#buyer-returns" class="{{ collect($buyerReturns)->sum(fn ($l) => count($l)) ? 'has-work' : '' }}">Buyer returns <span>{{ collect($buyerReturns)->sum(fn ($l) => count($l)) }}</span></a>
-                <a href="#returns" class="{{ count($incomingReturns) + count($returnReady) ? 'has-work' : '' }}">Returns <span>{{ count($incomingReturns) + count($returnReady) }}</span></a>
-                <a href="#cod" class="{{ count($codToReceive) ? 'has-work' : '' }}">COD cash <span>{{ count($codToReceive) }}</span></a>
+            {{-- THE WORK TABS: a Sorting Center and a branch each see only their own jobs. --}}
+            @php
+                $hasBranchQueues = $isBranch || $isHeadOffice;
+                $sectionCount = [
+                    'awaiting-confirmation' => count($awaitingConfirmation),
+                    'to-center' => $hasBranchQueues ? count($toCenter) : 0,
+                    'awaiting-pickup' => count($awaitingPickup ?? []),
+                    'to-dispatch' => count($toDispatch),
+                    'incoming' => count($incoming),
+                    'to-sort' => count($toSort),
+                    'to-branch' => $isBranch ? 0 : count($toBranch),
+                    'from-center' => $hasBranchQueues ? count($incomingToBranch) : 0,
+                    'awaiting-assignment' => count($awaitingAssignment),
+                    'failed-deliveries' => count($failedDeliveries),
+                    'on-the-road' => count($onTheRoad),
+                    'buyer-returns' => collect($buyerReturns)->sum(fn ($l) => count($l)),
+                    'ready-to-collect' => count($readyToCollect),
+                    'returns' => count($incomingReturns) + count($returnReady),
+                    'cod' => count($codToReceive),
+                ];
+                $sectionTab = [
+                    'awaiting-confirmation' => 'arrivals', 'incoming' => 'arrivals', 'from-center' => 'arrivals',
+                    'to-sort' => $isBranch ? 'arrivals' : 'sort',
+                    'to-center' => 'sendout', 'to-dispatch' => 'sendout', 'to-branch' => 'sendout',
+                    'awaiting-assignment' => 'assign',
+                    'ready-to-collect' => 'collect',
+                    'failed-deliveries' => 'problems',
+                    'buyer-returns' => 'returns', 'returns' => 'returns',
+                    'cod' => 'cod',
+                    'awaiting-pickup' => 'sellers',
+                    'on-the-road' => 'road',
+                ];
+                $tabDefs = [
+                    'arrivals' => ['Arrivals', $isBranch ? 'From the center & sellers' : 'Confirm it arrived', 'bi-box-arrow-in-down',
+                        $isBranch ? 'Parcels on their way to this branch — on the truck from the Sorting Center, or with a pickup rider from a seller in town. Confirm each one when it is in your hands.'
+                                  : 'Parcels on their way here — from pickup riders, branches and other Sorting Centers. Confirm each one when it is in your hands.'],
+                    'sort' => ['To sort', 'Put in the right bin', 'bi-diagram-3-fill', 'Parcels here for buyers near this center. Sort each one to its delivery area.'],
+                    'sendout' => ['Send out', $isBranch ? 'To the Sorting Center' : 'Load on the truck', 'bi-truck',
+                        $isBranch ? 'Parcels from sellers in this town. Send them on the truck to the Sorting Center.'
+                                  : 'Parcels ready to leave — to another Sorting Center or to a branch.'],
+                    'assign' => ['Assign rider', 'Last mile', 'bi-bicycle', 'Parcels for buyers nearby. Give each one a delivery rider.'],
+                    'collect' => ['Ready to collect', 'Buyer picks it up here', 'bi-person-check-fill', 'Buyers who chose pick-up come here. Check their pickup code, then hand the parcel over.'],
+                    'problems' => ['Problems', 'Failed deliveries', 'bi-exclamation-triangle-fill', 'Deliveries that did not go through. Reschedule them, or return them to the seller.'],
+                    'returns' => ['Returns', 'Back to the seller', 'bi-arrow-return-left', 'Items buyers sent back, and parcels going back to their seller.'],
+                    'cod' => ['COD cash', 'From riders', 'bi-cash-stack', 'Cash riders collected on delivery. Count it, then confirm.'],
+                    'sellers' => ['Waiting at sellers', 'View only', 'bi-shop', 'Parcels still with the seller, waiting for a pickup rider. Nothing to do here yet.'],
+                    'road' => ['On the road', 'With delivery riders', 'bi-truck', 'Parcels out with a delivery rider. Take one back only if the rider cannot finish it.'],
+                ];
+                $mainTabs = $isBranch ? ['arrivals', 'sendout', 'assign', 'collect', 'problems', 'returns', 'cod'] : ['arrivals', 'sort', 'sendout', 'assign', 'problems', 'returns', 'cod'];
+                $moreTabs = $isBranch ? ['sellers', 'road'] : ['sellers', 'road', 'collect'];
+                $allTabs = array_merge($mainTabs, $moreTabs);
+                $tabCount = fn (string $t) => collect($sectionTab)->filter(fn ($v) => $v === $t)->keys()->sum(fn ($k) => $sectionCount[$k]);
+                $activeTab = $search === '' && in_array(request('tab'), $allTabs, true)
+                    ? request('tab')
+                    : (collect($search !== '' ? $allTabs : $mainTabs)->first(fn ($t) => $tabCount($t) > 0) ?? 'arrivals');
+                // A section shows only in its tab; in a tab with work, its empty sections stay out of the way.
+                $pqHidden = fn (string $s) => $sectionTab[$s] !== $activeTab || $tabCount($activeTab) === 0 || $sectionCount[$s] === 0;
+                $nextWork = fn (string $t) => collect($mainTabs)->first(fn ($m) => $m !== $t && $tabCount($m) > 0);
+            @endphp
+
+            <nav class="pq-tabs" role="tablist" aria-label="Parcel work">
+                @foreach ($mainTabs as $t)
+                    <button type="button" role="tab" data-pq-tab="{{ $t }}" aria-selected="{{ $t === $activeTab ? 'true' : 'false' }}"
+                            @class(['pq-tab', 'is-on' => $t === $activeTab, 'is-bad' => $t === 'problems' && $tabCount($t) > 0])>
+                        <span class="pq-ic"><i class="bi {{ $tabDefs[$t][2] }}"></i></span>
+                        <span class="pq-txt"><strong>{{ $tabDefs[$t][0] }}</strong><small>{{ $tabDefs[$t][1] }}</small></span>
+                        <span class="pq-n">{{ $tabCount($t) }}</span>
+                    </button>
+                @endforeach
             </nav>
+
+            <div class="pq-more">
+                <span>Also:</span>
+                @foreach ($moreTabs as $t)
+                    <button type="button" data-pq-tab="{{ $t }}" @class(['is-on' => $t === $activeTab])>{{ $tabDefs[$t][0] }} · {{ $tabCount($t) }}</button>
+                @endforeach
+            </div>
+
+            @foreach ($allTabs as $t)
+                <div class="pq-head" data-pq-head="{{ $t }}" @if ($t !== $activeTab) hidden @endif>
+                    <div>
+                        <h2><i class="bi {{ $tabDefs[$t][2] }}"></i> {{ $tabDefs[$t][0] }} <span>{{ $tabCount($t) }}</span></h2>
+                        <p>{{ $tabDefs[$t][3] }}</p>
+                    </div>
+
+                    @if ($t === 'arrivals' && (count($awaitingConfirmation) + count($incoming) + ($hasBranchQueues ? count($incomingToBranch) : 0)) > 1)
+                        @php $arrivalTotal = count($awaitingConfirmation) + count($incoming) + ($hasBranchQueues ? count($incomingToBranch) : 0); @endphp
+                        <form method="POST" action="{{ route('logistics.parcels.bulk') }}" data-confirm="Confirm all {{ $arrivalTotal }} parcels are here?" data-confirm-ok="Confirm All">
+                            @csrf
+                            @foreach ($awaitingConfirmation as $o)<input type="hidden" name="received[]" value="{{ $o->id }}">@endforeach
+                            @foreach ($incoming as $o)<input type="hidden" name="arrival[]" value="{{ $o->id }}">@endforeach
+                            @if ($hasBranchQueues)
+                                @foreach ($incomingToBranch as $o)<input type="hidden" name="branch[]" value="{{ $o->id }}">@endforeach
+                            @endif
+                            <button type="submit" class="approve-btn"><i class="bi bi-check2-all"></i> Confirm all {{ $arrivalTotal }} arrived</button>
+                        </form>
+                    @elseif ($t === 'sort' && count($toSort) > 1)
+                        <form method="POST" action="{{ route('logistics.parcels.bulk') }}" data-confirm="Sort all {{ count($toSort) }} parcels to their delivery areas?" data-confirm-ok="Sort All">
+                            @csrf
+                            @foreach ($toSort as $o)<input type="hidden" name="sort[]" value="{{ $o->id }}">@endforeach
+                            <button type="submit" class="approve-btn"><i class="bi bi-diagram-3-fill"></i> Sort all {{ count($toSort) }}</button>
+                        </form>
+                    @endif
+                </div>
+
+                <div class="pq-empty" data-pq-empty="{{ $t }}" @if ($t !== $activeTab || $tabCount($t) > 0) hidden @endif>
+                    <strong>Nothing to do here</strong>
+                    @if ($next = $nextWork($t))
+                        <span>Next work: <button type="button" data-pq-tab="{{ $next }}">{{ $tabDefs[$next][0] }} ({{ $tabCount($next) }})</button></span>
+                    @else
+                        <span>All caught up.</span>
+                    @endif
+                </div>
+            @endforeach
 
             @if ($search !== '' && $elsewhere->isNotEmpty())
                 <h2 class="section-heading"><i class="bi bi-geo-alt-fill"></i> Other matches</h2>
@@ -101,6 +192,7 @@
                 @endforeach
             @endif
 
+            <div class="pq" data-pq="{{ $sectionTab['awaiting-confirmation'] }}" data-count="{{ $sectionCount['awaiting-confirmation'] }}" @if ($pqHidden('awaiting-confirmation')) hidden @endif>
             {{-- 1. DROP-OFFS AWAITING CONFIRMATION --}}
             <h2 class="section-heading" id="awaiting-confirmation"><i class="bi bi-box-arrow-in-down"></i> Pickup Arrivals ({{ count($awaitingConfirmation) }})</h2>
 
@@ -141,6 +233,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['to-center'] }}" data-count="{{ $sectionCount['to-center'] }}" @if ($pqHidden('to-center')) hidden @endif>
             {{-- AT THE SELLER'S BRANCH: TRUCK IT TO THE SORTING CENTER --}}
             @if ($isBranch || $isHeadOffice)
                 <h2 class="section-heading" id="to-center"><i class="bi bi-box-arrow-up-right"></i> To the Sorting Center ({{ count($toCenter) }})</h2>
@@ -163,6 +258,8 @@
                             </div>
                             <x-status-pill :status="$order->status" />
                         </div>
+                        @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
                         <div class="parcel-meta">
                             <i class="bi bi-clock"></i> Received {{ $order->origin_branch_received_at ? \Carbon\Carbon::parse($order->origin_branch_received_at)->diffForHumans() : '' }}
                             @if ($isHeadOffice)
@@ -185,6 +282,9 @@
                 @endforelse
             @endif
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['awaiting-pickup'] }}" data-count="{{ $sectionCount['awaiting-pickup'] }}" @if ($pqHidden('awaiting-pickup')) hidden @endif>
             {{-- WAITING AT THE SELLER FOR A PICKUP RIDER (view only) --}}
             <h2 class="section-heading" id="awaiting-pickup"><i class="bi bi-shop"></i> Waiting for Pickup ({{ count($awaitingPickup ?? []) }})</h2>
             @forelse($awaitingPickup ?? [] as $pickup)
@@ -196,6 +296,9 @@
                 <p class="empty-note">No parcels waiting at sellers.</p>
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['to-dispatch'] }}" data-count="{{ $sectionCount['to-dispatch'] }}" @if ($pqHidden('to-dispatch')) hidden @endif>
             {{-- 2. RECEIVED HERE, BUYER IS IN ANOTHER TOWN --}}
             <h2 class="section-heading" id="to-dispatch"><i class="bi bi-send-fill"></i> To Dispatch ({{ count($toDispatch) }})</h2>
 
@@ -245,6 +348,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['incoming'] }}" data-count="{{ $sectionCount['incoming'] }}" @if ($pqHidden('incoming')) hidden @endif>
             {{-- 3. ON THE WAY HERE FROM ANOTHER CENTER --}}
             <h2 class="section-heading" id="incoming"><i class="bi bi-truck"></i> Incoming ({{ count($incoming) }})</h2>
 
@@ -285,6 +391,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['to-sort'] }}" data-count="{{ $sectionCount['to-sort'] }}" @if ($pqHidden('to-sort')) hidden @endif>
             {{-- TO SORT --}}
             <h2 class="section-heading" id="to-sort"><i class="bi bi-diagram-3-fill"></i> To Sort ({{ count($toSort) }})</h2>
 
@@ -298,6 +407,8 @@
                         </div>
                         <x-status-pill status="At Sorting Center" />
                     </div>
+                    @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
                     <div class="parcel-meta">
                         <i class="bi bi-geo-alt-fill"></i> Delivery area: <strong>{{ $area ?? 'Unknown — check the address' }}</strong>
                         @if (($suggestedRidersByOrder[$order->id] ?? collect())->isNotEmpty())
@@ -319,6 +430,9 @@
                 </div>
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['to-branch'] }}" data-count="{{ $sectionCount['to-branch'] }}" @if ($pqHidden('to-branch')) hidden @endif>
             {{-- SORTED FOR A TOWN WITH A BRANCH: TRUCK IT THERE --}}
             @unless ($isBranch)
                 <h2 class="section-heading" id="to-branch"><i class="bi bi-truck"></i> To Branches ({{ count($toBranch) }})</h2>
@@ -345,6 +459,8 @@
                             </div>
                             <x-status-pill :status="$order->status" />
                         </div>
+                        @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
                         <div class="parcel-meta">
                             <i class="bi bi-geo-alt-fill"></i> Delivery area: <strong>{{ \App\Services\SortingCenterService::deliveryArea($order) ?? 'Unknown' }}</strong>
                             · <i class="bi bi-shop-window"></i> Branch: <strong>{{ $centerNames[$order->branch_id] ?? 'Branch' }}</strong>
@@ -365,6 +481,9 @@
                 @endforelse
             @endunless
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['from-center'] }}" data-count="{{ $sectionCount['from-center'] }}" @if ($pqHidden('from-center')) hidden @endif>
             {{-- AT A BRANCH: ON THE TRUCK FROM THE CENTER --}}
             @if ($isBranch || $isHeadOffice)
                 <h2 class="section-heading" id="from-center"><i class="bi bi-truck"></i> From the Sorting Center ({{ count($incomingToBranch) }})</h2>
@@ -378,6 +497,8 @@
                             </div>
                             <x-status-pill :status="$order->status" />
                         </div>
+                        @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
                         <div class="parcel-meta">
                             <i class="bi bi-clock"></i> Sent {{ $order->branch_dispatched_at ? \Carbon\Carbon::parse($order->branch_dispatched_at)->diffForHumans() : '' }}
                             from {{ $centerNames[$order->destination_center_id] ?? 'the Sorting Center' }}
@@ -401,6 +522,9 @@
                 @endforelse
             @endif
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['awaiting-assignment'] }}" data-count="{{ $sectionCount['awaiting-assignment'] }}" @if ($pqHidden('awaiting-assignment')) hidden @endif>
             {{-- 2. AWAITING ASSIGNMENT --}}
             <h2 class="section-heading" id="awaiting-assignment"><i class="bi bi-inbox-fill"></i> Awaiting Assignment ({{ count($awaitingAssignment) }})</h2>
 
@@ -470,6 +594,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['failed-deliveries'] }}" data-count="{{ $sectionCount['failed-deliveries'] }}" @if ($pqHidden('failed-deliveries')) hidden @endif>
             {{-- 3. FAILED --}}
             <h2 class="section-heading" id="failed-deliveries"><i class="bi bi-exclamation-triangle-fill"></i> Failed Deliveries ({{ count($failedDeliveries) }})</h2>
 
@@ -492,6 +619,8 @@
                             <span class="status-badge status-rejected">Delivery Failed ({{ $order->delivery_attempts }}/2 attempts)</span>
                         @endif
                     </div>
+
+                    @include('pages.logistics.partials.parcel-route', ['order' => $order])
 
                     <div class="parcel-meta">
                         <i class="bi bi-clock"></i>
@@ -560,6 +689,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['on-the-road'] }}" data-count="{{ $sectionCount['on-the-road'] }}" @if ($pqHidden('on-the-road')) hidden @endif>
             {{-- 4. ON THE ROAD (take back only, when the rider can't finish it) --}}
             <h2 class="section-heading" id="on-the-road"><i class="bi bi-truck"></i> On the Road ({{ count($onTheRoad) }})</h2>
 
@@ -573,6 +705,8 @@
                         </div>
                         <x-status-pill :status="$order->status" />
                     </div>
+                    @include('pages.logistics.partials.parcel-route', ['order' => $order])
+
                     <div class="parcel-meta">
                         <i class="bi bi-bicycle"></i> {{ $riderNames[$order->delivery_rider_id] ?? 'Unknown rider' }}
                         · updated {{ \Carbon\Carbon::parse($order->updated_at)->diffForHumans() }}
@@ -598,6 +732,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['buyer-returns'] }}" data-count="{{ $sectionCount['buyer-returns'] }}" @if ($pqHidden('buyer-returns')) hidden @endif>
             {{-- RETURNS FROM BUYERS: items going back to their seller --}}
             @php
                 $returnCount = collect($buyerReturns)->sum(fn ($list) => count($list));
@@ -646,6 +783,9 @@
                     </div>
                 @endforeach
             @endforeach
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['ready-to-collect'] }}" data-count="{{ $sectionCount['ready-to-collect'] }}" @if ($pqHidden('ready-to-collect')) hidden @endif>
             {{-- 5. PICK-UP ORDERS WAITING FOR THEIR BUYER --}}
             <h2 class="section-heading" id="ready-to-collect"><i class="bi bi-person-check-fill"></i> Ready to Collect ({{ count($readyToCollect) }})</h2>
 
@@ -699,6 +839,9 @@
 
             @endforelse
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['returns'] }}" data-count="{{ $sectionCount['returns'] }}" @if ($pqHidden('returns')) hidden @endif>
             {{-- 6. RETURNS TO THIS CENTER'S SELLERS --}}
             <h2 class="section-heading" id="returns"><i class="bi bi-arrow-return-left"></i> Returns ({{ count($incomingReturns) + count($returnReady) }})</h2>
 
@@ -756,6 +899,9 @@
                 </div>
             @endif
 
+            </div>
+
+            <div class="pq" data-pq="{{ $sectionTab['cod'] }}" data-count="{{ $sectionCount['cod'] }}" @if ($pqHidden('cod')) hidden @endif>
             {{-- 7. CASH ON DELIVERY MONEY FROM RIDERS --}}
             <h2 class="section-heading" id="cod"><i class="bi bi-cash-stack"></i> COD Cash From Riders ({{ count($codToReceive) }})</h2>
 
@@ -783,12 +929,52 @@
                 </div>
 
             @endforelse
+            </div>
 
             </div>
 
         </div>
 
     </main>
+
+    <script>
+        // Work tabs: show one tab's lists; remember it in the address (?tab=)
+        // so a button press comes back to the same tab.
+        (function () {
+            function show(tab) {
+                var root = document.getElementById('liveResults');
+                if (!root) return;
+                var groups = root.querySelectorAll('.pq[data-pq="' + tab + '"]');
+                var total = 0;
+                groups.forEach(function (g) { total += Number(g.dataset.count || 0); });
+
+                root.querySelectorAll('.pq').forEach(function (g) {
+                    g.hidden = g.dataset.pq !== tab || total === 0 || Number(g.dataset.count || 0) === 0;
+                });
+                root.querySelectorAll('[data-pq-head]').forEach(function (h) { h.hidden = h.dataset.pqHead !== tab; });
+                root.querySelectorAll('[data-pq-empty]').forEach(function (e) { e.hidden = e.dataset.pqEmpty !== tab || total > 0; });
+                root.querySelectorAll('.pq-tabs [data-pq-tab], .pq-more [data-pq-tab]').forEach(function (b) {
+                    var on = b.dataset.pqTab === tab;
+                    b.classList.toggle('is-on', on);
+                    if (b.getAttribute('role') === 'tab') b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+
+                try {
+                    var url = new URL(window.location.href);
+                    url.searchParams.set('tab', tab);
+                    history.replaceState(null, '', url);
+                } catch (e) {}
+            }
+
+            document.addEventListener('click', function (e) {
+                var b = e.target.closest('[data-pq-tab]');
+                if (!b) return;
+                show(b.dataset.pqTab);
+                var tabs = document.querySelector('.pq-tabs');
+                if (tabs && b.closest('.pq-empty')) tabs.scrollIntoView({ block: 'nearest' });
+            });
+        })();
+    </script>
 
     @include('partials.live-search')
     @include('partials.pwa-register')

@@ -590,3 +590,325 @@ a { text-decoration: none; }
 [data-awaiting-pickup] { display: flex; flex-direction: column; gap: 3px; padding: 10px 14px; margin-bottom: 8px; }
 [data-awaiting-pickup] small { color: var(--theme-muted); }
 .empty-note { color: var(--theme-muted); font-size: 13px; margin: 0 0 16px; }
+
+/* =========================================================
+   Work tabs (2026-11-08): 7 tabs per role, one list open at a time.
+========================================================= */
+
+.pq-tabs {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 10px;
+    margin: 18px 0 8px;
+}
+
+.pq-tab {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    border: 1px solid var(--theme-border);
+    border-radius: 14px;
+    background: #ffffff;
+    color: var(--theme-ink);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: border-color .15s ease, background .15s ease;
+}
+
+.pq-tab:hover {
+    border-color: #c9b6ff;
+}
+
+.pq-tab.is-on {
+    border: 2px solid #3d2488;
+    background: #faf8ff;
+    padding: 9px 11px;
+}
+
+.pq-ic {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 10px;
+    background: #ede9fe;
+    color: #3d2488;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+}
+
+.pq-txt {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.pq-txt strong {
+    font-size: 14px;
+}
+
+.pq-txt small {
+    font-size: 11px;
+    color: var(--theme-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.pq-n {
+    margin-left: auto;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    border-radius: 999px;
+    background: #3d2488;
+    color: #ffffff;
+    font-weight: 800;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.pq-tab.is-bad .pq-ic {
+    background: #fff5f5;
+    color: #b91c1c;
+}
+
+.pq-tab.is-bad .pq-n {
+    background: #b91c1c;
+}
+
+.pq-more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 14px;
+    margin: 0 0 16px;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.pq-more button {
+    border: 0;
+    background: none;
+    padding: 4px 0;
+    color: #3d2488;
+    font: inherit;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+.pq-more button.is-on {
+    color: var(--theme-ink);
+    text-decoration-thickness: 2px;
+}
+
+.pq-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    background: #ffffff;
+}
+
+.pq-head > div {
+    flex: 1;
+    min-width: 240px;
+}
+
+.pq-head h2 {
+    margin: 0;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.pq-head h2 span {
+    font-family: 'Figtree', sans-serif;
+    font-size: 13px;
+    padding: 2px 9px;
+    border-radius: 999px;
+    background: #ede9fe;
+    color: #3d2488;
+}
+
+.pq-head p {
+    margin: 4px 0 0;
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.pq-head form {
+    margin: 0;
+}
+
+.pq-empty {
+    padding: 34px 16px;
+    text-align: center;
+    border: 1px dashed var(--theme-border);
+    border-radius: 16px;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.pq-empty strong {
+    font-size: 16px;
+}
+
+.pq-empty span {
+    font-size: 13px;
+    color: var(--theme-muted);
+}
+
+.pq-empty button {
+    border: 0;
+    background: none;
+    padding: 0;
+    color: #3d2488;
+    font: inherit;
+    font-weight: 800;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    cursor: pointer;
+}
+
+/* Inside a tab, each list's own heading is a small label. */
+.pq .section-heading {
+    margin: 4px 0 10px;
+    font-size: 15px;
+    color: var(--theme-muted);
+}
+
+.pq + .pq:not([hidden]) .section-heading {
+    margin-top: 18px;
+}
+
+/* Route bar: seller → centers / branches → buyer. */
+.parcel-route {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+}
+
+.parcel-route > .parcel-waybill {
+    align-self: flex-start;
+}
+
+.route-bar {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+}
+
+.route-bar li {
+    flex: 1;
+    min-width: 0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 5px;
+}
+
+/* the line from the previous stop */
+.route-bar li + li::before {
+    content: "";
+    position: absolute;
+    top: 7px;
+    right: 50%;
+    width: 100%;
+    height: 3px;
+    background: #e3ddf3;
+}
+
+.route-bar li.is-passed::before,
+.route-bar li.is-here::before,
+.route-bar li.is-bad::before {
+    background: #16a34a;
+}
+
+.route-bar li.is-coming::before {
+    background: repeating-linear-gradient(90deg, #f59e0b 0 6px, transparent 6px 10px);
+}
+
+.route-dot {
+    position: relative;
+    z-index: 1;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #e3ddf3;
+    border: 3px solid #ffffff;
+    box-sizing: border-box;
+}
+
+.route-bar li.is-passed .route-dot {
+    background: #16a34a;
+}
+
+.route-bar li.is-here .route-dot {
+    background: #ffffff;
+    border: 4px solid #3d2488;
+}
+
+.route-bar li.is-coming .route-dot {
+    background: #ffffff;
+    border: 3px dashed #f59e0b;
+}
+
+.route-bar li.is-bad .route-dot {
+    background: #b91c1c;
+}
+
+.route-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--theme-muted);
+    line-height: 1.25;
+    overflow-wrap: anywhere;
+}
+
+.route-bar li.is-here .route-name,
+.route-bar li.is-me .route-name {
+    color: #3d2488;
+    font-weight: 800;
+}
+
+@media (max-width: 600px) {
+    .pq-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .route-name {
+        font-size: 10px;
+    }
+}
+
+/* `hidden` must win over the display rules above. */
+.pq[hidden],
+.pq-head[hidden],
+.pq-empty[hidden] {
+    display: none !important;
+}
+
+.pq-tabs {
+    grid-template-columns: repeat(auto-fill, minmax(215px, 1fr));
+}
