@@ -1,0 +1,374 @@
+/*
+ * Seller pages on phones (≤760px), "B · Night Shop".
+ * Desktop never sees any of this: .sm-only blocks stay hidden above 760px,
+ * and .sm-desk blocks are hidden below it. Same forms, same routes.
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&display=swap');
+
+.sm-only {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    :root {
+        --sm-ink: #221a3a;
+        --sm-ink-2: #2c2348;
+        --sm-ink-line: #3b3158;
+        --sm-lilac: #b9a5ff;
+        --sm-soft: #c9c0e6;
+        --sm-bg: #f4f1fc;
+        --sm-line: #eee9fa;
+        --sm-muted: #645a80;
+        --sm-primary: #6d4ad1;
+    }
+
+    .sm-only {
+        display: revert !important;
+    }
+
+    .sm-desk {
+        display: none !important;
+    }
+
+    body {
+        background: var(--sm-bg);
+    }
+
+    /* ---------- Shared: dark band header ---------- */
+    .sm-band {
+        background: var(--sm-ink);
+        color: #fff;
+        margin: -16px -16px 14px;
+        padding: 18px 16px 18px;
+        border-radius: 0 0 28px 28px;
+        display: flex !important;
+        flex-direction: column;
+        gap: 14px;
+        font-family: 'Figtree', sans-serif;
+    }
+
+    .sm-band-top {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .sm-band-who {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sm-band-who small {
+        font-size: 12px;
+        color: var(--sm-soft);
+    }
+
+    .sm-band-who strong {
+        font-size: 17px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sm-icon-btn {
+        width: 44px;
+        height: 44px;
+        flex-shrink: 0;
+        border-radius: 14px;
+        border: 1px solid var(--sm-ink-line);
+        background: var(--sm-ink-2);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        font-size: 19px;
+        text-decoration: none;
+    }
+
+    .sm-icon-btn .sm-dot {
+        position: absolute;
+        top: 9px;
+        right: 10px;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #ff7a6b;
+    }
+
+    .sm-kicker {
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 1.2px;
+        color: var(--sm-lilac);
+        text-transform: uppercase;
+    }
+
+    .sm-big {
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 36px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .sm-band-money {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 10px;
+    }
+
+    .sm-band-money > div {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .sm-trend {
+        font-size: 12px;
+        font-weight: 700;
+        color: #7fe0b0;
+    }
+
+    .sm-trend.is-down {
+        color: #ffb4a8;
+    }
+
+    .sm-stats {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+    }
+
+    .sm-stats.is-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .sm-stat {
+        background: var(--sm-ink-2);
+        border-radius: 14px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        color: #fff;
+        text-decoration: none;
+    }
+
+    .sm-stat strong {
+        font-size: 17px;
+    }
+
+    .sm-stat strong.is-lilac {
+        color: var(--sm-lilac);
+    }
+
+    .sm-stat span {
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--sm-soft);
+    }
+
+    /* ---------- Shared: white cards ---------- */
+    .sm-card {
+        background: #fff;
+        border-radius: 20px;
+        padding: 14px;
+        display: flex !important;
+        flex-direction: column;
+        gap: 10px;
+        box-shadow: 0 4px 14px rgba(34, 26, 58, 0.06);
+        margin-bottom: 10px;
+        font-family: 'Figtree', sans-serif;
+        color: var(--sm-ink);
+    }
+
+    .sm-card-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sm-card-head h2 {
+        margin: 0;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .sm-card-head a {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--sm-primary);
+        text-decoration: none;
+    }
+
+    .sm-task {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .sm-task + .sm-task {
+        border-top: 1px solid var(--sm-line);
+        padding-top: 10px;
+    }
+
+    .sm-task-ico {
+        width: 38px;
+        height: 38px;
+        flex-shrink: 0;
+        border-radius: 12px;
+        background: var(--sm-ink);
+        color: var(--sm-lilac);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+    }
+
+    .sm-task-ico.is-amber {
+        color: #ffc56b;
+    }
+
+    .sm-task-ico.is-green {
+        color: #7fe0b0;
+    }
+
+    .sm-task-text {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .sm-task-text strong {
+        font-size: 13px;
+    }
+
+    .sm-task-text span {
+        font-size: 12px;
+        color: var(--sm-muted);
+    }
+
+    .sm-btn {
+        min-height: 40px;
+        padding: 0 14px;
+        border: 0;
+        border-radius: 12px;
+        background: var(--sm-primary);
+        color: #fff !important;
+        font: 700 13px 'Figtree', sans-serif;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        text-decoration: none;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+
+    .sm-btn.is-ghost {
+        background: #fff;
+        border: 1px solid #d9cff7;
+        color: var(--sm-primary) !important;
+    }
+
+    .sm-stock {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: var(--sm-ink);
+        text-decoration: none;
+        min-height: 32px;
+    }
+
+    .sm-stock span:first-child {
+        flex: 1;
+        min-width: 0;
+        font-size: 13px;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .sm-pill {
+        font-size: 12px;
+        font-weight: 800;
+        padding: 3px 8px;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
+
+    .sm-pill.is-red {
+        color: #b3261e;
+        background: #fdeceb;
+    }
+
+    .sm-pill.is-amber {
+        color: #8a5300;
+        background: #fff3dc;
+    }
+
+    .sm-pill.is-green {
+        color: #155c3e;
+        background: #dff5ec;
+    }
+
+    .sm-links {
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 4px 14px rgba(34, 26, 58, 0.06);
+        display: flex !important;
+        flex-direction: column;
+        margin-bottom: 10px;
+        overflow: hidden;
+    }
+
+    .sm-links a {
+        min-height: 48px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        font: 700 14px 'Figtree', sans-serif;
+        color: var(--sm-ink);
+        text-decoration: none;
+    }
+
+    .sm-links a + a {
+        border-top: 1px solid var(--sm-line);
+    }
+
+    .sm-links a i {
+        color: var(--sm-primary);
+    }
+
+    .sm-empty {
+        font-size: 13px;
+        color: var(--sm-muted);
+    }
+
+    /* ---------- Dashboard (.sd is a flex column) ---------- */
+    .sd {
+        gap: 10px;
+    }
+
+    .sd > .sm-band {
+        order: -2;
+        margin-bottom: 4px;
+    }
+
+    .sd > .pd-alert {
+        order: -1;
+    }
+
+    .sd > .sm-card,
+    .sd > .sm-links {
+        margin-bottom: 0;
+    }
+}

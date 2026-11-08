@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ vasset('css/pages/seller-dashboard.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/portal-dash.css') }}">
     <link rel="stylesheet" href="{{ vasset('css/views/seller-dashboard-final.css') }}">
+    <link rel="stylesheet" href="{{ vasset('css/views/seller-mobile.css') }}">
 </head>
 
 <body>
@@ -25,8 +26,6 @@
 <main class="main-content">
 
 <div class="sd">
-
-    @include('partials.announcement-banner')
 
     @php
         // First guess from the server; the script at the bottom switches it to the viewer's own clock.
@@ -60,7 +59,93 @@
         $ring = 2 * M_PI * 48;
     @endphp
 
-    <div class="sd-top">
+    {{-- 📱 Phones: one short screen. Sales up top, then only what needs the seller. --}}
+    <section class="sm-band sm-only" aria-label="Your shop today">
+        <div class="sm-band-top">
+            <div class="sm-band-who">
+                <small data-greet>{{ $greeting }}</small>
+                <strong>{{ $shopName }}</strong>
+            </div>
+            <a href="{{ route('seller.notifications') }}" class="sm-icon-btn" aria-label="Notifications{{ $unreadNotes > 0 ? ' (' . $unreadNotes . ' unread)' : '' }}">
+                <i class="bi bi-bell" aria-hidden="true"></i>
+                @if($unreadNotes > 0)<span class="sm-dot"></span>@endif
+            </a>
+        </div>
+        <div class="sm-band-money">
+            <div>
+                <span class="sm-kicker">Sales today</span>
+                <strong class="sm-big">{{ $peso($deliveredToday->revenue ?? 0) }}</strong>
+            </div>
+            @if($trend !== null)
+                <span class="sm-trend {{ $trend < 0 ? 'is-down' : '' }}">{{ $trend >= 0 ? '▲' : '▼' }} {{ abs($trend) }}%</span>
+            @endif
+        </div>
+        <div class="sm-stats">
+            <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="sm-stat"><strong class="is-lilac">{{ $pendingOrders }}</strong><span>To ship</span></a>
+            <a href="{{ route('seller.products') }}" class="sm-stat"><strong>{{ $totalProducts }}</strong><span>Products live</span></a>
+            <a href="{{ route('seller.reviews') }}" class="sm-stat"><strong>{{ $ratingCount > 0 ? number_format((float) $rating->average, 1) . ' ★' : '—' }}</strong><span>Rating</span></a>
+        </div>
+    </section>
+
+    @include('partials.announcement-banner')
+
+    <section class="sm-card sm-only" aria-labelledby="sm-now-title">
+        <div class="sm-card-head">
+            <h2 id="sm-now-title">Needs you now</h2>
+            <a href="{{ route('seller.orders') }}">All orders</a>
+        </div>
+        @if($pendingOrders > 0)
+            <div class="sm-task">
+                <span class="sm-task-ico"><i class="bi bi-box-seam" aria-hidden="true"></i></span>
+                <span class="sm-task-text">
+                    <strong>{{ $pendingOrders }} {{ \Illuminate\Support\Str::plural('order', $pendingOrders) }} to ship</strong>
+                    <span>{{ $toShipOld > 0 ? $toShipOld . ' waiting since yesterday' : 'All from today' }}</span>
+                </span>
+                <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="sm-btn">Ship</a>
+            </div>
+        @endif
+        @if($pendingReturns > 0)
+            <div class="sm-task">
+                <span class="sm-task-ico is-amber"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></span>
+                <span class="sm-task-text">
+                    <strong>{{ $pendingReturns }} return {{ \Illuminate\Support\Str::plural('request', $pendingReturns) }}</strong>
+                    <span>Approve or decline</span>
+                </span>
+                <a href="{{ route('seller.orders', ['tab' => 'returns']) }}" class="sm-btn is-ghost">Review</a>
+            </div>
+        @endif
+        @if($pendingOrders === 0 && $pendingReturns === 0)
+            <div class="sm-task">
+                <span class="sm-task-ico is-green"><i class="bi bi-check2-circle" aria-hidden="true"></i></span>
+                <span class="sm-task-text"><strong>All caught up</strong><span>No orders to ship and no returns waiting.</span></span>
+                <a href="{{ route('seller.products.create') }}" class="sm-btn is-ghost">Add product</a>
+            </div>
+        @endif
+    </section>
+
+    <section class="sm-card sm-only" aria-labelledby="sm-low-title">
+        <div class="sm-card-head">
+            <h2 id="sm-low-title">Running low</h2>
+            <a href="{{ route('seller.products') }}">All products</a>
+        </div>
+        @forelse($lowStock as $p)
+            @php $left = (int) $p->sellable_stock; @endphp
+            <a href="{{ route('seller.products.edit', ['id' => $p->id]) }}" class="sm-stock">
+                <span>{{ $p->name }}</span>
+                <span class="sm-pill {{ $left <= 2 ? 'is-red' : 'is-amber' }}">{{ $left > 0 ? $left . ' left' : 'Out of stock' }}</span>
+            </a>
+        @empty
+            <p class="sm-empty" style="margin:0">Stock looks good. Nothing at 5 or fewer.</p>
+        @endforelse
+    </section>
+
+    <nav class="sm-links sm-only" aria-label="More about your shop">
+        <a href="{{ route('seller.reports') }}">Reports · sales chart &amp; best sellers <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a href="{{ route('seller.reviews') }}">Reviews{{ $ratingCount > 0 ? ' · ' . number_format((float) $rating->average, 1) . ' from ' . $ratingCount : '' }} <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+        <a href="{{ route('seller.earnings') }}">Earnings · this month <i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </nav>
+
+    <div class="sd-top sm-desk">
         <div>
             <p class="sd-eyebrow">{{ now()->format('l, F j') }}</p>
             <h1 class="sd-title"><span data-greet>{{ $greeting }}</span>, {{ $shopName }}</h1>
@@ -87,7 +172,7 @@
     @endif
 
     {{-- Hero + today's sales --}}
-    <div class="sd-row">
+    <div class="sd-row sm-desk">
         <section class="sd-hero">
             <span class="sd-orb is-a" aria-hidden="true"></span>
             <span class="sd-orb is-b" aria-hidden="true"></span>
@@ -134,7 +219,7 @@
     </div>
 
     {{-- KPIs --}}
-    <section class="sd-kpis" aria-label="Your shop at a glance">
+    <section class="sd-kpis sm-desk" aria-label="Your shop at a glance">
         <a href="{{ route('seller.orders', ['tab' => 'to-process']) }}" class="sd-kpi {{ $pendingOrders > 0 ? 'is-hot' : '' }}">
             <span class="sd-kpi-icon is-amber"><i class="bi bi-box-seam"></i></span>
             <span class="sd-kpi-label">To ship</span>
@@ -163,7 +248,7 @@
 
     @if(isset($codPayout) && ((float) $codPayout->pending > 0 || (float) $codPayout->released > 0))
         {{-- The money still with riders is what to watch, so it gets the big number. --}}
-        <a href="{{ route('seller.orders', ['tab' => 'completed']) }}" class="pd-cod">
+        <a href="{{ route('seller.orders', ['tab' => 'completed']) }}" class="pd-cod sm-desk">
             <i class="bi bi-cash-stack"></i>
             <span class="pd-cod-main">
                 @if((float) $codPayout->pending > 0)
@@ -183,7 +268,7 @@
     @endif
 
     {{-- Order board --}}
-    <section class="sd-card" aria-labelledby="board-title">
+    <section class="sd-card sm-desk" aria-labelledby="board-title">
         <div class="sd-card-head">
             <div>
                 <h2 id="board-title">Order board</h2>
@@ -238,7 +323,7 @@
     </section>
 
     {{-- Sales chart + best sellers --}}
-    <div class="sd-row sd-row-top">
+    <div class="sd-row sd-row-top sm-desk">
         <section class="sd-card sd-grow-2" aria-labelledby="week-title">
             <div class="sd-card-head">
                 <div>
@@ -283,7 +368,7 @@
     </div>
 
     {{-- Low stock · reviews · this month --}}
-    <div class="sd-row sd-row-stretch">
+    <div class="sd-row sd-row-stretch sm-desk">
         <section class="sd-card sd-grow-1" aria-labelledby="low-title">
             <div class="sd-card-head">
                 <h2 id="low-title">Running low</h2>
@@ -354,12 +439,13 @@
     <script>
         // Greeting follows the viewer's own clock and changes on its own.
         (function () {
-            var greet = document.querySelector('[data-greet]');
-            if (!greet) return;
+            var greets = document.querySelectorAll('[data-greet]');
+            if (!greets.length) return;
 
             function setGreeting() {
                 var h = new Date().getHours();
-                greet.textContent = h >= 5 && h < 12 ? 'Good morning' : (h >= 12 && h < 18 ? 'Good afternoon' : 'Good evening');
+                var text = h >= 5 && h < 12 ? 'Good morning' : (h >= 12 && h < 18 ? 'Good afternoon' : 'Good evening');
+                greets.forEach(function (g) { g.textContent = text; });
             }
 
             setGreeting();
