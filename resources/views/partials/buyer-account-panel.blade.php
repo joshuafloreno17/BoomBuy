@@ -13,15 +13,25 @@
     $panelVariant = $panelVariant ?? 'sidebar';
     $isPage = $panelVariant === 'page';
     $cod = $panel['cod'];
-    $initial = strtoupper(substr($panel['name'], 0, 1));
+    $initial = collect(preg_split('/\s+/', trim($panel['name'])))->filter()->take(2)->map(fn ($w) => mb_strtoupper(mb_substr($w, 0, 1)))->implode('') ?: 'B';
 
-    // Me screen menu — Home, Orders and Chat are already in the bottom tab bar.
-    $panelLinks = [
-        ['label' => 'Wishlist', 'icon' => 'bi-heart-fill', 'url' => route('wishlist.index'), 'count' => 0],
-        ['label' => 'Notifications', 'icon' => 'bi-bell-fill', 'url' => route('notifications'), 'count' => $panel['unread_notifications']],
-        ['label' => 'Complaints', 'icon' => 'bi-exclamation-triangle-fill', 'url' => route('complaints.index'), 'count' => 0],
-        ['label' => 'Profile & Addresses', 'icon' => 'bi-person-fill', 'url' => route('buyer.profile') . '#addresses', 'count' => 0],
+    // Me screen tiles (Home, Orders and Chat are already in the bottom tab bar).
+    $panelTiles = [
+        ['label' => 'Wishlist', 'icon' => 'bi-heart', 'url' => route('wishlist.index'), 'count' => $panel['wishlist_count'] ?? 0],
+        ['label' => 'Following', 'icon' => 'bi-shop', 'url' => route('buyer.following'), 'count' => $panel['following_count'] ?? 0],
+        ['label' => 'Vouchers', 'icon' => 'bi-ticket-perforated', 'url' => route('buyer.vouchers'), 'count' => 0],
+        ['label' => 'Alerts', 'icon' => 'bi-bell', 'url' => route('notifications'), 'count' => $panel['unread_notifications']],
     ];
+
+    // Help & more: the links phones used to reach through the footer.
+    $supportId = \App\Support\SupportAccount::id();
+    $panelLinks = array_values(array_filter([
+        $supportId ? ['label' => 'Message support', 'icon' => 'bi-chat-dots', 'url' => route('messages.thread', $supportId)] : null,
+        ['label' => 'Request a return', 'icon' => 'bi-arrow-counterclockwise', 'url' => route('buyer.orders', ['tab' => 'delivered'])],
+        ['label' => 'Complaints', 'icon' => 'bi-exclamation-triangle', 'url' => route('complaints.index')],
+        ['label' => 'Policies, terms & privacy', 'icon' => 'bi-file-earmark-text', 'url' => route('policies')],
+        ['label' => 'Sell on BoomBuy', 'icon' => 'bi-shop-window', 'url' => route('register')],
+    ]));
 
     $shortcuts = [
         ['label' => 'To Ship', 'icon' => 'bi-box-seam', 'tab' => 'to-ship', 'count' => $panel['to_ship']],
@@ -39,21 +49,31 @@
 
     {{-- PROFILE (Me screen only — on desktop it lives in the navbar account menu) --}}
     @if($isPage)
-    <div class="bb-acct-card bb-acct-profile-card">
-        <div class="bb-acct-profile">
-            <span class="bb-acct-avatar">
-                @if($panel['photo'])
-                    <img src="{{ $panel['photo'] }}" alt="">
-                @else
-                    {{ $initial }}
+    <a href="{{ route('buyer.profile') }}" class="bb-acct-me">
+        <span class="bb-acct-avatar">
+            @if($panel['photo'])
+                <img src="{{ $panel['photo'] }}" alt="">
+            @else
+                {{ $initial }}
+            @endif
+        </span>
+        <span class="bb-acct-me-text">
+            <span class="bb-acct-name">{{ $panel['name'] }}</span>
+            <span class="bb-acct-sub">Profile &amp; addresses{{ $panel['since'] ? ' · since ' . $panel['since'] : '' }}</span>
+        </span>
+        <i class="bi bi-chevron-right" aria-hidden="true"></i>
+    </a>
+
+    <div class="bb-acct-tiles">
+        @foreach($panelTiles as $tile)
+            <a href="{{ $tile['url'] }}" class="bb-acct-tile" data-me-tile="{{ \Illuminate\Support\Str::slug($tile['label']) }}">
+                @if($tile['count'] > 0)
+                    <span class="bb-acct-count">{{ $tile['count'] > 99 ? '99+' : $tile['count'] }}</span>
                 @endif
-            </span>
-            <div style="min-width:0;">
-                <div class="bb-acct-name">{{ $panel['name'] }}</div>
-                <div class="bb-acct-sub">Buyer{{ $panel['since'] ? ' · since ' . $panel['since'] : '' }}</div>
-                <a href="{{ route('buyer.profile') }}" class="bb-acct-edit">Edit profile</a>
-            </div>
-        </div>
+                <span class="bb-acct-tile-icon"><i class="bi {{ $tile['icon'] }}"></i></span>
+                {{ $tile['label'] }}
+            </a>
+        @endforeach
     </div>
     @endif
 
@@ -134,27 +154,16 @@
     </div>
     {{-- ACCOUNT MENU (Me screen only — on desktop it is the navbar account menu) --}}
     @if($isPage)
-    <nav class="bb-acct-card bb-acct-nav" aria-label="Account">
+    <nav class="bb-acct-card bb-acct-nav" aria-label="Help and more">
+        <span class="bb-acct-nav-title">HELP &amp; MORE</span>
         @foreach($panelLinks as $link)
             <a href="{{ $link['url'] }}">
                 <i class="bi {{ $link['icon'] }}"></i>
                 <span>{{ $link['label'] }}</span>
-                @if($link['count'] > 0)
-                    <em class="bb-acct-count" style="font-style:normal;">{{ $link['count'] > 99 ? '99+' : $link['count'] }}</em>
-                @endif
                 <i class="bi bi-chevron-right"></i>
             </a>
         @endforeach
     </nav>
-    @endif
-
-    {{-- HELP (Me screen; the sidebar has a link under My Purchases) --}}
-    @if($isPage)
-    <div class="bb-acct-card bb-acct-help">
-        <strong>Problem with an order?</strong>
-        <span>Request a return or refund from a delivered order, or file a complaint with BoomBuy.</span>
-        <a href="{{ route('complaints.index') }}">Get help</a>
-    </div>
     @endif
 
     @if($isPage)

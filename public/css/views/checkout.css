@@ -576,3 +576,80 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         position: static;
     }
 }
+
+/* =========================
+   PHONES: CHECKOUT, SAME AS CART A (2026-11-08)
+   16px side margins; Total + Place Order pinned above the tab bar.
+========================= */
+@media (max-width: 760px) {
+    .container {
+        width: calc(100% - 32px);
+        margin: 20px auto 24px;
+    }
+
+    .total-row {
+        position: fixed;
+        left: 12px;
+        right: 12px;
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        z-index: 55;
+        margin: 0;
+        padding: 10px 16px 12px;
+        min-height: 72px;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid var(--theme-border);
+        border-radius: 18px;
+        box-shadow: 0 10px 24px -14px rgba(34, 26, 58, 0.35);
+    }
+
+    .total-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--theme-muted);
+    }
+
+    .total-price {
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--theme-ink);
+    }
+
+    .place-order {
+        position: fixed;
+        right: 22px;
+        bottom: calc(99px + env(safe-area-inset-bottom));
+        z-index: 56;
+        width: auto;
+        height: 50px;
+        margin: 0;
+        padding: 0 22px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 14px !important;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    body:not(.has-bb-tabbar) .total-row {
+        left: 0;
+        right: 0;
+        bottom: 0;
+        border-radius: 0;
+        border-width: 1px 0 0;
+        box-shadow: none;
+    }
+
+    body:not(.has-bb-tabbar) .place-order {
+        right: 16px;
+        bottom: 12px;
+    }
+
+    body {
+        padding-bottom: calc(176px + env(safe-area-inset-bottom)) !important;
+    }
+}

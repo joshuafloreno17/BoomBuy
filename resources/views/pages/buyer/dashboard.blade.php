@@ -66,8 +66,10 @@
                         <span>{{ $greetText }}</span>
                     </em>
                     <strong>Hi, {{ $firstName }}!</strong>
-                    <span>
-                        @if($panel['active_orders'] > 0)
+                    <span class="dash-greet-sub">
+                        @if($panel['deliver_to'] ?? null)
+                            <i class="bi bi-geo-alt" aria-hidden="true"></i> Deliver to {{ $panel['deliver_to'] }}
+                        @elseif($panel['active_orders'] > 0)
                             {{ $panel['active_orders'] }} active {{ \Illuminate\Support\Str::plural('order', $panel['active_orders']) }}
                         @else
                             Welcome back to BoomBuy

@@ -924,3 +924,10 @@ a {
 .thread-attach:hover { background: #f3efff; }
 .bubble-photo { display: block; margin-bottom: 4px; }
 .bubble-photo img { display: block; max-width: 220px; max-height: 240px; border-radius: 12px; object-fit: cover; }
+
+/* Phones ("A · Clean Lavender"): white list like the other buyer cards. */
+@media (max-width: 760px) {
+    .chat-role-buyer .chat-list {
+        background: #fff;
+    }
+}

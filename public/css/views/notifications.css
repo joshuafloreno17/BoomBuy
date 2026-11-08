@@ -553,3 +553,14 @@ a {
         display: none;
     }
 }
+
+/* Phones ("A · Clean Lavender"): unread = soft lavender row + bold title + dot, no side bar. */
+@media (max-width: 760px) {
+    .note.unread {
+        background: #f6f2ff;
+    }
+
+    .note.unread::before {
+        display: none;
+    }
+}

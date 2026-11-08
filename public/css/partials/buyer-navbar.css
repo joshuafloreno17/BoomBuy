@@ -180,6 +180,45 @@
     .has-bb-tabbar .bb-account {
         display: none;
     }
+
+    /* One row on phones: search, bell, cart (no big logo; the app already says BoomBuy). */
+    .has-bb-tabbar .bb-navbar {
+        grid-template-columns: minmax(0, 1fr) auto;
+        grid-template-areas: "search right";
+        column-gap: 4px;
+        min-height: 0;
+        padding: 10px 14px 10px 16px;
+    }
+
+    .has-bb-tabbar .bb-logo {
+        display: none;
+    }
+
+    .has-bb-tabbar .bb-nav-search {
+        margin: 0;
+    }
+
+    .has-bb-tabbar .bb-nav-search .bb-nav-search-btn {
+        display: none;
+    }
+
+    .has-bb-tabbar .bb-nav-search input {
+        text-overflow: ellipsis;
+    }
+
+    .has-bb-tabbar .bb-nav-right {
+        gap: 2px;
+    }
+
+    .has-bb-tabbar .bb-nav-right .bb-cart-link {
+        width: 44px;
+        height: 44px;
+    }
+
+    /* The website footer stays on computers; on phones its links are on the Me tab. */
+    .has-bb-tabbar .bb-footer {
+        display: none;
+    }
 }
 
 .bb-nav-right {

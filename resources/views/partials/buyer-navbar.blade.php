@@ -431,7 +431,7 @@
             'shop', 'categories' => 'shop',
             'orders' => 'orders',
             'messages' => 'messages',
-            'account', 'profile', 'wishlist', 'vouchers', 'complaints', 'notifications' => 'me',
+            'account', 'profile', 'wishlist', 'following', 'vouchers', 'complaints', 'notifications' => 'me',
             default => null,
         };
         $bbDockI = array_search($bbTab, ['home', 'shop', 'orders', 'messages', 'me'], true);

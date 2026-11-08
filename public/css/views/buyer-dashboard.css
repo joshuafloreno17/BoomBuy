@@ -1841,3 +1841,82 @@ a.again-top:hover .again-name {
     .bh-purchase { font-size: 11px; padding: 8px 2px; }
     .bh-purchase-icon { width: 46px; height: 46px; }
 }
+
+/* =========================
+   PHONES: "A · CLEAN LAVENDER" HOME (2026-11-08)
+   Light greeting with "Deliver to", white bordered category tiles and
+   product cards, same family as the Me, Cart and rider screens.
+========================= */
+@media (max-width: 760px) {
+    .bh .dash-greet {
+        padding: 2px 0 0;
+    }
+
+    .bh .dash-greet-avatar {
+        display: none;
+    }
+
+    .bh .dash-greet-text strong {
+        font-size: 23px;
+    }
+
+    .bh .dash-greet-sub {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+        font-size: 12.5px;
+        color: var(--theme-muted);
+    }
+
+    .bh .bh-card,
+    .bh .bh-cart {
+        border: 1px solid var(--theme-border);
+        box-shadow: none;
+        border-radius: 20px;
+    }
+
+    .bh .bh-cat {
+        flex: 0 0 66px;
+        font-size: 11.5px;
+    }
+
+    .bh .bh-cat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 18px;
+        border: 1px solid var(--theme-border);
+        background: #fff;
+        color: var(--theme-primary);
+        font-size: 22px;
+    }
+
+    .bh .p-card {
+        border: 1px solid var(--theme-border);
+        border-radius: 18px;
+        box-shadow: none;
+        background: #fff;
+    }
+
+    .bh .p-cat {
+        display: none;
+    }
+
+    .bh .p-heart {
+        top: 8px;
+        right: 8px;
+        color: var(--theme-ink);
+        box-shadow: 0 2px 8px rgba(34, 26, 58, 0.12);
+    }
+
+    .bh .p-name {
+        font-size: 13.5px;
+        font-weight: 600;
+    }
+
+    .bh .p-price {
+        font-family: var(--font-display);
+        font-weight: 800;
+        color: var(--theme-primary-hover);
+    }
+}

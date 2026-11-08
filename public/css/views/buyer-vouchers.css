@@ -19,3 +19,14 @@
 .wallet-btn { flex: none; padding: 8px 14px; border-radius: 10px; background: var(--theme-primary); color: #fff; font-weight: 800; font-size: 12px; text-decoration: none; }
 .wallet-empty { color: var(--theme-muted); font-size: 14px; margin: 10px 0 24px; }
 .wallet-heading { font-size: 16px; margin: 6px 0 10px; }
+
+/* No vouchers yet: the same empty card as Wishlist and Cart. */
+.wallet-empty {
+    margin: 4px 0 24px;
+    padding: 28px 20px;
+    border: 1.5px dashed #d6ccf5;
+    border-radius: 18px;
+    background: #fff;
+    text-align: center;
+    line-height: 1.5;
+}

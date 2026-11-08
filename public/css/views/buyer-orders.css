@@ -1221,3 +1221,33 @@
 
 .review-photos-input { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; margin: 8px 0; font-size: 13px; font-weight: 700; color: var(--theme-primary-hover); }
 .review-photos-input small { font-weight: 500; color: #857ca0; }
+
+/* =========================
+   PHONES: ORDERS IN "A · CLEAN LAVENDER" (2026-11-08)
+   Bordered white cards like Cart and Me; review buttons in lavender.
+========================= */
+@media (max-width: 760px) {
+    .order-card {
+        border: 1px solid var(--theme-border);
+        border-radius: 20px;
+        box-shadow: none;
+    }
+
+    .rate-btn {
+        min-height: 40px;
+        padding: 0 14px;
+        border-radius: 12px;
+        background: var(--theme-primary);
+        font-size: 12.5px;
+    }
+
+    .rate-btn:hover {
+        background: var(--theme-primary-hover);
+    }
+
+    .rate-btn.is-edit {
+        background: #fff;
+        border: 1.5px solid var(--theme-primary);
+        color: var(--theme-primary-hover);
+    }
+}

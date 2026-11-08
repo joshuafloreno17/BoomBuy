@@ -2005,3 +2005,281 @@ body.pd-lb-open {
         display: none;
     }
 }
+
+/* =========================
+   PHONES: PRODUCT "A+C" (2026-11-08)
+   C's layout (photo edge to edge, price first, one info card, Shop · Chat ·
+   Save · Add to cart · Buy now bar) in A's look (lavender page, white
+   rounded cards, violet buttons).
+========================= */
+.pd-float,
+.pd-bar-mini {
+    display: none;
+}
+
+@media (max-width: 760px) {
+    /* This page has its own top buttons and bottom bar. */
+    .has-bb-tabbar .bb-navbar {
+        display: none;
+    }
+
+    body.has-bb-tabbar .bb-dock {
+        display: none !important;
+    }
+
+    body {
+        padding-bottom: calc(84px + env(safe-area-inset-bottom)) !important;
+    }
+
+    .container {
+        width: 100%;
+        margin: 0 0 24px;
+    }
+
+    .container > *:not(.product-detail) {
+        margin-left: 16px;
+        margin-right: 16px;
+    }
+
+    .pd-crumbs {
+        display: none;
+    }
+
+    .product-detail {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        gap: 0;
+    }
+
+    .product-visual {
+        aspect-ratio: auto;
+        width: 100%;
+        min-height: 0;
+        height: min(84vw, 340px);
+        border: 0;
+        border-radius: 0;
+    }
+
+    .pd-thumbs-wrap {
+        padding: 8px 16px 0;
+    }
+
+    .pd-float {
+        position: absolute;
+        top: 10px;
+        z-index: 3;
+        width: 42px;
+        height: 42px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background: #fff;
+        color: var(--theme-ink);
+        font-size: 18px;
+        box-shadow: 0 4px 14px rgba(34, 26, 58, 0.15);
+    }
+
+    .pd-float-back {
+        left: 12px;
+    }
+
+    .pd-float-cart {
+        right: 12px;
+    }
+
+    /* Share sits left of the cart. */
+    .pd-share:not([hidden]) {
+        top: 10px;
+        right: 62px;
+        width: 42px;
+        height: 42px;
+        background: #fff;
+    }
+
+    /* Sheet over the photo; price first, then the name. */
+    .product-info {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        flex-direction: column;
+        margin-top: -18px;
+        padding: 16px 16px 0;
+        border-radius: 22px 22px 0 0;
+        background: var(--theme-bg);
+    }
+
+    .product-detail:has(.pd-thumbs-wrap) .product-info {
+        margin-top: 0;
+        border-radius: 0;
+    }
+
+    .product-info > * {
+        order: 20;
+    }
+
+    .product-info .price {
+        order: 1;
+        margin: 0 0 4px;
+        font-size: 26px;
+        color: var(--theme-primary-hover);
+    }
+
+    .product-info .product-name {
+        order: 2;
+        margin: 0 0 6px;
+        font-size: 20px;
+        line-height: 1.25;
+    }
+
+    .product-info .rating {
+        order: 3;
+        margin-bottom: 8px;
+        font-size: 13px;
+    }
+
+    .product-info .category {
+        order: 4;
+        align-self: flex-start;
+        margin-bottom: 12px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        background: var(--theme-soft);
+        color: #4a2fb0;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .product-info .description {
+        order: 5;
+    }
+
+    .product-info .pd-desc-more {
+        order: 6;
+    }
+
+    .product-info .variation-picker {
+        order: 7;
+    }
+
+    .product-info .pd-qty-row {
+        order: 8;
+    }
+
+    /* Delivery, COD and returns: one white card with lines. */
+    .product-info .pd-perks {
+        order: 9;
+        margin: 4px 0 14px;
+        padding: 0;
+        gap: 0;
+        background: #fff;
+        border-radius: 18px;
+    }
+
+    .pd-perks li {
+        padding: 11px 14px;
+        border-top: 1px solid #f1eefb;
+    }
+
+    .pd-perks li:first-child {
+        border-top: 0;
+    }
+
+    .pd-shop-card {
+        border-radius: 18px;
+    }
+
+    /* Bottom bar: Shop · Chat · Save · Add to cart · Buy now. */
+    .buttons {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 60;
+        display: flex;
+        gap: 6px;
+        margin: 0;
+        padding: 10px 10px calc(12px + env(safe-area-inset-bottom));
+        background: #fff;
+        border-top: 1px solid var(--theme-border);
+    }
+
+    .buttons > form {
+        flex: 1 1 0;
+    }
+
+    .buttons > #wishlistForm {
+        flex: 0 0 50px;
+    }
+
+    .pd-bar-mini {
+        flex: 0 0 50px;
+        height: 50px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1px;
+        border: 1px solid #e0d8f6;
+        border-radius: 14px;
+        background: #fff;
+        color: var(--theme-primary-hover);
+        font-size: 10.5px;
+        font-weight: 700;
+    }
+
+    .pd-bar-mini i {
+        font-size: 17px;
+    }
+
+    .buttons .wishlist-btn {
+        height: 50px;
+        min-height: 50px;
+        flex-direction: column;
+        gap: 1px;
+        border-color: #e0d8f6;
+        border-radius: 14px;
+        font-size: 10.5px;
+        font-weight: 700;
+        color: var(--theme-primary-hover);
+    }
+
+    .buttons .wishlist-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    .buttons .wishlist-btn::after {
+        content: "Save";
+    }
+
+    .buttons .cart-btn,
+    .buttons .buy-btn {
+        height: 50px;
+        min-height: 50px;
+        padding: 0 6px;
+        border-radius: 14px !important;
+        font-size: 13.5px;
+        font-weight: 800;
+        white-space: nowrap;
+    }
+
+    .buttons .cart-btn i,
+    .buttons .buy-btn i {
+        display: none;
+    }
+
+    .buttons .cart-btn {
+        background: #fff;
+        border: 1.5px solid var(--theme-primary);
+        color: var(--theme-primary-hover);
+    }
+
+    .buttons .buy-btn {
+        background: var(--theme-primary);
+        border: 0;
+        color: #fff;
+    }
+}

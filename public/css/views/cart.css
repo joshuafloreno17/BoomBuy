@@ -480,3 +480,185 @@ button:hover,
 /* Applied vouchers */
 .voucher-notice { margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; background: #fff7ed; border: 1px solid #fed7aa; color: #9a3412; font-size: 12px; line-height: 1.4; }
 .voucher-kind { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 999px; background: #ede7fb; color: var(--theme-primary-hover); font-size: 10px; font-weight: 700; }
+
+/* =========================
+   PHONES: CART "A · CLEAN LAVENDER" (2026-11-08)
+   One white card per shop, the free-delivery note as a pill, and Total +
+   Checkout pinned above the bottom tab bar.
+========================= */
+@media (max-width: 760px) {
+    .container {
+        width: 100%;
+        margin: 0;
+        padding: 14px 16px 24px;
+    }
+
+    .cart-layout {
+        gap: 12px;
+    }
+
+    .cart-box {
+        background: transparent;
+        border: 0;
+        border-radius: 0;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .cart-header {
+        padding: 2px 4px;
+        border: 0;
+        font-size: 13.5px;
+        color: var(--theme-muted);
+    }
+
+    .cart-shop,
+    .cart-shop:last-child {
+        background: #fff;
+        border: 1px solid var(--theme-border);
+        border-radius: 20px;
+        overflow: hidden;
+    }
+
+    .cart-shop-head {
+        padding: 14px 14px 6px;
+        border: 0;
+        background: #fff;
+    }
+
+    .cart-item {
+        grid-template-columns: 20px 76px minmax(0, 1fr);
+        gap: 12px;
+        padding: 10px 14px;
+        border: 0;
+    }
+
+    .cart-item .product-image {
+        width: 76px;
+        height: 76px;
+    }
+
+    .cart-item .category {
+        display: none;
+    }
+
+    .cart-item h3 {
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .item-right {
+        grid-column: 3;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        text-align: left;
+    }
+
+    .item-total {
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 16px;
+        font-weight: 800;
+        color: var(--theme-primary-hover);
+    }
+
+    .cart-shop-delivery {
+        margin: 4px 14px 14px;
+        padding: 9px 12px;
+        border-radius: 12px;
+        background: var(--theme-soft);
+        color: #4a2fb0;
+        font-weight: 700;
+    }
+
+    .cart-shop-delivery.is-free {
+        background: #ddf5ea;
+        color: #0b6b48;
+    }
+
+    .cart-shop-delivery.is-free i {
+        color: #0b6b48;
+    }
+
+    .summary {
+        border-radius: 20px;
+        padding: 16px;
+    }
+
+    .summary h2 {
+        margin-bottom: 14px;
+        font-size: 16px;
+    }
+
+    .continue {
+        display: none;
+    }
+
+    /* Total + Checkout: pinned above the tab bar (at the bottom when there is none). */
+    .summary-total {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 55;
+        margin: 0;
+        padding: 10px 16px 12px;
+        min-height: 72px;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0;
+        background: #fff;
+        border-top: 1px solid var(--theme-border);
+    }
+
+    .summary-total span {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--theme-muted);
+    }
+
+    .summary-total strong {
+        font-family: 'Bricolage Grotesque', 'Figtree', sans-serif;
+        font-size: 22px;
+        color: var(--theme-ink);
+    }
+
+    .checkout-btn {
+        position: fixed;
+        right: 16px;
+        bottom: 12px;
+        z-index: 56;
+        width: auto;
+        margin: 0;
+        padding: 0 22px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 14px !important;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    body.has-bb-tabbar .summary-total {
+        bottom: calc(88px + env(safe-area-inset-bottom));
+        left: 12px;
+        right: 12px;
+        border: 1px solid var(--theme-border);
+        border-radius: 18px;
+        box-shadow: 0 10px 24px -14px rgba(34, 26, 58, 0.35);
+    }
+
+    body.has-bb-tabbar .checkout-btn {
+        right: 22px;
+        bottom: calc(99px + env(safe-area-inset-bottom));
+    }
+
+    body.has-bb-tabbar {
+        padding-bottom: calc(176px + env(safe-area-inset-bottom)) !important;
+    }
+}

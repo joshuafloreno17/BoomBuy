@@ -62,29 +62,111 @@
     color: var(--accent-dark, var(--theme-primary-hover));
 }
 
-/* Me screen: dark profile header */
-.bb-acct.is-page .bb-acct-profile-card {
-    background: var(--ink, var(--theme-ink));
-    border-color: var(--ink, var(--theme-ink));
+/* Me screen ("A · Clean Lavender"): profile row, four tiles, Help & more. */
+.bb-acct.is-page {
+    gap: 12px;
 }
 
-.bb-acct.is-page .bb-acct-name {
-    color: #fff;
-    font-size: 17px;
+.bb-acct-me {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 4px 2px;
+    color: var(--theme-ink);
+    text-decoration: none;
 }
 
-.bb-acct.is-page .bb-acct-sub {
-    color: #cfd4df;
+.bb-acct-me .bb-acct-avatar {
+    width: 56px;
+    height: 56px;
+    background: #e6deff;
+    color: var(--theme-primary-hover);
+    font-size: 19px;
 }
 
-.bb-acct.is-page .bb-acct-edit {
-    color: #b19de8;
+.bb-acct-me-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
 }
 
-.bb-acct.is-page .bb-acct-avatar {
-    width: 60px;
-    height: 60px;
-    font-size: 26px;
+.bb-acct-me .bb-acct-name {
+    font-family: var(--font-display);
+    font-size: 21px;
+}
+
+.bb-acct-me .bb-acct-sub {
+    font-size: 12.5px;
+    color: var(--theme-muted);
+}
+
+.bb-acct-me > .bi-chevron-right {
+    color: var(--theme-muted);
+}
+
+.bb-acct-tiles {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.bb-acct-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 4px 10px;
+    border: 1px solid var(--theme-border);
+    border-radius: 16px;
+    background: #fff;
+    color: var(--theme-ink);
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.bb-acct-tile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 13px;
+    background: var(--theme-soft);
+    color: var(--theme-primary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.bb-acct-tile .bb-acct-count {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 5px;
+}
+
+.bb-acct.is-page .bb-acct-card {
+    padding: 16px;
+}
+
+.bb-acct.is-page .bb-acct-nav {
+    padding: 6px 4px;
+}
+
+.bb-acct-nav-title {
+    padding: 8px 12px 4px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1.2px;
+    color: var(--theme-muted);
+}
+
+.bb-acct.is-page .bb-acct-nav a i:first-child {
+    color: var(--theme-primary);
 }
 
 .bb-acct-head {

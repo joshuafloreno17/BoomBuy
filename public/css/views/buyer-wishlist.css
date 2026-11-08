@@ -329,3 +329,36 @@ a.product-name {
 a.product-name:hover {
     color: var(--theme-primary-hover);
 }
+
+/* Phones: same 16px side margins as the other buyer pages, two cards per row. */
+@media (max-width: 760px) {
+    .container {
+        width: calc(100% - 32px);
+        margin-top: 20px;
+    }
+}
+
+@media (max-width: 450px) {
+    .products {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+}
+
+/* Following: the Unfollow button (it had no style of its own on this page). */
+.btn-soft {
+    min-height: 38px;
+    padding: 0 14px;
+    border: 1.5px solid var(--theme-primary);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--theme-primary-hover);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.btn-soft:hover {
+    background: var(--theme-soft);
+}

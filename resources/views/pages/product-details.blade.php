@@ -65,6 +65,12 @@
             <button type="button" class="gallery-nav next" onclick="galleryStep(1)" aria-label="Next photo">›</button>
         @endif
 
+        {{-- Phones: Back and Cart float on the photo (the header is hidden on this page there). --}}
+        <a href="{{ route('products') }}" class="pd-float pd-float-back" aria-label="Back" onclick="if (history.length > 1) { history.back(); return false; }"><i class="bi bi-chevron-left"></i></a>
+        @if((session('user')['role'] ?? '') === 'buyer')
+            <a href="{{ route('cart') }}" class="pd-float pd-float-cart" aria-label="Cart"><i class="bi bi-cart"></i></a>
+        @endif
+
         {{-- Phones: share this product (only where the phone can share: the app, mobile browsers). --}}
         <button type="button" class="pd-share" id="pdShare" aria-label="Share this product" hidden><i class="bi bi-share-fill"></i></button>
         <script>
@@ -429,6 +435,14 @@
             @endif
 
             <div class="buttons">
+
+                {{-- Phones: the bottom bar also has Shop and Chat. --}}
+                @if($shop)
+                    <a href="{{ $shop['url'] }}" class="pd-bar-mini"><i class="bi bi-shop"></i><span>Shop</span></a>
+                @endif
+                @if($canMessageSeller)
+                    <a href="{{ route('messages.thread', [$product->seller_id, 'product' => $product->id]) }}" class="pd-bar-mini"><i class="bi bi-chat-dots"></i><span>Chat</span></a>
+                @endif
 
                 <!-- WISHLIST -->
 

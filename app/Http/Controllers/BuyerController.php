@@ -282,6 +282,14 @@ class BuyerController extends Controller
             'active_orders' => $sumOf(self::TO_SHIP_STATUSES) + $sumOf(self::TO_RECEIVE_STATUSES),
             'unread_messages' => \App\Models\Message::where('recipient_id', $buyerId)->whereNull('read_at')->count(),
             'unread_notifications' => \App\Models\Notification::where('user_id', $buyerId)->whereNull('read_at')->count(),
+            // Home greeting: "Deliver to <barangay>, <town>" (the address ends "…, barangay, town, province").
+            'deliver_to' => (function () use ($dbUser) {
+                $parts = array_values(array_filter(array_map('trim', explode(',', (string) ($dbUser?->address ?? '')))));
+                return count($parts) >= 3 ? $parts[count($parts) - 3] . ', ' . $parts[count($parts) - 2] : (count($parts) === 2 ? $parts[0] . ', ' . $parts[1] : null);
+            })(),
+            // Me screen tiles.
+            'wishlist_count' => DB::table('wishlists')->where('user_id', $buyerId)->count(),
+            'following_count' => DB::table('store_follows')->where('user_id', $buyerId)->count(),
             'cod' => CodPolicy::status($buyerId),
         ];
     }
