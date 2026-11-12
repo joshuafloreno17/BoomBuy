@@ -36,13 +36,6 @@
             {{ count($products) }} live {{ \Illuminate\Support\Str::plural('product', count($products)) }}
         </h2>
 
-        @if(count($products ?? []) + count($archivedProducts ?? []) > 0)
-            <div class="product-search">
-                <i class="bi bi-search"></i>
-                <input type="search" id="productSearch" placeholder="Search your products" aria-label="Search your products" autocomplete="off">
-            </div>
-        @endif
-
         @if(count($products ?? []) > 0)
             {{-- 📱 Phones: checkboxes and the bulk bar only show after tapping Select --}}
             <button type="button" class="sm-select-btn sm-only" data-sm-select aria-pressed="false">Select</button>
@@ -58,22 +51,35 @@
     </div>
 
 
+    {{-- TOOLBAR: search on the left, "do this to the ticked ones" on the right --}}
+    @if(count($products ?? []) + count($archivedProducts ?? []) > 0)
+        <div class="products-toolbar">
+            <div class="product-search">
+                <i class="bi bi-search"></i>
+                <input type="search" id="productSearch" placeholder="Search your products" aria-label="Search your products" autocomplete="off">
+            </div>
+
+            @if(count($products ?? []) > 0)
+                {{-- Several products at once: tick them, pick an action --}}
+                <form method="POST" action="{{ route('seller.products.bulk') }}" id="bulkProducts" class="bulk-bar" data-confirm="Apply this action to the selected products?" data-confirm-ok="Apply">
+                    @csrf
+                    <label for="bulk_action" class="bulk-label">Selected products</label>
+                    <select id="bulk_action" name="bulk_action" required>
+                        <option value="">Choose an action</option>
+                        <option value="deactivate">Bulk Deactivate</option>
+                        <option value="activate">Bulk Reactivate</option>
+                        <option value="delete">Bulk Delete</option>
+                    </select>
+                    <button type="submit" class="edit-btn">Apply</button>
+                </form>
+            @endif
+        </div>
+    @endif
+
+
     <!-- PRODUCTS -->
 
     @if(count($products ?? []) > 0)
-
-        {{-- Several products at once: tick them, pick an action --}}
-        <form method="POST" action="{{ route('seller.products.bulk') }}" id="bulkProducts" class="bulk-bar" data-confirm="Apply this action to the selected products?" data-confirm-ok="Apply">
-            @csrf
-            <label for="bulk_action" class="bulk-label">Selected products</label>
-            <select id="bulk_action" name="bulk_action" required>
-                <option value="">Choose an action</option>
-                <option value="deactivate">Bulk Deactivate</option>
-                <option value="activate">Bulk Reactivate</option>
-                <option value="delete">Bulk Delete</option>
-            </select>
-            <button type="submit" class="edit-btn">Apply</button>
-        </form>
 
         <div class="products-box">
 
@@ -239,7 +245,7 @@
                                         href="{{ route('seller.products.variations', ['id' => $product->id]) }}"
                                         class="edit-btn"
                                     >
-                                        <i class="bi bi-palette"></i> Variations
+                                        <i class="bi bi-palette"></i> Options
                                     </a>
 
                                     <form action="{{ route('seller.products.duplicate', ['id' => $product->id]) }}" method="POST">

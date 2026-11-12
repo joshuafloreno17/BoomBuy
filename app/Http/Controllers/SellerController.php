@@ -1100,6 +1100,90 @@ class SellerController extends Controller
         );
     }
 
+    /**
+     * Color × Size: a new color in every size at once.
+     * value, sizes[S][stock], sizes[S][extra], image (one photo for the color).
+     * A size left without stock is skipped. Same rules as storeVariation.
+     */
+    public function storeColor($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $product = Product::where('id', $id)->where('seller_id', $user['id'])->first();
+
+        if (!$product) {
+            abort(404);
+        }
+
+        $existing = ProductVariation::where('product_id', $product->id)->orderBy('id')->get();
+        $first = $existing->first(fn ($v) => $v->hasSecondOption());
+
+        if (!$first) {
+            return back()->with('error', 'This only works for products with two option types, like Color × Size.');
+        }
+
+        request()->validate([
+            'value' => 'required|string|max:50',
+            'sizes' => 'required|array',
+            'sizes.*.stock' => 'nullable|integer|min:0|max:99999',
+            'sizes.*.extra' => 'nullable|numeric|gt:' . (0 - (float) $product->price),
+            'image' => 'nullable|image|max:4096',
+        ], [
+            'sizes.*.stock.integer' => 'Stock must be a whole number.',
+            'sizes.*.extra.gt' => 'An extra price can\'t make the option cost ₱0 or less.',
+        ], ['value' => 'new ' . strtolower($first->variation_type)]);
+
+        $value = ProductVariation::normalizeValue((string) request('value'));
+        $lower = mb_strtolower($value);
+
+        // "pink" when "Pink" exists is the same color written differently.
+        $sameName = $existing->first(fn ($v) => mb_strtolower($v->variation_value) === $lower);
+
+        if ($sameName) {
+            return back()->withInput()->withErrors(['value' => '"' . $sameName->variation_value . '" is already a ' . strtolower($first->variation_type) . ' here. Use "Add an option" below to add a missing ' . strtolower($first->option2_type) . '.']);
+        }
+
+        if ($existing->pluck('variation_value')->map(fn ($v) => mb_strtolower($v))->unique()->count() >= ProductVariation::MAX_OPTIONS_PER_TYPE) {
+            return back()->withInput()->withErrors(['value' => 'Each variation type can have at most ' . ProductVariation::MAX_OPTIONS_PER_TYPE . ' options.']);
+        }
+
+        // Only the sizes this product already sells, with a stock typed in.
+        $known = $existing->pluck('option2_value')->filter()->unique()->values();
+        $rows = collect((array) request('sizes', []))
+            ->filter(fn ($row, $size) => $known->contains((string) $size) && trim((string) ($row['stock'] ?? '')) !== '');
+
+        if ($rows->isEmpty()) {
+            return back()->withInput()->withErrors(['sizes' => 'Type the stock for at least one ' . strtolower($first->option2_type) . '.']);
+        }
+
+        $created = DB::transaction(function () use ($rows, $product, $first, $value) {
+            return $rows->map(fn ($row, $size) => ProductVariation::create([
+                'product_id' => $product->id,
+                'variation_type' => $first->variation_type,
+                'variation_value' => $value,
+                'option2_type' => $first->option2_type,
+                'option2_value' => (string) $size,
+                'price_adjustment' => (float) ($row['extra'] ?? 0),
+                'stock' => (int) $row['stock'],
+            ]))->values();
+        });
+
+        // One photo for the color: on its first size; the others borrow it.
+        if (request()->hasFile('image')) {
+            app(ProductService::class)->storeFiles($product, $created->first()->id, [request()->file('image')]);
+            ProductPhotos::sync($product);
+        }
+
+        return back()
+            ->with('success', $value . ' added in ' . $created->count() . ' ' . Str::plural(strtolower($first->option2_type), $created->count()) . '.')
+            ->with('added_color', $value)
+            ->with('added_ids', $created->pluck('id')->all());
+    }
+
     public function storeVariation($id)
     {
         $user = requireUserRole('seller');
@@ -1200,7 +1284,10 @@ class SellerController extends Controller
             ProductPhotos::sync($product);
         }
 
-        return back()->with('success', 'Variation added successfully.');
+        return back()
+            ->with('success', 'Variation added successfully.')
+            ->with('added', $option->shortLabel())
+            ->with('added_id', $option->id);
     }
 
     /**
@@ -2179,13 +2266,17 @@ class SellerController extends Controller
             return redirect()->route('seller.products')->with('error', self::autoFlaggedMessage($product->fresh()));
         }
 
+        // A plain save stays on the edit page so the seller sees what changed
+        // (photos removed, new cover); drafts and publishing go back to the list.
+        if (!$input['draft'] && !$publishing) {
+            return redirect()
+                ->route('seller.products.edit', $product->id)
+                ->with('success', 'Changes saved.');
+        }
+
         return redirect()
             ->route('seller.products')
-            ->with('success', match (true) {
-                $input['draft'] => 'Draft saved.',
-                $publishing => $product->name . ' is now published.',
-                default => 'Product updated successfully!',
-            });
+            ->with('success', $input['draft'] ? 'Draft saved.' : $product->name . ' is now published.');
     }
 
     /**

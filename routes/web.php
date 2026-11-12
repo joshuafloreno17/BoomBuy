@@ -467,6 +467,9 @@ Route::post('/seller/products/{id}/variations', [SellerController::class, 'store
 
 Route::put('/seller/products/{id}/variations', [SellerController::class, 'updateVariations'])->name('seller.products.variations.update');
 
+// Color × Size: a new color in every size at once.
+Route::post('/seller/products/{id}/variations/color', [SellerController::class, 'storeColor'])->whereNumber('id')->name('seller.products.variations.color');
+
 // Phones, tablets, laptops: storage sizes for every color at once.
 Route::post('/seller/products/{id}/variations/storage', [SellerController::class, 'addStorage'])->whereNumber('id')->name('seller.products.variations.storage');
 

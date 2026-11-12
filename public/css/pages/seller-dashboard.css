@@ -1048,3 +1048,34 @@ a.pd-cod:focus-visible {
     font-weight: 800;
     vertical-align: middle;
 }
+
+/* My Products: one toolbar above the table — search left, bulk action right. */
+.products-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+    padding: 12px 14px;
+    background: #fff;
+    border: 1px solid var(--theme-border);
+    border-radius: 14px;
+}
+.products-toolbar .product-search { flex: 1 1 320px; max-width: 460px; }
+.products-toolbar .product-search input,
+.products-toolbar .bulk-bar select,
+.products-toolbar .bulk-bar .edit-btn {
+    height: 40px;
+    box-sizing: border-box;
+    border-radius: 10px;
+}
+.products-toolbar .bulk-bar { margin: 0; }
+.products-toolbar .bulk-bar select { padding: 0 10px; min-width: 170px; background: #fff; }
+.products-toolbar .bulk-bar .edit-btn { padding: 0 16px; }
+
+@media (max-width: 760px) {
+    /* Phones: no card, just the full-width search (the bulk bar becomes the bottom bar on Select). */
+    .products-toolbar { padding: 0; border: 0; background: none; }
+    .products-toolbar .product-search { flex-basis: 100%; max-width: none; }
+}

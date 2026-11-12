@@ -13,7 +13,7 @@
 <div class="layout">
 
     <x-layout.seller-sidebar
-        active="dashboard"
+        active="products"
         :user="$user"
     />
 
@@ -25,9 +25,16 @@
 
             <x-seller-page-head
                 title="Edit Product"
-                subtitle="Update your product information below."
+                :subtitle="'Editing ' . ($product->name ?? 'Unnamed Product') . ($product->is_draft ? ' · Draft' : '')"
                 :crumbs="['My Products' => route('seller.products')]"
-            />
+            >
+                {{-- Outside the edit form (forms can't nest). --}}
+                <form method="POST" action="{{ route('seller.products.duplicate', $product->id) }}">
+                    @csrf
+                    <button type="submit" class="head-btn"><i class="bi bi-copy" aria-hidden="true"></i> Duplicate</button>
+                </form>
+                <a href="{{ route('seller.products.variations', $product->id) }}" class="head-btn"><i class="bi bi-palette" aria-hidden="true"></i> Manage Options</a>
+            </x-seller-page-head>
 
             <div class="card">
 
@@ -55,6 +62,11 @@
                     <div class="error" role="alert">Please fix the highlighted fields below.</div>
                 @endif
 
+                {{-- SAVED: the page stays here so the seller sees the result --}}
+                @if(session('success'))
+                    <div class="saved-box" role="status"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> {{ session('success') }}</div>
+                @endif
+
                 {{-- SESSION ERROR --}}
                 @if(session('error'))
 
@@ -65,36 +77,6 @@
                 @endif
 
 
-                {{-- CURRENT PRODUCT --}}
-                <div class="current-product">
-
-                    Editing product:
-
-                    <strong>
-                        {{ $product->name ?? 'Unnamed Product' }}
-                    </strong>
-
-                    @if($product->is_draft)
-                        <span class="draft-badge">Draft</span>
-                    @endif
-
-                    —
-
-                    {{ \Illuminate\Support\Str::slug($product->name) }}
-
-                    <a
-                        href="{{ route('seller.products.variations', $product->id) }}"
-                        style="float:right; color:var(--theme-primary); font-weight:700; font-size:12px;"
-                    >
-                        <i class="bi bi-palette"></i> Manage Variations
-                    </a>
-
-                    <form method="POST" action="{{ route('seller.products.duplicate', $product->id) }}" style="float:right; margin-right:14px;">
-                        @csrf
-                        <button type="submit" class="link-btn"><i class="bi bi-copy"></i> Duplicate</button>
-                    </form>
-
-                </div>
 
 
                 {{-- UPDATE PRODUCT FORM --}}
@@ -435,6 +417,7 @@
                                     <strong>{{ number_format($variationStock) }}</strong>
                                     <span>across {{ $variationCount }} {{ \Illuminate\Support\Str::plural('option', $variationCount) }} — stock is set per option.</span>
                                     <a href="{{ route('seller.products.variations', $product->id) }}"><i class="bi bi-sliders"></i> Edit stock per option</a>
+                                    <a href="{{ route('seller.products.variations', $product->id) }}#add-option" class="stock-add-option"><i class="bi bi-plus-circle"></i> Add a new color / size</a>
                                 </div>
                             @else
                                 <input

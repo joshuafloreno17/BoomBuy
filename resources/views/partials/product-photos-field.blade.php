@@ -1,108 +1,212 @@
 {{--
-    Photos on Edit Product, in groups: each option's own photos, then the
-    photos for all options. The cover and each option's button photo are
-    picked automatically (App\Support\ProductPhotos::sync).
+    Photos on Edit Product (design D, 2026-11-12):
+    1. Shop cover box on top — "Change cover" opens a picker of every photo.
+    2. Photos for each option: a row per option (grouped by color), photos
+       with "Make first" / "Remove" in words, and an "Add photos" button.
+    3. Photos for all options.
+
+    Inputs (unchanged, read by SellerController::updateProduct):
+    cover_photo, first_photo, remove_photos[], option_photos[id][], photos[].
 
     @include('partials.product-photos-field', ['product' => $product])
 --}}
 @php
     $images = $product->images()->get();
     $options = $product->variations()->orderBy('id')->get();
-    $groups = $options->map(fn ($o) => [
-        'title' => 'Photos for ' . $o->shortLabel(),
-        'note' => 'The first one shows on the “' . $o->shortLabel() . '” button.',
-        'photos' => $images->where('product_variation_id', $o->id),
-        'room' => \App\Support\ProductPhotos::MAX_PER_OPTION - $images->where('product_variation_id', $o->id)->count(),
+    $coverPhoto = $images->firstWhere('path', $product->image);
+    $coverUrl = $coverPhoto ? $coverPhoto->url() : ($product->image ? asset('storage/' . ltrim($product->image, '/')) : null);
+
+    $row = fn ($o) => [
+        'label' => $o->hasSecondOption() ? $o->option2_type . ' ' . $o->option2_value : $o->variation_value,
+        'full' => $o->shortLabel(),
+        'photos' => $images->where('product_variation_id', $o->id)->values(),
         'max' => \App\Support\ProductPhotos::MAX_PER_OPTION,
         'input' => 'option_photos[' . $o->id . '][]',
         'id' => 'optionPhotos' . $o->id,
-    ])->push([
-        'title' => $options->isNotEmpty() ? 'Photos for all options' : 'Product Photos',
-        'note' => $options->isNotEmpty() ? 'Shown whatever option the buyer picks: box contents, size chart, details.' : 'The first one is the cover buyers see on the Shop page.',
-        'photos' => $images->whereNull('product_variation_id'),
-        'room' => \App\Support\ProductPhotos::MAX_GENERAL - $images->whereNull('product_variation_id')->count(),
+    ];
+
+    // Color × Size: a box per color. One type only: one box.
+    $twoParts = $options->contains(fn ($o) => $o->hasSecondOption());
+    $groups = $twoParts
+        ? $options->groupBy('variation_value')->map(function ($g, $value) use ($row) {
+            $rows = $g->map($row)->values();
+            // The buyer's page shows a size with no photos of its own the photos of
+            // the same color's first size that has some (product-details) — say so.
+            $lender = $rows->first(fn ($r) => $r['photos']->isNotEmpty());
+            $rows = $rows->map(fn ($r) => $r + ['borrow' => ($lender && $r['photos']->isEmpty())
+                ? ['label' => $lender['full'], 'url' => $lender['photos']->first()->url()]
+                : null]);
+
+            return ['title' => $value, 'rows' => $rows];
+        })->values()
+        : ($options->isNotEmpty() ? collect([['title' => $options->first()->variation_type, 'rows' => $options->map($row)]]) : collect());
+
+    $general = [
+        'label' => $options->isNotEmpty() ? 'Photos for all options' : 'Product photos',
+        'full' => $options->isNotEmpty() ? 'all options' : 'this product',
+        'photos' => $images->whereNull('product_variation_id')->values(),
         'max' => \App\Support\ProductPhotos::MAX_GENERAL,
         'input' => 'photos[]',
         'id' => 'photos',
+    ];
+
+    // Every photo, for the cover picker.
+    $labelFor = $options->keyBy('id')->map(fn ($o) => $o->shortLabel());
+    $allPhotos = $images->map(fn ($p) => [
+        'photo' => $p,
+        'label' => $p->product_variation_id ? ($labelFor[$p->product_variation_id] ?? 'Option') : 'All options',
     ]);
 @endphp
 
-@once
-<style>
-    .pg-groups { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 4px 20px; }
-    .pg-group { margin-bottom: 18px; min-width: 0; }
-    .pg-title { font-weight: 700; font-size: 13.5px; }
-    .pg-title small { font-weight: 500; color: #857ca0; }
-    .pg-note { margin: 2px 0 8px; font-size: 12.5px; color: #857ca0; }
-    .pp-grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 10px; }
-    .pp-item { position: relative; width: 96px; display: flex; flex-direction: column; gap: 6px; }
-    .pp-thumb { width: 96px; height: 96px; border-radius: 12px; overflow: hidden; border: 1px solid var(--theme-border); background: var(--theme-bg); }
-    .pp-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-    .pp-item.is-cover .pp-thumb { border: 2px solid var(--theme-primary); }
-    .pp-badge { position: absolute; top: 6px; left: 6px; padding: 2px 7px; border-radius: 999px; background: var(--theme-primary); color: #fff; font-size: 10.5px; font-weight: 800; letter-spacing: .03em; }
-    .pp-opt.pp-opt { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; font-weight: 600; color: var(--theme-muted); cursor: pointer; }
-    .pp-opt input { width: 15px; height: 15px; margin: 0; accent-color: var(--theme-primary); }
-    .pp-item.is-removed .pp-thumb { opacity: .35; }
-    .pp-hint { margin: 6px 0 0; font-size: 12.5px; color: #857ca0; }
-</style>
-@endonce
+<link rel="stylesheet" href="{{ vasset('css/partials/product-photos-field.css') }}">
 
-<div class="form-group">
+<div class="form-group pf">
     <label>Photos</label>
-    <p class="pp-hint" style="margin:0 0 12px">
-        Pick any photo as the <b>Shop cover</b> (the thumbnail on the Shop page). Without a pick it is {{ $options->isNotEmpty() ? 'the first option\'s first photo.' : 'the first photo.' }}
-        Tick “Remove” to take a photo off when you save.
-    </p>
 
-    {{-- Option groups side by side when there is room. --}}
-    <div class="pg-groups">
-    @foreach($groups as $group)
-        <div class="pg-group">
-            <div class="pg-title">{{ $group['title'] }} <small>· {{ $group['photos']->count() }}/{{ $group['max'] }}</small></div>
-            <p class="pg-note">{{ $group['note'] }}</p>
-
-            @if($group['photos']->isNotEmpty())
-                <div class="pp-grid">
-                    @foreach($group['photos'] as $photo)
-                        @php $isCover = $photo->path === $product->image; @endphp
-                        <div class="pp-item {{ $isCover ? 'is-cover' : '' }}" data-pp-item>
-                            <div class="pp-thumb"><img src="{{ $photo->url() }}" alt=""></div>
-                            @if($isCover)<span class="pp-badge">Cover</span>@endif
-                            <label class="pp-opt"><input type="radio" name="cover_photo" value="{{ $photo->id }}" @checked($isCover)> Shop cover</label>
-                            @unless($loop->first)
-                                <label class="pp-opt"><input type="radio" name="first_photo" value="{{ $photo->id }}"> Move first</label>
-                            @endunless
-                            <label class="pp-opt"><input type="checkbox" name="remove_photos[]" value="{{ $photo->id }}" data-pp-remove> Remove</label>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
-
-            @if($group['room'] > 0)
-                @include('partials.file-picker', [
-                    'id' => $group['id'],
-                    'name' => $group['input'],
-                    'multiple' => true,
-                    'accept' => '.jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp',
-                    'label' => 'Add photos',
-                    'hint' => 'Up to ' . $group['room'] . ' more · JPG, PNG or WEBP, up to 5 MB each',
-                ])
+    {{-- 1. SHOP COVER --}}
+    <div class="pf-cover">
+        <div class="pf-cover-img" data-pf-cover-img>
+            @if($coverUrl)
+                <img src="{{ $coverUrl }}" alt="Current shop cover">
             @else
-                <p class="pp-hint">This group is full. Remove one to add another.</p>
+                <i class="bi bi-image" aria-hidden="true"></i>
             @endif
         </div>
-    @endforeach
+        <div class="pf-cover-text">
+            <span class="pf-kicker">Shop cover</span>
+            <b>This is the photo buyers see first</b>
+            <span>On the Shop page, in search and in your product list — before they open the product.</span>
+            <span class="pf-cover-pending" data-pf-cover-pending hidden><i class="bi bi-info-circle"></i> New cover picked — press <b>Save Changes</b> to keep it.</span>
+            @if($allPhotos->isNotEmpty())
+                <button type="button" class="pf-btn" data-pf-open-cover><i class="bi bi-images" aria-hidden="true"></i> Change cover</button>
+            @else
+                <span class="pf-muted">Add a photo below first — it becomes the cover.</span>
+            @endif
+        </div>
     </div>
+
+    {{-- 2. EACH OPTION --}}
+    @if($groups->isNotEmpty())
+        <div class="pf-head">
+            <b>Photos for each option</b>
+            <span>The <b>first</b> photo shows when a buyer picks that option. Up to {{ \App\Support\ProductPhotos::MAX_PER_OPTION }} each.</span>
+        </div>
+
+        @foreach($groups as $group)
+            <div class="pf-box">
+                <div class="pf-box-title">{{ $group['title'] }}</div>
+                @foreach($group['rows'] as $r)
+                    @include('partials.product-photos-tile', ['r' => $r, 'product' => $product, 'isGeneral' => false])
+                @endforeach
+            </div>
+        @endforeach
+    @endif
+
+    {{-- 3. ALL OPTIONS --}}
+    <div class="pf-box pf-box-general">
+        @include('partials.product-photos-tile', ['r' => $general, 'product' => $product, 'isGeneral' => true])
+    </div>
+
+    {{-- COVER PICKER (inside the form: its radios are what gets saved) --}}
+    @if($allPhotos->isNotEmpty())
+        <div class="pf-modal" data-pf-modal hidden>
+            <div class="pf-dialog" role="dialog" aria-modal="true" aria-labelledby="pfCoverTitle">
+                <div class="pf-dialog-head">
+                    <b id="pfCoverTitle">Choose the shop cover</b>
+                    <button type="button" class="pf-x" data-pf-close aria-label="Close"><i class="bi bi-x-lg"></i></button>
+                </div>
+                <p class="pf-muted">Tap any of this product's photos.</p>
+                <div class="pf-pick-grid">
+                    @foreach($allPhotos as $item)
+                        <label class="pf-pick">
+                            <input type="radio" name="cover_photo" value="{{ $item['photo']->id }}" @checked($item['photo']->path === $product->image) data-pf-cover-radio data-src="{{ $item['photo']->url() }}">
+                            <span class="pf-pick-img"><img src="{{ $item['photo']->url() }}" alt=""></span>
+                            <span class="pf-pick-label">{{ $item['label'] }}</span>
+                            <i class="bi bi-check-lg pf-pick-check" aria-hidden="true"></i>
+                        </label>
+                    @endforeach
+                </div>
+                <div class="pf-dialog-foot">
+                    <button type="button" class="pf-btn" data-pf-close>Use this cover</button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>
 
-@once
 <script>
 (function () {
-    document.addEventListener('change', function (e) {
-        if (e.target.matches && e.target.matches('[data-pp-remove]')) {
-            e.target.closest('[data-pp-item]').classList.toggle('is-removed', e.target.checked);
+    var root = document.currentScript.previousElementSibling;
+    var modal = root.querySelector('[data-pf-modal]');
+    var startCover = (root.querySelector('[data-pf-cover-radio]:checked') || {}).value;
+
+    function open() { if (modal) { modal.hidden = false; document.body.style.overflow = 'hidden'; } }
+    function close() {
+        if (!modal) return;
+        modal.hidden = true;
+        document.body.style.overflow = '';
+        var picked = root.querySelector('[data-pf-cover-radio]:checked');
+        if (!picked) return;
+        // Show the picked photo in the cover box and on its photo in the list.
+        root.querySelector('[data-pf-cover-img]').innerHTML = '<img alt="New shop cover">';
+        root.querySelector('[data-pf-cover-img] img').src = picked.dataset.src;
+        root.querySelector('[data-pf-cover-pending]').hidden = picked.value === startCover;
+        root.querySelectorAll('[data-pf-photo]').forEach(function (el) {
+            el.classList.toggle('is-cover', el.dataset.pfPhoto === picked.value);
+        });
+    }
+
+    root.addEventListener('click', function (e) {
+        if (e.target.closest('[data-pf-open-cover]')) { e.preventDefault(); open(); }
+        if (e.target.closest('[data-pf-close]') || e.target === modal) { e.preventDefault(); close(); }
+    });
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && modal && !modal.hidden) close(); });
+
+    // "Make first" is a radio; tapping the picked one again takes it back.
+    var lastFirst = null;
+    root.addEventListener('click', function (e) {
+        var t = e.target;
+        if (!t.matches || !t.matches('input[name="first_photo"]')) return;
+        if (t === lastFirst) { t.checked = false; lastFirst = null; }
+        else { lastFirst = t; }
+    });
+
+    root.addEventListener('change', function (e) {
+        var t = e.target;
+        if (t.matches('[data-pf-remove]')) {
+            t.closest('[data-pf-photo]').classList.toggle('is-removed', t.checked);
+        }
+        if (t.matches('input[name="first_photo"]')) {
+            root.querySelectorAll('input[name="first_photo"]').forEach(function (r) {
+                r.closest('.pf-first').classList.toggle('is-on', r.checked);
+            });
+        }
+        // New files: count on the button, previews in the row.
+        if (t.matches('[data-pf-add]')) {
+            var row = t.closest('.pf-row');
+            var strip = row.querySelector('.pf-strip');
+            var btn = t.closest('.pf-add');
+            strip.querySelectorAll('.pf-new').forEach(function (n) { n.remove(); });
+            var files = Array.prototype.slice.call(t.files || []);
+            var room = Number(btn.dataset.room);
+            if (files.length > room) {
+                var msg = 'You can add ' + room + ' more ' + (room === 1 ? 'photo' : 'photos') + ' here. Pick fewer.';
+                if (typeof window.bbAlert === 'function') window.bbAlert(msg); else window.alert(msg);
+                t.value = '';
+                files = [];
+            }
+            btn.querySelector('[data-pf-add-text]').textContent = files.length ? files.length + ' to upload' : 'Add photos';
+            btn.classList.toggle('has-files', files.length > 0);
+            var empty = strip.querySelector('.pf-empty');
+            if (empty) empty.hidden = files.length > 0;
+            files.forEach(function (f) {
+                var el = document.createElement('div');
+                el.className = 'pf-photo pf-new';
+                el.innerHTML = '<div class="pf-img"><img alt=""></div><span class="pf-tag">New</span>';
+                el.querySelector('img').src = URL.createObjectURL(f);
+                strip.appendChild(el);
+            });
         }
     });
 })();
 </script>
-@endonce

@@ -1,0 +1,210 @@
+/* Edit Product → Photos (design D): cover box, a row per option, cover picker. */
+
+.pf { display: flex; flex-direction: column; gap: 16px; }
+.pf-muted { margin: 0; font-size: 12.5px; color: #6b6385; }
+
+/* ---- 1. Shop cover ---- */
+.pf-cover {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    padding: 16px;
+    border: 1.5px solid #cfc2f5;
+    border-radius: 16px;
+    background: #f8f5ff;
+}
+.pf-cover-img {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 2px solid var(--theme-primary);
+    background: #fff;
+    display: grid;
+    place-items: center;
+    color: #b3abc9;
+    font-size: 30px;
+}
+.pf-cover-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pf-cover-text { display: flex; flex-direction: column; align-items: flex-start; gap: 5px; min-width: 0; font-size: 13px; color: #5f577a; }
+.pf-cover-text b { font-size: 16px; color: var(--theme-ink); }
+.pf-kicker { font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--theme-primary); }
+.pf-cover-pending { font-size: 12.5px; font-weight: 600; color: #7a5600; }
+
+.pf-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    margin-top: 6px;
+    padding: 0 18px;
+    border: 0;
+    border-radius: 10px;
+    background: var(--theme-primary);
+    color: #fff;
+    font: inherit;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.pf-btn:hover { background: var(--theme-primary-hover); }
+
+/* ---- 2. Rows ---- */
+.pf-head { display: flex; flex-direction: column; gap: 2px; margin-top: 4px; font-size: 13px; color: #5f577a; }
+.pf-head > b { font-size: 15px; color: var(--theme-ink); }
+
+.pf-box { border: 1px solid var(--theme-border); border-radius: 14px; overflow: hidden; background: #fff; }
+.pf-box-title { padding: 10px 16px; background: var(--theme-bg); border-bottom: 1px solid var(--theme-border); font-weight: 800; font-size: 14.5px; color: var(--theme-ink); }
+.pf-box-general { background: #fbfaff; }
+
+.pf-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 16px;
+    padding: 12px 16px;
+    border-top: 1px solid #f1edfa;
+}
+.pf-box-title + .pf-row, .pf-box-general .pf-row { border-top: 0; }
+.pf-row.is-general { grid-template-columns: 220px minmax(0, 1fr) auto; }
+.pf-row-label { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.pf-row-label b { font-size: 14px; color: var(--theme-ink); }
+.pf-row-label span { font-size: 12px; color: #6b6385; }
+.pf-row-label small { font-size: 12px; color: #6b6385; line-height: 1.35; margin-top: 2px; }
+
+.pf-strip { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-start; min-width: 0; }
+.pf-empty { font-size: 13px; color: #6b6385; }
+
+.pf-photo { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 84px; }
+.pf-img { position: relative; width: 72px; height: 72px; border-radius: 10px; border: 1px solid var(--theme-border); background: var(--theme-bg); }
+.pf-img img { width: 100%; height: 100%; object-fit: cover; display: block; border-radius: 9px; }
+.pf-badge { display: none; position: absolute; top: -8px; left: -6px; padding: 1px 7px; border-radius: 999px; background: var(--theme-primary); color: #fff; font-size: 10px; font-weight: 800; letter-spacing: .03em; }
+.pf-photo.is-cover .pf-img { border: 2px solid var(--theme-primary); }
+.pf-photo.is-cover .pf-badge { display: block; }
+.pf-photo.is-removed .pf-img { opacity: .3; }
+.pf-new .pf-img { border: 2px solid #16a34a; }
+
+.pf-tag { font-size: 11.5px; font-weight: 700; color: #6b6385; }
+.pf-new .pf-tag { color: #15803d; }
+
+.pf-link {
+    position: relative;
+    padding: 0;
+    border: 0;
+    background: none;
+    font: inherit;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--theme-primary);
+    cursor: pointer;
+    text-align: center;
+    line-height: 1.3;
+}
+.pf-link:hover { text-decoration: underline; }
+.pf-link input { position: absolute; opacity: 0; width: 1px; height: 1px; pointer-events: none; }
+.pf-link:has(input:focus-visible) { outline: 2px solid var(--theme-primary); outline-offset: 2px; border-radius: 4px; }
+.pf-link .on { display: none; }
+.pf-link:has(input:checked) .on { display: inline; }
+.pf-link:has(input:checked) .off { display: none; }
+.pf-remove { color: #be123c; }
+.pf-first:has(input:checked) { color: #15803d; }
+.pf-cover-link { display: none; }
+.pf-photo.is-cover .pf-cover-link { display: inline; }
+
+.pf-add {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1.5px dashed #b9a9ef;
+    border-radius: 10px;
+    background: #faf8ff;
+    color: var(--theme-primary);
+    font-size: 13.5px;
+    font-weight: 700;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.pf-add:hover { border-color: var(--theme-primary); background: var(--theme-bg); }
+.pf-add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.pf-add:has(input:focus-visible) { outline: 2px solid var(--theme-primary); outline-offset: 2px; }
+.pf-add.has-files { border-style: solid; border-color: #16a34a; color: #15803d; background: #f0fdf4; }
+.pf-full { font-size: 12px; color: #6b6385; white-space: nowrap; }
+
+/* ---- Cover picker ---- */
+.pf-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 2000;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 8vh 16px 16px;
+    background: rgba(31, 22, 64, .45);
+}
+.pf-modal[hidden] { display: none; }
+.pf-dialog {
+    width: min(640px, 100%);
+    max-height: 84vh;
+    overflow: auto;
+    background: #fff;
+    border-radius: 18px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    box-shadow: 0 24px 60px rgba(31, 22, 64, .25);
+}
+.pf-dialog-head { display: flex; align-items: center; justify-content: space-between; }
+.pf-dialog-head b { font-size: 18px; color: var(--theme-ink); }
+.pf-x { width: 40px; height: 40px; border: 0; border-radius: 10px; background: var(--theme-bg); color: var(--theme-ink); cursor: pointer; }
+.pf-pick-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 12px; }
+.pf-pick { position: relative; display: flex; flex-direction: column; gap: 6px; cursor: pointer; }
+.pf-pick input { position: absolute; opacity: 0; }
+.pf-pick-img { display: block; aspect-ratio: 1; border-radius: 12px; overflow: hidden; border: 1px solid var(--theme-border); }
+.pf-pick-img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pf-pick-label { font-size: 12px; font-weight: 600; color: var(--theme-ink); }
+.pf-pick-check { display: none; position: absolute; top: 8px; right: 8px; width: 26px; height: 26px; border-radius: 50%; background: var(--theme-primary); color: #fff; place-items: center; font-size: 15px; }
+.pf-pick:has(input:checked) .pf-pick-img { border: 3px solid var(--theme-primary); }
+.pf-pick:has(input:checked) .pf-pick-check { display: grid; }
+.pf-pick:has(input:focus-visible) .pf-pick-img { outline: 2px solid var(--theme-primary); outline-offset: 2px; }
+.pf-dialog-foot { display: flex; justify-content: flex-end; }
+
+/* ---- Phones ---- */
+@media (max-width: 640px) {
+    .pf-cover { flex-direction: column; align-items: flex-start; }
+    .pf-row, .pf-row.is-general { grid-template-columns: 1fr; gap: 10px; }
+    .pf-add { justify-self: start; }
+}
+
+/* "✓ Will be first" + how to take it back */
+.pf-first .on small { display: block; font-size: 10.5px; font-weight: 600; color: #6b6385; }
+
+/* A photo ticked "Remove": say so on the photo itself. */
+.pf-gone {
+    display: none;
+    position: absolute;
+    inset: 0;
+    border-radius: 9px;
+    background: rgba(190, 18, 60, .82);
+    color: #fff;
+    font-size: 10.5px;
+    font-weight: 800;
+    line-height: 1.25;
+    text-align: center;
+    place-items: center;
+    padding: 4px;
+}
+.pf-photo.is-removed .pf-img { opacity: 1; }
+.pf-photo.is-removed .pf-img img { opacity: .35; }
+.pf-photo.is-removed .pf-gone { display: grid; }
+.pf-photo.is-removed .pf-badge { display: none; }
+
+/* A size with no photos of its own borrows its color's (buyer page does the same). */
+.pf-borrow { display: inline-flex; align-items: center; gap: 10px; color: #5f577a; }
+.pf-borrow img { width: 44px; height: 44px; border-radius: 8px; object-fit: cover; opacity: .55; border: 1px dashed #c9bdf0; flex-shrink: 0; }
+.pf-borrow b { color: var(--theme-ink); }
+.pf-borrow small { display: block; font-size: 11.5px; color: #6b6385; }

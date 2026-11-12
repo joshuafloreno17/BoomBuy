@@ -418,3 +418,85 @@ tr:last-child td { border-bottom: none; }
     font-weight: 700;
 }
 .var-sku { margin-top: 6px; font-weight: 500; font-size: 12px; }
+
+/* Back to the product's edit page (phones use the header's back arrow). */
+.var-back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 16px;
+    border-radius: 10px;
+    border: 1px solid #ddd5f2;
+    background: #fff;
+    color: var(--theme-primary);
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.var-back-btn:hover { background: var(--theme-bg); border-color: var(--theme-primary); }
+@media (max-width: 760px) { .var-back-btn { display: none; } }
+
+#add-option .success-box i { margin-right: 4px; }
+
+/* ===== "Add option" made easy to find ===== */
+.card-head-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.var-add-jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    background: var(--theme-primary);
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+}
+.var-add-jump:hover { background: var(--theme-primary-hover); color: #fff; }
+@media (max-width: 760px) { .var-add-jump { display: none; } } /* phones: bottom-bar button */
+
+.add-hint {
+    margin: -4px 0 14px;
+    font-size: 12.5px;
+    color: var(--theme-muted);
+}
+
+/* The form lights up when "Add option" brings you here. */
+@keyframes var-flash {
+    0%   { box-shadow: 0 0 0 0 rgba(124, 92, 230, .55); }
+    40%  { box-shadow: 0 0 0 6px rgba(124, 92, 230, .35); }
+    100% { box-shadow: 0 0 0 0 rgba(124, 92, 230, 0); }
+}
+#add-option.is-flash { animation: var-flash 1.4s ease-out 2; }
+
+/* The option that was just added. */
+@keyframes var-new {
+    0%, 60% { background: #efe9ff; }
+    100%    { background: transparent; }
+}
+.var-tr.is-new { animation: var-new 3s ease-out; border-radius: 10px; }
+
+/* Breathing room between the photo picker and the Add option button. */
+#add-option form > .save-btn { margin-top: 18px; }
+
+/* ===== Add a new color (every size at once) ===== */
+.add-color { border: 1.5px solid #cfc2f5; }
+.add-color h2 { display: flex; align-items: center; gap: 8px; }
+.add-color h2 i { color: var(--theme-primary); }
+.ac-name { max-width: 320px; }
+.ac-sizes { margin: 4px 0 16px; border: 1px solid var(--theme-border); border-radius: 12px; overflow: hidden; }
+.ac-tr { display: grid; grid-template-columns: 90px minmax(0, 1fr) minmax(0, 1fr); align-items: center; gap: 12px; padding: 8px 14px; border-top: 1px solid #f1edfa; }
+.ac-tr:first-child { border-top: 0; }
+.ac-th { background: var(--theme-bg); font-size: 11.5px; font-weight: 700; color: var(--theme-muted); padding: 8px 14px; }
+.ac-tr b { font-size: 14px; color: var(--theme-ink); }
+.ac-tr input { width: 100%; min-height: 40px; padding: 0 12px; border: 1px solid #ddd5f2; border-radius: 9px; font: inherit; font-size: 14px; box-sizing: border-box; }
+.ac-tr input:focus { outline: none; border-color: var(--theme-primary); box-shadow: 0 0 0 3px rgba(124, 92, 230, .15); }
+#add-color.is-flash { animation: var-flash 1.4s ease-out 2; }
+
+/* Same breathing room above the "Add color in all sizes" button. */
+#add-color form > .save-btn { margin-top: 18px; }

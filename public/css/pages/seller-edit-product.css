@@ -405,3 +405,45 @@ footer strong {
     cursor: pointer;
     padding: 0;
 }
+
+/* Second link in the stock box: straight to the add form. */
+.stock-by-option a.stock-add-option { margin-top: 2px; }
+
+/* The specs card is only for phones/tablets/laptops; don't leave an empty box. */
+.ap-card:has(> .dev-specs[hidden]) { display: none; }
+
+/* "Changes saved." after Save Changes (the page stays on the edit form). */
+.saved-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 12px 16px;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    background: #f0fdf4;
+    color: #15803d;
+    font-size: 14px;
+    font-weight: 700;
+}
+
+/* Duplicate / Manage Options beside the title. */
+.sp-head-actions form { margin: 0; }
+.head-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 42px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid #ddd5f2;
+    background: #fff;
+    color: var(--theme-primary);
+    font: inherit;
+    font-weight: 700;
+    font-size: 13px;
+    white-space: nowrap;
+    text-decoration: none;
+    cursor: pointer;
+}
+.head-btn:hover { background: var(--theme-bg); border-color: var(--theme-primary); }
