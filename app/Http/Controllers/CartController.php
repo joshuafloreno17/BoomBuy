@@ -232,9 +232,19 @@ class CartController extends Controller
         |--------------------------------------------------------------------------
         */
 
+        $cartKey = $product->id . ':' . $variationId;
+
         session()->put('buy_now', [
-            $product->id . ':' . $variationId => $quantity,
+            $cartKey => $quantity,
         ]);
+
+        // Also in the cart (kept with the account by PersistBuyerCart): if the
+        // page is reloaded, left or the site goes down before the order is
+        // placed, the item is still waiting there. An existing line keeps the
+        // larger quantity, never both added up. Placing the order takes it out.
+        $cart = session()->get('cart', []);
+        $cart[$cartKey] = max((int) ($cart[$cartKey] ?? 0), $quantity);
+        session()->put('cart', $cart);
 
         return redirect()
             ->route('checkout', ['buy_now' => 1]);
@@ -745,6 +755,9 @@ class CartController extends Controller
         // What this page is ordering, so Place Order can't order something else.
         $checkoutSource = !empty($buyNow) ? 'buy_now' : 'cart';
         $checkoutItems = self::itemsFingerprint($cart);
+        // Which cart lines this page shows, so a line added meanwhile (a Buy Now
+        // in another tab also goes into the cart) is not ordered with them.
+        $checkoutKeys = implode(',', array_keys($cart));
 
         return view(
             'pages.checkout',
@@ -768,7 +781,8 @@ class CartController extends Controller
                 'pickupCenter',
                 'checkoutEta',
                 'checkoutSource',
-                'checkoutItems'
+                'checkoutItems',
+                'checkoutKeys'
             )
         );
     }
@@ -868,6 +882,14 @@ class CartController extends Controller
                 if (empty($cart)) {
                     return redirect()->route('cart')->with('error', 'Please select at least one item to check out.');
                 }
+            } elseif (($shownKeys = (string) request('checkout_keys')) !== '') {
+                // The whole cart as the page showed it: lines added since (a Buy
+                // Now in another tab) stay in the cart for later.
+                $cart = array_intersect_key($cart, array_flip(explode(',', $shownKeys)));
+
+                if (empty($cart)) {
+                    return redirect()->route('cart')->with('error', 'The items in your checkout changed, maybe in another tab. Please check out again.');
+                }
             }
         }
 
@@ -920,6 +942,23 @@ class CartController extends Controller
 
         if ($isBuyNow) {
             session()->forget('buy_now');
+
+            // Buy Now also put it in the cart: take out what was just bought.
+            $left = session()->get('cart', []);
+
+            foreach ($cart as $key => $bought) {
+                if (isset($left[$key])) {
+                    $remaining = (int) $left[$key] - (int) $bought;
+
+                    if ($remaining > 0) {
+                        $left[$key] = $remaining;
+                    } else {
+                        unset($left[$key]);
+                    }
+                }
+            }
+
+            session()->put('cart', $left);
         } else {
             // Remove only the lines that were just ordered.
             session()->put('cart', array_diff_key(session()->get('cart', []), $cart));

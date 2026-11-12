@@ -82,6 +82,50 @@ class OrderSafetyTest extends TestCase
         $this->get(route('checkout', ['buy_now' => 1]))->assertOk()->assertSee('Instant Boot');
     }
 
+    public function test_buy_now_item_waits_in_the_cart_if_the_order_is_never_placed(): void
+    {
+        $buyer = $this->makeUser();
+        $seller = $this->makeSeller();
+        $boot = $this->makeProduct($seller, ['name' => 'Instant Boot', 'price' => 500]);
+        $key = "{$boot->id}:0";
+
+        // Buy Now → checkout, then the page is reloaded / left / the site went down.
+        $this->actingAsUser($buyer)->post(route('buy.now', $boot->id), ['quantity' => 2]);
+        $this->assertSame(2, session('cart')[$key] ?? null);
+
+        // Saved with the account, so a brand-new session (crash, expired) still has it.
+        $saved = json_decode((string) \Illuminate\Support\Facades\DB::table('saved_carts')->where('user_id', $buyer->id)->value('items'), true);
+        $this->assertSame(2, $saved[$key] ?? null);
+
+        $this->flushSession();
+        $this->actingAsUser($buyer)->get(route('cart'))->assertOk()->assertSee('Instant Boot');
+        $this->assertSame(2, session('cart')[$key] ?? null);
+    }
+
+    public function test_placing_a_buy_now_order_takes_it_out_of_the_cart(): void
+    {
+        $seller = $this->makeSeller();
+        $boot = $this->makeProduct($seller, ['name' => 'Instant Boot', 'price' => 500]);
+        $other = $this->makeProduct($seller, ['name' => 'Cart Item', 'price' => 500]);
+        $key = "{$boot->id}:0";
+
+        // Already 3 in the cart: Buy Now 2 keeps 3 (the larger), never 5.
+        $this->actingAsUser($this->makeUser(), ['cart' => [$key => 3, "{$other->id}:0" => 1]]);
+        $this->post(route('buy.now', $boot->id), ['quantity' => 2]);
+        $this->assertSame(3, session('cart')[$key]);
+
+        $this->post(route('checkout.place'), $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1]))))->assertRedirect();
+
+        // Bought 2: 1 left in the cart, the other item untouched.
+        $this->assertSame(2, (int) \Illuminate\Support\Facades\DB::table('order_items')->where('product_id', $boot->id)->value('quantity'));
+        $this->assertSame([$key => 1, "{$other->id}:0" => 1], session('cart'));
+
+        // Buy Now on something not in the cart: gone from the cart once ordered.
+        $this->post(route('buy.now', $other->id), ['quantity' => 1]);
+        $this->post(route('checkout.place'), $this->placeOrderForm($this->get(route('checkout', ['buy_now' => 1]))))->assertRedirect();
+        $this->assertSame([$key => 1], session('cart'));
+    }
+
     public function test_checkout_rejects_a_phone_that_is_not_a_number(): void
     {
         $product = $this->makeProduct($this->makeSeller());
@@ -257,7 +301,7 @@ class OrderSafetyTest extends TestCase
     /** The hidden fields of the checkout page: what its Place Order button sends. */
     private function placeOrderForm($page): array
     {
-        preg_match_all('/<input type="hidden" name="(expected_total|checkout_source|checkout_items|_submit_token)"[^>]*value="([^"]*)"/', $page->getContent(), $found);
+        preg_match_all('/<input type="hidden" name="(expected_total|checkout_source|checkout_items|checkout_keys|_submit_token)"[^>]*value="([^"]*)"/', $page->getContent(), $found);
 
         return array_combine($found[1], $found[2]) + ['address' => '1 Rizal St, Cebu City', 'phone' => '09171234567', 'payment' => 'Cash on Delivery'];
     }

@@ -237,8 +237,9 @@ class BuyerScenariosTest extends TestCase
             ->post(route('buy.now', $this->shoes->id), ['quantity' => 1])
             ->assertRedirect(route('checkout', ['buy_now' => 1]));
 
+        // The abandoned Buy Now item waits in the cart, next to what was there.
         $this->get(route('checkout'))->assertOk()
-            ->assertViewHas('cart', [$this->key($other) => 2]);
+            ->assertViewHas('cart', [$this->key($other) => 2, $this->key($this->shoes) => 1]);
         $this->assertNull(session('buy_now'));
     }
 

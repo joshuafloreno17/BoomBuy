@@ -67,6 +67,7 @@
         {{-- The items shown here; another tab's Buy Now or cart change must not swap them. --}}
         <input type="hidden" name="checkout_source" value="{{ $checkoutSource }}">
         <input type="hidden" name="checkout_items" value="{{ $checkoutItems }}">
+        <input type="hidden" name="checkout_keys" value="{{ $checkoutKeys }}">
 
 
         <div class="checkout-grid">

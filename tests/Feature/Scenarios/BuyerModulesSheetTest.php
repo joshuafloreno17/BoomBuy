@@ -759,7 +759,8 @@ class BuyerModulesSheetTest extends TestCase
 
         $checkout = $this->get(route('checkout', ['buy_now' => 1]))->assertOk()->assertSee('Abaca Woven Tote Bag');
         $this->assertSame([$this->key($p01, $naturalM->id)], array_keys($checkout->viewData('cart')));
-        $this->assertSame([$this->key($p05) => 1], session('cart'));
+        // The Buy Now item is also kept in the cart, in case the order is never placed.
+        $this->assertSame([$this->key($p05) => 1, $this->key($p01, $naturalM->id) => 1], session('cart'));
     }
 
     public function test_BUY_PDP_008_product_page_of_an_unavailable_product(): void
