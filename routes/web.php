@@ -530,6 +530,8 @@ Route::post('/seller/order/{id}/pickup', [SellerController::class, 'requestPicku
 
 // Printable shipping label (waybill no. + QR) to stick on the parcel before rider pickup.
 Route::get('/seller/order/{id}/label', [SellerController::class, 'shippingLabel'])->whereNumber('id')->name('seller.order.label');
+// The label page reports a print: the first one saves the label, later ones are reprints.
+Route::post('/seller/order/{id}/label/printed', [SellerController::class, 'markLabelPrinted'])->whereNumber('id')->name('seller.order.label.printed');
 
 
 /*

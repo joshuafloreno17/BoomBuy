@@ -203,6 +203,14 @@
 
     @endif
 
+    @if(!empty($order->waybill_printed_at))
+
+        <div class="received-badge" title="Shipping label first printed {{ \Carbon\Carbon::parse($order->waybill_printed_at)->format('M d, Y h:i A') }}">
+            <i class="bi bi-upc-scan"></i> Label Printed
+        </div>
+
+    @endif
+
     @if($order->status === 'Returned to Seller' && !empty($order->restocked_at))
 
         <div class="received-badge">

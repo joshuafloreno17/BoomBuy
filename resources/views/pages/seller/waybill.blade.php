@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Waybill — Order #{{ $order['id'] }} — BoomBuy</title>
+    <title>Packing List — Order #{{ $order['id'] }} — BoomBuy</title>
 
     @include('partials.design-tokens')
 
@@ -14,7 +14,7 @@
 <body>
 
     <div class="no-print">
-        <button class="print-btn" onclick="window.print()"><i class="bi bi-printer-fill"></i> Print Waybill</button>
+        <button class="print-btn" onclick="window.print()"><i class="bi bi-printer-fill"></i> Print Packing List</button>
     </div>
 
     <div class="waybill">
@@ -22,6 +22,12 @@
         <div class="waybill-header">
             <div class="waybill-logo">Boom<span style="color:var(--theme-ink);">Buy</span></div>
             <div class="waybill-order-id">Order #{{ $order['id'] }}</div>
+        </div>
+
+        {{-- Goes inside the box; the waybill with the QR code goes on the outside. --}}
+        <div class="waybill-section">
+            <div class="waybill-label">Packing List · Waybill {{ \App\Support\Waybill::number((int) $order['id']) }}</div>
+            <div class="waybill-value" style="font-weight:500; font-size:12px;">Put this inside the parcel. The waybill with the QR code goes on the outside.</div>
         </div>
 
         <div class="waybill-section">

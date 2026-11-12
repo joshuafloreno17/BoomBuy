@@ -63,7 +63,7 @@ class Shipments
             ->orderByDesc('orders.id')
             ->get(['orders.*'])
             ->map(function ($order) {
-                $order->tracking_number = Waybill::number((int) $order->id);
+                $order->tracking_number = $order->waybill_no ?: Waybill::number((int) $order->id);
                 $order->status_label = OrderStatus::shipmentLabel($order);
                 $order->bucket = collect(self::BUCKETS)->search(fn ($b) => in_array($order->status, $b['statuses'], true));
 
@@ -102,7 +102,7 @@ class Shipments
             ->orderBy('rts_at')
             ->get()
             ->map(function ($order) {
-                $order->tracking_number = Waybill::number((int) $order->id);
+                $order->tracking_number = $order->waybill_no ?: Waybill::number((int) $order->id);
                 $order->status_label = OrderStatus::shipmentLabel($order);
                 $order->failure_reasons = DB::table('order_events')->where('order_id', $order->id)->where('status', 'Delivery Failed')
                     ->whereNotNull('detail')->where('title', 'like', 'Delivery attempt%')->orderBy('id')->pluck('detail')->all();

@@ -93,8 +93,12 @@
                 :subtitle="'Placed ' . (!empty($order['date']) ? \Illuminate\Support\Carbon::parse($order['date'])->format('M j, Y · g:i A') : '—') . ' · ' . ($order['buyer_name'] ?? 'Buyer') . ' · ₱' . number_format((float) ($order['seller_total'] ?? 0), 2) . ($isCod ? ' COD' : '')"
                 :crumbs="['Orders' => route('seller.orders')]"
             >
-                <a href="{{ route('seller.order.waybill', $order['id']) }}" target="_blank" class="waybill-btn">
+                {{-- The waybill (label with QR) stays here at every status, so it can always be reprinted. --}}
+                <a href="{{ route('seller.order.label', $order['id']) }}" class="waybill-btn" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">
                     <i class="bi bi-printer-fill"></i> Print Waybill
+                    @if(!empty($order['waybill_printed_at']))
+                        <span class="label-printed-chip" title="First printed {{ \Illuminate\Support\Carbon::parse($order['waybill_printed_at'])->format('M j, Y g:i A') }}"><i class="bi bi-check-lg"></i> Printed</span>
+                    @endif
                 </a>
             </x-seller-page-head>
 
@@ -207,7 +211,7 @@
                                                     @foreach(($order['items'] ?? []) as $item)
                                                         <li><span class="so-box" aria-hidden="true"></span>Pack {{ $item['quantity'] ?? 1 }}× {{ $item['name'] ?? 'Product' }}@if(!empty($item['variation_label'])) ({{ $item['variation_label'] }})@endif</li>
                                                     @endforeach
-                                                    <li><span class="so-box" aria-hidden="true"></span>Print and stick the shipping label {{ $waybill }}</li>
+                                                    <li><span class="so-box" aria-hidden="true"></span>Print and stick the waybill {{ $waybill }}</li>
                                                 </ul>
 
                                                 @if($currentStatus === 'Confirmed')
@@ -220,7 +224,7 @@
                                                             </button>
                                                         </form>
                                                         <a href="{{ route('seller.order.label', $order['id']) }}" class="so-btn is-ghost" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">
-                                                            <i class="bi bi-printer-fill"></i> Print shipping label ({{ $waybill }})
+                                                            <i class="bi bi-printer-fill"></i> Print Waybill ({{ $waybill }})
                                                         </a>
                                                         @if($canCancel)
                                                             <button type="button" class="so-btn is-danger-soft so-push" data-so-toggle="soDecline" aria-expanded="false" aria-controls="soDecline">
@@ -244,7 +248,7 @@
                                                                 <i class="bi bi-box-arrow-up"></i> Packed — Mark as Ready for Pickup
                                                             </button>
                                                             <a href="{{ route('seller.order.label', $order['id']) }}" class="so-btn is-ghost" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">
-                                                                <i class="bi bi-printer-fill"></i> Print shipping label ({{ $waybill }})
+                                                                <i class="bi bi-printer-fill"></i> Print Waybill ({{ $waybill }})
                                                             </a>
                                                             @if($canCancel)
                                                                 <button type="button" class="so-btn is-danger-soft so-push" data-so-toggle="soDecline" aria-expanded="false" aria-controls="soDecline">
@@ -282,7 +286,7 @@
                                                         </form>
                                                     @endif
                                                     <a href="{{ route('seller.order.label', $order['id']) }}" class="so-btn is-ghost" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">
-                                                        <i class="bi bi-printer-fill"></i> Print shipping label ({{ $waybill }})
+                                                        <i class="bi bi-printer-fill"></i> Print Waybill ({{ $waybill }})
                                                     </a>
                                                     @if($canCancel)
                                                         <button type="button" class="so-btn is-danger-soft so-push" data-so-toggle="soDecline" aria-expanded="false" aria-controls="soDecline">
@@ -331,8 +335,8 @@
                                             <small>
                                                 @switch($i)
                                                     @case(1)
-                                                        Pack it and attach the shipping label —
-                                                        <a href="{{ route('seller.order.label', $order['id']) }}" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">Print shipping label ({{ $waybill }})</a>
+                                                        Pack it and attach the waybill —
+                                                        <a href="{{ route('seller.order.label', $order['id']) }}" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">Print Waybill ({{ $waybill }})</a>
                                                         @break
                                                     @case(2)
                                                         The rider brings it to {{ $centerName }}.

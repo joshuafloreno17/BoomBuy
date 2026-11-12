@@ -13,21 +13,21 @@
 <aside class="label-panel" id="labelPanel" role="dialog" aria-modal="false" aria-labelledby="labelPanelTitle" hidden>
     <header class="label-panel-head">
         <div>
-            <strong id="labelPanelTitle">Shipping label</strong>
+            <strong id="labelPanelTitle">Waybill</strong>
             <small data-label-sub>Stick it on the parcel.</small>
         </div>
-        <button type="button" class="label-panel-x" data-label-close aria-label="Close shipping label">
+        <button type="button" class="label-panel-x" data-label-close aria-label="Close waybill">
             <i class="bi bi-x-lg" aria-hidden="true"></i>
         </button>
     </header>
 
     <div class="label-panel-body">
-        <iframe title="Shipping label" data-label-frame></iframe>
+        <iframe title="Waybill" data-label-frame></iframe>
     </div>
 
     <footer class="label-panel-foot">
         <button type="button" class="label-panel-print" data-label-print>
-            <i class="bi bi-printer-fill" aria-hidden="true"></i> Print label
+            <i class="bi bi-printer-fill" aria-hidden="true"></i> Print waybill
         </button>
         <small>To keep a copy, choose “Save as PDF” in the print window.</small>
     </footer>
@@ -53,7 +53,7 @@
     function open(link) {
         opener = link;
         labelUrl = link.getAttribute('href');
-        title.textContent = 'Shipping label' + (link.dataset.waybill ? ' · ' + link.dataset.waybill : '');
+        title.textContent = 'Waybill' + (link.dataset.waybill ? ' · ' + link.dataset.waybill : '');
         sub.textContent = 'Stick it on the parcel · the rider brings it to ' + (link.dataset.center || 'your Sorting Center') + '.';
         if (frame.dataset.src !== labelUrl) {
             frame.dataset.src = labelUrl;

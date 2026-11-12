@@ -22,6 +22,12 @@ class WaybillTest extends TestCase
         $this->assertSame(66, Waybill::parse('https://boombuy.store/logistics/scan/BB-000066?x=1'));
     }
 
+    public function test_groups_the_random_number_for_the_label(): void
+    {
+        $this->assertSame('BB 4829 1057 36', Waybill::pretty('BB4829105736'));
+        $this->assertSame('BB-000007', Waybill::pretty('BB-000007'));
+    }
+
     public function test_rejects_what_is_not_a_waybill(): void
     {
         $this->assertNull(Waybill::parse(''));

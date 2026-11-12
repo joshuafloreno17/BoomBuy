@@ -354,6 +354,8 @@ class PlaceOrderService
                         'fulfillment' => $fulfillment,
                         // Asked for at the Sorting Center counter; only the buyer sees it.
                         'pickup_code' => $fulfillment === 'pickup' ? str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT) : null,
+                        // Random tracking no. for the label and the scans.
+                        'waybill_no' => \App\Support\Waybill::generate(),
                         // The seller's workflow starts here.
                         'status' => 'Pending',
                         'shipping_name' => $this->recipient ?? ($buyer['name'] ?? 'Buyer'),

@@ -117,6 +117,16 @@ body {
     letter-spacing: 1px;
 }
 
+/* Reprints say so, so a second copy on a parcel is easy to tell apart. */
+.label-reprint {
+    padding: 3px 8px;
+    border: 1.5px dashed var(--theme-ink);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-align: center;
+}
+
 .label-code {
     display: flex;
     gap: 12px;

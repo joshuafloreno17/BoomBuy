@@ -43,7 +43,7 @@
             {{-- FIND A PARCEL --}}
             <form method="GET" action="{{ route('logistics.parcels') }}" class="parcel-search" data-live-search data-live-target="#liveClear, #liveResults">
                 <i class="bi bi-search"></i>
-                <input type="search" name="q" value="{{ $search }}" placeholder="Scan or type a waybill no. (BB-000066), order #, buyer or address" aria-label="Find a parcel">
+                <input type="search" name="q" value="{{ $search }}" placeholder="Scan or type a waybill no. (BB4829105736), order #, buyer or address" aria-label="Find a parcel">
                 <button type="submit">Search</button>
                 <span id="liveClear" style="display:contents;">
                 @if ($search !== '')

@@ -430,6 +430,80 @@ class SortingCenterJourneyTest extends TestCase
     // 7. Shipping label + scanning it at the Sorting Center
     // ------------------------------------------------------------------
 
+    public function test_each_order_gets_a_random_waybill_number(): void
+    {
+        $seller = $this->sellerIn('Metro Manila (NCR)', 'Quezon City');
+        $buyer = $this->makeUser();
+        $product = $this->makeProduct($seller);
+        $this->checkout($buyer, ["{$product->id}:0" => 1], '15 Rizal St, Santa Cruz, Laguna');
+        $first = (int) $this->latestOrder($buyer)->id;
+        $this->checkout($buyer, ["{$product->id}:0" => 1], '15 Rizal St, Santa Cruz, Laguna');
+        $second = (int) $this->latestOrder($buyer)->id;
+
+        $a = \App\Support\Waybill::number($first);
+        $b = \App\Support\Waybill::number($second);
+
+        // "BB" + 10 digits, saved on the order, not made from the order no.
+        $this->assertMatchesRegularExpression('/^BB[1-9]\d{9}$/', $a);
+        $this->assertSame($a, DB::table('orders')->where('id', $first)->value('waybill_no'));
+        $this->assertNotSame($a, $b);
+        $this->assertNotSame('BB-' . str_pad((string) $first, 6, '0', STR_PAD_LEFT), $a);
+
+        // Scanned, typed with spaces, without "BB", or from the QR link: same parcel.
+        $this->assertSame($first, \App\Support\Waybill::parse($a));
+        $this->assertSame($first, \App\Support\Waybill::parse(strtolower(\App\Support\Waybill::pretty($a))));
+        $this->assertSame($first, \App\Support\Waybill::parse(substr($a, 2)));
+        $this->assertSame($first, \App\Support\Waybill::parse(route('logistics.scan', $a)));
+        $this->assertNull(\App\Support\Waybill::parse('BB1000000000'));
+
+        // The label shows it grouped; the QR carries it.
+        $this->actingAsUser($seller)->get(route('seller.order.label', $first))
+            ->assertSee(\App\Support\Waybill::pretty($a))
+            ->assertSee(route('logistics.scan', $a), false);
+
+        // An order made some other way gets one the first time it's asked for.
+        DB::table('orders')->where('id', $second)->update(['waybill_no' => null]);
+        app()->forgetInstance('waybill.cache');
+        $this->assertMatchesRegularExpression('/^BB[1-9]\d{9}$/', $fresh = \App\Support\Waybill::number($second));
+        $this->assertSame($fresh, DB::table('orders')->where('id', $second)->value('waybill_no'));
+    }
+
+    public function test_the_printed_label_stays_and_reprints_the_same_copy(): void
+    {
+        $seller = $this->sellerIn('Metro Manila (NCR)', 'Quezon City');
+        $buyer = $this->makeUser();
+        $this->checkout($buyer, ["{$this->makeProduct($seller)->id}:0" => 1], '15 Rizal St, Santa Cruz, Laguna');
+        $id = (int) $this->latestOrder($buyer)->id;
+
+        // Opening it is not printing it.
+        $this->actingAsUser($seller)->get(route('seller.order.label', $id))->assertOk()->assertDontSee('REPRINT');
+        $this->assertNull(DB::table('orders')->where('id', $id)->value('waybill_printed_at'));
+
+        // The first print saves the label.
+        $this->actingAsUser($seller)->postJson(route('seller.order.label.printed', $id))->assertOk()->assertJson(['ok' => true, 'print_count' => 1]);
+        $this->assertNotNull(DB::table('orders')->where('id', $id)->value('waybill_snapshot'));
+
+        // The address changes afterwards: the saved label still shows the printed one.
+        DB::table('orders')->where('id', $id)->update(['shipping_name' => 'Someone Else']);
+        $this->actingAsUser($seller)->get(route('seller.order.label', $id))
+            ->assertSee('REPRINT')
+            ->assertDontSee('Someone Else');
+
+        // Printing from the app (?print=1) counts as a reprint, not a new copy.
+        $this->actingAsUser($seller)->get(route('seller.order.label', ['id' => $id, 'print' => 1]))->assertOk();
+        $this->assertSame(2, (int) DB::table('orders')->where('id', $id)->value('waybill_print_count'));
+
+        // After the rider picked it up the label is still on the order page, marked printed.
+        $this->shipFromSeller($seller, $id);
+        $this->actingAsUser($seller)->get(route('seller.order.details', $id))
+            ->assertSee(route('seller.order.label', $id), false)
+            ->assertSee('Printed');
+        $this->actingAsUser($seller)->get(route('seller.orders'))->assertSee('Label Printed');
+
+        // Someone else's order: no label, no print.
+        $this->actingAsUser($this->sellerIn('Laguna', 'Santa Cruz', 'electronics'))->postJson(route('seller.order.label.printed', $id))->assertNotFound();
+    }
+
     public function test_seller_prints_a_label_and_the_center_scans_it(): void
     {
         $seller = $this->sellerIn('Metro Manila (NCR)', 'Quezon City');
@@ -438,7 +512,7 @@ class SortingCenterJourneyTest extends TestCase
         $id = (int) $this->latestOrder($buyer)->id;
         $waybill = \App\Support\Waybill::number($id);
 
-        $this->actingAsUser($seller)->get(route('seller.order.details', $id))->assertSee('Print shipping label (' . $waybill . ')');
+        $this->actingAsUser($seller)->get(route('seller.order.details', $id))->assertSee('Print Waybill (' . $waybill . ')');
         $this->actingAsUser($seller)->get(route('seller.order.label', $id))
             ->assertOk()
             ->assertSee($waybill)

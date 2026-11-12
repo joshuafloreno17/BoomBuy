@@ -1139,7 +1139,7 @@ class LogisticsController extends Controller
      */
     private function parcelQueues(?SortingCenter $myCenter, string $search = '', bool $none = false): array
     {
-        // Order # (with or without "#"), waybill no. (BB-000066), buyer name or address.
+        // Order # (with or without "#"), waybill no. (BB4829105736), buyer name or address.
         // $none: an account not assigned to any center sees nothing.
         $matching = function () use ($search, $none) {
             return DB::table('orders')->when($none, fn ($q) => $q->whereRaw('1 = 0'))->when($search !== '', function ($query) use ($search) {

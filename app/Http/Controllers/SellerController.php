@@ -1789,6 +1789,7 @@ class SellerController extends Controller
                     'orders.status',
                     'orders.buyer_received_at',
                     'orders.restocked_at',
+                    'orders.waybill_printed_at',
                     'orders.shipping_name',
                     'orders.shipping_phone',
                     'orders.shipping_address',
@@ -2026,38 +2027,40 @@ class SellerController extends Controller
             return $user;
         }
 
-        $order = DB::table('orders')->where('id', $id)->first();
+        $order = $this->sellerOrderOr404((int) $id, (int) $user['id']);
 
-        $items = $order
-            ? DB::table('order_items')->where('order_id', $order->id)->where('seller_id', $user['id'])->get()
-            : collect();
+        // Opened from the app to print (?print=1): that is the print, record it here.
+        $label = request()->boolean('print')
+            ? \App\Support\ShippingLabel::markPrinted($order, (int) $user['id'])
+            : \App\Support\ShippingLabel::for($order, (int) $user['id']);
 
-        if ($items->isEmpty()) {
+        return view('pages.seller.shipping-label', compact('order', 'label'));
+    }
+
+    /** The label page tells us it is being printed: save the first copy, count reprints. */
+    public function markLabelPrinted($id)
+    {
+        $user = requireUserRole('seller');
+
+        if (!is_array($user)) {
+            return response()->json(['ok' => false], 403);
+        }
+
+        $label = \App\Support\ShippingLabel::markPrinted($this->sellerOrderOr404((int) $id, (int) $user['id']), (int) $user['id']);
+
+        return response()->json(['ok' => true, 'printed_at' => $label['printed_at'], 'print_count' => $label['print_count']]);
+    }
+
+    /** The order, if it has at least one of this seller's items. */
+    private function sellerOrderOr404(int $orderId, int $sellerId): object
+    {
+        $order = DB::table('orders')->where('id', $orderId)->first();
+
+        if (!$order || !DB::table('order_items')->where('order_id', $orderId)->where('seller_id', $sellerId)->exists()) {
             abort(404);
         }
 
-        $seller = DB::table('users')->where('id', $user['id'])->first();
-        $shopName = DB::table('seller_applications')->where('user_id', $user['id'])->value('business_name') ?: $seller->name;
-
-        $sellerTown = \App\Support\ParcelRoute::sellerLocation((int) $user['id']);
-        $origin = $order->origin_center_id
-            ? \App\Models\SortingCenter::find($order->origin_center_id)
-            : \App\Support\ParcelRoute::centerFor($sellerTown['province'], $sellerTown['city']);
-
-        $buyerTown = $order->shipping_province
-            ? ['province' => $order->shipping_province, 'city' => $order->shipping_city]
-            : \App\Support\PhLocations::locate($order->shipping_address);
-        $destination = $order->destination_center_id
-            ? \App\Models\SortingCenter::find($order->destination_center_id)
-            : ($buyerTown ? \App\Support\ParcelRoute::centerFor($buyerTown['province'], $buyerTown['city']) : null);
-
-        $waybill = \App\Support\Waybill::number((int) $order->id);
-        $scanUrl = route('logistics.scan', $waybill);
-        $isCod = \App\Support\CodPolicy::isCod((string) $order->payment_method);
-
-        return view('pages.seller.shipping-label', compact(
-            'order', 'items', 'seller', 'shopName', 'origin', 'destination', 'waybill', 'scanUrl', 'isCod'
-        ));
+        return $order;
     }
 
 

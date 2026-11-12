@@ -338,7 +338,7 @@
         <section class="lg-wrap lg-section lg-trust">
             <div class="lg-record" aria-hidden="true">
                 <div class="lg-record-top">
-                    <div><small>Parcel record</small><b>BB-000000</b></div>
+                    <div><small>Parcel record</small><b>BB 4829 1057 36</b></div>
                     <span class="lg-open is-solid">Delivered</span>
                 </div>
                 <div class="lg-record-row">
