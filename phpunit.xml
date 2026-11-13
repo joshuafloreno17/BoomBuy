@@ -26,6 +26,7 @@
         <env name="RIDERS_APP_ONLY" value="false"/>
         <env name="DELIVERY_CHECKS" value="false"/>
         <env name="RIDER_LOCATION" value="false"/>
+        <env name="AUTO_ASSIGN_DELIVERY" value="false"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
         <env name="DB_CONNECTION" value="sqlite"/>

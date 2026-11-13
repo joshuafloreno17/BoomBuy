@@ -207,14 +207,8 @@
                                             {{-- ---------- 2. Pack ---------- --}}
                                             @elseif($i === 1)
 
-                                                <ul class="so-checklist">
-                                                    @foreach(($order['items'] ?? []) as $item)
-                                                        <li><span class="so-box" aria-hidden="true"></span>Pack {{ $item['quantity'] ?? 1 }}× {{ $item['name'] ?? 'Product' }}@if(!empty($item['variation_label'])) ({{ $item['variation_label'] }})@endif</li>
-                                                    @endforeach
-                                                    <li><span class="so-box" aria-hidden="true"></span>Print and stick the waybill {{ $waybill }}</li>
-                                                </ul>
-
                                                 @if($currentStatus === 'Confirmed')
+                                                    <p class="so-lead">Press <strong>Start Preparing</strong> when you begin packing — a checklist of what goes in the box shows up next.</p>
                                                     <div class="so-actions">
                                                         <form method="POST" action="{{ route('seller.order.status', $order['id']) }}">
                                                             @csrf
@@ -234,8 +228,17 @@
                                                     </div>
                                                     <p class="so-note"><i class="bi bi-bell"></i> The buyer is told you are now preparing their order.</p>
                                                 @else
+                                                    {{-- Packing checklist: "Packed" opens once every box is ticked. --}}
+                                                    <ul class="so-checklist" data-so-checklist="{{ $order['id'] }}">
+                                                        @foreach(($order['items'] ?? []) as $item)
+                                                            <li><label class="so-check"><input type="checkbox" class="so-tick" data-key="item{{ $loop->index }}"><span class="so-box" aria-hidden="true"><i class="bi bi-check-lg"></i></span><span class="so-check-text">Pack {{ $item['quantity'] ?? 1 }}× {{ $item['name'] ?? 'Product' }}@if(!empty($item['variation_label'])) ({{ $item['variation_label'] }})@endif</span></label></li>
+                                                        @endforeach
+                                                        <li><label class="so-check"><input type="checkbox" class="so-tick" data-key="waybill"><span class="so-box" aria-hidden="true"><i class="bi bi-check-lg"></i></span><span class="so-check-text">Print and stick the waybill {{ $waybill }}</span></label></li>
+                                                    </ul>
+                                                    <p class="so-note so-check-hint" data-so-pack-hint><i class="bi bi-hand-index"></i> Tick each one as it goes in the box — <strong>Packed</strong> unlocks when all are ticked.</p>
+
                                                     {{-- Packed: book a rider to pick it up. --}}
-                                                    <form method="POST" action="{{ route('seller.order.pickup', $order['id']) }}" class="so-pickup-form">
+                                                    <form method="POST" action="{{ route('seller.order.pickup', $order['id']) }}" class="so-pickup-form" data-so-pack-form>
                                                         @csrf
                                                         <label for="pickupDate">Pickup day</label>
                                                         <select id="pickupDate" name="pickup_date" required>
@@ -244,7 +247,7 @@
                                                             @endforeach
                                                         </select>
                                                         <div class="so-actions">
-                                                            <button type="submit" class="so-btn is-primary">
+                                                            <button type="submit" class="so-btn is-primary" data-so-packed>
                                                                 <i class="bi bi-box-arrow-up"></i> Packed — Mark as Ready for Pickup
                                                             </button>
                                                             <a href="{{ route('seller.order.label', $order['id']) }}" class="so-btn is-ghost" data-label-panel data-waybill="{{ $waybill }}" data-center="{{ $centerName }}">
@@ -536,6 +539,46 @@
 
 <script>
 (function () {
+    // Pack checklist: ticks are remembered per order on this browser only;
+    // "Packed" stays locked until every box is ticked, and printing the
+    // waybill ticks its box.
+    document.querySelectorAll('[data-so-checklist]').forEach(function (list) {
+        var key = 'bb-pack-' + list.getAttribute('data-so-checklist');
+        var boxes = list.querySelectorAll('.so-tick');
+        var packed = document.querySelector('[data-so-packed]');
+        var hint = document.querySelector('[data-so-pack-hint]');
+        var saved = {};
+        try { saved = JSON.parse(localStorage.getItem(key) || '{}') || {}; } catch (err) {}
+
+        function refresh() {
+            var all = Array.prototype.every.call(boxes, function (b) { return b.checked; });
+            if (packed) {
+                packed.disabled = !all;
+                packed.classList.toggle('is-locked', !all);
+            }
+            if (hint) hint.classList.toggle('is-done', all);
+        }
+
+        function save(box) {
+            saved[box.dataset.key] = box.checked;
+            try { localStorage.setItem(key, JSON.stringify(saved)); } catch (err) {}
+        }
+
+        boxes.forEach(function (box) {
+            box.checked = !!saved[box.dataset.key];
+            box.addEventListener('change', function () { save(box); refresh(); });
+        });
+
+        document.querySelectorAll('[data-so-pack-form] [data-label-panel]').forEach(function (link) {
+            link.addEventListener('click', function () {
+                var box = list.querySelector('.so-tick[data-key="waybill"]');
+                if (box && !box.checked) { box.checked = true; save(box); refresh(); }
+            });
+        });
+
+        refresh();
+    });
+
     // Decline / Cancel: open the reason form; a reason chip fills the message.
     document.addEventListener('click', function (e) {
         var toggle = e.target.closest('[data-so-toggle]');

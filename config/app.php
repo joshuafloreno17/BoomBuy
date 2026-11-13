@@ -79,6 +79,11 @@ return [
     // stops sending it for 5 minutes (mobile sheet M13).
     'rider_location' => (bool) env('RIDER_LOCATION', true),
 
+    // Last mile: a parcel ready for delivery (At Branch, or Sorted at a
+    // center with no branch for the town) goes straight to the Online
+    // area-match rider with the fewest jobs; none free → manual assignment.
+    'auto_assign_delivery' => (bool) env('AUTO_ASSIGN_DELIVERY', true),
+
     /*
     |--------------------------------------------------------------------------
     | Application Locale Configuration

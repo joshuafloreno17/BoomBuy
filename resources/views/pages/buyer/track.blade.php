@@ -209,7 +209,7 @@
             var tone = spot === truckSpot || spot.stops.some(function (s) { return s.here; }) ? 'is-here'
                 : (spot.stops.some(function (s) { return s.reached; }) ? 'is-reached' : 'is-ahead');
             spot.marker = L.marker([spot.lat, spot.lng], {
-                icon: L.divIcon({ className: 'track-landmark ' + tone, html: '<i class="bi ' + (spot === truckSpot ? 'bi-truck' : 'bi-building') + '"></i>', iconSize: [32, 32], iconAnchor: [16, 16] }),
+                icon: L.divIcon({ className: 'track-landmark ' + tone, html: '<i class="bi ' + (spot === truckSpot ? 'bi-truck' : (spot.stops.every(function (s) { return s.hub; }) ? 'bi-signpost-split' : 'bi-building')) + '"></i>', iconSize: [32, 32], iconAnchor: [16, 16] }),
                 title: spot.stops.map(function (s) { return s.name; }).join(' / '),
                 zIndexOffset: 500
             }).addTo(map).bindPopup(spot.stops.map(function (s) {

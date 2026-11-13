@@ -216,6 +216,23 @@
     gap: 10px;
 }
 
+.so-check {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.so-tick {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+}
+
 .so-box {
     width: 20px;
     height: 20px;
@@ -223,7 +240,24 @@
     border-radius: 6px;
     border: 2px solid var(--theme-lavender);
     background: #ffffff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #ffffff;
+    font-size: 14px;
+    transition: background .15s, border-color .15s;
 }
+
+.so-box i { opacity: 0; transition: opacity .15s; }
+.so-check:hover .so-box { border-color: var(--theme-primary, #7c5cff); }
+.so-tick:focus-visible + .so-box { outline: 2px solid var(--theme-primary, #7c5cff); outline-offset: 2px; }
+.so-tick:checked + .so-box { background: var(--theme-primary, #7c5cff); border-color: var(--theme-primary, #7c5cff); }
+.so-tick:checked + .so-box i { opacity: 1; }
+.so-tick:checked ~ .so-check-text { text-decoration: line-through; opacity: .6; }
+.so-check-hint { margin-top: 6px; }
+.so-check-hint.is-done { color: #15803d; }
+.so-btn.is-locked,
+.so-btn.is-locked:hover { opacity: .45; cursor: not-allowed; filter: grayscale(.3); }
 
 /* Buttons (the page CSS makes every <button> full width; these opt out). */
 .so-actions {

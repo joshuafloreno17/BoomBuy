@@ -408,9 +408,15 @@ class SortingCenterService
 
         OrderTimeline::log($orderId, 'Sorted', 'Sorted for delivery to ' . ($area ?: 'your area'), $branch ? 'Goes to ' . $branch->name : null, $order->current_center_id ? (int) $order->current_center_id : null);
 
-        return $branch
-            ? 'Parcel #' . $orderId . ' sorted to ' . $branch->name . '. Next: dispatch it to that branch.'
-            : 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . '. Next: assign the rider for that area.';
+        if ($branch) {
+            return 'Parcel #' . $orderId . ' sorted to ' . $branch->name . '. Next: dispatch it to that branch.';
+        }
+
+        if ($rider = $this->autoAssignDelivery($orderId)) {
+            return 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . ' and auto-assigned to ' . $rider . '.';
+        }
+
+        return 'Parcel #' . $orderId . ' sorted to ' . ($area ?: 'its delivery area') . '. Next: assign the rider for that area.';
     }
 
     /**
@@ -603,7 +609,11 @@ class SortingCenterService
 
         createNotification((int) $order->buyer_id, 'Parcel at Your Branch', 'Your order #' . $orderId . ' arrived at ' . $branchName . ' and will be given to a rider for delivery shortly.', 'order', $orderId);
 
-        return 'Parcel #' . $orderId . ' is here. Next: assign the rider for its area.';
+        if ($rider = $this->autoAssignDelivery($orderId)) {
+            return 'Parcel #' . $orderId . ' is here and was auto-assigned to ' . $rider . '.';
+        }
+
+        return 'Parcel #' . $orderId . ' is here. No area rider is online — assign one below.';
     }
 
     /** The parcel's delivery area: "Santa Cruz, Laguna", read from its address. */
@@ -628,6 +638,62 @@ class SortingCenterService
         $id = ($order->branch_id ?? null) ?: ($order->destination_center_id ?: $order->current_center_id);
 
         return $id ? (int) $id : null;
+    }
+
+    /**
+     * Auto-assign (last mile): once a parcel is ready for its delivery rider
+     * (At Branch, or Sorted at a center with no branch for the town), give it
+     * straight to the Online area-match rider with the fewest jobs — same town
+     * first, then the rest of the province. No such rider: it waits in
+     * Awaiting Assignment for the staff, as before.
+     *
+     * @return string|null the rider's name, or null when nobody was free
+     */
+    public function autoAssignDelivery(int $orderId): ?string
+    {
+        if (!config('app.auto_assign_delivery')) {
+            return null;
+        }
+
+        $order = DB::table('orders')->where('id', $orderId)->first();
+
+        if (!$order || $this->isPickup($order) || !empty($order->delivery_rider_id)
+            || !($order->status === 'At Branch' || ($order->status === 'Sorted' && empty($order->branch_id)))) {
+            return null;
+        }
+
+        $town = self::deliveryTown($order);
+        if (!$town) {
+            return null;
+        }
+
+        $here = $order->current_center_id ? (int) $order->current_center_id : null;
+
+        $candidates = \App\Models\RiderArea::where('province', $town['province'])->get()
+            ->groupBy('rider_id')
+            ->map(fn ($areas, $riderId) => [
+                'id' => (int) $riderId,
+                'sameTown' => $areas->contains(fn ($a) => \App\Support\PhLocations::sameTown($a->city_municipality, $town['city'] ?? null)),
+                'jobs' => \App\Support\RiderJobs::activeCount((int) $riderId),
+            ])
+            ->filter(fn ($r) => $this->assignableRider($r['id']) && !\App\Support\RiderJobs::blockReason($r['id'], $here))
+            ->sortBy([['sameTown', 'desc'], ['jobs', 'asc']])
+            ->values();
+
+        foreach ($candidates as $candidate) {
+            try {
+                $this->assign($orderId, $candidate['id'], $here);
+                $name = DB::table('users')->where('id', $candidate['id'])->value('name');
+                OrderTimeline::log($orderId, 'Assigned for Delivery', 'Auto-assigned to ' . $name, 'Online rider for ' . self::deliveryArea($order), $here);
+
+                return $name;
+            } catch (ActionFailed $e) {
+                // Taken or changed a moment ago: try the next rider.
+                continue;
+            }
+        }
+
+        return null;
     }
 
     /**

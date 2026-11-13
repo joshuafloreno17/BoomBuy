@@ -28,6 +28,7 @@ class TrackMap
         // The stops in travel order: [rank or 'seller'/'buyer', [lat, lng]].
         $stops = [['seller', PlaceCoordinates::of($seller['city'], $seller['province'])]];
         $stopCenter = [];
+        $hubs = [];
         foreach (self::CENTER_STOPS as $rank => $column) {
             $center = $centers->get($order->$column ?? 0);
             // The buyer's center is the seller's when the parcel stays in the province.
@@ -38,10 +39,13 @@ class TrackMap
             $stopCenter[$rank] = $center;
             // Hub relay: the truck also passes the hubs between the two centers.
             if ($rank === 6) {
+                $prevId = (int) $center->id;
                 foreach (HubRoute::relaysFor($order) as $n => $hubId) {
-                    $hub = AppModelsSortingCenter::find($hubId);
+                    $hub = \App\Models\SortingCenter::find($hubId);
                     if ($hub) {
                         $stops[] = ['hub' . $n, PlaceCoordinates::of($hub->city_municipality, $hub->province, false)];
+                        $hubs['hub' . $n] = ['center' => $hub, 'km' => HubRoute::legKm($prevId, (int) $hubId)];
+                        $prevId = (int) $hubId;
                     }
                 }
             }
@@ -86,9 +90,62 @@ class TrackMap
             }
         }
 
+        // Hub relay stops: a landmark each, passed / here from the hub's own events.
+        $hubTruck = null;
+        if ($hubs) {
+            $hubEvents = DB::table('order_events')->where('order_id', $order->id)
+                ->whereIn('center_id', collect($hubs)->map(fn ($h) => (int) $h['center']->id)->values())
+                ->orderBy('id')->get(['center_id', 'status', 'title', 'created_at']);
+            $lastEvent = DB::table('order_events')->where('order_id', $order->id)->orderByDesc('id')->first(['center_id', 'status']);
+            $names = array_keys($hubs);
+
+            foreach ($hubs as $name => $hub) {
+                $id = (int) $hub['center']->id;
+                $point = collect($stops)->first(fn ($s) => $s[0] === $name)[1] ?? null;
+                if (!$point) {
+                    continue;
+                }
+                $arrived = $hubEvents->first(fn ($e) => (int) $e->center_id === $id && str_contains($e->title, 'Arrived at'));
+                $here = $lastEvent && (int) $lastEvent->center_id === $id && $lastEvent->status === 'At Sorting Center';
+                $landmarks[$name] = [
+                    'name' => $hub['center']->name,
+                    'place' => $hub['center']->town,
+                    'hub' => true,
+                    'address' => 'Hub on the way' . ($hub['km'] ? ' · ' . $hub['km'] . ' km from the last center' : ''),
+                    'lat' => $point[0],
+                    'lng' => $point[1],
+                    'reached' => (bool) $arrived,
+                    'here' => $here,
+                    'at' => $arrived ? Carbon::parse($arrived->created_at)->format('M j · g:i A') : null,
+                ];
+
+                // The truck sits at the hub, or halfway to the next stop once dispatched from it.
+                if ($lastEvent && (int) $lastEvent->center_id === $id && isset($at[$name])) {
+                    if ($here) {
+                        $hubTruck = $at[$name];
+                    } elseif ($lastEvent->status === 'In Transit') {
+                        $next = $names[array_search($name, $names, true) + 1] ?? null;
+                        $nextAt = $next !== null ? ($at[$next] ?? null) : ($at[8] ?? $at[9] ?? $at['buyer'] ?? null);
+                        $hubTruck = $nextAt !== null ? intdiv($at[$name] + $nextAt, 2) : $at[$name];
+                    }
+                }
+            }
+        }
+
+        // Dispatched from the seller's center toward the first hub: halfway there.
+        if ($hubs && $hubTruck === null && isset($at[6], $at['hub0']) && ($order->status ?? '') === 'In Transit'
+            && (int) (DB::table('order_events')->where('order_id', $order->id)->orderByDesc('id')->value('center_id') ?? 0) === (int) ($order->origin_center_id ?? 0)) {
+            $hubTruck = intdiv($at[6] + $at['hub0'], 2);
+        }
+
+        $truck = $plan ? self::truck($route, $at, (int) optional($plan->firstWhere('current', true))->rank, $pickup) : null;
+        if ($hubTruck !== null && $plan) {
+            $truck = $route['points'][$hubTruck] ?? $truck;
+        }
+
         return [
             'route' => $route,
-            'truck' => $plan ? self::truck($route, $at, (int) optional($plan->firstWhere('current', true))->rank, $pickup) : null,
+            'truck' => $truck,
             'landmarks' => $landmarks,
             'from' => $sellerTown ?: null,
             'to' => $collectAt ? $collectAt->name : ($buyerTown ?: null),
