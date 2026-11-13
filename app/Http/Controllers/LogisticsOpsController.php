@@ -103,6 +103,8 @@ class LogisticsOpsController extends Controller
 
         return view('pages.logistics.operations', [
             'user' => $user,
+            // Shown under the title, like the Parcels page.
+            'centerName' => $center > 0 ? \App\Models\SortingCenter::whereKey($center)->value('name') : null,
             'counts' => Shipments::counts($center ?: null, $from, $to),
             'shipments' => Shipments::list($center ?: null, $bucket, $from, $to, $search),
             'filters' => ['from' => $from, 'to' => $to, 'status' => $bucket, 'q' => $search],
