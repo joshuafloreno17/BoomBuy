@@ -142,7 +142,8 @@ class ProductGalleryTest extends TestCase
         $this->actingAsUser($seller)
             ->get(route('seller.products.edit', $product->id))
             ->assertOk()
-            ->assertSee('Photos for Red')
+            ->assertSee('Photos for each option')
+            ->assertSee('aria-label="Add photos for Red"', false)
             ->assertSee('Photos for all options')
             ->assertSee('name="option_photos[' . $red->id . '][]"', false);
 

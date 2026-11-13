@@ -161,8 +161,10 @@ class SellerScenariosTest extends TestCase
         $this->put(route('seller.products.update', $product->id), array_merge($base, ['price' => 900]))
             ->assertSessionHas('error', fn ($m) => str_contains($m, '₱0 or less'));
 
+        // A plain save stays on the edit page (panel feedback 2026-11-12).
         $this->put(route('seller.products.update', $product->id), array_merge($base, ['price' => 1500]))
-            ->assertRedirect(route('seller.products'));
+            ->assertRedirect(route('seller.products.edit', $product->id))
+            ->assertSessionHas('success', 'Changes saved.');
         $this->assertEquals(1500, $product->fresh()->price);
     }
 
