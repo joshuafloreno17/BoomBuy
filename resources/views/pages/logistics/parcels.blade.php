@@ -41,6 +41,8 @@
             @endif
 
             {{-- FIND A PARCEL --}}
+            @php $canScan = (bool) $myCenter; @endphp
+            <div class="parcel-find-row">
             <form method="GET" action="{{ route('logistics.parcels') }}" class="parcel-search" data-live-search data-live-target="#liveClear, #liveResults">
                 <i class="bi bi-search"></i>
                 <input type="search" name="q" value="{{ $search }}" placeholder="Scan or type a waybill no. (BB4829105736), order #, buyer or address" aria-label="Find a parcel">
@@ -51,6 +53,76 @@
                 @endif
                 </span>
             </form>
+            @if ($canScan)
+                <button type="button" class="ss-open-btn" data-scan-toggle aria-controls="scanStation" aria-expanded="false"><i class="bi bi-upc-scan"></i> <span>Open Scan Station</span></button>
+            @endif
+            </div>
+
+            {{-- SCAN STATION (center / branch staff only). A scanned waybill does the
+                 parcel's next step here: IN = it arrived, OUT = it left on the truck.
+                 Every button on the parcel cards below still works the same. --}}
+            @if ($canScan)
+                @php
+                    $scanNow = session('scan');
+                    $scanStats = session('scan_stats');
+                    $scanStats = is_array($scanStats) && ($scanStats['date'] ?? '') === now()->toDateString() ? $scanStats : ['in' => 0, 'out' => 0, 'bad' => 0];
+                    $scanLog = ($scanStats['in'] + $scanStats['out'] + $scanStats['bad'] > 0 || is_array($scanNow)) ? session('scan_log', []) : [];
+                    $undoToken = is_array($scanNow) ? ($scanNow['undo'] ?? null) : null;
+                @endphp
+                <section class="scan-station" id="scanStation" aria-label="Scan Station" @if (!request()->boolean('scanned')) hidden @endif data-opened="{{ request()->boolean('scanned') ? '1' : '0' }}">
+                    <div class="ss-left">
+                        <div class="ss-head">
+                            <strong><i class="bi bi-upc-scan"></i> Scan Station</strong>
+                            <button type="button" class="ss-close" data-scan-toggle aria-label="Close the Scan Station"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <div class="ss-mode" role="group" aria-label="Scan type">
+                            <button type="button" data-scan-mode="in" aria-pressed="true"><i class="bi bi-box-arrow-in-down"></i> Arriving (IN)</button>
+                            <button type="button" data-scan-mode="out" aria-pressed="false"><i class="bi bi-truck"></i> Leaving (OUT)</button>
+                        </div>
+                        <div class="ss-cam" id="scanCam" hidden>
+                            <div id="scanCamView" class="scan-cam-view"></div>
+                            <span><i class="bi bi-qr-code-scan"></i> Hold the waybill's QR code up to the camera.</span>
+                        </div>
+                        <form method="POST" action="{{ route('logistics.parcels.scan') }}" id="parcelScanForm" class="ss-input" autocomplete="off">
+                            @csrf
+                            <input type="hidden" name="mode" value="in" id="scanMode">
+                            <i class="bi bi-upc"></i>
+                            <input type="text" name="code" id="scanCode" placeholder="Scan or type a waybill no." aria-label="Waybill to scan" required>
+                            <button type="submit">Go</button>
+                        </form>
+                        <div class="ss-tools">
+                            <span class="ss-ready"><b></b> USB scanner ready</span>
+                            <button type="button" class="ss-cam-btn" data-scan-cam aria-label="Scan with the camera"><i class="bi bi-camera-fill"></i> <span>Camera</span></button>
+                        </div>
+                    </div>
+                    <div class="ss-right">
+                        <div class="ss-stats">
+                            <div><small>IN today</small><strong>{{ $scanStats['in'] }}</strong></div>
+                            <div><small>OUT today</small><strong>{{ $scanStats['out'] }}</strong></div>
+                            <div><small>Problems</small><strong class="is-bad">{{ $scanStats['bad'] }}</strong></div>
+                        </div>
+                        <h3>Last scans</h3>
+                        <ul class="ss-log" role="status">
+                            @forelse ($scanLog as $row)
+                                <li class="ss-row is-{{ $row['kind'] }}">
+                                    <i class="bi {{ ['done' => 'bi-check-circle-fill', 'manual' => 'bi-hand-index-thumb-fill', 'warn' => 'bi-exclamation-triangle-fill', 'bad' => 'bi-x-octagon-fill', 'undone' => 'bi-arrow-counterclockwise'][$row['kind']] ?? 'bi-dot' }}"></i>
+                                    <span>{{ $row['message'] }}</span>
+                                    @if ($undoToken && ($row['undo'] ?? null) === $undoToken)
+                                        <form method="POST" action="{{ route('logistics.parcels.scan.undo') }}" class="scan-undo" data-scan-undo data-seconds="10">
+                                            @csrf
+                                            <input type="hidden" name="token" value="{{ $undoToken }}">
+                                            <button type="submit"><i class="bi bi-arrow-counterclockwise"></i> Undo <small data-scan-undo-left>10</small></button>
+                                        </form>
+                                    @endif
+                                </li>
+                            @empty
+                                <li class="ss-row is-empty"><span>No scans yet. Ready.</span></li>
+                            @endforelse
+                        </ul>
+                        <p class="ss-note">Assigning the rider, the buyer's pickup code and returns are still done with the buttons below.</p>
+                    </div>
+                </section>
+            @endif
 
             <div id="liveResults">
 
@@ -303,9 +375,11 @@
             <h2 class="section-heading" id="to-dispatch"><i class="bi bi-send-fill"></i> To Dispatch ({{ count($toDispatch) }})</h2>
 
             {{-- One click per destination when several parcels go the same way. --}}
+            {{-- Hub relay: the truck's next stop (a hub on the way, or the buyer's center). --}}
+            @php $hopOf = fn ($o) => \App\Support\HubRoute::nextHop((int) $o->current_center_id, (int) $o->destination_center_id); @endphp
             @if (count($toDispatch) > 1)
                 <div class="dispatch-batch">
-                    @foreach ($toDispatch->groupBy('destination_center_id') as $destinationId => $group)
+                    @foreach ($toDispatch->groupBy($hopOf) as $destinationId => $group)
                         <form method="POST" action="{{ route('logistics.parcels.dispatch-all') }}" data-confirm="Dispatch all {{ count($group) }} parcel(s) to {{ $centerNames[$destinationId] ?? 'that center' }}?" data-confirm-ok="Dispatch All">
                             @csrf
                             <input type="hidden" name="destination_center_id" value="{{ $destinationId }}">
@@ -332,7 +406,8 @@
                     <div class="app-actions">
                         <form method="POST" action="{{ route('logistics.parcels.dispatch', $order->id) }}">
                             @csrf
-                            <button type="submit" class="approve-btn"><i class="bi bi-send-fill"></i> Dispatch to {{ $centerNames[$order->destination_center_id] ?? 'destination' }}</button>
+                            @php $hop = $hopOf($order); @endphp
+                            <button type="submit" class="approve-btn"><i class="bi bi-send-fill"></i> Dispatch to {{ $centerNames[$hop] ?? 'destination' }}@if ($hop !== (int) $order->destination_center_id) <small class="hub-note">· hub on the way to {{ $centerNames[$order->destination_center_id] ?? 'the buyer center' }}</small>@endif</button>
                         </form>
                     </div>
 
@@ -975,6 +1050,108 @@
             });
         })();
     </script>
+
+    @if ($canScan)
+    <script>
+        // Scan Station: open / close, the IN / OUT switch, the camera, and Undo.
+        // A USB scanner types the waybill into the box and presses Enter itself.
+        (function () {
+            var station = document.getElementById('scanStation');
+            var form = document.getElementById('parcelScanForm');
+            var code = document.getElementById('scanCode');
+            var modeInput = document.getElementById('scanMode');
+            if (!station || !form || !code) return;
+
+            var OPEN = 'bbScanStation', MODE = 'bbScanMode', CAM = 'bbScanCamera';
+            function get(k) { try { return sessionStorage.getItem(k); } catch (e) { return null; } }
+            function set(k, v) { try { v === null ? sessionStorage.removeItem(k) : sessionStorage.setItem(k, v); } catch (e) {} }
+
+            var toggles = document.querySelectorAll('[data-scan-toggle]');
+            var openBtn = document.querySelector('.ss-open-btn');
+
+            function show(open) {
+                station.hidden = !open;
+                set(OPEN, open ? '1' : null);
+                if (openBtn) {
+                    openBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+                    openBtn.querySelector('span').textContent = open ? 'Close Scan Station' : 'Open Scan Station';
+                }
+                if (open) code.focus(); else closeCam();
+            }
+            toggles.forEach(function (b) { b.addEventListener('click', function () { show(station.hidden); }); });
+
+            // IN / OUT
+            var modeBtns = station.querySelectorAll('[data-scan-mode]');
+            function setMode(m) {
+                modeInput.value = m;
+                set(MODE, m);
+                modeBtns.forEach(function (b) { b.setAttribute('aria-pressed', b.dataset.scanMode === m ? 'true' : 'false'); });
+                code.focus();
+            }
+            modeBtns.forEach(function (b) { b.addEventListener('click', function () { setMode(b.dataset.scanMode); }); });
+            setMode(get(MODE) === 'out' ? 'out' : 'in');
+
+            // Undo: a few seconds, counted down on the button.
+            var undo = station.querySelector('[data-scan-undo]');
+            if (undo) {
+                var left = parseInt(undo.dataset.seconds, 10) || 10;
+                var label = undo.querySelector('[data-scan-undo-left]');
+                var tick = setInterval(function () {
+                    left -= 1;
+                    if (label) label.textContent = left;
+                    if (left <= 0) { clearInterval(tick); undo.remove(); }
+                }, 1000);
+            }
+
+            // Camera: reads the waybill's QR code and sends it; it opens again
+            // after the page reloads so parcels can be scanned one after another.
+            var cam = document.getElementById('scanCam');
+            var camBtn = station.querySelector('[data-scan-cam]');
+            var reader = null;
+
+            function loadLib(done) {
+                if (window.Html5Qrcode) return done();
+                var s = document.createElement('script');
+                s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js';
+                s.onload = done;
+                s.onerror = function () { closeCam(); if (window.bbAlert) bbAlert('The camera scanner could not load. Use the USB scanner or type the waybill no.'); };
+                document.head.appendChild(s);
+            }
+
+            function openCam() {
+                cam.hidden = false;
+                set(CAM, '1');
+                camBtn.querySelector('span').textContent = 'Close camera';
+                loadLib(function () {
+                    reader = new Html5Qrcode('scanCamView');
+                    reader.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 200, height: 200 } }, function (text) {
+                        reader.stop().catch(function () {}).finally(function () { code.value = text; form.submit(); });
+                    }).catch(function () {
+                        closeCam();
+                        if (window.bbAlert) bbAlert('Allow the camera for boombuy.store to scan, or use the USB scanner / type the waybill no.');
+                    });
+                });
+            }
+
+            function closeCam() {
+                if (!cam || cam.hidden) return;
+                set(CAM, null);
+                if (reader) { reader.stop().catch(function () {}); reader = null; }
+                cam.hidden = true;
+                camBtn.querySelector('span').textContent = 'Camera';
+            }
+
+            camBtn.addEventListener('click', function () { cam.hidden ? openCam() : (closeCam(), code.focus()); });
+
+            // Open again after a scan, or if it was left open.
+            if (station.dataset.opened === '1' || get(OPEN) === '1') {
+                show(true);
+                if (get(CAM) === '1') openCam();
+            }
+        })();
+    </script>
+    @endif
+
 
     @include('partials.live-search')
     @include('partials.pwa-register')

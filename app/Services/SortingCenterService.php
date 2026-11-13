@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Exceptions\ActionFailed;
 use App\Support\ChatAutomation;
 use App\Support\CodPolicy;
+use App\Support\HubRoute;
 use App\Support\OrderTimeline;
 use App\Support\ParcelRoute;
 use Illuminate\Support\Facades\DB;
@@ -100,7 +101,16 @@ class SortingCenterService
             $orderId
         );
 
-        return 'Parcel #' . $orderId . ' confirmed as received.' . ($goesOn ? ' Next: dispatch it to ' . $nextName . '.' : '');
+        return 'Parcel #' . $orderId . ' confirmed as received.' . ($goesOn ? ' Next: dispatch it to ' . $this->hopName((int) $here, (int) $order->destination_center_id) . '.' : '');
+    }
+
+    /** "Hub X (on the way to Y)" for a relay leg, or just Y on the last leg. */
+    private function hopName(int $here, int $destinationId): string
+    {
+        $hop = HubRoute::nextHop($here, $destinationId);
+        $name = ParcelRoute::centerName($hop) ?? 'the next Sorting Center';
+
+        return $hop === $destinationId ? $name : $name . ' (hub on the way to ' . ParcelRoute::centerName($destinationId) . ')';
     }
 
     /**
@@ -118,9 +128,21 @@ class SortingCenterService
 
         $this->mustBeAt($order->current_center_id, $centerId, 'is not at your Sorting Center');
 
+        $destinationId = (int) $order->destination_center_id;
+        $destinationName = ParcelRoute::centerName($destinationId);
+        $fromId = (int) $order->current_center_id;
+        $fromName = ParcelRoute::centerName($fromId) ?? 'another Sorting Center';
+
+        // Hub relay: the truck goes to the next hub on the way (legs of up to
+        // HubRoute::LEG_KM), or straight to the buyer's center on the last leg.
+        $hopId = HubRoute::nextHop($fromId, $destinationId);
+        $hopName = ParcelRoute::centerName($hopId) ?? $destinationName;
+        $isRelay = $hopId !== $destinationId;
+
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'At Sorting Center')->update([
             'status' => 'In Transit',
             'current_center_id' => null,
+            'next_center_id' => $hopId,
             'dispatched_at' => now(),
             'updated_at' => now(),
         ]);
@@ -129,34 +151,34 @@ class SortingCenterService
             throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
         }
 
-        $destinationId = (int) $order->destination_center_id;
-        $destinationName = ParcelRoute::centerName($destinationId);
-
         OrderTimeline::log(
             $orderId,
             'In Transit',
-            'On its way to ' . $destinationName,
-            'Dispatched from ' . (ParcelRoute::centerName((int) $order->current_center_id) ?? 'another Sorting Center'),
-            (int) $order->current_center_id
+            $isRelay ? 'On its way to ' . $hopName . ' (hub)' : 'On its way to ' . $destinationName,
+            'Dispatched from ' . $fromName,
+            $fromId
         );
 
-        createNotification(
-            (int) $order->buyer_id,
-            'Parcel In Transit',
-            'Your order #' . $orderId . ' is on its way to ' . $destinationName . ', the Sorting Center near you.',
-            'order',
-            $orderId
-        );
+        // The buyer hears when it leaves the seller's center and on the last leg, not at every hub.
+        if (!$isRelay || $fromId === (int) $order->origin_center_id) {
+            createNotification(
+                (int) $order->buyer_id,
+                'Parcel In Transit',
+                'Your order #' . $orderId . ' is on its way to ' . $destinationName . ', the Sorting Center near you.',
+                'order',
+                $orderId
+            );
+        }
 
         ParcelRoute::notifyCenter(
-            $destinationId,
+            $hopId,
             'Incoming Parcel',
-            'Order #' . $orderId . ' was dispatched to you from ' . (ParcelRoute::centerName((int) $order->current_center_id) ?? 'another Sorting Center') . '. Confirm when it arrives.',
+            'Order #' . $orderId . ' was dispatched to you from ' . $fromName . ($isRelay ? ' (passing through on its way to ' . $destinationName . ')' : '') . '. Confirm when it arrives.',
             'parcel',
             $orderId
         );
 
-        return 'Parcel #' . $orderId . ' dispatched to ' . $destinationName . '.';
+        return 'Parcel #' . $orderId . ' dispatched to ' . ($isRelay ? $hopName . ' (hub on the way to ' . $destinationName . ')' : $destinationName) . '.';
     }
 
     /**
@@ -166,13 +188,18 @@ class SortingCenterService
      */
     public function dispatchAll(int $destinationCenterId, ?int $centerId = null): string
     {
+        // $destinationCenterId is the truck's next stop: a hub on the way, or the
+        // buyer's center (parcels for that center going through a hub count too).
         $ids = DB::table('orders')
             ->where('status', 'At Sorting Center')
-            ->where('destination_center_id', $destinationCenterId)
+            ->whereNotNull('destination_center_id')
             ->whereNotNull('current_center_id')
             ->whereColumn('current_center_id', '!=', 'destination_center_id')
             ->when($centerId, fn ($q) => $q->where('current_center_id', $centerId))
             ->orderBy('id')
+            ->get(['id', 'current_center_id', 'destination_center_id'])
+            ->filter(fn ($o) => (int) $o->destination_center_id === $destinationCenterId
+                || HubRoute::nextHop((int) $o->current_center_id, (int) $o->destination_center_id) === $destinationCenterId)
             ->pluck('id');
 
         if ($ids->isEmpty()) {
@@ -199,17 +226,29 @@ class SortingCenterService
             throw new ActionFailed('This parcel is not in transit.');
         }
 
-        $this->mustBeAt($order->destination_center_id, $centerId, 'is headed to another Sorting Center');
+        // Hub relay: the truck's stop is the next hub (or, with no hub set, the buyer's center).
+        $stopId = (int) ($order->next_center_id ?? 0) ?: (int) $order->destination_center_id;
+
+        $this->mustBeAt($stopId, $centerId, 'is headed to another Sorting Center');
 
         $updated = DB::table('orders')->where('id', $orderId)->where('status', 'In Transit')->update([
             'status' => 'At Sorting Center',
-            'current_center_id' => $order->destination_center_id,
+            'current_center_id' => $stopId,
+            'next_center_id' => null,
             'sorting_center_received_at' => now(),
             'updated_at' => now(),
         ]);
 
         if (!$updated) {
             throw new ActionFailed('This parcel was just updated. Please refresh and try again.');
+        }
+
+        // A hub on the way: it only passes through — on to the next stop.
+        if ($stopId !== (int) $order->destination_center_id) {
+            $hubName = ParcelRoute::centerName($stopId) ?? 'a hub';
+            OrderTimeline::log($orderId, 'At Sorting Center', 'Arrived at ' . $hubName . ' (hub)', 'Passing through on its way to ' . ParcelRoute::centerName((int) $order->destination_center_id), $stopId);
+
+            return 'Parcel #' . $orderId . ' confirmed at this hub. Next: dispatch it to ' . $this->hopName($stopId, (int) $order->destination_center_id) . '.';
         }
 
         $hereName = ParcelRoute::centerName((int) $order->destination_center_id) ?? 'the Sorting Center near you';

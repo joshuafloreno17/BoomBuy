@@ -85,6 +85,10 @@ class ShippingLabel
             'collect' => $isCod ? (float) $order->total_amount : 0.0,
             'origin' => $origin->name ?? null,
             'destination' => ($destination ?? $origin)->name ?? null,
+            // Hub relay: the centers the truck passes in between.
+            'hubs' => ($origin && $destination)
+                ? array_values(array_filter(array_map(fn ($id) => ParcelRoute::centerName((int) $id), HubRoute::relays((int) $origin->id, (int) $destination->id))))
+                : [],
             'to_name' => (string) $order->shipping_name,
             'to_address' => (string) $order->shipping_address,
             'to_phone' => (string) $order->shipping_phone,

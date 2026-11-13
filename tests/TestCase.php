@@ -13,5 +13,8 @@ abstract class TestCase extends BaseTestCase
 
         // Private uploads (delivery photos, IDs) never land in the real storage folder.
         Storage::fake('local');
+
+        // Hub relay routes are worked out per database; never carry them between tests.
+        \App\Support\HubRoute::flush();
     }
 }

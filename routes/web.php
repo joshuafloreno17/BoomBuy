@@ -948,6 +948,9 @@ Route::post('/logistics/parcels/{id}/confirm-received', [LogisticsController::cl
 
 // A scanned shipping label's QR code lands here.
 Route::get('/logistics/scan/{code}', [LogisticsController::class, 'scanParcel'])->name('logistics.scan');
+// Scan-only hub work on the Parcels page: a waybill scan does the parcel's next step here.
+Route::post('/logistics/parcels/scan', [LogisticsController::class, 'scanStep'])->name('logistics.parcels.scan');
+Route::post('/logistics/parcels/scan/undo', [LogisticsController::class, 'undoScan'])->name('logistics.parcels.scan.undo');
 
 Route::post('/logistics/parcels/{id}/dispatch', [LogisticsController::class, 'dispatchParcel'])->name('logistics.parcels.dispatch');
 Route::post('/logistics/parcels/{id}/sort', [LogisticsController::class, 'sortParcel'])->whereNumber('id')->name('logistics.parcels.sort');

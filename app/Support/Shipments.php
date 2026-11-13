@@ -28,6 +28,7 @@ class Shipments
             ->whereIn('orders.status', $all)
             ->when($centerId, fn ($q) => $q->where(fn ($c) => $c->where('orders.origin_center_id', $centerId)
                 ->orWhere('orders.destination_center_id', $centerId)
+                ->orWhere('orders.next_center_id', $centerId)
                 ->orWhere('orders.current_center_id', $centerId)
                 ->orWhere('orders.branch_id', $centerId)))
             ->when($from, fn ($q) => $q->whereDate('orders.created_at', '>=', $from))

@@ -111,6 +111,16 @@ class JourneyScenariosTest extends TestCase
         $this->post(route('logistics.parcels.dispatch', $order->id))->assertSessionHas('success');
         $this->assertSame('In Transit', $this->orderStatus($order->id));
 
+        // Hub relay: across the islands the truck stops at hubs on the way
+        // (legs of up to 150 km); each hub confirms it and sends it on.
+        $hops = 0;
+        while (($next = (int) DB::table('orders')->where('id', $order->id)->value('next_center_id')) && $next !== $cebu->id) {
+            $this->assertLessThan(20, ++$hops, 'The relay never reached Cebu.');
+            $hubStaff = $this->staffAt(\App\Models\SortingCenter::find($next));
+            $this->as($hubStaff)->post(route('logistics.parcels.confirm-arrival', $order->id))->assertSessionHas('success');
+            $this->post(route('logistics.parcels.dispatch', $order->id))->assertSessionHas('success');
+        }
+
         $this->as($cebuStaff)->post(route('logistics.parcels.confirm-arrival', $order->id))->assertSessionHas('success');
         $this->post(route('logistics.parcels.assign', $this->sorted($order->id)), ['rider_id' => $cebuRider->id])->assertSessionHas('success');
         $this->riderTakes($order->id, $cebuRider);

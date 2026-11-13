@@ -272,6 +272,51 @@ class BranchScenariosTest extends TestCase
         $this->actingAsUser($this->buyer)->get(route('buyer.orders'))->assertOk();
     }
 
+    public function test_BR06_scan_only_seller_branch_to_buyer_branch(): void
+    {
+        $mandaue = $this->branchOf($this->cebu, 'Mandaue City');
+        $mandaueStaff = $this->staffAt($mandaue);
+        $pickupRider = $this->riderFor($this->cebu, 'Mandaue City');
+        $seller = User::find($this->phone->seller_id);
+        $seller->forceFill(['city_municipality' => 'Mandaue City', 'address' => 'Poblacion, Mandaue City, Cebu'])->save();
+
+        $id = $this->makeOrder($this->buyer, $this->phone, 'Preparing', [
+            'shipping_address' => self::LAGUNA_ADDRESS, 'shipping_province' => 'Laguna', 'shipping_city' => 'Santa Cruz',
+            'origin_center_id' => $this->cebu->id, 'destination_center_id' => $this->laguna->id,
+        ]);
+        $this->actingAsUser($seller)->post(route('seller.order.pickup', $id), ['pickup_date' => now()->toDateString()]);
+        $this->actingAsUser($pickupRider)->post(route('rider.pickup.accept', $id));
+        $this->actingAsUser($pickupRider)->post(route('rider.pickup.picked-up', $id));
+
+        $waybill = \App\Support\Waybill::number($id);
+        $scan = function (User $staff, string $expected) use ($id, $waybill) {
+            $this->travel(31)->seconds();
+            $this->actingAsUser($staff)->post(route('logistics.parcels.scan'), ['code' => $waybill])->assertSessionHas('scan.ok', true);
+            $this->assertSame($expected, $this->orderStatusOf($id));
+        };
+
+        // The Cebu center can't take it from the rider — the branch scans it in.
+        $this->actingAsUser($this->cebuStaff)->post(route('logistics.parcels.scan'), ['code' => $waybill])->assertSessionHas('scan.ok', false);
+        $this->assertSame('Picked Up', $this->orderStatusOf($id));
+
+        $scan($mandaueStaff, 'Received at Branch');   // in at the seller's branch
+        $scan($mandaueStaff, 'To Sorting Center');    // onto the truck to Cebu
+        $scan($this->cebuStaff, 'At Sorting Center'); // in at Cebu
+        $scan($this->cebuStaff, 'In Transit');        // out to Laguna
+        $scan($this->lagunaStaff, 'Sorted');          // in at Laguna, sorted to the Santa Cruz branch
+        $scan($this->lagunaStaff, 'To Branch');       // out to Santa Cruz
+        $scan($this->branchStaff, 'At Branch');       // in at the buyer's branch
+
+        // Choosing the rider is still a person's job.
+        $this->travel(31)->seconds();
+        $this->actingAsUser($this->branchStaff)->post(route('logistics.parcels.scan'), ['code' => $waybill])->assertSessionHas('scan.kind', 'manual');
+        $this->assertSame('At Branch', $this->orderStatusOf($id));
+
+        foreach (['Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch'] as $step) {
+            $this->assertContains($step, DB::table('order_events')->where('order_id', $id)->pluck('status')->all());
+        }
+    }
+
     public function test_BR07_sorting_center_staff_open_branches_and_add_staff(): void
     {
         $this->actingAsUser($this->lagunaStaff)->get(route('logistics.branches'))->assertOk()->assertSee('BoomBuy Branch – Santa Cruz');

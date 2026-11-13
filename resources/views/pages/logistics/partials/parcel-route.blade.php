@@ -9,7 +9,9 @@
     $cn = fn ($id) => $id ? ($centerNames[$id] ?? null) : null;
 
     $routeStops = [['id' => null, 'name' => 'Seller']];
-    foreach ([$order->origin_branch_id ?? null, $order->origin_center_id ?? null, $order->destination_center_id ?? null, $order->branch_id ?? null] as $stopId) {
+    // Hub relay: the centers on the way between the seller's and the buyer's center.
+    $relays = \App\Support\HubRoute::relaysFor($order);
+    foreach (array_merge([$order->origin_branch_id ?? null, $order->origin_center_id ?? null], $relays, [$order->destination_center_id ?? null, $order->branch_id ?? null]) as $stopId) {
         if ($stopId && !collect($routeStops)->contains('id', (int) $stopId) && $cn($stopId)) {
             $routeStops[] = ['id' => (int) $stopId, 'name' => $cn($stopId)];
         }
@@ -31,7 +33,10 @@
         in_array($st, ['Pending', 'Confirmed', 'Preparing', 'Ready for Pickup', 'Pickup Assigned'], true) => [0, null, false],
         in_array($st, ['Picked Up', 'Dropped Off'], true) => [0, 1, false],
         $st === 'To Sorting Center' => [$idx($order->origin_branch_id ?? null) ?? 0, $idx($order->origin_center_id ?? null), false],
-        $st === 'In Transit' => [$idx($order->origin_center_id ?? null) ?? 1, $idx($order->destination_center_id ?? null), false],
+        $st === 'In Transit' => (function () use ($idx, $order) {
+            $to = $idx(($order->next_center_id ?? null) ?: ($order->destination_center_id ?? null));
+            return [$to !== null && $to > 1 ? $to - 1 : ($idx($order->origin_center_id ?? null) ?? 1), $to, false];
+        })(),
         $st === 'To Branch' => [$idx($order->destination_center_id ?? $order->origin_center_id ?? null) ?? 1, $idx($order->branch_id ?? null), false],
         in_array($st, ['Assigned for Delivery', 'Out for Delivery'], true) => [$idx($order->current_center_id ?? null) ?? $lastCenter, $last, false],
         $st === 'Delivery Failed' => [$last, null, true],

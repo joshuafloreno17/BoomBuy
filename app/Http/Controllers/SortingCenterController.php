@@ -56,7 +56,7 @@ class SortingCenterController extends Controller
         // Parcels each center is holding or expecting right now.
         $parcelCounts = DB::table('orders')
             ->whereIn('status', ['Picked Up', 'Dropped Off', 'Received at Branch', 'To Sorting Center', 'At Sorting Center', 'In Transit', 'Sorted', 'To Branch', 'At Branch'])
-            ->selectRaw('COALESCE(current_center_id, CASE WHEN status = ? THEN destination_center_id ELSE origin_center_id END) as center_id, COUNT(*) as total', ['In Transit'])
+            ->selectRaw('COALESCE(current_center_id, CASE WHEN status = ? THEN COALESCE(next_center_id, destination_center_id) ELSE origin_center_id END) as center_id, COUNT(*) as total', ['In Transit'])
             ->groupBy('center_id')
             ->pluck('total', 'center_id');
 

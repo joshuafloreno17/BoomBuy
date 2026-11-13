@@ -36,6 +36,15 @@ class TrackMap
             }
             $stops[] = [$rank, PlaceCoordinates::of($center->city_municipality, $center->province)];
             $stopCenter[$rank] = $center;
+            // Hub relay: the truck also passes the hubs between the two centers.
+            if ($rank === 6) {
+                foreach (HubRoute::relaysFor($order) as $n => $hubId) {
+                    $hub = AppModelsSortingCenter::find($hubId);
+                    if ($hub) {
+                        $stops[] = ['hub' . $n, PlaceCoordinates::of($hub->city_municipality, $hub->province, false)];
+                    }
+                }
+            }
         }
         if (!$pickup) {
             $stops[] = ['buyer', PlaceCoordinates::of($order->shipping_city ?? null, $order->shipping_province ?? null)];

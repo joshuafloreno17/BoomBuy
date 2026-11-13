@@ -69,6 +69,10 @@
         </div>
     </section>
 
+    @if (!empty($label['hubs']))
+        <p class="label-hubs" style="margin:4px 0 8px;font-size:12px;"><i class="bi bi-signpost-split" aria-hidden="true"></i> Via hubs: {{ implode(' → ', array_map($place, $label['hubs'])) }}</p>
+    @endif
+
     <section class="label-party is-to">
         <span>Deliver to</span>
         <strong>{{ $label['to_name'] }}</strong>

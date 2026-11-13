@@ -233,6 +233,7 @@ class LogisticsController extends Controller
             } elseif ($myCenter) {
                 $query->where(fn ($q) => $q->where('origin_center_id', $myCenter->id)
                     ->orWhere('destination_center_id', $myCenter->id)
+                    ->orWhere('next_center_id', $myCenter->id)
                     ->orWhere('current_center_id', $myCenter->id)
                     ->orWhere('branch_id', $myCenter->id)
                     ->orWhere('origin_branch_id', $myCenter->id)
@@ -956,6 +957,115 @@ class LogisticsController extends Controller
         return redirect()->route('logistics.parcels', ['q' => \App\Support\Waybill::number($orderId)]);
     }
 
+    /**
+     * The Parcels page scan box. A waybill scanned at a center or branch does
+     * the parcel's next step there; anything else (an order no., a name), and
+     * every scan by head office, is just a search.
+     */
+    public function scanStep(\App\Services\ParcelScanService $scans)
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $code = trim(mb_substr((string) request('code'), 0, 300));
+        $center = $this->staffCenter($user);
+
+        if ($code === '' || !$center || !\App\Services\ParcelScanService::looksLikeWaybill($code)) {
+            return redirect()->route('logistics.parcels', array_filter(['q' => $code]));
+        }
+
+        // The Scan Station's IN / OUT switch (none = the parcel's own next step).
+        $mode = in_array(request('mode'), ['in', 'out'], true) ? request('mode') : null;
+        $shown = mb_substr($code, 0, 40);
+
+        try {
+            $result = $scans->scan($code, (int) $center->id, $mode);
+        } catch (ActionFailed $e) {
+            $message = $e->getMessage();
+            $kind = str_starts_with($message, 'Already scanned') || str_starts_with($message, 'Wrong mode') ? 'warn' : 'bad';
+            $this->logScan($kind, $shown, $message);
+
+            return redirect()->route('logistics.parcels', ['scanned' => 1])->with('scan', ['ok' => false, 'kind' => $kind, 'message' => $message]);
+        }
+
+        $this->logScan($result['kind'], $result['waybill'], $result['message'], $result['undo'] ?? null, $result['dir'] ?? null);
+
+        // A step that needs a person: open the parcel so its button is right there.
+        $query = $result['kind'] === 'manual' ? ['q' => \App\Support\Waybill::number($result['order_id']), 'scanned' => 1] : ['scanned' => 1];
+
+        return redirect()->route('logistics.parcels', $query)->with('scan', $result);
+    }
+
+    /**
+     * The Scan Station's list of recent scans and today's counts, kept in the
+     * staff member's session (newest first, the last 6).
+     */
+    private function logScan(string $kind, string $waybill, string $message, ?string $undo = null, ?string $dir = null): void
+    {
+        $today = now()->toDateString();
+        $stats = session('scan_stats');
+
+        if (!is_array($stats) || ($stats['date'] ?? '') !== $today) {
+            $stats = ['date' => $today, 'in' => 0, 'out' => 0, 'bad' => 0];
+            session()->forget('scan_log');
+        }
+
+        if ($kind === 'done' && $dir) {
+            $stats[$dir]++;
+        } elseif ($kind === 'bad') {
+            $stats['bad']++;
+        }
+
+        $log = session('scan_log', []);
+        array_unshift($log, ['kind' => $kind, 'waybill' => $waybill, 'message' => $message, 'undo' => $undo, 'dir' => $dir]);
+
+        session()->put('scan_log', array_slice($log, 0, 6));
+        session()->put('scan_stats', $stats);
+    }
+
+    public function undoScan(\App\Services\ParcelScanService $scans)
+    {
+        $user = requireUserRole('logistics');
+
+        if (!is_array($user)) {
+            return $user;
+        }
+
+        $center = $this->staffCenter($user);
+
+        try {
+            $token = (string) request('token');
+            $message = $center ? $scans->undo($token, (int) $center->id) : throw new ActionFailed('That scan can no longer be undone.');
+
+            // Mark it undone in the Scan Station list and take it off today's count.
+            $log = session('scan_log', []);
+            $stats = session('scan_stats');
+
+            foreach ($log as $i => $row) {
+                if (($row['undo'] ?? null) === $token) {
+                    if (is_array($stats) && !empty($row['dir']) && $stats[$row['dir']] > 0) {
+                        $stats[$row['dir']]--;
+                    }
+
+                    $log[$i] = ['kind' => 'undone', 'waybill' => $row['waybill'], 'message' => $message, 'undo' => null, 'dir' => null];
+                }
+            }
+
+            session()->put('scan_log', $log);
+
+            if (is_array($stats)) {
+                session()->put('scan_stats', $stats);
+            }
+
+            return redirect()->route('logistics.parcels', ['scanned' => 1])->with('scan', ['ok' => true, 'kind' => 'undone', 'message' => $message]);
+        } catch (ActionFailed $e) {
+            return redirect()->route('logistics.parcels', ['scanned' => 1])->with('scan', ['ok' => false, 'message' => $e->getMessage()]);
+        }
+    }
+
     public function confirmParcelReceived($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmReceived((int) $id, $myCenter));
@@ -1211,7 +1321,10 @@ class LogisticsController extends Controller
             // Dispatched from another center to this one.
             'incoming' => $matching()
                 ->where('status', 'In Transit')
-                ->where($mine('destination_center_id'))
+                // Hub relay: headed here as its next stop (a hub on the way, or the buyer's center).
+                ->where(fn ($q) => $myCenter
+                    ? $q->where('next_center_id', $myCenter->id)->orWhere(fn ($w) => $w->whereNull('next_center_id')->where($mine('destination_center_id')))
+                    : $q)
                 ->orderBy('dispatched_at')
                 ->get(),
 
