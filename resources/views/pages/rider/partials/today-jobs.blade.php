@@ -9,7 +9,8 @@
     $tjDeliveries = collect($myDeliveryAssignments ?? [])->sortBy(fn ($o) => ($o['status'] ?? '') === 'Out for Delivery' ? 0 : 1)->values();
     $tjMine = collect($pickupsMine ?? []);
     $tjOffers = collect($pickupsAvailable ?? []);
-    $tjTodo = $tjDeliveries->count() + $tjMine->count();
+    $tjReturns = collect($returnPickups ?? []);
+    $tjTodo = $tjDeliveries->count() + $tjMine->count() + $tjReturns->count();
     $tjDoneList = collect($delivered ?? [])->filter(fn ($o) => !empty($o['delivered_at'] ?? null) && \Illuminate\Support\Carbon::parse($o['delivered_at'])->isToday())
         ->sortByDesc('delivered_at')->values();
     $tjDone = $tjDoneList->count();
@@ -113,6 +114,43 @@
         </article>
     @endforeach
 
+    @foreach($tjReturns as $rp)
+        @php $rpAddress = $rp->shipping_address ?: trim(($rp->shipping_city ?? '') . ', ' . ($rp->shipping_province ?? ''), ', '); $rpToGet = $rp->status === 'approved'; @endphp
+        <article @class(['tj-card', 'is-return', 'is-now' => $rpToGet])>
+            <div class="tj-tags">
+                <span class="tj-tag is-return">Return</span>
+                <span class="tj-wb">Return #{{ $rp->id }} · Order #{{ $rp->order_id }}</span>
+                <span class="tj-state">{{ $rpToGet ? 'Get it from the buyer' : 'With you' }}</span>
+            </div>
+            <div class="tj-who">
+                <strong>{{ $rp->shipping_name }}</strong>
+                <span>{{ $rpAddress ?: 'Ask the buyer for the address' }}</span>
+            </div>
+            <div class="tj-money"><span>{{ ($rp->quantity ?? 1) . '× ' . ($rp->product_name ?? 'Item') }} · {{ $rp->reason }}</span></div>
+            <div class="tj-money"><span>Bring it to <b>{{ $rp->center_name ?? 'the Sorting Center' }}</b></span></div>
+
+            @if($rpToGet)
+                <form method="POST" action="{{ route('rider.return-pickup.picked-up', $rp->id) }}" enctype="multipart/form-data" class="tj-return-form">
+                    @csrf
+                    <label class="tj-btn is-main is-green tj-photo-btn">
+                        <i class="bi bi-camera-fill"></i> <span>Take photo — picked up</span>
+                        <input type="file" name="photo" accept="image/*" capture="environment" required aria-label="Photo of the returned item">
+                    </label>
+                </form>
+                <div class="tj-actions">
+                    @if($rp->shipping_phone)
+                        <a href="tel:{{ $rp->shipping_phone }}" class="tj-btn is-ghost"><i class="bi bi-telephone-fill"></i> Call buyer</a>
+                    @endif
+                    @if($rpAddress)
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ rawurlencode($rpAddress) }}" target="_blank" rel="noopener" class="tj-btn is-ghost"><i class="bi bi-map-fill"></i> Map</a>
+                    @endif
+                </div>
+            @else
+                <p class="tj-note"><i class="bi bi-signpost-2-fill"></i> Bring it to {{ $rp->center_name ?? 'the Sorting Center' }}. Staff there will tap "Received".</p>
+            @endif
+        </article>
+    @endforeach
+
     @foreach($tjOffers as $order)
         <article class="tj-card is-offer">
             <div class="tj-offer-text">
@@ -148,3 +186,16 @@
         </a>
     @endforeach
 </section>
+
+<script>
+    // Return pickup: choosing the photo sends it right away (no separate "Choose File" + button).
+    document.querySelectorAll('.tj-return-form input[type=file]').forEach(function (input) {
+        input.addEventListener('change', function () {
+            if (!input.files.length) return;
+            var label = input.closest('label');
+            label.classList.add('is-busy');
+            label.querySelector('span').textContent = 'Sending photo…';
+            input.form.submit();
+        });
+    });
+</script>

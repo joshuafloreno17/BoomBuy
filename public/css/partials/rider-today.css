@@ -288,6 +288,39 @@
     background: #15803d;
 }
 
+/* Buyer return to collect (from the Sorting Center). */
+.tj-tag.is-return {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.tj-card.is-return.is-now {
+    border-color: #d97706;
+}
+
+.tj-return-form {
+    margin: 0;
+}
+
+.tj-photo-btn {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+}
+
+.tj-photo-btn input[type=file] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.tj-photo-btn.is-busy {
+    opacity: .7;
+    pointer-events: none;
+}
+
 .tj-btn.is-ghost {
     background: #ffffff;
     border: 1px solid var(--theme-border);

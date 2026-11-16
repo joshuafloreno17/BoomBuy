@@ -157,9 +157,12 @@ class RiderController extends Controller
         // Earned today (pickups + deliveries) for the Today tiles.
         $payToday = \App\Support\RiderJobs::pay((int) $user['id'], now()->startOfDay(), now()->endOfDay());
 
+        // Buyer returns the Sorting Center gave this rider: on Today too, not only under More.
+        $returnPickups = app(\App\Services\ReturnRefundService::class)->riderPickups((int) $user['id']);
+
         return view(
             'pages.rider.dashboard',
-            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts', 'pickupsAvailable', 'pickupsMine', 'payToday')
+            compact('user', 'myDeliveries', 'myDeliveryAssignments', 'inTransit', 'delivered', 'totalCount', 'codHeld', 'pickupCounts', 'pickupsAvailable', 'pickupsMine', 'payToday', 'returnPickups')
         );
     }
 
