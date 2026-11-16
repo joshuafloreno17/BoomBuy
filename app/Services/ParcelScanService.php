@@ -60,6 +60,20 @@ class ParcelScanService
         }
 
         $waybill = Waybill::pretty(Waybill::number($orderId));
+
+        // A double read of the label: the same parcel in the same direction
+        // within a few seconds. Scanned IN and then OUT is two real steps, not
+        // a repeat. Checked first, so the second read never reports "wrong
+        // center" or "wrong mode" for a parcel this scan just moved.
+        $last = session('scan_last');
+
+        if (is_array($last) && (int) $last['order_id'] === $orderId
+            && now()->timestamp - (int) $last['at'] < self::REPEAT_SECONDS
+            && (!$mode || ($last['dir'] ?? null) === $mode)) {
+            $did = ($last['dir'] ?? null) === 'out' ? ' OUT' : (($last['dir'] ?? null) === 'in' ? ' IN' : '');
+            throw new ActionFailed('Already scanned' . $did . ' — ' . $waybill . ' is now ' . OrderStatus::label($order->status) . $this->where($order) . '. Nothing was changed.');
+        }
+
         $step = $this->nextStep($order);
 
         if (!$step) {
@@ -80,14 +94,8 @@ class ParcelScanService
 
         if ($mode && $dir && $mode !== $dir) {
             throw new ActionFailed($dir === 'out'
-                ? 'Wrong mode — ' . $waybill . ' is already here and waiting to leave. Switch to Leaving (OUT) and scan again. Nothing was changed.'
-                : 'Wrong mode — ' . $waybill . ' has not been received here yet. Switch to Arriving (IN) and scan again. Nothing was changed.');
-        }
-
-        $last = session('scan_last');
-
-        if (is_array($last) && (int) $last['order_id'] === $orderId && now()->timestamp - (int) $last['at'] < self::REPEAT_SECONDS) {
-            throw new ActionFailed('Already scanned — ' . $waybill . ' is ' . OrderStatus::label($order->status) . '. Nothing was changed.');
+                ? 'Wrong mode — ' . $waybill . ' was already scanned IN here (' . OrderStatus::label($order->status) . '). To send it out, switch to Leaving (OUT) and scan again. Nothing was changed.'
+                : 'Wrong mode — ' . $waybill . ' has not been scanned IN here yet (' . OrderStatus::label($order->status) . $this->where($order) . '). Switch to Arriving (IN) first. Nothing was changed.');
         }
 
         // Kept so the scan can be undone: the parcel as it was, and where its
@@ -101,7 +109,7 @@ class ParcelScanService
         $after = DB::table('orders')->where('id', $orderId)->first();
         $token = Str::random(20);
 
-        session()->put('scan_last', ['order_id' => $orderId, 'at' => now()->timestamp]);
+        session()->put('scan_last', ['order_id' => $orderId, 'at' => now()->timestamp, 'dir' => $dir]);
         session()->put('scan_undo.' . $token, [
             'order_id' => $orderId,
             'center_id' => $centerId,

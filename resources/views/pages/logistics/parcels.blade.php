@@ -1136,22 +1136,112 @@
             setMode(get(MODE) === 'out' ? 'out' : 'in');
 
             // Undo: a few seconds, counted down on the button.
-            var undo = station.querySelector('[data-scan-undo]');
-            if (undo) {
+            var undoTick = null;
+            function startUndo() {
+                var undo = station.querySelector('[data-scan-undo]');
+                if (undoTick) clearInterval(undoTick);
+                if (!undo) return;
                 var left = parseInt(undo.dataset.seconds, 10) || 10;
                 var label = undo.querySelector('[data-scan-undo-left]');
-                var tick = setInterval(function () {
+                undoTick = setInterval(function () {
                     left -= 1;
                     if (label) label.textContent = left;
-                    if (left <= 0) { clearInterval(tick); undo.remove(); }
+                    if (left <= 0) { clearInterval(undoTick); undo.remove(); }
                 }, 1000);
             }
+            startUndo();
 
-            // Camera: reads the waybill's QR code and sends it; it opens again
-            // after the page reloads so parcels can be scanned one after another.
+            // Each scan is sent in the background: no page reload, the camera
+            // stays on, and the next parcel can be scanned right away. Only the
+            // list and counts change; the parcel tabs below refresh a moment
+            // after the last scan. Without JSON (signed out, an error page) the
+            // form is sent the normal way.
+            var log = station.querySelector('.ss-log');
+            var statEls = station.querySelectorAll('.ss-stats strong');
+            var csrf = form.querySelector('input[name="_token"]').value;
+            var undoUrl = @json(route('logistics.parcels.scan.undo'));
+            var icons = { done: 'bi-check-circle-fill', manual: 'bi-hand-index-thumb-fill', warn: 'bi-exclamation-triangle-fill', bad: 'bi-x-octagon-fill', undone: 'bi-arrow-counterclockwise' };
+            var queue = [], busy = false, refreshTimer = null;
+
+            function esc(s) { var d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+            function render(data) {
+                [data.stats.in, data.stats.out, data.stats.bad].forEach(function (n, i) { if (statEls[i]) statEls[i].textContent = n; });
+                log.innerHTML = data.log.length ? data.log.map(function (row) {
+                    var undo = data.undo && row.undo === data.undo
+                        ? '<form method="POST" action="' + undoUrl + '" class="scan-undo" data-scan-undo data-seconds="10">'
+                          + '<input type="hidden" name="_token" value="' + esc(csrf) + '"><input type="hidden" name="token" value="' + esc(data.undo) + '">'
+                          + '<button type="submit"><i class="bi bi-arrow-counterclockwise"></i> Undo <small data-scan-undo-left>10</small></button></form>'
+                        : '';
+                    return '<li class="ss-row is-' + esc(row.kind) + '"><i class="bi ' + (icons[row.kind] || 'bi-dot') + '"></i><span>' + esc(row.message) + '</span>' + undo + '</li>';
+                }).join('') : '<li class="ss-row is-empty"><span>No scans yet. Ready.</span></li>';
+                startUndo();
+            }
+
+            function refreshLists() {
+                clearTimeout(refreshTimer);
+                refreshTimer = setTimeout(function () {
+                    var url = new URL(window.location.href);
+                    url.searchParams.delete('scanned');
+                    fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' }, credentials: 'same-origin' })
+                        .then(function (r) { return r.ok ? r.text() : null; })
+                        .then(function (html) {
+                            if (!html) return;
+                            var doc = new DOMParser().parseFromString(html, 'text/html');
+                            ['#liveResults', '#liveStats'].forEach(function (sel) {
+                                var now = document.querySelector(sel), fresh = doc.querySelector(sel);
+                                if (now && fresh) now.innerHTML = fresh.innerHTML;
+                            });
+                        }).catch(function () {});
+                }, 1500);
+            }
+
+            function send(value) {
+                queue.push({ code: value, mode: modeInput.value });
+                if (!busy) next();
+            }
+
+            function next() {
+                var job = queue.shift();
+                if (!job) { busy = false; form.classList.remove('is-sending'); return; }
+                busy = true;
+                form.classList.add('is-sending');
+                var body = new FormData();
+                body.append('_token', csrf);
+                body.append('code', job.code);
+                body.append('mode', job.mode);
+                fetch(form.action, { method: 'POST', body: body, credentials: 'same-origin', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(function (r) {
+                        if (!r.ok || (r.headers.get('content-type') || '').indexOf('json') === -1) throw new Error('not json');
+                        return r.json();
+                    })
+                    .then(function (data) {
+                        render(data);
+                        if (data.open) { window.location.href = data.open; return; }
+                        if (data.kind === 'done') refreshLists();
+                        next();
+                    })
+                    .catch(function () {
+                        queue = []; busy = false;
+                        code.value = job.code; modeInput.value = job.mode;
+                        HTMLFormElement.prototype.submit.call(form);
+                    });
+            }
+
+            form.addEventListener('submit', function (e) {
+                e.preventDefault();
+                var value = code.value.trim();
+                code.value = '';
+                code.focus();
+                if (value) send(value);
+            });
+
+            // Camera: reads the waybill's QR code and sends it, and stays on for
+            // the next parcel. The same code seen again within a few seconds is
+            // the same label still in view, so it is read once.
             var cam = document.getElementById('scanCam');
             var camBtn = station.querySelector('[data-scan-cam]');
-            var reader = null;
+            var reader = null, lastText = '', lastAt = 0;
 
             function loadLib(done) {
                 if (window.Html5Qrcode) return done();
@@ -1168,8 +1258,12 @@
                 camBtn.querySelector('span').textContent = 'Close camera';
                 loadLib(function () {
                     reader = new Html5Qrcode('scanCamView');
-                    reader.start({ facingMode: 'environment' }, { fps: 10, qrbox: { width: 200, height: 200 } }, function (text) {
-                        reader.stop().catch(function () {}).finally(function () { code.value = text; form.submit(); });
+                    reader.start({ facingMode: 'environment' }, { fps: 15, qrbox: { width: 220, height: 220 } }, function (text) {
+                        var now = Date.now();
+                        if (text === lastText && now - lastAt < 4000) return;
+                        lastText = text; lastAt = now;
+                        if (navigator.vibrate) navigator.vibrate(60);
+                        send(text);
                     }).catch(function () {
                         closeCam();
                         if (window.bbAlert) bbAlert('Allow the camera for boombuy.store to scan, or use the USB scanner / type the waybill no.');

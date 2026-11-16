@@ -213,4 +213,31 @@ class ParcelScanTest extends TestCase
         $this->assertSame(0, session('scan_stats')['out']);
         $this->assertSame('undone', session('scan_log')[0]['kind']);
     }
+
+    /** Scanned IN, then OUT seconds later: two real steps, not "Already scanned". */
+    public function test_in_then_out_right_away_is_not_a_repeat_and_answers_in_json(): void
+    {
+        $id = $this->pickedUpOrder();
+        $waybill = Waybill::number($id);
+        $scan = fn (string $mode) => $this->actingAsUser($this->qcStaff)
+            ->postJson(route('logistics.parcels.scan'), ['code' => $waybill, 'mode' => $mode]);
+
+        $scan('in')->assertOk()->assertJson(['ok' => true, 'kind' => 'done', 'stats' => ['in' => 1, 'out' => 0]]);
+        $this->assertSame('At Sorting Center', $this->statusOf($id));
+
+        // The same label read twice in IN: a repeat, says so, changes nothing.
+        $scan('in')->assertJson(['ok' => false, 'kind' => 'warn']);
+        $this->assertStringContainsString('Already scanned IN', $scan('in')->json('message'));
+        $this->assertSame('At Sorting Center', $this->statusOf($id));
+
+        // Switched to OUT straight away: it leaves.
+        $out = $scan('out')->assertJson(['ok' => true, 'kind' => 'done', 'stats' => ['in' => 1, 'out' => 1]]);
+        $this->assertNotNull($out->json('undo'));
+        $this->assertSame('In Transit', $this->statusOf($id));
+
+        // The OUT label read again: a repeat — not "Not for this center".
+        $again = $scan('out')->assertJson(['ok' => false, 'kind' => 'warn']);
+        $this->assertStringContainsString('Already scanned OUT', $again->json('message'));
+        $this->assertSame('In Transit', $this->statusOf($id));
+    }
 }

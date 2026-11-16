@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Jobs\SendPushNotification;
 use App\Support\PushNotifications;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
@@ -25,11 +26,14 @@ class Notification extends Model
 
     protected static function booted(): void
     {
-        // Also as a push notification on the user's phone (the BoomBuy app),
-        // after the page has been sent so nobody waits on Firebase.
+        // Also as a push notification on the user's phone (the BoomBuy app).
+        // Queued, after the database transaction commits: PHP's built-in
+        // server (our workers) can't finish a response early, so sending it
+        // in the request made every page that notifies — a hub scan — wait on
+        // Firebase. The queue worker in start-boombuy.ps1 sends it.
         static::created(function (Notification $notification) {
             if (PushNotifications::enabled()) {
-                dispatch(fn () => PushNotifications::send($notification))->afterResponse();
+                SendPushNotification::dispatch($notification->id)->afterCommit();
             }
         });
     }

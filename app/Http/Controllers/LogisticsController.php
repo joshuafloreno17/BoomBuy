@@ -985,8 +985,13 @@ class LogisticsController extends Controller
             $result = $scans->scan($code, (int) $center->id, $mode);
         } catch (ActionFailed $e) {
             $message = $e->getMessage();
+            // A repeat or the wrong IN / OUT switch is a heads-up, not a problem parcel.
             $kind = str_starts_with($message, 'Already scanned') || str_starts_with($message, 'Wrong mode') ? 'warn' : 'bad';
             $this->logScan($kind, $shown, $message);
+
+            if (request()->wantsJson()) {
+                return $this->scanJson(['ok' => false, 'kind' => $kind, 'message' => $message]);
+            }
 
             return redirect()->route('logistics.parcels', ['scanned' => 1])->with('scan', ['ok' => false, 'kind' => $kind, 'message' => $message]);
         }
@@ -996,7 +1001,33 @@ class LogisticsController extends Controller
         // A step that needs a person: open the parcel so its button is right there.
         $query = $result['kind'] === 'manual' ? ['q' => \App\Support\Waybill::number($result['order_id']), 'scanned' => 1] : ['scanned' => 1];
 
+        // The Scan Station sends scans in the background: the page stays put
+        // (camera on, no reload) and only its list and counts change.
+        if (request()->wantsJson()) {
+            if ($result['kind'] === 'manual') {
+                session()->flash('scan', $result);
+            }
+
+            return $this->scanJson($result + ['open' => $result['kind'] === 'manual' ? route('logistics.parcels', $query) : null]);
+        }
+
         return redirect()->route('logistics.parcels', $query)->with('scan', $result);
+    }
+
+    /** One scan's answer for the Scan Station, with its updated list and counts. */
+    private function scanJson(array $result)
+    {
+        $stats = session('scan_stats');
+
+        return response()->json([
+            'ok' => $result['ok'],
+            'kind' => $result['kind'],
+            'message' => $result['message'],
+            'undo' => $result['undo'] ?? null,
+            'open' => $result['open'] ?? null,
+            'stats' => is_array($stats) ? ['in' => $stats['in'], 'out' => $stats['out'], 'bad' => $stats['bad']] : ['in' => 0, 'out' => 0, 'bad' => 0],
+            'log' => array_map(fn ($row) => ['kind' => $row['kind'], 'message' => $row['message'], 'undo' => $row['undo'] ?? null], session('scan_log', [])),
+        ]);
     }
 
     /**
