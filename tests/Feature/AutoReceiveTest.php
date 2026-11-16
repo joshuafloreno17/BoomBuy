@@ -56,7 +56,7 @@ class AutoReceiveTest extends TestCase
             ->actingAsUser($buyer)
             ->post(route('buyer.return-refund.store', $orderId), [
                 'order_item_id' => $itemId,
-                'request_type' => 'Return',
+                'request_type' => 'Return', 'return_method' => 'dropoff',
                 'reason' => 'Damaged item',
                 'message' => 'The item arrived damaged in the box.', 'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
                 'refund_method' => 'GCash',

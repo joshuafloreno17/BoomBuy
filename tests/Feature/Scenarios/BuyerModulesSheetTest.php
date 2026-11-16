@@ -1713,7 +1713,7 @@ class BuyerModulesSheetTest extends TestCase
     {
         return array_merge([
             'order_item_id' => DB::table('order_items')->where('order_id', $orderId)->value('id'),
-            'request_type' => 'Return', 'reason' => 'Damaged item', 'message' => 'Basket arrived with a broken rim.',
+            'request_type' => 'Return', 'return_method' => 'dropoff', 'reason' => 'Damaged item', 'message' => 'Basket arrived with a broken rim.',
             'photos' => [$this->jpegOfSize('review_photo.jpg', 40000), $this->jpegOfSize('product_front.jpg', 40000)],
             'refund_method' => 'GCash', 'refund_account_name' => 'Juan Miguel Dela Cruz', 'refund_account_number' => '09171234567',
         ], $overrides);

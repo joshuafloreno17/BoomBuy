@@ -1745,7 +1745,9 @@ class AdminController extends Controller
     public const RETURN_TABS = [
         'review' => ['label' => 'Needs your decision', 'statuses' => ['disputed']],
         'refund' => ['label' => 'Refunds to send', 'statuses' => ['refund_pending', 'refund_processing']],
-        'moving' => ['label' => 'Items on the way back', 'statuses' => ['approved', 'dropped_off', 'in_transit', 'ready_for_seller']],
+        // Refunds marked sent that the buyer says never arrived.
+        'issues' => ['label' => 'Refund not received', 'statuses' => ['completed'], 'openIssue' => true],
+        'moving' => ['label' => 'Items on the way back', 'statuses' => ['approved', 'picked_up', 'dropped_off', 'in_transit', 'ready_for_seller']],
         'pending' => ['label' => 'Waiting for sellers', 'statuses' => ['pending']],
         'closed' => ['label' => 'Closed', 'statuses' => ['completed', 'rejected', 'cancelled', 'returned']],
     ];
@@ -1758,18 +1760,22 @@ class AdminController extends Controller
         }
 
         $counts = DB::table('return_refund_requests')->selectRaw('status, COUNT(*) as total')->groupBy('status')->pluck('total', 'status');
-        $tabCounts = collect(self::RETURN_TABS)->map(fn ($tab) => (int) collect($tab['statuses'])->sum(fn ($s) => $counts[$s] ?? 0));
+        $openIssue = fn ($q) => $q->whereNotNull('return_refund_requests.refund_issue_at')->whereNull('return_refund_requests.refund_issue_resolved_at');
+        $tabCounts = collect(self::RETURN_TABS)->map(fn ($tab) => !empty($tab['openIssue'])
+            ? DB::table('return_refund_requests')->where('status', 'completed')->where($openIssue)->count()
+            : (int) collect($tab['statuses'])->sum(fn ($s) => $counts[$s] ?? 0));
 
         // Opens where work is waiting.
         $tab = array_key_exists((string) request('tab'), self::RETURN_TABS)
             ? request('tab')
-            : ($tabCounts['review'] > 0 ? 'review' : ($tabCounts['refund'] > 0 ? 'refund' : 'moving'));
+            : ($tabCounts['review'] > 0 ? 'review' : ($tabCounts['issues'] > 0 ? 'issues' : ($tabCounts['refund'] > 0 ? 'refund' : 'moving')));
 
         $requests = DB::table('return_refund_requests')
             ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
             ->leftJoin('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
             ->leftJoin('users as buyers', 'buyers.id', '=', 'return_refund_requests.buyer_id')
             ->whereIn('return_refund_requests.status', self::RETURN_TABS[$tab]['statuses'])
+            ->when(!empty(self::RETURN_TABS[$tab]['openIssue']), $openIssue)
             ->select('return_refund_requests.*', 'order_items.product_name', 'order_items.quantity', 'buyers.name as buyer_name', 'orders.payment_method')
             ->orderBy('return_refund_requests.updated_at', $tab === 'closed' ? 'desc' : 'asc')
             ->paginate(20)
@@ -1793,7 +1799,19 @@ class AdminController extends Controller
 
     public function refundReturn($id, \App\Services\ReturnRefundService $returns)
     {
-        return $this->adminAction(fn () => $returns->markRefunded((int) $id, (string) request('reference'), \App\Support\SupportAccount::id()));
+        return $this->adminAction(function () use ($returns, $id) {
+            // The transfer screenshot is the buyer's proof that the money really went out.
+            if (!request()->hasFile('proof')) {
+                throw new \App\Exceptions\ActionFailed('Attach a screenshot of the GCash/Maya/bank transfer as proof.');
+            }
+
+            return $returns->markRefunded((int) $id, (string) request('reference'), \App\Support\SupportAccount::id(), request()->file('proof'));
+        });
+    }
+
+    public function answerRefundIssue($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->adminAction(fn () => $returns->answerRefundIssue((int) $id, (string) request('answer'), (string) request('new_reference')));
     }
 
     /**

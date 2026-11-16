@@ -32,14 +32,27 @@ class EvidenceController extends Controller
     {
         $request = DB::table('return_refund_requests')->where('id', $id)->first();
 
-        abort_unless($request && $request->evidence, 404);
+        abort_unless($request, 404);
 
         $viewer = session('user');
+        $photo = (string) request('photo', '0');
 
         $allowed = session('admin_logged_in')
-            || ($viewer && in_array((int) $viewer['id'], [(int) $request->buyer_id, (int) $request->seller_id], true));
+            || ($viewer && in_array((int) $viewer['id'], [(int) $request->buyer_id, (int) $request->seller_id], true))
+            // The rider's pickup photo: also the rider and Sorting Center staff.
+            || ($photo === 'pickup' && $viewer && ((int) $viewer['id'] === (int) $request->pickup_rider_id || ($viewer['role'] ?? '') === 'logistics'));
 
         abort_unless($allowed, 403);
+
+        // ?photo=pickup is the rider's pickup photo, ?photo=refund BoomBuy's transfer screenshot.
+        if (in_array($photo, ['pickup', 'refund'], true)) {
+            $path = $photo === 'pickup' ? $request->pickup_proof : $request->refund_proof;
+            abort_unless($path, 404);
+
+            return $this->serve($path);
+        }
+
+        abort_unless($request->evidence, 404);
 
         // ?photo=0 is the first photo, 1–4 the others.
         $photos = array_values(array_filter(array_merge([$request->evidence], (array) json_decode((string) ($request->evidence_photos ?? ''), true))));

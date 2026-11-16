@@ -72,7 +72,7 @@ class ViewServiceProvider extends ServiceProvider
                 'adminUnreadMessages' => Inbox::unreadMessages($adminId),
                 'pendingComplaintsCount' => Complaint::where('status', 'Pending')->count(),
                 // Disputes to decide and refunds to send.
-                'returnsWaitingCount' => DB::table('return_refund_requests')->whereIn('status', ['disputed', 'refund_pending', 'refund_processing'])->count(),
+                'returnsWaitingCount' => DB::table('return_refund_requests')->where(fn ($q) => $q->whereIn('status', ['disputed', 'refund_pending', 'refund_processing'])->orWhere(fn ($i) => $i->whereNotNull('refund_issue_at')->whereNull('refund_issue_resolved_at')))->count(),
                 // Applications waiting for review, per People section.
                 'pendingApplications' => collect(['buyer', 'seller', 'logistics'])->mapWithKeys(fn ($type) => [
                     $type => DB::table($type . '_applications')->where('status', 'Pending Verification')->count(),

@@ -440,7 +440,7 @@ class BuyerScenariosTest extends TestCase
             $item = DB::table('order_items')->where('order_id', $orderId)->value('id');
 
             return $this->actingAsUser($buyer)->post(route('buyer.return-refund.store', $orderId), array_merge([
-                'order_item_id' => $item, 'request_type' => 'Return', 'reason' => 'Damaged item',
+                'order_item_id' => $item, 'request_type' => 'Return', 'return_method' => 'dropoff', 'reason' => 'Damaged item',
                 'message' => 'The item arrived damaged in the box.', 'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
                 'refund_method' => 'GCash', 'refund_account_name' => 'Ana Buyer', 'refund_account_number' => '09171234567',
             ], $extra));

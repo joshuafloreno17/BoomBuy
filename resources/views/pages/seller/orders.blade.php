@@ -423,7 +423,7 @@
                             </div>
 
                             <div class="status {{ $statusClass }}">
-                                {{ \App\Services\ReturnRefundService::LABELS[$request->status] ?? ucwords(str_replace('_', ' ', $request->status)) }}
+                                {{ \App\Services\ReturnRefundService::label($request) }}{{ $request->request_type === 'Return' ? ($request->return_method === 'pickup' ? ' · Rider pickup' : ' · Buyer drop-off') : '' }}
                             </div>
 
                         </div>

@@ -175,8 +175,9 @@ class RiderController extends Controller
         $available = $pickups->available((int) $user['id']);
         $mine = $pickups->mine((int) $user['id']);
         $hasAreas = DB::table('rider_areas')->where('rider_id', $user['id'])->exists();
+        $returnPickups = app(\App\Services\ReturnRefundService::class)->riderPickups((int) $user['id']);
 
-        return view('pages.rider.pickups', compact('user', 'available', 'mine', 'hasAreas'));
+        return view('pages.rider.pickups', compact('user', 'available', 'mine', 'hasAreas', 'returnPickups'));
     }
 
     public function acceptPickup($id, \App\Services\PickupService $pickups)
@@ -187,6 +188,11 @@ class RiderController extends Controller
     public function confirmPickup($id, \App\Services\PickupService $pickups)
     {
         return $this->riderAction(fn (array $user) => $pickups->pickedUp((int) $user['id'], (int) $id));
+    }
+
+    public function confirmReturnPickup($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->riderAction(fn (array $user) => $returns->riderPickedUp((int) $user['id'], (int) $id, request()->file('photo')));
     }
 
     public function deliveries()

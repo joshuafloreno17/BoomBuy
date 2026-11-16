@@ -723,7 +723,9 @@
 
                             @foreach($returnRequests->get($order['id'], collect()) as $returnRequest)
                                 @php
-                                    $returnLabel = \App\Services\ReturnRefundService::LABELS[$returnRequest->status] ?? ucfirst($returnRequest->status);
+                                    $returnLabel = \App\Services\ReturnRefundService::label($returnRequest);
+                                    $canReportRefund = $returnRequest->status === 'completed' && $returnRequest->refunded_at && empty($returnRequest->refund_issue_at)
+                                        && \Carbon\Carbon::parse($returnRequest->refunded_at)->addDays(\App\Services\ReturnRefundService::REFUND_ISSUE_DAYS)->isFuture();
                                     $dropCenter = $dropOffCenters->get($order['destination_center_id'] ?? 0);
                                     $canEscalate = $returnRequest->status === 'rejected' && empty($returnRequest->escalated_at)
                                         && \Carbon\Carbon::parse($returnRequest->updated_at)->addDays(\App\Services\ReturnRefundService::DISPUTE_DAYS)->isFuture();
@@ -734,10 +736,20 @@
                                         <strong>{{ $returnRequest->request_type }} #{{ $returnRequest->id }} · {{ $returnRequest->product_name ?? 'Item' }}</strong>
                                         — {{ $returnLabel }} · ₱{{ number_format((float) $returnRequest->refund_amount, 2) }}
 
-                                        @if($returnRequest->status === 'approved')
+                                        @if($returnRequest->status === 'approved' && $returnRequest->return_method === 'pickup')
+                                            <br>Pack the item. {{ $returnRequest->pickup_rider_id ? 'A rider is assigned and will pick it up' : 'A rider will be assigned to pick it up' }} from your address — show them return number <strong>#{{ $returnRequest->id }}</strong>.
+                                        @elseif($returnRequest->status === 'approved')
                                             <br>Pack the item and bring it to <strong>{{ $dropCenter->name ?? 'your nearest BoomBuy Sorting Center' }}</strong>{{ $dropCenter ? ' (' . ($dropCenter->address ?: $dropCenter->town) . ')' : '' }}. Tell the staff return number <strong>#{{ $returnRequest->id }}</strong>.
                                         @elseif($returnRequest->status === 'completed' && $returnRequest->refund_reference)
                                             <br>Sent to your {{ $returnRequest->refund_method }} ({{ \App\Services\ReturnRefundService::masked($returnRequest->refund_account_number) }}) · Reference: {{ $returnRequest->refund_reference }}
+                                            @if($returnRequest->refund_proof)
+                                                · <a href="{{ route('return-refund.evidence', ['id' => $returnRequest->id, 'photo' => 'refund']) }}" data-viewer>View transfer screenshot</a>
+                                            @endif
+                                            @if($returnRequest->refund_issue_at && !$returnRequest->refund_issue_resolved_at)
+                                                <br><i class="bi bi-hourglass-split"></i> You reported this refund as not received. BoomBuy is checking it.
+                                            @elseif($returnRequest->refund_issue_resolved_at)
+                                                <br><i class="bi bi-chat-left-text"></i> BoomBuy: {{ $returnRequest->refund_issue_answer }}
+                                            @endif
                                         @elseif($returnRequest->status === 'rejected' && $returnRequest->seller_note)
                                             <br>Seller: {{ $returnRequest->seller_note }}
                                         @endif
@@ -761,6 +773,17 @@
                                                     <input type="text" id="why-{{ $returnRequest->id }}" name="why" maxlength="500" placeholder="e.g. The photo shows it arrived broken." style="padding:8px 10px; border:1px solid var(--theme-border); border-radius:8px; font:inherit;">
                                                 </label>
                                                 <button type="submit" class="track-btn"><i class="bi bi-shield-check"></i> Escalate to a dispute</button>
+                                            </form>
+                                        @endif
+
+                                        @if($canReportRefund)
+                                            <form method="POST" action="{{ route('buyer.return-refund.not-received', $returnRequest->id) }}" style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap; align-items:flex-end;" data-confirm="Tell BoomBuy you didn't receive this refund? We will check the transfer." data-confirm-ok="Report it">
+                                                @csrf
+                                                <label for="nr-{{ $returnRequest->id }}" style="flex:1 1 220px; display:grid; gap:4px; font-size:11.5px; font-weight:700;">
+                                                    Didn't get the money? (within {{ \App\Services\ReturnRefundService::REFUND_ISSUE_DAYS }} days)
+                                                    <input type="text" id="nr-{{ $returnRequest->id }}" name="note" maxlength="480" placeholder="e.g. Nothing arrived in my GCash." style="padding:8px 10px; border:1px solid var(--theme-border); border-radius:8px; font:inherit;">
+                                                </label>
+                                                <button type="submit" class="track-btn"><i class="bi bi-exclamation-circle"></i> I didn't receive it</button>
                                             </form>
                                         @endif
                                     </span>
@@ -841,24 +864,42 @@
 
                                         <div class="return-form-group">
                                             <label for="request-type-{{ $order['id'] }}">Request Type</label>
-                                            <select id="request-type-{{ $order['id'] }}" name="request_type" required>
+                                            <select id="request-type-{{ $order['id'] }}" name="request_type" required data-rr-type>
                                                 <option value="">Select request type</option>
                                                 <option value="Return">Return the item</option>
-                                                <option value="Refund">Refund only</option>
+                                                <option value="Refund">Refund only (keep the item)</option>
                                             </select>
                                         </div>
 
                                         <div class="return-form-group">
                                             <label for="return-reason-{{ $order['id'] }}">Reason</label>
-                                            <select id="return-reason-{{ $order['id'] }}" name="reason" required>
+                                            <select id="return-reason-{{ $order['id'] }}" name="reason" required data-rr-reason>
                                                 <option value="">Select reason</option>
-                                                <option value="Wrong item received">Wrong item received</option>
-                                                <option value="Damaged item">Damaged item</option>
-                                                <option value="Defective product">Defective product</option>
-                                                <option value="Missing item">Missing item</option>
-                                                <option value="Item doesn't match description">Item doesn't match description</option>
-                                                <option value="Other">Other</option>
+                                                @foreach(['Wrong item received', 'Damaged item', 'Defective product', 'Missing item', "Item doesn't match description", 'Other'] as $rrReason)
+                                                    <option value="{{ $rrReason }}"
+                                                        data-refund-ok="{{ in_array($rrReason, \App\Services\ReturnRefundService::REFUND_ONLY_REASONS, true) ? 1 : 0 }}"
+                                                        data-return-ok="{{ $rrReason === 'Missing item' ? 0 : 1 }}">{{ $rrReason }}</option>
+                                                @endforeach
                                             </select>
+                                            <small class="rr-hint" data-rr-reason-hint style="display:block; margin-top:4px; color:#857ca0;"></small>
+                                        </div>
+
+                                        {{-- How the item goes back (Return only). --}}
+                                        @php $rrCenter = $dropOffCenters->get($order['destination_center_id'] ?? 0); @endphp
+                                        <div class="return-form-group" data-rr-method hidden>
+                                            <label>How will the item go back?</label>
+                                            <label class="rr-choice" style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--theme-border); border-radius:10px; margin-bottom:8px; font-weight:600; cursor:pointer;">
+                                                <input type="radio" name="return_method" value="dropoff" style="margin-top:3px;">
+                                                <span>{{ \App\Services\ReturnRefundService::RETURN_METHODS['dropoff'] }}
+                                                    <small style="display:block; font-weight:400; color:#857ca0;">{{ $rrCenter ? $rrCenter->name . ' — ' . ($rrCenter->address ?: $rrCenter->town) : 'Your nearest BoomBuy Sorting Center' }}</small>
+                                                </span>
+                                            </label>
+                                            <label class="rr-choice" style="display:flex; gap:10px; align-items:flex-start; padding:10px 12px; border:1px solid var(--theme-border); border-radius:10px; font-weight:600; cursor:pointer;">
+                                                <input type="radio" name="return_method" value="pickup" style="margin-top:3px;">
+                                                <span>{{ \App\Services\ReturnRefundService::RETURN_METHODS['pickup'] }}
+                                                    <small style="display:block; font-weight:400; color:#857ca0;">From {{ $order['shipping_address'] ?? 'your delivery address' }}</small>
+                                                </span>
+                                            </label>
                                         </div>
 
                                         <div class="return-form-group">
@@ -875,7 +916,7 @@
 
                                         <div class="return-form-group">
                                             <label for="refund-method-{{ $order['id'] }}">Send my refund to</label>
-                                            <select id="refund-method-{{ $order['id'] }}" name="refund_method" required>
+                                            <select id="refund-method-{{ $order['id'] }}" name="refund_method" required data-rr-refund-method>
                                                 <option value="">Choose…</option>
                                                 @foreach(\App\Services\ReturnRefundService::REFUND_METHODS as $refundMethod)
                                                     <option value="{{ $refundMethod }}" @selected(($lastRefundTo->refund_method ?? null) === $refundMethod)>{{ $refundMethod }}</option>
@@ -884,13 +925,13 @@
                                         </div>
 
                                         <div class="return-form-group">
-                                            <label for="refund-name-{{ $order['id'] }}">Account name</label>
+                                            <label for="refund-name-{{ $order['id'] }}" data-rr-name-label>Account name</label>
                                             <input type="text" id="refund-name-{{ $order['id'] }}" name="refund_account_name" maxlength="120" required value="{{ $lastRefundTo->refund_account_name ?? '' }}" placeholder="As registered on the account">
                                         </div>
 
                                         <div class="return-form-group">
-                                            <label for="refund-number-{{ $order['id'] }}">Mobile or account number</label>
-                                            <input type="text" id="refund-number-{{ $order['id'] }}" name="refund_account_number" maxlength="60" required value="{{ $lastRefundTo->refund_account_number ?? '' }}" placeholder="09XXXXXXXXX">
+                                            <label for="refund-number-{{ $order['id'] }}" data-rr-number-label>Mobile or account number</label>
+                                            <input type="text" id="refund-number-{{ $order['id'] }}" name="refund_account_number" maxlength="60" required value="{{ $lastRefundTo->refund_account_number ?? '' }}" placeholder="09XXXXXXXXX" data-rr-number>
                                             <small style="display:block; margin-top:4px; color:#857ca0;">BoomBuy sends the refund here — the item price less any voucher discount. The delivery fee isn't refunded.</small>
                                         </div>
 
@@ -1169,6 +1210,49 @@
             closeReturnRefund(orderId);
         }
     }
+
+    // Return/Refund form: drop-off or rider pickup (Return only), reasons each
+    // type allows, and refund labels that match the chosen wallet or bank.
+    document.querySelectorAll('.return-modal form').forEach(function (form) {
+        var type = form.querySelector('[data-rr-type]');
+        var reason = form.querySelector('[data-rr-reason]');
+        var hint = form.querySelector('[data-rr-reason-hint]');
+        var method = form.querySelector('[data-rr-method]');
+        var wallet = form.querySelector('[data-rr-refund-method]');
+        if (!type || !reason || !method) return;
+
+        function syncType() {
+            var isReturn = type.value === 'Return';
+            var isRefund = type.value === 'Refund';
+            method.hidden = !isReturn;
+            method.querySelectorAll('input[name="return_method"]').forEach(function (r) { r.required = isReturn; if (!isReturn) r.checked = false; });
+
+            Array.prototype.forEach.call(reason.options, function (opt) {
+                if (!opt.value) return;
+                var ok = isRefund ? opt.dataset.refundOk === '1' : (isReturn ? opt.dataset.returnOk === '1' : true);
+                opt.disabled = !ok;
+                if (!ok && opt.selected) reason.value = '';
+            });
+
+            hint.textContent = isRefund
+                ? 'Refund only (you keep the item) is for a missing or damaged item.'
+                : (isReturn ? 'A missing item can\'t be sent back — choose "Refund only" for that.' : '');
+        }
+
+        function syncWallet() {
+            if (!wallet) return;
+            var bank = wallet.value === 'Bank transfer';
+            var name = wallet.value || 'Account';
+            form.querySelector('[data-rr-name-label]').textContent = bank ? 'Bank account name' : name + ' account name';
+            form.querySelector('[data-rr-number-label]').textContent = bank ? 'Bank account number' : (wallet.value ? wallet.value + ' number (the mobile number on the account)' : 'Mobile or account number');
+            form.querySelector('[data-rr-number]').placeholder = bank ? 'Account number' : '09XXXXXXXXX';
+        }
+
+        type.addEventListener('change', syncType);
+        if (wallet) wallet.addEventListener('change', syncWallet);
+        syncType();
+        syncWallet();
+    });
 
     document.addEventListener('keydown', function(event) {
         if (event.key !== 'Escape') return;

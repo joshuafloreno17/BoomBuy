@@ -167,6 +167,8 @@ class StaleOrders
         $due = DB::table('return_refund_requests')
             ->where('status', 'approved')
             ->where('request_type', 'Return')
+            // A rider collects pickup returns — the buyer has nothing left to do.
+            ->where(fn ($q) => $q->whereNull('return_method')->orWhere('return_method', '!=', 'pickup'))
             ->where('approved_at', '<=', now()->subDays(self::RETURN_DROP_DAYS))
             ->get(['id', 'order_id', 'buyer_id', 'seller_id']);
 

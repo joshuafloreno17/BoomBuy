@@ -549,6 +549,8 @@ Route::get('/logistics/rider', [RiderController::class, 'dashboard'])->name('rid
 Route::get('/logistics/rider/pickups', [RiderController::class, 'pickups'])->name('rider.pickups');
 Route::post('/logistics/rider/pickup/{id}/accept', [RiderController::class, 'acceptPickup'])->whereNumber('id')->name('rider.pickup.accept');
 Route::post('/logistics/rider/pickup/{id}/picked-up', [RiderController::class, 'confirmPickup'])->whereNumber('id')->name('rider.pickup.picked-up');
+// A buyer's return a Sorting Center gave this rider to collect.
+Route::post('/logistics/rider/return-pickup/{id}/picked-up', [RiderController::class, 'confirmReturnPickup'])->whereNumber('id')->name('rider.return-pickup.picked-up');
 
 
 /*
@@ -754,6 +756,7 @@ Route::view('/app', 'pages.app-download')->name('app.download');
 Route::post('/buyer/order/{orderId}/return-refund', [BuyerController::class, 'requestReturnRefund'])->name('buyer.return-refund.store');
 Route::post('/buyer/return-refund/{id}/cancel', [BuyerController::class, 'cancelReturnRefund'])->name('buyer.return-refund.cancel');
 Route::post('/buyer/return-refund/{id}/escalate', [BuyerController::class, 'escalateReturnRefund'])->name('buyer.return-refund.escalate');
+Route::post('/buyer/return-refund/{id}/not-received', [BuyerController::class, 'refundNotReceived'])->whereNumber('id')->name('buyer.return-refund.not-received');
 
 
 // =====================================================
@@ -779,6 +782,7 @@ Route::post('/logistics/returns/{id}/receive', [LogisticsController::class, 'rec
 Route::post('/logistics/returns/{id}/send', [LogisticsController::class, 'sendBuyerReturn'])->name('logistics.returns.send');
 Route::post('/logistics/returns/{id}/arrive', [LogisticsController::class, 'arriveBuyerReturn'])->name('logistics.returns.arrive');
 Route::post('/logistics/returns/{id}/hand-to-seller', [LogisticsController::class, 'handBuyerReturnToSeller'])->name('logistics.returns.hand-to-seller');
+Route::post('/logistics/returns/{id}/assign-rider', [LogisticsController::class, 'assignBuyerReturnRider'])->whereNumber('id')->name('logistics.returns.assign-rider');
 
 
 // =====================================================
@@ -788,6 +792,7 @@ Route::post('/logistics/returns/{id}/hand-to-seller', [LogisticsController::clas
 Route::get('/admin/returns', [AdminController::class, 'returns'])->name('admin.returns');
 Route::post('/admin/returns/{id}/decide', [AdminController::class, 'decideReturn'])->name('admin.returns.decide');
 Route::post('/admin/returns/{id}/refunded', [AdminController::class, 'refundReturn'])->name('admin.returns.refunded');
+Route::post('/admin/returns/{id}/refund-issue', [AdminController::class, 'answerRefundIssue'])->whereNumber('id')->name('admin.returns.refund-issue');
 
 // Payouts & Refunds: seller payout requests and refunds of cancelled paid orders (A2, A3)
 Route::get('/admin/payouts', [AdminController::class, 'payouts'])->name('admin.payouts');

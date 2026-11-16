@@ -38,7 +38,7 @@ class ReturnRefundTest extends TestCase
     {
         return $this->actingAsUser($buyer)->post(route('buyer.return-refund.store', $orderId), [
             'order_item_id' => $itemId,
-            'request_type' => $type,
+            'request_type' => $type, 'return_method' => 'dropoff',
             'reason' => 'Damaged item',
             'message' => 'Screen is cracked.',
             'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
@@ -76,7 +76,7 @@ class ReturnRefundTest extends TestCase
         $this->assertSame(6, $product->fresh()->stock);
 
         $this->flushSession();
-        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'GC-778899'])->assertSessionHas('success');
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'GC-778899', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('success');
 
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'completed', 'refund_reference' => 'GC-778899']);
         $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Refund Sent']);
@@ -91,15 +91,15 @@ class ReturnRefundTest extends TestCase
 
         // Nothing to send before it's approved.
         $this->flushSession();
-        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'X'])->assertSessionHas('error');
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'X', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('error');
 
         $this->flushSession();
         $this->actingAsUser($seller)->post(route('seller.return-refund.approve', $requestId))->assertSessionHas('success');
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'refund_pending']);
 
         $this->flushSession();
-        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => ''])->assertSessionHas('error');
-        $this->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-1234'])->assertSessionHas('success');
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => '', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('error');
+        $this->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-1234', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('success');
 
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'completed']);
         $this->assertDatabaseHas('notifications', ['user_id' => $buyer->id, 'title' => 'Refund Sent']);

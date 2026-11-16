@@ -160,7 +160,8 @@ class BuyerOrderService
         string $reason,
         string $message = '',
         UploadedFile|array|null $evidence = null,
-        array $refundTo = []
+        array $refundTo = [],
+        string $returnMethod = ''
     ): string {
         $order = $this->buyerOrder($buyerId, $orderId);
 
@@ -186,6 +187,23 @@ class BuyerOrderService
 
         if ($reason === '') {
             throw new ActionFailed('Please select a reason.');
+        }
+
+        // Refund only (the buyer keeps the item) is for a missing or damaged item;
+        // a missing item can't be sent back, so it is always Refund only.
+        if ($type === 'Refund' && !in_array($reason, ReturnRefundService::REFUND_ONLY_REASONS, true)) {
+            throw new ActionFailed('Refund only is for a missing or damaged item. For this reason, choose "Return the item".');
+        }
+
+        if ($type === 'Return' && $reason === 'Missing item') {
+            throw new ActionFailed('A missing item can\'t be sent back — choose "Refund only".');
+        }
+
+        // How a returned item goes back: the buyer brings it, or a rider collects it.
+        $returnMethod = trim($returnMethod);
+
+        if ($type === 'Return' && !array_key_exists($returnMethod, ReturnRefundService::RETURN_METHODS)) {
+            throw new ActionFailed('Choose how the item goes back: bring it to the Sorting Center, or have a rider pick it up.');
         }
 
         // A description of 10–500 characters and 1 to 5 photos (A31).
@@ -260,6 +278,7 @@ class BuyerOrderService
             'buyer_id' => $buyerId,
             'seller_id' => $item->seller_id,
             'request_type' => $type,
+            'return_method' => $type === 'Return' ? $returnMethod : null,
             'reason' => $reason,
             'message' => $message ?: null,
             'evidence' => $evidencePath,

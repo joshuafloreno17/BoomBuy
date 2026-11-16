@@ -165,7 +165,7 @@ class FullJourneyTest extends TestCase
         $this->flushSession();
         $this->everyoneSeesTheOrder('Refund approved');
 
-        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-55501'])->assertSessionHas('success');
+        $this->actingAsAdmin()->post(route('admin.returns.refunded', $requestId), ['reference' => 'MAYA-55501', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('success');
         $this->flushSession();
         $this->everyoneSeesTheOrder('Refund sent');
 

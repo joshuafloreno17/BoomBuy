@@ -1204,7 +1204,8 @@ class BuyerController extends Controller
                 'method' => request('refund_method'),
                 'account_name' => request('refund_account_name'),
                 'account_number' => request('refund_account_number'),
-            ]
+            ],
+            (string) request('return_method')
         ));
     }
 
@@ -1216,6 +1217,11 @@ class BuyerController extends Controller
     public function escalateReturnRefund($id, \App\Services\ReturnRefundService $returns)
     {
         return $this->buyerOrderAction(fn (array $user) => $returns->escalate((int) $user['id'], (int) $id, (string) request('why')));
+    }
+
+    public function refundNotReceived($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->buyerOrderAction(fn (array $user) => $returns->reportNotReceived((int) $user['id'], (int) $id, (string) request('note')));
     }
 
     /** Runs a buyer order action and flashes its message (or the rule it broke). */

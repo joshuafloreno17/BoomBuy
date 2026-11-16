@@ -71,7 +71,7 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
     {
         return $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), [
             'order_item_id' => DB::table('order_items')->where('order_id', $orderId)->value('id'),
-            'request_type' => $type,
+            'request_type' => $type, 'return_method' => 'dropoff',
             'reason' => 'Damaged item',
             'message' => 'The item arrived damaged in the box.', 'photos' => [\Illuminate\Http\UploadedFile::fake()->createWithContent('item.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))],
             'refund_method' => 'GCash',
@@ -121,7 +121,7 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
 
         // BoomBuy sends the money and the buyer sees the reference.
         $this->as(null)->get(route('admin.returns', ['tab' => 'refund']))->assertOk()->assertSee('09171234567');
-        $this->post(route('admin.returns.refunded', $id), ['reference' => 'GC-2026-0001'])->assertSessionHas('success');
+        $this->post(route('admin.returns.refunded', $id), ['reference' => 'GC-2026-0001', 'proof' => \Illuminate\Http\UploadedFile::fake()->createWithContent('transfer.png', base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='))])->assertSessionHas('success');
         $this->assertSame('completed', $this->statusOf($id));
 
         $this->as($buyer)->get(route('buyer.orders'))->assertOk()->assertSee('GC-2026-0001')->assertSee('Refunded');
@@ -240,5 +240,113 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
         $row = $this->as(null)->get(route('admin.reports'))->viewData('sellerSales')->firstWhere('seller_id', $this->seller->id);
         $this->assertEquals(500, $row['sales']);
         $this->assertEquals(50, $row['commission']);
+    }
+
+    // ------------------------------------------------------------------
+    // Rider pickup, Refund-only reasons, refund proof (2026-11-16)
+    // ------------------------------------------------------------------
+
+    private function png(string $name = 'photo.png'): \Illuminate\Http\UploadedFile
+    {
+        return \Illuminate\Http\UploadedFile::fake()->createWithContent($name, base64_decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg=='));
+    }
+
+    private function returnForm(int $orderId, array $over = []): array
+    {
+        return array_merge([
+            'order_item_id' => DB::table('order_items')->where('order_id', $orderId)->value('id'),
+            'request_type' => 'Return', 'reason' => 'Damaged item', 'message' => 'The item arrived damaged in the box.',
+            'photos' => [$this->png()], 'refund_method' => 'GCash', 'refund_account_name' => 'Ana Buyer', 'refund_account_number' => '09171234567',
+        ], $over);
+    }
+
+    public function test_RT06_a_rider_picks_the_return_up_from_the_buyer(): void
+    {
+        $buyer = $this->buyerAt(self::QC_ADDRESS);
+        $orderId = $this->qcOrder($buyer);
+        $rider = $this->riderFor($this->ncr);
+
+        // A Return must say how the item goes back.
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId))->assertSessionHas('error');
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId, ['return_method' => 'pickup']))->assertSessionHas('success');
+        $id = (int) DB::table('return_refund_requests')->value('id');
+        $this->assertSame('pickup', DB::table('return_refund_requests')->where('id', $id)->value('return_method'));
+
+        $this->as($this->seller)->post(route('seller.return-refund.approve', $id))->assertSessionHas('success');
+        $this->assertStringContainsString('rider will pick it up', DB::table('notifications')->where('user_id', $buyer->id)->where('title', 'Return Approved')->value('message'));
+        $this->assertTrue($this->notifiedWith($this->ncrStaff, 'Return Pickup to Assign'));
+
+        // Nothing to receive until the rider has it; only the buyer's center assigns.
+        $this->as($this->ncrStaff)->post(route('logistics.returns.receive', $id))->assertSessionHas('error');
+        $this->as($this->lagunaStaff)->post(route('logistics.returns.assign-rider', $id), ['rider_id' => $rider->id])->assertSessionHas('error');
+        $this->as($this->ncrStaff)->get(route('logistics.parcels'))->assertOk()->assertSee('Needs a pickup rider');
+        $this->post(route('logistics.returns.assign-rider', $id), ['rider_id' => $rider->id])->assertSessionHas('success');
+        $this->assertTrue($this->notifiedWith($rider, 'New Return Pickup'));
+        $this->assertTrue($this->notifiedWith($buyer, 'Rider Assigned for Your Return'));
+
+        // The rider sees it, needs a photo, then has it.
+        $this->as($rider)->get(route('rider.pickups'))->assertOk()->assertSee('Return #' . $id);
+        $this->post(route('rider.return-pickup.picked-up', $id))->assertSessionHas('error');
+        $this->post(route('rider.return-pickup.picked-up', $id), ['photo' => $this->png('item.png')])->assertSessionHas('success');
+        $this->assertSame('picked_up', $this->statusOf($id));
+        $this->assertNotNull(DB::table('return_refund_requests')->where('id', $id)->value('pickup_proof'));
+        $this->post(route('rider.return-pickup.picked-up', $id), ['photo' => $this->png('item.png')])->assertSessionHas('error');
+
+        // Picked up: the buyer can't cancel any more; the center takes it in and the usual trip follows.
+        $this->as($buyer)->post(route('buyer.return-refund.cancel', $id))->assertSessionHas('error');
+        $this->as($this->ncrStaff)->get(route('return-refund.evidence', ['id' => $id, 'photo' => 'pickup']))->assertOk();
+        $this->post(route('logistics.returns.receive', $id))->assertSessionHas('success');
+        $this->assertSame('dropped_off', $this->statusOf($id));
+    }
+
+    public function test_RT07_pickup_returns_are_not_cancelled_for_not_being_brought_in(): void
+    {
+        $buyer = $this->buyerAt(self::QC_ADDRESS);
+        $orderId = $this->qcOrder($buyer);
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId, ['return_method' => 'pickup']));
+        $id = (int) DB::table('return_refund_requests')->value('id');
+        $this->as($this->seller)->post(route('seller.return-refund.approve', $id));
+        DB::table('return_refund_requests')->where('id', $id)->update(['approved_at' => now()->subDays(StaleOrders::RETURN_DROP_DAYS + 1)]);
+
+        $done = StaleOrders::sweep(true);
+
+        $this->assertSame(0, $done['returns_cancelled']);
+        $this->assertSame('approved', $this->statusOf($id));
+    }
+
+    public function test_RT08_refund_only_is_for_missing_or_damaged_items(): void
+    {
+        $buyer = $this->buyerAt(self::QC_ADDRESS);
+        $orderId = $this->qcOrder($buyer);
+
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId, ['request_type' => 'Refund', 'reason' => 'Wrong item received']))->assertSessionHas('error');
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId, ['return_method' => 'dropoff', 'reason' => 'Missing item']))->assertSessionHas('error');
+        $this->assertSame(0, DB::table('return_refund_requests')->count());
+
+        $this->as($buyer)->post(route('buyer.return-refund.store', $orderId), $this->returnForm($orderId, ['request_type' => 'Refund', 'reason' => 'Missing item']))->assertSessionHas('success');
+        $this->assertNull(DB::table('return_refund_requests')->value('return_method'));
+    }
+
+    public function test_RT09_refund_needs_a_screenshot_and_the_buyer_can_say_it_never_arrived(): void
+    {
+        $buyer = $this->buyerAt(self::QC_ADDRESS);
+        $orderId = $this->qcOrder($buyer);
+        $this->ask($buyer, $orderId, 'Refund')->assertSessionHas('success');
+        $id = (int) DB::table('return_refund_requests')->value('id');
+        $this->as($this->seller)->post(route('seller.return-refund.approve', $id))->assertSessionHas('success');
+
+        $this->as(null)->post(route('admin.returns.refunded', $id), ['reference' => 'GC-1'])->assertSessionHas('error');
+        $this->post(route('admin.returns.refunded', $id), ['reference' => 'GC-1', 'proof' => $this->png('transfer.png')])->assertSessionHas('success');
+
+        $this->as($buyer)->get(route('buyer.orders'))->assertOk()->assertSee('View transfer screenshot')->assertSee('receive it', false);
+        $this->get(route('return-refund.evidence', ['id' => $id, 'photo' => 'refund']))->assertOk();
+
+        $this->post(route('buyer.return-refund.not-received', $id), ['note' => 'Nothing in my GCash.'])->assertSessionHas('success');
+        $this->post(route('buyer.return-refund.not-received', $id))->assertSessionHas('error');
+
+        $this->as(null)->get(route('admin.returns'))->assertOk()->assertSee('Nothing in my GCash.');
+        $this->post(route('admin.returns.refund-issue', $id), ['answer' => 'Sent again, the first one bounced.', 'new_reference' => 'GC-2'])->assertSessionHas('success');
+        $this->assertSame('GC-2', DB::table('return_refund_requests')->where('id', $id)->value('refund_reference'));
+        $this->assertTrue($this->notifiedWith($buyer, 'About Your Refund'));
     }
 }

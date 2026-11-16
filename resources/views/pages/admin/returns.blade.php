@@ -34,7 +34,7 @@
         @forelse($requests as $request)
             @php
                 $shop = $shops->get((int) $request->seller_id);
-                $label = \App\Services\ReturnRefundService::LABELS[$request->status] ?? ucfirst($request->status);
+                $label = \App\Services\ReturnRefundService::label($request);
                 $tone = match (true) {
                     $request->status === 'completed' => 'is-good',
                     in_array($request->status, ['rejected', 'cancelled'], true) => 'is-bad',
@@ -70,10 +70,26 @@
                         @endif
                     </dd></div>
                     <div><dt>Paid with</dt><dd class="v">{{ $request->payment_method }}</dd></div>
+                    @if($request->request_type === 'Return')
+                        <div><dt>Item goes back by</dt><dd class="v">{{ $request->return_method === 'pickup' ? 'Rider pickup' : 'Buyer drop-off' }}</dd></div>
+                    @endif
                     @if($request->refund_reference)
-                        <div><dt>Refund reference</dt><dd class="v">{{ $request->refund_reference }}</dd></div>
+                        <div><dt>Refund reference</dt><dd class="v">{{ $request->refund_reference }}
+                            @if($request->refund_proof)
+                                <br><a href="{{ route('return-refund.evidence', ['id' => $request->id, 'photo' => 'refund']) }}" data-viewer data-viewer-title="Transfer screenshot">View screenshot</a>
+                            @endif
+                        </dd></div>
                     @endif
                 </dl>
+
+                @if($request->refund_issue_at)
+                    <div class="money-note" style="border-left:3px solid #be123c;">
+                        <strong>Buyer says the refund didn't arrive</strong> ({{ \Carbon\Carbon::parse($request->refund_issue_at)->format('M j, Y g:i A') }}){{ $request->refund_issue_note ? ': ' . $request->refund_issue_note : '.' }}
+                        @if($request->refund_issue_resolved_at)
+                            <br>BoomBuy answered: {{ $request->refund_issue_answer }}
+                        @endif
+                    </div>
+                @endif
 
                 @if($request->message)
                     <div class="money-note">Buyer: {{ $request->message }}</div>
@@ -100,13 +116,30 @@
                         <button type="submit" name="decision" value="reject" class="money-btn is-quiet"><i class="bi bi-x-lg"></i> Close it (seller was right)</button>
                     </form>
                 @elseif(in_array($request->status, ['refund_pending', 'refund_processing'], true))
-                    <form method="POST" action="{{ route('admin.returns.refunded', $request->id) }}" class="money-form" data-confirm="Mark ₱{{ number_format((float) $request->refund_amount, 2) }} as sent to the buyer?" data-confirm-ok="Refund Sent">
+                    <form method="POST" action="{{ route('admin.returns.refunded', $request->id) }}" enctype="multipart/form-data" class="money-form" data-confirm="Mark ₱{{ number_format((float) $request->refund_amount, 2) }} as sent to the buyer?" data-confirm-ok="Refund Sent">
                         @csrf
                         <label for="ref-{{ $request->id }}">
                             Send ₱{{ number_format((float) $request->refund_amount, 2) }} to the account above, then enter the reference
                             <input type="text" id="ref-{{ $request->id }}" name="reference" maxlength="100" required placeholder="e.g. GCash ref 1234 567 890">
                         </label>
+                        <label for="proof-{{ $request->id }}">
+                            Screenshot of the transfer (the buyer sees it)
+                            <input type="file" id="proof-{{ $request->id }}" name="proof" accept="image/jpeg,image/png" required>
+                        </label>
                         <button type="submit" class="money-btn"><i class="bi bi-send-check"></i> Refund Sent</button>
+                    </form>
+                @elseif($request->status === 'completed' && $request->refund_issue_at && !$request->refund_issue_resolved_at)
+                    <form method="POST" action="{{ route('admin.returns.refund-issue', $request->id) }}" class="money-form">
+                        @csrf
+                        <label for="answer-{{ $request->id }}">
+                            What you found (the buyer sees it)
+                            <textarea id="answer-{{ $request->id }}" name="answer" maxlength="480" required placeholder="e.g. The first transfer bounced; we sent it again."></textarea>
+                        </label>
+                        <label for="newref-{{ $request->id }}">
+                            New reference, if you sent it again (optional)
+                            <input type="text" id="newref-{{ $request->id }}" name="new_reference" maxlength="100">
+                        </label>
+                        <button type="submit" class="money-btn"><i class="bi bi-chat-left-text"></i> Send answer</button>
                     </form>
                 @endif
             </article>

@@ -12,7 +12,8 @@ use Illuminate\Support\Facades\DB;
  * A buyer's return or refund request, from start to refund.
  *
  *   pending ─ seller approves ─┬─ Refund (nothing to send back) ─────────────┐
- *     │                        └─ Return: approved → dropped_off (buyer's     │
+ *     │                        └─ Return: approved → (pickup: a rider brings  │
+ *     │                           it in → picked_up) → dropped_off (buyer's   │
  *     │                           center) → in_transit → ready_for_seller     │
  *     │                           (seller's center) → handed to the seller ───┤
  *     ├─ seller rejects → rejected ─ buyer asks BoomBuy ─┐                    │
@@ -28,10 +29,22 @@ use Illuminate\Support\Facades\DB;
 class ReturnRefundService
 {
     /** A request in one of these blocks another for the same item and holds the seller's payout. */
-    public const OPEN = ['pending', 'disputed', 'approved', 'dropped_off', 'in_transit', 'ready_for_seller', 'refund_pending', 'refund_processing'];
+    public const OPEN = ['pending', 'disputed', 'approved', 'picked_up', 'dropped_off', 'in_transit', 'ready_for_seller', 'refund_pending', 'refund_processing'];
 
     /** Where the buyer's refund can go. */
     public const REFUND_METHODS = ['GCash', 'Maya', 'Bank transfer'];
+
+    /** How a returned item goes back to BoomBuy. */
+    public const RETURN_METHODS = [
+        'dropoff' => 'I\'ll bring it to the Sorting Center',
+        'pickup' => 'A rider picks it up from me (free)',
+    ];
+
+    /** Refund only (the buyer keeps the item) is allowed for these reasons. */
+    public const REFUND_ONLY_REASONS = ['Missing item', 'Damaged item'];
+
+    /** The buyer can say "I didn't receive it" this many days after BoomBuy marks a refund sent. */
+    public const REFUND_ISSUE_DAYS = 7;
 
     /** Days after a rejection the buyer may still escalate it to a dispute (A31). */
     public const DISPUTE_DAYS = 3;
@@ -46,6 +59,7 @@ class ReturnRefundService
         'pending' => 'Waiting for the seller',
         'disputed' => 'In Dispute — BoomBuy is reviewing',
         'approved' => 'Approved — bring the item to the Sorting Center',
+        'picked_up' => 'Picked up by the rider — on its way to the Sorting Center',
         'dropped_off' => 'Received at the Sorting Center',
         'in_transit' => 'On its way back to the seller',
         'ready_for_seller' => 'At the seller\'s Sorting Center',
@@ -56,6 +70,16 @@ class ReturnRefundService
         'rejected' => 'Rejected',
         'cancelled' => 'Cancelled',
     ];
+
+    /** The status as the pages show it: an approved pickup return waits for its rider, not the buyer. */
+    public static function label(object $request): string
+    {
+        if ($request->status === 'approved' && ($request->return_method ?? null) === 'pickup') {
+            return empty($request->pickup_rider_id) ? 'Approved — waiting for a rider to be assigned' : 'Approved — a rider will pick it up';
+        }
+
+        return self::LABELS[$request->status] ?? ucfirst((string) $request->status);
+    }
 
     // ------------------------------------------------------------------
     // Buyer
@@ -71,6 +95,10 @@ class ReturnRefundService
         }
 
         $this->move($requestId, $request->status, 'cancelled', ['closed_at' => now()]);
+
+        if ($request->pickup_rider_id) {
+            createNotification((int) $request->pickup_rider_id, 'Return Pickup Cancelled', 'The buyer cancelled return #' . $requestId . '. You don\'t need to pick it up any more.', 'return_refund', $requestId);
+        }
 
         if ($request->seller_id) {
             createNotification((int) $request->seller_id, 'Return Request Cancelled', 'The buyer cancelled their ' . strtolower($request->request_type) . ' request for order #' . $request->order_id . '.', 'return_refund', $requestId);
@@ -131,8 +159,12 @@ class ReturnRefundService
 
         $this->accept($request, 'pending', 'Approved by the seller.');
 
+        $howBack = ($request->return_method ?? null) === 'pickup'
+            ? ' A rider will pick the item up from the buyer; you collect it at your Sorting Center.'
+            : ' The buyer will drop the item at their Sorting Center; you collect it at yours.';
+
         return 'Request for ' . $request->product_name . ' approved.'
-            . ($request->request_type === 'Return' ? ' The buyer will drop the item at their Sorting Center; you collect it at yours.' : ' BoomBuy will send the refund.');
+            . ($request->request_type === 'Return' ? $howBack : ' BoomBuy will send the refund.');
     }
 
     /** @throws ActionFailed */
@@ -206,9 +238,12 @@ class ReturnRefundService
     public function receiveFromBuyer(int $requestId, ?int $centerId = null): string
     {
         $request = $this->find($requestId);
+        $isPickup = ($request->return_method ?? null) === 'pickup';
 
-        if ($request->request_type !== 'Return' || $request->status !== 'approved') {
-            throw new ActionFailed('This return is not waiting for the buyer to drop it off.');
+        if ($request->request_type !== 'Return' || $request->status !== ($isPickup ? 'picked_up' : 'approved')) {
+            throw new ActionFailed($isPickup
+                ? 'This return is not with a rider yet — the rider taps "Picked up" first.'
+                : 'This return is not waiting for the buyer to drop it off.');
         }
 
         $buyerCenter = self::buyerCenterId($request);
@@ -219,7 +254,7 @@ class ReturnRefundService
         // Same center: it simply waits there for the seller.
         $next = (int) $sellerCenter === (int) $here ? 'ready_for_seller' : 'dropped_off';
 
-        $this->move($requestId, 'approved', $next, ['dropped_off_at' => now(), 'current_center_id' => $here]);
+        $this->move($requestId, $request->status, $next, ['dropped_off_at' => now(), 'current_center_id' => $here]);
 
         createNotification((int) $request->buyer_id, 'Return Received', 'We received the ' . $request->product_name . ' you are returning (order #' . $request->order_id . '). It is going back to the seller; your refund follows once they have it.', 'return_refund', $requestId);
 
@@ -228,6 +263,125 @@ class ReturnRefundService
         }
 
         return 'Return #' . $requestId . ' received from the buyer.' . ($next === 'dropped_off' ? ' Next: send it to ' . ParcelRoute::centerName((int) $sellerCenter) . '.' : ' The seller has been told to collect it.');
+    }
+
+    /**
+     * The buyer's center gives a pickup return to one of its riders.
+     *
+     * @throws ActionFailed
+     */
+    public function assignPickupRider(int $requestId, $riderId, ?int $centerId = null): string
+    {
+        if (empty($riderId)) {
+            throw new ActionFailed('Please select a rider to pick up this return.');
+        }
+
+        $request = $this->find($requestId);
+
+        if ($request->request_type !== 'Return' || ($request->return_method ?? null) !== 'pickup' || $request->status !== 'approved') {
+            throw new ActionFailed('This return is not waiting for a pickup rider.');
+        }
+
+        if (!empty($request->picked_up_at)) {
+            throw new ActionFailed('The rider already picked this item up.');
+        }
+
+        $buyerCenter = self::buyerCenterId($request);
+        $this->mustBeAt($buyerCenter, $centerId, 'is picked up by another Sorting Center\'s riders');
+
+        $rider = app(SortingCenterService::class)->assignableRider($riderId);
+
+        if (!$rider) {
+            throw new ActionFailed('Selected rider not found or no longer active.');
+        }
+
+        if ($reason = \App\Support\RiderJobs::blockReason((int) $rider->id, $buyerCenter ?: $centerId)) {
+            throw new ActionFailed($reason);
+        }
+
+        $previous = $request->pickup_rider_id ? (int) $request->pickup_rider_id : null;
+
+        DB::table('return_refund_requests')->where('id', $requestId)->where('status', 'approved')->update([
+            'pickup_rider_id' => $rider->id,
+            'pickup_assigned_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        if ($previous && $previous !== (int) $rider->id) {
+            createNotification($previous, 'Return Pickup Reassigned', 'Return #' . $requestId . ' was given to another rider. You don\'t need to pick it up.', 'return_refund', $requestId);
+        }
+
+        createNotification((int) $rider->id, 'New Return Pickup', 'Pick up return #' . $requestId . ' (' . $request->product_name . ') from the buyer and bring it to ' . (ParcelRoute::centerName($buyerCenter) ?? 'your Sorting Center') . '. See Items for Pickup.', 'return_refund', $requestId);
+        createNotification((int) $request->buyer_id, 'Rider Assigned for Your Return', $rider->name . ' will pick up the ' . $request->product_name . ' you are returning (return #' . $requestId . '). Please have it packed and ready.', 'return_refund', $requestId);
+
+        return 'Return #' . $requestId . ' assigned to ' . $rider->name . ' for pickup.';
+    }
+
+    /**
+     * The rider has the returned item, with a photo of it as proof.
+     *
+     * @throws ActionFailed
+     */
+    public function riderPickedUp(int $riderId, int $requestId, ?\Illuminate\Http\UploadedFile $photo = null): string
+    {
+        $request = $this->find($requestId);
+
+        if ((int) $request->pickup_rider_id !== $riderId) {
+            throw new ActionFailed('This return pickup is not assigned to you.');
+        }
+
+        if ($request->status !== 'approved') {
+            throw new ActionFailed($request->status === 'picked_up' ? 'You already picked this item up.' : 'This return pickup was cancelled or already handled.');
+        }
+
+        if (!$photo || !isValidProductImage($photo)) {
+            throw new ActionFailed('Take a photo of the item as proof of pickup (JPG or PNG, up to 5 MB).');
+        }
+
+        $path = $photo->store('return-pickups', 'local');
+
+        try {
+            $this->move($requestId, 'approved', 'picked_up', ['picked_up_at' => now(), 'pickup_proof' => $path]);
+        } catch (ActionFailed $e) {
+            \Illuminate\Support\Facades\Storage::disk('local')->delete($path);
+
+            throw $e;
+        }
+
+        $center = self::buyerCenterId($request);
+        $centerName = ParcelRoute::centerName($center) ?? 'the Sorting Center';
+
+        createNotification((int) $request->buyer_id, 'Return Picked Up', 'The rider picked up the ' . $request->product_name . ' you are returning (return #' . $requestId . '). It is on its way to ' . $centerName . '.', 'return_refund', $requestId);
+        ParcelRoute::notifyCenter($center, 'Return Coming In', 'A rider is bringing in return #' . $requestId . ' (order #' . $request->order_id . '). Tap "Received" when it arrives.', 'parcel', (int) $request->order_id);
+
+        return 'Picked up! Bring return #' . $requestId . ' to ' . $centerName . '.';
+    }
+
+    /** Pickup returns this rider still has to collect or bring in, for the rider pages. */
+    public function riderPickups(int $riderId): \Illuminate\Support\Collection
+    {
+        return DB::table('return_refund_requests')
+            ->join('orders', 'orders.id', '=', 'return_refund_requests.order_id')
+            ->leftJoin('order_items', 'order_items.id', '=', 'return_refund_requests.order_item_id')
+            ->leftJoin('sorting_centers', 'sorting_centers.id', '=', 'orders.destination_center_id')
+            ->where('return_refund_requests.pickup_rider_id', $riderId)
+            ->whereIn('return_refund_requests.status', ['approved', 'picked_up'])
+            ->orderBy('return_refund_requests.pickup_assigned_at')
+            ->select(
+                'return_refund_requests.id',
+                'return_refund_requests.order_id',
+                'return_refund_requests.status',
+                'return_refund_requests.reason',
+                'order_items.product_name',
+                'order_items.quantity',
+                'orders.shipping_name',
+                'orders.shipping_phone',
+                'orders.shipping_address',
+                'orders.shipping_city',
+                'orders.shipping_province',
+                'sorting_centers.name as center_name'
+            )
+            ->get();
     }
 
     /** @throws ActionFailed */
@@ -345,7 +499,7 @@ class ReturnRefundService
      *
      * @throws ActionFailed
      */
-    public function markRefunded(int $requestId, string $reference, ?int $adminId = null): string
+    public function markRefunded(int $requestId, string $reference, ?int $adminId = null, ?\Illuminate\Http\UploadedFile $proof = null): string
     {
         $request = $this->find($requestId);
 
@@ -359,7 +513,14 @@ class ReturnRefundService
             throw new ActionFailed('Enter the transfer\'s reference number so the buyer can check it.');
         }
 
+        if ($proof && !isValidProductImage($proof)) {
+            throw new ActionFailed('The transfer screenshot must be a JPG or PNG image of at most 5 MB.');
+        }
+
+        $proofPath = $proof?->store('refund-proofs', 'local');
+
         $this->move($requestId, $request->status, 'completed', [
+            'refund_proof' => $proofPath,
             'refund_reference' => \Illuminate\Support\Str::limit($reference, 100, ''),
             'refunded_at' => now(),
             'refunded_by' => $adminId,
@@ -375,6 +536,75 @@ class ReturnRefundService
         }
 
         return 'Refund for return #' . $requestId . ' marked as sent.';
+    }
+
+    /**
+     * The buyer says the refund BoomBuy marked as sent never arrived — once,
+     * within REFUND_ISSUE_DAYS. BoomBuy checks its transfer and answers.
+     *
+     * @throws ActionFailed
+     */
+    public function reportNotReceived(int $buyerId, int $requestId, string $note = ''): string
+    {
+        $request = $this->find($requestId, fn ($q) => $q->where('return_refund_requests.buyer_id', $buyerId));
+
+        if ($request->status !== 'completed' || empty($request->refunded_at)) {
+            throw new ActionFailed('BoomBuy has not marked this refund as sent yet.');
+        }
+
+        if (!empty($request->refund_issue_at)) {
+            throw new ActionFailed('You already told BoomBuy about this refund. We will get back to you.');
+        }
+
+        if (\Illuminate\Support\Carbon::parse($request->refunded_at)->addDays(self::REFUND_ISSUE_DAYS)->isPast()) {
+            throw new ActionFailed('You can report a missing refund within ' . self::REFUND_ISSUE_DAYS . ' days of it being sent. Please contact BoomBuy support.');
+        }
+
+        $note = trim($note);
+
+        DB::table('return_refund_requests')->where('id', $requestId)->whereNull('refund_issue_at')->update([
+            'refund_issue_at' => now(),
+            'refund_issue_note' => $note !== '' ? \Illuminate\Support\Str::limit($note, 480) : null,
+            'updated_at' => now(),
+        ]);
+
+        $this->tellAdmin('Refund Not Received', 'The buyer says the ₱' . number_format((float) $request->refund_amount, 2) . ' refund for return #' . $requestId . ' (reference ' . $request->refund_reference . ') did not arrive. Check the transfer.', $requestId);
+
+        return 'Sent to BoomBuy. We will check the transfer and tell you what we find.';
+    }
+
+    /**
+     * BoomBuy's answer to "I didn't receive it", e.g. a new reference after
+     * sending it again, or what the transfer shows.
+     *
+     * @throws ActionFailed
+     */
+    public function answerRefundIssue(int $requestId, string $answer, ?string $newReference = null): string
+    {
+        $request = $this->find($requestId);
+
+        if (empty($request->refund_issue_at) || !empty($request->refund_issue_resolved_at)) {
+            throw new ActionFailed('There is no open refund report on this request.');
+        }
+
+        $answer = trim($answer);
+
+        if (mb_strlen($answer) < 10) {
+            throw new ActionFailed('Tell the buyer what you found (at least 10 characters).');
+        }
+
+        $newReference = trim((string) $newReference);
+
+        DB::table('return_refund_requests')->where('id', $requestId)->update(array_filter([
+            'refund_issue_resolved_at' => now(),
+            'refund_issue_answer' => \Illuminate\Support\Str::limit($answer, 480),
+            'refund_reference' => $newReference !== '' ? \Illuminate\Support\Str::limit($newReference, 100, '') : null,
+            'updated_at' => now(),
+        ], fn ($v) => $v !== null));
+
+        createNotification((int) $request->buyer_id, 'About Your Refund', 'BoomBuy checked your refund for return #' . $requestId . ': ' . $answer . ($newReference !== '' ? ' New reference: ' . $newReference . '.' : ''), 'return_refund', $requestId);
+
+        return 'Answer sent to the buyer.';
     }
 
     // ------------------------------------------------------------------
@@ -429,6 +659,20 @@ class ReturnRefundService
         $isReturn = $request->request_type === 'Return';
 
         $this->move((int) $request->id, $from, $isReturn ? 'approved' : 'refund_pending', ['approved_at' => now(), 'seller_note' => $request->seller_note ?: $note]);
+
+        if ($isReturn && ($request->return_method ?? null) === 'pickup') {
+            createNotification(
+                (int) $request->buyer_id,
+                'Return Approved',
+                'Your return for ' . $request->product_name . ' was approved. Pack the item — a BoomBuy rider will pick it up from your address (return #' . $request->id . '). Your refund of ₱' . number_format((float) $request->refund_amount, 2) . ' follows once the seller has it.',
+                'return_refund',
+                (int) $request->id
+            );
+
+            ParcelRoute::notifyCenter(self::buyerCenterId($request), 'Return Pickup to Assign', 'Return #' . $request->id . ' (order #' . $request->order_id . ') needs a rider to pick it up from the buyer. See Parcels → Returns.', 'parcel', (int) $request->order_id);
+
+            return;
+        }
 
         if ($isReturn) {
             $center = ($id = self::buyerCenterId($request)) ? \App\Models\SortingCenter::find($id) : null;

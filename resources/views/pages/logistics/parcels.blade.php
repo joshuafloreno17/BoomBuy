@@ -828,6 +828,40 @@
                 </div>
             @endif
 
+            {{-- Pickup returns: give each one to a rider, who collects it from the buyer. --}}
+            @foreach($buyerReturns['toAssignPickup'] as $return)
+                <div class="app-card">
+                    <div class="app-card-top">
+                        <div>
+                            <div class="app-name">Return #{{ $return->id }} · {{ $return->product_name ?? 'Item' }}{{ $return->quantity ? ' × ' . $return->quantity : '' }}</div>
+                            <div class="app-email">Order #{{ $return->order_id }} · Buyer {{ $return->buyer_name ?? '' }}</div>
+                        </div>
+                        <span class="status-badge status-pending">{{ $return->pickup_rider_id ? 'Rider on the way' : 'Needs a pickup rider' }}</span>
+                    </div>
+
+                    <div class="parcel-meta">
+                        <i class="bi bi-house-door-fill"></i> Pick up at: {{ $return->shipping_address ?: trim(($return->shipping_city ?? '') . ', ' . ($return->shipping_province ?? ''), ', ') }}
+                        · Reason: {{ $return->reason }}
+                        @if($return->pickup_rider_name)
+                            · <i class="bi bi-bicycle"></i> {{ $return->pickup_rider_name }}
+                        @endif
+                    </div>
+
+                    <div class="app-actions">
+                        <form class="assign-form" method="POST" action="{{ route('logistics.returns.assign-rider', $return->id) }}">
+                            @csrf
+                            <select name="rider_id" required>
+                                <option value="">Select Rider</option>
+                                @foreach ($activeRiders as $rider)
+                                    <option value="{{ $rider->id }}" @selected((int) $return->pickup_rider_id === (int) $rider->id)>{{ $rider->name }}</option>
+                                @endforeach
+                            </select>
+                            <button type="submit" class="approve-btn"><i class="bi bi-bicycle"></i> {{ $return->pickup_rider_id ? 'Change Rider' : 'Assign for Pickup' }}</button>
+                        </form>
+                    </div>
+                </div>
+            @endforeach
+
             @foreach($returnSteps as $queue => [$stepLabel, $stepRoute, $stepButton, $stepIcon, $stepHint])
                 @foreach($buyerReturns[$queue] as $return)
                     <div class="app-card">
@@ -845,7 +879,14 @@
                             · Reason: {{ $return->reason }}
                         </div>
 
-                        @if($stepHint)
+                        @if($queue === 'toReceive' && $return->status === 'picked_up')
+                            <div class="remarks-note">
+                                <i class="bi bi-bicycle"></i> {{ $return->pickup_rider_name ?? 'The rider' }} picked it up from the buyer and is bringing it in.
+                                @if($return->pickup_proof)
+                                    <a href="{{ route('return-refund.evidence', ['id' => $return->id, 'photo' => 'pickup']) }}" data-viewer>View pickup photo</a>
+                                @endif
+                            </div>
+                        @elseif($stepHint)
                             <div class="remarks-note">{{ str_replace(':id', $return->id, $stepHint) }}</div>
                         @endif
 

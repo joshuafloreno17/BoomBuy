@@ -1195,6 +1195,11 @@ class LogisticsController extends Controller
         return $this->parcelAction(fn (?int $myCenter) => $returns->handToSeller((int) $id, $myCenter));
     }
 
+    public function assignBuyerReturnRider($id, \App\Services\ReturnRefundService $returns)
+    {
+        return $this->parcelAction(fn (?int $myCenter) => $returns->assignPickupRider((int) $id, request('rider_id'), $myCenter));
+    }
+
     public function confirmParcelBack($id, SortingCenterService $center)
     {
         return $this->parcelAction(fn (?int $myCenter) => $center->confirmBack((int) $id, $myCenter));
@@ -1421,14 +1426,22 @@ class LogisticsController extends Controller
                 $number = (int) ltrim($search, '#');
                 $q->where(fn ($w) => $w->where('return_refund_requests.id', $number)->orWhere('return_refund_requests.order_id', \App\Support\Waybill::parse($search) ?? $number));
             })
-            ->select('return_refund_requests.*', 'order_items.product_name', 'order_items.quantity', 'buyers.name as buyer_name', 'orders.origin_center_id', 'orders.destination_center_id')
+            ->leftJoin('users as pickup_riders', 'pickup_riders.id', '=', 'return_refund_requests.pickup_rider_id')
+            ->select('return_refund_requests.*', 'order_items.product_name', 'order_items.quantity', 'buyers.name as buyer_name', 'orders.origin_center_id', 'orders.destination_center_id', 'orders.shipping_address', 'orders.shipping_city', 'orders.shipping_province', 'pickup_riders.name as pickup_rider_name')
             ->orderBy('return_refund_requests.updated_at');
 
         $at = fn (string $column) => fn ($q) => $myCenter ? $q->where(fn ($w) => $w->where($column, $myCenter->id)->orWhereNull($column)) : $q;
+        $isPickup = fn ($q) => $q->where('return_refund_requests.return_method', 'pickup');
 
         return [
-            // Approved: the buyer brings it to their own center.
-            'toReceive' => $base()->where('return_refund_requests.status', 'approved')->where($at('orders.destination_center_id'))->get(),
+            // Pickup: the buyer's center gives it to a rider (or another one, until it is picked up).
+            'toAssignPickup' => $base()->where('return_refund_requests.status', 'approved')->where($isPickup)->where($at('orders.destination_center_id'))->get(),
+            // Drop-off: the buyer brings it to their own center. Pickup: the rider brings it in.
+            'toReceive' => $base()->where($at('orders.destination_center_id'))
+                ->where(fn ($q) => $q->where('return_refund_requests.status', 'picked_up')
+                    ->orWhere(fn ($d) => $d->where('return_refund_requests.status', 'approved')
+                        ->where(fn ($m) => $m->whereNull('return_refund_requests.return_method')->orWhere('return_refund_requests.return_method', '!=', 'pickup'))))
+                ->get(),
             'toSend' => $base()->where('return_refund_requests.status', 'dropped_off')->where($at('return_refund_requests.current_center_id'))->get(),
             'incoming' => $base()->where('return_refund_requests.status', 'in_transit')->where($at('orders.origin_center_id'))->get(),
             'forSeller' => $base()->where('return_refund_requests.status', 'ready_for_seller')->where($at('return_refund_requests.current_center_id'))->get(),

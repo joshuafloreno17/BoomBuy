@@ -230,7 +230,8 @@ class BuyerOrderController extends MobileController
                 'method' => $request->input('refund_method'),
                 'account_name' => $request->input('refund_account_name'),
                 'account_number' => $request->input('refund_account_number'),
-            ]
+            ],
+            (string) $request->input('return_method', 'dropoff')
         ), fn () => $this->fresh($id, $buyerId));
     }
 
