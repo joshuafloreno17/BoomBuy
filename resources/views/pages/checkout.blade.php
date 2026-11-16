@@ -454,9 +454,69 @@
                     </span>
                 </div>
 
-                @foreach($voucherNotices ?? [] as $notice)
-                    <div class="subtotal-row voucher-notice" role="status"><span>{{ $notice }}</span></div>
-                @endforeach
+                {{-- Voucher box. Its inputs belong to the forms after the checkout
+                     form (form="…"), since forms can't be nested. --}}
+                <div class="co-voucher" id="voucherBox">
+                    <div class="co-voucher-head">
+                        <i class="bi bi-ticket-perforated-fill"></i>
+                        <span>Vouchers</span>
+                        <small>One store voucher per store, one BoomBuy &amp; one shipping voucher</small>
+                    </div>
+
+                    <div class="co-voucher-field">
+                        <input
+                            type="text"
+                            name="voucher_code"
+                            form="checkoutVoucherForm"
+                            value="{{ session('voucher_error') ? old('voucher_code') : '' }}"
+                            placeholder="Enter voucher code"
+                            maxlength="12"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                            aria-label="Voucher code"
+                            @class(['is-invalid' => session('voucher_error')])
+                        >
+                        <button type="submit" form="checkoutVoucherForm">Apply</button>
+                    </div>
+
+                    @if(session('voucher_error'))
+                        <p class="co-voucher-msg is-error" role="alert"><i class="bi bi-exclamation-circle-fill"></i> {{ session('voucher_error') }}</p>
+                    @elseif(session('voucher_success'))
+                        <p class="co-voucher-msg is-ok" role="status"><i class="bi bi-check-circle-fill"></i> {{ session('voucher_success') }}</p>
+                    @endif
+
+                    @foreach($voucherNotices ?? [] as $notice)
+                        <p class="co-voucher-msg is-warn" role="status"><i class="bi bi-info-circle-fill"></i> {{ $notice }}</p>
+                    @endforeach
+
+                    @if(($appliedVouchers ?? collect())->isNotEmpty())
+                        <div class="co-voucher-applied">
+                            @foreach($appliedVouchers as $applied)
+                                <div class="co-voucher-chip is-applied">
+                                    <span class="co-voucher-kind">{{ ['store' => 'Store', 'platform' => 'BoomBuy', 'shipping' => 'Shipping'][$applied->kind()] }}</span>
+                                    <strong>{{ $applied->code }}</strong>
+                                    <small>{{ $applied->summary() }}</small>
+                                    <button type="submit" form="checkoutVoucherRemove" name="voucher_code" value="{{ $applied->code }}" aria-label="Remove voucher {{ $applied->code }}"><i class="bi bi-x-lg"></i></button>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    @if(($walletVouchers ?? collect())->isNotEmpty())
+                        <div class="co-voucher-wallet">
+                            <span class="co-voucher-label">From My Vouchers — tap to apply</span>
+                            @foreach($walletVouchers->take(4) as $wallet)
+                                <button type="submit" form="checkoutVoucherForm" name="voucher_code" value="{{ $wallet->code }}" class="co-voucher-chip">
+                                    <span class="co-voucher-kind">{{ ['store' => 'Store', 'platform' => 'BoomBuy', 'shipping' => 'Shipping'][$wallet->kind()] }}</span>
+                                    <strong>{{ $wallet->code }}</strong>
+                                    <small>{{ $wallet->summary() }}</small>
+                                    <i class="bi bi-plus-circle-fill"></i>
+                                </button>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
 
                 {{-- Store vouchers (per store), BoomBuy's voucher and the shipping voucher. --}}
                 @foreach($checkoutPlan['orders'] as $planned)
@@ -528,6 +588,16 @@
 
         </div>
 
+    </form>
+
+    {{-- The voucher box's forms (its fields sit in the summary, linked by form="…"). --}}
+    <form id="checkoutVoucherForm" method="POST" action="{{ route('cart.voucher.apply') }}" hidden>
+        @csrf
+        <input type="hidden" name="from" value="checkout">
+    </form>
+    <form id="checkoutVoucherRemove" method="POST" action="{{ route('cart.voucher.remove') }}" hidden>
+        @csrf
+        <input type="hidden" name="from" value="checkout">
     </form>
 
 </div>

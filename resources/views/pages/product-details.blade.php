@@ -260,11 +260,29 @@
                 @php
                     $liveFlash = $product->liveFlash();
                     $upcomingFlash = $liveFlash ? null : $product->upcomingFlash();
+
+                    // The next moment this price changes on its own: a flash sale or
+                    // store sale starting or ending. The page reloads then, timed in
+                    // seconds from the server's clock (the phone's clock may be off).
+                    $priceChangesAt = collect([
+                        $liveFlash?->ends_at,
+                        $liveSale?->stopsAt(),
+                        $upcomingFlash?->starts_at,
+                        \App\Models\ProductSale::where('product_id', $product->id)
+                            ->where('starts_at', '>', now())
+                            ->whereNull('ended_at')
+                            ->min('starts_at'),
+                    ])->filter()->map(fn ($at) => \Illuminate\Support\Carbon::parse($at))->min();
+                    $priceChangesIn = $priceChangesAt ? max(0, (int) ceil(now()->diffInSeconds($priceChangesAt, false))) : null;
                 @endphp
+
+                @if($priceChangesIn !== null && $priceChangesIn <= 86400)
+                    <span hidden data-price-changes-in="{{ $priceChangesIn }}"></span>
+                @endif
 
                 @if($liveFlash)
                     <span class="price-flash" data-flash-ends="{{ $liveFlash->ends_at->toIso8601String() }}">
-                        <i class="bi bi-lightning-charge-fill"></i> Flash sale · ends in <b data-countdown="{{ $liveFlash->ends_at->toIso8601String() }}">{{ gmdate('H:i:s', max(0, now()->diffInSeconds($liveFlash->ends_at, false))) }}</b>
+                        <i class="bi bi-lightning-charge-fill"></i> Flash sale · ends in <b data-countdown-seconds="{{ max(0, (int) ceil(now()->diffInSeconds($liveFlash->ends_at, false))) }}">{{ gmdate('H:i:s', max(0, (int) now()->diffInSeconds($liveFlash->ends_at, false))) }}</b>
                         · <b data-flash-left>{{ $liveFlash->remaining() }} left</b>
                     </span>
                 @elseif($liveSale)
@@ -1567,20 +1585,33 @@
     @include('partials.pwa-register')
 
 <script>
-    // Flash sale countdown; at zero the page reloads to show the normal price.
-    document.querySelectorAll('[data-countdown]').forEach(function (el) {
-        var end = new Date(el.dataset.countdown).getTime();
+    // Timed from the server's clock (seconds left when the page was made),
+    // never the phone's clock, which may be off and would reload too early.
+    var pageLoadedAt = Date.now();
+    function secondsSinceLoad() { return Math.floor((Date.now() - pageLoadedAt) / 1000); }
+
+    // Flash sale countdown.
+    document.querySelectorAll('[data-countdown-seconds]').forEach(function (el) {
+        var total = parseInt(el.dataset.countdownSeconds, 10) || 0;
         function tick() {
-            var left = Math.max(0, Math.floor((end - Date.now()) / 1000));
+            var left = Math.max(0, total - secondsSinceLoad());
             var h = String(Math.floor(left / 3600)).padStart(2, '0');
             var m = String(Math.floor(left % 3600 / 60)).padStart(2, '0');
             var s = String(left % 60).padStart(2, '0');
             el.textContent = h + ':' + m + ':' + s;
-            if (left === 0) { clearInterval(timer); setTimeout(function () { location.reload(); }, 1500); }
+            if (left === 0) { clearInterval(timer); }
         }
         var timer = setInterval(tick, 1000);
         tick();
     });
+
+    // A sale starting or ending: reload then (once) so the price shown is the price charged.
+    (function () {
+        var marker = document.querySelector('[data-price-changes-in]');
+        if (!marker) { return; }
+        var wait = (parseInt(marker.dataset.priceChangesIn, 10) || 0) + 2;
+        setTimeout(function () { location.reload(); }, wait * 1000);
+    })();
 </script>
 
 </body>

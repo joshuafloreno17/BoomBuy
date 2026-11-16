@@ -653,3 +653,35 @@ button:hover, .btn:hover, [class*="btn-"]:hover, .add-to-cart:hover,
         padding-bottom: calc(176px + env(safe-area-inset-bottom)) !important;
     }
 }
+
+/* =========================
+   VOUCHER BOX (Order Summary)
+========================= */
+.co-voucher { margin: 14px 0 6px; padding: 12px; border: 1px dashed #c9b8f2; border-radius: 12px; background: #faf7ff; }
+.co-voucher-head { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; font-size: 13px; font-weight: 800; color: var(--theme-ink); }
+.co-voucher-head i { color: var(--theme-primary); font-size: 16px; }
+.co-voucher-head small { flex-basis: 100%; font-size: 11px; font-weight: 500; color: var(--theme-muted); }
+.co-voucher-field { display: flex; gap: 8px; margin-top: 10px; }
+.co-voucher-field input { flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--theme-border); border-radius: 9px; background: #fff; font-family: inherit; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--theme-ink); }
+.co-voucher-field input::placeholder { font-weight: 500; letter-spacing: 0; text-transform: none; }
+.co-voucher-field input:focus { outline: none; border-color: var(--theme-primary); box-shadow: 0 0 0 3px rgba(124, 92, 230, .18); }
+.co-voucher-field input.is-invalid { border-color: #e11d48; }
+.co-voucher-field button { flex: none; padding: 0 16px; border: none; border-radius: 9px; background: var(--theme-primary); color: #fff; font-family: inherit; font-size: 13px; font-weight: 800; cursor: pointer; }
+.co-voucher-field button:hover { background: var(--theme-primary-hover); }
+.co-voucher-msg { display: flex; gap: 6px; align-items: flex-start; margin: 8px 0 0; padding: 7px 9px; border-radius: 8px; font-size: 12px; line-height: 1.4; }
+.co-voucher-msg.is-error { background: #fff1f2; color: #be123c; }
+.co-voucher-msg.is-ok { background: #ecfdf5; color: #047857; }
+.co-voucher-msg.is-warn { background: #fff7ed; color: #9a3412; }
+.co-voucher-applied, .co-voucher-wallet { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.co-voucher-label { font-size: 11px; font-weight: 700; color: var(--theme-muted); }
+.co-voucher-chip { display: grid; grid-template-columns: auto 1fr auto; grid-template-areas: "kind code act" "kind sum act"; align-items: center; column-gap: 9px; width: 100%; padding: 8px 10px; border: 1px solid #e4dcf8; border-radius: 10px; background: #fff; font-family: inherit; text-align: left; color: var(--theme-ink); cursor: pointer; }
+.co-voucher-chip:hover { border-color: var(--theme-primary); }
+.co-voucher-chip.is-applied { border-color: #86efac; background: #f0fdf4; cursor: default; }
+.co-voucher-kind { grid-area: kind; padding: 3px 7px; border-radius: 999px; background: #ede7fb; color: var(--theme-primary-hover); font-size: 10px; font-weight: 800; text-transform: uppercase; }
+.co-voucher-chip.is-applied .co-voucher-kind { background: #dcfce7; color: #15803d; }
+.co-voucher-chip strong { grid-area: code; font-size: 13px; letter-spacing: .04em; }
+.co-voucher-chip small { grid-area: sum; font-size: 11px; color: var(--theme-muted); }
+.co-voucher-chip > i, .co-voucher-chip > button { grid-area: act; }
+.co-voucher-chip > i { color: var(--theme-primary); font-size: 18px; }
+.co-voucher-chip > button { width: 28px; height: 28px; border: none; border-radius: 50%; background: transparent; color: #be123c; cursor: pointer; }
+.co-voucher-chip > button:hover { background: #ffe4e6; }

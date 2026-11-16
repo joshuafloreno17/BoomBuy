@@ -425,17 +425,22 @@ class CartController extends Controller
 
     public function applyVoucher()
     {
-        $cart = session()->get('cart', []);
+        // From the checkout page the voucher is checked against the items being
+        // checked out (a Buy Now item, or the lines ticked in the cart), and its
+        // message is shown in the checkout's voucher box.
+        $fromCheckout = request('from') === 'checkout';
+        $cart = $fromCheckout ? $this->checkoutCart() : session()->get('cart', []);
         $code = strtoupper(trim((string) request('voucher_code')));
+        $fail = fn (string $message) => back()->with($fromCheckout ? 'voucher_error' : 'error', $message)->withInput(['voucher_code' => $code]);
 
         if ($code === '') {
-            return back()->with('error', 'Please enter a voucher code.');
+            return $fail('Please enter a voucher code.');
         }
 
         $voucher = \App\Models\Voucher::where('code', $code)->first();
 
         if (!$voucher) {
-            return back()->with('error', 'Invalid voucher code.');
+            return $fail('Invalid voucher code.');
         }
 
         $buyerId = (int) session('user.id');
@@ -443,9 +448,9 @@ class CartController extends Controller
 
         // A store voucher only discounts its own store's items (selected ones, if limited).
         if ($voucher->kind() === 'store' && $voucher->eligibleSubtotal($lines) <= 0) {
-            return back()->with('error', $voucher->applies_to === 'selected'
-                ? 'Voucher ' . $voucher->code . ' is not applicable to the items in your cart.'
-                : 'This voucher only applies to a seller whose products are not in your cart.');
+            return $fail($voucher->applies_to === 'selected'
+                ? 'Voucher ' . $voucher->code . ' is not applicable to the items in your ' . ($fromCheckout ? 'order' : 'cart') . '.'
+                : 'This voucher only applies to a seller whose products are not in your ' . ($fromCheckout ? 'order' : 'cart') . '.');
         }
 
         $base = $voucher->kind() === 'store'
@@ -453,11 +458,11 @@ class CartController extends Controller
             : round(array_sum(array_map(fn ($line) => $line['price'] * $line['quantity'], $lines)), 2);
 
         if ($problem = $voucher->problemFor($base)) {
-            return back()->with('error', $problem);
+            return $fail($problem);
         }
 
         if ($buyerId && $voucher->usedUpBy($buyerId)) {
-            return back()->with('error', 'You have already used voucher "' . $voucher->code . '"' . ((int) $voucher->per_buyer_limit > 1 ? ' ' . $voucher->per_buyer_limit . ' times' : '') . '.');
+            return $fail('You have already used voucher "' . $voucher->code . '"' . ((int) $voucher->per_buyer_limit > 1 ? ' ' . $voucher->per_buyer_limit . ' times' : '') . '.');
         }
 
         // A claimable voucher typed in is saved to the wallet too.
@@ -467,7 +472,7 @@ class CartController extends Controller
 
         $replaced = \App\Support\VoucherSelection::add($voucher);
 
-        return back()->with('success', 'Voucher "' . $voucher->code . '" applied!'
+        return back()->with($fromCheckout ? 'voucher_success' : 'success', 'Voucher "' . $voucher->code . '" applied!'
             . ($replaced ? ' It replaced ' . $replaced . ' (one voucher of each kind per order).' : ''));
     }
 
@@ -475,7 +480,22 @@ class CartController extends Controller
     {
         \App\Support\VoucherSelection::remove(request('voucher_code') ?: null);
 
-        return back()->with('success', 'Voucher removed.');
+        return back()->with(request('from') === 'checkout' ? 'voucher_success' : 'success', 'Voucher removed.');
+    }
+
+    /** The items the checkout page is showing: a Buy Now item, or the cart lines picked. */
+    private function checkoutCart(): array
+    {
+        $buyNow = session()->get('buy_now', []);
+
+        if (!empty($buyNow)) {
+            return $buyNow;
+        }
+
+        $cart = session()->get('cart', []);
+        $selection = session()->get('checkout_selection');
+
+        return is_array($selection) ? array_intersect_key($cart, array_flip($selection)) : $cart;
     }
 
     /**
@@ -746,6 +766,21 @@ class CartController extends Controller
         [$checkoutPlan, $appliedVouchers, $voucherNotices] = $this->voucherPlan($planLines, $deliveryTo);
         $appliedVoucher = $appliedVouchers->first();
         $voucherSubtotal = $checkoutPlan['subtotal'];
+
+        // Claimed vouchers that fit this order, offered as one-tap chips
+        // (applying still goes through applyVoucher's checks).
+        $orderSellers = collect($planLines)->pluck('seller_id')->map(fn ($id) => (int) $id)->unique();
+        $walletVouchers = \App\Models\VoucherClaim::where('user_id', (int) $user['id'])
+            ->with('voucher')
+            ->latest()
+            ->get()
+            ->pluck('voucher')
+            ->filter(fn ($voucher) => $voucher
+                && !$appliedVouchers->contains('code', $voucher->code)
+                && $voucher->isUsableNow()
+                && !$voucher->usedUpBy((int) $user['id'])
+                && ($voucher->kind() !== 'store' || $orderSellers->contains((int) $voucher->seller_id)))
+            ->values();
         $pickupCenter = $deliveryTo ? ParcelRoute::pickupPointFor($deliveryTo['province'], $deliveryTo['city']) : null;
         $checkoutEta = self::latestEta($checkoutPlan);
 
@@ -767,6 +802,7 @@ class CartController extends Controller
                 'products',
                 'appliedVoucher',
                 'appliedVouchers',
+                'walletVouchers',
                 'voucherNotices',
                 'voucherSubtotal',
                 'linePieces',

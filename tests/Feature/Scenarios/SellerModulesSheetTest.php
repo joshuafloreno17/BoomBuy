@@ -1830,7 +1830,8 @@ class SellerModulesSheetTest extends TestCase
         $this->travelTo(now()->setTime(12, 0));
         $this->as($this->buyer1())->get(route('product.details', $p02->id))->assertOk()
             ->assertSee('<span id="pdPrice" data-base="450">₱299</span>', false)
-            ->assertSee('data-countdown="' . $flash->ends_at->toIso8601String() . '"', false)
+            ->assertSee('data-countdown-seconds="7200"', false)
+            ->assertSee('data-price-changes-in="7200"', false)
             ->assertSee('02:00:00')->assertSee('3 left');
     }
 
