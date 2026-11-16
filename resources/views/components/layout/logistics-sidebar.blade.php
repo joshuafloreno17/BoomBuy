@@ -31,11 +31,21 @@
             <a href="{{ route('logistics.ops') }}" class="logistics-sidebar-link {{ $active === 'ops' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-truck"></i></span>
                 <span>Shipments &amp; Dispatch</span>
+                @if($logisticsOpsToActOn > 0)
+                    <span class="sidebar-notification-badge" title="Pickups with no rider yet and returns ready to go back">
+                        {{ $logisticsOpsToActOn > 99 ? '99+' : $logisticsOpsToActOn }}
+                    </span>
+                @endif
             </a>
 
             <a href="{{ route('logistics.cod') }}" class="logistics-sidebar-link {{ $active === 'cod' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-cash-coin"></i></span>
                 <span>COD &amp; Reports</span>
+                @if($logisticsCodToConfirm > 0)
+                    <span class="sidebar-notification-badge" title="Remittances to confirm">
+                        {{ $logisticsCodToConfirm > 99 ? '99+' : $logisticsCodToConfirm }}
+                    </span>
+                @endif
             </a>
 
             <a href="{{ route('logistics.rates') }}" class="logistics-sidebar-link {{ $active === 'rates' ? 'active' : '' }}">
@@ -53,6 +63,11 @@
             <a href="{{ route('logistics.riders') }}" class="logistics-sidebar-link {{ $active === 'riders' ? 'active' : '' }}">
                 <span class="sidebar-icon"><i class="bi bi-bicycle"></i></span>
                 <span>Rider Management</span>
+                @if($logisticsRidersPending > 0)
+                    <span class="sidebar-notification-badge" title="Rider applications to review">
+                        {{ $logisticsRidersPending > 99 ? '99+' : $logisticsRidersPending }}
+                    </span>
+                @endif
             </a>
 
             @php

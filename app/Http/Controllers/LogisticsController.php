@@ -564,16 +564,7 @@ class LogisticsController extends Controller
 
         $search = trim((string) request('q', ''));
 
-        // A center's staff see the riders of their own province only.
-        $riderProvinces = $this->riderProvinces($user);
-
-        // Riders a company added itself are only that company's; the others go by province.
-        $base = DB::table('rider_applications')
-            ->join('users', 'users.id', '=', 'rider_applications.user_id')
-            ->where(fn ($visible) => $visible->where('rider_applications.created_by', $user['id'])
-                ->orWhere(fn ($applied) => $applied->whereNull('rider_applications.created_by')
-                    ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))
-                    ->when($this->branchTown($user), fn ($q, $town) => $this->riderInTown($q, $town))))
+        $base = $this->visibleRiderApplications($user)
             ->when($search !== '', function ($query) use ($search) {
                 $like = '%' . $search . '%';
 
@@ -627,6 +618,29 @@ class LogisticsController extends Controller
             'pages.logistics.riders',
             compact('user', 'riderApplications', 'riderAreas', 'statuses', 'statusKey', 'statusCounts', 'search', 'deliveryLoad', 'riderStats')
         );
+    }
+
+    /**
+     * The rider applications this staff member sees: riders a company added
+     * itself are only that company's; the others go by the center's province
+     * (and a branch's town).
+     */
+    private function visibleRiderApplications(array $user)
+    {
+        $riderProvinces = $this->riderProvinces($user);
+
+        return DB::table('rider_applications')
+            ->join('users', 'users.id', '=', 'rider_applications.user_id')
+            ->where(fn ($visible) => $visible->where('rider_applications.created_by', $user['id'])
+                ->orWhere(fn ($applied) => $applied->whereNull('rider_applications.created_by')
+                    ->when($riderProvinces !== null, fn ($q) => $this->riderInProvinces($q, $riderProvinces))
+                    ->when($this->branchTown($user), fn ($q, $town) => $this->riderInTown($q, $town))));
+    }
+
+    /** Sidebar badge: rider applications waiting for this staff member's review. */
+    public function pendingRiderApplications(array $user): int
+    {
+        return $this->visibleRiderApplications($user)->where('rider_applications.status', 'Pending Verification')->count();
     }
 
     /** The Add Rider form: the company adds a rider itself, who then activates by email. */

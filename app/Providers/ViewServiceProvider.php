@@ -43,6 +43,14 @@ class ViewServiceProvider extends ServiceProvider
             $user = $view->getData()['user'] ?? [];
 
             $view->with('logisticsParcelsToActOn', empty($user['id']) ? 0 : app(\App\Http\Controllers\LogisticsController::class)->parcelsToActOn($user));
+
+            // Shipments & Dispatch, COD & Reports and Rider Management: what each page waits on.
+            $counts = empty($user['id']) ? ['ops' => 0, 'cod' => 0] : app(\App\Http\Controllers\LogisticsOpsController::class)->sidebarCounts($user);
+            $view->with([
+                'logisticsOpsToActOn' => $counts['ops'],
+                'logisticsCodToConfirm' => $counts['cod'],
+                'logisticsRidersPending' => empty($user['id']) ? 0 : app(\App\Http\Controllers\LogisticsController::class)->pendingRiderApplications($user),
+            ]);
         });
 
         // The seller's card shows the shop name.

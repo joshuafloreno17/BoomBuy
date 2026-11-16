@@ -35,6 +35,32 @@ class LogisticsOpsController extends Controller
         return $row && $row->is_head_office ? null : false;
     }
 
+    /**
+     * Sidebar badges: what each page is waiting on, counted the same way the
+     * page lists it. Shipments = pickups with no rider yet + returns ready to
+     * go back; COD = remittances to confirm.
+     *
+     * @return array{ops: int, cod: int}
+     */
+    public function sidebarCounts(array $user): array
+    {
+        $center = $this->center($user);
+
+        if ($center === false) {
+            return ['ops' => 0, 'cod' => 0];
+        }
+
+        $ops = DB::table('orders')->where('status', 'Ready for Pickup')->whereNull('rider_id')
+            ->when($center, fn ($q) => $q->where('origin_center_id', $center))->count()
+            + DB::table('orders')->where('status', 'Return Ready')
+                ->when($center, fn ($q) => $q->where('current_center_id', $center))->count();
+
+        $cod = DB::table('cod_remittances')->where('status', 'Pending')->pluck('rider_id')
+            ->filter(fn ($riderId) => RiderJobs::worksFor((int) $riderId, $center ?: null))->count();
+
+        return ['ops' => $ops, 'cod' => $cod];
+    }
+
     /** Runs an action for a logged-in, assigned logistics user and flashes its message. */
     private function act(callable $action)
     {
