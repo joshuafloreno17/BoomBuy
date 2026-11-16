@@ -1190,11 +1190,6 @@ class LogisticsController extends Controller
         return $this->parcelAction(fn (?int $myCenter) => $returns->arriveAtSellerCenter((int) $id, $myCenter));
     }
 
-    public function handBuyerReturnToSeller($id, \App\Services\ReturnRefundService $returns)
-    {
-        return $this->parcelAction(fn (?int $myCenter) => $returns->handToSeller((int) $id, $myCenter));
-    }
-
     public function assignBuyerReturnRider($id, \App\Services\ReturnRefundService $returns)
     {
         return $this->parcelAction(fn (?int $myCenter) => $returns->assignPickupRider((int) $id, request('rider_id'), $myCenter));

@@ -67,7 +67,9 @@ class ReturnRefundTest extends TestCase
         $this->flushSession();
         $this->actingAsUser($logistics)->post(route('logistics.returns.receive', $requestId))->assertSessionHas('success');
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'ready_for_seller']);
-        $this->actingAsUser($logistics)->post(route('logistics.returns.hand-to-seller', $requestId))->assertSessionHas('success');
+        // Only the seller can say they have it.
+        $this->flushSession();
+        $this->actingAsUser($seller)->post(route('seller.return-refund.collected', $requestId))->assertSessionHas('success');
         $this->assertDatabaseHas('return_refund_requests', ['id' => $requestId, 'status' => 'refund_pending']);
 
         $this->flushSession();

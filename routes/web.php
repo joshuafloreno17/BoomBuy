@@ -772,6 +772,7 @@ Route::post('/seller/return-refund/{id}/reject', [SellerController::class, 'reje
 // The returned item came back to the seller: put it back in stock. (The
 // refund itself is sent by BoomBuy — see admin/returns.)
 Route::post('/seller/return-refund/{id}/restock', [SellerController::class, 'restockReturnRefund'])->name('seller.return-refund.restock');
+Route::post('/seller/return-refund/{id}/collected', [SellerController::class, 'collectedReturnRefund'])->whereNumber('id')->name('seller.return-refund.collected');
 
 
 // =====================================================
@@ -781,7 +782,6 @@ Route::post('/seller/return-refund/{id}/restock', [SellerController::class, 'res
 Route::post('/logistics/returns/{id}/receive', [LogisticsController::class, 'receiveBuyerReturn'])->name('logistics.returns.receive');
 Route::post('/logistics/returns/{id}/send', [LogisticsController::class, 'sendBuyerReturn'])->name('logistics.returns.send');
 Route::post('/logistics/returns/{id}/arrive', [LogisticsController::class, 'arriveBuyerReturn'])->name('logistics.returns.arrive');
-Route::post('/logistics/returns/{id}/hand-to-seller', [LogisticsController::class, 'handBuyerReturnToSeller'])->name('logistics.returns.hand-to-seller');
 Route::post('/logistics/returns/{id}/assign-rider', [LogisticsController::class, 'assignBuyerReturnRider'])->whereNumber('id')->name('logistics.returns.assign-rider');
 
 

@@ -817,7 +817,8 @@
                     'toReceive' => ['Buyer brings it here', 'logistics.returns.receive', 'Received From Buyer', 'bi-box-arrow-in-down', 'Check the item matches return #:id, then take it.'],
                     'toSend' => ['Send to the seller\'s center', 'logistics.returns.send', 'Send to Seller\'s Center', 'bi-send-fill', null],
                     'incoming' => ['On its way here', 'logistics.returns.arrive', 'It Arrived', 'bi-box-seam-fill', null],
-                    'forSeller' => ['Waiting for the seller', 'logistics.returns.hand-to-seller', 'Seller Collected It', 'bi-bag-check-fill', null],
+                    // The seller confirms it themselves (Seller → Orders → Return Requests), not the staff.
+                    'forSeller' => ['Waiting for the seller', null, null, 'bi-bag-check-fill', 'Give it to the seller when they show return #:id. The seller taps "I Collected It" on their side.'],
                 ];
             @endphp
             <h2 class="section-heading" id="buyer-returns"><i class="bi bi-arrow-return-left"></i> Returns from Buyers ({{ $returnCount }})</h2>
@@ -890,12 +891,14 @@
                             <div class="remarks-note">{{ str_replace(':id', $return->id, $stepHint) }}</div>
                         @endif
 
+                        @if($stepRoute)
                         <div class="app-actions">
                             <form method="POST" action="{{ route($stepRoute, $return->id) }}">
                                 @csrf
                                 <button type="submit" class="approve-btn"><i class="bi {{ $stepIcon }}"></i> {{ $stepButton }}</button>
                             </form>
                         </div>
+                        @endif
                     </div>
                 @endforeach
             @endforeach

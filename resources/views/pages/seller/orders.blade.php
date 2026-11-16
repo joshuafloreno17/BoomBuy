@@ -562,6 +562,13 @@
                                             @break
                                         @case('ready_for_seller')
                                             <i class="bi bi-shop"></i> <strong>Collect it at your Sorting Center</strong> — give them return number #{{ $request->id }}.
+                                            <form action="{{ route('seller.return-refund.collected', ['id' => $request->id]) }}" method="POST" style="margin-top:10px;"
+                                                  data-confirm="Only tap this once the returned item is in your hands. BoomBuy will then send the buyer's refund.">
+                                                @csrf
+                                                <button type="submit" class="btn btn-approve">
+                                                    <i class="bi bi-bag-check-fill"></i> I Collected It
+                                                </button>
+                                            </form>
                                             @break
                                         @case('disputed')
                                             <i class="bi bi-shield-check"></i> The buyer asked BoomBuy to review this. BoomBuy will decide and tell you.

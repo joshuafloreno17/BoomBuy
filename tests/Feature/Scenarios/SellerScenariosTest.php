@@ -322,11 +322,15 @@ class SellerScenariosTest extends TestCase
         $staff = $this->staffAt($this->laguna);
         $this->flushSession();
         $this->actingAsUser($staff)->post(route('logistics.returns.receive', $return))->assertSessionHas('success');
-        $this->post(route('logistics.returns.hand-to-seller', $return))->assertSessionHas('success');
-        $this->assertSame('refund_pending', $statusOf($return));
+        $this->assertSame('ready_for_seller', $statusOf($return));
+        $this->get(route('logistics.parcels', ['tab' => 'returns']))->assertOk()->assertDontSee('Seller Collected It');
 
         $this->flushSession();
-        $this->asSeller()->get(route('seller.orders', ['tab' => 'returns']))->assertOk()->assertSee('Add back to stock');
+        $this->asSeller()->get(route('seller.orders', ['tab' => 'returns']))->assertOk()->assertSee('I Collected It');
+        $this->post(route('seller.return-refund.collected', $return))->assertSessionHas('success');
+        $this->assertSame('refund_pending', $statusOf($return));
+        $this->post(route('seller.return-refund.collected', $return))->assertSessionHas('error');
+        $this->get(route('seller.orders', ['tab' => 'returns']))->assertOk()->assertSee('Add back to stock');
         $this->post(route('seller.return-refund.restock', $return))->assertSessionHas('success');
         $this->assertSame(11, $this->stockOf($this->shoes));
 

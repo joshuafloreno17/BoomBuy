@@ -420,31 +420,29 @@ class ReturnRefundService
     }
 
     /**
-     * The seller took the returned item. The refund is now BoomBuy's to send.
+     * The seller confirms they have the returned item in hand. Only the seller
+     * can say this (the center staff can't vouch for it). The refund is now
+     * BoomBuy's to send.
      *
      * @throws ActionFailed
      */
-    public function handToSeller(int $requestId, ?int $centerId = null): string
+    public function sellerCollected(int $sellerId, int $requestId): string
     {
-        $request = $this->find($requestId);
+        $request = $this->find($requestId, fn ($q) => $q->where('return_refund_requests.seller_id', $sellerId));
 
         if ($request->status !== 'ready_for_seller') {
-            throw new ActionFailed('This return is not waiting for its seller.');
+            throw new ActionFailed('This return is not waiting for you at your Sorting Center yet.');
         }
-
-        $this->mustBeAt($request->current_center_id, $centerId, 'is at another Sorting Center');
 
         $this->move($requestId, 'ready_for_seller', 'refund_pending', ['returned_at' => now()]);
 
-        if ($request->seller_id) {
-            createNotification((int) $request->seller_id, 'Returned Item Collected', 'You collected the returned ' . $request->product_name . ' (order #' . $request->order_id . '). If it can be sold again, tap "Add back to stock" on your Return Requests tab.', 'return_refund', $requestId);
-        }
+        ParcelRoute::notifyCenter($request->current_center_id ? (int) $request->current_center_id : null, 'Return Collected', 'The seller collected return #' . $requestId . ' (order #' . $request->order_id . ').', 'parcel', (int) $request->order_id);
 
         createNotification((int) $request->buyer_id, 'Return Delivered to Seller', 'The seller has your returned ' . $request->product_name . '. BoomBuy will send your refund of ₱' . number_format((float) $request->refund_amount, 2) . ' shortly.', 'return_refund', $requestId);
 
         $this->tellAdmin('Refund to Send', 'Return #' . $requestId . ' (order #' . $request->order_id . ') is back with the seller. Send the buyer ₱' . number_format((float) $request->refund_amount, 2) . '.', $requestId);
 
-        return 'Return #' . $requestId . ' handed to the seller.';
+        return 'Got it — return #' . $requestId . ' is back with you. If it can be sold again, tap "Add back to stock".';
     }
 
     // ------------------------------------------------------------------
@@ -706,7 +704,7 @@ class ReturnRefundService
             (int) $request->seller_id,
             'Collect a Returned Item',
             'The returned ' . $request->product_name . ' (return #' . $request->id . ', order #' . $request->order_id . ') is waiting for you at '
-                . ($center ? $center->name . ' (' . ($center->address ?: $center->town) . ')' : 'your Sorting Center') . '.',
+                . ($center ? $center->name . ' (' . ($center->address ?: $center->town) . ')' : 'your Sorting Center') . '. Once you have it, tap "I Collected It" on your Return Requests tab.',
             'return_refund',
             (int) $request->id
         );

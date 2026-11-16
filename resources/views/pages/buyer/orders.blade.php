@@ -136,6 +136,12 @@
 
                             $orderGroup = \App\Support\BuyerOrderTabs::group($order, $returnRequests->get($order['id'], collect())->where('status', '!=', 'cancelled')->isNotEmpty());
 
+                            // Refunded items (a request covers a whole line): every line → "Refunded", some → "Partly Refunded".
+                            $refundedLines = $returnRequests->get($order['id'], collect())->where('status', 'completed')->pluck('order_item_id')->map(fn ($id) => (int) $id)->unique();
+                            $orderLines = collect($order['items'] ?? [])->pluck('id')->map(fn ($id) => (int) $id);
+                            $fullyRefunded = $orderLines->isNotEmpty() && $orderLines->diff($refundedLines)->isEmpty();
+                            $pillStatus = $fullyRefunded ? 'Refunded' : ($refundedLines->isNotEmpty() ? 'Partly Refunded' : ($order['status'] ?? 'Pending'));
+
                             // Rider + map only mean something once a rider
                             // actually has the parcel; a closed order (cancelled,
                             // failed, returned) gets its own short history instead
@@ -206,7 +212,7 @@
 
                                 </div>
 
-                                <x-status-pill :status="$order['status'] ?? 'Pending'" />
+                                <x-status-pill :status="$pillStatus ?? ($order['status'] ?? 'Pending')" />
 
                             </div>
 
@@ -698,7 +704,7 @@
                                             <i class="bi bi-receipt"></i> View Details
                                         </button>
 
-                                        @if(\Illuminate\Support\Carbon::parse($order['delivered_at'] ?? $order['buyer_received_at'] ?? $order['updated_at'])->addDays(\App\Support\AutoReceive::RETURN_WINDOW_DAYS)->isFuture())
+                                        @if(!$fullyRefunded && \Illuminate\Support\Carbon::parse($order['delivered_at'] ?? $order['buyer_received_at'] ?? $order['updated_at'])->addDays(\App\Support\AutoReceive::RETURN_WINDOW_DAYS)->isFuture())
                                         <button
                                             type="button"
                                             class="return-btn"
@@ -1122,7 +1128,7 @@
                                         </div>
 
                                         <div class="tracking-box-value">
-                                            <x-status-pill :status="$order['status'] ?? 'Pending'" />
+                                            <x-status-pill :status="$pillStatus ?? ($order['status'] ?? 'Pending')" />
                                         </div>
 
                                     </div>

@@ -116,7 +116,7 @@ class ReturnsAndPayoutsScenariosTest extends TestCase
         $this->as($this->lagunaStaff)->post(route('logistics.returns.arrive', $id))->assertSessionHas('success');
         $this->assertSame('ready_for_seller', $this->statusOf($id));
         $this->assertTrue($this->notifiedWith($this->seller, 'Collect a Returned Item'));
-        $this->post(route('logistics.returns.hand-to-seller', $id))->assertSessionHas('success');
+        $this->as($this->seller)->post(route('seller.return-refund.collected', $id))->assertSessionHas('success');
         $this->assertSame('refund_pending', $this->statusOf($id));
 
         // BoomBuy sends the money and the buyer sees the reference.

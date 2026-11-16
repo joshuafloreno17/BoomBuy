@@ -27,7 +27,9 @@
         'Returning to Branch' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-arrow-repeat'],
         'Return Ready' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-box-seam'],
         'Returned to Seller' => ['bg' => '#f5f0e6', 'color' => '#8a6d3b', 'icon' => 'bi-arrow-return-left'],
-        'Cancelled' => ['bg' => '#fee2e2', 'color' => '#dc2626', 'icon' => 'bi-slash-circle-fill'],
+        'Refunded' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-cash-coin'],
+        'Partly Refunded' => ['bg' => '#eee8ff', 'color' => 'var(--accent-dark)', 'icon' => 'bi-cash-coin'],
+        'Cancelled' =>['bg' => '#fee2e2', 'color' => '#dc2626', 'icon' => 'bi-slash-circle-fill'],
     ];
 
     $style = $styles[$status] ?? ['bg' => '#f1f0ee', 'color' => '#645a80', 'icon' => 'bi-circle-fill'];

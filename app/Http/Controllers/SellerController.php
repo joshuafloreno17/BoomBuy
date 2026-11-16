@@ -2518,6 +2518,11 @@ class SellerController extends Controller
         return $this->sellerOrderAction(fn (array $user) => $returns->restock((int) $user['id'], (int) $id));
     }
 
+    public function collectedReturnRefund($id, ReturnRefundService $returns)
+    {
+        return $this->sellerOrderAction(fn (array $user) => $returns->sellerCollected((int) $user['id'], (int) $id));
+    }
+
     public function showRegister()
     {
         return view('pages.seller.register');
