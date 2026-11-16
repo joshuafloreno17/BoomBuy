@@ -1279,7 +1279,6 @@
     const target = document.getElementById('rating-' + key);
 
     if (!target) {
-        console.log('Rating panel not found:', 'rating-' + key);
         return;
     }
 
